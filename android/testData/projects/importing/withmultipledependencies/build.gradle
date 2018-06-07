@@ -16,7 +16,7 @@
 apply plugin: 'java'
 
 dependencies {
-    compile 'com.google.guava:guava:+'
+    compile 'com.google.guava:guava:22.0'
     compile fileTree(include: ['*.jar'], dir: 'lib')
     compile files('lib/library.jar', 'some/other/file.jar')
 }

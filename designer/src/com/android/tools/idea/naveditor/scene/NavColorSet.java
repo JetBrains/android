@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
-import com.android.tools.sherpa.drawing.ColorSet;
-import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecorator;
+import com.intellij.ui.JBColor;
 
 import java.awt.*;
 
@@ -24,22 +25,42 @@ import java.awt.*;
  * {@link ColorSet} for the navigation editor.
  */
 public class NavColorSet extends ColorSet {
+  private Color mActions;
+  private Color mHighlightedActions;
+  private Color mSelectedActions;
+
   public NavColorSet() {
-    // TODO: most of the values below are wrong or unnecessary
-
     mStyle = WidgetDecorator.ANDROID_STYLE;
-
-    mShadow = new Color(250, 250, 250);
-    mSelectedFrames = Color.blue;
-    mComponentBackground = Color.WHITE;
-    mBackground = Color.WHITE;
-    mFrames = Color.black;
-    mSelectedText = Color.blue;
-    mText = Color.black;
-    mHighlightedFrames = new Color(106, 161, 211);
-    mSubduedBackground = new Color(0xfc, 0xfc, 0xfc);
-
     mDrawBackground = true;
     mDrawWidgetInfos = false;
+
+    mFrames = new JBColor(0xa7a7a7, 0x2d2f31);
+    mHighlightedFrames = new JBColor(0xa7a7a7, 0xa1a1a1);
+    mSelectedFrames = new JBColor(0x1886f7, 0x9ccdff);
+    mSubduedFrames = new JBColor(0xa7a7a7, 0xa1a1a1);
+
+    mBackground = new JBColor(0xf5f5f5, 0x2d2f31);
+    mSubduedBackground = new JBColor(0xfcfcfc, 0x313435);
+    mComponentBackground = new JBColor(0xfafafa, 0x515658);
+
+    mText = new JBColor(0xa7a7a7, 0x888888);
+    mSelectedText = new JBColor(0x1886f7, 0x9ccdff);
+    mSubduedText = new JBColor(0x656565, 0xbababb);
+
+    mActions = new JBColor(new Color(0xb2a7a7a7, true), new Color(0xb2888888, true));
+    mHighlightedActions = new JBColor(0xa7a7a7, 0x888888);
+    mSelectedActions = new JBColor(0x1886f7, 0x9ccdff);
+  }
+
+  public Color getActions()  {
+    return mActions;
+  }
+
+  public Color getHighlightedActions()  {
+    return mHighlightedActions;
+  }
+
+  public Color getSelectedActions() {
+    return mSelectedActions;
   }
 }

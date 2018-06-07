@@ -30,7 +30,7 @@ import java.io.IOException;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.UNDO;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
-@Ignore("fails; replace with headless integration test; see ag/2070451")
+@Ignore("fails; replace with headless integration test; see b/37730035")
 @RunWith(GuiTestRunner.class)
 public class GradleIncreaseLanguageLevelTest {
 

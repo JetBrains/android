@@ -47,7 +47,7 @@ public class GutterIconCache {
    * Stores timestamps for the last modification time of image files using the
    * path as a key.
    */
-  private Map<String, Long> myTimestampCache = Maps.newHashMap();
+  private Map<String, Long> myModificationStampCache = Maps.newHashMap();
   private boolean myRetina;
 
   public GutterIconCache() {
@@ -60,11 +60,11 @@ public class GutterIconCache {
 
   @VisibleForTesting
   boolean isIconUpToDate(@NotNull String path) {
-    if (myTimestampCache.containsKey(path)) {
+    if (myModificationStampCache.containsKey(path)) {
       // Entry is valid if image resource has not been modified since the entry was cached
       VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
       if (file != null) {
-        return myTimestampCache.get(path) == file.getTimeStamp()
+        return myModificationStampCache.get(path) == file.getModificationStamp()
                && !FileDocumentManager.getInstance().isFileModified(file);
       }
     }
@@ -92,7 +92,7 @@ public class GutterIconCache {
       // Record timestamp of image resource at the time of caching
       VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
       if (file != null) {
-        myTimestampCache.put(path, file.getTimeStamp());
+        myModificationStampCache.put(path, file.getModificationStamp());
       }
     }
 

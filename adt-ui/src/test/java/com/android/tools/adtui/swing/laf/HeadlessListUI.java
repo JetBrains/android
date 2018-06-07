@@ -35,7 +35,7 @@ import java.awt.event.MouseListener;
  * To use, you must remember to call {@code someList.setUI(new HeadlessListUI()} before calling
  * methods like {@link FakeMouse#click(int, int)} or {@link FakeKeyboard#press(FakeKeyboard.Key)}.
  *
- * NOTE: Changing the UI of a component can subtley change its behavior! This class may need to be
+ * NOTE: Changing the UI of a component can subtly change its behavior! This class may need to be
  * updated in the future to add more functionality, so it more closely matches its parent class.
  */
 public class HeadlessListUI extends BasicListUI {

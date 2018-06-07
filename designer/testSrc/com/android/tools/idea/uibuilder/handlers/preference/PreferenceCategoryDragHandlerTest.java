@@ -106,7 +106,7 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
   @NotNull
   private PreferenceGroupDragHandler newPreferenceCategoryDragHandler(@NotNull SyncNlModel model, @NotNull NlComponent category) {
     ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
-    Scene scene = new SyncLayoutlibSceneManager(model).build();
+    Scene scene = new SyncLayoutlibSceneManager(model).getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 
     SceneComponent component = scene.getSceneComponent(category);

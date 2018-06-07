@@ -18,7 +18,6 @@ package com.android.tools.idea.common.model;
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.naveditor.editor.NavToolbarActionGroups;
-import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.uibuilder.adaptiveicon.AdaptiveIconActionGroups;
 import com.android.tools.idea.uibuilder.editor.DefaultNlToolbarActionGroups;
 import com.android.tools.idea.common.editor.SetZoomActionGroups;
@@ -33,6 +32,7 @@ import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -87,7 +87,7 @@ public enum NlLayoutType {
   NAV(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return NavSceneManager.enableNavigationEditor() && NavigationDomFileDescription.isNavFile(file);
+      return NavigationSchema.enableNavigationEditor() && NavigationDomFileDescription.isNavFile(file);
     }
 
     @NotNull
@@ -100,14 +100,14 @@ public enum NlLayoutType {
   PREFERENCE_SCREEN(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return FileDescriptionUtils.isResourceOfType(file, ResourceFolderType.XML, Collections.singleton(SdkConstants.TAG_PREFERENCE_SCREEN));
+      return FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.XML, Collections.singleton(SdkConstants.TAG_PREFERENCE_SCREEN));
     }
   },
 
   STATE_LIST(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return FileDescriptionUtils.isResourceOfType(file, ResourceFolderType.DRAWABLE, Collections.singleton(SdkConstants.TAG_SELECTOR));
+      return FileDescriptionUtils.isResourceOfTypeContainingTag(file, ResourceFolderType.DRAWABLE, Collections.singleton(SdkConstants.TAG_SELECTOR));
     }
 
     @NotNull
@@ -139,7 +139,7 @@ public enum NlLayoutType {
   VECTOR(false) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return FileDescriptionUtils.isResourceOfType(file, ResourceFolderType.DRAWABLE, Collections.singleton(SdkConstants.TAG_VECTOR));
+      return FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.DRAWABLE, Collections.singleton(SdkConstants.TAG_VECTOR));
     }
 
     @NotNull

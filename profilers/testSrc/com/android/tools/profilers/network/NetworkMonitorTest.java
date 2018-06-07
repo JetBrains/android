@@ -87,9 +87,9 @@ public class NetworkMonitorTest {
   public void getLegends() {
     NetworkMonitor.NetworkLegends networkLegends = myMonitor.getLegends();
     assertEquals("Receiving", networkLegends.getRxLegend().getName());
-    assertEquals("2 B/S", networkLegends.getRxLegend().getValue());
+    assertEquals("2 B/s", networkLegends.getRxLegend().getValue());
     assertEquals("Sending", networkLegends.getTxLegend().getName());
-    assertEquals("1 B/S", networkLegends.getTxLegend().getValue());
+    assertEquals("1 B/s", networkLegends.getTxLegend().getValue());
 
     List<Legend> legends = networkLegends.getLegends();
     assertEquals(2, legends.size());

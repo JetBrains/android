@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2017 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<component name="LanguageInjectionConfiguration">
+  <injection language="RoomSql" injector-id="java">
+    <display-name>Room Query annotation</display-name>
+    <place><![CDATA[psiMethod().withName("value").withParameters().definedInClass("android.arch.persistence.room.Query")]]></place>
+  </injection>
+  <injection language="RoomSql" injector-id="java">
+    <display-name>SQLiteDatabase methods</display-name>
+    <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("compileStatement").withParameters("java.lang.String").definedInClass("android.database.sqlite.SQLiteDatabase"))]]></place>
+    <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("execSQL").withParameters("java.lang.String").definedInClass("android.database.sqlite.SQLiteDatabase"))]]></place>
+    <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("execSQL").withParameters("java.lang.String", "java.lang.Object[]").definedInClass("android.database.sqlite.SQLiteDatabase"))]]></place>
+    <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("rawQuery").withParameters("java.lang.String", "java.lang.String[]").definedInClass("android.database.sqlite.SQLiteDatabase"))]]></place>
+    <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("rawQuery").withParameters("java.lang.String", "java.lang.String[]", "android.os.CancellationSignal").definedInClass("android.database.sqlite.SQLiteDatabase"))]]></place>
+    <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("validateSql").withParameters("java.lang.String", "android.os.CancellationSignal").definedInClass("android.database.sqlite.SQLiteDatabase"))]]></place>
+    <place><![CDATA[psiParameter().ofMethod(1, psiMethod().withName("rawQueryWithFactory").withParameters("android.database.sqlite.SQLiteDatabase.CursorFactory", "java.lang.String", "java.lang.String[]", "java.lang.String").definedInClass("android.database.sqlite.SQLiteDatabase"))]]></place>
+    <place><![CDATA[psiParameter().ofMethod(1, psiMethod().withName("rawQueryWithFactory").withParameters("android.database.sqlite.SQLiteDatabase.CursorFactory", "java.lang.String", "java.lang.String[]", "java.lang.String", "android.os.CancellationSignal").definedInClass("android.database.sqlite.SQLiteDatabase"))]]></place>
+    <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("compileStatement").withParameters("java.lang.String").definedInClass("android.arch.persistence.db.SupportSQLiteDatabase"))]]></place>
+    <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("execSQL").withParameters("java.lang.String").definedInClass("android.arch.persistence.db.SupportSQLiteDatabase"))]]></place>
+    <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("execSQL").withParameters("java.lang.String", "java.lang.Object[]").definedInClass("android.arch.persistence.db.SupportSQLiteDatabase"))]]></place>
+  </injection>
+</component>
+

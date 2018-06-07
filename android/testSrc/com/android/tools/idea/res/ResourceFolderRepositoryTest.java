@@ -1221,6 +1221,74 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
+  /**
+   * We expect this change to update the counter (so the layout editor notices the change but it shouldn't
+   * change any resources since it does not add or remove ids.
+   */
+  public void testEditNonIdFromDrawable() {
+    resetScanCounter();
+
+    VirtualFile file = myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable-v21/drawable_with_ids.xml");
+    PsiFile psiFiles = PsiManager.getInstance(getProject()).findFile(file);
+    assertNotNull(psiFiles);
+
+    ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+
+    // Now test an ID edit, to make sure that gets picked up too incrementally, just like layouts.
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(psiFiles);
+    assertNotNull(document);
+
+    // Edit attribute value
+    long generation = resources.getModificationCount();
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("drawableP");
+      final int lineNumber = document.getLineNumber(offset);
+      document.insertString(offset, "2");
+      documentManager.commitDocument(document);
+    });
+
+    // The change does not need a rescan
+    assertFalse(resources.isScanPending(psiFiles));
+    UIUtil.dispatchAllInvocationEvents();
+    assertTrue(generation < resources.getModificationCount());
+  }
+
+  /**
+   * We expect this change to update the counter (so the layout editor notices the change but it shouldn't
+   * change any resources since it does not add or remove ids.
+   */
+  public void testEditNonIdGeneratingXml() {
+    resetScanCounter();
+
+    VirtualFile file = myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/xml/xml_file.xml");
+    PsiFile psiFiles = PsiManager.getInstance(getProject()).findFile(file);
+    assertNotNull(psiFiles);
+
+    ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+
+    // Now test an ID edit, to make sure that gets picked up too incrementally, just like layouts.
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(psiFiles);
+    assertNotNull(document);
+
+    // Edit attribute value
+    long generation = resources.getModificationCount();
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("drawableP");
+      final int lineNumber = document.getLineNumber(offset);
+      document.insertString(offset, "2");
+      documentManager.commitDocument(document);
+    });
+
+    // The change does not need a rescan
+    assertFalse(resources.isScanPending(psiFiles));
+    UIUtil.dispatchAllInvocationEvents();
+    assertTrue(generation < resources.getModificationCount());
+  }
+
   public void testEditValueText() throws Exception {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");

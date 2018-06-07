@@ -31,56 +31,40 @@ import com.android.tools.idea.uibuilder.model.getBaseline
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.collect.ImmutableList
-import java.awt.Graphics2D
 
 /**
  * Handler of New Target Architecture for the `<RelativeLayout>` layout
- * Current progress:
- * 1. Delegate all non target related functions to RelativeLayoutHandler.java
- * 2. Resizing target for widgets
- * 3. Dragging a widget inside RelativeLayout
- * 4. Drag to other widgets
  *
  * TODO:
  * - Don't allow selecting multiple widgets.
- * - Render the decoration by SceneManager
  */
 class RelativeLayoutHandlerKt : ViewGroupHandler() {
 
-  // TODO: Remove this and migrate all delegated functions when this class is ready.
-  private val myLegacyHandler = RelativeLayoutHandler()
-
-  override fun paintConstraints(screenView: ScreenView, graphics: Graphics2D, component: NlComponent): Boolean =
-      myLegacyHandler.paintConstraints(screenView, graphics, component)
-
-  override fun createDragHandler(editor: ViewEditor, layout: SceneComponent, components: List<NlComponent>, type: DragType): DragHandler? =
-      myLegacyHandler.createDragHandler(editor, layout, components, type)
+  override fun createDragHandler(editor: ViewEditor, layout: SceneComponent, components: List<NlComponent>, type: DragType): DragHandler? {
+    if (layout.drawWidth == 0 || layout.drawHeight == 0) {
+      return null
+    }
+    return RelativeDragHandlerKt(editor, this, layout, components, type)
+  }
 
   override fun handlesPainting(): Boolean = true
 
-  override fun createInteraction(screenView: ScreenView, layout: NlComponent): SceneInteraction = SceneInteraction(screenView)
+  override fun createInteraction(screenView: ScreenView, layout: NlComponent) = SceneInteraction(screenView)
 
-  override fun createTargets(sceneComponent: SceneComponent, isParent: Boolean): List<Target> {
+  override fun createTargets(sceneComponent: SceneComponent): List<Target> {
     val listBuilder = ImmutableList.Builder<Target>()
-    if (isParent) {
-      // RelativeLayout cases, create the target related to attributes of parent
-      createParentTargets(listBuilder)
-    }
-    else {
-      // children components cases
-      listBuilder.add(RelativeDragTarget())
-      createResizeTarget(listBuilder)
-
-      // create related target of this component.
-      createWidgetTargets(listBuilder, sceneComponent)
-    }
+    RelativeParentTarget.Type.values().forEach { listBuilder.add(RelativeParentTarget(it)) }
     return listBuilder.build()
   }
 
-  private fun createParentTargets(listBuilder: ImmutableList.Builder<Target>) =
-      RelativeParentTarget.Type.values().forEach { listBuilder.add(RelativeParentTarget(it)) }
+  override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent): List<Target> {
+    val listBuilder = ImmutableList.builder<Target>()
+    listBuilder.add(RelativeDragTarget())
+    createResizeTarget(listBuilder)
+    createWidgetTargets(listBuilder, childComponent)
+    return listBuilder.build()
+  }
 
-  // TODO: limit resizing options. (e.g. alignParentLeft -> don't allow resizing from left sides)
   private fun createResizeTarget(listBuilder: ImmutableList.Builder<Target>) =
       ResizeBaseTarget.Type.values().forEach { listBuilder.add(RelativeResizeTarget(it)) }
 

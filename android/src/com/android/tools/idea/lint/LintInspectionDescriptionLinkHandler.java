@@ -20,6 +20,7 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.codeInsight.highlighting.TooltipLinkHandler;
 import com.intellij.openapi.editor.Editor;
+import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -28,6 +29,10 @@ public class LintInspectionDescriptionLinkHandler extends TooltipLinkHandler {
   @Override
   public String getDescription(@NotNull final String refSuffix, @NotNull final Editor editor) {
     Issue issue = new BuiltinIssueRegistry().getIssue(refSuffix);
+    if (issue == null) {
+      issue = AndroidLintInspectionBase.findIssueByShortName(editor.getProject(), refSuffix);
+    }
+
     if (issue != null) {
       String html = issue.getExplanation(TextFormat.HTML);
 

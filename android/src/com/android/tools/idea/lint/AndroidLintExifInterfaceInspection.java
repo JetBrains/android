@@ -18,15 +18,19 @@ package com.android.tools.idea.lint;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.lint.checks.ExifInterfaceDetector;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.history.LocalHistory;
 import com.intellij.history.LocalHistoryAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
@@ -40,9 +44,9 @@ import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 
 public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBase {
   public static final String NEW_EXIT_INTERFACE = "android.support.media.ExifInterface";
@@ -97,14 +101,8 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
                     }
                   });
                 }
-                GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false).setTrigger(
-                  TRIGGER_PROJECT_MODIFIED);
-                GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener.Adapter() {
-                  @Override
-                  public void syncSucceeded(@NotNull Project project) {
-                    DumbService.getInstance(project).runWhenSmart(() -> replaceReferences(startElement));
-                  }
-                });
+
+                syncAndReplaceReferences(project, startElement);
               }
             }.execute();
           }
@@ -115,9 +113,30 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
       }
     }
 
+    private void syncAndReplaceReferences(@NotNull Project project, @NotNull PsiElement startElement) {
+      assert ApplicationManager.getApplication().isDispatchThread();
+
+      ListenableFuture<ProjectSystemSyncManager.SyncResult> syncResult = ProjectSystemUtil.getProjectSystem(project)
+        .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, false);
+
+      Futures.addCallback(syncResult, new FutureCallback<ProjectSystemSyncManager.SyncResult>() {
+        @Override
+        public void onSuccess(@Nullable ProjectSystemSyncManager.SyncResult syncResult) {
+          if (syncResult != null && syncResult.isSuccessful()) {
+            DumbService.getInstance(project).runWhenSmart(() -> replaceReferences(startElement));
+          }
+        }
+
+        @Override
+        public void onFailure(@Nullable Throwable t) {
+          throw new RuntimeException(t);
+        }
+      });
+    }
+
     private static String getExifLibraryCoordinate() {
       RepositoryUrlManager manager = RepositoryUrlManager.get();
-      String libraryCoordinate = manager.getLibraryStringCoordinate(SupportLibrary.EXIF_INTERFACE, true);
+      String libraryCoordinate = manager.getArtifactStringCoordinate(GoogleMavenArtifactId.EXIF_INTERFACE, true);
       if (libraryCoordinate != null) {
         GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(libraryCoordinate);
         if (coordinate != null) {

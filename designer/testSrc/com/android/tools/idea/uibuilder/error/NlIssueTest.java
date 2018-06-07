@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.error;
 
+import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
+import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
@@ -25,13 +28,17 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.List;
+
+import static org.mockito.Mockito.mock;
+
 public class NlIssueTest {
 
   @Mock
-  NlComponent component1;
+  private NlComponent component1;
 
   @Mock
-  NlComponent component2;
+  private NlComponent component2;
 
   private static class TestIssue extends NlIssue {
 
@@ -117,5 +124,21 @@ public class NlIssueTest {
     Assert.assertNotEquals(er4, er5);
     Assert.assertEquals(er5, er6);
     Assert.assertNotEquals(er3.hashCode(), er4.hashCode());
+  }
+
+  @Test
+  public void testNlLintIssueEqual() {
+    LintAnnotationsModel model = new LintAnnotationsModel();
+    NlComponent sameComponent = mock(NlComponent.class);
+    PsiElement startElement = mock(PsiElement.class);
+    PsiElement endElement = mock(PsiElement.class);
+    MockIssueFactory.addLintIssue(model, HighlightDisplayLevel.ERROR, sameComponent, startElement, endElement);
+    MockIssueFactory.addLintIssue(model, HighlightDisplayLevel.ERROR, sameComponent, startElement, endElement);
+    MockIssueFactory.addLintIssue(model, HighlightDisplayLevel.ERROR, sameComponent);
+    List<LintAnnotationsModel.IssueData> issues = model.getIssues();
+    Assert.assertEquals(NlIssue.wrapIssue(issues.get(0)), NlIssue.wrapIssue(issues.get(1)));
+    Assert.assertEquals(NlIssue.wrapIssue(issues.get(0)).hashCode(), NlIssue.wrapIssue(issues.get(1)).hashCode());
+    Assert.assertNotEquals(NlIssue.wrapIssue(issues.get(0)), NlIssue.wrapIssue(issues.get(2)));
+    Assert.assertNotEquals(NlIssue.wrapIssue(issues.get(0)).hashCode(), NlIssue.wrapIssue(issues.get(2)).hashCode());
   }
 }

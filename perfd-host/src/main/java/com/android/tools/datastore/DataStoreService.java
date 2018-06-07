@@ -17,6 +17,7 @@ package com.android.tools.datastore;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.service.*;
 import com.android.tools.profiler.proto.*;
 import com.google.wireless.android.sdk.stats.AndroidProfilerDbStats;
@@ -40,8 +41,7 @@ import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURAB
 /**
  * Primary class that initializes the Datastore. This class currently manages connections to perfd and sets up the DataStore service.
  */
-public class DataStoreService {
-
+public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallback {
   /**
    * DB report timings are set to occur relatively infrequently, as they include a fair amount of
    * data (~100 bytes). Ideally, we would just send a single reporting event, when the user stopped
@@ -79,17 +79,22 @@ public class DataStoreService {
     }
   }
 
-  private static final Logger LOG = Logger.getInstance(DataStoreService.class.getCanonicalName());
+  private static final Logger getLogger() {
+    return Logger.getInstance(DataStoreService.class.getCanonicalName());
+  }
+
   private final String myDatastoreDirectory;
   private final Map<BackingNamespace, DataStoreDatabase> myDatabases = new HashMap<>();
-  private final HashMap<Common.Session, Long> mySessionIdLookup = new HashMap<>();
   private final ServerBuilder myServerBuilder;
   private final Server myServer;
   private final List<ServicePassThrough> myServices = new ArrayList<>();
   private final Consumer<Runnable> myFetchExecutor;
+  @NotNull
+  private Consumer<Throwable> myNoPiiExceptionHanlder;
+
   private ProfilerService myProfilerService;
   private final ServerInterceptor myInterceptor;
-  private final Map<Common.Session, DataStoreClient> myConnectedClients = new HashMap<>();
+  private final Map<DeviceId, DataStoreClient> myConnectedClients = new HashMap<>();
 
   private final Timer myReportTimer;
 
@@ -98,7 +103,9 @@ public class DataStoreService {
    *                      The runnable, when run, begins polling the target service. You probably
    *                      want to run it on a background thread.
    */
-  public DataStoreService(@NotNull String serviceName, @NotNull String datastoreDirectory, Consumer<Runnable> fetchExecutor) {
+  public DataStoreService(@NotNull String serviceName,
+                          @NotNull String datastoreDirectory,
+                          @NotNull Consumer<Runnable> fetchExecutor) {
     this(serviceName, datastoreDirectory, fetchExecutor, null);
   }
 
@@ -110,17 +117,23 @@ public class DataStoreService {
     myInterceptor = interceptor;
     myDatastoreDirectory = datastoreDirectory;
     myServerBuilder = InProcessServerBuilder.forName(serviceName).directExecutor();
+    myNoPiiExceptionHanlder = (t) -> getLogger().error(t);
     createPollers();
     myServer = myServerBuilder.build();
     try {
       myServer.start();
     }
     catch (IOException ex) {
-      LOG.error(ex.getMessage());
+      getLogger().error(ex.getMessage());
     }
 
     myReportTimer = new Timer("DataStoreReportTimer");
     myReportTimer.schedule(new ReportTimerTask(), REPORT_INITIAL_DELAY, REPORT_PERIOD);
+    DataStoreTable.addDataStoreErrorCallback(this);
+  }
+
+  public void setNoPiiExceptionHanlder(@NotNull Consumer<Throwable> noPiiExceptionHanlder) {
+    myNoPiiExceptionHanlder = noPiiExceptionHanlder;
   }
 
   /**
@@ -128,18 +141,21 @@ public class DataStoreService {
    * and registered as the set of features the datastore supports.
    */
   public void createPollers() {
-    myProfilerService = new ProfilerService(this, myFetchExecutor, mySessionIdLookup);
+    myProfilerService = new ProfilerService(this, myFetchExecutor);
     registerService(myProfilerService);
-    registerService(new EventService(this, myFetchExecutor, mySessionIdLookup));
-    registerService(new CpuService(this, myFetchExecutor, mySessionIdLookup));
-    registerService(new MemoryService(this, myFetchExecutor, mySessionIdLookup));
-    registerService(new NetworkService(this, myFetchExecutor, mySessionIdLookup));
+    registerService(new EventService(this, myFetchExecutor));
+    registerService(new CpuService(this, myFetchExecutor));
+    registerService(new MemoryService(this, myFetchExecutor));
+    registerService(new NetworkService(this, myFetchExecutor));
+    registerService(new EnergyService(this, myFetchExecutor));
   }
 
   @VisibleForTesting
   @NotNull
-  DataStoreDatabase createDatabase(@NotNull String dbPath, @NotNull DataStoreDatabase.Characteristic characteristic) {
-    return new DataStoreDatabase(dbPath, characteristic);
+  DataStoreDatabase createDatabase(@NotNull String dbPath,
+                                   @NotNull DataStoreDatabase.Characteristic characteristic,
+                                   Consumer<Throwable> noPiiExceptionHandler) {
+    return new DataStoreDatabase(dbPath, characteristic, noPiiExceptionHandler);
   }
 
   /**
@@ -154,7 +170,7 @@ public class DataStoreService {
     namespaces.forEach(namespace -> {
       assert !namespace.myNamespace.isEmpty();
       DataStoreDatabase db = myDatabases.computeIfAbsent(namespace, backingNamespace -> createDatabase(
-        myDatastoreDirectory + backingNamespace.myNamespace, backingNamespace.myCharacteristic));
+        myDatastoreDirectory + backingNamespace.myNamespace, backingNamespace.myCharacteristic, myNoPiiExceptionHanlder));
       service.setBackingStore(namespace, db.getConnection());
     });
 
@@ -179,9 +195,9 @@ public class DataStoreService {
   /**
    * Disconnect from the specified channel.
    */
-  public void disconnect(@NotNull Common.Session session) {
-    if (myConnectedClients.containsKey(session)) {
-      DataStoreClient client = myConnectedClients.remove(session);
+  public void disconnect(@NotNull DeviceId deviceId) {
+    if (myConnectedClients.containsKey(deviceId)) {
+      DataStoreClient client = myConnectedClients.remove(deviceId);
       client.shutdownNow();
       myProfilerService.stopMonitoring(client.getChannel());
     }
@@ -195,6 +211,7 @@ public class DataStoreService {
     }
     myConnectedClients.clear();
     myDatabases.forEach((name, db) -> db.disconnect());
+    DataStoreTable.removeDataStoreErrorCallback(this);
   }
 
   @VisibleForTesting
@@ -202,30 +219,35 @@ public class DataStoreService {
     return myServices;
   }
 
-  public void setConnectedClients(Common.Session session, Channel channel) {
-    if (!myConnectedClients.containsKey(session)) {
-      myConnectedClients.put(session, new DataStoreClient(channel));
+  public void setConnectedClients(@NotNull DeviceId deviceId, @NotNull Channel channel) {
+    if (!myConnectedClients.containsKey(deviceId)) {
+      myConnectedClients.put(deviceId, new DataStoreClient(channel));
     }
   }
 
-  public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient(Common.Session session) {
-    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getCpuClient() : null;
+  public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getCpuClient() : null;
   }
 
-  public EventServiceGrpc.EventServiceBlockingStub getEventClient(Common.Session session) {
-    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getEventClient() : null;
+  public EventServiceGrpc.EventServiceBlockingStub getEventClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getEventClient() : null;
   }
 
-  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient(Common.Session session) {
-    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getNetworkClient() : null;
+  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getNetworkClient() : null;
   }
 
-  public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient(Common.Session session) {
-    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getMemoryClient() : null;
+  public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getMemoryClient() : null;
   }
 
-  public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient(Common.Session session) {
-    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getProfilerClient() : null;
+  public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getProfilerClient() : null;
+  }
+
+  @Override
+  public void onDataStoreError(Throwable t) {
+    myNoPiiExceptionHanlder.accept(t);
   }
 
   /**

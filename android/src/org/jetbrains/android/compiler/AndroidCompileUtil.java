@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.compiler;
 
-import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
+import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.intellij.CommonBundle;
 import com.intellij.compiler.CompilerConfiguration;
@@ -438,17 +438,6 @@ public class AndroidCompileUtil {
       }
     }
     return contentEntry;
-  }
-
-  public static void generate(final Module module, final AndroidAutogeneratorMode mode) {
-    final AndroidFacet facet = AndroidFacet.getInstance(module);
-
-    if (facet != null) {
-      ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.getInstance(facet);
-      if (autogenerating != null) {
-        autogenerating.scheduleSourceRegenerating(mode);
-      }
-    }
   }
 
   public static boolean doGenerate(AndroidFacet facet, final AndroidAutogeneratorMode mode) {

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.android.tools.tests.layout.MyPorterDuffView
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        app:colorFilterMode="9"
+        app:paintMode="9"
+        app:my_color="#AF00"
+        app:overlay_text="text"
+        />
+</LinearLayout>

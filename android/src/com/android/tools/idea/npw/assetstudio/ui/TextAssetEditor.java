@@ -17,65 +17,53 @@ package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
+import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.InvalidationListener;
-import com.android.tools.idea.observable.ObservableValue;
-import com.android.tools.idea.observable.expressions.value.AsValueExpression;
+import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.google.common.collect.Lists;
+import com.intellij.openapi.components.PersistentStateComponent;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Panel which wraps a {@link TextAsset}, allowing the user to enter text value and choose a font
  * from a pulldown.
  */
-public final class TextAssetEditor extends JPanel implements AssetComponent<TextAsset> {
+public final class TextAssetEditor extends JPanel implements AssetComponent<TextAsset>, PersistentStateComponent<PersistentState> {
+  private static final String TEXT_PROPERTY = "text";
+  private static final String FONT_FAMILY_PROPERTY = "fontFamily";
+
   private final TextAsset myTextAsset = new TextAsset();
   private final BindingsManager myBindings = new BindingsManager();
-  private final List<ActionListener> myListeners = Lists.newArrayListWithExpectedSize(1);
-
-  private final JTextField myTextField;
-  private final JComboBox myFontCombo;
+  private final List<ActionListener> myListeners = new ArrayList<>(1);
 
   public TextAssetEditor() {
     super(new TabularLayout("50px,180px"));
 
-    myTextField = new JTextField();
-
-    // TODO: JDK8 - We currently rely on JComboBox because of JDK6 restrictions
-    //noinspection UndesirableClassUsage
-    myFontCombo = new JComboBox();
-
-    add(myTextField, new TabularLayout.Constraint(0, 0));
-    add(myFontCombo, new TabularLayout.Constraint(0, 1));
-
-    myBindings.bindTwoWay(new TextProperty(myTextField), myTextAsset.text());
-
+    JTextField textField = new JTextField();
     List<String> fontFamilies = TextAsset.getAllFontFamilies();
-    for (String fontFamily : fontFamilies) {
-      // We are on JDK6 and have no choice but to use the unchecked JComboBox
-      //noinspection unchecked
-      myFontCombo.addItem(fontFamily);
-    }
-    final String initialFont = myTextAsset.fontFamily().get();
-    myFontCombo.setSelectedItem(initialFont);
+    //noinspection UndesirableClassUsage
+    JComboBox<String> fontCombo = new JComboBox<>(fontFamilies.toArray(new String[fontFamilies.size()]));
 
-    SelectedItemProperty<String> selectedFont = new SelectedItemProperty<>(myFontCombo);
-    myBindings.bind(myTextAsset.fontFamily(), new AsValueExpression<>(selectedFont));
+    add(textField, new TabularLayout.Constraint(0, 0));
+    add(fontCombo, new TabularLayout.Constraint(0, 1));
 
-    InvalidationListener onTextChanged = new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        ActionEvent e = new ActionEvent(TextAssetEditor.this, ActionEvent.ACTION_PERFORMED, null);
-        for (ActionListener listener : myListeners) {
-          listener.actionPerformed(e);
-        }
+    myBindings.bindTwoWay(new TextProperty(textField), myTextAsset.text());
+
+    SelectedItemProperty<String> selectedFont = new SelectedItemProperty<>(fontCombo);
+    myBindings.bindTwoWay(ObjectProperty.wrap(selectedFont), myTextAsset.fontFamily());
+
+    InvalidationListener onTextChanged = sender -> {
+      ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
+      for (ActionListener listener : myListeners) {
+        listener.actionPerformed(e);
       }
     };
 
@@ -83,20 +71,35 @@ public final class TextAssetEditor extends JPanel implements AssetComponent<Text
     myTextAsset.fontFamily().addListener(onTextChanged);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public TextAsset getAsset() {
     return myTextAsset;
   }
 
   @Override
-  public void addAssetListener(@NotNull ActionListener l) {
-    myListeners.add(l);
+  public void addAssetListener(@NotNull ActionListener listener) {
+    myListeners.add(listener);
   }
 
   @Override
   public void dispose() {
     myBindings.releaseAll();
     myListeners.clear();
+  }
+
+  @Override
+  @NotNull
+  public PersistentState getState() {
+    PersistentState state = new PersistentState();
+    state.set(TEXT_PROPERTY, myTextAsset.text().get(), TextAsset.DEFAULT_TEXT);
+    state.set(FONT_FAMILY_PROPERTY, myTextAsset.fontFamily().get(), myTextAsset.defaultFontFamily());
+    return state;
+  }
+
+  @Override
+  public void loadState(@NotNull PersistentState state) {
+    myTextAsset.text().set(state.get(TEXT_PROPERTY, TextAsset.DEFAULT_TEXT));
+    myTextAsset.fontFamily().set(state.get(FONT_FAMILY_PROPERTY, myTextAsset.defaultFontFamily()));
   }
 }

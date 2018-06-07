@@ -158,7 +158,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     //             main {}
     //             debug.setRoot {}
     //        }
-    //        This is similar to case 2, we just need to make sure that debug is resolved as a variable of type AndroidSourceSet
+    //        This is similar to case 2, we just need to make sure that debug is resolved as a variable of type NamedModuleTemplate
     if (!(parentContributor instanceof PsiMethod)) {
       return true;
     }

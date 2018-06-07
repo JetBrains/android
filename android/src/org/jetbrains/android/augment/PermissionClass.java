@@ -11,9 +11,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 class PermissionClass extends ManifestInnerClass {
   PermissionClass(@NotNull AndroidFacet facet, @NotNull PsiClass context) {
     super(facet, "permission", context);

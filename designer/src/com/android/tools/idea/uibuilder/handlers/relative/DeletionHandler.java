@@ -219,9 +219,9 @@ public class DeletionHandler {
             return first;
           case LAYOUT_CENTER_IN_PARENT:
             return LAYOUT_CENTER_HORIZONTAL;
+          default:
+            return null;
         }
-        return null;
-
       case ALIGN_RIGHT:
       case LAYOUT_LEFT_OF:
         switch (first) {
@@ -231,9 +231,9 @@ public class DeletionHandler {
             return first;
           case LAYOUT_CENTER_IN_PARENT:
             return LAYOUT_CENTER_HORIZONTAL;
+          default:
+            return null;
         }
-        return null;
-
       case ALIGN_TOP:
       case LAYOUT_BELOW:
       case ALIGN_BASELINE:
@@ -245,8 +245,9 @@ public class DeletionHandler {
             return first;
           case LAYOUT_CENTER_IN_PARENT:
             return LAYOUT_CENTER_VERTICAL;
+          default:
+            return null;
         }
-        return null;
       case ALIGN_BOTTOM:
       case LAYOUT_ABOVE:
         switch (first) {
@@ -257,10 +258,11 @@ public class DeletionHandler {
             return first;
           case LAYOUT_CENTER_IN_PARENT:
             return LAYOUT_CENTER_VERTICAL;
+          default:
+            return null;
         }
+      default:
         return null;
     }
-
-    return null;
   }
 }

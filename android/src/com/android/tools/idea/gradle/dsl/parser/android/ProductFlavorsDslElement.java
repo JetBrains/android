@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import com.google.common.collect.Lists;
@@ -32,7 +33,7 @@ public final class ProductFlavorsDslElement extends GradleDslElementMap {
   }
 
   @Override
-  protected boolean isBlockElement() {
+  public boolean isBlockElement() {
     return true;
   }
 
@@ -40,7 +41,7 @@ public final class ProductFlavorsDslElement extends GradleDslElementMap {
   public List<ProductFlavorModel> get() {
     List<ProductFlavorModel> result = Lists.newArrayList();
     for (ProductFlavorDslElement dslElement : getValues(ProductFlavorDslElement.class)) {
-      result.add(new ProductFlavorModel(dslElement));
+      result.add(new ProductFlavorModelImpl(dslElement));
     }
     return result;
   }

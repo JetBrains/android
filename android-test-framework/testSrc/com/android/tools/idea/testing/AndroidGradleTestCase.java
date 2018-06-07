@@ -17,6 +17,7 @@ package com.android.tools.idea.testing;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
@@ -73,9 +74,10 @@ import java.util.concurrent.CountDownLatch;
 import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE_3DOT0;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -248,6 +250,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     loadProject(SIMPLE_APPLICATION);
   }
 
+  protected void loadSimpleApplication_pre3dot0() throws Exception {
+    loadProject(SIMPLE_APPLICATION_PRE_3DOT0);
+  }
+
   protected void loadProject(@NotNull String relativePath) throws Exception {
     loadProject(relativePath, null, null);
   }
@@ -416,7 +422,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
         // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
         GradleProjectImporter.Request request = new GradleProjectImporter.Request();
-        request.setProject(project).setGenerateSourcesOnSuccess(false);
+        request.project = project;
+        request.generateSourcesOnSuccess = false;
         GradleProjectImporter.getInstance().importProject(projectName, projectRoot, request, listener);
       }
       catch (Throwable e) {
@@ -500,7 +507,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   private SyncListener requestSync() throws Exception {
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    request.generateSourcesOnSuccess = false;
     return requestSync(request);
   }
 
@@ -509,7 +517,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     SyncListener syncListener = new SyncListener();
     refreshProjectFiles();
 
-    GradleSyncInvoker.getInstance().requestProjectSync(getProject(), request, syncListener);
+    Project project = getProject();
+    GradleProjectInfo.getInstance(project).setImportedProject(true);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request, syncListener);
 
     syncListener.await();
     return syncListener;
@@ -543,7 +553,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   public Module createModule(@NotNull File modulePath, @NotNull ModuleType type) {
     VirtualFile moduleFolder = findFileByIoFile(modulePath, true);
     assertNotNull(moduleFolder);
-    return createModule(moduleFolder,type);
+    return createModule(moduleFolder, type);
   }
 
   @NotNull

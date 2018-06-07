@@ -55,7 +55,7 @@ class ConstraintReferenceManagement {
 
     // the component wasn't found, let's add it.
 
-    NlComponentHelperKt.ensureId(component);
+    component.ensureId();
     ApplicationManager.getApplication().runWriteAction(
       () -> {
         XmlTag parentTag = constraints.getTag();

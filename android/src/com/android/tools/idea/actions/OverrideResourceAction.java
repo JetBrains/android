@@ -367,9 +367,11 @@ public class OverrideResourceAction extends AbstractIntentionAction {
           VirtualFile res = parentFolder.getParent();
           VirtualFile newParentFolder = res.findChild(folderName);
           if (newParentFolder == null) {
-            newParentFolder = res.createChildDirectory(this, folderName);
-            if (newParentFolder == null) {
-              String message = String.format("Could not create folder %1$s in %2$s", folderName, res.getPath());
+            try {
+              newParentFolder = res.createChildDirectory(this, folderName);
+            } catch (IncorrectOperationException e){
+              String message = String.format("Could not create folder %1$s in %2$s, Reason:\n%3$s",
+                                             folderName, res.getPath(), e.getMessage());
               return Pair.of(message, null);
             }
           }
@@ -382,7 +384,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
 
           // Attempt to get the document from the PSI file rather than the file on disk: get edited contents too
           String text;
-          if (xmlFile != null) {
+          if (xmlFile != null && xmlFile.isValid()) {
             text = xmlFile.getText();
           }
           else {
@@ -442,7 +444,9 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       if (subDirectory != null) {
         return subDirectory;
       }
-      return directory.createSubdirectory(ourTargetFolderName);
+
+      Computable<PsiDirectory> createDirComputable = () -> directory.createSubdirectory(ourTargetFolderName);
+      return ApplicationManager.getApplication().runWriteAction(createDirComputable);
     }
     CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(
       project, null, folderType, directory, null,

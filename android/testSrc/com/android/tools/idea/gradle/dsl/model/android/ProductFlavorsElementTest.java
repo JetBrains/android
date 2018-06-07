@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
 import com.google.common.collect.ImmutableList;
@@ -29,7 +32,7 @@ import static com.google.common.truth.Truth.assertThat;
  *
  * <p>Both {@code android.defaultConfig {}} and {@code android.productFlavors.xyz {}} uses the same structure with same attributes.
  * In this test, we only test the general structure of {@code android.productFlavors {}}. The product flavor structure defined by
- * {@link ProductFlavorModel} is tested in great deal to cover all combinations in {@link ProductFlavorModelTest} using the
+ * {@link ProductFlavorModelImpl} is tested in great deal to cover all combinations in {@link ProductFlavorModelTest} using the
  * {@code android.defaultConfig {}} block.
  */
 public class ProductFlavorsElementTest extends GradleFileModelTestCase {
@@ -92,16 +95,16 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     assertSize(2, productFlavors);
 
     ProductFlavorModel flavor1 = productFlavors.get(0);
-        assertEquals("applicationId", "com.example.myFlavor1", flavor1.applicationId());
-        assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.txt"), flavor1.proguardFiles());
-        assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key1", "value1", "key2", "value2"),
-                     flavor1.testInstrumentationRunnerArguments());
+    assertEquals("applicationId", "com.example.myFlavor1", flavor1.applicationId());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.txt"), flavor1.proguardFiles());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key1", "value1", "key2", "value2"),
+                 flavor1.testInstrumentationRunnerArguments());
 
     ProductFlavorModel flavor2 = productFlavors.get(1);
-        assertEquals("applicationId", "com.example.myFlavor2", flavor2.applicationId());
-        assertEquals("proguardFiles", ImmutableList.of("proguard-android-2.txt", "proguard-rules-2.txt"), flavor2.proguardFiles());
-        assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key3", "value3", "key4", "value4"),
-                     flavor2.testInstrumentationRunnerArguments());
+    assertEquals("applicationId", "com.example.myFlavor2", flavor2.applicationId());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android-2.txt", "proguard-rules-2.txt"), flavor2.proguardFiles());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key3", "value3", "key4", "value4"),
+                 flavor2.testInstrumentationRunnerArguments());
   }
 
   public void testProductFlavorsWithOverrideStatements() throws Exception {
@@ -141,16 +144,16 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     assertThat(productFlavors).hasSize(2);
 
     ProductFlavorModel flavor1 = productFlavors.get(0);
-        assertEquals("applicationId", "com.example.myFlavor1-1", flavor1.applicationId());
-        assertEquals("proguardFiles", ImmutableList.of("proguard-android-3.txt", "proguard-rules-3.txt"), flavor1.proguardFiles());
-        assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key5", "value5", "key6", "value6"),
-                     flavor1.testInstrumentationRunnerArguments());
+    assertEquals("applicationId", "com.example.myFlavor1-1", flavor1.applicationId());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android-3.txt", "proguard-rules-3.txt"), flavor1.proguardFiles());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key5", "value5", "key6", "value6"),
+                 flavor1.testInstrumentationRunnerArguments());
 
     ProductFlavorModel flavor2 = productFlavors.get(1);
     assertEquals("applicationId", "com.example.myFlavor2-1", flavor2.applicationId());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-4.txt", "proguard-rules-4.txt"), flavor2.proguardFiles());
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key7", "value7", "key8", "value8"),
-                     flavor2.testInstrumentationRunnerArguments());
+                 flavor2.testInstrumentationRunnerArguments());
   }
 
   public void testProductFlavorsWithAppendStatements() throws Exception {
@@ -197,5 +200,65 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
                  flavor2.proguardFiles());
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key3", "value3", "key4", "value4", "key6", "value6"),
                  flavor2.testInstrumentationRunnerArguments());
+  }
+  public void testAddEmptyProductFlavor() throws Exception {
+    String text = "android {}\n";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    android.addProductFlavor("flavorA");
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    android = buildModel.android();
+
+    List<ProductFlavorModel> productFlavors = android.productFlavors();
+    assertThat(productFlavors).hasSize(1);
+
+    ProductFlavorModel productFlavor = productFlavors.get(0);
+    assertEquals("name", "flavorA", productFlavor.name());
+    assertMissingProperty("applicationId", productFlavor.applicationId());
+    assertNull("consumerProguardFiles", productFlavor.consumerProguardFiles());
+    assertMissingProperty("dimension", productFlavor.dimension());
+    assertNull("manifestPlaceholders", productFlavor.manifestPlaceholders());
+    assertMissingProperty("maxSdkVersion", productFlavor.maxSdkVersion());
+    assertMissingProperty("minSdkVersion", productFlavor.minSdkVersion());
+    assertMissingProperty("multiDexEnabled", productFlavor.multiDexEnabled());
+    assertNull("proguardFiles", productFlavor.proguardFiles());
+    assertNull("resConfigs", productFlavor.resConfigs());
+    assertNull("resValues", productFlavor.resValues());
+    assertMissingProperty("targetSdkVersion", productFlavor.targetSdkVersion());
+    assertMissingProperty("testApplicationId", productFlavor.testApplicationId());
+    assertMissingProperty("testFunctionalTest", productFlavor.testFunctionalTest());
+    assertMissingProperty("testHandleProfiling", productFlavor.testHandleProfiling());
+    assertMissingProperty("testInstrumentationRunner", productFlavor.testInstrumentationRunner());
+    assertNull("testInstrumentationRunnerArguments", productFlavor.testInstrumentationRunnerArguments());
+    assertMissingProperty("useJack", productFlavor.useJack());
+    assertMissingProperty("versionCode", productFlavor.versionCode());
+    assertMissingProperty("versionName", productFlavor.versionName());
+  }
+
+  public void testAddProductFlavor() throws Exception {
+    String text = "android {}\n";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    android.addProductFlavor("flavorA");
+    android.productFlavors().get(0).applicationId().setValue("appid");
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    android = buildModel.android();
+
+    List<ProductFlavorModel> productFlavors = android.productFlavors();
+    assertThat(productFlavors).hasSize(1);
+
+    ProductFlavorModel productFlavor = productFlavors.get(0);
+    assertEquals("name", "flavorA", productFlavor.name());
+    assertEquals("applicationId", "appid", productFlavor.applicationId());
   }
 }

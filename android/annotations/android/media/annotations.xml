@@ -920,6 +920,18 @@
       <val name="value" val="{android.media.MediaMetadata.METADATA_KEY_TITLE, android.media.MediaMetadata.METADATA_KEY_ARTIST, android.media.MediaMetadata.METADATA_KEY_ALBUM, android.media.MediaMetadata.METADATA_KEY_AUTHOR, android.media.MediaMetadata.METADATA_KEY_WRITER, android.media.MediaMetadata.METADATA_KEY_COMPOSER, android.media.MediaMetadata.METADATA_KEY_COMPILATION, android.media.MediaMetadata.METADATA_KEY_DATE, android.media.MediaMetadata.METADATA_KEY_GENRE, android.media.MediaMetadata.METADATA_KEY_ALBUM_ARTIST, android.media.MediaMetadata.METADATA_KEY_ART_URI, android.media.MediaMetadata.METADATA_KEY_ALBUM_ART_URI, android.media.MediaMetadata.METADATA_KEY_DISPLAY_TITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION, android.media.MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI, android.media.MediaMetadata.METADATA_KEY_MEDIA_ID, android.media.MediaMetadata.METADATA_KEY_MEDIA_URI}" />
     </annotation>
   </item>
+  <item name="android.media.MediaMetadataRetriever android.graphics.Bitmap getFrameAtTime(long, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaMetadataRetriever.OPTION_PREVIOUS_SYNC, android.media.MediaMetadataRetriever.OPTION_NEXT_SYNC, android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC, android.media.MediaMetadataRetriever.OPTION_CLOSEST}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaMetadataRetriever android.graphics.Bitmap getScaledFrameAtTime(long, int, int, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaMetadataRetriever.OPTION_PREVIOUS_SYNC, android.media.MediaMetadataRetriever.OPTION_NEXT_SYNC, android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC, android.media.MediaMetadataRetriever.OPTION_CLOSEST}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.media.MediaMuxer MediaMuxer(java.io.FileDescriptor, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>

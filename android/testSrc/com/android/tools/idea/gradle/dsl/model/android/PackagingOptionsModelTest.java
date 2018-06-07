@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.PackagingOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 
@@ -190,7 +192,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     PackagingOptionsModel packagingOptions = android.packagingOptions();
-    assertTrue(packagingOptions.hasValidPsiElement());
+    checkForValidPsiElement(packagingOptions, PackagingOptionsModelImpl.class);
     assertEquals("excludes", ImmutableList.of("exclude1", "exclude2", "exclude3"), packagingOptions.excludes());
     assertEquals("merges", ImmutableList.of("merge1", "merge2", "merge3"), packagingOptions.merges());
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2", "pickFirst3"), packagingOptions.pickFirsts());
@@ -204,7 +206,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
-    assertFalse(packagingOptions.hasValidPsiElement());
+    checkForInValidPsiElement(packagingOptions, PackagingOptionsModelImpl.class);
     assertNull("excludes", packagingOptions.excludes());
     assertNull("merges", packagingOptions.merges());
     assertNull("pickFirsts", packagingOptions.pickFirsts());
@@ -263,7 +265,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     PackagingOptionsModel packagingOptions = android.packagingOptions();
-    assertTrue(packagingOptions.hasValidPsiElement());
+    checkForValidPsiElement(packagingOptions, PackagingOptionsModelImpl.class);
     assertEquals("excludes", ImmutableList.of("exclude"), packagingOptions.excludes());
     assertEquals("merges", ImmutableList.of("merge"), packagingOptions.merges());
     assertEquals("pickFirsts", ImmutableList.of("pickFirst"), packagingOptions.pickFirsts());
@@ -277,7 +279,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
-    assertFalse(packagingOptions.hasValidPsiElement());
+    checkForInValidPsiElement(packagingOptions, PackagingOptionsModelImpl.class);
     assertNull("excludes", packagingOptions.excludes());
     assertNull("merges", packagingOptions.merges());
     assertNull("pickFirsts", packagingOptions.pickFirsts());

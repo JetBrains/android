@@ -210,6 +210,11 @@
   <item name="android.util.Half short trunc(short) 0">
     <annotation name="android.support.annotation.HalfFloat" />
   </item>
+  <item name="android.util.Log boolean isLoggable(java.lang.String, int) 0">
+    <annotation name="android.support.annotation.Size">
+      <val name="max" val="23" />
+    </annotation>
+  </item>
   <item name="android.util.Log boolean isLoggable(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.util.Log.ASSERT, android.util.Log.ERROR, android.util.Log.WARN, android.util.Log.INFO, android.util.Log.DEBUG, android.util.Log.VERBOSE}" />
@@ -225,6 +230,9 @@
       <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
+  </item>
+  <item name="android.util.TypedValue float getDimension(android.util.DisplayMetrics)">
+    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.util.TypedValue resourceId">
     <annotation name="android.support.annotation.AnyRes" />

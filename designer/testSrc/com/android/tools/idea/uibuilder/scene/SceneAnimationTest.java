@@ -61,6 +61,7 @@ public class SceneAnimationTest extends SceneTest {
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
                  "        android:layout_marginEnd=\"8dp\"\n" +
+                 "        android:layout_marginRight=\"8dp\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
                  "        tools:layout_editor_absoluteY=\"200dp\" />");
     SceneComponent component = myScene.getSceneComponent("button");

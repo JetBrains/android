@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
@@ -35,6 +36,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class SyncResultHandlerTest extends IdeaTestCase {
   @Mock private SyncExecutionCallback mySyncCallback;
+  @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleSyncListener mySyncListener;
   @Mock private GradleSyncState mySyncState;
   @Mock private ProjectSetup.Factory myProjectSetupFactory;
@@ -49,19 +51,20 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     initMocks(this);
 
     myIndicator = new MockProgressIndicator();
-    myResultHandler = new SyncResultHandler(getProject(), mySyncState, myProjectSetupFactory, myPostSyncProjectSetup);
+    myResultHandler = new SyncResultHandler(getProject(), mySyncState, myProjectInfo, myProjectSetupFactory, myPostSyncProjectSetup);
   }
 
   public void testOnSyncFinished() {
     Project project = getProject();
 
-    SyncAction.ProjectModels models = mock(SyncAction.ProjectModels.class);
+    SyncProjectModels models = mock(SyncProjectModels.class);
     when(mySyncCallback.getModels()).thenReturn(models);
 
     ProjectSetup projectSetup = mock(ProjectSetup.class);
     when(myProjectSetupFactory.create(project)).thenReturn(projectSetup);
 
-    myResultHandler.onSyncFinished(mySyncCallback, myIndicator, mySyncListener, false);
+    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+    myResultHandler.onSyncFinished(mySyncCallback, setupRequest, myIndicator, mySyncListener);
 
     verify(mySyncState).setupStarted();
     verify(mySyncState, never()).syncFailed(any());
@@ -73,7 +76,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     verify(mySyncListener).syncSucceeded(project);
     verify(mySyncListener, never()).syncFailed(any(), any());
 
-    verify(myPostSyncProjectSetup).setUpProject(eq(new PostSyncProjectSetup.Request()), any());
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any());
   }
 
   public void testOnSyncFailed() {

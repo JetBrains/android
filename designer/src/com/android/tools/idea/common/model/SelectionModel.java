@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.model;
 
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.util.ListenerCollection;
 import com.android.utils.ImmutableCollectors;
@@ -23,7 +24,6 @@ import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.datatransfer.Transferable;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +34,7 @@ public class SelectionModel {
   @NotNull
   private ImmutableList<NlComponent> mySelection = ImmutableList.of();
   private NlComponent myPrimary;
-  private ListenerCollection<SelectionListener> myListeners = ListenerCollection.createWithDirectExecutor();
+  private final ListenerCollection<SelectionListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private Map<NlComponent, SelectionHandles> myHandles;
 
   @NotNull
@@ -122,13 +122,16 @@ public class SelectionModel {
   }
 
   @Nullable
-  public SelectionHandle findHandle(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @AndroidDpCoordinate int maxDistance) {
+  public SelectionHandle findHandle(@AndroidDpCoordinate int x,
+                                    @AndroidDpCoordinate int y,
+                                    @AndroidDpCoordinate int maxDistance,
+                                    @NotNull DesignSurface surface) {
     if (myHandles == null) {
       return null;
     }
 
     for (SelectionHandles handles : myHandles.values()) {
-      SelectionHandle handle = handles.findHandle(x, y, maxDistance);
+      SelectionHandle handle = handles.findHandle(x, y, maxDistance, surface);
       if (handle != null) {
         return handle;
       }
@@ -155,7 +158,7 @@ public class SelectionModel {
     return mySelection.contains(component);
   }
 
-  public Transferable getTransferable(long modelId) {
+  public ItemTransferable getTransferable(long modelId) {
     ImmutableList<DnDTransferComponent> components =
       mySelection.stream().map(component -> new DnDTransferComponent(component.getTagName(), component.getTag().getText(),
                                                                      NlComponentHelperKt.getW(component),

@@ -15,22 +15,18 @@
  */
 package org.jetbrains.android;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.fd.actions.HotswapAction;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author coyote
- */
-public class AndroidPlugin implements ApplicationComponent {
-  public static Key<Runnable> EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.build");
-  public static Key<String> GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY = Key.create("gui.test.gradle.build.output");
-  public static Key<String[]> GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY = Key.create("gradle.sync.command.line.options");
+import static com.android.tools.idea.startup.Actions.moveAction;
 
-  private static boolean ourGuiTestingMode;
-  private static GuiTestSuiteState ourGuiTestSuiteState;
+public class AndroidPlugin implements ApplicationComponent {
+  private static final String GROUP_ANDROID_TOOLS = "AndroidToolsGroup";
+  private static final String GROUP_TOOLS = "ToolsMenu";
 
   @Override
   @NotNull
@@ -40,47 +36,34 @@ public class AndroidPlugin implements ApplicationComponent {
 
   @Override
   public void initComponent() {
-    // Since the executor actions are registered dynamically, and we want to insert ourselves in the middle, we have to do this
-    // in code as well (instead of xml).
-    ActionManager actionManager = ActionManager.getInstance();
-    AnAction runnerActions = actionManager.getAction("RunnerActions");
-    if (runnerActions instanceof DefaultActionGroup) {
-      ((DefaultActionGroup)runnerActions).add(new HotswapAction(), new Constraints(Anchor.AFTER, "Run"));
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
+      initializeForNonStudio();
     }
+  }
+
+  /**
+   * Initializes the Android plug-in when it runs outside of Android Studio.
+   * Reduces prominence of the Android related UI elements to keep low profile.
+   */
+  private static void initializeForNonStudio() {
+    // Move the Android-related actions from the Tools menu into the Android submenu.
+    ActionManager actionManager = ActionManager.getInstance();
+    AnAction group = actionManager.getAction(GROUP_ANDROID_TOOLS);
+    if (group instanceof ActionGroup) {
+      ((ActionGroup)group).setPopup(true);
+    }
+
+    // Move the Android submenu to the end of the Tools menu.
+    moveAction(GROUP_ANDROID_TOOLS, GROUP_TOOLS, GROUP_TOOLS, new Constraints(Anchor.LAST, null));
+
+    // Move the "Sync Project with Gradle Files" from the File menu to Tools > Android.
+    moveAction("Android.SyncProject", IdeActions.GROUP_FILE, GROUP_ANDROID_TOOLS, new Constraints(Anchor.FIRST, null));
+    // Move the "Sync Project with Gradle Files" toolbar button to a less prominent place.
+    moveAction("Android.MainToolBarGradleGroup", IdeActions.GROUP_MAIN_TOOLBAR, "Android.MainToolBarActionGroup",
+               new Constraints(Anchor.LAST, null));
   }
 
   @Override
   public void disposeComponent() {
-  }
-
-  public static boolean isGuiTestingMode() {
-    return ourGuiTestingMode;
-  }
-
-  public static void setGuiTestingMode(boolean guiTestingMode) {
-    ourGuiTestingMode = guiTestingMode;
-    ourGuiTestSuiteState = ourGuiTestingMode ? new GuiTestSuiteState() : null;
-  }
-
-  // Ideally we would have this class in IdeTestApplication. The problem is that IdeTestApplication and UI tests run in different
-  // ClassLoaders and UI tests are unable to see the same instance of IdeTestApplication.
-  @NotNull
-  public static GuiTestSuiteState getGuiTestSuiteState() {
-    if (!ourGuiTestingMode) {
-      throw new UnsupportedOperationException("The method 'getGuiTestSuiteState' can only be invoked when running UI tests");
-    }
-    return ourGuiTestSuiteState;
-  }
-
-  public static class GuiTestSuiteState {
-    private boolean mySkipSdkMerge;
-
-    public boolean isSkipSdkMerge() {
-      return mySkipSdkMerge;
-    }
-
-    public void setSkipSdkMerge(boolean skipSdkMerge) {
-      mySkipSdkMerge = skipSdkMerge;
-    }
   }
 }

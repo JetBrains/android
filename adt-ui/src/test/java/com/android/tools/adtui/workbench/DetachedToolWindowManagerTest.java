@@ -23,19 +23,8 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.messages.MessageBus;
-import com.intellij.util.messages.MessageBusConnection;
-import com.intellij.util.messages.Topic;
 import com.intellij.util.ui.UIUtil;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import javax.swing.*;
@@ -46,14 +35,13 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-@RunWith(JUnit4.class)
-public class DetachedToolWindowManagerTest {
+public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   // Hack to avoid: "java.lang.Error: Cannot load com.apple.laf.AquaLookAndFeel"
   @SuppressWarnings("unused")
   private static volatile boolean DARK = UIUtil.isUnderDarcula();
 
-  @Rule
-  public FrameworkRule myFrameworkRule = new FrameworkRule();
+  @Mock
+  private FileEditorManager myEditorManager;
   @Mock
   private FileEditor myFileEditor1;
   @Mock
@@ -67,10 +55,6 @@ public class DetachedToolWindowManagerTest {
   @Mock
   private AttachedToolWindow myAttachedToolWindow2;
   @Mock
-  private MessageBus myMessageBus;
-  @Mock
-  private MessageBusConnection myConnection;
-  @Mock
   private VirtualFile myVirtualFile;
   @Mock
   private DetachedToolWindow myDetachedToolWindow1;
@@ -81,16 +65,16 @@ public class DetachedToolWindowManagerTest {
   @Mock
   private KeyboardFocusManager myKeyboardFocusManager;
 
-  private FileEditorManager myEditorManager;
   private FileEditorManagerListener myListener;
   private DetachedToolWindowManager myManager;
 
-  @Before
-  public void before() {
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
     initMocks(this);
+    registerProjectComponentImplementation(FileEditorManager.class, myEditorManager);
     KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
-    Project project = ProjectManager.getInstance().getDefaultProject();
-    myEditorManager = FileEditorManager.getInstance(project);
+    myEditorManager = FileEditorManager.getInstance(myProject);
     when(myWorkBench1.getDetachedToolWindows()).thenReturn(ImmutableList.of(myAttachedToolWindow1));
     when(myWorkBench2.getDetachedToolWindows()).thenReturn(ImmutableList.of(myAttachedToolWindow2));
     when(myAttachedToolWindow1.getDefinition()).thenReturn(PalettePanelToolContent.getDefinition());
@@ -100,79 +84,80 @@ public class DetachedToolWindowManagerTest {
 
     myManager = new DetachedToolWindowManager(
       ApplicationManager.getApplication(),
-      project,
-      FileEditorManager.getInstance(project));
+      myProject,
+      FileEditorManager.getInstance(myProject));
     myManager.initComponent();
     myManager.setDetachedToolWindowFactory(myDetachedToolWindowFactory);
     assert myManager.getComponentName().equals("DetachedToolWindowManager");
+    myListener = myManager.getFileEditorManagerListener();
 
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[0]);
-    when(project.getMessageBus()).thenReturn(myMessageBus);
-    when(myMessageBus.connect(eq(project))).thenReturn(myConnection).thenReturn(null);
     myManager.projectOpened();
-    ArgumentCaptor<FileEditorManagerListener> captor = ArgumentCaptor.forClass(FileEditorManagerListener.class);
     //noinspection unchecked
-    verify(myConnection).subscribe(any(Topic.class), captor.capture());
     when(myFileEditor1.getComponent()).thenReturn(new JPanel());
     when(myFileEditor2.getComponent()).thenReturn(new JPanel());
-    myListener = captor.getValue();
     myManager.register(myFileEditor1, myWorkBench1);
     myManager.register(myFileEditor2, myWorkBench2);
   }
 
-  @After
-  public void after() {
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(null);
-    myManager.projectClosed();
-    myManager.disposeComponent();
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      KeyboardFocusManager.setCurrentKeyboardFocusManager(null);
+      //myManager.projectClosed();
+      //myManager.disposeComponent();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
-  @Test
   public void testProjectClosed() {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1);
     myManager.restoreDefaultLayout();
+    UIUtil.dispatchAllInvocationEvents();
     myManager.projectClosed();
-    verify(myConnection).disconnect();
     verify(myDetachedToolWindow1).updateSettingsInAttachedToolWindow();
   }
 
-  @Test
   @SuppressWarnings("unchecked")
   public void testRestoreDefaultLayout() {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1);
-
     myManager.restoreDefaultLayout();
+    UIUtil.dispatchAllInvocationEvents();
     verify(myDetachedToolWindow1).show(eq(myAttachedToolWindow1));
   }
 
-  @Test
   public void testFileOpened() {
     myListener.fileOpened(myEditorManager, myVirtualFile);
   }
 
-  @Test
   public void testFileOpenedCausingFloatingToolWindowToDisplay() {
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor1});
     myListener.fileOpened(myEditorManager, myVirtualFile);
+    UIUtil.dispatchAllInvocationEvents();
+
     //noinspection unchecked
     verify(myDetachedToolWindow1).show(eq(myAttachedToolWindow1));
   }
 
-  @Test
   public void testFileOpenedCausingFloatingToolWindowToDisplay2() {
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor1, myFileEditor2});
     myListener.fileOpened(myEditorManager, myVirtualFile);
+    UIUtil.dispatchAllInvocationEvents();
+
     //noinspection unchecked
     verify(myDetachedToolWindow1).show(eq(myAttachedToolWindow1));
   }
 
-  @Test
   @SuppressWarnings("unchecked")
   public void testSwitchingBetweenTwoEditorsWithDifferentFloatingToolWindows() {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1, myWorkBench2);
     myListener.fileOpened(myEditorManager, myVirtualFile);
+    UIUtil.dispatchAllInvocationEvents();
     verify(myDetachedToolWindow1).show(eq(myAttachedToolWindow1));
     myListener.fileOpened(myEditorManager, myVirtualFile);
+    UIUtil.dispatchAllInvocationEvents();
     verify(myDetachedToolWindow1).hide();
     verify(myDetachedToolWindow2).show(eq(myAttachedToolWindow2));
 
@@ -180,27 +165,31 @@ public class DetachedToolWindowManagerTest {
     FileEditorManagerEvent event2 = new FileEditorManagerEvent(myEditorManager, null, null, null, myFileEditor2);
 
     myListener.selectionChanged(event1);
+    UIUtil.dispatchAllInvocationEvents();
     verify(myDetachedToolWindow2).hide();
     verify(myDetachedToolWindow1, times(2)).show(eq(myAttachedToolWindow1));
     myListener.selectionChanged(event2);
+    UIUtil.dispatchAllInvocationEvents();
     verify(myDetachedToolWindow1, times(2)).hide();
     verify(myDetachedToolWindow2, times(2)).show(eq(myAttachedToolWindow2));
 
     // Now unregister one of them:
     myManager.unregister(myFileEditor1);
     myListener.selectionChanged(event1);
+    UIUtil.dispatchAllInvocationEvents();
     verify(myDetachedToolWindow1, times(3)).hide();
     verify(myDetachedToolWindow2, times(2)).hide();
   }
 
-  @Test
   @SuppressWarnings("unchecked")
   public void testFileCloseCausingFloatingToolWindowToHide() {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1, new JLabel());
     myListener.fileOpened(myEditorManager, myVirtualFile);
+    UIUtil.dispatchAllInvocationEvents();
     verify(myDetachedToolWindow1).show(eq(myAttachedToolWindow1));
 
     myListener.fileClosed(myEditorManager, myVirtualFile);
+    UIUtil.dispatchAllInvocationEvents();
     verify(myDetachedToolWindow1).hide();
   }
 }

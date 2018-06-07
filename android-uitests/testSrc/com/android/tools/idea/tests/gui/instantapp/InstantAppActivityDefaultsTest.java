@@ -51,19 +51,16 @@ public class InstantAppActivityDefaultsTest {
 
   @Test
   public void testDefaultUrlParamsPopulated() {
-
-    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
-      .createNewProject();
-    ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
-    configureAndroidProjectStep.enterApplicationName("TestApp").enterCompanyDomain(TEST_DOMAIN).enterPackageName("my.test");
-    newProjectWizard.clickNext();
-
-    newProjectWizard
+    ChooseOptionsForNewFileStepFixture<NewProjectWizardFixture> templateSettingsFixture = guiTest.welcomeFrame()
+      .createNewProject()
+      .getConfigureAndroidProjectStep()
+      .enterApplicationName("TestApp").enterCompanyDomain(TEST_DOMAIN).enterPackageName("my.test")
+      .wizard()
+      .clickNext()
       .getConfigureFormFactorStep()
       .selectMinimumSdkApi(MOBILE, "23")
-      .selectInstantAppSupport(MOBILE);
-
-    ChooseOptionsForNewFileStepFixture templateSettingsFixture = newProjectWizard
+      .selectInstantAppSupport(MOBILE)
+      .wizard()
       .clickNext()
       .clickNext()
       .clickNext().getChooseOptionsForNewFileStep();
@@ -72,6 +69,6 @@ public class InstantAppActivityDefaultsTest {
     assertEquals("/.*", templateSettingsFixture.getInstantAppsRoute());
     assertEquals("Path Pattern", templateSettingsFixture.getInstantAppsRouteType());
 
-    newProjectWizard.clickCancel();
+    templateSettingsFixture.wizard().clickCancel();
   }
 }

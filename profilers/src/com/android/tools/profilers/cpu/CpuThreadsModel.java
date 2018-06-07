@@ -15,7 +15,10 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
@@ -29,21 +32,17 @@ import java.util.concurrent.TimeUnit;
  * This class is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
  */
 public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuThread> implements Updatable {
-  @NotNull
-  private final CpuProfilerStage myStage;
+  @NotNull private final CpuProfilerStage myStage;
 
-  private final int myProcessId;
+  @NotNull private final Common.Session mySession;
 
-  private final Common.Session mySession;
+  @NotNull private final Range myRange;
 
-  private final Range myRange;
+  @NotNull private final AspectObserver myAspectObserver;
 
-  private final AspectObserver myAspectObserver;
-
-  public CpuThreadsModel(@NotNull Range range, @NotNull CpuProfilerStage stage, int id, Common.Session session) {
+  public CpuThreadsModel(@NotNull Range range, @NotNull CpuProfilerStage stage, @NotNull Common.Session session) {
     myRange = range;
     myStage = stage;
-    myProcessId = id;
     mySession = session;
     myAspectObserver = new AspectObserver();
 
@@ -53,7 +52,6 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
 
   public void rangeChanged() {
     CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
-      .setProcessId(myProcessId)
       .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMax()));
@@ -103,7 +101,7 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
       myThreadId = threadId;
       myName = name;
       myModel = new StateChartModel<>();
-      mySeries = new ThreadStateDataSeries(myStage, myProcessId, mySession, myThreadId);
+      mySeries = new ThreadStateDataSeries(myStage, mySession, myThreadId);
       myModel.addSeries(new RangedSeries<>(myRange, mySeries));
     }
 

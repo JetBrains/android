@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering.webp;
 
 import com.android.tools.adtui.ImageUtils;
+import com.android.tools.adtui.webp.WebpImageWriterSpi;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;

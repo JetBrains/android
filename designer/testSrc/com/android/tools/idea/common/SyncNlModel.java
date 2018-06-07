@@ -16,10 +16,11 @@
 package com.android.tools.idea.common;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.configurations.Configuration;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -30,33 +31,31 @@ import org.jetbrains.annotations.Nullable;
  */
 public class SyncNlModel extends NlModel {
 
-  Configuration myConfiguration; // for testing purposes
-  DesignSurface mySurface; // for testing purposes
+  private Configuration myConfiguration; // for testing purposes
+  private DesignSurface mySurface; // for testing purposes
 
   @NotNull
+  @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
   public static SyncNlModel create(@NotNull DesignSurface surface,
-                               @Nullable Disposable parent,
-                               @NotNull AndroidFacet facet,
-                               @NotNull XmlFile file) {
+                                   @Nullable Disposable parent,
+                                   @NotNull AndroidFacet facet,
+                                   @NotNull VirtualFile file) {
     return new SyncNlModel(surface, parent, facet, file);
   }
 
-  private SyncNlModel(@NotNull DesignSurface surface,
-                     @Nullable Disposable parent,
-                     @NotNull AndroidFacet facet, @NotNull XmlFile file) {
-    super(surface, parent, facet, file);
+  private SyncNlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @NotNull AndroidFacet facet, @NotNull VirtualFile file) {
+    super(parent, facet, file);
     mySurface = surface;
   }
 
   @NotNull
-  @Override
   public DesignSurface getSurface() {
     return mySurface;
   }
 
   @VisibleForTesting
   public void setConfiguration(Configuration configuration) {
-    myConfiguration =  configuration;
+    myConfiguration = configuration;
   }
 
   @NotNull

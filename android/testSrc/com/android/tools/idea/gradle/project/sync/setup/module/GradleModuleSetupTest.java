@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
-import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
+import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
@@ -37,7 +37,7 @@ import org.mockito.Mock;
 import java.io.File;
 
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
-import static com.android.tools.idea.gradle.util.Projects.findModuleRootFolderPath;
+import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
@@ -48,7 +48,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link GradleModuleSetup}.
  */
 public class GradleModuleSetupTest extends IdeaTestCase {
-  @Mock private SyncAction.ModuleModels myModuleModels;
+  @Mock private GradleModuleModels myModuleModels;
   @Mock private BuildScriptClasspathModel myClasspathModel;
   @Mock private GradleSyncState mySyncState;
 

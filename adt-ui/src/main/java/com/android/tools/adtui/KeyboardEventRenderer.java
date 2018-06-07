@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.util.Arrays;
 import java.util.Map;
 
 public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
@@ -34,11 +35,12 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
   private static final int ROUND_ARC = 5;
   private static final int POINT_HEIGHT_OFFSET = 5;
   private static final int PADDING = 2;
+  private static final int BORDER_MARGIN = 2;
   private static final JBColor BACKGROUND_COLOR = new JBColor(0x988b8e, 0x999a9a);
   private static final JBColor TEXT_COLOR = new JBColor(0xfafafa, 0x313335);
   private static final Map<String, Icon> KEYBOARD_ICON_LOOKUP;
-  static
-  {
+
+  static {
     Map<String, Icon> keyboardIcons = new HashMap<>();
     keyboardIcons.put("KEYCODE_BACK", load("/icons/events/back-button.png"));
     keyboardIcons.put("KEYCODE_VOLUME_DOWN", load("/icons/events/volume-down.png"));
@@ -46,10 +48,9 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
     KEYBOARD_ICON_LOOKUP = keyboardIcons;
   }
 
-
   @NotNull
   private static Icon load(String path) {
-      return IconLoader.getIcon(path, KeyboardEventRenderer.class);
+    return IconLoader.getIcon(path, KeyboardEventRenderer.class);
   }
 
   @Override
@@ -61,20 +62,20 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
     KeyboardAction keyAction = (KeyboardAction)action;
     boolean drawString = !KEYBOARD_ICON_LOOKUP.containsKey(keyAction.getData().toString());
     if (drawString) {
-      drawString(g2d, transform, keyAction);
-    } else {
+      drawString(parent, g2d, transform, keyAction);
+    }
+    else {
       drawIcon(parent, g2d, transform, keyAction);
     }
   }
 
-  private void drawString(Graphics2D g2d, AffineTransform transform, KeyboardAction action) {
+  private void drawString(Component parent, Graphics2D g2d, AffineTransform transform, KeyboardAction action) {
     Color currentColor = g2d.getColor();
     Font currentFont = g2d.getFont();
     AffineTransform originalTransform = g2d.getTransform();
 
     // Set state for String rendering.
     g2d.setFont(FONT);
-    g2d.setColor(BACKGROUND_COLOR);
 
     // Get current string information.
     FontMetrics metrics = g2d.getFontMetrics();
@@ -88,13 +89,19 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
     transform.translate(-width / 2.0, 0);
     g2d.transform(transform);
 
-    //Build and draw geometry used for background of string
-    Polygon poly = new Polygon(new int[]{-PADDING, pointWidth, (pointWidth) / 2},
-                               new int[]{paddedHeight, paddedHeight, paddedHeight + POINT_HEIGHT_OFFSET}, 3);
-
-    g2d.fillRoundRect(-PADDING, PADDING, width + PADDING + ROUND_ARC, height + PADDING, ROUND_ARC, ROUND_ARC);
-    g2d.fillPolygon(poly);
-
+    // Build and draw geometry used for background of string
+    // Draw the background with border margin first. The border should have the same color with parent Component.
+    // Draw the background without border margin with BORDER_MARGIN then.
+    for (int margin : Arrays.asList(BORDER_MARGIN, 0)) {
+      g2d.setColor(margin == 0 ? BACKGROUND_COLOR : parent.getBackground());
+      Polygon polygon = new Polygon();
+      polygon.addPoint(-PADDING - margin, paddedHeight); // left point
+      polygon.addPoint(pointWidth + margin, paddedHeight); // right point
+      polygon.addPoint(pointWidth / 2, paddedHeight + POINT_HEIGHT_OFFSET + margin); // bottom point
+      g2d.fillRoundRect(-PADDING - margin, PADDING - margin, width + PADDING + ROUND_ARC + margin * 2,
+                        height + PADDING + margin * 2, ROUND_ARC, ROUND_ARC);
+      g2d.fillPolygon(polygon);
+    }
     // Draw String
     g2d.setColor(TEXT_COLOR);
     g2d.drawString(textToDraw, PADDING / 2, height);
@@ -106,7 +113,7 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
   }
 
   private void drawIcon(Component parent, Graphics2D g2d, AffineTransform transform, KeyboardAction action) {
-    Icon icon = KEYBOARD_ICON_LOOKUP.get(action.getData().toString());
+    Icon icon = SimpleEventRenderer.createImageIconWithBackgroundBorder(KEYBOARD_ICON_LOOKUP.get(action.getData().toString()), BORDER_MARGIN, parent.getBackground());
     AffineTransform originalTransform = g2d.getTransform();
     g2d.transform(transform);
     icon.paintIcon(parent, g2d, -icon.getIconWidth() / 2, 0);

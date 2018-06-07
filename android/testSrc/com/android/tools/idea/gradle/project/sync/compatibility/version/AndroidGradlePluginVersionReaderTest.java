@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.intellij.openapi.module.Module;
@@ -25,7 +25,6 @@ import com.intellij.openapi.module.Module;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
-import static com.android.tools.idea.testing.TestProjectPaths.EXPERIMENTAL_PLUGIN;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -53,23 +52,11 @@ public class AndroidGradlePluginVersionReaderTest extends AndroidGradleTestCase 
     assertFalse(myVersionReader.appliesTo(libModule));
   }
 
-  public void testAppliesToWithExperimentalAndroidModule() throws Exception {
-    loadProject(EXPERIMENTAL_PLUGIN);
-    Module appModule = myModules.getAppModule();
-    assertFalse(myVersionReader.appliesTo(appModule));
-  }
-
   public void testGetComponentVersion() throws Exception {
     loadSimpleApplication();
     Module appModule = myModules.getAppModule();
     String version = myVersionReader.getComponentVersion(appModule);
     assertEquals(BuildEnvironment.getInstance().getGradlePluginVersion(), version);
-  }
-
-  public void testGetComponentVersionWithExperimentalPlugin() throws Exception {
-    loadProject(EXPERIMENTAL_PLUGIN);
-    Module appModule = myModules.getAppModule();
-    assertNull(myVersionReader.getComponentVersion(appModule));
   }
 
   public void testGetQuickFixes() throws Exception {
@@ -88,13 +75,5 @@ public class AndroidGradlePluginVersionReaderTest extends AndroidGradleTestCase 
     assertThat(quickFix).isInstanceOf(OpenUrlHyperlink.class);
     OpenUrlHyperlink openUrlQuickFix = (OpenUrlHyperlink)quickFix;
     assertEquals("https://developer.android.com/studio/releases/gradle-plugin.html#updating-gradle", openUrlQuickFix.getUrl());
-  }
-
-  public void testGetQuickFixesWithExperimentalPlugin() throws Exception {
-    loadProject(EXPERIMENTAL_PLUGIN);
-    Module appModule = myModules.getAppModule();
-
-    List<NotificationHyperlink> quickFixes = myVersionReader.getQuickFixes(appModule, VersionRange.parse("[0.7.0, +)"), null);
-    assertThat(quickFixes).isEmpty();
   }
 }

@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.actions
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.util.XmlTagUtil
+import com.android.tools.idea.uibuilder.model.NlDependencyManager
 import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.actionSystem.AnAction
@@ -32,6 +34,7 @@ import com.intellij.openapi.editor.ex.RangeHighlighterEx
 import com.intellij.openapi.editor.ex.util.LexerEditorHighlighter
 import com.intellij.openapi.editor.markup.*
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.TextRange
@@ -44,7 +47,7 @@ import javax.swing.Icon
  * Action that shows a dialog to change the tag name of a component
  */
 class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
-  : AnAction("Morph View...") {
+  : AnAction("Convert view...") {
 
   private val myFacet: AndroidFacet = component.model.facet
   private val mySurface = designSurface
@@ -99,15 +102,12 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
     val document = factory.createDocument(buildRangesAndGetString(myNlComponent, myAttributes))
     val editor = factory.createEditor(document, myProject, XmlFileType.INSTANCE, false) as EditorEx
 
-    val syntaxHighlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(XmlFileType.INSTANCE, myProject, mySurface.model?.file?.virtualFile)
+    val syntaxHighlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(XmlFileType.INSTANCE, myProject, mySurface.model?.virtualFile)
     syntaxHighlighter?.let {
       editor.highlighter = LexerEditorHighlighter(it, EditorColorsManager.getInstance().globalScheme)
     }
 
     myTagNameRange = addMarkerForTagName(editor)
-    myAttributes.forEach {
-      it.addMarker(editor)
-    }
 
     with(editor) {
       setCaretEnabled(false)
@@ -140,26 +140,43 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
    * Apply the provided tag name to the component in the model
    */
   private fun applyTagEdit(newTagName: String) {
-    NlWriteCommandAction.run(myNlComponent, "Morph " + myNlComponent.tagName + " to $newTagName", {
-      myNlComponent.tag.name = newTagName
-      TransactionGuard.getInstance().submitTransactionAndWait {
-        myAttributes
-            .filter { !it.keep }
-            .map { it.name }
-            .forEach {
-              myNlComponent.tag.setAttribute(it, null)
-            }
+    val dependencyManager = NlDependencyManager.get()
+    val newTag = listOf(NlComponent(myNlComponent.model, XmlTagUtil.createTag(myNlComponent.model.project, "<$newTagName/>")))
+    if (dependencyManager.checkIfUserWantsToAddDependencies(newTag, myFacet)) {
+      dependencyManager.addDependencies(newTag, myFacet) {
+        editTagNameAndAttributes(newTagName)
       }
-    })
+    }
   }
 
-  private fun createMorphPopup(morphDialog: MorphDialog, editorEx: EditorEx): JBPopup {
+  /**
+   * Edit the tag name and remove the attributes that are not needed anymore.
+   */
+  private fun editTagNameAndAttributes(newTagName: String) {
+    DumbService.getInstance(myProject).runWhenSmart {
+      NlWriteCommandAction.run(myNlComponent, "Convert " + myNlComponent.tagName + " to ${newTagName.split(".").last()}", {
+        myNlComponent.tag.name = newTagName
+        TransactionGuard.getInstance().submitTransactionAndWait {
+          myAttributes
+              .filter { !it.keep }
+              .map { it.name }
+              .forEach {
+                myNlComponent.tag.setAttribute(it, null)
+              }
+          myNlComponent.removeObsoleteAttributes()
+          myNlComponent.children.forEach(NlComponent::removeObsoleteAttributes)
+        }
+      })
+    }
+  }
+
+  private fun createMorphPopup(morphPanel: MorphPanel, editorEx: EditorEx): JBPopup {
     val popup = JBPopupFactory.getInstance()
-        .createComponentPopupBuilder(morphDialog, null)
-        .setMinSize(morphDialog.preferredSize)
+        .createComponentPopupBuilder(morphPanel, null)
         .setMovable(true)
         .setFocusable(true)
         .setRequestFocus(true)
+        .setShowShadow(true)
         .setCancelOnClickOutside(true)
         .setAdText("Set the new type for the selected View")
         .setCancelCallback {
@@ -170,7 +187,7 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
         }
         .createPopup()
 
-    morphDialog.setOkAction {
+    morphPanel.setOkAction {
       applyTagEdit(myNewName)
       popup.closeOk(null)
     }
@@ -179,16 +196,15 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
 
   private fun showMorphPopup() {
     val oldTagName = myNlComponent.tagName
+    val morphSuggestion = MorphManager.getMorphSuggestion(myNlComponent)
     val editor = createEditor()
-    val morphDialog = MorphDialog(myFacet, myProject, editor.component, oldTagName)
-
+    val morphDialog = MorphPanel(myFacet, myProject, editor.component, oldTagName, morphSuggestion)
     morphDialog.setTagNameChangeConsumer(updateDocumentWithNewName(editor.document))
     createMorphPopup(morphDialog, editor).showInFocusCenter()
     IdeFocusManager.getInstance(myProject).requestFocus(morphDialog.preferredFocusComponent, true)
   }
 
-  private fun updateDocumentWithNewName(document: Document): (String) -> Unit = {
-    newName ->
+  private fun updateDocumentWithNewName(document: Document): (String) -> Unit = { newName ->
     myNewName = newName
     document.replaceString(myTagNameRange.startOffset, myTagNameRange.endOffset, newName)
   }

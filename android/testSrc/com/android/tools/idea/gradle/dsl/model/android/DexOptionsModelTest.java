@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.DexOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 
@@ -204,7 +206,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     DexOptionsModel dexOptions = android.dexOptions();
-    assertTrue(dexOptions.hasValidPsiElement());
+    checkForValidPsiElement(dexOptions, DexOptionsModelImpl.class);
     assertEquals("additionalParameters", ImmutableList.of("abcd", "efgh"), dexOptions.additionalParameters());
     assertEquals("javaMaxHeapSize", "2048m", dexOptions.javaMaxHeapSize());
     assertEquals("jumboMode", Boolean.TRUE, dexOptions.jumboMode());
@@ -228,7 +230,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     dexOptions = android.dexOptions();
-    assertFalse(dexOptions.hasValidPsiElement());
+    checkForInValidPsiElement(dexOptions, DexOptionsModelImpl.class);
     assertNull("additionalParameters", dexOptions.additionalParameters());
     assertNull("javaMaxHeapSize", dexOptions.javaMaxHeapSize());
     assertNull("jumboMode", dexOptions.jumboMode());
@@ -279,7 +281,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     DexOptionsModel dexOptions = android.dexOptions();
-    assertTrue(dexOptions.hasValidPsiElement());
+    checkForValidPsiElement(dexOptions, DexOptionsModelImpl.class);
     assertEquals("additionalParameters", ImmutableList.of("abcd"), dexOptions.additionalParameters());
 
     dexOptions.removeAdditionalParameter("abcd");
@@ -289,7 +291,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     dexOptions = android.dexOptions();
-    assertFalse(dexOptions.hasValidPsiElement());
+    checkForInValidPsiElement(dexOptions, DexOptionsModelImpl.class);
     assertNull("additionalParameters", dexOptions.additionalParameters());
   }
 }

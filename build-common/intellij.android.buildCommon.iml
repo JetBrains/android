@@ -23,40 +23,39 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="NanoXML" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.common" exported="" />
     <orderEntry type="module" module-name="android.sdktools.dvlib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" exported="" />
     <orderEntry type="module" module-name="android.sdktools.ninepatch" exported="" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" exported="" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module-library" exported="">
-      <library name="com.android.tools.lint:lint-checks:26.0.0" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools.lint:lint-checks:26.0.0" />
+      <library name="com.android.tools.lint:lint-checks:26.1.2" type="repository">
+        <properties include-transitive-deps="false" maven-id="com.android.tools.lint:lint-checks:26.1.2" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/lint/lint-checks/26.0.0/lint-checks-26.0.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/lint/lint-checks/26.1.2/lint-checks-26.1.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="">
-      <library name="com.android.tools.lint:lint-api:26.0.0" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools.lint:lint-api:26.0.0" />
+      <library name="com.android.tools.lint:lint-api:26.1.2" type="repository">
+        <properties include-transitive-deps="false" maven-id="com.android.tools.lint:lint-api:26.1.2" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/lint/lint-api/26.0.0/lint-api-26.0.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/lint/lint-api/26.1.2/lint-api-26.1.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="library" exported="" scope="RUNTIME" name="asm-tools" level="project" />
-    <orderEntry type="library" exported="" name="com.android.tools:sdk-common:26.0.0" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:testutils:26.0.0" level="project" />
+    <orderEntry type="library" exported="" name="com.android.tools:sdk-common:26.1.2" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:testutils:26.1.2" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="builder-model" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools.build:builder-model:3.0.0" />
+        <properties include-transitive-deps="false" maven-id="com.android.tools.build:builder-model:3.1.2" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/builder-model/3.0.0/builder-model-3.0.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/builder-model/3.1.2/builder-model-3.1.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -64,14 +63,16 @@
     </orderEntry>
     <orderEntry type="module-library" exported="">
       <library name="builder-test-api" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools.build:builder-test-api:3.0.0" />
+        <properties include-transitive-deps="false" maven-id="com.android.tools.build:builder-test-api:3.1.2" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/builder-test-api/3.0.0/builder-test-api-3.0.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/builder-test-api/3.1.2/builder-test-api-3.1.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" exported="" name="com.android.tools.ddms:ddmlib:26.0.0" level="project" />
+    <orderEntry type="library" exported="" name="com.android.tools.ddms:ddmlib:26.1.2" level="project" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="com.android.tools:annotations:26.1.2" level="project" />
   </component>
 </module>

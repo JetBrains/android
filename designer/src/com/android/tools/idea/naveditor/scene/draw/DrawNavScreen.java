@@ -16,25 +16,21 @@
 package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.rendering.ImagePool;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
-import com.google.common.collect.ImmutableMap;
+import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
+import com.android.tools.idea.rendering.ImagePool;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.Map;
+
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_NAV_SCREEN_LEVEL;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.setRenderingHints;
 
 /**
  * {@link DrawCommand} that draws a screen in the navigation editor.
  */
 public class DrawNavScreen extends NavBaseDrawCommand {
-  private final static Map<RenderingHints.Key, Object> HQ_RENDERING_HITS = ImmutableMap.of(
-    RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
-    RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
-    RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
-  );
-
   @SwingCoordinate private final int myX;
   @SwingCoordinate private final int myY;
   @SwingCoordinate private final int myWidth;
@@ -52,22 +48,19 @@ public class DrawNavScreen extends NavBaseDrawCommand {
 
   @Override
   public int getLevel() {
-    return DRAW_NAV_SCREEN;
+    return DRAW_NAV_SCREEN_LEVEL;
   }
 
   @Override
-  public void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
-    g.setRenderingHints(HQ_RENDERING_HITS);
-    Shape previousClip = g.getClip();
+  public String serialize() {
+    return DrawCommandSerializationHelperKt.buildString(getClass().getSimpleName(), myX, myY, myWidth, myHeight);
+  }
+
+  @Override
+  protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
+    setRenderingHints(g);
     g.clipRect(myX, myY, myWidth, myHeight);
     // TODO: better scaling (similar to ScreenViewLayer)
     myImage.drawImageTo(g, myX, myY, myWidth, myHeight);
-    g.setClip(previousClip);
-  }
-
-  @Override
-  @NotNull
-  protected Object[] getProperties() {
-    return new Object[]{myX, myY, myWidth, myHeight};
   }
 }

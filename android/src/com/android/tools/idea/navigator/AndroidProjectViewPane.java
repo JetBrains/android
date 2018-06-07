@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.navigator;
 
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
+import com.android.tools.idea.Projects;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectViewSelectInTarget;
@@ -61,7 +61,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Projects.findModuleRootFolderPath;
+import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.*;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.PlatformDataKeys.DELETE_ELEMENT_PROVIDER;

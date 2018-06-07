@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;

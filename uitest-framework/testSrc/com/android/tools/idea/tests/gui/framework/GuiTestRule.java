@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.android.SdkConstants;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -24,6 +25,7 @@ import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -40,6 +42,7 @@ import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.AssumptionViolatedException;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
@@ -50,15 +53,22 @@ import org.junit.runners.model.Statement;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.testutils.TestUtils.getWorkspaceFile;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.TruthJUnit.assume;
+import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
 import static org.fest.reflect.core.Reflection.*;
 
 public class GuiTestRule implements TestRule {
@@ -67,6 +77,7 @@ public class GuiTestRule implements TestRule {
   private static final boolean HAS_EXTERNAL_WINDOW_MANAGER = Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH);
 
   private IdeFrameFixture myIdeFrameFixture;
+  @Nullable private String myTestDirectory;
 
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final LeakCheck myLeakCheck = new LeakCheck();
@@ -80,7 +91,6 @@ public class GuiTestRule implements TestRule {
       if (parentWindow instanceof Dialog && ((Dialog)parentWindow).isModal()) {
         Container parent = parentWindow.getParent();
         if (parent != null && parent.isVisible()) {
-          System.out.println("Focus Listener: Request focus!");
           parent.requestFocus();
         }
       }
@@ -95,15 +105,21 @@ public class GuiTestRule implements TestRule {
   @NotNull
   @Override
   public Statement apply(final Statement base, final Description description) {
-    return RuleChain.emptyRuleChain()
+    RuleChain chain = RuleChain.emptyRuleChain()
+      .around(new LogStartAndStop())
       .around(new BlockReloading())
       .around(myRobotTestRule)
       .around(myLeakCheck)
       .around(new IdeHandling())
-      .around(new TestPerformance())
       .around(new ScreenshotOnFailure())
-      .around(myTimeout)
-      .apply(base, description);
+      .around(myTimeout);
+
+    // Perf logging currently writes data to the Bazel-specific TEST_UNDECLARED_OUTPUTS_DIR. Skipp logging if running outside of Bazel.
+    if (TestUtils.runningFromBazel()) {
+      chain = chain.around(new GuiPerfLogger(description));
+    }
+
+    return chain.apply(base, description);
   }
 
   private class IdeHandling implements TestRule {
@@ -113,10 +129,12 @@ public class GuiTestRule implements TestRule {
       return new Statement() {
         @Override
         public void evaluate() throws Throwable {
-          System.out.println("Starting " + description.getDisplayName());
-          assume().that(GuiTests.fatalErrorsFromIde()).named("IDE errors").isEmpty();
-          assumeOnlyWelcomeFrameShowing();
-          setUp();
+          if (!TestUtils.runningFromBazel()) {
+            // when state can be bad from previous tests, check and skip in that case
+            assume().that(GuiTests.fatalErrorsFromIde()).named("IDE errors").isEmpty();
+            assumeOnlyWelcomeFrameShowing();
+          }
+          setUp(description.getMethodName());
           List<Throwable> errors = new ArrayList<>();
           try {
             base.evaluate();
@@ -150,10 +168,14 @@ public class GuiTestRule implements TestRule {
     assume().that(GuiTests.windowsShowing()).named("windows showing").hasSize(1);
   }
 
-  private void setUp() {
-    GuiTests.setUpDefaultProjectCreationLocationPath();
+  private void setUp(@Nullable String methodName) {
+    myTestDirectory = methodName != null ? sanitizeFileName(methodName) : null;
+    GuiTests.setUpDefaultProjectCreationLocationPath(myTestDirectory);
     GuiTests.setIdeSettings();
     GuiTests.setUpSdks();
+
+    // Compute the workspace root before any IDE code starts messing with user.dir:
+    TestUtils.getWorkspaceRoot();
 
     if (!HAS_EXTERNAL_WINDOW_MANAGER) {
       KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(myGlobalFocusListener);
@@ -180,6 +202,7 @@ public class GuiTestRule implements TestRule {
   private ImmutableList<Throwable> tearDown() {
     ImmutableList.Builder<Throwable> errors = ImmutableList.builder();
     errors.addAll(thrownFromRunning(this::waitForBackgroundTasks));
+    errors.addAll(checkForPopupMenus());
     errors.addAll(checkForModalDialogs());
     errors.addAll(thrownFromRunning(this::tearDownProject));
     if (!HAS_EXTERNAL_WINDOW_MANAGER) {
@@ -198,6 +221,20 @@ public class GuiTestRule implements TestRule {
       robot().close(modalDialog);
       errors.add(new AssertionError(
         String.format("Modal dialog showing: %s with title '%s'", modalDialog.getClass().getName(), modalDialog.getTitle())));
+    }
+    return errors;
+  }
+
+  private List<AssertionError> checkForPopupMenus() {
+    List<AssertionError> errors = new ArrayList<>();
+
+    // Close all opened popup menu items (File > New > etc) before continuing.
+    Collection<JPopupMenu> popupMenus = robot().finder().findAll(Matchers.byType(JPopupMenu.class).andIsShowing());
+    if (!popupMenus.isEmpty()) {
+      errors.add(new AssertionError(String.format("%d Popup Menus left open", popupMenus.size())));
+      for (int i = 0; i <= popupMenus.size(); i++) {
+        robot().pressAndReleaseKey(KeyEvent.VK_ESCAPE);
+      }
     }
     return errors;
   }
@@ -224,6 +261,14 @@ public class GuiTestRule implements TestRule {
     field("containerMap").ofType(Hashtable.class).in(manager).get().clear();
   }
 
+  public IdeFrameFixture importSimpleLocalApplication() throws IOException {
+    return importProjectAndWaitForProjectSyncToFinish("SimpleLocalApplication");
+  }
+
+  /**
+   * @deprecated use importSimpleLocalApplication that doesn't use remote repositories.
+   */
+  @Deprecated()
   public IdeFrameFixture importSimpleApplication() throws IOException {
     return importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
   }
@@ -267,6 +312,7 @@ public class GuiTestRule implements TestRule {
     updateGradleVersions(projectPath);
     updateLocalProperties(projectPath);
     cleanUpProjectForImport(projectPath);
+    refreshFiles();
     return projectPath;
   }
 
@@ -278,12 +324,15 @@ public class GuiTestRule implements TestRule {
       FileUtilRt.delete(projectPath);
     }
     FileUtil.copyDir(masterProjectPath, projectPath);
-    System.out.println(String.format("Copied project '%1$s' to path '%2$s'", projectDirName, projectPath.getPath()));
     return projectPath;
   }
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
-    return GradleWrapper.create(projectDirPath, gradleVersion) != null;
+    GradleWrapper wrapper = GradleWrapper.create(projectDirPath, gradleVersion);
+    File path = getWorkspaceFile("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip");
+    assertAbout(file()).that(path).named("Gradle distribution path").isFile();
+    wrapper.updateDistributionUrl(path);
+    return wrapper != null;
   }
 
   protected void updateLocalProperties(File projectPath) throws IOException {
@@ -303,7 +352,7 @@ public class GuiTestRule implements TestRule {
 
   @NotNull
   protected File getTestProjectDirPath(@NotNull String projectDirName) {
-    return new File(GuiTests.getProjectCreationDirPath(), projectDirName);
+    return new File(GuiTests.getProjectCreationDirPath(myTestDirectory), projectDirName);
   }
 
   public void cleanUpProjectForImport(@NotNull File projectPath) {

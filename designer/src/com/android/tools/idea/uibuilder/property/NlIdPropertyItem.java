@@ -17,8 +17,7 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.NlPropertyItem;
+import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -45,9 +44,7 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.function.Supplier;
 
-import static com.android.SdkConstants.ANDROID_ID_PREFIX;
-import static com.android.SdkConstants.ID_PREFIX;
-import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.SdkConstants.*;
 
 public class NlIdPropertyItem extends NlPropertyItem {
   private static final int REFACTOR_ASK = 0;
@@ -62,7 +59,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
   protected NlIdPropertyItem(@NotNull XmlName name,
                              @Nullable AttributeDefinition attributeDefinition,
                              @NotNull List<NlComponent> components,
-                             @NotNull NlPropertiesManager propertiesManager) {
+                             @NotNull PropertiesManager propertiesManager) {
     super(name, attributeDefinition, components, propertiesManager);
   }
 
@@ -72,7 +69,9 @@ public class NlIdPropertyItem extends NlPropertyItem {
     return stripIdPrefix(super.getValue());
   }
 
-  /** Like {@link LintUtils#stripIdPrefix(String)} but doesn't return "" for a null id */
+  /**
+   * Like {@link LintUtils#stripIdPrefix(String)} but doesn't return "" for a null id
+   */
   private static String stripIdPrefix(@Nullable String id) {
     if (id != null) {
       if (id.startsWith(NEW_ID_PREFIX)) {
@@ -185,5 +184,4 @@ public class NlIdPropertyItem extends NlPropertyItem {
   private DialogBuilder createDialogBuilder(@NotNull Project project) {
     return myDialogSupplier != null ? myDialogSupplier.get() : new DialogBuilder(project);
   }
-
 }

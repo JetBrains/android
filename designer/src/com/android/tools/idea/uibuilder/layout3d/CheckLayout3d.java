@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.layout3d;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil;
-import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.util.ui.UIUtil;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.IOException;

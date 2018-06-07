@@ -156,10 +156,4 @@ public class BuildTypeStub implements BuildType {
   public File getMultiDexKeepProguard() {
     return null;
   }
-
-  @Override
-  @NotNull
-  public List<File> getJarJarRuleFiles() {
-    return Collections.emptyList();
-  }
 }

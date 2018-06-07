@@ -19,12 +19,11 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class FlatDirRepositoryDslElement extends GradleDslBlockElement {
   @NonNls public static final String FLAT_DIR_BLOCK_NAME = "flatDir";
 
-  public FlatDirRepositoryDslElement(@Nullable GradleDslElement parent) {
+  public FlatDirRepositoryDslElement(@NotNull GradleDslElement parent) {
     super(parent, FLAT_DIR_BLOCK_NAME);
   }
 

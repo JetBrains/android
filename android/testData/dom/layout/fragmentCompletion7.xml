@@ -1,0 +1,3 @@
+<FrameLayout xmlns:tools="http://schemas.android.com/tools" >
+  <fragment tools:<caret>la/>
+</FrameLayout>

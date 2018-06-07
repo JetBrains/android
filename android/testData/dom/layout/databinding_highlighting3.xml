@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <import type="p1.p2.DataBindingHighlighting3.OneTwoThree"/>
+        <variable name="var" type="p1.p2.DataBindingHighlighting3"/>
+    </data>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="@{var.map[OneTwoThree.ONE]}"/>
+</layout>

@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.ui.designer;
 
+import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.idea.configurations.Configuration;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.awt.*;
 
 /**
  * A layout editor design surface.
  */
-public abstract class EditorDesignSurface extends JPanel {
+public abstract class EditorDesignSurface extends AdtPrimaryPanel {
   public EditorDesignSurface(LayoutManager layout) {
     super(layout);
   }

@@ -20,6 +20,7 @@ import com.android.ddmlib.Log.LogLevel;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.logcat.LogCatTimestamp;
+import com.intellij.diagnostic.logging.LogFormatter;
 import org.junit.Test;
 
 import java.util.Locale;
@@ -73,7 +74,7 @@ public class AndroidLogcatFormatterTest {
   }
 
   @Test
-  public void unknownFormatMessageRemainsSame(){
+  public void unknownFormatMessageRemainsSame() {
     AndroidLogcatPreferences preferences = new AndroidLogcatPreferences();
     AndroidLogcatFormatter formatter = new AndroidLogcatFormatter(preferences);
 
@@ -84,18 +85,30 @@ public class AndroidLogcatFormatterTest {
   }
 
   @Test
-  public void emptyFormatMessageLeavesTheSame(){
+  public void emptyFormatMessageLeavesTheSame() {
     String message = "01-23 12:34:56.789      1234-56/com.dummy.test D/test: Test message";
 
     AndroidLogcatPreferences preferences = new AndroidLogcatPreferences();
     AndroidLogcatFormatter formatter = new AndroidLogcatFormatter(preferences);
-    assertEquals(preferences.LOGCAT_FORMAT_STRING, "");
+    assertEquals("", preferences.LOGCAT_FORMAT_STRING);
     String formattedMessage = formatter.formatMessage(message);
     assertEquals(message, formattedMessage);
   }
 
   @Test
-  public void variousFormatsWorkAsExpected(){
+  public void formatMessageIndentsContinuationIndentLengthSpaces() {
+    LogFormatter formatter = new AndroidLogcatFormatter(new AndroidLogcatPreferences());
+
+    formatter.formatMessage(
+      "12-18 14:13:55.926 1620-1640/system_process V/StorageManagerService: Found primary storage at VolumeInfo{emulated}:");
+
+    assertEquals(
+      "        type=EMULATED diskId=null partGuid=null mountFlags=0 mountUserId=-1 ",
+      formatter.formatMessage("+     type=EMULATED diskId=null partGuid=null mountFlags=0 mountUserId=-1 "));
+  }
+
+  @Test
+  public void variousFormatsWorkAsExpected() {
     String message = "01-23 12:34:56.789      1234-56/com.dummy.test D/test: Test message";
 
     assertExpected(true, true, false, false, message, "01-23 12:34:56.789 1234-56 D: Test message");
@@ -113,5 +126,4 @@ public class AndroidLogcatFormatterTest {
     String formattedMessage = formatter.formatMessage(message);
     assertEquals(expected, formattedMessage);
   }
-
 }

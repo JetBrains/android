@@ -37,14 +37,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class SimpleEventDataSeries implements DataSeries<EventAction<SimpleEventType>> {
 
-  @NotNull
-  private ProfilerClient myClient;
-  private final int myProcessId;
-  private final Common.Session mySession;
+  @NotNull private ProfilerClient myClient;
+  @NotNull private final Common.Session mySession;
 
-  public SimpleEventDataSeries(@NotNull ProfilerClient client, int id, Common.Session session) {
+  public SimpleEventDataSeries(@NotNull ProfilerClient client, @NotNull Common.Session session) {
     myClient = client;
-    myProcessId = id;
     mySession = session;
   }
 
@@ -53,7 +50,6 @@ public class SimpleEventDataSeries implements DataSeries<EventAction<SimpleEvent
     List<SeriesData<EventAction<SimpleEventType>>> seriesData = new ArrayList<>();
     EventServiceGrpc.EventServiceBlockingStub eventService = myClient.getEventClient();
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
-      .setProcessId(myProcessId)
       .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));

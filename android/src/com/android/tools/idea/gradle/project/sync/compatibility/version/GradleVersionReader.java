@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePlug
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.GradleVersions;
-import com.android.tools.idea.gradle.util.PositionInFile;
+import com.android.tools.idea.util.PositionInFile;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

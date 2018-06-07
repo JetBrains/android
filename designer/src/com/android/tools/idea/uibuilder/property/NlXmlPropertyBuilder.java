@@ -22,9 +22,10 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.res.ProjectResourceRepository;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.editors.NlXmlEditors;
 import com.android.tools.idea.uibuilder.property.renderer.NlXmlRenderers;
 import com.google.common.collect.Multimap;
@@ -44,13 +45,13 @@ import java.util.regex.Pattern;
 public class NlXmlPropertyBuilder {
   private static final Pattern INTELLIJ_LIBRARY_NAME_PATTERN = Pattern.compile("(.+)-\\d+\\.\\d+\\.\\d+(-.+)");
 
-  private final NlPropertiesManager myPropertiesManager;
+  private final PropertiesManager myPropertiesManager;
   private final PTable myTable;
   private final List<NlComponent> myComponents;
   private final Table<String, String, NlPropertyItem> myProperties;
   private final Multimap<String, NlResourceItem> mySliceMap;
 
-  NlXmlPropertyBuilder(@NotNull NlPropertiesManager propertiesManager,
+  NlXmlPropertyBuilder(@NotNull PropertiesManager propertiesManager,
                        @NotNull PTable table,
                        @NotNull List<NlComponent> components,
                        Table<String, String, NlPropertyItem> properties) {
@@ -68,7 +69,7 @@ public class NlXmlPropertyBuilder {
     }
     NlComponent component = myComponents.get(0);
     List<PTableItem> items = new ArrayList<>();
-    items.add(new NlResourceHeader(generateFileHeader(component.getModel().getFile().getVirtualFile().getPath())));
+    items.add(new NlResourceHeader(generateFileHeader(component.getModel().getVirtualFile().getPath())));
     for (AttributeSnapshot attribute : component.getAttributes()) {
       NlPropertyItem item = myProperties.get(attribute.namespace, attribute.name);
       if (item != null) {
@@ -87,8 +88,8 @@ public class NlXmlPropertyBuilder {
     int editingRow = myTable.getEditingRow();
     PTableItem editingItem = editingRow >= 0 ? myTable.getItemAt(editingRow) : null;
 
-    myTable.getModel().setItems(items);
     myTable.setRendererProvider(NlXmlRenderers.getInstance());
+    myTable.getModel().setItems(items);
     myTable.setEditorProvider(NlXmlEditors.getInstance(myPropertiesManager.getProject()));
 
     if (myTable.getRowCount() > 0) {
@@ -141,7 +142,8 @@ public class NlXmlPropertyBuilder {
   }
 
   @Nullable
-  private static ResourceItem findUserDefinedResourceItem(@NotNull ProjectResourceRepository resourceRepository, @NotNull ResourceValue resource) {
+  private static ResourceItem findUserDefinedResourceItem(@NotNull ProjectResourceRepository resourceRepository,
+                                                          @NotNull ResourceValue resource) {
     if (resource.isFramework() || resource.getLibraryName() != null || resource.getResourceType() == null) {
       return null;
     }
@@ -192,7 +194,6 @@ public class NlXmlPropertyBuilder {
     if (matcher.find()) {
       String artifact = matcher.group(1);
       return !StringUtil.isEmpty(artifact) ? artifact : libraryName;
-
     }
     return libraryName;
   }

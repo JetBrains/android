@@ -1,6 +1,6 @@
 buildscript {
   repositories {
-    jcenter()
+    // This will be populated by AndroidGradleTestCase
   }
   dependencies {
     classpath 'com.android.tools.build:gradle:0.12.+'

@@ -66,12 +66,12 @@ public interface InstanceObject extends ValueObject {
    * @return The callstack proto associated with the Instance's allocation event.
    */
   @Nullable
-  default AllocationStack getCallStack() {
+  default AllocationStack getAllocationCallStack() {
     return null;
   }
 
   default int getCallStackDepth() {
-    AllocationStack callStack = getCallStack();
+    AllocationStack callStack = getAllocationCallStack();
     if (callStack == null) {
       return 0;
     }
@@ -91,7 +91,7 @@ public interface InstanceObject extends ValueObject {
    */
   @NotNull
   default List<CodeLocation> getCodeLocations() {
-    AllocationStack callStack = getCallStack();
+    AllocationStack callStack = getAllocationCallStack();
     if (callStack != null && callStack.getFrameCase() == AllocationStack.FrameCase.FULL_STACK) {
       AllocationStack.StackFrameWrapper fullStack = callStack.getFullStack();
       if (!fullStack.getFramesList().isEmpty()) {
@@ -119,11 +119,11 @@ public interface InstanceObject extends ValueObject {
     return false;
   }
 
-  default boolean hasAllocData() {
+  default boolean hasAllocTime() {
     return false;
   }
 
-  default boolean hasDeallocData() {
+  default boolean hasDeallocTime() {
     return false;
   }
 }

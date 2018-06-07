@@ -38,10 +38,10 @@ public class TextViewDecorator extends SceneDecorator {
   public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     @AndroidDpCoordinate Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
-    @SwingCoordinate int l = sceneContext.getSwingX(rect.x);
-    @SwingCoordinate int t = sceneContext.getSwingY(rect.y);
-    @SwingCoordinate int w = sceneContext.getSwingDimension(rect.width);
-    @SwingCoordinate int h = sceneContext.getSwingDimension(rect.height);
+    @SwingCoordinate int l = sceneContext.getSwingXDip(rect.x);
+    @SwingCoordinate int t = sceneContext.getSwingYDip(rect.y);
+    @SwingCoordinate int w = sceneContext.getSwingDimensionDip(rect.width);
+    @SwingCoordinate int h = sceneContext.getSwingDimensionDip(rect.height);
     String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
     NlComponent nlc = component.getNlComponent();
 
@@ -52,7 +52,7 @@ public class TextViewDecorator extends SceneDecorator {
     int align = ConstraintUtilities.getAlignment(alignment, rtl);
     String single = nlc.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_SINGLE_LINE);
     boolean singleLine = Boolean.parseBoolean(single);
-    int baseLineOffset = sceneContext.getSwingDimension(component.getBaseline());
+    int baseLineOffset = sceneContext.getSwingDimensionDip(component.getBaseline());
     int mode = component.isSelected() ? DecoratorUtilities.ViewStates.SELECTED_VALUE : DecoratorUtilities.ViewStates.NORMAL_VALUE;
     list.add(new DrawTextRegion(l, t, w, h, mode, baseLineOffset, text, singleLine, false, align, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START, size,
                                 (float)sceneContext.getScale()));

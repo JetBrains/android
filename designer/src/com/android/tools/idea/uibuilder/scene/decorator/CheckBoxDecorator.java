@@ -23,7 +23,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawTextRegion;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -94,8 +94,8 @@ public class CheckBoxDecorator extends SceneDecorator {
 
     @Override
     public void paint(Graphics2D g, SceneContext sceneContext) {
-      int margin = height / 5;
-      mHorizontalPadding = height;
+      int margin = sceneContext.getSwingDimensionDip(10);
+      mHorizontalPadding = margin * 3;
       super.paint(g, sceneContext);
       ColorSet colorSet = sceneContext.getColorSet();
       if (colorSet.drawBackground()) {
@@ -104,11 +104,13 @@ public class CheckBoxDecorator extends SceneDecorator {
         Stroke stroke = g.getStroke();
         g.setStroke(new BasicStroke(2));
         g.setColor(colorSet.getFakeUI());
-        g.drawRoundRect(x + margin, y + margin, height - margin * 2, height - margin * 2, 4, 4);
-        margin *= 2;
-        int xv = x + margin;
-        int yv = y + margin;
-        int h = height - margin * 2;
+        int h = Math.min(sceneContext.getSwingDimensionDip(15), height - margin * 2);
+
+        g.drawRoundRect(x + margin, y + height / 2 - h / 2, h, h, 4, 4);
+
+        int xv = x + margin + 2;
+        int yv = y + +height / 2 - h / 2;
+        h = 2 * h / 3;
         xp[0] = xv;
         xp[1] = xv + h / 3;
         xp[2] = xv + h;
@@ -127,12 +129,12 @@ public class CheckBoxDecorator extends SceneDecorator {
     super.addContent(list, time, sceneContext, component);
     @AndroidDpCoordinate Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
-    @SwingCoordinate int l = sceneContext.getSwingX(rect.x);
-    @SwingCoordinate int t = sceneContext.getSwingY(rect.y);
-    @SwingCoordinate int w = sceneContext.getSwingDimension(rect.width);
-    @SwingCoordinate int h = sceneContext.getSwingDimension(rect.height);
+    @SwingCoordinate int l = sceneContext.getSwingXDip(rect.x);
+    @SwingCoordinate int t = sceneContext.getSwingYDip(rect.y);
+    @SwingCoordinate int w = sceneContext.getSwingDimensionDip(rect.width);
+    @SwingCoordinate int h = sceneContext.getSwingDimensionDip(rect.height);
     String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
-    int baseLineOffset = sceneContext.getSwingDimension(component.getBaseline());
+    int baseLineOffset = sceneContext.getSwingDimensionDip(component.getBaseline());
     float scale = (float)sceneContext.getScale();
     int mode = component.isSelected() ? DecoratorUtilities.ViewStates.SELECTED_VALUE : DecoratorUtilities.ViewStates.NORMAL_VALUE;
     list.add(new DrawCheckbox(l, t, w, h, mode, baseLineOffset, scale, text));

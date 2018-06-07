@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
@@ -39,10 +38,9 @@ public class NewModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/64151364
   @Test
   public void testNewModuleOldGradle() throws Exception {
-    String gradleFileContents = guiTest.importSimpleApplication()
+    String gradleFileContents = guiTest.importSimpleLocalApplication()
       // the oldest combination we support:
       .updateAndroidGradlePluginVersion("1.0.0")
       .updateGradleWrapperVersion("2.2.1")
@@ -74,7 +72,7 @@ public class NewModuleTest {
   public void createNewModuleFromJar() throws Exception {
     String jarFile = GuiTests.getTestDataDir() + "/LocalJarsAsModules/localJarAsModule/local.jar";
 
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Import .JAR/.AAR Package")
       .clickNextToStep("Import Module from Library")
@@ -110,10 +108,10 @@ public class NewModuleTest {
    *   a new folder matching the module name should have been created.
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void createNewAppModuleWithDefaults() throws Exception {
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Phone & Tablet Module")
       .clickNextToStep("Phone & Tablet Module")
@@ -139,10 +137,10 @@ public class NewModuleTest {
    *   a new folder matching the module name should have been created
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void createNewLibraryModuleWithDefaults() throws Exception {
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")
       .clickNextToStep("Android Library")
@@ -154,7 +152,24 @@ public class NewModuleTest {
 
   @Test
   public void createNewJavaLibraryWithDefaults() throws Exception {
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
+      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Java Library")
+      .clickNextToStep("Library name:")
+      .getConfigureJavaLibaryStepFixture()
+      .enterLibraryName("mylib")
+      .enterPackageName("my.test")
+      .setCreateGitIgnore(true)
+      .wizard()
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylib/src/main/java/my/test/MyClass.java")).isFile();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylib/.gitignore")).isFile();
+  }
+
+  @Test
+  public void createNewJavaLibraryWithNoGitIgnore() throws Exception {
+    guiTest.importSimpleLocalApplication()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Java Library")
       .clickNextToStep("Library name:")
@@ -162,12 +177,11 @@ public class NewModuleTest {
       .enterLibraryName("mylib")
       .enterPackageName("my.test")
       .enterClassName("MyJavaClass")
-      .setCreateGitIgnore(true)
-      .getWizard()
+      .setCreateGitIgnore(false)
+      .wizard()
       .clickFinish()
-      .waitForGradleProjectSyncToFinish()
-      .getEditor()
-      .open("mylib/.gitignore")
-      .open("mylib/src/main/java/my/test/MyJavaClass.java");
+      .waitForGradleProjectSyncToFinish();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylib/src/main/java/my/test/MyJavaClass.java")).isFile();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylib/.gitignore")).doesNotExist();
   }
 }

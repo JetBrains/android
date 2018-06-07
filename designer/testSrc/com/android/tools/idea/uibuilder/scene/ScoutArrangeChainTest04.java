@@ -107,8 +107,7 @@ public class ScoutArrangeChainTest04 extends SceneTest {
                  "        app:layout_constraintEnd_toStartOf=\"@+id/a\"\n" +
                  "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"@+id/a\"\n" +
-                 "        tools:layout_editor_absoluteX=\"51dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"@+id/a\" />");
 
     list = new ArrayList<>(); // testing passing in an empty selection does not crash
     list.add(myScreen.get("@+id/b").getComponent());
@@ -121,8 +120,7 @@ public class ScoutArrangeChainTest04 extends SceneTest {
                  "        app:layout_constraintEnd_toStartOf=\"@+id/c\"\n" +
                  "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
                  "        app:layout_constraintStart_toEndOf=\"@+id/a\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"@+id/a\"\n" +
-                 "        tools:layout_editor_absoluteX=\"51dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"@+id/a\" />");
 
     buildScene();
   }
@@ -148,7 +146,6 @@ public class ScoutArrangeChainTest04 extends SceneTest {
                  "        android:id=\"@+id/b\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
-                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
                  "        app:layout_constraintTop_toTopOf=\"@+id/a\"\n" +
                  "        tools:layout_editor_absoluteX=\"51dp\" />");
 
@@ -160,7 +157,6 @@ public class ScoutArrangeChainTest04 extends SceneTest {
                  "        app:layout_constraintEnd_toStartOf=\"@+id/c\"\n" +
                  "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "        tools:layout_editor_absoluteX=\"4dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
   }
 }

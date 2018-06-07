@@ -15,20 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.api.*;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
-import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
-
-import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -48,6 +42,15 @@ public final class FragmentHandler extends ViewHandler {
   }
 
   @Override
+  @Nullable
+  public AttributeBrowser getBrowser(@NotNull String attributeName) {
+    if (!attributeName.equals(ATTR_NAME)) {
+      return null;
+    }
+    return FragmentHandler::browseClasses;
+  }
+
+  @Override
   @NotNull
   public String getTitle(@NotNull String tagName) {
     return "<fragment>";
@@ -64,18 +67,6 @@ public final class FragmentHandler extends ViewHandler {
   public String getTitleAttributes(@NotNull NlComponent component) {
     String name = component.getAttribute(ANDROID_URI, ATTR_NAME);
     return StringUtil.isEmpty(name) ? "" : "- " + name;
-  }
-
-  @Override
-  @NotNull
-  public Icon getIcon(@NotNull String tagName) {
-    return AndroidIcons.Views.Fragment;
-  }
-
-  @Override
-  @NotNull
-  public Icon getIcon(@NotNull NlComponent component) {
-    return AndroidIcons.Views.Fragment;
   }
 
   @Override
@@ -100,7 +91,7 @@ public final class FragmentHandler extends ViewHandler {
       if (newChild.getAttribute(ANDROID_URI, ATTR_NAME) != null) {
         return true;
       }
-      String src = editor.displayClassInput(Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT), null, null);
+      String src = browseClasses(editor, null);
       if (src != null) {
         newChild.setAttribute(ANDROID_URI, ATTR_NAME, src);
         return true;
@@ -111,5 +102,13 @@ public final class FragmentHandler extends ViewHandler {
       }
     }
     return true;
+  }
+
+  @Nullable
+  private static String browseClasses(@NotNull ViewEditor editor, @Nullable String existingValue) {
+    return editor.displayClassInput("Fragments",
+                                    Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT),
+                                    null,
+                                    existingValue);
   }
 }

@@ -15,25 +15,27 @@
  */
 package com.android.tools.idea.naveditor.structure;
 
-import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.common.model.*;
-import com.android.tools.idea.naveditor.NavComponentHelperKt;
-import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
@@ -48,6 +50,8 @@ import java.awt.event.MouseListener;
 import java.util.*;
 import java.util.List;
 
+import static icons.StudioIcons.NavEditor.Tree.*;
+import static com.android.SdkConstants.TAG_INCLUDE;
 import static java.awt.event.KeyEvent.VK_BACK_SPACE;
 import static java.awt.event.KeyEvent.VK_DELETE;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
@@ -83,33 +87,41 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
   JPanel myBackPanel;
   private NavDesignSurface myDesignSurface;
 
+  private static final Map<Icon, Icon> WHITE_ICONS = ImmutableMap.of(
+    FRAGMENT, ColoredIconGenerator.INSTANCE.generateWhiteIcon(FRAGMENT),
+    INCLUDE_GRAPH, ColoredIconGenerator.INSTANCE.generateWhiteIcon(INCLUDE_GRAPH),
+    ACTIVITY, ColoredIconGenerator.INSTANCE.generateWhiteIcon(ACTIVITY),
+    NESTED_GRAPH, ColoredIconGenerator.INSTANCE.generateWhiteIcon(NESTED_GRAPH));
+
   private DestinationList() {
     setLayout(new BorderLayout());
     myList = new JBList<>(myListModel);
     myList.setName("DestinationList");
-    myList.setCellRenderer(new DefaultListCellRenderer() {
+    myList.setCellRenderer(new ColoredListCellRenderer<NlComponent>() {
       @Override
-      public Component getListCellRendererComponent(final JList list,
-                                                    final Object value,
-                                                    final int index,
-                                                    final boolean isSelected,
-                                                    final boolean cellHasFocus) {
-        final Component result = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-        NlComponent component = (NlComponent)value;
-        String label = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL);
-        if (label != null) {
-          label = ResourceHelper.resolveStringValue(myResourceResolver, label);
+      protected void customizeCellRenderer(@NotNull JList<? extends NlComponent> list,
+                                           NlComponent component,
+                                           int index,
+                                           boolean isSelected,
+                                           boolean cellHasFocus) {
+        append(NavComponentHelperKt.getUiName(component, myResourceResolver));
+        if (NavComponentHelperKt.isStartDestination(component)) {
+          append(" - Start", SimpleTextAttributes.GRAY_ATTRIBUTES);
         }
-        if (label == null) {
-          label = component.getId();
+        Icon icon = FRAGMENT;
+        if (component.getTagName().equals(TAG_INCLUDE)) {
+          icon = INCLUDE_GRAPH;
         }
-        setText(label);
-        Icon icon = AndroidIcons.NavEditorIcons.Destination;
-        if (mySchema.getDestinationType(component.getTagName()) == NavigationSchema.DestinationType.NAVIGATION) {
-          icon = AndroidIcons.NavEditorIcons.DestinationGroup;
+        else if (NavComponentHelperKt.getDestinationType(component) == NavigationSchema.DestinationType.ACTIVITY) {
+          icon = ACTIVITY;
+        }
+        else if (mySchema.getDestinationType(component.getTagName()) == NavigationSchema.DestinationType.NAVIGATION) {
+          icon = NESTED_GRAPH;
+        }
+        if (isSelected) {
+          icon = WHITE_ICONS.get(icon);
         }
         setIcon(icon);
-        return result;
       }
     });
     InputMap inputMap = getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
@@ -125,7 +137,7 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
             new WriteCommandAction(myDesignSurface.getProject(), "Delete Destination" + (toDelete.size() > 1 ? "s" : ""),
                                    myDesignSurface.getModel().getFile()) {
               @Override
-              protected void run(@NotNull Result result) throws Throwable {
+              protected void run(@NotNull Result result) {
                 myDesignSurface.getModel().delete(toDelete);
               }
             }.execute();
@@ -186,12 +198,13 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
       };
       mySelectionModel.addListener(mySelectionModelListener);
       myListSelectionListener = e -> {
-        if (mySelectionUpdating) {
+        if (mySelectionUpdating || e.getValueIsAdjusting()) {
           return;
         }
         try {
           mySelectionUpdating = true;
           mySelectionModel.setSelection(myList.getSelectedValuesList());
+          myDesignSurface.scrollToCenter(myList.getSelectedValuesList());
         }
         finally {
           mySelectionUpdating = false;
@@ -199,10 +212,6 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
       };
       myList.addListSelectionListener(myListSelectionListener);
       myModelListener = new ModelListener() {
-        @Override
-        public void modelRendered(@NotNull NlModel model) {
-        }
-
         @Override
         public void modelChanged(@NotNull NlModel model) {
           updateComponentList(toolContext);
@@ -227,7 +236,13 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
       };
       myList.addMouseListener(myMouseListener);
       myModel.addListener(myModelListener);
-      myResourceResolver = toolContext.getConfiguration().getResourceResolver();
+
+      Configuration configuration = toolContext.getConfiguration();
+      assert configuration != null;
+      myResourceResolver = configuration.getResourceResolver();
+
+      ColorSet colorSet = SceneContext.get(toolContext.getCurrentSceneView()).getColorSet();
+      myList.setBackground(colorSet.getSubduedBackground());
     }
     updateComponentList(toolContext);
   }
@@ -235,7 +250,7 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
   private NavigationSchema getSchema() {
     if (mySchema == null) {
       assert myModel != null;
-      mySchema = NavigationSchema.getOrCreateSchema(myModel.getFacet());
+      mySchema = NavigationSchema.get(myModel.getFacet());
     }
     return mySchema;
   }
@@ -247,7 +262,8 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
     else {
       myBackPanel.setVisible(true);
       NlComponent parent = myDesignSurface.getCurrentNavigation().getParent();
-      myBackLabel.setText(parent.getParent() == null ? ROOT_NAME : NavComponentHelperKt.getUiName(parent));
+      // TODO: We are actually occasionally NPE-ing below, I think, though it should be impossible. Investigation is needed.
+      myBackLabel.setText(parent.getParent() == null ? ROOT_NAME : NavComponentHelperKt.getUiName(parent, myResourceResolver));
     }
   }
 

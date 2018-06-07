@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.tools.idea.welcome.wizard.ProgressStep;
+import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.util.ThrowableComputable;
 import org.jetbrains.annotations.NotNull;
@@ -38,14 +38,8 @@ public class InstallContext {
     }
   }
 
-  @SuppressWarnings("UseOfSystemOutOrSystemErr")
   public void print(String message, ConsoleViewContentType contentType) {
-    if (contentType == ConsoleViewContentType.ERROR_OUTPUT) {
-      System.err.println(message);
-    }
-    else {
-      System.out.println(message);
-    }
+    myProgressStep.print(message, contentType);
   }
 
   public <R, E extends Exception> R run(ThrowableComputable<R, E> operation, double progressRatio) throws E {

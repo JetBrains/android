@@ -24,17 +24,10 @@ import static com.android.tools.idea.editors.strings.table.StringResourceTableMo
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.UNTRANSLATABLE_COLUMN;
 
 public final class NeedsTranslationsRowFilter extends StringResourceTableRowFilter {
-
-  private final boolean myShowAll;
-
-  public NeedsTranslationsRowFilter(boolean showAll) {
-    myShowAll = showAll;
-  }
-
   @Override
   public void update(@NotNull Presentation presentation) {
     presentation.setIcon(null);
-    presentation.setText(myShowAll ? "Show Translatable Keys" : "Show Keys Needing Translations");
+    presentation.setText("Show Keys Needing Translations");
   }
 
   @Override
@@ -43,7 +36,7 @@ public final class NeedsTranslationsRowFilter extends StringResourceTableRowFilt
       return false;
     }
 
-    return myShowAll || IntStream.range(DEFAULT_VALUE_COLUMN, entry.getValueCount())
+    return IntStream.range(DEFAULT_VALUE_COLUMN, entry.getValueCount())
       .mapToObj(entry::getStringValue)
       .anyMatch(String::isEmpty);
   }

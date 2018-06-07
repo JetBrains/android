@@ -16,10 +16,12 @@
 package com.android.tools.idea.startup;
 
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
+import com.android.tools.idea.gradle.actions.RefreshProjectAction;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.EmptyAction;
 
 import static com.android.tools.idea.startup.GradleSpecificInitializer.TEMPLATE_PROJECT_SETTINGS_GROUP_ID;
 import static com.google.common.truth.Truth.assertThat;
@@ -28,14 +30,11 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link GradleSpecificInitializer}
  */
 public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
-  public void testDisableAll() {
-    // tests cannot run because issues while loading androidstudio.xml (see ag/2695439)
-  }
 
   /**
    * Verify {@link AndroidTemplateProjectSettingsGroup} is used in ActionManager and in Welcome dialog (b/37141013)
    */
-  public void /*test*/AndroidTemplateProjectSettingsGroup() {
+  public void testAndroidTemplateProjectSettingsGroup() {
     ActionManager actionManager = ActionManager.getInstance();
     AnAction action = actionManager.getAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID);
     assertThat(action).isNotNull();
@@ -45,7 +44,7 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
   /**
    * Verify {@link AndroidTemplateProjectSettingsGroup} is used in Welcome dialog
    */
-  public void /*test*/AndroidTemplateProjectSettingsGroupInWelcomeDialog() {
+  public void testAndroidTemplateProjectSettingsGroupInWelcomeDialog() {
     ActionManager actionManager = ActionManager.getInstance();
     AnAction configureIdeaAction = actionManager.getAction("WelcomeScreen.Configure.IDEA");
     assertThat(configureIdeaAction).isNotNull();
@@ -55,5 +54,15 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
     assertThat(children).hasLength(1);
     AnAction child = children[0];
     assertThat(child).isInstanceOf(AndroidTemplateProjectSettingsGroup.class);
+  }
+
+  public void testRefreshProjectsActionIsReplaced() {
+    AnAction refreshProjectsAction = ActionManager.getInstance().getAction("ExternalSystem.RefreshAllProjects");
+    assertThat(refreshProjectsAction).isInstanceOf(RefreshProjectAction.class);
+  }
+
+  public void testSelectProjectToImportActionIsHidden() {
+    AnAction selectProjectToImportAction = ActionManager.getInstance().getAction("ExternalSystem.SelectProjectDataToImport");
+    assertThat(selectProjectToImportAction).isInstanceOf(EmptyAction.class);
   }
 }

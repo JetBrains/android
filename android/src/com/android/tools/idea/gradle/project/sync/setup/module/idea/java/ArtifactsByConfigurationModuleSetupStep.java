@@ -16,24 +16,21 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.libraries.Library;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.DOT_JAR;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
@@ -42,12 +39,10 @@ import static com.intellij.openapi.util.text.StringUtil.endsWithIgnoreCase;
 
 public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep {
   @Override
-  protected void doSetUpModule(@NotNull Module module,
-                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull JavaModuleModel javaModuleModel,
-                               @Nullable SyncAction.ModuleModels gradleModels,
-                               @Nullable ProgressIndicator indicator) {
-    ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
+  protected void doSetUpModule(@NotNull ModuleSetupContext context, @NotNull JavaModuleModel javaModuleModel) {
+    ModifiableRootModel moduleModel = context.getModifiableRootModel();
+    Module module = context.getModule();
+    IdeModifiableModelsProvider ideModelsProvider = context.getIdeModelsProvider();
 
     for (Map.Entry<String, Set<File>> entry : javaModuleModel.getArtifactsByConfiguration().entrySet()) {
       Set<File> artifacts = entry.getValue();
@@ -67,10 +62,7 @@ public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep
             // This is the jar obtained by compiling the module, no need to add it as dependency.
             continue;
           }
-          // let's use the same format for libraries imported from Gradle, to be compatible with API like ExternalSystemApiUtil.isExternalSystemLibrary()
-          // and be able to reuse common cleanup service, see LibraryDataService.postProcess()
-          String prefix = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
-          String libraryName = prefix + module.getName() + "." + artifactName;
+          String libraryName = module.getName() + "." + artifactName;
           Library library = ideModelsProvider.getLibraryByName(libraryName);
           if (library == null) {
             // Create library.

@@ -56,6 +56,11 @@ public class AndroidLibraryStub implements AndroidLibrary {
 
   @Override
   @Nullable
+  public String getBuildId() {
+    return null;
+  }
+
+  @Override
   public String getProject() {
     return myProject;
   }

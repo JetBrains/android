@@ -53,6 +53,9 @@
       <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors</implementation-class>
     </component>
     <component>
+      <implementation-class>com.android.tools.idea.naveditor.property.editors.NavPropertyEditors</implementation-class>
+    </component>
+    <component>
       <implementation-class>com.android.tools.idea.uibuilder.editor.LayoutNavigationManager</implementation-class>
     </component>
     <component>

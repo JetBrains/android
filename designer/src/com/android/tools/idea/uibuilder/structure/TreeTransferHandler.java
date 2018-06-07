@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.Scene;
+import com.intellij.openapi.application.TransactionGuard;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,9 +42,9 @@ public final class TreeTransferHandler extends TransferHandler {
   protected Transferable createTransferable(JComponent c) {
     NlComponentTree tree = (NlComponentTree)c;
     setDragImage(getDragImageOfSelection(tree));
-    NlModel model = tree.getDesignerModel();
-    if (model != null && !model.getSelectionModel().isEmpty()) {
-      return model.getSelectionAsTransferable();
+    Scene scene = tree.getScene();
+    if (scene != null && !scene.getDesignSurface().getSelectionModel().isEmpty()) {
+      return scene.getDesignSurface().getSelectionAsTransferable();
     }
     return delegateTransfer(tree);
   }
@@ -62,7 +64,7 @@ public final class TreeTransferHandler extends TransferHandler {
       NlComponentTree tree = (NlComponentTree)c;
       NlModel model = tree.getDesignerModel();
       assert model != null;
-      model.delete(tree.getSelectedComponents());
+      TransactionGuard.submitTransaction(model, () -> model.delete(tree.getSelectedComponents()));
     }
   }
 

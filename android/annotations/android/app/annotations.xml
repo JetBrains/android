@@ -57,7 +57,7 @@
   </item>
   <item name="android.app.ActionBar.LayoutParams gravity">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.view.Gravity.NO_GRAVITY, android.view.Gravity.TOP, android.view.Gravity.BOTTOM, android.view.Gravity.LEFT, android.view.Gravity.RIGHT, android.view.Gravity.START, android.view.Gravity.END, android.view.Gravity.CENTER_VERTICAL, android.view.Gravity.FILL_VERTICAL, android.view.Gravity.CENTER_HORIZONTAL, android.view.Gravity.FILL_HORIZONTAL, android.view.Gravity.CENTER, android.view.Gravity.FILL}" />
+      <val name="value" val="{android.view.Gravity.NO_GRAVITY, android.view.Gravity.TOP, android.view.Gravity.BOTTOM, android.view.Gravity.LEFT, android.view.Gravity.RIGHT, android.view.Gravity.START, android.view.Gravity.END, android.view.Gravity.CENTER_VERTICAL, android.view.Gravity.FILL_VERTICAL, android.view.Gravity.CENTER_HORIZONTAL, android.view.Gravity.FILL_HORIZONTAL, android.view.Gravity.CENTER, android.view.Gravity.FILL, android.view.Gravity.DISPLAY_CLIP_VERTICAL, android.view.Gravity.DISPLAY_CLIP_HORIZONTAL}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -1335,10 +1335,34 @@
   <item name="android.app.VoiceInteractor.Prompt java.lang.CharSequence getVoicePromptAt(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.WallpaperColors WallpaperColors(android.graphics.Color, android.graphics.Color, android.graphics.Color) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.WallpaperColors WallpaperColors(android.graphics.Color, android.graphics.Color, android.graphics.Color) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.WallpaperColors WallpaperColors(android.graphics.Color, android.graphics.Color, android.graphics.Color) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.WallpaperColors android.app.WallpaperColors fromBitmap(android.graphics.Bitmap) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.WallpaperColors android.graphics.Color getPrimaryColor()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.WallpaperColors android.graphics.Color getSecondaryColor()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.WallpaperColors android.graphics.Color getTertiaryColor()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.WallpaperManager">
     <annotation name="android.support.annotation.SystemService">
       <val name="value" val="android.content.Context.WALLPAPER_SERVICE" />
     </annotation>
+  </item>
+  <item name="android.app.WallpaperManager android.app.WallpaperColors getWallpaperColors(int)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.WallpaperManager android.graphics.drawable.Drawable getBuiltInDrawable(int) 0">
     <annotation name="android.support.annotation.IntDef">
@@ -1350,6 +1374,21 @@
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.app.WallpaperManager.FLAG_SYSTEM, android.app.WallpaperManager.FLAG_LOCK}" />
       <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.app.WallpaperManager android.graphics.drawable.Drawable getFastDrawable()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_EXTERNAL_STORAGE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.app.WallpaperManager android.graphics.drawable.Drawable peekFastDrawable()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_EXTERNAL_STORAGE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.app.WallpaperManager android.os.ParcelFileDescriptor getWallpaperFile(int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_EXTERNAL_STORAGE&quot;" />
     </annotation>
   </item>
   <item name="android.app.WallpaperManager android.os.ParcelFileDescriptor getWallpaperFile(int) 0">
@@ -1367,10 +1406,25 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.app.WallpaperManager int setBitmap(android.graphics.Bitmap, android.graphics.Rect, boolean)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.SET_WALLPAPER&quot;" />
+    </annotation>
+  </item>
+  <item name="android.app.WallpaperManager int setBitmap(android.graphics.Bitmap, android.graphics.Rect, boolean, int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.SET_WALLPAPER&quot;" />
+    </annotation>
+  </item>
   <item name="android.app.WallpaperManager int setBitmap(android.graphics.Bitmap, android.graphics.Rect, boolean, int) 3">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.app.WallpaperManager.FLAG_SYSTEM, android.app.WallpaperManager.FLAG_LOCK}" />
       <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.app.WallpaperManager int setResource(int, int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.SET_WALLPAPER&quot;" />
     </annotation>
   </item>
   <item name="android.app.WallpaperManager int setResource(int, int) 0">
@@ -1382,10 +1436,36 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.app.WallpaperManager int setStream(java.io.InputStream, android.graphics.Rect, boolean)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.SET_WALLPAPER&quot;" />
+    </annotation>
+  </item>
+  <item name="android.app.WallpaperManager int setStream(java.io.InputStream, android.graphics.Rect, boolean, int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.SET_WALLPAPER&quot;" />
+    </annotation>
+  </item>
   <item name="android.app.WallpaperManager int setStream(java.io.InputStream, android.graphics.Rect, boolean, int) 3">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.app.WallpaperManager.FLAG_SYSTEM, android.app.WallpaperManager.FLAG_LOCK}" />
       <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.app.WallpaperManager void addOnColorsChangedListener(android.app.WallpaperManager.OnColorsChangedListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.WallpaperManager void addOnColorsChangedListener(android.app.WallpaperManager.OnColorsChangedListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.WallpaperManager void clear()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.SET_WALLPAPER&quot;" />
+    </annotation>
+  </item>
+  <item name="android.app.WallpaperManager void clear(int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.SET_WALLPAPER&quot;" />
     </annotation>
   </item>
   <item name="android.app.WallpaperManager void clear(int) 0">
@@ -1394,8 +1474,26 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.app.WallpaperManager void removeOnColorsChangedListener(android.app.WallpaperManager.OnColorsChangedListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.WallpaperManager void setBitmap(android.graphics.Bitmap)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.SET_WALLPAPER&quot;" />
+    </annotation>
+  </item>
+  <item name="android.app.WallpaperManager void setResource(int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.SET_WALLPAPER&quot;" />
+    </annotation>
+  </item>
   <item name="android.app.WallpaperManager void setResource(int) 0">
     <annotation name="android.support.annotation.RawRes" />
+  </item>
+  <item name="android.app.WallpaperManager void setStream(java.io.InputStream)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.SET_WALLPAPER&quot;" />
+    </annotation>
   </item>
 </root>
 

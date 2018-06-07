@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.model;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
+import com.intellij.openapi.module.Module;
 import com.intellij.pom.java.LanguageLevel;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
@@ -51,6 +53,17 @@ public class JavaModuleModel implements ModuleModel {
 
   private final boolean myBuildable;
   private final boolean myAndroidModuleWithoutVariants;
+
+  @Nullable
+  public static JavaModuleModel get(@NotNull Module module) {
+    JavaFacet facet = JavaFacet.getInstance(module);
+    return facet != null ? get(facet) : null;
+  }
+
+  @Nullable
+  public static JavaModuleModel get(@NotNull JavaFacet javaFacet) {
+    return javaFacet.getJavaModuleModel();
+  }
 
   public JavaModuleModel(@NotNull String moduleName,
                          @NotNull Collection<JavaModuleContentRoot> contentRoots,

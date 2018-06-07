@@ -32,6 +32,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -127,8 +128,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
 
         String appId = getApplicationId(myProject);
         if (appId != null) {
-
-            UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                            .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
                                            .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK)
                                            .setProjectId(AnonymizerUtil.anonymizeUtf8(appId)));
@@ -205,6 +205,14 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
   @Nullable
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
     return null;
+  }
+
+  @Override
+  public void queryPlace(@NotNull Place place) {
+  }
+
+  @Override
+  public void setHistory(final History history) {
   }
 
   public void openSigningConfiguration() {

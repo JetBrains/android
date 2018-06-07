@@ -32,6 +32,18 @@
   <item name="android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction AccessibilityAction(int, java.lang.CharSequence) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.view.accessibility.AccessibilityRecord void setSource(android.view.View, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.accessibility.AccessibilityRequestPreparer AccessibilityRequestPreparer(android.view.View, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.accessibility.AccessibilityRequestPreparer.REQUEST_TYPE_EXTRA_DATA}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.view.accessibility.AccessibilityRequestPreparer android.view.View getView()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.accessibility.AccessibilityWindowInfo java.lang.CharSequence getTitle()">
     <annotation name="android.support.annotation.Nullable" />
   </item>

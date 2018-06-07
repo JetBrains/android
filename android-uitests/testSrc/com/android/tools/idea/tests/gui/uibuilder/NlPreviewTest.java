@@ -23,7 +23,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.timing.Wait;
@@ -37,7 +37,6 @@ import java.util.List;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgroundTasks;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
-import static org.fest.util.Preconditions.checkNotNull;
 import static org.junit.Assert.*;
 
 /**
@@ -48,7 +47,7 @@ public class NlPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
+  @RunIn(TestGroup.UNRELIABLE)  // Has not failed in 50 consecutive runs. Leave in Unreliable until dahlstrom@ wants it in reliable.
   @Test
   public void testConfigurationMatching() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
@@ -61,7 +60,6 @@ public class NlPreviewTest {
     preview.waitForRenderToFinish();
     preview.getConfigToolbar().requireDevice("Nexus 5");
     VirtualFile file = editor.getCurrentFile();
-    assert file != null;
     assertThat(file.getParent().getName()).isEqualTo("layout");
     preview.getConfigToolbar().requireOrientation("Portrait");
 
@@ -94,6 +92,7 @@ public class NlPreviewTest {
     preview.getConfigToolbar().requireDevice("Nexus 4"); // because it's the most recently configured small screen compatible device
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/71427797
   @Test
   public void editCustomView() throws Exception {
     // Opens the LayoutTest project, opens a layout with a custom view, checks
@@ -159,6 +158,7 @@ public class NlPreviewTest {
     assertFalse(preview.hasRenderErrors()); // but our build timestamp check this time will mask the out of date warning
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/3371722 (failed 2 times in last 50 test runs)
   @Test
   public void testRenderingDynamicResources() throws Exception {
     // Opens a layout which contains dynamic resources (defined only in build.gradle)
@@ -217,17 +217,18 @@ public class NlPreviewTest {
     file.waitForCodeAnalysisHighlightCount(ERROR, 0);
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/3371722
   @Test
   public void testCopyAndPaste() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
 
     NlPreviewFixture layout = editor.getLayoutPreview(true);
     layout
-      .dragComponentToSurface("Widgets", "Button")
-      .dragComponentToSurface("Widgets", "CheckBox")
+      .dragComponentToSurface("Buttons", "Button")
+      .dragComponentToSurface("Buttons", "CheckBox")
       .waitForRenderToFinish();
 
     // Find and click the first text view
@@ -238,41 +239,42 @@ public class NlPreviewTest {
     assertThat(layout.getSelection()).containsExactly(checkBox.getComponent());
     assertEquals(4, layout.getAllComponents().size()); // 4 = root layout + 3 widgets
 
-    ideFrame.invokeMenuPath("Edit", "Cut");
+    ideFrame.waitAndInvokeMenuPath("Edit", "Cut");
     assertEquals(3, layout.getAllComponents().size());
 
     layout.findView("Button", 0).click();
-    ideFrame.invokeMenuPath("Edit", "Paste");
+    ideFrame.waitAndInvokeMenuPath("Edit", "Paste");
     layout.findView("CheckBox", 0).click();
-    ideFrame.invokeMenuPath("Edit", "Copy");
-    ideFrame.invokeMenuPath("Edit", "Paste");
+    ideFrame.waitAndInvokeMenuPath("Edit", "Copy");
+    ideFrame.waitAndInvokeMenuPath("Edit", "Paste");
     assertEquals(5, layout.getAllComponents().size());
   }
 
   @Test
   public void testPreviewingDrawable() throws Exception {
     // Regression test for http://b.android.com/221330
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutPreview(true)
       .waitForRenderToFinish()
       .showOnlyBlueprintView()
-      .waitForScreenMode(NlDesignSurface.ScreenMode.BLUEPRINT_ONLY);
+      .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
     guiTest.ideFrame()
       .getEditor()
       .open("app/src/main/res/drawable/vector.xml", EditorFixture.Tab.EDITOR)
       .getLayoutPreview(true)
       .waitForRenderToFinish()
-      .waitForScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY);
+      .waitForScreenMode(SceneMode.SCREEN_ONLY);
     guiTest.ideFrame()
       .getEditor()
       .switchToTab("activity_my.xml")
       .getLayoutPreview(false)
       .waitForRenderToFinish()
-      .waitForScreenMode(NlDesignSurface.ScreenMode.BLUEPRINT_ONLY);
+      .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/3371722
   @Test
   public void testNavigation() throws Exception {
     // Open 2 different layout files in a horizontal split view (both editors visible).
@@ -280,26 +282,27 @@ public class NlPreviewTest {
     // Navigate in the preview. Only 1 of the layouts should change its scroll position (regression test for b/62367302).
     // Navigate in the file. The preview selection should update.
 
-    EditorFixture editor = guiTest.importSimpleApplication().getEditor();
+    EditorFixture editor = guiTest.importSimpleLocalApplication().getEditor();
     editor
       .open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.EDITOR)
       .invokeAction(EditorFixture.EditorAction.SPLIT_HORIZONTALLY)
       .open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.EDITOR);
 
-    TextEditorFixture absolute = checkNotNull(editor.getVisibleTextEditor("absolute.xml"));
-    TextEditorFixture frames = checkNotNull(editor.getVisibleTextEditor("frames.xml"));
+    TextEditorFixture absolute = editor.getVisibleTextEditor("absolute.xml");
+    TextEditorFixture frames = editor.getVisibleTextEditor("frames.xml");
 
     // Navigation in absolute.xml
     navigateEditor(editor, absolute, 323, 1706, frames, 0);
 
     // Navigation in frames.xml
+    frames.select();
     frames.focusAndWaitForFocusGain();
     navigateEditor(editor, frames, 345, 1572, absolute, 1706);
   }
 
   @Test
   public void deletePreviewedFile() throws Exception {
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutPreview(true)
@@ -318,10 +321,10 @@ public class NlPreviewTest {
   @Test
   public void closeLayoutShouldNotClosePreviewForAnotherLayout() throws Exception {
     // Regression test for b/64288544
-    EditorFixture editor = guiTest.importSimpleApplication()
+    EditorFixture editor = guiTest.importSimpleLocalApplication()
       .getEditor()
-      .open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.EDITOR)
-      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.EDITOR);
     editor
       .getLayoutPreview(true)
       .waitForRenderToFinish();
@@ -330,7 +333,31 @@ public class NlPreviewTest {
 
     Wait.seconds(2).expecting("preview to update")
       .until(() -> editor.getPreviewUpdateCount() > updateCountBeforeClose);
-    assertTrue(editor.isPreviewShowing());
+    assertTrue(editor.isPreviewShowing("activity_my.xml"));
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/3371722 (failed 1 time in last 50 runs)
+  @Test
+  public void closeSplitLayoutShouldMovePreviewToCorrectFile() throws Exception {
+    // Regression test for b/64199946
+    EditorFixture editor = guiTest.importSimpleLocalApplication()
+      .getEditor()
+      .open("app/src/main/res/drawable/ic_launcher.xml", EditorFixture.Tab.EDITOR)
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .invokeAction(EditorFixture.EditorAction.SPLIT_HORIZONTALLY);
+    editor.getLayoutPreview(true);
+
+    TextEditorFixture launcher = editor.getVisibleTextEditor("ic_launcher.xml");
+    TextEditorFixture activity = editor.getVisibleTextEditor("activity_my.xml");
+
+    launcher.select();
+    activity.select();
+
+    int updateCountBeforeClose = editor.getPreviewUpdateCount();
+    activity.closeFile();
+    Wait.seconds(3).expecting("preview to update")
+      .until(() -> editor.getPreviewUpdateCount() > updateCountBeforeClose);
+    assertTrue(editor.isPreviewShowing("ic_launcher.xml"));
   }
 
   private static void navigateEditor(@NotNull EditorFixture editor,
@@ -338,34 +365,34 @@ public class NlPreviewTest {
                                      @NotNull TextEditorFixture otherEditor, int expectedOffset) {
     NlPreviewFixture layout = editor.getLayoutPreview(true);
     layout.waitForRenderToFinish();
+    layout.waitForRenderToFinishAndApplyComponentDimensions();
 
     List<NlComponentFixture> components = layout.getAllComponents();
     NlComponentFixture first = components.get(1);                     // First child of the top level Layout
     NlComponentFixture last = components.get(components.size() - 1);  // Last child of the top level layout
-
     assertThat(first).isNotEqualTo(last);
 
     // Double click on the first component should move the caret in the selected editor, and leave the other editor unchanged
     first.doubleClick();
-    Wait.seconds(5).expecting("editor to be at offset " + firstOffset + " was " + selectedEditor.getOffset())
+    Wait.seconds(2).expecting("editor to be at offset " + firstOffset + " was " + selectedEditor.getOffset())
       .until(() -> selectedEditor.getOffset() == firstOffset);
     assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
 
     // Double click on the last component should move the caret in the selected editor, and leave the other editor unchanged
     last.doubleClick();
-    Wait.seconds(1).expecting("editor to be at offset " + lastOffset + " was " + selectedEditor.getOffset())
+    Wait.seconds(2).expecting("editor to be at offset " + lastOffset + " was " + selectedEditor.getOffset())
       .until(() -> selectedEditor.getOffset() == lastOffset);
     assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
 
     // Double click on the first component should move the caret in the selected editor, and leave the other editor unchanged
     first.doubleClick();
-    Wait.seconds(1).expecting("editor to be at offset " + firstOffset + " was " + selectedEditor.getOffset())
+    Wait.seconds(2).expecting("editor to be at offset " + firstOffset + " was " + selectedEditor.getOffset())
       .until(() -> selectedEditor.getOffset() == firstOffset);
     assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
 
     // Double click on the last component should move the caret in the selected editor, and leave the other editor unchanged
     last.doubleClick();
-    Wait.seconds(1).expecting("editor to be at offset " + lastOffset + " was " + selectedEditor.getOffset())
+    Wait.seconds(2).expecting("editor to be at offset " + lastOffset + " was " + selectedEditor.getOffset())
       .until(() -> selectedEditor.getOffset() == lastOffset);
     assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
 

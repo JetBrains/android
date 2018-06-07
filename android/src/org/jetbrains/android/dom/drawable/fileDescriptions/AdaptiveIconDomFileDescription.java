@@ -33,6 +33,6 @@ public class AdaptiveIconDomFileDescription extends AbstractMultiRootFileDescrip
   }
 
   public static boolean isAdaptiveIcon(@NotNull XmlFile file) {
-    return FileDescriptionUtils.isResourceOfType(file, ResourceFolderType.MIPMAP, TAGS);
+    return FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.MIPMAP, TAGS);
   }
 }

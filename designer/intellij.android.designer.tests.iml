@@ -18,7 +18,6 @@
     <orderEntry type="module" module-name="intellij.xml.psi.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.pixelprobe" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.sherpaUi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.branding" scope="TEST" />
@@ -28,10 +27,16 @@
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared:26.1.2" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker:26.1.2" level="project" />
     <orderEntry type="library" scope="TEST" name="analytics-protos" level="project" />
     <orderEntry type="module" module-name="intellij.android.plugin" scope="RUNTIME" />
     <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="module" module-name="intellij.android.project-system-tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.project-system" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.project-system-gradle" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt-testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
+    <orderEntry type="library" name="Guava" level="project" />
   </component>
 </module>

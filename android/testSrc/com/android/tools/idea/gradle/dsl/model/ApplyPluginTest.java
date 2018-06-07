@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.google.common.collect.ImmutableList;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
+import static com.google.common.truth.Truth.assertThat;
+
 /**
- * Tests for {@link GradleBuildModel} to test apply, add and remove plugins.
+ * Tests for {@link GradleBuildModelImpl} to test apply, add and remove plugins.
  */
 public class ApplyPluginTest extends GradleFileModelTestCase {
   public void testAppliedPluginsBlock() throws Exception {
@@ -274,7 +278,10 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   private static void verifyAppliedPlugins(GradleBuildModel buildModel, String buildText) {
     assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
-    GroovyPsiElement buildFilePsiElement = buildModel.getPsiElement();
+    assertThat(buildModel).isInstanceOf(GradleBuildModelImpl.class);
+    GradleBuildModelImpl buildModelImpl = (GradleBuildModelImpl)buildModel;
+
+    PsiElement buildFilePsiElement = buildModelImpl.getPsiElement();
     assertNotNull(buildFilePsiElement);
     assertEquals("buildText", buildText, buildFilePsiElement.getText());
   }

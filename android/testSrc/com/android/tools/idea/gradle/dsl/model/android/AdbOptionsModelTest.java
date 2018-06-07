@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.AdbOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 
@@ -133,7 +135,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     AdbOptionsModel adbOptions = android.adbOptions();
-    assertTrue(adbOptions.hasValidPsiElement());
+    checkForValidPsiElement(adbOptions, AdbOptionsModelImpl.class);
     assertEquals("installOptions", ImmutableList.of("abcd", "efgh"), adbOptions.installOptions());
     assertEquals("timeOutInMs", Integer.valueOf(200), adbOptions.timeOutInMs());
 
@@ -146,7 +148,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     adbOptions = android.adbOptions();
-    assertFalse(adbOptions.hasValidPsiElement());
+    checkForInValidPsiElement(adbOptions, AdbOptionsModelImpl.class);
     assertNull("installOptions", adbOptions.installOptions());
     assertNull("timeOutInMs", adbOptions.timeOutInMs());
   }
@@ -191,7 +193,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     AdbOptionsModel adbOptions = android.adbOptions();
-    assertTrue(adbOptions.hasValidPsiElement());
+    checkForValidPsiElement(adbOptions, AdbOptionsModelImpl.class);
     assertEquals("installOptions", ImmutableList.of("abcd"), adbOptions.installOptions());
 
     adbOptions.removeInstallOption("abcd");
@@ -201,7 +203,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     adbOptions = android.adbOptions();
-    assertFalse(adbOptions.hasValidPsiElement());
+    checkForInValidPsiElement(adbOptions, AdbOptionsModelImpl.class);
     assertNull("installOptions", adbOptions.installOptions());
   }
 }

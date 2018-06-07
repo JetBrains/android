@@ -20,7 +20,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -54,10 +53,7 @@ public class ZoomLabelAction extends AnAction implements CustomComponentAction {
   }
 
   private void updatePresentation(Presentation presentation) {
-    double scale = mySurface.getScale();
-    if (SystemInfo.isMac && UIUtil.isRetina()) {
-      scale *= 2;
-    }
+    double scale = mySurface.getScale() * mySurface.getScreenScalingFactor();
 
     String label = String.format("%d%% ", (int)(100 * scale));
     presentation.setText(label);

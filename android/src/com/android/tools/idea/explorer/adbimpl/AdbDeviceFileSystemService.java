@@ -18,8 +18,8 @@ package com.android.tools.idea.explorer.adbimpl;
 import com.android.annotations.NonNull;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.explorer.FutureCallbackExecutor;
+import com.android.tools.idea.adb.AdbService;
+import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemServiceListener;
@@ -28,8 +28,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,13 +44,13 @@ import java.util.function.Function;
  * The service is meant to be called on the EDT thread, where
  * long running operations either raise events or return a Future.
  */
-public class AdbDeviceFileSystemService implements DeviceFileSystemService {
+public final class AdbDeviceFileSystemService implements DeviceFileSystemService<AdbDeviceFileSystem> {
   public static Logger LOGGER = Logger.getInstance(AdbDeviceFileSystemService.class);
 
   @NotNull private final Function<Void, File> myAdbProvider;
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
   @NotNull private final FutureCallbackExecutor myTaskExecutor;
-  @NotNull private final List<DeviceFileSystem> myDevices = new ArrayList<>();
+  @NotNull private final List<AdbDeviceFileSystem> myDevices = new ArrayList<>();
   @NotNull private final List<DeviceFileSystemServiceListener> myListeners = new ArrayList<>();
   @NotNull private State myState = State.Initial;
   @Nullable private AndroidDebugBridge myBridge;
@@ -75,7 +73,7 @@ public class AdbDeviceFileSystemService implements DeviceFileSystemService {
   }
 
   @NotNull
-  List<DeviceFileSystem> getDeviceList() {
+  List<AdbDeviceFileSystem> getDeviceList() {
     return myDevices;
   }
 
@@ -140,7 +138,8 @@ public class AdbDeviceFileSystemService implements DeviceFileSystemService {
         myState = State.Initial;
         if (t.getMessage() != null) {
           futureResult.setException(t);
-        } else {
+        }
+        else {
           futureResult.setException(new RuntimeException(AdbService.getDebugBridgeDiagnosticErrorMessage(t, myAdb), t));
         }
       }
@@ -161,7 +160,8 @@ public class AdbDeviceFileSystemService implements DeviceFileSystemService {
     getTaskExecutor().execute(() -> {
       try {
         AdbService.getInstance().terminateDdmlib();
-      } catch(Throwable t) {
+      }
+      catch (Throwable t) {
         futureResult.setException(t);
         return;
       }
@@ -194,7 +194,7 @@ public class AdbDeviceFileSystemService implements DeviceFileSystemService {
 
   @NotNull
   @Override
-  public ListenableFuture<List<DeviceFileSystem>> getDevices() {
+  public ListenableFuture<List<AdbDeviceFileSystem>> getDevices() {
     checkState(State.SetupDone);
     return Futures.immediateFuture(myDevices);
   }
@@ -246,7 +246,7 @@ public class AdbDeviceFileSystemService implements DeviceFileSystemService {
     public void deviceDisconnected(@NonNull IDevice device) {
       LOGGER.info(String.format("Device disconnected: %s", device));
       myEdtExecutor.execute(() -> {
-        DeviceFileSystem deviceFileSystem = findDevice(device);
+        AdbDeviceFileSystem deviceFileSystem = findDevice(device);
         if (deviceFileSystem != null) {
           myListeners.forEach(x -> x.deviceRemoved(deviceFileSystem));
           myDevices.remove(deviceFileSystem);
@@ -266,9 +266,9 @@ public class AdbDeviceFileSystemService implements DeviceFileSystemService {
     }
 
     @Nullable
-    private DeviceFileSystem findDevice(@NonNull IDevice device) {
+    private AdbDeviceFileSystem findDevice(@NonNull IDevice device) {
       return myDevices.stream()
-        .filter(x -> ((AdbDeviceFileSystem)x).isDevice(device))
+        .filter(system -> system.isDevice(device))
         .findFirst()
         .orElse(null);
     }

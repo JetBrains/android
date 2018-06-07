@@ -23,6 +23,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.CharsetToolkit;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -39,12 +40,6 @@ public class FontFamilyCreatorTest extends FontTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myCreator = new FontFamilyCreator(myFacet);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    myCreator = null;
-    super.tearDown();
   }
 
   @Override
@@ -108,8 +103,8 @@ public class FontFamilyCreatorTest extends FontTestCase {
     );
   }
 
-  public void testCreateFontUsingLevel26() throws Exception {
-    setMinSdk("26");
+  public void testCreateFontUsingLevel28() throws Exception {
+    setMinSdk("28");
 
     FontDetail font = createFontDetail("Alegreya Sans SC", 900, 80, true);
     String newValue = myCreator.createFontFamily(font, "alegreya_sans_sc", true);
@@ -126,31 +121,8 @@ public class FontFamilyCreatorTest extends FontTestCase {
     ));
   }
 
-  public void testCreateFontUsingPreviewO() throws Exception {
-    setMinSdk("O");
-
-    FontDetail font = createFontDetail("Alegreya Sans SC", 900, 80, true);
-    String newValue = myCreator.createFontFamily(font, "alegreya_sans_sc", true);
-    UIUtil.dispatchAllInvocationEvents();
-    assertThat(newValue).isEqualTo("@font/alegreya_sans_sc");
-    assertThat(getFontFileContent("alegreya_sans_sc.xml")).isEqualTo(String.format(
-      "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
-      "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"%n" +
-      "        xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
-      "        android:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
-      "        android:fontProviderPackage=\"com.google.android.gms\"%n" +
-      "        android:fontProviderQuery=\"name=Alegreya Sans SC&amp;weight=900&amp;italic=1&amp;width=80\"%n" +
-      "        android:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\"%n" +
-      "        app:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
-      "        app:fontProviderPackage=\"com.google.android.gms\"%n" +
-      "        app:fontProviderQuery=\"name=Alegreya Sans SC&amp;weight=900&amp;italic=1&amp;width=80\"%n" +
-      "        app:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
-      "</font-family>%n"
-    ));
-  }
-
   public void testCreateMultipleFiles() throws Exception {
-    setMinSdk("26");
+    setMinSdk("28");
 
     myCreator.createFontFamily(createFontDetail("Roboto", 400, 100, false), "roboto", true);
     myCreator.createFontFamily(createFontDetail("Alegreya Sans SC", 900, 80, true), "alegreya_sans_sc", true);
@@ -214,8 +186,8 @@ public class FontFamilyCreatorTest extends FontTestCase {
     ));
     assertThat(myFacet.getManifest().getXmlTag().getText()).isEqualTo(
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-      "    <uses-sdk android:minSdkVersion=\"26\"\n" +
-      "              android:targetSdkVersion=\"26\" />\n" +
+      "    <uses-sdk android:minSdkVersion=\"28\"\n" +
+      "              android:targetSdkVersion=\"28\" />\n" +
       "    <application android:icon=\"@drawable/icon\">\n" +
       "        <meta-data\n" +
       "            android:name=\"preloaded_fonts\"\n" +
@@ -240,7 +212,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
   }
 
   @NotNull
-  private static FontDetail createFontDetail(@NotNull String fontName, int weight, int width, boolean italics) {
+  static FontDetail createFontDetail(@NotNull String fontName, int weight, int width, boolean italics) {
     String folderName = DownloadableFontCacheServiceImpl.convertNameToFilename(fontName);
     String urlStart = "http://dontcare/fonts/" + folderName + "/v6/";
     FontFamily family = new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, fontName, urlStart + "some.ttf", "",
@@ -251,18 +223,18 @@ public class FontFamilyCreatorTest extends FontTestCase {
 
   @NotNull
   private String getFontFileContent(@NotNull String fontFileName) throws IOException {
-    return getResourceFileContent(ResourceFolderType.FONT, fontFileName);
+    return getResourceFileContent(myFacet, ResourceFolderType.FONT, fontFileName);
   }
 
   @NotNull
   private String getValuesFileContent(@NotNull String valuesFileName) throws IOException {
-    return getResourceFileContent(ResourceFolderType.VALUES, valuesFileName);
+    return getResourceFileContent(myFacet, ResourceFolderType.VALUES, valuesFileName);
   }
 
   @NotNull
-  private String getResourceFileContent(@NotNull ResourceFolderType type, @NotNull String fileName) throws IOException {
+  static String getResourceFileContent(@NotNull AndroidFacet facet, @NotNull ResourceFolderType type, @NotNull String fileName) throws IOException {
     @SuppressWarnings("deprecation")
-    VirtualFile resourceDirectory = checkNotNull(myFacet.getPrimaryResourceDir());
+    VirtualFile resourceDirectory = checkNotNull(facet.getPrimaryResourceDir());
     VirtualFile resourceFolder = checkNotNull(resourceDirectory.findChild(type.getName()));
     VirtualFile file = checkNotNull(resourceFolder.findChild(fileName));
     file.refresh(false, false);

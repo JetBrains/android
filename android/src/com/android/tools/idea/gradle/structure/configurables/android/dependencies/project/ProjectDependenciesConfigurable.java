@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.AbstractDependenciesConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.options.ConfigurationException;
@@ -30,12 +31,12 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.List;
 
-public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigurable<PsModule> {
-  @NotNull private final PsModule myModule;
+public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigurable<PsAllModulesFakeModule> {
+  @NotNull private final PsAllModulesFakeModule myModule;
 
   private MainPanel myMainPanel;
 
-  public ProjectDependenciesConfigurable(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
+  public ProjectDependenciesConfigurable(@NotNull PsAllModulesFakeModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(module, context, extraTopModules);
     myModule = module;
     setDisplayName("<All Modules>");
@@ -81,11 +82,12 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
 
   @Override
   public boolean isModified() {
-    return false;
+    return myModule.isModified();
   }
 
   @Override
   public void apply() throws ConfigurationException {
+    myModule.appplyChanges();
   }
 
   @Override

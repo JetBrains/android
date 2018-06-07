@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.google.common.collect.Lists;
@@ -46,22 +46,20 @@ public class PsProject extends PsModel {
 
     for (Module resolvedModel : ModuleManager.getInstance(myProject).getModules()) {
       String gradlePath = getGradlePath(resolvedModel);
-      if (gradlePath != null) {
+      GradleBuildModel parsedModel = GradleBuildModel.get(resolvedModel);
+      if (gradlePath != null && parsedModel != null) {
         // Only Gradle-based modules are displayed in the PSD.
         PsModule module = null;
 
         AndroidModuleModel gradleModel = AndroidModuleModel.get(resolvedModel);
         if (gradleModel != null) {
-          module = new PsAndroidModule(this, resolvedModel, gradlePath, gradleModel);
+          module = new PsAndroidModule(this, resolvedModel, gradlePath, gradleModel, parsedModel);
         }
         // TODO enable when Java module support is complete.
         else {
-          JavaFacet facet = JavaFacet.getInstance(resolvedModel);
-          if (facet != null) {
-            JavaModuleModel javaModuleModel = facet.getJavaModuleModel();
-            if (javaModuleModel != null && javaModuleModel.isBuildable()) {
-              module = new PsJavaModule(this, resolvedModel, gradlePath, javaModuleModel);
-            }
+          JavaModuleModel javaModuleModel = JavaModuleModel.get(resolvedModel);
+          if (javaModuleModel != null && javaModuleModel.isBuildable()) {
+            module = new PsJavaModule(this, resolvedModel, gradlePath, javaModuleModel, parsedModel);
           }
         }
 
@@ -137,5 +135,9 @@ public class PsProject extends PsModel {
 
   public int getModelCount() {
     return myModules.size();
+  }
+
+  public void applyChanges() {
+    forEachModule(PsModule::applyChanges);
   }
 }

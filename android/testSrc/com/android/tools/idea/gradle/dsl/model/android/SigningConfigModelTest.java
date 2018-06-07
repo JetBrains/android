@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
+import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel.SigningConfigPassword;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.SigningConfigModel.SigningConfigPassword;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.model.android.SigningConfigModel.SigningConfigPassword.Type.CONSOLE_READ;
-import static com.android.tools.idea.gradle.dsl.model.android.SigningConfigModel.SigningConfigPassword.Type.ENVIRONMENT_VARIABLE;
-import static com.android.tools.idea.gradle.dsl.model.android.SigningConfigModel.SigningConfigPassword.Type.PLAIN_TEXT;
+import static com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel.SigningConfigPassword.Type.*;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -523,7 +523,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertEquals("signingConfig", new SigningConfigPassword(CONSOLE_READ, "\nKey password: "), signingConfig.keyPassword());
   }
 
-  public void testChangeEnvironmentVariablePasswordElementsToConsoleReadPasswordElements() throws Exception {
+  public void testChangeEnvironmentVariablePasswordToConsoleReadPassword() throws Exception {
     String text = "android {\n" +
                   "  signingConfigs {\n" +
                   "    release {\n" +

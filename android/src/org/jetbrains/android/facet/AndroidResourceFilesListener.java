@@ -18,7 +18,7 @@ package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
+import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -40,6 +40,7 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
+import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidUtils;
@@ -141,9 +142,20 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
 
       for (Map.Entry<Module, Collection<AndroidAutogeneratorMode>> entry : map.entrySet()) {
         final Module module = entry.getKey();
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet == null) {
+          continue;
+        }
+
+        if (!ModuleSourceAutogenerating.requiresAutoSourceGeneration(facet)) {
+          continue;
+        }
+
+        ModuleSourceAutogenerating sourceAutogenerator = ModuleSourceAutogenerating.getInstance(facet);
+        assert sourceAutogenerator != null;
 
         for (AndroidAutogeneratorMode mode : entry.getValue()) {
-          AndroidCompileUtil.generate(module, mode);
+          sourceAutogenerator.scheduleSourceRegenerating(mode);
         }
       }
     }

@@ -86,13 +86,11 @@ public final class ProjectResourceRepository extends MultiResourceRepository {
       return Collections.singletonList(main);
     }
 
-    List<LocalResourceRepository> resources = Lists.newArrayListWithExpectedSize(dependentFacets.size());
-
-    for (AndroidFacet f : dependentFacets) {
-      LocalResourceRepository r = ModuleResourceRepository.getOrCreateInstance(f);
-      resources.add(r);
+    List<LocalResourceRepository> resources = Lists.newArrayListWithCapacity(dependentFacets.size() + 1);
+    // Add the dependent facets in reverse order to the overrides are handled correctly. Resources in n + 1 will override elements in n
+    for (int i = dependentFacets.size() - 1; i >= 0; i--) {
+      resources.add(ModuleResourceRepository.getOrCreateInstance(dependentFacets.get(i)));
     }
-
     resources.add(main);
 
     return resources;

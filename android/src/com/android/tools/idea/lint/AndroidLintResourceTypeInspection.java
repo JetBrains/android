@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.lint.checks.SupportAnnotationDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
+import static com.android.tools.lint.checks.ResourceTypeDetector.RESOURCE_TYPE;
+
 public class AndroidLintResourceTypeInspection extends AndroidLintInspectionBase {
   public AndroidLintResourceTypeInspection() {
-    super(AndroidBundle.message("android.lint.inspections.resource.type"), SupportAnnotationDetector.RESOURCE_TYPE);
+    super(AndroidBundle.message("android.lint.inspections.resource.type"), RESOURCE_TYPE);
   }
 }

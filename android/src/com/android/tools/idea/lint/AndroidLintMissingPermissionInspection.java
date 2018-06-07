@@ -17,7 +17,6 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.lint.checks.PermissionRequirement;
-import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -49,10 +48,11 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.lint.checks.PermissionDetector.MISSING_PERMISSION;
 
 public class AndroidLintMissingPermissionInspection extends AndroidLintInspectionBase {
   public AndroidLintMissingPermissionInspection() {
-    super(AndroidBundle.message("android.lint.inspections.missing.permission"), SupportAnnotationDetector.MISSING_PERMISSION);
+    super(AndroidBundle.message("android.lint.inspections.missing.permission"), MISSING_PERMISSION);
   }
 
   @NotNull

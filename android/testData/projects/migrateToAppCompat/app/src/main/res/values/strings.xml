@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Migrate2AppCompat</string>
+    <string name="item">New Game</string>
+    <string name="share">Share</string>
+</resources>

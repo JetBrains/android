@@ -17,20 +17,24 @@ package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JCheckBoxFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<ConfigureFormFactorStepFixture> {
-  protected ConfigureFormFactorStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
-    super(ConfigureFormFactorStepFixture.class, robot, target);
+public class ConfigureFormFactorStepFixture<W extends AbstractWizardFixture>
+  extends AbstractWizardStepFixture<ConfigureFormFactorStepFixture, W> {
+
+  protected ConfigureFormFactorStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+    super(ConfigureFormFactorStepFixture.class, wizard, target);
   }
 
   @NotNull
-  public ConfigureFormFactorStepFixture selectMinimumSdkApi(@NotNull FormFactor formFactor, @NotNull String api) {
+  public ConfigureFormFactorStepFixture<W> selectMinimumSdkApi(@NotNull FormFactor formFactor, @NotNull String api) {
     String formFactorName = formFactor.toString();
     JCheckBoxFixture checkBox =
       new JCheckBoxFixture(robot(), GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
@@ -41,7 +45,10 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<Co
           return text != null && text.startsWith(formFactorName);
         }
       }));
-    checkBox.requireEnabled().select();
+    Wait.seconds(30)
+      .expecting("form factor checkbox to be enabled")
+      .until(checkBox::isEnabled);
+    checkBox.select();
 
     if (formFactor != FormFactor.CAR) {
       ApiLevelComboBoxFixture apiLevelComboBox =
@@ -52,12 +59,12 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<Co
   }
 
   @NotNull
-  public ConfigureFormFactorStepFixture selectInstantAppSupport(@NotNull FormFactor formFactor) {
+  public ConfigureFormFactorStepFixture<W> selectInstantAppSupport(@NotNull FormFactor formFactor) {
     findInstantAppCheckbox(formFactor).select();
     return this;
   }
 
-  public ConfigureFormFactorStepFixture waitForErrorMessageToContain(@NotNull String errorMessage) {
+  public ConfigureFormFactorStepFixture<W> waitForErrorMessageToContain(@NotNull String errorMessage) {
     GuiTests.waitUntilShowing(robot(), new GenericTypeMatcher<JLabel>(JLabel.class) {
       @Override
       protected boolean isMatching(@NotNull JLabel label) {

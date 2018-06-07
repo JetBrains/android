@@ -16,9 +16,11 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="android.sdktools.perflib" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="library" scope="TEST" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.profilers-atrace" />
+    <orderEntry type="library" name="com.android.tools:common:26.1.2" level="project" />
+    <orderEntry type="library" name="com.android.tools:annotations:26.1.2" level="project" />
   </component>
 </module>

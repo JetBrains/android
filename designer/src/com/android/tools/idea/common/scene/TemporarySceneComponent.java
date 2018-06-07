@@ -26,4 +26,9 @@ public class TemporarySceneComponent extends SceneComponent {
   public TemporarySceneComponent(@NotNull Scene scene, @NotNull NlComponent component) {
     super(scene, component);
   }
+
+  @Override
+  public void setDragging(boolean dragging) {
+    myDragging = dragging;
+  }
 }

@@ -16,7 +16,6 @@
 package com.android.tools.adtui.workbench;
 
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,6 +62,7 @@ public class PropertiesComponentMock extends PropertiesComponent {
 
   @Override
   public void setValue(@NotNull String name, float value, float defaultValue) {
+    //noinspection FloatingPointEquality : Same as the implementation PropertiesComponentImpl
     if (value == defaultValue) {
       myProperties.remove(name);
     }
@@ -96,9 +96,9 @@ public class PropertiesComponentMock extends PropertiesComponent {
   public String[] getValues(@NotNull String name) {
     String value = myProperties.getProperty(name);
     if (value == null) {
-      return ArrayUtil.EMPTY_STRING_ARRAY;
+      return null;
     }
-    return value.split(",");
+    return value.split("\n");
   }
 
   @Override
@@ -108,8 +108,8 @@ public class PropertiesComponentMock extends PropertiesComponent {
     }
     StringBuilder builder = new StringBuilder();
     for (String value : values) {
-      if (builder.length() == 0) {
-        builder.append(",");
+      if (builder.length() > 0) {
+        builder.append("\n");
       }
       builder.append(value);
     }

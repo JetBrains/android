@@ -33,11 +33,10 @@
     <orderEntry type="module" module-name="intellij.spellchecker" />
     <orderEntry type="module" module-name="android.sdktools.draw9patch" />
     <orderEntry type="library" name="freemarker-2.3.20" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.images" />
+    <orderEntry type="module" module-name="intellij.platform.images" exported="" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.eclipse" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
-    <orderEntry type="module" module-name="intellij.android.sherpaUi" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="module" module-name="intellij.groovy" />
     <orderEntry type="module" module-name="android.sdktools.perflib" />
@@ -72,16 +71,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/libwebp.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" />
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module" module-name="intellij.gradle.java" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" />
@@ -90,7 +79,6 @@
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
     <orderEntry type="module" module-name="android.sdktools.analyzer" />
     <orderEntry type="module" module-name="android.sdktools.pixelprobe" />
-    <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension.impl" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
@@ -103,12 +91,12 @@
     <orderEntry type="module" module-name="intellij.android.observable.ui" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" name="analytics-protos" level="project" />
-    <orderEntry type="library" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
-    <orderEntry type="library" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
+    <orderEntry type="library" name="com.android.tools.analytics-library:tracker:26.1.2" level="project" />
+    <orderEntry type="library" name="com.android.tools.analytics-library:shared:26.1.2" level="project" />
     <orderEntry type="library" name="commons-io" level="project" />
-    <orderEntry type="library" name="lombok-ast" level="project" />
+    <orderEntry type="library" name="XStream" level="project" />
     <orderEntry type="library" name="jgraphx" level="project" />
-    <orderEntry type="library" name="com.android.tools.build:manifest-merger:26.0.0" level="project" />
+    <orderEntry type="library" name="com.android.tools.build:manifest-merger:26.1.2" level="project" />
     <orderEntry type="module-library">
       <library name="bouncy-castle">
         <CLASSES>
@@ -118,6 +106,12 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="intellij.android.project-system" />
+    <orderEntry type="module" module-name="intellij.android.android-lang" />
+    <orderEntry type="module" module-name="android.sdktools.usb-devices" />
+    <orderEntry type="module" module-name="intellij.android.android-adb" />
+    <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
+    <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
   </component>
 </module>

@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NonNls;
@@ -28,7 +29,7 @@ import java.util.List;
 /**
  * Represents a repository defined with mavenCentral().
  */
-public class MavenCentralRepositoryModel extends UrlBasedRepositoryModel {
+public class MavenCentralRepositoryModel extends UrlBasedRepositoryModelImpl {
   @NonNls public static final String MAVEN_CENTRAL_METHOD_NAME = "mavenCentral";
 
   @NonNls private static final String ARTIFACT_URLS = "artifactUrls";
@@ -50,10 +51,16 @@ public class MavenCentralRepositoryModel extends UrlBasedRepositoryModel {
 
     GradleNullableValue<String> artifactUrl = myDslElement.getLiteralProperty(ARTIFACT_URLS, String.class);
     if (artifactUrl.value() != null) {
-      assert artifactUrl instanceof GradleNotNullValue;
-      return ImmutableList.of((GradleNotNullValue<String>)artifactUrl);
+      assert artifactUrl instanceof GradleNotNullValueImpl;
+      return ImmutableList.of((GradleNotNullValueImpl<String>)artifactUrl);
     }
 
     return ImmutableList.of();
+  }
+
+  @NotNull
+  @Override
+  public RepositoryType getType() {
+    return RepositoryType.MAVEN_CENTRAL;
   }
 }

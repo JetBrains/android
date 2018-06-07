@@ -63,6 +63,16 @@ public class TestConfigurationTesting {
   }
 
   @Nullable
+  public static AndroidJUnitConfiguration createJUnitConfigurationFromFile(@NotNull Project project, @NotNull String file) {
+    return createConfigurationFromFile(project, file, AndroidJUnitConfiguration.class);
+  }
+
+  @Nullable
+  public static AndroidTestRunConfiguration createAndroidTestConfigurationFromFile(@NotNull Project project, @NotNull String file) {
+    return createConfigurationFromFile(project, file, AndroidTestRunConfiguration.class);
+  }
+
+  @Nullable
   private static <T extends RunConfiguration> T createConfigurationFromClass(@NotNull Project project,
                                                                              @NotNull String qualifiedName,
                                                                              @NotNull Class<T> expectedType) {
@@ -79,6 +89,18 @@ public class TestConfigurationTesting {
     VirtualFile virtualFile = findRelativeFile(directory, project.getBaseDir());
     assertNotNull(virtualFile);
     PsiElement element = PsiManager.getInstance(project).findDirectory(virtualFile);
+    assertNotNull(element);
+    RunConfiguration runConfiguration = createConfigurationFromPsiElement(project, element);
+    return expectedType.isInstance(runConfiguration) ? expectedType.cast(runConfiguration) : null;
+  }
+
+  @Nullable
+  private static <T extends RunConfiguration> T createConfigurationFromFile(@NotNull Project project,
+                                                                            @NotNull String file,
+                                                                            @NotNull Class<T> expectedType) {
+    VirtualFile virtualFile = findRelativeFile(file, project.getBaseDir());
+    assertNotNull(virtualFile);
+    PsiElement element = PsiManager.getInstance(project).findFile(virtualFile);
     assertNotNull(element);
     RunConfiguration runConfiguration = createConfigurationFromPsiElement(project, element);
     return expectedType.isInstance(runConfiguration) ? expectedType.cast(runConfiguration) : null;

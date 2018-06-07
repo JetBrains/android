@@ -45,6 +45,7 @@ public class DataBindingVariableTypeConverter extends DataBindingConverter {
    * @param dataBindingInfo for getting the list of {@code <import>} tags
    * @return the qualified name of the class or the unqualified name if the {@code nameOrAlias} doesn't match any imports
    */
+  @Nullable
   public static String getQualifiedType(@Nullable String type, @Nullable DataBindingInfo dataBindingInfo) {
     if (type == null || dataBindingInfo == null) {
       return type;
@@ -122,8 +123,12 @@ public class DataBindingVariableTypeConverter extends DataBindingConverter {
     if (type == null) {
       return null;
     }
+
     DataBindingInfo dataBindingInfo = getDataBindingInfo(context);
     type = getQualifiedType(type, dataBindingInfo);
+    if (type == null) {
+      return null;
+    }
 
     Project project = context.getProject();
     JavaPsiFacade facade = JavaPsiFacade.getInstance(project);

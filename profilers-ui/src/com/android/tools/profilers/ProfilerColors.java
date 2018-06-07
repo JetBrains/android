@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.intellij.ui.Gray;
@@ -42,6 +43,8 @@ public class ProfilerColors {
 
   // TODO: define final color
   public static final Color CPU_CAPTURE_EVENT = new JBColor(0x888888, 0x888888);
+
+  public static final Color ENERGY_USAGE = new JBColor(0x966EC3, 0x8D6FC2);
 
   /**
    * Represents pair of colors of non-selected and selected states of a thread.
@@ -90,8 +93,6 @@ public class ProfilerColors {
 
   public static final Color THREAD_LABEL_TEXT = new JBColor(0x545454, 0x9C9C9C);
 
-  public static final Color CPU_THREADS_TOOLTIP_TIME_COLOR = new JBColor(0xACACAC, 0x838485);
-
   public static final Color SELECTED_THREAD_LABEL_TEXT = Gray.xFF;
 
   public static final Color THREAD_LABEL_BACKGROUND = new JBColor(new Color(0xBFFFFFFF, true), new Color(0xBF2B2D2E, true));
@@ -100,17 +101,39 @@ public class ProfilerColors {
 
   public static final Color CPU_CAPTURE_BACKGROUND = new JBColor(0xECF2FA, 0x323940);
 
-  public static final Color CPU_TREECHART_VENDOR = new JBColor(0xA2DEFF, 0x7EB1CC);
+  public static final Color CPU_CAPTURE_SPARKLINE = new JBColor(0xC2D6F6, 0x455563);
 
-  public static final Color CPU_TREECHART_VENDOR_BORDER = new JBColor(0x62BDEB, 0x7EB1CC);
+  public static final Color CPU_CAPTURE_SPARKLINE_SELECTED = new JBColor(0x4785EB, 0x5887DC);
 
-  public static final Color CPU_TREECHART_APP = new JBColor(0x9FEAAD, 0x92D09F);
+  public static final Color CPU_CALLCHART_VENDOR = new JBColor(0xA2DEFF, 0x7EB1CC);
 
-  public static final Color CPU_TREECHART_APP_BORDER = new JBColor(0x80BFAE, 0x92D09F);
+  public static final Color CPU_CALLCHART_VENDOR_BORDER = new JBColor(AdtUiUtils.overlayColor(0xA2DEFF, Color.BLACK.getRGB(), 0.4f),
+                                                                      AdtUiUtils.overlayColor(0x7EB1CC, Color.BLACK.getRGB(), 0.4f));
 
-  public static final Color CPU_TREECHART_PLATFORM = new JBColor(0xFECC82, 0xD0AA6F);
+  public static final Color CPU_CALLCHART_APP = new JBColor(0x9FEAAD, 0x92D09F);
 
-  public static final Color CPU_TREECHART_PLATFORM_BORDER = new JBColor(0xD5963C, 0xD0AA6F);
+  public static final Color CPU_CALLCHART_APP_BORDER = new JBColor(AdtUiUtils.overlayColor(0x9FEAAD, Color.BLACK.getRGB(), 0.4f),
+                                                                   AdtUiUtils.overlayColor(0x92D09F, Color.BLACK.getRGB(), 0.4f));
+
+  public static final Color CPU_CALLCHART_PLATFORM = new JBColor(0xFECC82, 0xD0AA6F);
+
+  public static final Color CPU_CALLCHART_PLATFORM_BORDER = new JBColor(AdtUiUtils.overlayColor(0xFECC82, Color.BLACK.getRGB(), 0.4f),
+                                                                        AdtUiUtils.overlayColor(0xD0AA6F, Color.BLACK.getRGB(), 0.4f));
+
+  public static final Color CPU_FLAMECHART_VENDOR = new JBColor(0xFFB74D, 0xFFCA28);
+
+  public static final Color CPU_FLAMECHART_VENDOR_BORDER = new JBColor(AdtUiUtils.overlayColor(0xFFB74D, Color.BLACK.getRGB(), 0.4f),
+                                                                       AdtUiUtils.overlayColor(0xFFCA28, Color.BLACK.getRGB(), 0.4f));
+
+  public static final Color CPU_FLAMECHART_APP = new JBColor(0xFF7043, 0xFF6E40);
+
+  public static final Color CPU_FLAMECHART_APP_BORDER = new JBColor(AdtUiUtils.overlayColor(0xFF7043, Color.BLACK.getRGB(), 0.4f),
+                                                                    AdtUiUtils.overlayColor(0xFF6E40, Color.BLACK.getRGB(), 0.4f));
+
+  public static final Color CPU_FLAMECHART_PLATFORM = new JBColor(0xFFEE58, 0xFFECB3);
+
+  public static final Color CPU_FLAMECHART_PLATFORM_BORDER = new JBColor(AdtUiUtils.overlayColor(0xFFEE58, Color.BLACK.getRGB(), 0.4f),
+                                                                         AdtUiUtils.overlayColor(0xFFECB3, Color.BLACK.getRGB(), 0.4f));
 
   public static final Color CPU_PROFILING_CONFIGURATIONS_SELECTED = new JBColor(0x1155CC, 0x1155CC);
 
@@ -146,11 +169,7 @@ public class ProfilerColors {
 
   public static final Color NETWORK_TABLE_AXIS = CPU_AXIS_GUIDE_COLOR;
 
-  public static final Color NETWORK_THREADS_TABLE_SENDING = new JBColor(0xF1B34D, 0xF1B34D);
-
-  public static final Color NETWORK_THREADS_TABLE_RECEIVING = new JBColor(0x6E98F6, 0x6E98F6);
-
-  public static final Color NETWORK_THREADS_TABLE_WARNING = new JBColor(0xD32626, 0xD32626);
+  public static final Color NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER = new JBColor(0xD3D3D3, 0x565656);
 
   public static final Color MEMORY_TOTAL = new JBColor(new Color(0x56BFEC), new Color(0x2B7DA2));
 
@@ -180,11 +199,19 @@ public class ProfilerColors {
 
   public static final Color MEMORY_OBJECTS = new JBColor(new Color(0x1B6386), new Color(0xD8DBDE));
 
-  public static final Color MEMORY_OBJECTS_CAPUTRED = new JBColor(new Color(0x1B4D65), new Color(0xF6F6F6));
+  public static final Color MEMORY_OBJECTS_CAPTURED = new JBColor(new Color(0x1B4D65), new Color(0xF6F6F6));
 
   public static final Color MEMORY_HEAP_DUMP_BG = new JBColor(new Color(0xD8D8D8), new Color(0x9C9C9C));
 
   public static final Color MEMORY_ALLOC_BG = new JBColor(new Color(0xECF2FA), new Color(0x323940));
+
+  /**
+   * TODO: Get actual energy colors from UX. (Currently they're copied from memory)
+   */
+  public static final Color ENERGY_CPU = new JBColor(new Color(0x56BFEC), new Color(0x2B7DA2));
+
+  public static final Color ENERGY_NETWORK = new JBColor(new Color(0x80EDDC), new Color(0x4EA783));
+
 
   public static final Color MESSAGE_COLOR = new JBColor(0x787878, 0xC8C8C8);
 
@@ -193,4 +220,6 @@ public class ProfilerColors {
   public static final Color TOOLTIP_BACKGROUND = new JBColor(0xFFFFFF, 0x3D3F41);
 
   public static final Color TOOLTIP_TEXT = new JBColor(0x545454, 0xCACACA);
+
+  public static final Color TOOLTIP_TIME_COLOR = new JBColor(0x888888, 0x838485);
 }

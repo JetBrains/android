@@ -21,13 +21,13 @@ import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.gradle.run.GradleTaskRunner;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.InstalledApkCache;
 import com.android.tools.idea.run.InstalledPatchCache;
-import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -276,7 +276,7 @@ public class InstantRunBuilderTest {
   }
 
   @Test
-  public void fullBuildIfManifestResourceChanged() throws Exception {
+  public void coldswapIfManifestResourceChanged() throws Exception {
     myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
     myDeviceBuildTimetamp = "100";
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
@@ -286,7 +286,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 

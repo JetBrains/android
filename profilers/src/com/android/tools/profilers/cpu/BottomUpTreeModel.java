@@ -29,11 +29,13 @@ public class BottomUpTreeModel extends CpuTreeModel<BottomUpNode> {
   public void expand(@NotNull DefaultMutableTreeNode node) {
     BottomUpNode bottomUpNode = (BottomUpNode)node.getUserObject();
 
+    boolean treeChanged = false;
     for (int i = 0; i < node.getChildCount(); ++i) {
       DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
       BottomUpNode childBottomUp = (BottomUpNode)child.getUserObject();
 
       if (childBottomUp.buildChildren()) {
+        treeChanged = true;
         loadChildren(child);
       }
     }
@@ -41,6 +43,9 @@ public class BottomUpTreeModel extends CpuTreeModel<BottomUpNode> {
     // Some children of the |bottomUpNode| may be invisible in the current range, so build their children too
     for (BottomUpNode child: bottomUpNode.getChildren()) {
       child.buildChildren();
+    }
+    if (treeChanged) {
+      getAspect().changed(Aspect.TREE_MODEL);
     }
   }
 

@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.structure.configurables.messages.MessagesConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.suggestions.SuggestionsPerspectiveConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.variables.VariablesConfigurable;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.structure.dialog.AndroidConfigurableContributor;
 import com.android.tools.idea.structure.dialog.ProjectStructureItemGroup;
@@ -36,6 +37,8 @@ public class GradleAndroidConfigurableContributor extends AndroidConfigurableCon
     myContext = new PsContext(new PsProject(project), parentDisposable);
 
     List<Configurable> configurables = Lists.newArrayList();
+    configurables.add(new VariablesConfigurable(project, myContext));
+    configurables.add(new ModulesPerspectiveConfigurable(myContext));
     configurables.add(new DependenciesPerspectiveConfigurable(myContext));
 
     return configurables;
@@ -45,7 +48,7 @@ public class GradleAndroidConfigurableContributor extends AndroidConfigurableCon
   @NotNull
   public List<ProjectStructureItemGroup> getAdditionalConfigurableGroups() {
     assert myContext != null;
-    ProjectStructureItemGroup messagesGroup = new ProjectStructureItemGroup("--", new MessagesConfigurable(myContext));
+    ProjectStructureItemGroup messagesGroup = new ProjectStructureItemGroup("--", new SuggestionsPerspectiveConfigurable(myContext));
     return Lists.newArrayList(messagesGroup);
   }
 }

@@ -16,17 +16,21 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
 import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub;
+import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStub;
+import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.AndroidLibraryStub;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.JavaLibraryStub;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.ModuleLibraryStub;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.testing.Facets;
+import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +38,6 @@ import java.util.List;
 import static com.android.builder.model.level2.Library.LIBRARY_ANDROID;
 import static com.android.builder.model.level2.Library.LIBRARY_JAVA;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.join;
@@ -46,12 +49,15 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 public class DependenciesExtractorTest extends IdeaTestCase {
   private AndroidProjectStub myAndroidProject;
   private VariantStub myVariant;
-
+  private ModuleFinder myModuleFinder;
   private DependenciesExtractor myDependenciesExtractor;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+
+    myModuleFinder = new ModuleFinder(myProject);
+
     myAndroidProject = TestProjects.createBasicProject();
     myVariant = myAndroidProject.getFirstVariant();
     assertNotNull(myVariant);
@@ -78,7 +84,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     myVariant.getMainArtifact().getLevel2Dependencies().addJavaLibrary(javaLibrary);
     myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addJavaLibrary(javaLibrary);
 
-    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant).onLibraries();
+    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant, myModuleFinder).onLibraries();
     assertThat(dependencies).hasSize(1);
 
     LibraryDependency dependency = getFirstItem(dependencies);
@@ -87,7 +93,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     // Make sure that is a "compile" dependency, even if specified as "test".
     assertEquals(COMPILE, dependency.getScope());
 
-    File[] binaryPaths = dependency.getPaths(BINARY);
+    File[] binaryPaths = dependency.getBinaryPaths();
     assertThat(binaryPaths).hasLength(1);
     assertEquals(jarFile, binaryPaths[0]);
   }
@@ -127,20 +133,25 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     myVariant.getMainArtifact().getLevel2Dependencies().addAndroidLibrary(library);
     myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addAndroidLibrary(library);
 
-    List<LibraryDependency> dependencies = Lists.newArrayList(myDependenciesExtractor.extractFrom(myVariant).onLibraries());
+    DependencySet dependencySet = myDependenciesExtractor.extractFrom(myVariant, myModuleFinder);
+    List<LibraryDependency> dependencies = new ArrayList<>(dependencySet.onLibraries());
     assertThat(dependencies).hasSize(1);
 
     LibraryDependency dependency = dependencies.get(0);
     assertNotNull(dependency);
     assertEquals("Gradle: com.android.support:support-core-ui-25.3.1", dependency.getName());
 
-    File[] binaryPaths = dependency.getPaths(BINARY);
+    File[] binaryPaths = dependency.getBinaryPaths();
     assertThat(binaryPaths).hasLength(3);
     assertThat(binaryPaths).asList().containsAllOf(localJar, libJar, resFolder);
   }
 
   public void testExtractFromModuleDependency() {
-    String gradlePath = "abc:xyz:library";
+    Module libModule = createModule("lib");
+    GradleFacet gradleFacet = Facets.createAndAddGradleFacet(libModule);
+    String gradlePath = ":lib";
+    gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
+
     ModuleLibraryStub library = new ModuleLibraryStub() {
       @Override
       @NotNull
@@ -148,9 +159,13 @@ public class DependenciesExtractorTest extends IdeaTestCase {
         return gradlePath;
       }
     };
+
+    myModuleFinder = new ModuleFinder(myProject);
+    myModuleFinder.addModule(libModule, ":lib");
+
     myVariant.getMainArtifact().getLevel2Dependencies().addModuleDependency(library);
     myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addModuleDependency(library);
-    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant).onModules();
+    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant, myModuleFinder).onModules();
     assertThat(dependencies).hasSize(1);
 
     ModuleDependency dependency = getFirstItem(dependencies);
@@ -158,6 +173,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     assertEquals(gradlePath, dependency.getGradlePath());
     // Make sure that is a "compile" dependency, even if specified as "test".
     assertEquals(COMPILE, dependency.getScope());
+    assertSame(libModule, dependency.getModule());
 
     LibraryDependency backup = dependency.getBackupDependency();
     assertNull(backup);

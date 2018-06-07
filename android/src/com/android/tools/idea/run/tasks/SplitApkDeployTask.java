@@ -76,6 +76,13 @@ public class SplitApkDeployTask implements LaunchTask {
     List<String> installOptions = Lists.newArrayList(); // TODO: should we pass in pm install options?
     installOptions.add("-t");
 
+    // Embedded devices (Android Things) have all runtime permissions granted since there's no requirement for user interaction/display.
+    // However, regular installation will not grant some permissions until the next device reboot. Installing with "-g" guarantees that
+    // the permissions are properly granted at install time.
+    if (device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
+      installOptions.add("-g");
+    }
+
     if (buildInfo.isPatchBuild()) {
       installOptions.add("-p"); // partial install
       installOptions.add(myInstantRunContext.getApplicationId());

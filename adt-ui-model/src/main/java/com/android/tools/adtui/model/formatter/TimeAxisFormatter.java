@@ -15,8 +15,11 @@
  */
 package com.android.tools.adtui.model.formatter;
 
+import com.google.common.annotations.VisibleForTesting;
 import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * This formatter assumes a microsecond input value.
@@ -117,6 +120,42 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
       leadIndex--;
     }
     return builder.toString();
+  }
+
+  @NotNull
+  public String getClockFormattedString(long micro) {
+    long milli = TimeUnit.MICROSECONDS.toMillis(micro) % TimeUnit.SECONDS.toMillis(1);
+    long sec = TimeUnit.MICROSECONDS.toSeconds(micro) % TimeUnit.MINUTES.toSeconds(1);
+    long min = TimeUnit.MICROSECONDS.toMinutes(micro) % TimeUnit.HOURS.toMinutes(1);
+    long hour = TimeUnit.MICROSECONDS.toHours(micro);
+
+    return String.format("%02d:%02d:%02d.%03d", hour, min, sec, milli);
+  }
+
+  @NotNull
+  public String getFormattedDuration(long micros) {
+    String[] units = new String[]{"μs", "ms", "s", "m", "h"};
+
+    float[] multipliers = new float[]{
+      1,
+      TimeUnit.MILLISECONDS.toMicros(1),
+      TimeUnit.SECONDS.toMicros(1),
+      TimeUnit.MINUTES.toMicros(1),
+      TimeUnit.HOURS.toMicros(1)
+    };
+
+    assert multipliers.length == units.length;
+
+    long value = micros;
+    String unit = units[0];
+    for (int i = units.length - 1; i >= 0; --i) {
+      if (micros / multipliers[i] >= 1) {
+        value = Math.round(micros / multipliers[i]);
+        unit = units[i];
+        break;
+      }
+    }
+    return String.format("%d %s", value, unit);
   }
 
   @Override

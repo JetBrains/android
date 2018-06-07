@@ -30,10 +30,7 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -72,45 +69,47 @@ public class NewInstantAppModuleTest {
 
   @Test
   public void testCanBuildDefaultNewInstantAppFeatureModules() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     addNewFeatureModule("feature1");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
   @Test
   public void testCanBuildEmptyNewInstantAppFeatureModules() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     addNewFeatureModule("feature1", "Add No Activity");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/71515856
   @Test
   public void testCanBuildProjectWithMultipleFeatureModules() throws IOException {
-    guiTest.importSimpleApplication();
-    addNewFeatureModule("feature1");
+    guiTest.importSimpleLocalApplication();
+    addNewFeatureModule(null, null);
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
-    addNewFeatureModule("feature2");
+    addNewFeatureModule(null, null);
     assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
 
     // Check that the modules are correctly added to the project
-    assertValidFeatureModule(ideFrame.getModule("feature1"));
-    assertValidFeatureModule(ideFrame.getModule("feature2"));
+    assertValidFeatureModule(ideFrame.getModule("base"));
+    assertValidFeatureModule(ideFrame.getModule("feature"));
+    assertNotNull(ideFrame.getModule("instantapp"));
 
     // Verify application attributes are in feature1 (the base feature) and not in feature2
     ideFrame.getEditor()
-      .open("feature1/src/main/AndroidManifest.xml")
+      .open("base/src/main/AndroidManifest.xml")
       .moveBetween("android:label=", "")
       .moveBetween("android:theme=", "");
 
     ideFrame.getEditor()
-      .open("feature2/src/main/AndroidManifest.xml")
+      .open("feature/src/main/AndroidManifest.xml")
       .moveBetween("<application>", "");
   }
 
   @Test
   public void testCanBuildProjectWithEmptySecondFeatureModule() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     addNewFeatureModule("feature1");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
     addNewFeatureModule("feature2", "Add No Activity");
@@ -120,7 +119,7 @@ public class NewInstantAppModuleTest {
 
   @Test
   public void testPackageGeneratedCorrectly() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     addNewFeatureModule("feature");
 
     Module module = guiTest.ideFrame().getModule("feature");
@@ -138,6 +137,7 @@ public class NewInstantAppModuleTest {
   }
 
   @Test
+  @Ignore("http://b/69534580")
   public void testAddNewInstantAppModule() throws IOException {
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
@@ -166,7 +166,7 @@ public class NewInstantAppModuleTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     NewModuleWizardFixture newModuleWizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
 
-    ConfigureAndroidModuleStepFixture configureAndroidModuleStep = newModuleWizardFixture
+    ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> configureAndroidModuleStep = newModuleWizardFixture
       .chooseModuleType("Feature Module")
       .clickNext() // Selected App
       .getConfigureAndroidModuleStep()
@@ -191,9 +191,7 @@ public class NewInstantAppModuleTest {
     }
 
     newModuleWizardFixture
-      .clickFinish(); // Default parameters
-
-    ideFrame
+      .clickFinish() // Default parameters
       .waitForGradleProjectSyncToFinish(Wait.seconds(20))
       .waitForBuildToFinish(SOURCE_GEN);
   }

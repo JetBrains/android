@@ -16,8 +16,6 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.databinding.ModuleDataBinding;
-import com.android.tools.idea.res.ModuleResourceRepository;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -140,7 +138,7 @@ public class AndroidRenameTest extends AndroidTestCase {
   }
 
   public void testMoveDataBindingClass() throws Throwable {
-    myFixture.copyFileToProject("databinding/java/p1/p2/DummyClass.java", "src/p1/p2/DummyClass.java");
+    myFixture.copyFileToProject("databinding/src/p1/p2/DummyClass.java", "src/p1/p2/DummyClass.java");
     myFixture.copyFileToProject("databinding/res/layout/basic_binding.xml", "res/layout/basic_binding.xml");
     moveClassNoTextReferences("p1.p2.DummyClass", "p1");
     myFixture.checkResultByFile("res/layout/basic_binding.xml", "databinding/res/layout/basic_binding_after.xml", true);
@@ -407,6 +405,16 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.copyFileToProject("R.java", R_JAVA_PATH);
     checkAndRename("@+id/anchor1");
     myFixture.checkResultByFile(BASE_PATH + "layout_id_after.xml");
+    myFixture.checkResultByFile(R_JAVA_PATH, "R.java", true);
+  }
+
+  public void testConstraintReferencedIds() throws Throwable {
+    createManifest();
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout_constraint_referenced_ids.xml", "res/layout/layout_constraint_referenced_ids.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.copyFileToProject("R.java", R_JAVA_PATH);
+    checkAndRename("@+id/anchor1");
+    myFixture.checkResultByFile(BASE_PATH + "layout_constraint_referenced_ids_after.xml");
     myFixture.checkResultByFile(R_JAVA_PATH, "R.java", true);
   }
 

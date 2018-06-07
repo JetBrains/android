@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspec
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.PsModulePath;
 import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.base.Objects;
@@ -26,18 +27,18 @@ import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.gradle.structure.configurables.issues.GoToPathLinkHandler.GO_TO_PATH_TYPE;
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
 import static com.android.tools.idea.gradle.structure.navigation.Places.serialize;
 import static com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.putPath;
 
-public class PsLibraryDependencyNavigationPath extends PsPath {
-  @NotNull private final PsContext myContext;
+public final class PsLibraryDependencyNavigationPath extends PsPath {
   @NotNull private final String myModuleName;
   @NotNull private final String myDependency;
   @NotNull private final String myNavigationText;
 
-  public PsLibraryDependencyNavigationPath(@NotNull PsContext context, @NotNull PsLibraryDependency dependency) {
-    myContext = context;
+  public PsLibraryDependencyNavigationPath(@NotNull PsLibraryDependency dependency) {
+    super(new PsModulePath(dependency.getParent()));
     myModuleName = dependency.getParent().getName();
     PsArtifactDependencySpec spec = dependency.getDeclaredSpec();
     if (spec == null) {
@@ -53,45 +54,46 @@ public class PsLibraryDependencyNavigationPath extends PsPath {
     switch (type) {
       case PLAIN_TEXT:
         return myDependency;
-      case HTML:
-        return getHtmlText();
       case FOR_COMPARE_TO:
         return myDependency + " / " + myModuleName;
     }
     return "";
   }
 
+  @Override
   @NotNull
-  private String getHtmlText() {
+  public String getHyperlinkDestination(@NotNull PsContext context) {
     Place place = new Place();
 
-    ProjectStructureConfigurable mainConfigurable = myContext.getMainConfigurable();
+    ProjectStructureConfigurable mainConfigurable = context.getMainConfigurable();
     DependenciesPerspectiveConfigurable target = mainConfigurable.findConfigurable(DependenciesPerspectiveConfigurable.class);
     assert target != null;
 
     putPath(place, target);
     target.putNavigationPath(place, myModuleName, myNavigationText);
 
-    String href = GO_TO_PATH_TYPE + serialize(place);
-    return String.format("<a href='%1$s'>%2$s</a> (%3$s)", href, myDependency, myModuleName);
+    return GO_TO_PATH_TYPE + serialize(place);
+  }
+
+  @NotNull
+  @Override
+  public String getHtml(@NotNull PsContext context) {
+    return String.format("<a href='%1$s'>%2$s</a> (%3$s)", getHyperlinkDestination(context), myDependency, myModuleName);
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    PsLibraryDependencyNavigationPath that = (PsLibraryDependencyNavigationPath)o;
-    return Objects.equal(myModuleName, that.myModuleName) &&
-           Objects.equal(myDependency, that.myDependency) &&
-           Objects.equal(myNavigationText, that.myNavigationText);
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+    PsLibraryDependencyNavigationPath path = (PsLibraryDependencyNavigationPath)o;
+    return Objects.equal(myModuleName, path.myModuleName) &&
+           Objects.equal(myDependency, path.myDependency) &&
+           Objects.equal(myNavigationText, path.myNavigationText);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myModuleName, myDependency, myNavigationText);
+    return Objects.hashCode(super.hashCode(), myModuleName, myDependency, myNavigationText);
   }
 }

@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.npw.template;
 
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
-import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsPanel;
-import com.android.tools.idea.templates.StringEvaluator;
+import com.android.tools.idea.npw.assetstudio.wizard.GenerateImageAssetPanel;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.templates.StringEvaluator;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.base.Strings;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -33,20 +33,21 @@ import javax.swing.*;
  * to also generate icons in addition to regular files).
  */
 public final class GenerateIconsStep extends ModelWizardStep<RenderTemplateModel> {
-
   private final StudioWizardStepPanel myStudioPanel;
-  private final GenerateIconsPanel myGenerateIconsPanel;
+  private final GenerateImageAssetPanel myGenerateIconsPanel;
 
   private final ListenerManager myListeners = new ListenerManager();
 
-  public GenerateIconsStep(@NotNull RenderTemplateModel model, int minSdkVersion) {
+  public GenerateIconsStep(AndroidFacet facet, @NotNull RenderTemplateModel model) {
     super(model, "Generate Icons");
 
-    AndroidIconType iconType = getModel().getTemplateHandle().getMetadata().getIconType();
-    assert iconType != null; // It's an error to create <icon> tags w/o types
-    myGenerateIconsPanel = new GenerateIconsPanel(this, model.getSourceSet().get().getPaths(), minSdkVersion, iconType);
+    TemplateHandle templateHandle = getModel().getTemplateHandle();
+    assert templateHandle != null;
+    AndroidIconType iconType = templateHandle.getMetadata().getIconType();
+    assert iconType != null; // It's an error to create <icon> tags w/o types.
+    myGenerateIconsPanel = new GenerateImageAssetPanel(this, facet, model.getTemplate().get().getPaths(), iconType);
 
-    myListeners.receiveAndFire(model.getSourceSet(), value -> myGenerateIconsPanel.setProjectPaths(value.getPaths()));
+    myListeners.receiveAndFire(model.getTemplate(), value -> myGenerateIconsPanel.setProjectPaths(value.getPaths()));
 
     myStudioPanel = new StudioWizardStepPanel(myGenerateIconsPanel);
   }
@@ -60,6 +61,7 @@ public final class GenerateIconsStep extends ModelWizardStep<RenderTemplateModel
   @Override
   protected void onEntering() {
     TemplateHandle templateHandle = getModel().getTemplateHandle();
+    assert templateHandle != null;
     String iconNameExpression = templateHandle.getMetadata().getIconName();
     String iconName = null;
     if (iconNameExpression != null && !iconNameExpression.isEmpty()) {

@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.structure.editors;
 
 import com.android.builder.model.*;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.NamedObject;
 import com.android.tools.idea.gradle.parser.ValueFactory;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -35,7 +35,6 @@ import com.intellij.psi.PsiNameHelper;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.containers.SortedList;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -503,7 +502,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     try {
       return config.getVersionNameSuffix();
     }
-    catch (UnsupportedMethodException e) {
+    catch (UnsupportedOperationException e) {
       Logger.getInstance(NamedObjectPanel.class).warn("Method 'getVersionNameSuffix' not found", e);
       return null;
     }

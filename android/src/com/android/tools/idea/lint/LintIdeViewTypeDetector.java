@@ -36,7 +36,7 @@ public class LintIdeViewTypeDetector extends ViewTypeDetector {
   @Nullable
   @Override
   protected Collection<String> getViewTags(@NonNull Context context, @NonNull ResourceItem item) {
-    AbstractResourceRepository projectResources = context.getClient().getProjectResources(context.getMainProject(), true);
+    AbstractResourceRepository projectResources = context.getClient().getResourceRepository(context.getMainProject(), true, false);
     assert projectResources instanceof LocalResourceRepository : projectResources;
     LocalResourceRepository repository = (LocalResourceRepository)projectResources;
     String viewTag = repository.getViewTag(item);

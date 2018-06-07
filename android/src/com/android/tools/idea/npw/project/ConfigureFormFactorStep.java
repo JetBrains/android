@@ -21,21 +21,13 @@ import com.android.repository.api.UpdatablePackage;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
-import com.android.tools.idea.instantapp.InstantApps;
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.instantapp.ConfigureInstantModuleStep;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
-import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
-import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
-import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
@@ -44,12 +36,21 @@ import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
+import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
+import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
+import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.AsyncProcessIcon;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +66,9 @@ import java.util.stream.Collectors;
 
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_NUM_ENABLED_FORM_FACTORS;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -79,7 +83,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
   private final ListenerManager myListeners = new ListenerManager();
   private final ObjectValueProperty<Integer> myEnabledFormFactors = new ObjectValueProperty<>(0);
   private final Map<FormFactor, FormFactorInfo> myFormFactors = Maps.newTreeMap();
-  private final StudioWizardStepPanel myRootPanel;
+  private final JBScrollPane myRootPanel;
   private final ValidatorPanel myValidatorPanel;
   private final StringProperty myInvalidParameterMessage = new StringValueProperty();
 
@@ -95,7 +99,8 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
 
-    myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
+    myRootPanel = new JBScrollPane(new StudioWizardStepPanel(myValidatorPanel), VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    myRootPanel.setBorder(null);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
@@ -126,10 +131,10 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     for (final FormFactor formFactor : formFactors) {
       FormFactorInfo formFactorInfo = myFormFactors.get(formFactor);
 
-      AndroidSourceSet dummySourceSet = GradleAndroidProjectPaths.createDummySourceSet();
+      NamedModuleTemplate dummyTemplate = GradleAndroidModuleTemplate.createDummyTemplate();
 
       NewModuleModel moduleModel = new NewModuleModel(getModel(), formFactorInfo.templateFile);
-      RenderTemplateModel renderModel = new RenderTemplateModel(moduleModel, null, dummySourceSet,
+      RenderTemplateModel renderModel = new RenderTemplateModel(moduleModel, null, dummyTemplate,
                                                                 message("android.wizard.activity.add", formFactor.id));
 
       moduleModel.getRenderTemplateValues().setValue(renderModel.getTemplateValues());
@@ -157,7 +162,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
       // Some changes on the Project/Module Model trigger changes on the Render Model
       myListeners.listenAll(getModel().projectLocation(), moduleModel.moduleName()).withAndFire(() -> {
         File moduleRoot = new File(getModel().projectLocation().get(), moduleModel.moduleName().get());
-        renderModel.getSourceSet().set(GradleAndroidProjectPaths.createDefaultSourceSetAt(moduleRoot));
+        renderModel.getTemplate().set(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot));
       });
     }
 
@@ -170,7 +175,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
   @Override
   protected void onProceeding() {
     Map<String, Object> projectTemplateValues = getModel().getTemplateValues();
-    projectTemplateValues.put("NumberOfEnabledFormFactors", myEnabledFormFactors.get());
+    projectTemplateValues.put(ATTR_NUM_ENABLED_FORM_FACTORS, myEnabledFormFactors.get());
 
     myFormFactors.forEach(((formFactor, formFactorInfo) -> {
       projectTemplateValues.put(formFactor.id + ATTR_INCLUDE_FORM_FACTOR, formFactorInfo.controls.getInclusionCheckBox().isSelected());
@@ -252,11 +257,6 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
             break;
           }
         }
-
-        if (formFactorInfo.newModuleModel.instantApp().get() && minTargetSdk < InstantApps.getMinTargetSdk()) {
-          message = message("android.wizard.project.invalid.iapp.min.sdk", formFactor, InstantApps.getMinTargetSdk());
-          break;
-        }
       }
     }
 
@@ -315,7 +315,8 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
 
       myAndroidVersionsInfo.loadTargetVersions(formFactor, formFactorInfo.minSdk, items -> {
         controls.init(items);
-        controls.getInclusionCheckBox().setSelected(FormFactor.MOBILE.equals(formFactor));
+        Object selectedMinSdkItem = controls.getMinSdkCombobox().getSelectedItem();
+        controls.getInclusionCheckBox().setSelected(selectedMinSdkItem != null && FormFactor.MOBILE.equals(formFactor));
         if (loadingCounter.decrementAndGet() == 0) {
           myLoadingPanel.setVisible(false);
         }
@@ -348,7 +349,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
 
     int getMinTargetSdk() {
       AndroidVersionsInfo.VersionItem androidVersion = newRenderModel.androidSdkInfo().getValueOrNull();
-      return androidVersion == null ? 0 : androidVersion.getApiLevel();
+      return androidVersion == null ? 0 : androidVersion.getMinApiLevel();
     }
 
     @NotNull

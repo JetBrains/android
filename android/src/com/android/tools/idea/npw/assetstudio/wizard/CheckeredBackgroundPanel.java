@@ -29,8 +29,8 @@ import java.util.Objects;
  * {@link GraphicsUtil#paintCheckeredBackground(Graphics, Color, Color, Shape, int)}
  */
 public class CheckeredBackgroundPanel extends JPanel {
-  @NotNull private static final Gray DEFAULT_ODD_CELL_COLOR = Gray.xE0;
-  @NotNull private static final Gray DEFAULT_EVEN_CELL_COLOR = Gray.xFF;
+  @NotNull public static final Gray DEFAULT_ODD_CELL_COLOR = Gray.xE0;
+  @NotNull public static final Gray DEFAULT_EVEN_CELL_COLOR = Gray.xFF;
   private static final int DEFAULT_CELL_SIZE = 10;
 
   @NotNull private final Rectangle myRectangle = new Rectangle();

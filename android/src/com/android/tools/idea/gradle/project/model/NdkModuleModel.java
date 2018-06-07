@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.model;
 
 import com.android.builder.model.*;
+import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProject;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;

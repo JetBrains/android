@@ -18,18 +18,15 @@ package org.jetbrains.android.fileTypes;
 import com.android.tools.idea.apk.ApkFileType;
 import com.android.tools.idea.fileTypes.FontFileType;
 import com.android.tools.idea.fileTypes.AndroidNinePatchFileType;
-import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
+import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.fileTypes.PhotoshopFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
-import com.android.tools.idea.rendering.webp.WebpMetadata;
+import com.android.tools.adtui.webp.WebpMetadata;
 import com.intellij.openapi.fileTypes.FileTypeConsumer;
 import com.intellij.openapi.fileTypes.FileTypeFactory;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author yole
- */
 public class AndroidFileTypeFactory extends FileTypeFactory {
 
   @Override

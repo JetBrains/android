@@ -19,19 +19,26 @@ import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.MavenCoordinates;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.dsl.model.android.CompileOptionsModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
+import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.repository.io.FileOpUtils;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -53,6 +60,7 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.concurrency.AsyncPromise;
@@ -63,11 +71,11 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*;
+import static com.android.tools.idea.gradle.util.GradleProjects.getAndroidModel;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
-import static com.android.tools.idea.gradle.util.Projects.getAndroidModel;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.roots.libraries.LibraryUtil.findLibrary;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;
@@ -117,13 +125,13 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
                                                     @NotNull ExternalLibraryDescriptor descriptor,
                                                     @NotNull DependencyScope scope) {
     ArtifactDependencySpec dependencySpec =
-        new ArtifactDependencySpec(descriptor.getLibraryArtifactId(), descriptor.getLibraryGroupId(), selectVersion(descriptor));
+      ArtifactDependencySpec.create(descriptor.getLibraryArtifactId(), descriptor.getLibraryGroupId(), selectVersion(descriptor));
     return addExternalLibraryDependency(modules, dependencySpec, scope);
   }
 
   @Nullable
   @Override
-  public Promise<Void> addLibraryDependency(@NotNull Module from, @NotNull Library library, @NotNull DependencyScope scope) {
+  public Promise<Void> addLibraryDependency(@NotNull Module from, @NotNull Library library, @NotNull DependencyScope scope, boolean exported) {
     if (!GradleFacet.isAppliedTo(from)) {
       return null;
     }
@@ -153,8 +161,10 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         return null;
       }
       String configurationName = getConfigurationName(module, scope, openedFile);
+      String updatedConfigName =
+        GradleUtil.mapConfigurationName(configurationName, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
       DependenciesModel dependencies = buildModel.dependencies();
-      dependencies.addArtifact(configurationName, dependencySpec);
+      dependencies.addArtifact(updatedConfigName, dependencySpec);
       buildModelsToUpdate.add(buildModel);
     }
 
@@ -215,7 +225,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   @NotNull
-  private static String getConfigurationName(@NotNull Module module, @NotNull  DependencyScope scope, @Nullable VirtualFile openedFile) {
+  private static String getConfigurationName(@NotNull Module module, @NotNull DependencyScope scope, @Nullable VirtualFile openedFile) {
     if (!scope.isForProductionCompile()) {
       TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
 
@@ -228,15 +238,43 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
   @Nullable
   private static String selectVersion(@NotNull ExternalLibraryDescriptor descriptor) {
-    String groupAndId = descriptor.getLibraryGroupId() + ":" + descriptor.getLibraryArtifactId();
-    return EXTERNAL_LIBRARY_VERSIONS.get(groupAndId);
+    String libraryArtifactId = descriptor.getLibraryArtifactId();
+    String libraryGroupId = descriptor.getLibraryGroupId();
+    String groupAndId = libraryGroupId + ":" + libraryArtifactId;
+    String version = EXTERNAL_LIBRARY_VERSIONS.get(groupAndId);
+    if (version == null) {
+      GoogleMavenArtifactId library = GoogleMavenArtifactId.Companion.find(libraryGroupId, libraryArtifactId);
+      if (library != null) {
+        Predicate<GradleVersion> filter =
+          descriptor.getMinVersion() == null ? null : (v -> v.toString().startsWith(descriptor.getMinVersion()));
+
+        String gc = RepositoryUrlManager.get().getArtifactStringCoordinate(library, filter,false);
+        if (gc == null) {
+          AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
+          if (sdk == null) {
+            return null;
+          }
+
+          gc = RepositoryUrlManager.get().getLibraryRevision(libraryGroupId, libraryArtifactId,
+                                                             filter, false,
+                                                             sdk.getLocation(),
+                                                             FileOpUtils.create());
+        }
+        GradleCoordinate coordinate;
+        if (gc != null && (coordinate = GradleCoordinate.parseCoordinateString(gc)) != null) {
+          version = coordinate.getRevision();
+        }
+      }
+    }
+    return version;
   }
 
   @NotNull
   private static Promise<Void> requestProjectSync(@NotNull Project project) {
     AsyncPromise<Void> promise = new AsyncPromise<>();
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false).setTrigger(
-      TRIGGER_PROJECT_MODIFIED);
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    request.generateSourcesOnSuccess = false;
+
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
@@ -310,7 +348,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     if (coordinates == null) {
       return null;
     }
-    return new ArtifactDependencySpec(coordinates.getArtifactId(), coordinates.getGroupId(), coordinates.getVersion());
+    return ArtifactDependencySpec.create(coordinates.getArtifactId(), coordinates.getGroupId(), coordinates.getVersion());
   }
 
   @Nullable
@@ -349,7 +387,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         String artifactId = pathSegments.get(i);
         String version = pathSegments.get(i + 1);
         if (libraryName.endsWith(version)) {
-          return new ArtifactDependencySpec(artifactId, groupId, version);
+          return ArtifactDependencySpec.create(artifactId, groupId, version);
         }
       }
     }

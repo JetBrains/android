@@ -15,11 +15,20 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
+import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.execution.BeforeRunTask;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.openapi.util.SystemInfo;
 
+import java.util.List;
+
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromFile;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createJUnitConfigurationFromClass;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createJUnitConfigurationFromDirectory;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
 
 
 /**
@@ -36,22 +45,74 @@ public class AndroidJUnitConfigurationProducersTest extends AndroidGradleTestCas
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    loadSimpleApplication();
   }
 
   public void testCanCreateJUnitConfigurationFromJUnitTestClass() throws Exception {
+    loadSimpleApplication();
     assertNotNull(createJUnitConfigurationFromClass(getProject(), "google.simpleapplication.UnitTest"));
   }
 
   public void testCannotCreateJUnitConfigurationFromAndroidTestClass() throws Exception {
+    loadSimpleApplication();
     assertNull(createJUnitConfigurationFromClass(getProject(), "google.simpleapplication.ApplicationTest"));
   }
 
   public void testCanCreateJUnitConfigurationFromJUnitTestDirectory() throws Exception {
+    loadSimpleApplication();
     assertNotNull(createJUnitConfigurationFromDirectory(getProject(), "app/src/test/java"));
   }
 
   public void testCannotCreateJUnitConfigurationFromAndroidTestDirectory() throws Exception {
+    loadSimpleApplication();
     assertNull(createJUnitConfigurationFromDirectory(getProject(), "app/src/androidTest/java"));
+  }
+
+  public void testCannotCreateJUnitConfigurationFromAndroidTestClassKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    assertNull(createAndroidTestConfigurationFromFile(
+      getProject(), "app/src/androidTest/java/com/example/android/kotlin/ExampleInstrumentedTest.kt"));
+  }
+
+  public void testCanCreateJUnitConfigurationFromJUnitTestDirectoryKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    assertNotNull(createJUnitConfigurationFromDirectory(getProject(), "app/src/test/java"));
+  }
+
+  public void testCannotCreateJUnitConfigurationFromAndroidTestDirectoryKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    assertNull(createJUnitConfigurationFromDirectory(getProject(), "app/src/androidTest/java"));
+  }
+
+  public void testCreatedJUnitConfigurationHasGradleBeforeRunTask() throws Exception {
+    loadSimpleApplication();
+
+    // Create and add RunConfiguration to the RunManager
+    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(getProject());
+    RunnerAndConfigurationSettings settings = runManager.createConfiguration(
+      createJUnitConfigurationFromClass(getProject(), "google.simpleapplication.UnitTest"),
+      AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0]);
+    runManager.addConfiguration(settings);
+
+    // Get AndroidJUnitRunConfiguration from RunManager
+    List<RunConfiguration> runConfigurations = runManager.getConfigurationsList(AndroidJUnitConfigurationType.getInstance());
+    assertSize(1, runConfigurations);
+    RunConfiguration runConfiguration = runConfigurations.iterator().next();
+    assertInstanceOf(runConfiguration, AndroidJUnitConfiguration.class);
+
+    // Check if BeforeRunTask is correct
+    List<BeforeRunTask<?>> beforeRunTasks = runManager.getBeforeRunTasks(runConfiguration);
+    assertSize(1, beforeRunTasks);
+    assertEquals(MakeBeforeRunTaskProvider.ID, beforeRunTasks.get(0).getProviderId());
+
+    // Re-sync and check again
+    requestSyncAndWait();
+    runConfigurations = runManager.getConfigurationsList(AndroidJUnitConfigurationType.getInstance());
+    assertSize(1, runConfigurations);
+    runConfiguration = runConfigurations.iterator().next();
+    assertInstanceOf(runConfiguration, AndroidJUnitConfiguration.class);
+
+    beforeRunTasks = RunManagerImpl.getInstanceImpl(getProject()).getBeforeRunTasks(runConfiguration);
+    assertSize(1, beforeRunTasks);
+    assertEquals(MakeBeforeRunTaskProvider.ID, beforeRunTasks.get(0).getProviderId());
   }
 }

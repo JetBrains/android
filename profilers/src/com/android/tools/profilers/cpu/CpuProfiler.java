@@ -16,12 +16,11 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profilers.StudioProfiler;
-import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
+import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.StudioProfiler;
+import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
 public class CpuProfiler extends StudioProfiler {
@@ -35,18 +34,14 @@ public class CpuProfiler extends StudioProfiler {
   }
 
   @Override
-  public void startProfiling(Common.Session session, Profiler.Process process) {
+  public void startProfiling(Common.Session session, Common.Process process) {
     // TODO: handle different status of the response
-    myProfilers.getClient().getCpuClient().startMonitoringApp(CpuStartRequest.newBuilder()
-                                                                .setProcessId(process.getPid())
-                                                                .setSession(session).build());
+    myProfilers.getClient().getCpuClient().startMonitoringApp(CpuStartRequest.newBuilder().setSession(session).build());
   }
 
   @Override
-  public void stopProfiling(Common.Session session, Profiler.Process process) {
+  public void stopProfiling(Common.Session session, Common.Process process) {
     // TODO: handle different status of the response
-    myProfilers.getClient().getCpuClient().stopMonitoringApp(CpuStopRequest.newBuilder()
-                                                               .setProcessId(process.getPid())
-                                                               .setSession(session).build());
+    myProfilers.getClient().getCpuClient().stopMonitoringApp(CpuStopRequest.newBuilder().setSession(session).build());
   }
 }

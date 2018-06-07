@@ -15,12 +15,15 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.tools.adtui.model.Interpolatable;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.ProfilerTooltip;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,6 +54,11 @@ public class NetworkMonitor extends ProfilerMonitor {
   @NotNull
   public String getName() {
     return "NETWORK";
+  }
+
+  @Override
+  public ProfilerTooltip buildTooltip() {
+    return new NetworkMonitorTooltip(this);
   }
 
   @Override

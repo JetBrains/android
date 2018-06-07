@@ -25,9 +25,9 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.editors.AndroidModuleConfigurable;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectConfigurable;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.structure.services.view.ServiceCategoryConfigurable;
 import com.google.common.collect.Lists;
@@ -295,7 +295,7 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
     }
 
     if (!myProject.isDefault() && (dataChanged || GradleSyncState.getInstance(myProject).isSyncNeeded() == ThreeState.YES)) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED);
     }
   }
 
@@ -328,7 +328,7 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
         // Populate the "Developer Services" section
         removeServices();
 
-        if (Projects.isBuildWithGradle(myProject)) {
+        if (GradleProjects.isBuildWithGradle(myProject)) {
           DefaultComboBoxModel moduleList = new DefaultComboBoxModel();
           for (AndroidModuleConfigurable moduleConfigurable : moduleConfigurables) {
             // Collect only Android modules
@@ -496,7 +496,7 @@ java.lang.IllegalArgumentException: could not find extension implementation clas
   }
 
   @Override
-  public void syncStarted(@NotNull Project project) {
+  public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
     if (myUiInitialized) {
       myNotificationPanel.removeAll();
       EditorNotificationPanel notification = new EditorNotificationPanel();
@@ -797,7 +797,7 @@ java.lang.IllegalArgumentException: could not find extension implementation clas
       myConfigurables.remove(configurable);
       mySidePanel.reset();
 
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED);
     }
 
     @NotNull

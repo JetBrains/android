@@ -33,10 +33,12 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
 
+import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.getModuleId;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.android.utils.FileUtils.join;
@@ -51,10 +53,13 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
-  private static final String GSON = "com.google.code.gson:gson:2.2.4@jar";
-  private static final String GUAVA = "com.google.guava:guava:18.0@jar";
-  private static final String HAMCREST = "org.hamcrest:hamcrest-core:1.3@jar";
-  private static final String JUNIT = "junit:junit:4.12@jar";
+  // Naming scheme follows "Gradle: " + name of the library. See LibraryDependency#setName method
+  private static final String GRADLE_PREFIX = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
+
+  private static final String GSON = GRADLE_PREFIX + "com.google.code.gson:gson:2.2.4@jar";
+  private static final String GUAVA = GRADLE_PREFIX + "com.google.guava:guava:18.0@jar";
+  private static final String HAMCREST = GRADLE_PREFIX + "org.hamcrest:hamcrest-core:1.3@jar";
+  private static final String JUNIT = GRADLE_PREFIX + "junit:junit:4.12@jar";
   @Override
   protected boolean shouldRunTest() {
     if (SystemInfo.isWindows) {
@@ -147,8 +152,9 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     GradleSyncState.subscribe(getProject(), postSetupListener);
 
     runWriteCommandAction(getProject(), () -> {
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
-      GradleSyncInvoker.getInstance().requestProjectSync(getProject(), request, null);
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      request.generateSourcesOnSuccess = false;
+      GradleSyncInvoker.getInstance().requestProjectSync(getProject(), request);
     });
 
     latch.await();
@@ -213,30 +219,33 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
     // verify scope of test-util
     // implementation project(':lib')
-    Module module = myModules.getModule("test-util");
-    TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(module);
+    Module testUtilModule = myModules.getModule("test-util");
+    Module libModule = myModules.getModule("lib");
+
+    TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(testUtilModule);
     scopes.resolveDependencies();
 
+    String projectFolder = getProject().getBasePath();
+    String moduleId = getModuleId(projectFolder, ":lib");
     ImmutableCollection<ModuleDependency> moduleDependencies = scopes.getMainDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(":lib", COMPILE));
+    assertThat(moduleDependencies).contains(new ModuleDependency(moduleId, COMPILE, libModule));
 
     moduleDependencies = scopes.getUnitTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(":lib", COMPILE));
+    assertThat(moduleDependencies).contains(new ModuleDependency(moduleId, COMPILE, libModule));
 
     moduleDependencies = scopes.getAndroidTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(":lib", TEST));
+    assertThat(moduleDependencies).contains(new ModuleDependency(moduleId, TEST, libModule));
 
     // verify scope of lib
     // testImplementation project(':test-util')
-    module = myModules.getModule("lib");
-    scopes = TestArtifactSearchScopes.get(module);
+    scopes = TestArtifactSearchScopes.get(libModule);
     scopes.resolveDependencies();
 
     moduleDependencies = scopes.getMainDependencies().onModules();
     assertThat(moduleDependencies).isEmpty();
 
     moduleDependencies = scopes.getUnitTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(":test-util", TEST));
+    assertThat(moduleDependencies).contains(new ModuleDependency(getModuleId(projectFolder, ":test-util"), TEST, testUtilModule));
 
     moduleDependencies = scopes.getAndroidTestDependencies().onModules();
     assertThat(moduleDependencies).isEmpty();

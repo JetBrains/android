@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.swing.FakeKeyboard;
+import com.android.tools.adtui.swing.FakeMouse;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.laf.HeadlessListUI;
 import com.android.tools.profilers.FakeFeatureTracker;
@@ -32,7 +33,6 @@ import com.intellij.util.messages.MessageBus;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.picocontainer.PicoContainer;
@@ -67,11 +67,7 @@ public class IntelliJStackTraceViewTest {
 
   @Before
   public void before() {
-    StackTraceModel model = new StackTraceModel(new CodeNavigator(new FakeFeatureTracker()) {
-      @Override
-      protected void handleNavigate(@NotNull CodeLocation location) {
-      }
-    });
+    StackTraceModel model = new StackTraceModel(new FakeCodeNavigator(new FakeFeatureTracker()));
     myStackView = new IntelliJStackTraceView(myProject, model, (project, location) -> new FakeCodeElement(location));
     myStackView.getComponent().setSize(100, 400); // Arbitrary size just so we can click on it
     myStackView.getListView().setUI(new HeadlessListUI());
@@ -151,6 +147,25 @@ public class IntelliJStackTraceViewTest {
     fakeUi.mouse.doubleClick(5, 5); // First row
     assertThat(list.getSelectedValue()).isInstanceOf(FakeCodeElement.class);
     assertThat(invocationCount[0]).isEqualTo(1);
+  }
+
+  @Test
+  public void rightClickingStackTraceView() {
+    FakeUi fakeUi = new FakeUi(myStackView.getComponent());
+    AspectObserver observer = new AspectObserver();
+    final int[] invocationCount = {0};
+    myStackView.getModel().addDependency(observer).onChange(StackTraceModel.Aspect.SELECTED_LOCATION, () -> invocationCount[0]++);
+
+    JList list = myStackView.getListView();
+    assertThat(list.getSelectionModel().getSelectionMode()).isEqualTo(ListSelectionModel.SINGLE_SELECTION);
+    assertThat(invocationCount[0]).isEqualTo(0);
+    assertThat(list.getSelectedIndex()).isEqualTo(-1);
+
+    myStackView.getModel().setStackFrames(STACK_STRING);
+    assertThat(myStackView.getModel().getCodeLocations().size()).isEqualTo(CODE_LOCATIONS.size());
+
+    fakeUi.mouse.click(5, 5, FakeMouse.Button.RIGHT); // First row
+    assertThat(list.getSelectedValue()).isInstanceOf(FakeCodeElement.class);
   }
 
   @Test

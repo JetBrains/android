@@ -19,13 +19,16 @@ import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.swing.FakeUi;
-import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profilers.cpu.CpuMonitor;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
-import com.android.tools.profilers.memory.MemoryMonitor;
+import com.android.tools.profilers.energy.EnergyMonitorTooltip;
+import com.android.tools.profilers.energy.EnergyProfilerStage;
+import com.android.tools.profilers.memory.MemoryMonitorTooltip;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
-import com.android.tools.profilers.network.NetworkMonitor;
+import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkProfilerStage;
+import com.google.common.truth.Truth;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -51,7 +54,9 @@ public class StudioProfilersViewTest {
   @Before
   public void setUp() throws Exception {
     myTimer = new FakeTimer();
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
+    FakeIdeProfilerServices services = new FakeIdeProfilerServices();
+    services.enableEnergyProfiler(true);
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), services, myTimer);
     // Make sure a process is selected
     myView = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     myView.bind(FakeStage.class, FakeView::new);
@@ -79,24 +84,31 @@ public class StudioProfilersViewTest {
       .filter(d -> d instanceof LineChart)
       .map(c -> myUi.getPosition(c))
       .collect(Collectors.toList());
-    // Test that we have three monitors
-    assertThat(points.size()).isEqualTo(3);
+    // Test that we have the expected number of monitors
+    assertThat(points.size()).isEqualTo(4);
 
-    // Test the first monitor goes to cpu profiling
+    //// Test the first monitor goes to cpu profiler
     myUi.mouse.click(points.get(0).x + 1, points.get(0).y + 1);
     assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
     myProfilers.setMonitoringStage();
 
     myUi.layout();
-    // Test the second monitor goes to memory profiling
+    // Test the second monitor goes to memory profiler
     myUi.mouse.click(points.get(1).x + 1, points.get(1).y + 1);
     assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
     myProfilers.setMonitoringStage();
 
     myUi.layout();
-    // Test the third monitor goes to network profiling
+    // Test the third monitor goes to network profiler
     myUi.mouse.click(points.get(2).x + 1, points.get(2).y + 1);
     assertThat(myProfilers.getStage()).isInstanceOf(NetworkProfilerStage.class);
+    myProfilers.setMonitoringStage();
+
+    myUi.layout();
+    // Test the fourth monitor goes to energy profiler
+    myUi.mouse.click(points.get(3).x + 1, points.get(3).y + 1);
+    assertThat(myProfilers.getStage()).isInstanceOf(EnergyProfilerStage.class);
+    myProfilers.setMonitoringStage();
   }
 
   @Test
@@ -108,102 +120,116 @@ public class StudioProfilersViewTest {
       .filter(d -> d instanceof LineChart)
       .map(c -> myUi.getPosition(c))
       .collect(Collectors.toList());
-    // Test that we have three monitors
-    assertThat(points.size()).isEqualTo(3);
+    // Test that we have the expected number of monitors
+    assertThat(points.size()).isEqualTo(4);
 
-    // cpu monitoring
+    // cpu monitor tooltip
     myUi.mouse.moveTo(points.get(0).x + 1, points.get(0).y + 1);
-    assertThat(stage.getTooltip()).isInstanceOf(CpuMonitor.class);
-    assertThat(stage.getTooltip().isFocused()).isTrue();
-    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
+    assertThat(stage.getTooltip()).isInstanceOf(CpuMonitorTooltip.class);
+    ProfilerMonitor cpuMonitor = ((CpuMonitorTooltip)stage.getTooltip()).getMonitor();
+    stage.getMonitors().forEach(
+      monitor -> Truth.assertWithMessage("Only the CPU Monitor should be focused.")
+        .that(monitor.isFocused()).isEqualTo(monitor == cpuMonitor));
 
-    // memory monitoring
+    // memory monitor tooltip
     myUi.mouse.moveTo(points.get(1).x + 1, points.get(1).y + 1);
-    assertThat(stage.getTooltip()).isInstanceOf(MemoryMonitor.class);
-    assertThat(stage.getTooltip().isFocused()).isTrue();
-    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
+    assertThat(stage.getTooltip()).isInstanceOf(MemoryMonitorTooltip.class);
+    ProfilerMonitor memoryMonitor = ((MemoryMonitorTooltip)stage.getTooltip()).getMonitor();
+    stage.getMonitors().forEach(
+      monitor -> Truth.assertWithMessage("Only the Memory Monitor should be focused.")
+        .that(monitor.isFocused()).isEqualTo(monitor == memoryMonitor));
 
-    // network monitoring
+    // network monitor tooltip
     myUi.mouse.moveTo(points.get(2).x + 1, points.get(2).y + 1);
-    assertThat(stage.getTooltip()).isInstanceOf(NetworkMonitor.class);
-    assertThat(stage.getTooltip().isFocused()).isTrue();
-    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
+    assertThat(stage.getTooltip()).isInstanceOf(NetworkMonitorTooltip.class);
+    ProfilerMonitor networMonitor = ((NetworkMonitorTooltip)stage.getTooltip()).getMonitor();
+    stage.getMonitors().forEach(
+      monitor -> Truth.assertWithMessage("Only the Network Monitor should be focused.")
+        .that(monitor.isFocused()).isEqualTo(monitor == networMonitor));
+
+    // energy monitor tooltip
+    myUi.mouse.moveTo(points.get(3).x + 1, points.get(3).y + 1);
+    assertThat(stage.getTooltip()).isInstanceOf(EnergyMonitorTooltip.class);
+    ProfilerMonitor energyMonitor = ((EnergyMonitorTooltip)stage.getTooltip()).getMonitor();
+    stage.getMonitors().forEach(
+      monitor -> Truth.assertWithMessage("Only the Energy Monitor should be focused.")
+        .that(monitor.isFocused()).isEqualTo(monitor == energyMonitor));
 
     // no tooltip
     myUi.mouse.moveTo(0, 0);
     assertThat(stage.getTooltip()).isNull();
-    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isFalse());
+    stage.getMonitors().forEach(monitor -> Truth.assertWithMessage("No monitor should be focused.").that(monitor.isFocused()).isFalse());
   }
 
   @Test
   public void testDeviceRendering() throws IOException {
     StudioProfilersView.DeviceComboBoxRenderer renderer = new StudioProfilersView.DeviceComboBoxRenderer();
-    JList<Profiler.Device> list = new JList<>();
+    JList<Common.Device> list = new JList<>();
     // Null device
-    Profiler.Device device = null;
+    Common.Device device = null;
     Component component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo(renderer.getEmptyText());
 
     // Standard case
-    device = Profiler.Device.newBuilder()
+    device = Common.Device.newBuilder()
       .setModel("Model")
       .setSerial("1234")
-      .setState(Profiler.Device.State.ONLINE)
+      .setState(Common.Device.State.ONLINE)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Model (1234)");
 
     // Suffix not serial
-    device = Profiler.Device.newBuilder()
+    device = Common.Device.newBuilder()
       .setModel("Model-9999")
       .setSerial("1234")
-      .setState(Profiler.Device.State.ONLINE)
+      .setState(Common.Device.State.ONLINE)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Model-9999 (1234)");
 
     // Suffix serial
-    device = Profiler.Device.newBuilder()
+    device = Common.Device.newBuilder()
       .setModel("Model-1234")
       .setSerial("1234")
-      .setState(Profiler.Device.State.ONLINE)
+      .setState(Common.Device.State.ONLINE)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Model (1234)");
 
     // With manufacturer
-    device = Profiler.Device.newBuilder()
+    device = Common.Device.newBuilder()
       .setManufacturer("Manufacturer")
       .setModel("Model")
       .setSerial("1234")
-      .setState(Profiler.Device.State.ONLINE)
+      .setState(Common.Device.State.ONLINE)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Manufacturer Model (1234)");
 
     // Disconnected
-    device = Profiler.Device.newBuilder()
+    device = Common.Device.newBuilder()
       .setModel("Model")
       .setSerial("1234")
-      .setState(Profiler.Device.State.DISCONNECTED)
+      .setState(Common.Device.State.DISCONNECTED)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Model (1234) [DISCONNECTED]");
 
     // Offline
-    device = Profiler.Device.newBuilder()
+    device = Common.Device.newBuilder()
       .setModel("Model")
       .setSerial("1234")
-      .setState(Profiler.Device.State.OFFLINE)
+      .setState(Common.Device.State.OFFLINE)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Model (1234) [OFFLINE]");
 
     // Unspecifed
-    device = Profiler.Device.newBuilder()
+    device = Common.Device.newBuilder()
       .setModel("Model")
       .setSerial("1234")
-      .setState(Profiler.Device.State.UNSPECIFIED)
+      .setState(Common.Device.State.UNSPECIFIED)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Model (1234)");
@@ -212,26 +238,26 @@ public class StudioProfilersViewTest {
   @Test
   public void testProcessRendering() throws IOException {
     StudioProfilersView.ProcessComboBoxRenderer renderer = new StudioProfilersView.ProcessComboBoxRenderer();
-    JList<Profiler.Process> list = new JList<>();
+    JList<Common.Process> list = new JList<>();
     // Null process
-    Profiler.Process process = null;
+    Common.Process process = null;
     Component component = renderer.getListCellRendererComponent(list, process, 0, false, false);
     assertThat(component.toString()).isEqualTo(renderer.getEmptyText());
 
     // Process
-    process = Profiler.Process.newBuilder()
+    process = Common.Process.newBuilder()
       .setName("MyProcessName")
       .setPid(1234)
-      .setState(Profiler.Process.State.ALIVE)
+      .setState(Common.Process.State.ALIVE)
       .build();
     component = renderer.getListCellRendererComponent(list, process, 0, false, false);
     assertThat(component.toString()).isEqualTo("MyProcessName (1234)");
 
     // Dead process
-    process = Profiler.Process.newBuilder()
+    process = Common.Process.newBuilder()
       .setName("MyDeadProcessName")
       .setPid(4444)
-      .setState(Profiler.Process.State.DEAD)
+      .setState(Common.Process.State.DEAD)
       .build();
     component = renderer.getListCellRendererComponent(list, process, 0, false, false);
     assertThat(component.toString()).isEqualTo("MyDeadProcessName (4444) [DEAD]");
@@ -258,6 +284,11 @@ public class StudioProfilersViewTest {
   }
 
   @Test
+  public void testEnergyStage() throws Exception {
+    transitionStage(new EnergyProfilerStage(myProfilers));
+  }
+
+  @Test
   public void testNoStage() throws Exception {
     StudioProfilersView view = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     JPanel component = view.getComponent();
@@ -276,22 +307,6 @@ public class StudioProfilersViewTest {
     // be the case that some listeners that don't point to the view/component are still
     // leaked but it would be pretty rare that such a listener was needed in the first place.
     new ReferenceWalker(myProfilers).assertNotReachable(myView, component);
-  }
-
-  static class FakeStage extends Stage {
-    public FakeStage(@NotNull StudioProfilers profilers) {
-      super(profilers);
-    }
-
-    @Override
-    public void enter() {
-
-    }
-
-    @Override
-    public void exit() {
-
-    }
   }
 
   static class FakeView extends StageView<FakeStage> {

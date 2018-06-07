@@ -17,6 +17,8 @@
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="library" exported="" scope="TEST" name="com.android.tools:testutils:26.0.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="com.android.tools:testutils:26.1.2" level="project" />
+    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:annotations:26.1.2" level="project" />
   </component>
 </module>

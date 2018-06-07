@@ -33,19 +33,12 @@ import java.util.concurrent.TimeUnit;
 
 public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEventType>> {
 
-  @NotNull
-  private ProfilerClient myClient;
-  private final int myProcessId;
-  private final Common.Session mySession;
+  @NotNull private ProfilerClient myClient;
+  @NotNull private final Common.Session mySession;
   private final boolean myFragmentsOnly;
 
-  public ActivityEventDataSeries(@NotNull ProfilerClient client, int id, Common.Session session) {
-    this(client, id, session, false);
-  }
-
-  public ActivityEventDataSeries(@NotNull ProfilerClient client, int id, Common.Session session, boolean fragmentOnly) {
+  public ActivityEventDataSeries(@NotNull ProfilerClient client, @NotNull Common.Session session, boolean fragmentOnly) {
     myClient = client;
-    myProcessId = id;
     mySession = session;
     myFragmentsOnly = fragmentOnly;
   }
@@ -58,7 +51,6 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
     // TODO: update getComponentData to accept a fragment filter. There isn't a significant amount of data here,
     // so for the first iteration performance is not a concern.
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
-      .setProcessId(myProcessId)
       .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
@@ -98,6 +90,7 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
               break;
             }
             displayString = String.format("%s - %s", displayString, state.getState().toString().toLowerCase());
+            // Falls-through to REMOVED
           case REMOVED:
             // Remove is also a fallthrough as this is the event that gets set when we terminate a fragment.
           case PAUSED:

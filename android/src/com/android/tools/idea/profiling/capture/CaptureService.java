@@ -18,7 +18,7 @@ package com.android.tools.idea.profiling.capture;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.FutureCallback;

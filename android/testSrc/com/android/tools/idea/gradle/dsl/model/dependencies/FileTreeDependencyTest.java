@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 
@@ -25,7 +27,7 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Tests for {@link DependenciesModel} and {@link FileTreeDependencyModel}.
+ * Tests for {@link DependenciesModelImpl} and {@link FileTreeDependencyModelImpl}.
  */
 public class FileTreeDependencyTest extends GradleFileModelTestCase {
   public void testParseFileTreeWithDirAndIncludeAttributeList() throws IOException {

@@ -1,4 +1,18 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.android.tools.idea.monitor;
 
@@ -6,12 +20,12 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.ClientData;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.BrowserHelpAction;
+import com.android.tools.idea.adb.AdbService;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.OpenVmTraceHandler;
 import com.android.tools.idea.ddms.actions.*;
-import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.google.common.util.concurrent.FutureCallback;
@@ -20,7 +34,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ProjectTopics;
 import com.intellij.execution.ExecutionManager;
-import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.RunnerLayoutUi;
@@ -44,9 +57,8 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.SideBorder;
+import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
+import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
@@ -69,7 +81,6 @@ import java.util.List;
 
 public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, Condition<Project> {
   private static final String ANDROID_LOGCAT_CONTENT_ID = "Android Logcat";
-
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
 
   @Override
@@ -88,23 +99,22 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
 
     // We should only set OpenVmTraceHandler as ClientData's IMethodProfilingHandler when using the old monitors,
     // because the new profilers use LegacyProfilingHandler instead.
-    if (showMonitors()) {
+    boolean monitorsVisible = showMonitors();
+
+    if (monitorsVisible) {
       // TODO Remove global handlers. These handlers are global, but are set per project.
       // if there are two projects opened, things go very wrong.
       ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
     }
 
-    final AndroidLogcatView logcatView = new AndroidLogcatView(project, deviceContext, getToolWindowId(), !showMonitors());
+    AndroidLogcatView logcatView = new AndroidLogcatView(project, deviceContext, getToolWindowId());
     Content logcatContent = createLogcatContent(layoutUi, project, logcatView);
     layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
-    JPanel searchComponent = logcatView.createSearchComponent();
 
     DevicePanel devicePanel = new DevicePanel(project, deviceContext);
-    JPanel northPanel = new JPanel(new BorderLayout());
-    northPanel.add(devicePanel.getComponent(), BorderLayout.WEST);
 
-    if (showMonitors()) {
-      logcatContent.setSearchComponent(searchComponent);
+    if (monitorsVisible) {
+      logcatContent.setSearchComponent(logcatView.createSearchComponent());
       MonitorContentFactory.createMonitorContent(project, deviceContext, layoutUi);
       layoutUi.getOptions().setLeftToolbar(getToolbarActions(project, deviceContext), ActionPlaces.UNKNOWN);
       layoutUi.addListener(new ContentManagerAdapter() {
@@ -117,18 +127,13 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
                                              .setCategory(AndroidStudioEvent.EventCategory.PROFILING)
                                              .setKind(AndroidStudioEvent.EventKind.MONITOR_RUNNING)
                                              .setMonitorType(view.getMonitorType()));
-
           }
         }
       }, project);
-    } else {
-      searchComponent.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-      northPanel.add(searchComponent, BorderLayout.CENTER);
     }
 
     final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), project);
-    northPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
-    loadingPanel.add(northPanel, BorderLayout.NORTH);
+    loadingPanel.add(new DeviceAndSearchPanel(devicePanel, logcatView), BorderLayout.NORTH);
     loadingPanel.add(layoutUi.getComponent(), BorderLayout.CENTER);
 
     final ContentManager contentManager = toolWindow.getContentManager();
@@ -141,16 +146,13 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
 
     contentManager.addContent(c);
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        logcatView.activate();
-        final ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(getToolWindowId());
-        if (window != null && window.isVisible()) {
-          ConsoleView console = logcatView.getLogConsole().getConsole();
-          if (console != null) {
-            checkFacetAndSdk(project, console);
-          }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      logcatView.activate();
+      final ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(getToolWindowId());
+      if (window != null && window.isVisible()) {
+        ConsoleView console = logcatView.getLogConsole().getConsole();
+        if (console != null) {
+          checkFacetAndSdk(project, console);
         }
       }
     }, project.getDisposed());
@@ -186,7 +188,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
   }
 
   @NotNull
-  public ActionGroup getToolbarActions(Project project, DeviceContext deviceContext) {
+  private static ActionGroup getToolbarActions(Project project, DeviceContext deviceContext) {
     DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new ScreenshotAction(project, deviceContext));
@@ -203,7 +205,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
   }
 
   private static Content createLogcatContent(RunnerLayoutUi layoutUi, final Project project, AndroidLogcatView logcatView) {
-    project.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
+    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new ToolWindowManagerAdapter() {
       boolean myToolWindowVisible;
 
       @Override
@@ -257,12 +259,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
 
       if (!AndroidMavenUtil.isMavenizedModule(module)) {
         console.print("Please ", ConsoleViewContentType.ERROR_OUTPUT);
-        console.printHyperlink("configure", new HyperlinkInfo() {
-          @Override
-          public void navigate(Project project) {
-            AndroidSdkUtils.openModuleDependenciesConfigurable(module);
-          }
-        });
+        console.printHyperlink("configure", p -> AndroidSdkUtils.openModuleDependenciesConfigurable(module));
         console.print(" Android SDK\n", ConsoleViewContentType.ERROR_OUTPUT);
       }
       else {

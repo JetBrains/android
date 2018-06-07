@@ -29,11 +29,11 @@ public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement
   @NonNls public static final String SOURCE_COMPATIBILITY_ATTRIBUTE_NAME = "sourceCompatibility";
   @NonNls public static final String TARGET_COMPATIBILITY_ATTRIBUTE_NAME = "targetCompatibility";
 
-  protected BaseCompileOptionsDslElement(@Nullable GradleDslElement parent, @NotNull String name) {
+  protected BaseCompileOptionsDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
     super(parent, name);
   }
 
-  public BaseCompileOptionsDslElement(@Nullable GradleDslElement parent) {
+  public BaseCompileOptionsDslElement(@NotNull GradleDslElement parent) {
     super(parent, COMPILE_OPTIONS_BLOCK_NAME);
   }
 

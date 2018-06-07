@@ -17,27 +17,28 @@ package com.android.tools.idea.common.scene;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
-import com.android.tools.idea.common.scene.target.Target;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
 
 /**
@@ -62,12 +63,12 @@ public class SceneComponent {
 
   private final Scene myScene;
   private final NlComponent myNlComponent;
-  private ArrayList<SceneComponent> myChildren = new ArrayList<>();
+  private CopyOnWriteArrayList<SceneComponent> myChildren = new CopyOnWriteArrayList<>();
   private SceneComponent myParent = null;
 
   private boolean myIsToolLocked = false;
   private boolean myIsSelected = false;
-  private boolean myDragging = false;
+  protected boolean myDragging = false;
   private boolean myIsModelUpdateAuthorized = true;
 
   private AnimatedValue myAnimatedDrawX = new AnimatedValue();
@@ -77,15 +78,18 @@ public class SceneComponent {
 
   private DrawState myDrawState = DrawState.NORMAL;
 
-  private ArrayList<Target> myTargets = new ArrayList<>();
+  @GuardedBy("myTargets")
+  private final ArrayList<Target> myTargets = new ArrayList<>();
 
-  private int myCurrentLeft = 0;
-  private int myCurrentTop = 0;
-  private int myCurrentRight = 0;
-  private int myCurrentBottom = 0;
+  @GuardedBy("myTargets")
+  @Nullable private ImmutableList<Target> myCachedTargetList;
+
+  @AndroidDpCoordinate private int myCurrentLeft = 0;
+  @AndroidDpCoordinate private int myCurrentTop = 0;
+  @AndroidDpCoordinate private int myCurrentRight = 0;
+  @AndroidDpCoordinate private int myCurrentBottom = 0;
 
   private boolean myShowBaseline = false;
-  private final boolean myAllowsFixedPosition;
 
   private Notch.Provider myNotchProvider;
 
@@ -110,8 +114,7 @@ public class SceneComponent {
     SceneManager manager = scene.getSceneManager();
     myDecorator = manager.getSceneDecoratorFactory().get(component);
     myAllowsAutoconnect = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
-    myAllowsFixedPosition = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
-    setSelected(component.isSelected());
+    setSelected(myScene.getDesignSurface().getSelectionModel().isSelected(component));
   }
 
   @Override
@@ -225,11 +228,11 @@ public class SceneComponent {
     return myParent;
   }
 
-  public void setParent(@NotNull SceneComponent parent) {
+  private void setParent(@NotNull SceneComponent parent) {
     myParent = parent;
   }
 
-  public TargetProvider getTargetProvider() {
+  private TargetProvider getTargetProvider() {
     return myTargetProvider;
   }
 
@@ -249,17 +252,14 @@ public class SceneComponent {
    * @return
    */
   public int findTarget(Class aClass) {
-    int count = myTargets.size();
+    ImmutableList<Target> targets = getTargets();
+    int count = targets.size();
     for (int i = 0; i < count; i++) {
-      if (aClass.isInstance(myTargets.get(i))) {
+      if (aClass.isInstance(targets.get(i))) {
         return i;
       }
     }
     return -1;
-  }
-
-  public void removeTarget(int pos) {
-    myTargets.remove(pos);
   }
 
   /**
@@ -268,7 +268,7 @@ public class SceneComponent {
    * @param candidate
    * @return
    */
-  public boolean hasAncestor(SceneComponent candidate) {
+  boolean hasAncestor(SceneComponent candidate) {
     SceneComponent parent = getParent();
     while (parent != null) {
       if (parent == candidate) {
@@ -277,10 +277,6 @@ public class SceneComponent {
       parent = parent.getParent();
     }
     return false;
-  }
-
-  public boolean allowsFixedPosition() {
-    return myAllowsFixedPosition;
   }
 
   public boolean isSelected() {
@@ -293,6 +289,16 @@ public class SceneComponent {
 
   public void setShowBaseline(boolean value) {
     myShowBaseline = value;
+  }
+
+  /**
+   * Returns true if the widget is parent(0,0) - 0x0
+   * @return true if no dimension
+   */
+  public boolean hasNoDimension() {
+    return myAnimatedDrawWidth.value == 0 && myAnimatedDrawHeight.value == 0
+           && (myAnimatedDrawX.value == myAnimatedDrawX.target)
+           && (myAnimatedDrawY.value == myAnimatedDrawY.target);
   }
 
   /**
@@ -311,28 +317,6 @@ public class SceneComponent {
    */
   public int getDrawY() {
     return myAnimatedDrawY.getValue(0);
-  }
-
-  /**
-   * @return the x offset of this component relative to its parent or the relative to the
-   * {@link Scene} if it has no parent.
-   */
-  public int getOffsetParentX() {
-    if (myParent != null) {
-      return getDrawX() - myParent.getDrawX();
-    }
-    return getDrawX();
-  }
-
-  /**
-   * @return the y offset of this component relative to its parent or the relative to the
-   * {@link Scene} if it has no parent.
-   */
-  public int getOffsetParentY() {
-    if (myParent != null) {
-      return getDrawY() - myParent.getDrawY();
-    }
-    return getDrawY();
   }
 
   /**
@@ -410,13 +394,11 @@ public class SceneComponent {
     if (!isFromModel || myIsModelUpdateAuthorized) {
       myAnimatedDrawX.setValue(dx);
       myAnimatedDrawY.setValue(dy);
-      if (isFromModel) {
-        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dx));
-        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dy));
+      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
+        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dx));
+        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dy));
       }
-      else {
-        myScene.needsRebuildList();
-      }
+      myScene.needsRebuildList();
     }
   }
 
@@ -435,9 +417,9 @@ public class SceneComponent {
     if (!isFromModel || myIsModelUpdateAuthorized) {
       myAnimatedDrawX.setTarget(dx, time);
       myAnimatedDrawY.setTarget(dy, time);
-      if (isFromModel) {
-        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dx));
-        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dy));
+      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
+        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dx));
+        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dy));
       }
       else {
         myScene.needsRebuildList();
@@ -453,14 +435,11 @@ public class SceneComponent {
     if (!isFromModel || myIsModelUpdateAuthorized) {
       myAnimatedDrawWidth.setValue(width);
       myAnimatedDrawHeight.setValue(height);
-      // TODO: remove this
-      if (isFromModel && NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-        NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), width));
-        NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), height));
+      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
+        NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), width));
+        NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), height));
       }
-      else {
-        myScene.needsRebuildList();
-      }
+      myScene.needsRebuildList();
     }
   }
 
@@ -479,9 +458,9 @@ public class SceneComponent {
     if (!isFromModel || myIsModelUpdateAuthorized) {
       myAnimatedDrawWidth.setTarget(width, time);
       myAnimatedDrawHeight.setTarget(height, time);
-      if (isFromModel) {
-        NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), width));
-        NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), height));
+      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
+        NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), width));
+        NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), height));
       }
     }
   }
@@ -491,8 +470,9 @@ public class SceneComponent {
    */
   @NotNull
   public NlComponent getAuthoritativeNlComponent() {
-    if (myComponentProvider != null) {
-      return myComponentProvider.getComponent(this);
+    ComponentProvider provider = myComponentProvider;
+    if (provider != null) {
+      return provider.getComponent(this);
     }
     return myNlComponent;
   }
@@ -510,7 +490,7 @@ public class SceneComponent {
     return myScene;
   }
 
-  public ArrayList<SceneComponent> getChildren() {
+  public List<SceneComponent> getChildren() {
     return myChildren;
   }
 
@@ -526,7 +506,9 @@ public class SceneComponent {
     myIsToolLocked = locked;
   }
 
-  public boolean isToolLocked() { return myIsToolLocked; }
+  public boolean isToolLocked() {
+    return myIsToolLocked;
+  }
 
   @NotNull
   public Stream<SceneComponent> flatten() {
@@ -548,7 +530,7 @@ public class SceneComponent {
 
   @AndroidDpCoordinate
   public int getBaseline() {
-    return Coordinates.pxToDp(myNlComponent.getModel(), NlComponentHelperKt.getBaseline(myNlComponent));
+    return Coordinates.pxToDp(getScene().getDesignSurface(), NlComponentHelperKt.getBaseline(myNlComponent));
   }
 
   public void setSelected(boolean selected) {
@@ -562,8 +544,8 @@ public class SceneComponent {
     else {
       setDrawState(DrawState.NORMAL);
     }
-    for (Target target : myTargets) {
-      target.setComponentSelection(myIsSelected);
+    for (Target target : getTargets()) {
+      target.onComponentSelectionChanged(myIsSelected);
     }
   }
 
@@ -581,11 +563,19 @@ public class SceneComponent {
     return myDrawState;
   }
 
-  public List<Target> getTargets() {
-    // myTargets is only modified in the dispatch thread so make sure we do not call this method from other threads.
+  /**
+   * Returns a copy of the list containing this component's targets
+   */
+  public ImmutableList<Target> getTargets() {
     assert ApplicationManager.getApplication().isDispatchThread();
+    synchronized (myTargets) {
+      // myTargets is only modified in the dispatch thread so make sure we do not call this method from other threads.
 
-    return Collections.unmodifiableList(myTargets);
+      if (myCachedTargetList == null) {
+        myCachedTargetList = ImmutableList.copyOf(myTargets);
+      }
+      return myCachedTargetList;
+    }
   }
 
   public SceneDecorator getDecorator() {
@@ -601,7 +591,7 @@ public class SceneComponent {
   }
 
   public void setExpandTargetArea(boolean expandArea) {
-    for (Target target : myTargets) {
+    for (Target target : getTargets()) {
       target.setExpandSize(expandArea);
     }
     myScene.needsRebuildList();
@@ -609,10 +599,11 @@ public class SceneComponent {
 
   @VisibleForTesting
   ResizeBaseTarget getResizeTarget(ResizeBaseTarget.Type type) {
-    int count = myTargets.size();
+    ImmutableList<Target> targets = getTargets();
+    int count = targets.size();
     for (int i = 0; i < count; i++) {
-      if (myTargets.get(i) instanceof ResizeBaseTarget) {
-        ResizeBaseTarget target = (ResizeBaseTarget)myTargets.get(i);
+      if (targets.get(i) instanceof ResizeBaseTarget) {
+        ResizeBaseTarget target = (ResizeBaseTarget)targets.get(i);
         if (target.getType() == type) {
           return target;
         }
@@ -692,7 +683,10 @@ public class SceneComponent {
 
   protected void addTarget(@NotNull Target target) {
     target.setComponent(this);
-    myTargets.add(target);
+    synchronized (myTargets) {
+      myCachedTargetList = null;
+      myTargets.add(target);
+    }
   }
 
   public void addChild(@NotNull SceneComponent child) {
@@ -702,35 +696,15 @@ public class SceneComponent {
   }
 
   public void removeFromParent() {
-    if (myParent != null) {
-      myParent.remove(this);
+    SceneComponent parent = myParent;
+    if (parent != null) {
+      parent.remove(this);
     }
   }
 
   private void remove(@NotNull SceneComponent component) {
-    myChildren.remove(component);
-  }
-
-  /**
-   * Given a list of components, marks the corresponding SceneComponent as selected
-   *
-   * @param components
-   */
-  public void markSelection(List<NlComponent> components) {
-    final int count = components.size();
-    boolean selected = false;
-    for (int i = 0; i < count; i++) {
-      NlComponent component = components.get(i);
-      if (myNlComponent == component) {
-        selected = true;
-        break;
-      }
-    }
-    setSelected(selected);
-    int childCount = myChildren.size();
-    for (int i = 0; i < childCount; i++) {
-      SceneComponent child = myChildren.get(i);
-      child.markSelection(components);
+    if (myChildren.remove(component)) {
+      component.myParent = null;
     }
   }
 
@@ -764,9 +738,10 @@ public class SceneComponent {
 
     needsRebuildDisplayList |= animating;
 
-    int num = myTargets.size();
+    ImmutableList<Target> targets = getTargets();
+    int num = targets.size();
     for (int i = 0; i < num; i++) {
-      Target target = myTargets.get(i);
+      Target target = targets.get(i);
       needsRebuildDisplayList |= target.layout(sceneTransform, myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
     }
     int childCount = myChildren.size();
@@ -777,7 +752,8 @@ public class SceneComponent {
     return needsRebuildDisplayList;
   }
 
-  public Rectangle fillRect(@Nullable Rectangle rectangle) {
+  @AndroidDpCoordinate
+  public Rectangle fillRect(@AndroidDpCoordinate @Nullable Rectangle rectangle) {
     if (rectangle == null) {
       rectangle = new Rectangle();
     }
@@ -792,16 +768,14 @@ public class SceneComponent {
     if (myIsToolLocked) {
       return; // skip this if hidden
     }
-    if (myDrawState == DrawState.HOVER) {
-      myDrawState = DrawState.NORMAL;
-    }
-    picker.addRect(this, 0, sceneTransform.getSwingX(myCurrentLeft),
-                   sceneTransform.getSwingY(myCurrentTop),
-                   sceneTransform.getSwingX(myCurrentRight),
-                   sceneTransform.getSwingY(myCurrentBottom));
-    int num = myTargets.size();
+    picker.addRect(this, 0, sceneTransform.getSwingXDip(myCurrentLeft),
+                   sceneTransform.getSwingYDip(myCurrentTop),
+                   sceneTransform.getSwingXDip(myCurrentRight),
+                   sceneTransform.getSwingYDip(myCurrentBottom));
+    ImmutableList<Target> targets = getTargets();
+    int num = targets.size();
     for (int i = 0; i < num; i++) {
-      Target target = myTargets.get(i);
+      Target target = targets.get(i);
       target.addHit(sceneTransform, picker);
     }
     int childCount = myChildren.size();
@@ -838,14 +812,6 @@ public class SceneComponent {
     return myNlComponent.getId();
   }
 
-  public String getComponentClassName() {
-    ViewInfo info = NlComponentHelperKt.getViewInfo(myNlComponent);
-    if (info == null) {
-      return null;
-    }
-    return info.getClassName();
-  }
-
   public boolean containsX(@AndroidDpCoordinate int xDp) {
     return getDrawX() <= xDp && xDp <= getDrawX() + getDrawWidth();
   }
@@ -858,16 +824,16 @@ public class SceneComponent {
    * Set the TargetProvider for this component
    *
    * @param targetProvider The target provider to set
-   * @param isParent       The SceneComponent is the layout
    */
-  public void setTargetProvider(@Nullable TargetProvider targetProvider, boolean isParent) {
+  public void setTargetProvider(@Nullable TargetProvider targetProvider) {
     if (myTargetProvider == targetProvider) {
       return;
     }
     myTargetProvider = targetProvider;
-    myTargets.clear();
-    if (myTargetProvider != null) {
-      myTargetProvider.createTargets(this, isParent).forEach(this::addTarget);
+
+    updateTargets();
+    for (SceneComponent child : getChildren()) {
+      child.updateTargets();
     }
   }
 
@@ -880,13 +846,34 @@ public class SceneComponent {
     myComponentProvider = provider;
   }
 
-  public void updateTargets(boolean isParent) {
-    myTargets.clear();
-    if (myTargetProvider != null) {
-      myTargetProvider.createTargets(this, isParent).forEach(this::addTarget);
+  /**
+   * Remove existing {@link Target}s and create the {@link Target}s associated with this SceneComponent and its children.<br>
+   * The created Targets will save in the {@link #myTargets} in its associated {@link SceneComponent}.
+   */
+  public void updateTargets() {
+    synchronized (myTargets) {
+      myCachedTargetList = null;
+      myTargets.clear();
     }
+
+    // update the Targets created by parent's TargetProvider
+    SceneComponent parent = myParent;
+    if (parent != null) {
+      TargetProvider provider = parent.getTargetProvider();
+      if (provider != null) {
+        provider.createChildTargets(parent, this).forEach(this::addTarget);
+      }
+    }
+
+    // update the Targets created by myTargetProvider
+    TargetProvider provider = myTargetProvider;
+    if (provider != null) {
+      provider.createTargets(this).forEach(this::addTarget);
+    }
+
+    // update the Targets of children
     for (SceneComponent child : getChildren()) {
-      child.updateTargets(false);
+      child.updateTargets();
     }
   }
 

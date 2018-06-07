@@ -16,17 +16,13 @@
 package com.android.tools.idea.npw.template;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetType;
 import com.intellij.facet.FacetTypeId;
 import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ex.ApplicationEx;
-import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbService;
@@ -41,6 +37,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
+
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 /**
  * A class for handling actions related to the java to kotlin conversion.
@@ -58,7 +56,6 @@ public class JavaToKotlinHandler {
 
   static void convertJavaFilesToKotlin(@NotNull Project project,
                                        @NotNull List<File> files,
-                                       boolean isNewProject,
                                        @NotNull final Runnable postProcessFunction) {
     if (!hasJavaFiles(files)) {
       DumbService.getInstance(project).smartInvokeLater(postProcessFunction);
@@ -67,27 +64,13 @@ public class JavaToKotlinHandler {
 
     final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
 
-    // If its a new project then call the conversion in response to rootsChanged.
-    if (isNewProject) {
-
-      Disposable tempDisposable = Disposer.newDisposable();
-      GradleSyncState.subscribe(project, new GradleSyncListener.Adapter() {
-        @Override
-        public void syncSucceeded(@NotNull Project project) {
-          callConverter(project, provider, files, postProcessFunction);
-          Disposer.dispose(tempDisposable);
-        }
-
-        @Override
-        public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-          callConverter(project, provider, files, postProcessFunction);
-          Disposer.dispose(tempDisposable);
-        }
-      }, tempDisposable);
-    }
-    else {
-      callConverter(project, provider, files, postProcessFunction);
-    }
+    Disposable tempDisposable = Disposer.newDisposable();
+    project.getMessageBus().connect(tempDisposable).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
+      if (result == ProjectSystemSyncManager.SyncResult.SUCCESS || result == ProjectSystemSyncManager.SyncResult.FAILURE) {
+        callConverter(project, provider, files, postProcessFunction);
+        Disposer.dispose(tempDisposable);
+      }
+    });
   }
 
   static boolean hasJavaFiles(@NotNull List<File> files) {

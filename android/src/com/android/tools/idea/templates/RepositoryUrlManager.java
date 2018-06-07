@@ -16,19 +16,22 @@
 package com.android.tools.idea.templates;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.*;
 import com.android.ide.common.repository.GradleCoordinate.ArtifactType;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.ide.common.repository.MavenRepositories;
-import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleLocalCache;
 import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactVersion;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.lint.checks.GradleDetector;
@@ -40,6 +43,7 @@ import com.google.common.collect.Ordering;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -59,7 +63,7 @@ import java.util.function.Predicate;
 import static com.android.SdkConstants.FD_EXTRAS;
 import static com.android.SdkConstants.FD_M2_REPOSITORY;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
-import static com.android.tools.idea.templates.SupportLibrary.PLAY_SERVICES;
+import static com.android.tools.idea.projectsystem.GoogleMavenArtifactId.PLAY_SERVICES;
 
 /**
  * Helper class to aid in generating Maven URLs for various internal repository files (Support Library, AppCompat, etc).
@@ -80,6 +84,7 @@ public class RepositoryUrlManager {
   private static final Ordering<GradleCoordinate> GRADLE_COORDINATE_ORDERING = Ordering.from(COMPARE_PLUS_LOWER);
 
   private final boolean myForceRepositoryChecksInTests;
+  private GoogleMavenRepository myGoogleMavenRepository;
 
   public static RepositoryUrlManager get() {
     return ServiceManager.getService(RepositoryUrlManager.class);
@@ -87,24 +92,32 @@ public class RepositoryUrlManager {
 
   @SuppressWarnings("unused") // registered as service
   RepositoryUrlManager() {
-    this(false);
+    this(IdeGoogleMavenRepository.INSTANCE, false);
   }
 
   @VisibleForTesting
-  RepositoryUrlManager(boolean forceRepositoryChecks) {
+  RepositoryUrlManager(GoogleMavenRepository repository, boolean forceRepositoryChecks) {
     myForceRepositoryChecksInTests = forceRepositoryChecks;
+    myGoogleMavenRepository = repository;
   }
 
   @Nullable
-  public String getLibraryStringCoordinate(SupportLibrary library, boolean preview) {
+  public String getArtifactStringCoordinate(GoogleMavenArtifactId artifactId, boolean preview) {
+    return getArtifactStringCoordinate(artifactId, null, preview);
+  }
+
+  @Nullable
+  public String getArtifactStringCoordinate(GoogleMavenArtifactId artifactId,
+                                            @Nullable Predicate<GradleVersion> filter,
+                                            boolean preview) {
     AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (sdk == null) {
       return null;
     }
 
-    String revision = getLibraryRevision(library.getGroupId(),
-                                         library.getArtifactId(),
-                                         null,
+    String revision = getLibraryRevision(artifactId.getMavenGroupId(),
+                                         artifactId.getMavenArtifactId(),
+                                         filter,
                                          preview,
                                          sdk.getLocation(),
                                          FileOpUtils.create());
@@ -112,7 +125,7 @@ public class RepositoryUrlManager {
       return null;
     }
 
-    return library.getGradleCoordinate(revision).toString();
+    return artifactId.getCoordinate(revision).toString();
   }
 
   /**
@@ -133,7 +146,7 @@ public class RepositoryUrlManager {
                                    @NotNull File sdkLocation,
                                    @NotNull FileOp fileOp) {
     // First check the Google maven repository, which has most versions.
-    GradleVersion version = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filter, includePreviews);
+    GradleVersion version = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews);
     if (version != null) {
       return version.toString();
     }
@@ -283,7 +296,7 @@ public class RepositoryUrlManager {
             //noinspection StatementWithEmptyBody
             if (!includePreviews &&
                 "5.2.08".equals(revision) &&
-                metadataFile.getPath().contains(PLAY_SERVICES.getArtifactId())) {
+                metadataFile.getPath().contains(PLAY_SERVICES.getMavenArtifactId())) {
               // This version (despite not having -rcN in its version name is actually a preview
               // (See https://code.google.com/p/android/issues/detail?id=75292).
               // Ignore it.
@@ -340,10 +353,10 @@ public class RepositoryUrlManager {
    * artifacts not found on disk or on the network, or for valid artifacts but where
    * there is no local cache and the network query is not successful.
    *
-   * @param coordinate  the coordinate whose version we want to resolve
-   * @param project     the current project, if known. This is required if you want to
-   *                    perform a network lookup of the current best version if we can't
-   *                    find a locally cached version of the library
+   * @param coordinate the coordinate whose version we want to resolve
+   * @param project    the current project, if known. This is required if you want to
+   *                   perform a network lookup of the current best version if we can't
+   *                   find a locally cached version of the library
    * @return the resolved coordinate, or null if not successful
    */
   @Nullable
@@ -406,11 +419,11 @@ public class RepositoryUrlManager {
     Predicate<GradleVersion> filter = version -> version.toString().startsWith(versionPrefix);
 
     // First check the Google maven repository, which has most versions
-    GradleVersion stable = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filter, false);
+    GradleVersion stable = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, false);
     if (stable != null) {
       return stable.toString();
     }
-    GradleVersion version = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filter, true);
+    GradleVersion version = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, true);
     if (version != null) {
       // Only had preview version; use that (for example, artifacts that haven't been released as stable yet).
       return version.toString();
@@ -420,7 +433,7 @@ public class RepositoryUrlManager {
     if (sdkLocation != null) {
       // If this coordinate points to an artifact in one of our repositories, mark it with a comment if they don't
       // have that repository available.
-      String libraryCoordinate = getLibraryRevision(groupId, artifactId, filter,false, sdkLocation, sdkHandler.getFileOp());
+      String libraryCoordinate = getLibraryRevision(groupId, artifactId, filter, false, sdkLocation, sdkHandler.getFileOp());
       if (libraryCoordinate != null) {
         return libraryCoordinate;
       }
@@ -456,7 +469,7 @@ public class RepositoryUrlManager {
       GradleVersion latest = GradleDetector.getLatestVersionFromRemoteRepo(client, coordinate, filter, coordinate.isPreview());
       if (latest != null) {
         String latestString = latest.toString();
-        if (latestString.startsWith(revision)) {
+        if (latestString.startsWith(versionPrefix)) {
           return latestString;
         }
       }
@@ -504,10 +517,11 @@ public class RepositoryUrlManager {
           Predicate<GradleVersion> filter = prefix != null ? version -> version.toString().startsWith(prefix) : null;
 
           String version =
-              getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), filter, includePreviews, sdk.getLocation(), fileOp);
+            getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), filter, includePreviews, sdk.getLocation(), fileOp);
           if (version == null && filter != null) {
             // No library found at the support lib version filter level, so look for any match.
-            version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), null, includePreviews, sdk.getLocation(), fileOp);
+            version =
+              getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), null, includePreviews, sdk.getLocation(), fileOp);
           }
           if (version == null && !includePreviews) {
             // Still no library found, check preview versions.
@@ -525,6 +539,43 @@ public class RepositoryUrlManager {
       result.add(highest);
     }
     return result;
+  }
+
+  @Nullable
+  public Predicate<GradleVersion> findExistingSupportVersionFilter(@Nullable Module module) {
+    if (module == null) {
+      return null;
+    }
+    GradleVersion highest = null;
+    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+    for (GoogleMavenArtifactId artifactId : GoogleMavenArtifactId.values()) {
+      // Note: Only the old style support library have version dependencies, so explicitly check the group ID:
+      if (artifactId.isPlatformSupportLibrary() && artifactId.getMavenGroupId().equals(ImportModule.SUPPORT_GROUP_ID)) {
+        GoogleMavenArtifactVersion artifactVersion = moduleSystem.getResolvedVersion(artifactId);
+        GradleVersion version = artifactVersion != null ? artifactVersion.getMavenVersion() : null;
+        if (version != null) {
+          if (highest == null || version.compareTo(highest) > 0) {
+            highest = version;
+          }
+        }
+      }
+    }
+    if (highest == null) {
+      AndroidModuleInfo info = AndroidModuleInfo.getInstance(module);
+      AndroidVersion compileSdkVersion = info != null ? info.getBuildSdkVersion() : null;
+      if (compileSdkVersion == null) {
+        return null;
+      }
+      String prefix = String.valueOf(compileSdkVersion.getApiLevel()) + ".";
+      return version -> version.toString().startsWith(prefix);
+    }
+    GradleVersion found = highest;
+    String raw = highest.toString();
+    if (highest.isPreview() || highest.isSnapshot() || !raw.endsWith("+")) {
+      return version -> version.equals(found);
+    }
+    String prefix = raw.substring(0, raw.length() - 1);
+    return version -> version.toString().startsWith(prefix);
   }
 
   @Nullable

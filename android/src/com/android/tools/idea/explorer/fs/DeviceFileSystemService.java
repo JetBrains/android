@@ -29,7 +29,7 @@ import java.util.List;
  * the registered {@link DeviceFileSystemServiceListener} instances. Events are always fired on the EDT
  * thread.
  */
-public interface DeviceFileSystemService extends Disposable {
+public interface DeviceFileSystemService<S extends DeviceFileSystem> extends Disposable {
   void addListener(@NotNull DeviceFileSystemServiceListener listener);
 
   void removeListener(@NotNull DeviceFileSystemServiceListener listener);
@@ -51,5 +51,5 @@ public interface DeviceFileSystemService extends Disposable {
    * Returns the list of currently known devices.
    */
   @NotNull
-  ListenableFuture<List<DeviceFileSystem>> getDevices();
+  ListenableFuture<List<S>> getDevices();
 }

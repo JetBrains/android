@@ -15,22 +15,19 @@
  */
 package com.android.tools.idea.common.surface;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.resources.ScreenRound;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
-import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,29 +35,44 @@ import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import java.util.List;
 
 /**
  * View of a {@link Scene} used in a {@link DesignSurface}.
  */
 public abstract class SceneView {
-  protected final DesignSurface mySurface;
-  protected final NlModel myModel;
+  private final DesignSurface mySurface;
+  private final SceneManager myManager;
+  private ImmutableList<Layer> myLayers;
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
 
-  public SceneView(@NotNull DesignSurface surface, @NotNull NlModel model) {
+  public SceneView(@NotNull DesignSurface surface, @NotNull SceneManager manager) {
     mySurface = surface;
-    myModel = model;
+    myManager = manager;
+  }
+
+  @NotNull
+  protected abstract ImmutableList<Layer> createLayers();
+
+  /**
+   * If Layers are not exist, they will be created by {@link #createLayers()}. This should happen only once.
+   */
+  @NotNull
+  public final ImmutableList<Layer> getLayers() {
+    if (myLayers == null) {
+      myLayers = createLayers();
+    }
+    return myLayers;
   }
 
   @NotNull
   public Scene getScene() {
-    return mySurface.getScene();
+    return myManager.getScene();
   }
 
   /**
    * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
+   *
    * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
    *                  returned.
    */
@@ -72,7 +84,7 @@ public abstract class SceneView {
     }
 
     Dimension preferred = getPreferredSize(dimension);
-    double scale = mySurface.getScale();
+    double scale = getScale();
 
     dimension.setSize((int)(scale * preferred.width), (int)(scale * preferred.height));
     return dimension;
@@ -95,57 +107,28 @@ public abstract class SceneView {
   @NotNull
   abstract public Dimension getPreferredSize(@Nullable Dimension dimension);
 
-  public void switchDevice() {
-    List<Device> devices = ConfigurationManager.getOrCreateInstance(myModel.getFacet()).getDevices();
-    List<Device> applicable = Lists.newArrayList();
-    for (Device device : devices) {
-      if (HardwareConfigHelper.isNexus(device)) {
-        applicable.add(device);
-      }
-    }
-    Configuration configuration = getConfiguration();
-    Device currentDevice = configuration.getDevice();
-    for (int i = 0, n = applicable.size(); i < n; i++) {
-      if (applicable.get(i) == currentDevice) {
-        Device newDevice = applicable.get((i + 1) % applicable.size());
-        configuration.setDevice(newDevice, true);
-        break;
-      }
-    }
-  }
-
-  public void toggleOrientation() {
-    Configuration configuration = getConfiguration();
-    configuration.getDeviceState();
-
-    State current = configuration.getDeviceState();
-    State flip = configuration.getNextDeviceState(current);
-    if (flip != null) {
-      configuration.setDeviceState(flip);
-    }
-  }
-
   @NotNull
   public Configuration getConfiguration() {
-    return myModel.getConfiguration();
+    return getSceneManager().getModel().getConfiguration();
   }
 
+  /**
+   * @deprecated This method will be removed in the future. The Model should be obtained by {@link SceneManager#getModel()} instead.
+   */
+  @Deprecated
   @NotNull
   public NlModel getModel() {
-    return myModel;
+    return myManager.getModel();
   }
 
   @NotNull
   public SelectionModel getSelectionModel() {
-    // For now, the selection model is tied to the model itself.
-    // This is deliberate: rather than having each view have its own
-    // independent selection, when a file is shown multiple times on the screen,
-    // selection is "synchronized" between the views by virtue of them all
-    // sharing the same selection model, currently stashed in the model itself.
-    return myModel.getSelectionModel();
+    return getSurface().getSelectionModel();
   }
 
-  /** Returns null if the screen is rectangular; if not, it returns a shape (round for AndroidWear etc) */
+  /**
+   * Returns null if the screen is rectangular; if not, it returns a shape (round for AndroidWear etc)
+   */
   @Nullable
   public Shape getScreenShape() {
     Device device = getConfiguration().getDevice();
@@ -166,7 +149,8 @@ public abstract class SceneView {
     if (chin == 0) {
       // Plain circle
       return new Ellipse2D.Double(originX, originY, size.width, size.height);
-    } else {
+    }
+    else {
       int height = size.height * chin / screen.getYDimension();
       Area a1 = new Area(new Ellipse2D.Double(originX, originY, size.width, size.height + height));
       Area a2 = new Area(new Rectangle2D.Double(originX, originY + 2 * (size.height + height) - height, size.width, height));
@@ -181,7 +165,7 @@ public abstract class SceneView {
   }
 
   public double getScale() {
-    return mySurface.getScale();
+    return getSurface().getScale();
   }
 
   public void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
@@ -215,23 +199,24 @@ public abstract class SceneView {
     return 0;
   }
 
-  public void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
+  @Nullable
+  public Cursor getCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
     SceneContext.get(this).setMouseLocation(x, y);
     getScene().mouseHover(SceneContext.get(this), Coordinates.getAndroidXDip(this, x), Coordinates.getAndroidYDip(this, y));
-    mySurface.setCursor(getScene().getMouseCursor());
+    return getScene().getMouseCursor();
   }
 
   public SceneManager getSceneManager() {
-    return mySurface.getSceneManager();
+    return myManager;
   }
 
   /**
    * Sets the tool tip to be shown
    */
   public void setToolTip(String toolTip) {
-     mySurface.setDesignToolTip(toolTip);
+    getSurface().setDesignToolTip(toolTip);
   }
 
   @NotNull
-  public abstract Color getBgColor();
+  public abstract ColorSet getColorSet();
 }

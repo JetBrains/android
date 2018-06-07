@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
@@ -29,6 +30,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import gnu.trove.TIntObjectHashMap;
+import gnu.trove.TLongObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -53,6 +55,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   static final String IMAGE_HEAP_NAME = "image";
   static final String ZYGOTE_HEAP_NAME = "zygote";
   static final String APP_HEAP_NAME = "app";
+  static final String JNI_HEAP_NAME = "JNI";
+  // ID for JNI pseudo-heap, it should not overlap with real Android heaps
+  public static final int JNI_HEAP_ID = 4;
 
   @Nullable private MemoryProfilerStage myStage;
 
@@ -62,13 +67,14 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private final TIntObjectHashMap<LiveAllocationInstanceObject> myInstanceMap;
   private final TIntObjectHashMap<AllocationStack> myCallstackMap;
   private final TIntObjectHashMap<ThreadId> myThreadIdMap;
+  private final TLongObjectHashMap<StackFrameInfoResponse> myFrameInfoResponseMap;
 
   private final MemoryServiceBlockingStub myClient;
   private final Common.Session mySession;
-  private final int myProcessId;
   private final long myCaptureStartTime;
   private final List<HeapSet> myHeapSets;
   private final AspectObserver myAspectObserver;
+  private final boolean myEnableJniRefsTracking;
 
   private long myEventsEndTimeNs;
   private long myContextEndTimeNs;
@@ -80,8 +86,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private Future myCurrentTask;
 
   public LiveAllocationCaptureObject(@NotNull MemoryServiceBlockingStub client,
-                                     @Nullable Common.Session session,
-                                     int processId,
+                                     @NotNull Common.Session session,
                                      long captureStartTime,
                                      @Nullable ExecutorService loadService,
                                      @Nullable MemoryProfilerStage stage) {
@@ -97,18 +102,24 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     myInstanceMap = new TIntObjectHashMap<>();
     myCallstackMap = new TIntObjectHashMap<>();
     myThreadIdMap = new TIntObjectHashMap<>();
+    myFrameInfoResponseMap = new TLongObjectHashMap<>();
 
     myClient = client;
     mySession = session;
-    myProcessId = processId;
     myCaptureStartTime = captureStartTime;
     myAspectObserver = new AspectObserver();
     myStage = stage;
 
-    myHeapSets = Arrays.asList(new HeapSet(this, DEFAULT_HEAP_NAME, 0),  // default
-                               new HeapSet(this, IMAGE_HEAP_NAME, 1),  // image
-                               new HeapSet(this, ZYGOTE_HEAP_NAME, 2),  // zygote
-                               new HeapSet(this, APP_HEAP_NAME, 3)); // app
+    myHeapSets = new ArrayList<>(Arrays.asList(
+      new HeapSet(this, DEFAULT_HEAP_NAME, 0),  // default
+      new HeapSet(this, IMAGE_HEAP_NAME, 1),  // image
+      new HeapSet(this, ZYGOTE_HEAP_NAME, 2),  // zygote
+      new HeapSet(this, APP_HEAP_NAME, 3))); // app
+
+    myEnableJniRefsTracking = stage.getStudioProfilers().getIdeServices().getFeatureConfig().isJniReferenceTrackingEnabled();
+    if (myEnableJniRefsTracking) {
+      myHeapSets.add(new HeapSet(this, JNI_HEAP_NAME, JNI_HEAP_ID));
+    }
 
     myEventsEndTimeNs = Long.MIN_VALUE;
     myContextEndTimeNs = Long.MIN_VALUE;
@@ -120,11 +131,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   @NotNull
   public Common.Session getSession() {
     return mySession;
-  }
-
-  @Override
-  public int getProcessId() {
-    return myProcessId;
   }
 
   @Override
@@ -153,7 +159,12 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   @NotNull
   @Override
   public List<ClassifierAttribute> getClassifierAttributes() {
-    return ImmutableList.of(ClassifierAttribute.LABEL, ALLOC_COUNT, DEALLOC_COUNT, SHALLOW_SIZE);
+    if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isMemorySnapshotEnabled()) {
+      return ImmutableList.of(LABEL, ALLOCATIONS, DEALLOCATIONS, TOTAL_COUNT, SHALLOW_SIZE);
+    }
+    else {
+      return ImmutableList.of(LABEL, ALLOCATIONS, DEALLOCATIONS, SHALLOW_SIZE);
+    }
   }
 
   @NotNull
@@ -165,15 +176,17 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   @NotNull
   @Override
   public Collection<HeapSet> getHeapSets() {
-    return myHeapSets;
+    // Exclude DEFAULT_HEAP since it shouldn't show up in use in devices that support live allocation tracking.
+    if (myHeapSets.get(0).getInstancesCount() > 0) {
+      // But handle the unexpected, just in case....
+      return myHeapSets;
+    }
+    return myHeapSets.subList(1, myHeapSets.size());
   }
 
   @Override
   @Nullable
   public HeapSet getHeapSet(int heapId) {
-    // Android Runtime guarantees continuity of heap IDs starting from 0. There are only four at the moment (default, image, zygote, app)
-    // and are unlikely to change.
-    assert heapId >= 0 && heapId <= 3;
     return myHeapSets.get(heapId);
   }
 
@@ -208,6 +221,18 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     return true;
   }
 
+  @Nullable
+  @Override
+  public MemoryProfiler.StackFrameInfoResponse getStackFrameInfoResponse(long methodId) {
+    StackFrameInfoResponse frameInfo = myFrameInfoResponseMap.get(methodId);
+    if (frameInfo == null) {
+      frameInfo = getClient().getStackFrameInfo(StackFrameInfoRequest.newBuilder().setSession(getSession()).setMethodId(methodId).build());
+      myFrameInfoResponseMap.put(methodId, frameInfo);
+    }
+
+    return frameInfo;
+  }
+
   @Override
   public boolean isDoneLoading() {
     return true;
@@ -230,8 +255,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
       return;
     }
     AllocationContextsResponse contextsResponse = myClient.getAllocationContexts(
-      AllocationContextsRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
-        .setStartTime(myContextEndTimeNs).setEndTime(endTimeNs).build());
+      AllocationContextsRequest.newBuilder().setSession(mySession).setStartTime(myContextEndTimeNs).setEndTime(endTimeNs).build());
 
     for (AllocatedClass klass : contextsResponse.getAllocatedClassesList()) {
       ClassDb.ClassEntry entry = myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, klass.getClassName(), klass.getClassId());
@@ -282,86 +306,81 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         // If newEndTimeNs > myEventEndTimeNs + 1, we set newEndTimeNs as myEventEndTimeNs + 1
         // We +1 because current range is left close and right open
         if (newEndTimeNs > myEventsEndTimeNs + 1) {
-          BatchAllocationSample sampleResponse =
-            myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
-                                      .setStartTime(myEventsEndTimeNs + 1).setEndTime(newEndTimeNs).build());
-
-          myEventsEndTimeNs = Math.max(myEventsEndTimeNs, sampleResponse.getTimestamp());
+          LatestAllocationTimeResponse timeResponse =
+            myClient.getLatestAllocationTime(LatestAllocationTimeRequest.newBuilder().setSession(mySession).build());
+          myEventsEndTimeNs = Math.max(myEventsEndTimeNs, timeResponse.getTimestamp());
           if (newEndTimeNs > myEventsEndTimeNs + 1) {
             newEndTimeNs = myEventsEndTimeNs + 1;
             newStartTimeNs = Math.min(newStartTimeNs, newEndTimeNs);
           }
         }
 
-        // Split the two ranges into three segments by sorting their end points and analyzing segments with adjacent points
-        long[] timestamps = {myPreviousQueryStartTimeNs, myPreviousQueryEndTimeNs, newStartTimeNs, newEndTimeNs};
-        // Clear myDefaultHeapSet If previous range does not intersect with the new one
+        // Snapshots data
+        List<InstanceObject> snapshotList = new ArrayList<>();
+        List<InstanceObject> resetSnapshotList = new ArrayList<>();
+        // Delta data
+        List<InstanceObject> deltaAllocationList = new ArrayList<>();
+        List<InstanceObject> resetDeltaAllocationList = new ArrayList<>();
+        List<InstanceObject> deltaFreeList = new ArrayList<>();
+        List<InstanceObject> resetDeltaFreeList = new ArrayList<>();
+
+        // Clear and recreate the instance/heap sets if previous range does not intersect with the new one
         boolean clear = myPreviousQueryEndTimeNs <= newStartTimeNs || newEndTimeNs <= myPreviousQueryStartTimeNs;
         if (clear) {
-          long[] newTimeStamps = {newStartTimeNs, newEndTimeNs};
-          timestamps = newTimeStamps;
           myInstanceMap.clear();
+          // If we are resetting, then first establish the object snapshot at the query range's start point.
+          queryJavaInstanceSnapshot(newStartTimeNs, snapshotList);
+          queryJniReferencesSnapshot(newStartTimeNs, snapshotList);
+
+          // Update the delta allocations and deallocations within the selection range on the snapshot.
+          queryJavaInstanceDelta(newStartTimeNs, newEndTimeNs, deltaAllocationList, deltaFreeList, false);
+          queryJniReferencesDelta(newStartTimeNs, newEndTimeNs, deltaAllocationList, deltaFreeList, false);
         }
-
-        Arrays.sort(timestamps);
-        List<InstanceObject> setAllocationList = new ArrayList<>();
-        List<InstanceObject> resetAllocationList = new ArrayList<>();
-        List<InstanceObject> setDeallocationList = new ArrayList<>();
-        List<InstanceObject> resetDeallocationList = new ArrayList<>();
-
-        // For each segment, if it is only within previous range, we remove events in this segment
-        // If it is only within current range, we add events in this segments
-        // Otherwise, we do nothing since we already processed events in this segment
-        for (int stampNumber = 0; stampNumber + 1 < timestamps.length; ++stampNumber) {
-          long startTimeNs = timestamps[stampNumber];
-          long endTimeNs = timestamps[stampNumber + 1];
-          if (startTimeNs == endTimeNs) {
-            continue;
+        else {
+          // Compute selection left differences.
+          List<InstanceObject> leftAllocations = new ArrayList<>();
+          List<InstanceObject> leftDeallocations = new ArrayList<>();
+          if (newStartTimeNs < myPreviousQueryStartTimeNs) {
+            // Selection's min shifts left
+            queryJavaInstanceDelta(newStartTimeNs, myPreviousQueryStartTimeNs, leftAllocations, leftDeallocations, false);
+            queryJniReferencesDelta(newStartTimeNs, myPreviousQueryStartTimeNs, leftAllocations, leftDeallocations, false);
+            // add data within this range to the deltas
+            deltaAllocationList.addAll(leftAllocations);
+            deltaFreeList.addAll(leftDeallocations);
+            // Allocations happen after selection min: remove instance from snapshot
+            resetSnapshotList.addAll(leftAllocations);
+            // Deallocations happen after selection min: add instance to snapshot
+            snapshotList.addAll(leftDeallocations);
+          }
+          else if (newStartTimeNs > myPreviousQueryStartTimeNs) {
+            // Selection's min shifts right
+            queryJavaInstanceDelta(myPreviousQueryStartTimeNs, newStartTimeNs, leftAllocations, leftDeallocations, true);
+            queryJniReferencesDelta(myPreviousQueryStartTimeNs, newStartTimeNs, leftAllocations, leftDeallocations, true);
+            // Remove data within this range from the deltas
+            resetDeltaAllocationList.addAll(leftAllocations);
+            resetDeltaFreeList.addAll(leftDeallocations);
+            // Allocations happen before the selection's min: add instance to snapshot
+            snapshotList.addAll(leftAllocations);
+            // Deallocations before the selection's min: remove instance from snapshot
+            resetSnapshotList.addAll(leftDeallocations);
           }
 
-          boolean insidePreviousRange = startTimeNs >= myPreviousQueryStartTimeNs && endTimeNs <= myPreviousQueryEndTimeNs;
-          boolean insideCurrentRange = startTimeNs >= newStartTimeNs && endTimeNs <= newEndTimeNs;
-
-          if (insidePreviousRange == insideCurrentRange) {
-            continue;
+          // Compute selection right differences.
+          List<InstanceObject> rightAllocations = new ArrayList<>();
+          List<InstanceObject> rightDeallocations = new ArrayList<>();
+          if (newEndTimeNs < myPreviousQueryEndTimeNs) {
+            // Selection's max shifts left: remove data within this range from the deltas
+            queryJavaInstanceDelta(newEndTimeNs, myPreviousQueryEndTimeNs, rightAllocations, rightDeallocations, true);
+            queryJniReferencesDelta(newEndTimeNs, myPreviousQueryEndTimeNs, rightAllocations, rightDeallocations, true);
+            resetDeltaAllocationList.addAll(rightAllocations);
+            resetDeltaFreeList.addAll(rightDeallocations);
           }
-
-          BatchAllocationSample sampleResponse =
-            myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
-                                      .setStartTime(startTimeNs).setEndTime(endTimeNs).build());
-
-          for (AllocationEvent event : sampleResponse.getEventsList()) {
-            if (event.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
-              AllocationEvent.Allocation allocation = event.getAllocData();
-              LiveAllocationInstanceObject instance =
-                getOrCreateInstanceObject(allocation.getTag(), allocation.getClassTag(), allocation.getStackId(), allocation.getThreadId(),
-                                          allocation.getSize(), allocation.getHeapId());
-              if (insideCurrentRange) {
-                instance.setAllocationTime(event.getTimestamp());
-                setAllocationList.add(instance);
-              }
-              else {
-                instance.setAllocationTime(Long.MIN_VALUE);
-                resetAllocationList.add(instance);
-              }
-            }
-            else if (event.getEventCase() == AllocationEvent.EventCase.FREE_DATA) {
-              AllocationEvent.Deallocation deallocation = event.getFreeData();
-              LiveAllocationInstanceObject instance =
-                getOrCreateInstanceObject(deallocation.getTag(), deallocation.getClassTag(), deallocation.getStackId(),
-                                          deallocation.getThreadId(), deallocation.getSize(), deallocation.getHeapId());
-              if (insideCurrentRange) {
-                instance.setDeallocTime(event.getTimestamp());
-                setDeallocationList.add(instance);
-              }
-              else {
-                instance.setDeallocTime(Long.MAX_VALUE);
-                resetDeallocationList.add(instance);
-              }
-            }
-            else {
-              assert false;
-            }
+          else if (newEndTimeNs > myPreviousQueryEndTimeNs) {
+            // Selection's max shifts right: add data within this range to the deltas
+            queryJavaInstanceDelta(myPreviousQueryEndTimeNs, newEndTimeNs, rightAllocations, rightDeallocations, false);
+            queryJniReferencesDelta(myPreviousQueryEndTimeNs, newEndTimeNs, rightAllocations, rightDeallocations, false);
+            deltaAllocationList.addAll(rightAllocations);
+            deltaFreeList.addAll(rightDeallocations);
           }
         }
 
@@ -371,25 +390,21 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         joiner.execute(() -> {
           myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATED);
           if (clear ||
-              setAllocationList.size() + setDeallocationList.size() + resetAllocationList.size() + resetDeallocationList.size() > 0) {
+              deltaAllocationList.size() + deltaFreeList.size() + resetDeltaAllocationList.size() + resetDeltaFreeList.size() > 0) {
             if (clear) {
               myHeapSets.forEach(heap -> heap.clearClassifierSets());
               if (myStage.getSelectedClassSet() != null) {
                 myStage.selectClassSet(ClassSet.EMPTY_SET);
               }
             }
-            setAllocationList.forEach(instance -> {
-              myHeapSets.get(instance.getHeapId()).addInstanceObject(instance);
-            });
-            setDeallocationList.forEach(instance -> {
-              myHeapSets.get(instance.getHeapId()).freeInstanceObject(instance);
-            });
-            resetAllocationList.forEach(instance -> {
-              myHeapSets.get(instance.getHeapId()).removeAddingInstanceObject(instance);
-            });
-            resetDeallocationList.forEach(instance -> {
-              myHeapSets.get(instance.getHeapId()).removeFreeingInstanceObject(instance);
-            });
+            if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isMemorySnapshotEnabled()) {
+              snapshotList.forEach(instance -> myHeapSets.get(instance.getHeapId()).addSnapshotInstanceObject(instance));
+              resetSnapshotList.forEach(instance -> myHeapSets.get(instance.getHeapId()).removeSnapshotInstanceObject(instance));
+            }
+            deltaAllocationList.forEach(instance -> myHeapSets.get(instance.getHeapId()).addDeltaInstanceObject(instance));
+            deltaFreeList.forEach(instance -> myHeapSets.get(instance.getHeapId()).freeDeltaInstanceObject(instance));
+            resetDeltaAllocationList.forEach(instance -> myHeapSets.get(instance.getHeapId()).removeAddedDeltaInstanceObject(instance));
+            resetDeltaFreeList.forEach(instance -> myHeapSets.get(instance.getHeapId()).removeFreedDeltaInstanceObject(instance));
             myStage.refreshSelectedHeap();
           }
         });
@@ -422,5 +437,178 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     }
 
     return instance;
+  }
+
+  @Nullable
+  private AllocationStack convertNativeCallstack(@Nullable NativeBacktrace backtrace) {
+    if (backtrace == null) return null;
+
+    //TODO: This is not even close to real native symbol resolution, just a temporary code to populate UI.
+    AllocationStack.StackFrameWrapper.Builder frames = AllocationStack.StackFrameWrapper.newBuilder();
+    AllocationStack.Builder stack = AllocationStack.newBuilder();
+    for (long address : backtrace.getAddressesList()) {
+      frames.addFrames(AllocationStack.StackFrame.newBuilder()
+                         .setClassName("CppClass")
+                         .setMethodName("Func_" + address));
+    }
+    stack.setFullStack(frames);
+    return stack.build();
+  }
+
+  @Nullable
+  private JniReferenceInstanceObject getOrCreateJniRefObject(int tag, long refValue, int threadId) {
+    LiveAllocationInstanceObject referencedObject = myInstanceMap.get(tag);
+    if (referencedObject == null) {
+      // If a Java object can't be found by a given tag, nothing is known about the JNI reference and we can't track it.
+      return null;
+    }
+    ThreadId thread = null;
+    if (threadId != 0) {
+      assert myThreadIdMap.containsKey(threadId);
+      thread = myThreadIdMap.get(threadId);
+    }
+
+    JniReferenceInstanceObject result = referencedObject.getJniRefByValue(refValue);
+    if (result == null) {
+      result = new JniReferenceInstanceObject(referencedObject, thread, tag, refValue);
+      referencedObject.addJniRef(result);
+    }
+    return result;
+  }
+
+  private void queryJavaInstanceSnapshot(long newTimeNs, @NotNull List<InstanceObject> setAllocationList) {
+    if (!myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isMemorySnapshotEnabled()) {
+      return;
+    }
+
+    BatchAllocationSample sampleResponse = myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setSession(mySession)
+                                                                     .setEndTime(newTimeNs).setLiveObjectsOnly(true).build());
+
+    for (AllocationEvent event : sampleResponse.getEventsList()) {
+      if (event.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
+        AllocationEvent.Allocation allocation = event.getAllocData();
+        LiveAllocationInstanceObject instance =
+          getOrCreateInstanceObject(allocation.getTag(), allocation.getClassTag(), allocation.getStackId(), allocation.getThreadId(),
+                                    allocation.getSize(), allocation.getHeapId());
+        instance.setAllocationTime(event.getTimestamp());
+        setAllocationList.add(instance);
+      }
+      else {
+        assert false;
+      }
+    }
+  }
+
+  private void queryJniReferencesSnapshot(long newTimeNs, @NotNull List<InstanceObject> setAllocationList) {
+    if (!myEnableJniRefsTracking) {
+      return;
+    }
+    JNIGlobalRefsEventsRequest request = JNIGlobalRefsEventsRequest.newBuilder().setSession(mySession)
+      .setLiveObjectsOnly(true).setEndTime(newTimeNs).build();
+    BatchJNIGlobalRefEvent jniBatch = myClient.getJNIGlobalRefsEvents(request);
+
+    for (JNIGlobalReferenceEvent event : jniBatch.getEventsList()) {
+      if (event.getEventType() != JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF) {
+        continue;
+      }
+      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue(), event.getThreadId());
+      if (refObject == null) {
+        // JNI reference object can't be constructed, most likely allocation for underlying java object was not
+        // reported. We don't have anything to show and ignore this reference.
+        continue;
+      }
+      refObject.setAllocationStack(convertNativeCallstack(event.getBacktrace()));
+      refObject.setAllocationTime(event.getTimestamp());
+      setAllocationList.add(refObject);
+    }
+  }
+
+  /**
+   * @param startTimeNs      start time to query data for.
+   * @param endTimeNs        end time to query data for.
+   * @param allocationList   Instances that were allocated within the query range will be added here.
+   * @param deallocatoinList Instances that were deallocated within the query range will be added here.
+   * @param resetInstance    Whether the InstanceObject's alloc/dealloc time information should reset if a corresponding allocation or
+   *                         deallocation event has occurred. The {@link ClassifierSet} rely on the presence (or absence) of these time data
+   *                         to determine whether the InstanceObject should be added (or removed) from the ClassifierSet. Also see {@link
+   *                         ClassifierSet#removeDeltaInstanceInformation(InstanceObject, boolean)}.
+   */
+  private void queryJavaInstanceDelta(long startTimeNs,
+                                      long endTimeNs,
+                                      @NotNull List<InstanceObject> allocationList,
+                                      @NotNull List<InstanceObject> deallocatoinList,
+                                      boolean resetInstance) {
+    if (startTimeNs == endTimeNs) {
+      return;
+    }
+
+    BatchAllocationSample sampleResponse = myClient.getAllocations(
+      AllocationSnapshotRequest.newBuilder().setSession(mySession).setStartTime(startTimeNs).setEndTime(endTimeNs).build());
+
+    for (AllocationEvent event : sampleResponse.getEventsList()) {
+      if (event.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
+        AllocationEvent.Allocation allocation = event.getAllocData();
+        LiveAllocationInstanceObject instance =
+          getOrCreateInstanceObject(allocation.getTag(), allocation.getClassTag(), allocation.getStackId(), allocation.getThreadId(),
+                                    allocation.getSize(), allocation.getHeapId());
+        instance.setAllocationTime(resetInstance ? Long.MIN_VALUE : event.getTimestamp());
+        allocationList.add(instance);
+      }
+      else if (event.getEventCase() == AllocationEvent.EventCase.FREE_DATA) {
+        AllocationEvent.Deallocation deallocation = event.getFreeData();
+        LiveAllocationInstanceObject instance =
+          getOrCreateInstanceObject(deallocation.getTag(), deallocation.getClassTag(), deallocation.getStackId(),
+                                    deallocation.getThreadId(), deallocation.getSize(), deallocation.getHeapId());
+        instance.setDeallocTime(resetInstance ? Long.MAX_VALUE : event.getTimestamp());
+        deallocatoinList.add(instance);
+      }
+      else {
+        assert false;
+      }
+    }
+  }
+
+  private void queryJniReferencesDelta(long startTimeNs,
+                                       long endTimeNs,
+                                       @NotNull List<InstanceObject> allocationList,
+                                       @NotNull List<InstanceObject> deallocatoinList,
+                                       boolean resetInstance) {
+    if (!myEnableJniRefsTracking || startTimeNs == endTimeNs) {
+      return;
+    }
+    JNIGlobalRefsEventsRequest request =
+      JNIGlobalRefsEventsRequest.newBuilder().setSession(mySession).setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+    BatchJNIGlobalRefEvent jniBatch = myClient.getJNIGlobalRefsEvents(request);
+
+    for (JNIGlobalReferenceEvent event : jniBatch.getEventsList()) {
+      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue(), event.getThreadId());
+      if (refObject == null) {
+        // JNI reference object can't be constructed, most likely allocation for underlying java object was not
+        // reported. We don't have anything to show and ignore this reference.
+        continue;
+      }
+      switch (event.getEventType()) {
+        case CREATE_GLOBAL_REF:
+          if (resetInstance) {
+            refObject.setAllocationTime(Long.MIN_VALUE);
+          } else {
+            refObject.setAllocationTime(event.getTimestamp());
+            refObject.setAllocationStack(convertNativeCallstack(event.getBacktrace()));
+          }
+          allocationList.add(refObject);
+          break;
+        case DELETE_GLOBAL_REF:
+          if (resetInstance) {
+            refObject.setAllocationTime(Long.MAX_VALUE);
+          } else {
+            refObject.setDeallocTime(event.getTimestamp());
+            refObject.setDeallocationStack(convertNativeCallstack(event.getBacktrace()));
+          }
+          deallocatoinList.add(refObject);
+          break;
+        default:
+          assert false;
+      }
+    }
   }
 }

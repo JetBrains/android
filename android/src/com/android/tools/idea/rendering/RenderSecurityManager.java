@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.rendering.webp.WebpNativeLibHelper;
+import com.android.tools.adtui.webp.WebpNativeLibHelper;
 import com.android.utils.ILogger;
 
 import java.io.File;

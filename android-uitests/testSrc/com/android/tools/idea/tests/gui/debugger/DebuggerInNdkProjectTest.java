@@ -82,7 +82,7 @@ public class DebuggerInNdkProjectTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/70306472
   public void testDualDebugger() throws Exception {
     processToTest(DUAL);
   }

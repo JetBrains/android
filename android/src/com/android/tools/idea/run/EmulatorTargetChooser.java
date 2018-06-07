@@ -18,28 +18,36 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.avdmanager.AvdOptionsModel;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
-import com.android.tools.idea.avdmanager.ModuleAvds;
+import com.android.tools.idea.avdmanager.AvdManagerUtils;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.util.ThreeState;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AvdManagerLog;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EmulatorTargetChooser {
   private static final Logger LOG = Logger.getInstance(EmulatorTargetChooser.class);
@@ -72,7 +80,7 @@ public class EmulatorTargetChooser {
       return null;
     }
 
-    AvdManager manager = ModuleAvds.getInstance(myFacet).getAvdManagerSilently();
+    AvdManager manager = AvdManagerUtils.getAvdManagerSilently(myFacet);
     if (manager == null) {
       LOG.warn("Could not obtain AVD Manager.");
       return null;
@@ -93,15 +101,14 @@ public class EmulatorTargetChooser {
   private String chooseAvd() {
     IAndroidTarget buildTarget = myFacet.getConfiguration().getAndroidTarget();
     assert buildTarget != null;
-    ModuleAvds moduleAvds = ModuleAvds.getInstance(myFacet);
-    AvdInfo[] avds = moduleAvds.getValidCompatibleAvds();
-    if (avds.length > 0) {
-      return avds[0].getName();
+    List<AvdInfo> avds = getValidCompatibleAvds(myFacet);
+    if (!avds.isEmpty()) {
+      return avds.get(0).getName();
     }
     final Project project = myFacet.getModule().getProject();
     AvdManager manager;
     try {
-      manager = moduleAvds.getAvdManager(new AvdManagerLog() {
+      manager = AvdManager.getInstance(AndroidSdkData.getSdkHolder(myFacet), new AvdManagerLog() {
         @Override
         public void error(Throwable t, String errorFormat, Object... args) {
           super.error(t, errorFormat, args);
@@ -136,11 +143,41 @@ public class EmulatorTargetChooser {
   }
 
   @NotNull
+  private static List<AvdInfo> getValidCompatibleAvds(@NotNull AndroidFacet facet) {
+    AvdManager manager = AvdManagerUtils.getAvdManagerSilently(facet);
+    if (manager == null || !AvdManagerUtils.reloadAvds(manager, facet.getModule().getProject())) {
+      return ImmutableList.of();
+    }
+
+    AndroidVersion minSdk = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
+    AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
+    if (platform == null) {
+      Logger.getInstance(EmulatorTargetChooser.class).error("Android Platform not set for module: " + facet.getModule().getName());
+      return ImmutableList.of();
+    }
+
+    return getCompatibleAvds(manager.getValidAvds(), minSdk, platform);
+  }
+
+  @NotNull
+  private static List<AvdInfo> getCompatibleAvds(@NotNull AvdInfo[] allAvds,
+                                                 @NotNull AndroidVersion minSdk,
+                                                 @NotNull AndroidPlatform platform) {
+    return Arrays.stream(allAvds)
+      .filter(info -> {
+        ISystemImage systemImage = info.getSystemImage();
+        return systemImage != null &&
+               LaunchCompatibility.canRunOnAvd(minSdk, platform.getTarget(), systemImage).isCompatible() != ThreeState.NO;
+      })
+      .collect(Collectors.toList());
+  }
+
+  @NotNull
   public List<ValidationError> validate() {
     if (myAvd == null) {
       return ImmutableList.of();
     }
-    AvdManager avdManager = ModuleAvds.getInstance(myFacet).getAvdManagerSilently();
+    AvdManager avdManager = AvdManagerUtils.getAvdManagerSilently(myFacet);
     if (avdManager == null) {
       return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("avd.cannot.be.loaded.error")));
     }

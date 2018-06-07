@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
+<GrpcList>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetDevices" Class="class com.android.tools.profiler.proto.Profiler$GetDevicesRequest">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetDevicesRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetDevices</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetDevices" Class="class com.android.tools.profiler.proto.Profiler$GetDevicesResponse">
+        <Message>device {
+  device_id: 1234
+  serial: "SomeSerialId"
+  boot_id: "SOME BOOT ID"
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetDevicesResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetDevices</functionCalled>
+        <message>device {
+  device_id: 1234
+  serial: "SomeSerialId"
+  boot_id: "SOME BOOT ID"
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetProcesses" Class="class com.android.tools.profiler.proto.Profiler$GetProcessesRequest">
+        <Message>device_id: 1234
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetProcessesRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetProcesses</functionCalled>
+        <message>device_id: 1234
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetProcesses" Class="class com.android.tools.profiler.proto.Profiler$GetProcessesResponse">
+        <Message>process {
+  name: "INITIAL"
+  pid: 1234
+  device_id: 1234
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetProcessesResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetProcesses</functionCalled>
+        <message>process {
+  name: "INITIAL"
+  pid: 1234
+  device_id: 1234
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetAgentStatus" Class="class com.android.tools.profiler.proto.Profiler$AgentStatusRequest">
+        <Message>device_id: 1234
+process_id: 1234
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$AgentStatusRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetAgentStatus</functionCalled>
+        <message>device_id: 1234
+process_id: 1234
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetAgentStatus" Class="class com.android.tools.profiler.proto.Profiler$AgentStatusResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$AgentStatusResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetAgentStatus</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/BeginSession" Class="class com.android.tools.profiler.proto.Profiler$BeginSessionRequest">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$BeginSessionRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/BeginSession</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/BeginSession" Class="class com.android.tools.profiler.proto.Profiler$BeginSessionResponse">
+        <Message>session {
+  session_id: 1
+  device_id: 1234
+  pid: 1234
+  start_timestamp: 100
+  end_timestamp: 9223372036854775807
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$BeginSessionResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/BeginSession</functionCalled>
+        <message>session {
+  session_id: 1
+  device_id: 1234
+  pid: 1234
+  start_timestamp: 100
+  end_timestamp: 9223372036854775807
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/BeginSession" Class="class com.android.tools.profiler.proto.Profiler$BeginSessionRequest">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$BeginSessionRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/BeginSession</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/BeginSession" Class="class com.android.tools.profiler.proto.Profiler$BeginSessionResponse">
+        <Message>session {
+  session_id: 2
+  device_id: 1234
+  pid: 4321
+  start_timestamp: 150
+  end_timestamp: 9223372036854775807
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$BeginSessionResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/BeginSession</functionCalled>
+        <message>session {
+  session_id: 2
+  device_id: 1234
+  pid: 4321
+  start_timestamp: 150
+  end_timestamp: 9223372036854775807
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/EndSession" Class="class com.android.tools.profiler.proto.Profiler$EndSessionRequest">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$EndSessionRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/EndSession</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/EndSession" Class="class com.android.tools.profiler.proto.Profiler$EndSessionResponse">
+        <Message>session {
+  session_id: 1
+  device_id: 1234
+  pid: 1234
+  start_timestamp: 100
+  end_timestamp: 200
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$EndSessionResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/EndSession</functionCalled>
+        <message>session {
+  session_id: 1
+  device_id: 1234
+  pid: 1234
+  start_timestamp: 100
+  end_timestamp: 200
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/EndSession" Class="class com.android.tools.profiler.proto.Profiler$EndSessionRequest">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$EndSessionRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/EndSession</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/EndSession" Class="class com.android.tools.profiler.proto.Profiler$EndSessionResponse">
+        <Message>session {
+  session_id: 2
+  device_id: 1234
+  pid: 4321
+  start_timestamp: 150
+  end_timestamp: 250
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$EndSessionResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/EndSession</functionCalled>
+        <message>session {
+  session_id: 2
+  device_id: 1234
+  pid: 4321
+  start_timestamp: 150
+  end_timestamp: 250
+}
+</message>
+    </GrpcCall>
+</GrpcList>

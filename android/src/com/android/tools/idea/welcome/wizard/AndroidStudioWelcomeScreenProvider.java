@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
+import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizardHost;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -28,7 +31,6 @@ import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.WelcomeScreenProvider;
 import com.intellij.util.net.HttpConfigurable;
 import com.intellij.util.proxy.CommonProxy;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,6 +53,12 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
    */
   @Nullable
   public static FirstRunWizardMode getWizardMode() {
+    if (StudioFlags.NPW_FIRST_RUN_WIZARD.get()) {
+      // TODO: Remove this temporary code, once the Welcome Wizard is more completely ported.
+      // This code forces the first run wizard to run every time, but eventually it should only run the first time.
+      return FirstRunWizardMode.NEW_INSTALL;
+    }
+
     AndroidFirstRunPersistentData persistentData = AndroidFirstRunPersistentData.getInstance();
     if (isHandoff(persistentData)) {
       return FirstRunWizardMode.INSTALL_HANDOFF;
@@ -140,12 +148,12 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     assert wizardMode != null; // This means isAvailable was false! Why are we even called?
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     ourWasShown = true;
-    return new FirstRunWizardHost(wizardMode);
+    return StudioFlags.NPW_FIRST_RUN_WIZARD.get() ? new StudioFirstRunWelcomeScreen(wizardMode) : new FirstRunWizardHost(wizardMode);
   }
 
   @Override
   public boolean isAvailable() {
-    boolean isWizardDisabled = AndroidPlugin.isGuiTestingMode() || Boolean.getBoolean(SYSTEM_PROPERTY_DISABLE_WIZARD);
+    boolean isWizardDisabled = GuiTestingService.getInstance().isGuiTestingMode() || Boolean.getBoolean(SYSTEM_PROPERTY_DISABLE_WIZARD);
     return !ourWasShown && !isWizardDisabled && getWizardMode() != null;
   }
 

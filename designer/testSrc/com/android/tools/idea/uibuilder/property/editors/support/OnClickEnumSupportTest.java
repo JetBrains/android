@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mock;

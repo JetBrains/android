@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.explorer;
 
+import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
 import com.android.tools.idea.explorer.fs.*;
 import com.android.tools.idea.explorer.ui.TreeUtil;
@@ -432,7 +433,7 @@ public class DeviceExplorerController {
           @Override
           public void onSuccess(@Nullable Path localPath) {
             assert localPath != null;
-            ListenableFuture<Void> futureOpen = myFileManager.openFileInEditor(localPath, true);
+            ListenableFuture<Void> futureOpen = myFileManager.openFileInEditor(treeNode.getEntry(), localPath, true);
             myEdtExecutor.addCallback(futureOpen, new FutureCallback<Void>() {
               @Override
               public void onSuccess(@Nullable Void result) {

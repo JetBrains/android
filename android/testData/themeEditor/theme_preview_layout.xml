@@ -1,34 +1,72 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
               android:orientation="vertical"
-              android:padding="5dp">
+              android:padding="10dp">
 
+  <SeekBar
+      android:id="@+id/seekBar"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content" />
 
   <LinearLayout
-      android:layout_width="fill_parent"
-      android:layout_height="300dp"
-      android:background="@android:color/holo_red_light"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:background="#2000CCA2"
       android:orientation="horizontal">
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?android:attr/borderlessButtonStyle"
+        android:text="Normal"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?android:attr/borderlessButtonStyle"
+        android:enabled="false"
+        android:text="Disabled" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Raised" />
 
-    <SeekBar
-        android:id="@+id/seekBar"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:background="#20AA2200"
+      android:orientation="horizontal">
+    <RadioButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Radio" />
+    <RadioButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:text="Pressed" />
+
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:background="#200B22CC"
+      android:orientation="horizontal">
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Checkbox" />
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:text="Pressed" />
 
   </LinearLayout>
 
   <ProgressBar
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content" />
-
-  <Spinner
-      android:id="@+id/spinner"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content" />
-
-  <RatingBar
-      android:id="@+id/ratingBar"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content" />
 

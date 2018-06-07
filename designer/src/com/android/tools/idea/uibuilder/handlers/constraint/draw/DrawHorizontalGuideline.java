@@ -20,7 +20,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 
 import java.awt.*;
 
@@ -113,12 +113,12 @@ public class DrawHorizontalGuideline extends DrawRegion {
                          int end,
                          float percent,
                          boolean selected) {
-    int l = transform.getSwingX(left);
-    int t = transform.getSwingY(top);
-    int w = transform.getSwingDimension(right - left);
-    int ox = transform.getSwingX(originX);
-    int oy = transform.getSwingY(originY);
-    int oh = transform.getSwingDimension(originHeight);
+    int l = transform.getSwingXDip(left);
+    int t = transform.getSwingYDip(top);
+    int w = transform.getSwingDimensionDip(right - left);
+    int ox = transform.getSwingXDip(originX);
+    int oy = transform.getSwingYDip(originY);
+    int oh = transform.getSwingDimensionDip(originHeight);
     list.add(new DrawHorizontalGuideline(l, t, w, ox, oy, oh, begin, end, percent, selected));
   }
 }

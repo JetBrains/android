@@ -336,7 +336,9 @@ public class NewProjectModel extends WizardModel {
         }
 
         GradleProjectImporter.Request request = new GradleProjectImporter.Request();
-        request.setLanguageLevel(initialLanguageLevel).setProject(project().getValue());
+        request.isNewProject = true;
+        request.javaLanguageLevel = initialLanguageLevel;
+        request.project = project().getValue();
 
         // The GradleSyncListener will take care of creating the Module top level module and opening Android Studio if gradle sync fails,
         // otherwise the project will be created but Android studio will not open - http://b.android.com/335265

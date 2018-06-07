@@ -170,9 +170,9 @@ public class RecipeMergeUtils {
                                          @NotNull String fileName,
                                          @Nullable ResourceFolderType folderType) {
     XmlFile targetPsiFile = (XmlFile)PsiFileFactory.getInstance(context.getProject())
-      .createFileFromText("targetFile", XMLLanguage.INSTANCE, StringUtil.convertLineSeparators(targetXml));
+      .createFileFromText("targetFile", XMLLanguage.INSTANCE, StringUtil.convertLineSeparators(targetXml), false, true);
     XmlFile sourcePsiFile = (XmlFile)PsiFileFactory.getInstance(context.getProject())
-      .createFileFromText("sourceFile", XMLLanguage.INSTANCE, StringUtil.convertLineSeparators(sourceXml));
+      .createFileFromText("sourceFile", XMLLanguage.INSTANCE, StringUtil.convertLineSeparators(sourceXml), false, true);
     XmlTag root = targetPsiFile.getDocument().getRootTag();
     assert root != null : "Cannot find XML root in target: " + targetXml;
 

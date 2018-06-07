@@ -34,6 +34,31 @@
   </extensions>
 
   <actions>
+    <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
+
+    <action class="com.intellij.ide.actions.HelpTopicsAction" id="IntelliJ.HelpTopics" text="IntelliJ IDEA Help">
+      <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="HelpTopics" />
+    </action>
+
+    <action class="com.android.tools.idea.actions.license.ShowLicensesUsedAction" id="Android.ShowLicenses">
+      <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="Help.KeymapReference" />
+    </action>
+
+    <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty" icon="AllIcons.Actions.Compile">
+      <add-to-group group-id="BuildMenu" anchor="first"/>
+    </action>
+
+    <group id="AndroidToolbarMakeGroup">
+      <reference ref="MakeGradleProject"/>
+      <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="before"/>
+    </group>
+    <action id="MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleProject"/>
+    </action>
+    <action id="RebuildGradleProject" class="com.android.tools.idea.gradle.actions.RebuildGradleProjectAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
+    </action>
+
     <action id="Android.InstantRunFeedback" class="com.android.tools.idea.fd.actions.SubmitFeedback">
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="SendFeedback" />
     </action>
@@ -53,7 +78,7 @@
             project-type="Android" icon="AllIcons.General.ProjectStructure"/>
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
     <group id="Android.NavBarToolBar">
-      <reference id="Android.RunAndroidSdkManager" />
+      <reference id="Android.SyncProject" />
       <reference id="Android.RunAndroidAvdManager" />
       <separator/>
       <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="ShowProjectStructureSettings" />

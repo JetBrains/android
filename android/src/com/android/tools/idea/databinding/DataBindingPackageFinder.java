@@ -65,7 +65,7 @@ public class DataBindingPackageFinder extends PsiElementFinder {
 
         @Override
         ResourceCacheValueProvider<Set<String>> createCacheProvider(AndroidFacet facet) {
-          return new ResourceCacheValueProvider<Set<String>>(facet) {
+          return new ResourceCacheValueProvider<Set<String>>(facet, null) {
             @Override
             Set<String> doCompute() {
               LocalResourceRepository moduleResources = ModuleResourceRepository.getOrCreateInstance(getFacet());

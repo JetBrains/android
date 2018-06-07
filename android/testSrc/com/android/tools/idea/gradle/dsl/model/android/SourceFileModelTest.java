@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
+import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceFileModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.sourceSets.SourceFileModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -185,14 +187,14 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
     assertNotNull(android);
-    assertFalse(android.hasValidPsiElement()); // Whole android block gets removed as it would become empty.
+    checkForInValidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
     assertThat(android.sourceSets()).isEmpty();
   }
 
   private static void verifySourceFile(@NotNull GradleBuildModel buildModel, @Nullable String srcFile) {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
-    assertTrue(android.hasValidPsiElement());
+    checkForValidPsiElement(android, AndroidModelImpl.class);
 
     List<SourceSetModel> sourceSets = android.sourceSets();
     assertThat(sourceSets).hasSize(1);

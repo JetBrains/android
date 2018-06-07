@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 
@@ -181,7 +183,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     AaptOptionsModel aaptOptions = android.aaptOptions();
-    assertTrue(aaptOptions.hasValidPsiElement());
+    checkForValidPsiElement(aaptOptions, AaptOptionsModelImpl.class);
     assertEquals("additionalParameters", ImmutableList.of("abcd", "efgh"), aaptOptions.additionalParameters());
     assertEquals("cruncherEnabled", Boolean.TRUE, aaptOptions.cruncherEnabled());
     assertEquals("cruncherProcesses", Integer.valueOf(1), aaptOptions.cruncherProcesses());
@@ -202,7 +204,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     aaptOptions = android.aaptOptions();
-    assertFalse(aaptOptions.hasValidPsiElement());
+    checkForInValidPsiElement(aaptOptions, AaptOptionsModelImpl.class);
     assertNull("additionalParameters", aaptOptions.additionalParameters());
     assertNull("cruncherEnabled", aaptOptions.cruncherEnabled());
     assertNull("cruncherProcesses", aaptOptions.cruncherProcesses());
@@ -256,7 +258,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     AaptOptionsModel aaptOptions = android.aaptOptions();
-    assertTrue(aaptOptions.hasValidPsiElement());
+    checkForValidPsiElement(aaptOptions, AaptOptionsModelImpl.class);
     assertEquals("additionalParameters", ImmutableList.of("abcd"), aaptOptions.additionalParameters());
     assertEquals("noCompress", ImmutableList.of("a"), aaptOptions.noCompress());
 
@@ -268,7 +270,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     aaptOptions = android.aaptOptions();
-    assertFalse(aaptOptions.hasValidPsiElement());
+    checkForInValidPsiElement(aaptOptions, AaptOptionsModelImpl.class);
     assertNull("additionalParameters", aaptOptions.additionalParameters());
     assertNull("noCompress", aaptOptions.noCompress());
   }

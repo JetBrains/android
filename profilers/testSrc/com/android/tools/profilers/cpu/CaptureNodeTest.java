@@ -26,7 +26,7 @@ public class CaptureNodeTest {
 
   @Test
   public void captureNodeSpecificMethods() throws IOException {
-    CaptureNode node = new CaptureNode();
+    CaptureNode node = new CaptureNode(new StubCaptureNodeModel());
     assertEquals(ClockType.GLOBAL, node.getClockType());
 
     node.setStartThread(3);
@@ -44,7 +44,7 @@ public class CaptureNodeTest {
 
   @Test
   public void hNodeApiMethods() throws IOException {
-    CaptureNode node = new CaptureNode();
+    CaptureNode node = new CaptureNode(new StubCaptureNodeModel());
 
     node.setStartThread(0);
     node.setEndThread(10);
@@ -54,12 +54,12 @@ public class CaptureNodeTest {
     assertEquals(ClockType.GLOBAL, node.getClockType());
     assertEquals(20, node.getStart());
     assertEquals(50, node.getEnd());
-    assertEquals(30, node.duration());
+    assertEquals(30, node.getDuration());
 
     node.setClockType(ClockType.THREAD);
     assertEquals(ClockType.THREAD, node.getClockType());
     assertEquals(0, node.getStart());
     assertEquals(10, node.getEnd());
-    assertEquals(10, node.duration());
+    assertEquals(10, node.getDuration());
   }
 }

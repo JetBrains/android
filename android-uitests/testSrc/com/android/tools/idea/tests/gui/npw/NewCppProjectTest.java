@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture.PaneFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.LinkCppProjectFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
@@ -70,25 +71,25 @@ public class NewCppProjectTest {
    *   in any order."
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void createNewProjectWithCpp1() throws Exception {
     createNewProjectWithCpp(false, false);
   }
 
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void createNewProjectWithCpp2() throws Exception {
     createNewProjectWithCpp(true, false);
   }
 
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void createNewProjectWithCpp3() throws Exception {
     createNewProjectWithCpp(false, true);
   }
 
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void createNewProjectWithCpp4() throws Exception {
     createNewProjectWithCpp(true, true);
@@ -116,7 +117,7 @@ public class NewCppProjectTest {
    *   3) Verify that the project builds and runs on an emulator
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37918835
+  @RunIn(TestGroup.SANITY)
   @Test
   public void addRemoveCppDependency() throws Exception {
     createCppProject(false, false);
@@ -156,7 +157,7 @@ public class NewCppProjectTest {
    * This checks that our (default) project templates are warnings-clean.
    * The test then proceeds to make a couple of edits and checks that these do not generate additional warnings either.
    */
-  @RunIn(TestGroup.PROJECT_WIZARD)
+  @RunIn(TestGroup.UNRELIABLE) // b/71516142 @RunIn(TestGroup.PROJECT_WIZARD)
   @Test
   public void noWarningsInNewProjectWithCpp() {
     createCppProject(false, false);
@@ -203,7 +204,8 @@ public class NewCppProjectTest {
 
     newProjectWizard.clickFinish();
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30));
+    guiTest.waitForBackgroundTasks();
   }
 
   private void runAppOnEmulator() throws ClassNotFoundException {

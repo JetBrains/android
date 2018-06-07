@@ -77,9 +77,20 @@ public class Scout {
       case ChainInsertVertical:
         ScoutChainsArrange.change( type, widgets);
         return;
+        default:
+          ScoutArrange.align(type, widgets, applyConstraint);
     }
-    ScoutArrange.align(type, widgets, applyConstraint);
-    commit(widgets, type.toString());
+  }
+
+  /**
+   * Arrange widgets and commit the result
+   * @param type type of arranging
+   * @param widgets list of widgets to work on
+   * @param applyConstraints only align or apply constraints
+   */
+  public static void arrangeWidgetsAndCommit(Arrange type, List<NlComponent> widgets, boolean applyConstraints) {
+    arrangeWidgets(type, widgets, applyConstraints);
+    commit(widgets, "Arrange Widgets");
   }
 
   /**
@@ -185,7 +196,7 @@ public class Scout {
       return;
     }
     for (NlComponent child : root.getChildren()) {
-      NlComponentHelperKt.ensureId(child);
+      child.ensureId();
     }
     if (!ConstraintComponentUtilities.isConstraintLayout(root)) {
       return;

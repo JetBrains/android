@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.flags.StudioFlags.NELE_WIDGET_ASSISTANT;
 
 /**
  * Handler for the {@code <RecyclerView>} layout
@@ -53,6 +54,10 @@ public class RecyclerViewHandler extends ViewGroupHandler {
   @Nullable
   @Override
   public ComponentAssistant.PanelFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+    if (!NELE_WIDGET_ASSISTANT.get()) {
+      return null;
+    }
+
     if (component.getAttribute(TOOLS_URI, ATTR_LISTITEM) != null) {
       return null;
     }

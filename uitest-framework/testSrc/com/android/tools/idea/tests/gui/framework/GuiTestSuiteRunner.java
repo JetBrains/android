@@ -27,6 +27,7 @@ import org.junit.runners.model.RunnerBuilder;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.android.SdkConstants.DOT_CLASS;
@@ -34,11 +35,23 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.GUI_TESTS_RUNN
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
-/** {@link Runner} that finds and runs classes {@link RunWith} {@link GuiTestRunner}. */
+/**
+ * <p>{@link Runner} that finds and runs classes {@link RunWith} {@link GuiTestRunner}.</p>
+ *
+ * <p>This runner will specify a {@link TestGroupFilter} when the {@code ui.test.group}
+ * property is set to a {@link TestGroup} name. This runner will also specify a
+ * {@link SingleClassFilter} when the {@code ui.test.class} property is set to
+ * a fully qualified class name of a UI test class. When both filters are set,
+ * each test needs to pass both filters to run.</p>
+ *
+ */
 public class GuiTestSuiteRunner extends Suite {
 
-  /** The name of a property specifying a {@link TestGroup} to run. If unspecified, all tests are run regardless of group. */
+  /** The name of a property specifying a {@link TestGroup} to run. If unspecified, tests will not be filtered based on group. */
   private static final String TEST_GROUP_PROPERTY_NAME = "ui.test.group";
+  /** The name of a property specifying a specific class whose fully qualified class name matches the property value to run.
+    * If unspecified, tests will not be filtered by the class name of their containing class. */
+  private static final String TEST_CLASS_PROPERTY_NAME = "ui.test.class";
 
   public GuiTestSuiteRunner(Class<?> suiteClass, RunnerBuilder builder) throws InitializationError {
     super(builder, suiteClass, getGuiTestClasses(suiteClass));
@@ -48,13 +61,18 @@ public class GuiTestSuiteRunner extends Suite {
       if (testGroupProperty != null) {
         filter(new TestGroupFilter(TestGroup.valueOf(testGroupProperty)));
       }
+
+      String testClassProperty = System.getProperty(TEST_CLASS_PROPERTY_NAME);
+      if (testClassProperty != null) {
+        filter(new SingleClassFilter(testClassProperty));
+      }
     } catch (NoTestsRemainException e) {
       throw new InitializationError(e);
     }
   }
 
   @NotNull
-  private static Class<?>[] getGuiTestClasses(@NotNull Class<?> suiteClass) throws InitializationError {
+  public static Class<?>[] getGuiTestClasses(@NotNull Class<?> suiteClass) throws InitializationError {
     List<File> guiTestClassFiles = Lists.newArrayList();
     File parentDir = getParentDir(suiteClass);
 
@@ -89,6 +107,7 @@ public class GuiTestSuiteRunner extends Suite {
 
   private static void findPotentialGuiTestClassFiles(@NotNull File directory, @NotNull List<File> guiTestClassFiles) {
     File[] children = notNullize(directory.listFiles());
+    Arrays.sort(children);  // avoid file-system-dependent order
     for (File child : children) {
       if (child.isDirectory()) {
         findPotentialGuiTestClassFiles(child, guiTestClassFiles);

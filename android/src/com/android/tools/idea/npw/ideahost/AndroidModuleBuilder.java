@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.ideahost;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
-import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.project.ConfigureAndroidProjectStep;
 import com.android.tools.idea.npw.project.ConfigureAndroidSdkStep;
 import com.android.tools.idea.npw.project.NewProjectModel;
@@ -175,7 +174,7 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
         moduleDescriptions.addAll(provider.getDescriptions());
       }
 
-      builder.addStep(new ChooseModuleTypeStep(new NewModuleModel(project), moduleDescriptions));
+      builder.addStep(new ChooseModuleTypeStep(project, moduleDescriptions));
     }
     myWizardAdapter = new IdeaWizardAdapter(hostWizard, builder.build());
   }

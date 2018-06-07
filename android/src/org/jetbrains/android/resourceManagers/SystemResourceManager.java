@@ -32,9 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author coyote
- */
 public class SystemResourceManager extends ResourceManager {
   private final AndroidPlatform myPlatform;
   private final boolean myPublicOnly;
@@ -77,9 +74,7 @@ public class SystemResourceManager extends ResourceManager {
   @Override
   @NotNull
   public List<VirtualFile> getResourceDirs() {
-    String resPath = myPlatform.getTarget().getPath(IAndroidTarget.RESOURCES);
-    resPath = FileUtil.toSystemIndependentName(resPath);
-    VirtualFile dir = LocalFileSystem.getInstance().findFileByPath(resPath);
+    VirtualFile dir = getResourceDir();
     return dir != null ? Collections.singletonList(dir) : Collections.emptyList();
   }
 

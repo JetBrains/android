@@ -17,10 +17,10 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.mockup.editor.MockUpFileChooser;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -94,13 +94,13 @@ public class MockupEditAction extends AnAction {
 
   @Nullable
   public NlComponent getFirstSelectedComponent() {
-    ScreenView screenView = myDesignSurface.getCurrentSceneView();
-    if (screenView == null) {
+    NlModel model = myDesignSurface.getModel();
+    if (model == null) {
       return null;
     }
-    List<NlComponent> selection = screenView.getSelectionModel().getSelection();
+    List<NlComponent> selection = myDesignSurface.getSelectionModel().getSelection();
     if (selection.isEmpty()) {
-      selection = screenView.getModel().getComponents();
+      selection = model.getComponents();
     }
     if (selection.isEmpty()) {
       return null;

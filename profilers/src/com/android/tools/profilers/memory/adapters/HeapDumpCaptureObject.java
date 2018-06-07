@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Instance;
@@ -28,7 +27,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
-import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.proguard.ProguardMap;
 import com.google.common.annotations.VisibleForTesting;
@@ -39,7 +37,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -50,13 +47,8 @@ public class HeapDumpCaptureObject implements CaptureObject {
   @NotNull
   private final MemoryServiceBlockingStub myClient;
 
-  private final int myProcessId;
-
-  @Nullable
-  private final Common.Session mySession;
-
   @NotNull
-  private final String myLabel;
+  private final Common.Session mySession;
 
   @NotNull
   private final FeatureTracker myFeatureTracker;
@@ -87,29 +79,21 @@ public class HeapDumpCaptureObject implements CaptureObject {
   private boolean myHasNativeAllocations;
 
   public HeapDumpCaptureObject(@NotNull MemoryServiceBlockingStub client,
-                               @Nullable Common.Session session,
-                               int appId,
+                               @NotNull Common.Session session,
                                @NotNull HeapDumpInfo heapDumpInfo,
                                @Nullable ProguardMap proguardMap,
-                               @NotNull RelativeTimeConverter converter,
                                @NotNull FeatureTracker featureTracker) {
     myClient = client;
-    myProcessId = appId;
     mySession = session;
     myHeapDumpInfo = heapDumpInfo;
     myProguardMap = proguardMap;
-    myLabel =
-      "Heap Dump @ " +
-      TimeAxisFormatter.DEFAULT
-        .getFixedPointFormattedString(TimeUnit.MILLISECONDS.toMicros(1),
-                                      TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myHeapDumpInfo.getStartTime())));
     myFeatureTracker = featureTracker;
   }
 
   @NotNull
   @Override
   public String getName() {
-    return myLabel;
+    return "Heap Dump";
   }
 
   @Override
@@ -125,8 +109,8 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
   @Override
   public void saveToFile(@NotNull OutputStream outputStream) throws IOException {
-    DumpDataResponse response = myClient.getHeapDump(
-      DumpDataRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).setDumpTime(myHeapDumpInfo.getStartTime()).build());
+    DumpDataResponse response =
+      myClient.getHeapDump(DumpDataRequest.newBuilder().setSession(mySession).setDumpTime(myHeapDumpInfo.getStartTime()).build());
     if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
       response.getData().writeTo(outputStream);
       myFeatureTracker.trackExportHeap();
@@ -188,7 +172,6 @@ public class HeapDumpCaptureObject implements CaptureObject {
     while (true) {
       // TODO move this to another thread and complete before we notify
       response = myClient.getHeapDump(DumpDataRequest.newBuilder()
-                                        .setProcessId(myProcessId)
                                         .setSession(mySession)
                                         .setDumpTime(myHeapDumpInfo.getStartTime()).build());
       if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
@@ -242,7 +225,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
       heap.getClasses().forEach(classObj -> {
         InstanceObject classObject = createClassObjectInstance(finalJavaLangClassObject, classObj);
         myInstanceIndex.put(classObj, classObject);
-        heapSet.addInstanceObject(classObject);
+        heapSet.addDeltaInstanceObject(classObject);
       });
     }
 
@@ -255,11 +238,20 @@ public class HeapDumpCaptureObject implements CaptureObject {
           new HeapDumpInstanceObject(this, getClassObjectInstance(instance), instance,
                                      myClassDb.registerClass(classObj.getClassLoaderId(), classObj.getClassName()), null);
         myInstanceIndex.put(instance, instanceObject);
-        heapSet.addInstanceObject(instanceObject);
+        heapSet.addDeltaInstanceObject(instanceObject);
         return true;
       });
     }
-    heapSets.entrySet().forEach(entry -> myHeapSets.put(entry.getKey().getId(), entry.getValue()));
+    heapSets.forEach((key, value) -> {
+      if ("default".equals(key.getName())) {
+        if (heapSets.size() == 1 || key.getInstancesCount() > 0) {
+          myHeapSets.put(key.getId(), value);
+        }
+      }
+      else {
+        myHeapSets.put(key.getId(), value);
+      }
+    });
 
     return true;
   }
@@ -282,8 +274,8 @@ public class HeapDumpCaptureObject implements CaptureObject {
   @NotNull
   @Override
   public List<ClassifierAttribute> getClassifierAttributes() {
-    return myHasNativeAllocations ? Arrays.asList(LABEL, ALLOC_COUNT, NATIVE_SIZE, SHALLOW_SIZE, RETAINED_SIZE)
-                                  : Arrays.asList(LABEL, ALLOC_COUNT, SHALLOW_SIZE, RETAINED_SIZE);
+    return myHasNativeAllocations ? Arrays.asList(LABEL, ALLOCATIONS, NATIVE_SIZE, SHALLOW_SIZE, RETAINED_SIZE)
+                                  : Arrays.asList(LABEL, ALLOCATIONS, SHALLOW_SIZE, RETAINED_SIZE);
   }
 
   @Override

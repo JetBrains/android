@@ -16,12 +16,13 @@
 package com.android.tools.idea.model;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
 import com.android.manifmerger.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.android.utils.Pair;
@@ -42,7 +43,6 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -59,9 +59,12 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 /**
  * Retrieves and caches manifest information such as the themes to be used for
@@ -78,7 +81,8 @@ final class ManifestInfo {
   static MergingReport getMergedManifest(@NotNull AndroidFacet facet,
                                          @NotNull VirtualFile primaryManifestFile,
                                          @NotNull List<VirtualFile> flavorAndBuildTypeManifests,
-                                         @NotNull List<VirtualFile> libManifests) throws ManifestMerger2.MergeFailureException {
+                                         @NotNull List<VirtualFile> libManifests,
+                                         @NotNull List<VirtualFile> navigationFiles) throws ManifestMerger2.MergeFailureException {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
     final File mainManifestFile = VfsUtilCore.virtualToIoFile(primaryManifestFile);
@@ -92,6 +96,7 @@ final class ManifestInfo {
     ManifestMerger2.Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifestFile, logger, mergeType);
     manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.SKIP_BLAME, ManifestMerger2.Invoker.Feature.SKIP_XML_STRING);
     manifestMergerInvoker.addFlavorAndBuildTypeManifests(VfsUtilCore.virtualToIoFiles(flavorAndBuildTypeManifests).toArray(new File[0]));
+    manifestMergerInvoker.addNavigationFiles(VfsUtilCore.virtualToIoFiles(navigationFiles));
 
     List<Pair<String, File>> libraryManifests = new ArrayList<>();
     for (VirtualFile file : libManifests) {
@@ -258,7 +263,7 @@ final class ManifestInfo {
     try {
       return config.getVersionNameSuffix();
     }
-    catch (UnsupportedMethodException e) {
+    catch (UnsupportedOperationException e) {
       Logger.getInstance(ManifestInfo.class).warn("Method 'getVersionNameSuffix' not found", e);
       return null;
     }
@@ -273,8 +278,19 @@ final class ManifestInfo {
     private @Nullable ImmutableList<MergingReport.Record> myLoggingRecords;
     private @Nullable Actions myActions;
 
+    private AtomicLong myLastSyncTimestamp;
+
+    private static final Pattern NAV_DIR_PATTERN = Pattern.compile("^navigation(-.*)?$");
+
     private ManifestFile(@NotNull AndroidFacet facet) {
       myFacet = facet;
+
+      myLastSyncTimestamp = new AtomicLong(-1L);
+      myFacet.getModule().getMessageBus().connect(myFacet).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
+        if (result != ProjectSystemSyncManager.SyncResult.CANCELLED) {
+          myLastSyncTimestamp.set(System.currentTimeMillis());
+        }
+      });
     }
 
     @NotNull
@@ -285,7 +301,8 @@ final class ManifestInfo {
     @Nullable
     private Document parseManifest(@NotNull final VirtualFile primaryManifestFile,
                                    @NotNull List<VirtualFile> flavorAndBuildTypeManifests,
-                                   @NotNull List<VirtualFile> libManifests) {
+                                   @NotNull List<VirtualFile> libManifests,
+                                   @NotNull List<VirtualFile> navigationFiles) {
       ApplicationManager.getApplication().assertReadAccessAllowed();
 
       Project project = myFacet.getModule().getProject();
@@ -294,7 +311,8 @@ final class ManifestInfo {
       }
 
       try {
-        MergingReport mergingReport = getMergedManifest(myFacet, primaryManifestFile, flavorAndBuildTypeManifests, libManifests);
+        MergingReport mergingReport =
+          getMergedManifest(myFacet, primaryManifestFile, flavorAndBuildTypeManifests, libManifests, navigationFiles);
         myLoggingRecords = mergingReport.getLoggingRecords();
         myActions = mergingReport.getActions();
 
@@ -334,11 +352,9 @@ final class ManifestInfo {
       if (primaryManifestFile == null) {
         return false;
       }
-      lastModifiedMap.put(primaryManifestFile, getFileModificationStamp(primaryManifestFile));
 
-      Project project = myFacet.getModule().getProject();
-      long lastGradleSyncTimestamp = GradleSyncState.getInstance(project).getSummary().getSyncTimestamp();
-      lastModifiedMap.put("gradle-sync", lastGradleSyncTimestamp);
+      lastModifiedMap.put(primaryManifestFile, getFileModificationStamp(primaryManifestFile));
+      lastModifiedMap.put("sync", myLastSyncTimestamp.get());
 
       List<VirtualFile> flavorAndBuildTypeManifests = getFlavorAndBuildTypeManifests(myFacet);
       trackChanges(lastModifiedMap, flavorAndBuildTypeManifests);
@@ -349,6 +365,9 @@ final class ManifestInfo {
         trackChanges(lastModifiedMap, libraryManifests);
       }
 
+      List<VirtualFile> navigationFiles = getNavigationFiles(myFacet);
+      trackChanges(lastModifiedMap, navigationFiles);
+
       // we want to track changes in these files, but we do not actually use them directly
       List<VirtualFile> flavorAndBuildTypeManifestsOfLibs = new ArrayList<>();
       List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(myFacet.getModule(), true);
@@ -358,7 +377,7 @@ final class ManifestInfo {
       trackChanges(lastModifiedMap, flavorAndBuildTypeManifestsOfLibs);
 
       if (myDocument == null || !lastModifiedMap.equals(myLastModifiedMap)) {
-        myDocument = parseManifest(primaryManifestFile, flavorAndBuildTypeManifests, libraryManifests);
+        myDocument = parseManifest(primaryManifestFile, flavorAndBuildTypeManifests, libraryManifests, navigationFiles);
         if (myDocument == null) {
           myManifestFiles = null;
           return false;
@@ -368,6 +387,7 @@ final class ManifestInfo {
         myManifestFiles.add(primaryManifestFile);
         myManifestFiles.addAll(flavorAndBuildTypeManifests);
         myManifestFiles.addAll(libraryManifests);
+        myManifestFiles.addAll(navigationFiles);
 
         myLastModifiedMap = lastModifiedMap;
         return true;
@@ -398,11 +418,20 @@ final class ManifestInfo {
       return flavorAndBuildTypeManifests;
     }
 
+    @VisibleForTesting
     @NotNull
-    private static List<VirtualFile> getLibManifests(@NotNull AndroidFacet facet) {
+    static List<VirtualFile> getLibManifests(@NotNull AndroidFacet facet) {
       List<VirtualFile> libraryManifests = new ArrayList<>();
 
       List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
+
+      // add local library manifests to libraryManifests before external library manifests because local manifests have higher priority.
+      for (AndroidFacet dependency : dependencies) {
+        VirtualFile vFile = dependency.getMainIdeaSourceProvider().getManifestFile();
+        if (vFile != null) {
+          libraryManifests.add(vFile);
+        }
+      }
 
       AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
       if (androidModuleModel != null) {
@@ -419,14 +448,44 @@ final class ManifestInfo {
         }
       }
 
-      for (AndroidFacet dependency : dependencies) {
-        // we will NOT actually be reading from this file, as we will need to recursively get the info from the modules MergedManifest
-        VirtualFile vFile = dependency.getMainIdeaSourceProvider().getManifestFile();
-        if (vFile != null) {
-          libraryManifests.add(vFile);
+      return libraryManifests;
+    }
+
+    /** get all navigation files for this module, ordered from higher precedence to lower precedence */
+    // b/70815924 - Change implementation to use resource repository API
+    @NotNull
+    private static List<VirtualFile> getNavigationFiles(@NotNull AndroidFacet facet) {
+      List<VirtualFile> navigationFiles = new ArrayList<>();
+
+      List<IdeaSourceProvider> providers = IdeaSourceProvider.getCurrentSourceProviders(facet);
+      // iterate over providers in reverse order so higher precedence navigation files are first
+      for (int n = providers.size() - 1; n >= 0; n--) {
+        Collection<VirtualFile> resDirs = providers.get(n).getResDirectories();
+        for (VirtualFile resDir : resDirs) {
+          if (resDir == null) {
+            continue;
+          }
+          VirtualFile[] resDirFolders = resDir.getChildren();
+          if (resDirFolders == null) {
+            continue;
+          }
+          for (VirtualFile resDirFolder : resDirFolders) {
+            if (resDirFolder == null || !NAV_DIR_PATTERN.matcher(resDirFolder.getName()).matches()) {
+              continue;
+            }
+            VirtualFile[] resFiles = resDirFolder.getChildren();
+            if (resFiles == null) {
+              continue;
+            }
+            for (VirtualFile resFile : resFiles) {
+              if (resFile != null && !resFile.isDirectory()) {
+                navigationFiles.add(resFile);
+              }
+            }
+          }
         }
       }
-      return libraryManifests;
+      return navigationFiles;
     }
 
     private static void addAarManifests(@NotNull AndroidLibrary lib, @NotNull Set<File> result, @NotNull List<AndroidFacet> moduleDeps) {

@@ -17,6 +17,7 @@ package org.jetbrains.android.facet;
 
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.facet.FacetConfiguration;
+import com.intellij.facet.FacetManager;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
@@ -88,8 +89,8 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   }
 
   public void setFacet(@NotNull AndroidFacet facet) {
-    this.myFacet = facet;
-    facet.androidPlatformChanged();
+    myFacet = facet;
+    facet.getModule().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet);
   }
 
   @Override

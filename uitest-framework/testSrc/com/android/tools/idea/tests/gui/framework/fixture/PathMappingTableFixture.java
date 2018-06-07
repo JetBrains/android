@@ -43,18 +43,18 @@ public class PathMappingTableFixture extends JTableFixture {
   }
 
   private static final int VALUE_COL_POSITION = 1;
-
+  private static final int ORIGINAL_PATH_COL_POSITION = 0;
 
   private PathMappingTableFixture(@NotNull Robot robot, @NotNull TreeTableView target) {
     super(robot, target);
   }
 
-  private int getUnmappedPathRowPosition() {
+  private int getRowForOriginalPathSegment(@NotNull String pathSegment) {
     int rowCount = rowCount();
     for(int r = 0; r < rowCount; r++) {
-      TableCell valueCoords = TableCell.row(r).column(VALUE_COL_POSITION);
-      String localPath = valueAt(valueCoords);
-      if (Strings.isNullOrEmpty(localPath)) {
+      TableCell valueCoords = TableCell.row(r).column(ORIGINAL_PATH_COL_POSITION);
+      String cellReportedPathSegment = valueAt(valueCoords);
+      if (pathSegment.equals(cellReportedPathSegment)) {
         return r;
       }
     }
@@ -62,9 +62,9 @@ public class PathMappingTableFixture extends JTableFixture {
   }
 
   @NotNull
-  public PathMappingTableFixture mapRemotePathToLocalPath(@NotNull File localSources) {
+  public PathMappingTableFixture mapOriginalToLocalPath(@NotNull String originalPathSegment, @NotNull File localSources) {
     TableCell cellToEdit = TableCell
-      .row(getUnmappedPathRowPosition())
+      .row(getRowForOriginalPathSegment(originalPathSegment))
       .column(VALUE_COL_POSITION);
 
     Container editor = (Container) cell(cellToEdit)

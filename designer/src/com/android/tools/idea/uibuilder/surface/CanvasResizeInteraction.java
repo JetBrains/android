@@ -28,15 +28,14 @@ import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.ModelListener;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.Layer;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -77,7 +76,9 @@ public class CanvasResizeInteraction extends Interaction {
    */
   private static final String[] DEVICES_TO_SHOW = {"Nexus 5", "Nexus 6P", "Nexus 7", "Nexus 9", "Nexus 10"};
 
-  private final NlDesignSurface myDesignSurface;
+  @NotNull private final NlDesignSurface myDesignSurface;
+  @NotNull private final ScreenView myScreenView;
+  @NotNull private final Configuration myConfiguration;
   private final boolean isPreviewSurface;
   private final List<FolderConfiguration> myFolderConfigurations;
   private final UnavailableSizesLayer myUnavailableLayer = new UnavailableSizesLayer();
@@ -100,15 +101,10 @@ public class CanvasResizeInteraction extends Interaction {
   private final Update myPositionUpdate = new Update("CanvasResizePositionUpdate") {
     @Override
     public void run() {
-      ScreenView screenView = myDesignSurface.getCurrentSceneView();
-      if (screenView == null) {
-        return;
-      }
-
-      int androidX = Coordinates.getAndroidX(screenView, myCurrentX);
-      int androidY = Coordinates.getAndroidY(screenView, myCurrentY);
+      int androidX = Coordinates.getAndroidX(myScreenView, myCurrentX);
+      int androidY = Coordinates.getAndroidY(myScreenView, myCurrentY);
       if (androidX > 0 && androidY > 0 && androidX < myMaxSize && androidY < myMaxSize) {
-        NlModelHelperKt.overrideConfigurationScreenSize(screenView.getModel(), androidX, androidY);
+        NlModelHelperKt.overrideConfigurationScreenSize(myScreenView.getModel(), androidX, androidY);
         if (isPreviewSurface) {
           updateUnavailableLayer(false);
         }
@@ -118,23 +114,25 @@ public class CanvasResizeInteraction extends Interaction {
   private int myCurrentX;
   private int myCurrentY;
 
-  public CanvasResizeInteraction(NlDesignSurface designSurface) {
+  public CanvasResizeInteraction(@NotNull NlDesignSurface designSurface,
+                                 @NotNull ScreenView screenView,
+                                 @NotNull Configuration configuration) {
     myDesignSurface = designSurface;
+    myScreenView = screenView;
+    myConfiguration = configuration;
     isPreviewSurface = designSurface.isPreviewSurface();
-    myOrientationLayer = new OrientationLayer(myDesignSurface);
+    myOrientationLayer = new OrientationLayer(myDesignSurface, myScreenView, myConfiguration);
     mySizeBucketLayer = new SizeBucketLayer();
     myUpdateQueue = new MergingUpdateQueue("layout.editor.canvas.resize", 25, true, null, myDesignSurface);
     myUpdateQueue.setRestartTimerOnAdd(true);
 
-    Configuration config = myDesignSurface.getConfiguration();
-    assert config != null;
-    myOriginalDevice = config.getDevice();
-    myOriginalDeviceState = config.getDeviceState();
+    myOriginalDevice = configuration.getDevice();
+    myOriginalDeviceState = configuration.getDeviceState();
 
-    VirtualFile file = config.getFile();
+    VirtualFile file = configuration.getFile();
     assert file != null;
     String layoutName = file.getNameWithoutExtension();
-    ProjectResourceRepository resourceRepository = ProjectResourceRepository.getOrCreateInstance(config.getModule());
+    ProjectResourceRepository resourceRepository = ProjectResourceRepository.getOrCreateInstance(configuration.getModule());
     assert resourceRepository != null;
 
     // TODO: namespaces
@@ -143,18 +141,20 @@ public class CanvasResizeInteraction extends Interaction {
     myFolderConfigurations =
       layouts.stream().map(ResourceItem::getConfiguration).sorted(Collections.reverseOrder()).collect(Collectors.toList());
 
-    double currentDpi = config.getDensity().getDpiValue();
-    ConfigurationManager configManager = config.getConfigurationManager();
+    double currentDpi = configuration.getDensity().getDpiValue();
+    ConfigurationManager configManager = configuration.getConfigurationManager();
 
     boolean addSmallScreen = false;
     List<Device> devicesToShow;
     if (HardwareConfigHelper.isWear(myOriginalDevice)) {
       devicesToShow = configManager.getDevices().stream().filter(
         d -> HardwareConfigHelper.isWear(d) && !Configuration.CUSTOM_DEVICE_ID.equals(d.getId())).collect(Collectors.toList());
-    } else if (HardwareConfigHelper.isTv(myOriginalDevice)) {
+    }
+    else if (HardwareConfigHelper.isTv(myOriginalDevice)) {
       // There are only two devices and they have the same dip sizes, so just use one of them
       devicesToShow = Collections.singletonList(configManager.getDeviceById("tv_1080p"));
-    } else {
+    }
+    else {
       devicesToShow = Lists.newArrayListWithExpectedSize(DEVICES_TO_SHOW.length);
       for (String id : DEVICES_TO_SHOW) {
         devicesToShow.add(configManager.getDeviceById(id));
@@ -168,11 +168,11 @@ public class CanvasResizeInteraction extends Interaction {
       double dpiRatio = currentDpi / screen.getPixelDensity().getDpiValue();
       Point p = new Point((int)(screen.getXDimension() * dpiRatio), (int)(screen.getYDimension() * dpiRatio));
       myAndroidCoordinatesToDeviceMap.put(p, device);
-      myDeviceLayers.add(new DeviceLayer(myDesignSurface, p.x, p.y, device.getDisplayName()));
+      myDeviceLayers.add(new DeviceLayer(myDesignSurface, myScreenView, myConfiguration, p.x, p.y, device.getDisplayName()));
     }
 
     if (addSmallScreen) {
-      myDeviceLayers.add(new DeviceLayer(myDesignSurface, (int)(426 * currentDpi / DEFAULT_DENSITY),
+      myDeviceLayers.add(new DeviceLayer(myDesignSurface, myScreenView, myConfiguration, (int)(426 * currentDpi / DEFAULT_DENSITY),
                                          (int)(320 * currentDpi / DEFAULT_DENSITY), "Small Screen"));
     }
 
@@ -190,25 +190,19 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   private void updateUnavailableLayer(boolean forceRecompute) {
-    Configuration config = myDesignSurface.getConfiguration();
     //noinspection ConstantConditions
     FolderConfiguration currentFolderConfig =
-      FolderConfiguration.getConfigForFolder(config.getFile().getParent().getNameWithoutExtension());
+      FolderConfiguration.getConfigForFolder(myConfiguration.getFile().getParent().getNameWithoutExtension());
     assert currentFolderConfig != null;
 
     if (!forceRecompute && currentFolderConfig.equals(myUnavailableLayer.getCurrentFolderConfig())) {
       return;
     }
 
-    ScreenView screenView = myDesignSurface.getCurrentSceneView();
-    if (screenView == null) {
-      return;
-    }
-
     List<Area> configAreas = Lists.newArrayList();
     Area totalCoveredArea = new Area();
     for (FolderConfiguration configuration : myFolderConfigurations) {
-      Area configArea = coveredAreaForConfig(configuration, screenView);
+      Area configArea = coveredAreaForConfig(configuration, myScreenView);
       configArea.subtract(totalCoveredArea);
       if (!configuration.equals(currentFolderConfig)) {
         configAreas.add(configArea);
@@ -224,7 +218,7 @@ public class CanvasResizeInteraction extends Interaction {
    */
   @SuppressWarnings("SuspiciousNameCombination")
   @NotNull
-  private Area coveredAreaForConfig(@NotNull FolderConfiguration config, @NotNull ScreenView screenView) {
+  private Area coveredAreaForConfig(@NotNull FolderConfiguration config, @NotNull SceneView screenView) {
     int x0 = screenView.getX();
     int y0 = screenView.getY();
     JComponent layeredPane = myDesignSurface.getLayeredPane();
@@ -237,24 +231,23 @@ public class CanvasResizeInteraction extends Interaction {
     int minY = 0;
     int maxY = -1;
 
-    int dpi = screenView.getConfiguration().getDensity().getDpiValue();
     SmallestScreenWidthQualifier smallestWidthQualifier = config.getSmallestScreenWidthQualifier();
     if (smallestWidthQualifier != null) {
       // Restrict the area due to a sw<N>dp qualifier
-      minX = smallestWidthQualifier.getValue() * dpi / 160;
-      minY = smallestWidthQualifier.getValue() * dpi / 160;
+      minX = Coordinates.dpToPx(screenView, smallestWidthQualifier.getValue());
+      minY = Coordinates.dpToPx(screenView, smallestWidthQualifier.getValue());
     }
 
     ScreenWidthQualifier widthQualifier = config.getScreenWidthQualifier();
     if (widthQualifier != null) {
       // Restrict the area due to a w<N>dp qualifier
-      minX = Math.max(minX, widthQualifier.getValue() * dpi / 160);
+      minX = Math.max(minX, Coordinates.dpToPx(screenView, widthQualifier.getValue()));
     }
 
     ScreenHeightQualifier heightQualifier = config.getScreenHeightQualifier();
     if (heightQualifier != null) {
       // Restrict the area due to a h<N>dp qualifier
-      minY = Math.max(minY, heightQualifier.getValue() * dpi / 160);
+      minY = Math.max(minY, Coordinates.dpToPx(screenView, heightQualifier.getValue()));
     }
 
     ScreenSizeQualifier sizeQualifier = config.getScreenSizeQualifier();
@@ -262,18 +255,18 @@ public class CanvasResizeInteraction extends Interaction {
       // Restrict the area due to a screen size qualifier (SMALL, NORMAL, LARGE, XLARGE)
       switch (sizeQualifier.getValue()) {
         case SMALL:
-          maxX = 320 * dpi / 160;
-          maxY = 470 * dpi / 160;
+          maxX = Coordinates.dpToPx(screenView, 320);
+          maxY = Coordinates.dpToPx(screenView, 470);
           break;
         case NORMAL:
           break;
         case LARGE:
-          minX = 480 * dpi / 160;
-          minY = 640 * dpi / 160;
+          minX = Coordinates.dpToPx(screenView, 480);
+          minY = Coordinates.dpToPx(screenView, 640);
           break;
         case XLARGE:
-          minX = 720 * dpi / 160;
-          minY = 960 * dpi / 160;
+          minX = Coordinates.dpToPx(screenView, 720);
+          minY = Coordinates.dpToPx(screenView, 960);
           break;
       }
     }
@@ -337,18 +330,14 @@ public class CanvasResizeInteraction extends Interaction {
 
   @Override
   public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
-    ScreenView screenView = myDesignSurface.getCurrentSceneView();
-    if (screenView == null) {
-      return;
-    }
-
     if (myOriginalDevice.isScreenRound()) {
       // Force aspect preservation
       int deltaX = x - myStartX;
       int deltaY = y - myStartY;
       if (deltaX > deltaY) {
         y = myStartY + deltaX;
-      } else {
+      }
+      else {
         x = myStartX + deltaY;
       }
     }
@@ -358,8 +347,8 @@ public class CanvasResizeInteraction extends Interaction {
     myCurrentY = y;
 
     JComponent layeredPane = myDesignSurface.getLayeredPane();
-    int maxX = Coordinates.getSwingX(screenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_X;
-    int maxY = Coordinates.getSwingY(screenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_Y;
+    int maxX = Coordinates.getSwingX(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_X;
+    int maxY = Coordinates.getSwingY(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_Y;
     if (x < maxX && y < maxY && (x > layeredPane.getWidth() || y > layeredPane.getHeight())) {
       Dimension d = layeredPane.getPreferredSize();
       layeredPane.setPreferredSize(new Dimension(Math.max(d.width, x), Math.max(d.height, y)));
@@ -378,43 +367,24 @@ public class CanvasResizeInteraction extends Interaction {
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
 
-    ScreenView screenView = myDesignSurface.getCurrentSceneView();
-    if (screenView == null) {
-      return;
-    }
-
     // Set the surface in resize mode so it doesn't try to re-center the screen views all the time
     myDesignSurface.setResizeMode(false);
 
-    // When disabling the resize mode, add a render handler to call zoomToFit
-    screenView.getModel().addListener(new ModelListener() {
-      @Override
-      public void modelRendered(@NotNull NlModel model) {
-        model.removeListener(this);
-      }
-
-      @Override
-      public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-        // Do nothing
-      }
-    });
-
-    int androidX = Coordinates.getAndroidX(screenView, x);
-    int androidY = Coordinates.getAndroidY(screenView, y);
+    int androidX = Coordinates.getAndroidX(myScreenView, x);
+    int androidY = Coordinates.getAndroidY(myScreenView, y);
 
     if (canceled || androidX < 0 || androidY < 0) {
-      Configuration configuration = screenView.getConfiguration();
-      configuration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
+      myConfiguration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
     }
     else {
-      int snapThreshold = Coordinates.getAndroidDimension(screenView, MAX_MATCH_DISTANCE);
+      int snapThreshold = Coordinates.getAndroidDimension(myScreenView, MAX_MATCH_DISTANCE);
       Device deviceToSnap = snapToDevice(androidX, androidY, snapThreshold);
       if (deviceToSnap != null) {
         State deviceState = deviceToSnap.getState(androidX < androidY ? "Portrait" : "Landscape");
-        myDesignSurface.getConfiguration().setEffectiveDevice(deviceToSnap, deviceState);
+        myConfiguration.setEffectiveDevice(deviceToSnap, deviceState);
       }
       else {
-        NlModelHelperKt.overrideConfigurationScreenSize(screenView.getModel(), androidX, androidY);
+        NlModelHelperKt.overrideConfigurationScreenSize(myScreenView.getModel(), androidX, androidY);
       }
     }
   }
@@ -465,13 +435,8 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public void paint(@NotNull Graphics2D g2d) {
-      ScreenView screenView = myDesignSurface.getCurrentSceneView();
-      if (screenView == null) {
-        return;
-      }
-
-      int x = screenView.getX();
-      int y = screenView.getY();
+      int x = myScreenView.getX();
+      int y = myScreenView.getY();
 
       if (myCurrentX > x && myCurrentY > y) {
         Graphics2D graphics = (Graphics2D)g2d.create();
@@ -495,18 +460,13 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public synchronized void paint(@NotNull Graphics2D g2d) {
-      ScreenView screenView = myDesignSurface.getCurrentSceneView();
-      if (screenView == null) {
-        return;
-      }
-
-      State deviceState = screenView.getConfiguration().getDeviceState();
+      State deviceState = myConfiguration.getDeviceState();
       assert deviceState != null;
       boolean isDevicePortrait = deviceState.getOrientation() == ScreenOrientation.PORTRAIT;
 
       JComponent layeredPane = myDesignSurface.getLayeredPane();
       constructPolygon(myClip, null, Math.max(layeredPane.getWidth(), layeredPane.getHeight()), isDevicePortrait);
-      myClip.translate(screenView.getX() + 1, screenView.getY() + 1);
+      myClip.translate(myScreenView.getX() + 1, myScreenView.getY() + 1);
 
       Graphics2D graphics = (Graphics2D)g2d.create();
       graphics.clip(myClip);
@@ -542,13 +502,18 @@ public class CanvasResizeInteraction extends Interaction {
 
   private static class DeviceLayer extends Layer {
     private final String myName;
-    private final NlDesignSurface myDesignSurface;
+    @NotNull private final NlDesignSurface myDesignSurface;
+    @NotNull private final ScreenView myScreenView;
+    @NotNull private final Configuration myConfiguration;
     private final int myNameWidth;
     private int myBigDimension;
     private int mySmallDimension;
 
-    public DeviceLayer(@NotNull NlDesignSurface designSurface, int pxWidth, int pxHeight, @NotNull String name) {
+    public DeviceLayer(@NotNull NlDesignSurface designSurface, @NotNull ScreenView screenView, @NotNull Configuration configuration,
+                       int pxWidth, int pxHeight, @NotNull String name) {
       myDesignSurface = designSurface;
+      myScreenView = screenView;
+      myConfiguration = configuration;
       myBigDimension = Math.max(pxWidth, pxHeight);
       mySmallDimension = Math.min(pxWidth, pxHeight);
       myName = name;
@@ -558,19 +523,14 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public void paint(@NotNull Graphics2D g2d) {
-      ScreenView screenView = myDesignSurface.getCurrentSceneView();
-      if (screenView == null) {
-        return;
-      }
-
-      State deviceState = screenView.getConfiguration().getDeviceState();
+      State deviceState = myConfiguration.getDeviceState();
       assert deviceState != null;
       boolean isDevicePortrait = deviceState.getOrientation() == ScreenOrientation.PORTRAIT;
 
-      int x = Coordinates.getSwingX(screenView, isDevicePortrait ? mySmallDimension : myBigDimension);
-      int y = Coordinates.getSwingY(screenView, isDevicePortrait ? myBigDimension : mySmallDimension);
+      int x = Coordinates.getSwingX(myScreenView, isDevicePortrait ? mySmallDimension : myBigDimension);
+      int y = Coordinates.getSwingY(myScreenView, isDevicePortrait ? myBigDimension : mySmallDimension);
 
-      Graphics2D graphics = (Graphics2D) g2d.create();
+      Graphics2D graphics = (Graphics2D)g2d.create();
       graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       graphics.setColor(NlConstants.RESIZING_CORNER_COLOR);
       graphics.drawLine(x, y, x - NlConstants.RESIZING_CORNER_SIZE, y);
@@ -585,12 +545,16 @@ public class CanvasResizeInteraction extends Interaction {
     private final Polygon myOrientationPolygon = new Polygon();
     private final double myPortraitWidth;
     private final double myLandscapeWidth;
-    private final NlDesignSurface myDesignSurface;
+    @NotNull private final NlDesignSurface myDesignSurface;
+    @NotNull private final ScreenView myScreenView;
+    @NotNull private final Configuration myConfiguration;
     private BufferedImage myOrientationImage;
     private ScreenOrientation myLastOrientation;
 
-    public OrientationLayer(@NotNull NlDesignSurface designSurface) {
+    public OrientationLayer(@NotNull NlDesignSurface designSurface, @NotNull ScreenView screenView, @NotNull Configuration configuration) {
       myDesignSurface = designSurface;
+      myScreenView = screenView;
+      myConfiguration = configuration;
       FontMetrics fontMetrics = myDesignSurface.getFontMetrics(myDesignSurface.getFont());
       myPortraitWidth = fontMetrics.getStringBounds("Portrait", null).getWidth();
       myLandscapeWidth = fontMetrics.getStringBounds("Landscape", null).getWidth();
@@ -598,12 +562,7 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public synchronized void paint(@NotNull Graphics2D g2d) {
-      ScreenView screenView = myDesignSurface.getCurrentSceneView();
-      if (screenView == null) {
-        return;
-      }
-
-      State deviceState = screenView.getConfiguration().getDeviceState();
+      State deviceState = myConfiguration.getDeviceState();
       assert deviceState != null;
       ScreenOrientation currentOrientation = deviceState.getOrientation();
       boolean isDevicePortrait = currentOrientation == ScreenOrientation.PORTRAIT;
@@ -616,8 +575,8 @@ public class CanvasResizeInteraction extends Interaction {
         JScrollPane scrollPane = myDesignSurface.getScrollPane();
         int height = layeredPane.getHeight() - scrollPane.getHorizontalScrollBar().getHeight();
         int width = layeredPane.getWidth() - scrollPane.getVerticalScrollBar().getWidth();
-        int x0 = screenView.getX();
-        int y0 = screenView.getY();
+        int x0 = myScreenView.getX();
+        int y0 = myScreenView.getY();
         int maxDim = Math.max(width, height);
         image = UIUtil.createImage(maxDim, maxDim, BufferedImage.TYPE_INT_ARGB);
 
@@ -690,25 +649,18 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public synchronized void paint(@NotNull Graphics2D g2d) {
-      ScreenView screenView = myDesignSurface.getCurrentSceneView();
-      if (screenView == null) {
-        return;
-      }
-
-      State deviceState = screenView.getConfiguration().getDeviceState();
+      State deviceState = myConfiguration.getDeviceState();
       assert deviceState != null;
       boolean isDevicePortrait = deviceState.getOrientation() == ScreenOrientation.PORTRAIT;
 
-      int width = Coordinates.getAndroidX(screenView, myCurrentX);
-      int height = Coordinates.getAndroidY(screenView, myCurrentY);
+      int width = Coordinates.getAndroidX(myScreenView, myCurrentX);
+      int height = Coordinates.getAndroidY(myScreenView, myCurrentY);
       if ((width > height && isDevicePortrait) || (width < height && !isDevicePortrait)) {
         return;
       }
 
-      int dpi = screenView.getConfiguration().getDensity().getDpiValue();
-
-      int small = Math.min(width, height) * 160 / dpi;
-      int big = Math.max(width, height) * 160 / dpi;
+      int small = Math.min(width, height);
+      int big = Math.max(width, height);
 
       ScreenSize screenSizeBucket = getScreenSizeBucket(small, big);
 
@@ -718,13 +670,13 @@ public class CanvasResizeInteraction extends Interaction {
       if (bucket == null) {
         bucket = UIUtil.createImage(myTotalWidth, myTotalHeight, BufferedImage.TYPE_INT_ARGB);
         constructPolygon(myClip, null, Math.max(myTotalHeight, myTotalWidth), isDevicePortrait);
-        myClip.translate(screenView.getX(), screenView.getY());
+        myClip.translate(myScreenView.getX(), myScreenView.getY());
 
         Graphics2D graphics = bucket.createGraphics();
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         graphics.clip(myClip);
         graphics.setColor(NlConstants.RESIZING_BUCKET_COLOR);
-        Area coveredArea = getAreaForScreenSize(screenSizeBucket, screenView, isDevicePortrait);
+        Area coveredArea = getAreaForScreenSize(screenSizeBucket, myScreenView, isDevicePortrait);
         graphics.fill(coveredArea);
 
         graphics.setColor(NlConstants.RESIZING_CORNER_COLOR);
@@ -767,27 +719,26 @@ public class CanvasResizeInteraction extends Interaction {
     }
 
     @NotNull
-    private Area getAreaForScreenSize(@NotNull ScreenSize screenSize, @NotNull ScreenView screenView, boolean isDevicePortrait) {
+    private Area getAreaForScreenSize(@NotNull ScreenSize screenSize, @NotNull SceneView screenView, boolean isDevicePortrait) {
       int x0 = screenView.getX();
       int y0 = screenView.getY();
-      int dpi = screenView.getConfiguration().getDensity().getDpiValue();
 
-      int smallX = Coordinates.getSwingX(screenView, 470 * dpi / 160);
-      int smallY = Coordinates.getSwingY(screenView, 470 * dpi / 160);
+      int smallX = Coordinates.getSwingXDip(screenView, 470);
+      int smallY = Coordinates.getSwingYDip(screenView, 470);
       Area smallArea = new Area(new Rectangle(x0 - 2, y0 - 2, smallX - x0 + 2, smallY - y0 + 2));
       if (screenSize == ScreenSize.SMALL) {
         return smallArea;
       }
 
-      int xlargeX = Coordinates.getSwingX(screenView, (isDevicePortrait ? 720 : 960) * dpi / 160);
-      int xlargeY = Coordinates.getSwingY(screenView, (isDevicePortrait ? 960 : 720) * dpi / 160);
+      int xlargeX = Coordinates.getSwingXDip(screenView, isDevicePortrait ? 720 : 960);
+      int xlargeY = Coordinates.getSwingYDip(screenView, isDevicePortrait ? 960 : 720);
       Area xlargeArea = new Area(new Rectangle(xlargeX, xlargeY, myTotalWidth, myTotalHeight));
       if (screenSize == ScreenSize.XLARGE) {
         return xlargeArea;
       }
 
-      int largeX = Coordinates.getSwingX(screenView, (isDevicePortrait ? 480 : 640) * dpi / 160);
-      int largeY = Coordinates.getSwingY(screenView, (isDevicePortrait ? 640 : 480) * dpi / 160);
+      int largeX = Coordinates.getSwingXDip(screenView, isDevicePortrait ? 480 : 640);
+      int largeY = Coordinates.getSwingYDip(screenView, isDevicePortrait ? 640 : 480);
       Area largeArea = new Area(new Rectangle(largeX, largeY, myTotalWidth, myTotalHeight));
       if (screenSize == ScreenSize.LARGE) {
         largeArea.subtract(xlargeArea);

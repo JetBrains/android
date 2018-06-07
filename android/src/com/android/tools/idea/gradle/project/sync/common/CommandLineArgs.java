@@ -16,14 +16,16 @@
 package com.android.tools.idea.gradle.project.sync.common;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
+import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,27 +38,31 @@ import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsActi
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.intellij.util.ArrayUtil.toStringArray;
-import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
-import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
 public class CommandLineArgs {
+  private static Key<String[]> GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY = Key.create("gradle.sync.command.line.options");
+
   @NotNull private final ApplicationInfo myApplicationInfo;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleInitScripts myInitScripts;
+  @NotNull private final AndroidStudioGradleIdeSettings myIdeSettings;
   private final boolean myApplyJavaLibraryPlugin;
 
   public CommandLineArgs(boolean applyJavaLibraryPlugin) {
-    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance(), applyJavaLibraryPlugin);
+    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance(),
+         AndroidStudioGradleIdeSettings.getInstance(), applyJavaLibraryPlugin);
   }
 
   @VisibleForTesting
   CommandLineArgs(@NotNull ApplicationInfo applicationInfo,
                   @NotNull IdeInfo ideInfo,
                   @NotNull GradleInitScripts initScripts,
+                  @NotNull AndroidStudioGradleIdeSettings ideSettings,
                   boolean applyJavaLibraryPlugin) {
     myApplicationInfo = applicationInfo;
     myIdeInfo = ideInfo;
     myInitScripts = initScripts;
+    myIdeSettings = ideSettings;
     myApplyJavaLibraryPlugin = applyJavaLibraryPlugin;
   }
 
@@ -100,16 +106,23 @@ public class CommandLineArgs {
       }
     }
 
+    // Disable SDK auto-download until studio can properly handle auto-download failures. See b/71642261.
+    args.add(createProjectProperty("android.builder.sdkDownload", false));
+
     Application application = ApplicationManager.getApplication();
-    if (isGuiTestingMode() || application.isUnitTestMode()) {
+    boolean isTestingMode = isInTestingMode();
+    if (isTestingMode) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
       application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
     }
 
-    if (project == null || GradleProjectInfo.getInstance(project).canUseLocalMavenRepo()) {
-      // null project happens when is a new project.
+    if (myIdeSettings.isEmbeddedMavenRepoEnabled() || isTestingMode) {
       myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
     }
     return args;
+  }
+
+  public static boolean isInTestingMode() {
+    return GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode();
   }
 }

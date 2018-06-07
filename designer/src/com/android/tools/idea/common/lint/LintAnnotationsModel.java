@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.psi.PsiElement;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,13 +76,14 @@ public class LintAnnotationsModel {
     IssueData max = findHighestSeverityIssue(issueData);
     boolean isError = HighlightDisplayLevel.ERROR.equals(max.level);
     if (smallSize) {
+      // TODO: add new icons to StudioIcons and replace these icons
       return isError ? AndroidIcons.Issue.ErrorBadge : AndroidIcons.Issue.WarningBadge;
     }
 
     if (selected) {
-      return isError ? AndroidIcons.Issue.ErrorSelected : AndroidIcons.Issue.WarningSelected;
+      return isError ? StudioIcons.Common.ERROR_INLINE_SELECTED : StudioIcons.Common.WARNING_INLINE_SELECTED;
     }
-    return isError ? AndroidIcons.Issue.Error : AndroidIcons.Issue.Warning;
+    return isError ? StudioIcons.Common.ERROR_INLINE : StudioIcons.Common.WARNING_INLINE;
   }
 
   /**

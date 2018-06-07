@@ -72,7 +72,7 @@ public class BackNavigationComponent extends JPanel {
     NlModel model = myDesignSurface.getModel();
     if (model != null) {
       LayoutNavigationManager layoutNavigationManager = LayoutNavigationManager.getInstance(myDesignSurface.getProject());
-      VirtualFile modelFile = model.getFile().getVirtualFile();
+      VirtualFile modelFile = model.getVirtualFile();
       VirtualFile parentFile = layoutNavigationManager.get(modelFile);
       if (parentFile != null) {
         setVisible(true);
@@ -88,14 +88,6 @@ public class BackNavigationComponent extends JPanel {
   @NotNull
   private DesignSurfaceListener createDesignSurfaceListener() {
     return new DesignSurfaceListener() {
-      @Override
-      public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
-      }
-
-      @Override
-      public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
-      }
-
       @Override
       public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
         updateBackNavigation();

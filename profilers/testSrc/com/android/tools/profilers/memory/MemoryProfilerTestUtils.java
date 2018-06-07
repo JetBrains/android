@@ -32,7 +32,7 @@ import static org.junit.Assert.*;
 public class MemoryProfilerTestUtils {
   @NotNull
   public static ClassSet findChildClassSetWithName(@NotNull ClassifierSet.Classifier classifier, @NotNull String className) {
-    List<ClassSet> classSets = classifier.getClassifierSets().stream()
+    List<ClassSet> classSets = classifier.getFilteredClassifierSets().stream()
       .filter(
         classifierSet -> classifierSet instanceof ClassSet && className.equals(((ClassSet)classifierSet).getClassEntry().getClassName()))
       .map(classSet -> (ClassSet)classSet).collect(Collectors.toList());
@@ -101,7 +101,7 @@ public class MemoryProfilerTestUtils {
                                 int shallowSize,
                                 long retainedSize) {
     assertEquals(childNodeCount, node.getChildCount());
-    assertEquals(count, node.getAdapter().getAllocatedCount());
+    assertEquals(count, node.getAdapter().getDeltaAllocationCount());
     assertEquals(shallowSize, node.getAdapter().getTotalShallowSize());
     assertEquals(retainedSize, node.getAdapter().getTotalRetainedSize());
   }

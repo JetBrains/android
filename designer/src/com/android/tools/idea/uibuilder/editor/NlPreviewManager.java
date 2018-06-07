@@ -16,8 +16,6 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.project.FeatureEnableService;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -31,9 +29,7 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowAnchor;
-import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.*;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.psi.PsiDocumentManager;
@@ -45,7 +41,7 @@ import com.intellij.ui.content.ContentManager;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -53,6 +49,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.util.Arrays;
@@ -119,7 +116,7 @@ public class NlPreviewManager implements ProjectComponent {
     final String toolWindowId = getToolWindowId();
     myToolWindow =
       ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, myProject, true);
-    myToolWindow.setIcon(AndroidIcons.AndroidPreview);
+    myToolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PREVIEW);
 
     // The NlPreviewForm contains collapsible components like the palette. If one of those has the focus when the tool window is deactivated
     // it won't be able to regain it at the next activation. So we make sure the tool window does not try to give the focus on activation to
@@ -159,6 +156,9 @@ public class NlPreviewManager implements ProjectComponent {
     contentManager.addContent(content);
     contentManager.setSelectedContent(content, true);
     myToolWindowForm.setUseInteractiveSelector(isUseInteractiveSelector());
+    if (isWindowVisible()) {
+      myToolWindowForm.activate();
+    }
   }
 
   @Override
@@ -181,14 +181,6 @@ public class NlPreviewManager implements ProjectComponent {
   @VisibleForTesting
   public int getUpdateCount() {
     return myUpdateCount;
-  }
-
-  @Override
-  public void initComponent() {
-  }
-
-  @Override
-  public void disposeComponent() {
   }
 
   /**
@@ -279,40 +271,46 @@ public class NlPreviewManager implements ProjectComponent {
         final boolean hideForNonLayoutFiles = settings.getGlobalState().isHideForNonLayoutFiles();
 
         if (activeEditor == null) {
-          myToolWindowForm.setFile(null);
           myToolWindow.setAvailable(!hideForNonLayoutFiles, null);
           return;
         }
 
-        final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(activeEditor.getDocument());
-        myToolWindowForm.setFile(psiFile);
-        if (psiFile == null) {
+        if (!myToolWindowForm.setNextEditor(newEditor)) {
           myToolWindow.setAvailable(!hideForNonLayoutFiles, null);
           return;
         }
 
         myToolWindow.setAvailable(true, null);
         final boolean visible = AndroidEditorSettings.getInstance().getGlobalState().isVisible();
-        if (visible) {
+        if (visible && !myToolWindow.isVisible()) {
+          Runnable restoreFocus = null;
+          if (myToolWindow.getType() == ToolWindowType.WINDOWED) {
+            // Ugly hack: Fix for b/68148499
+            // We never want the preview to take focus when the content of the preview changes because of a file change.
+            // Even when the preview is restored after being closed (move from Java file to an XML file).
+            // There is no way to show the tool window without also taking the focus.
+            // This hack is a workaround that sets the focus back to editor.
+            // Note, that this may be wrong in certain circumstances, but should be OK for most scenarios.
+            restoreFocus = () -> IdeFocusManager.getInstance(myProject).doWhenFocusSettlesDown(() -> restoreFocusToEditor(newEditor));
+          }
           // Clear out the render result for the previous file, such that it doesn't briefly show between the time the
           // tool window is shown and the time the render has completed
-          if (!myToolWindow.isVisible()) {
-            RenderResult renderResult = myToolWindowForm.getRenderResult();
-            if (renderResult != null && renderResult.getFile() != psiFile) {
-              myToolWindowForm.setRenderResult(RenderResult.createBlank(psiFile));
-            }
-          }
-          myToolWindow.show(null);
+          myToolWindowForm.clearRenderResult();
+          myToolWindow.activate(restoreFocus, false, false);
         }
       }
     });
+  }
+
+  private static void restoreFocusToEditor(@NotNull TextEditor newEditor) {
+    ApplicationManager.getApplication().invokeLater(() -> newEditor.getEditor().getContentComponent().requestFocus());
   }
 
   /**
    * Find an active editor for the specified file, or just the first active editor if file is null.
    */
   @Nullable
-  TextEditor getActiveLayoutXmlEditor(@Nullable PsiFile file) {
+  private TextEditor getActiveLayoutXmlEditor(@Nullable PsiFile file) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
       return ApplicationManager.getApplication().runReadAction((Computable<TextEditor>)() -> getActiveLayoutXmlEditor(file));
     }
@@ -323,16 +321,12 @@ public class NlPreviewManager implements ProjectComponent {
       .orElse(null);
   }
 
-  protected boolean isApplicableEditor(@NotNull TextEditor textEditor, @Nullable PsiFile file) {
+  @SuppressWarnings("WeakerAccess") // This method needs to be public as it's used by the Anko DSL preview
+  public boolean isApplicableEditor(@NotNull TextEditor textEditor, @Nullable PsiFile file) {
     final Document document = textEditor.getEditor().getDocument();
     final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
 
     if (file != null && !file.equals(psiFile)) {
-      return false;
-    }
-
-    FeatureEnableService featureEnableService = FeatureEnableService.getInstance(myProject);
-    if (featureEnableService == null || !featureEnableService.isLayoutEditorEnabled(myProject)) {
       return false;
     }
 
@@ -409,11 +403,10 @@ public class NlPreviewManager implements ProjectComponent {
       processFileEditorChange(getActiveLayoutXmlEditor(psiFile));
     }
 
-    @Override
-    public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      ApplicationManager.getApplication().invokeLater(
-        () -> processFileEditorChange(getActiveLayoutXmlEditor(null)), myProject.getDisposed());
-    }
+    // Do not respond to fileClosed events since this has led to problems with the preview
+    // window in the past. See b/64199946 and b/64288544
+    // @Override
+    // public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file);
 
     @Override
     public void selectionChanged(@NotNull FileEditorManagerEvent event) {

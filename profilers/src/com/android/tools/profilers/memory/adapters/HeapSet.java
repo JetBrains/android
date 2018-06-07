@@ -17,8 +17,10 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +30,7 @@ public class HeapSet extends ClassifierSet {
   @NotNull private final CaptureObject myCaptureObject;
   @NotNull private ClassGrouping myClassGrouping = ClassGrouping.ARRANGE_BY_CLASS;
   private final int myId;
+  @Nullable private Pattern myFilter;
 
   public HeapSet(@NotNull CaptureObject captureObject, @NotNull String heapName, int id) {
     super(heapName);
@@ -44,14 +47,42 @@ public class HeapSet extends ClassifierSet {
 
     // Gather all the instances from the descendants and add them to the heap node.
     // Subsequent calls to getChildrenClassifierSets will re-partition them to the correct child ClassifierSet.
-    List<InstanceObject> descendantsStream = getInstancesStream().collect(Collectors.toList());
-    myInstances.clear();
+    List<InstanceObject> snapshotStream = getSnapshotInstanceStream().collect(Collectors.toList());
+    List<InstanceObject> deltaStream = getDeltaInstanceStream().collect(Collectors.toList());
+    myDeltaInstances.clear();
+    mySnapshotInstances.clear();
     myClassifier = null;
-    myInstances.addAll(descendantsStream);
+    myDeltaInstances.addAll(deltaStream);
+    mySnapshotInstances.addAll(snapshotStream);
+    myNeedsRefiltering = true;
   }
 
   public int getId() {
     return myId;
+  }
+
+  // Select and apply the filter if it is different from previous one.
+  public void selectFilter(@Nullable Pattern filter) {
+    // We do not apply filter when both old and new filters are null
+    if (myFilter == null && filter == null) {
+      return;
+    }
+
+    boolean filterChanged =
+      filter == null || myFilter == null || filter.flags() != myFilter.flags() || !filter.pattern().equals(myFilter.pattern());
+    myFilter = filter;
+    applyFilter(filterChanged);
+  }
+
+  @Nullable
+  public Pattern getFilter() {
+    return myFilter;
+  }
+
+  // Filter child ClassSets based on current selected filter string
+  // If filterChanged is false, we only update modified classifierSets
+  private void applyFilter(boolean filterChanged) {
+    applyFilter(myFilter, false, filterChanged);
   }
 
   @NotNull

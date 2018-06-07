@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupCoordinate;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.ColorExtractor;
@@ -27,7 +28,6 @@ import com.android.tools.idea.uibuilder.mockup.colorextractor.ExtractedColor;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ViewAndColorForm;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -47,14 +47,13 @@ public class SimpleViewCreator extends WidgetCreator {
   /**
    * Create a simple {@value com.android.SdkConstants#VIEW} tag
    * with the size, mockup, and tools position attributes
-   *
-   * @param mockup     the mockup to extract the information from
+   *  @param mockup     the mockup to extract the information from
    * @param model      the model to insert the new component into
    * @param screenView The currentScreen view displayed in the {@link NlDesignSurface}.
-   *                   Used to convert the size of component from the mockup to the Android coordinates.
+ *                   Used to convert the size of component from the mockup to the Android coordinates.
    * @param selection  The selection made in the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
    */
-  public SimpleViewCreator(@NotNull Mockup mockup, @NotNull NlModel model, @NotNull ScreenView screenView, @NotNull Rectangle selection) {
+  public SimpleViewCreator(@NotNull Mockup mockup, @NotNull NlModel model, @NotNull SceneView screenView, @NotNull Rectangle selection) {
     super(mockup, model, screenView);
     mySelectionBounds = selection;
 

@@ -36,13 +36,10 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
   @NotNull
   private CpuServiceGrpc.CpuServiceBlockingStub myClient;
 
-  private final int myProcessId;
-
   private final Common.Session mySession;
 
-  public CpuThreadCountDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, int id, Common.Session session) {
+  public CpuThreadCountDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, Common.Session session) {
     myClient = client;
-    myProcessId = id;
     mySession = session;
   }
 
@@ -50,7 +47,6 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
   public List<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
-      .setProcessId(myProcessId)
       .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);

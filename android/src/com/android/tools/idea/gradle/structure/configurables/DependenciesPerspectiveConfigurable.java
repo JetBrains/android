@@ -30,10 +30,12 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.List;
 import java.util.Map;
 
 public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigurable {
+  public static final String DEPENDENCIES_VIEW = "DependenciesView";
   @NotNull private final Map<String, AbstractDependenciesConfigurable<? extends PsModule>> myConfigurablesByGradlePath = Maps.newHashMap();
 
   @NotNull private final List<PsModule> myExtraTopModules = Lists.newArrayListWithExpectedSize(2);
@@ -51,7 +53,7 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
     if (module instanceof PsAllModulesFakeModule) {
       configurable = myExtraTopConfigurables.get(module);
       if (configurable == null) {
-        configurable = new ProjectDependenciesConfigurable(module, getContext(), getExtraTopModules());
+        configurable = new ProjectDependenciesConfigurable((PsAllModulesFakeModule)module, getContext(), getExtraTopModules());
         configurable.setHistory(myHistory);
         myExtraTopConfigurables.put(module, configurable);
       }
@@ -74,6 +76,14 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
       }
     }
     return configurable;
+  }
+
+  @NotNull
+  @Override
+  public JComponent createComponent() {
+    JComponent component = super.createComponent();
+    component.setName(DEPENDENCIES_VIEW);
+    return component;
   }
 
   @Override

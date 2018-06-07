@@ -34,16 +34,15 @@ import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 @RunWith(GuiTestRunner.class)
@@ -98,11 +97,9 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
       .addDebugSymbols(debugSymbols);
     guiTest.waitForBackgroundTasks();
 
-    List<ProjectViewFixture.NodeFixture> srcNodes = getNativeLibChildren(ideFrame, "libsanangeles");
-    int numCppFolders = countOccurrencesOfFolderNameIn(srcNodes, "cpp");
-    int numIncludeFolders = countOccurrencesOfFolderNameIn(srcNodes, "include");
-    Assert.assertEquals(1, numCppFolders);
-    Assert.assertEquals(2, numIncludeFolders);
+    List<ProjectViewFixture.NodeFixture> srcNodes = getLibChildren(ideFrame, "libsanangeles");
+
+    Assert.assertEquals(2, countOccurrencesOfSourceFolders(srcNodes));
   }
 
   /**
@@ -146,21 +143,20 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
     guiTest.waitForBackgroundTasks();
     File cppSources = new File(projectRoot, "app/src/main/cpp");
     libraryEditor.getPathMappings()
-      .mapRemotePathToLocalPath(cppSources);
+      .mapOriginalToLocalPath("cpp", cppSources);
     libraryEditor.applyChanges();
     guiTest.waitForBackgroundTasks();
 
     ideFrame.getProjectView()
       .selectAndroidPane();
     attachJavaSources(ideFrame, new File(projectRoot, "app/src/main/java"));
+
+    // Verifications:
     waitForJavaFileToShow(editor);
 
-    List<ProjectViewFixture.NodeFixture> srcNodes = getNativeLibChildren(ideFrame, "libsanangeles");
-    int numCppFolders = countOccurrencesOfFolderNameIn(srcNodes, "cpp");
-    int numIncludeFolders = countOccurrencesOfFolderNameIn(srcNodes, "include");
+    List<ProjectViewFixture.NodeFixture> srcNodes = getLibChildren(ideFrame, "libsanangeles");
 
-    Assert.assertEquals(1, numCppFolders);
-    Assert.assertEquals(2, numIncludeFolders);
+    Assert.assertEquals(2, countOccurrencesOfSourceFolders(srcNodes));
   }
 
   /**
@@ -261,17 +257,6 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
     stopDebugSession(debugWindow, debugConfigName);
   }
 
-  @After
-  public void removeApkProjectsGeneratedDuringTest() {
-    // An ~/ApkProjects directory will show us a dialog in a subsequent
-    // test run. Clean up after ourselves by deleting the directory here.
-
-    // Close before deleting, because IDE will write to some files that will be deleted
-    // Prevents FileNotFoundException from occurring
-    guiTest.ideFrame().closeProject();
-    removeApkProjectsDirectory();
-  }
-
   private static void removeApkProjectsDirectory() {
     File homeDir = new File(SystemProperties.getUserHome());
     File apkProjects = new File(homeDir, "ApkProjects");
@@ -281,18 +266,6 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
     } catch (IOException ignored) {
       // do nothing! Nothing to delete!
     }
-  }
-
-  @NotNull
-  private List<ProjectViewFixture.NodeFixture> filterSourceFolderChildren(
-      @NotNull List<ProjectViewFixture.NodeFixture> nodeChildren) {
-    List<ProjectViewFixture.NodeFixture> filteredChildren = ContainerUtil.newArrayList();
-    for (ProjectViewFixture.NodeFixture child : nodeChildren) {
-      if (child.isSourceFolder()) {
-        filteredChildren.add(child);
-      }
-    }
-    return filteredChildren;
   }
 
   @NotNull
@@ -322,22 +295,22 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
   }
 
   @NotNull
-  private List<ProjectViewFixture.NodeFixture> getNativeLibChildren(@NotNull IdeFrameFixture ideFrame, @NotNull String libraryName) {
+  private List<ProjectViewFixture.NodeFixture> getLibChildren(@NotNull IdeFrameFixture ideFrame, @NotNull String libraryName) {
     ProjectViewFixture.NodeFixture libNode = ideFrame
       .getProjectView()
       .selectAndroidPane()
       .findNativeLibraryNodeFor(libraryName);
-    return filterSourceFolderChildren(libNode.getChildren());
+    return libNode.getChildren();
   }
 
-  private int countOccurrencesOfFolderNameIn(@NotNull Iterable<ProjectViewFixture.NodeFixture> nodes, @NotNull String folderName) {
-    int numFolders = 0;
-    for (ProjectViewFixture.NodeFixture node : nodes) {
-      if(folderName.equals(node.getSourceFolderName())) {
-        numFolders++;
+  private int countOccurrencesOfSourceFolders(@NotNull Iterable<ProjectViewFixture.NodeFixture> nodes) {
+    Collection<ProjectViewFixture.NodeFixture> sourceFolders = ContainerUtil.newArrayList();
+    nodes.forEach(fixture -> {
+      if (fixture.isSourceFolder()) {
+        sourceFolders.add(fixture);
       }
-    }
-    return numFolders;
+    });
+    return sourceFolders.size();
   }
 
   private void profileOrDebugApk(@NotNull WelcomeFrameFixture welcomeFrame, @NotNull File apk) {

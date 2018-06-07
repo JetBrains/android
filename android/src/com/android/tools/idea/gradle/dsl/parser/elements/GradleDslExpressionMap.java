@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.google.common.collect.Maps;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
-import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
 
 import java.util.Map;
 
@@ -37,7 +33,7 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
   }
 
   public GradleDslExpressionMap(@Nullable GradleDslElement parent,
-                                @NotNull GroovyPsiElement psiElement,
+                                @NotNull PsiElement psiElement,
                                 @NotNull String name) {
     super(parent, psiElement, name);
   }
@@ -66,7 +62,7 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
       if (propertyElement instanceof GradleDslExpression) {
         V value = ((GradleDslExpression)propertyElement).getValue(clazz);
         if (value != null) {
-          result.put(entry.getKey(), new GradleNotNullValue<>(propertyElement, value));
+          result.put(entry.getKey(), new GradleNotNullValueImpl<>(propertyElement, value));
         }
       }
     }
@@ -75,28 +71,7 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
 
   @Override
   @Nullable
-  public GroovyPsiElement create() {
-    GroovyPsiElement psiElement = super.create();
-    if (psiElement == null) {
-      return null;
-    }
-
-    if (psiElement instanceof GrListOrMap || psiElement instanceof GrArgumentList) {
-      return psiElement;
-    }
-
-    if (psiElement instanceof GrApplicationStatement) {
-      GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(psiElement.getProject());
-      GrArgumentList argumentList = factory.createArgumentListFromText("xyz");
-      argumentList.getFirstChild().delete(); // Workaround to get an empty argument list.
-      PsiElement added = psiElement.addAfter(argumentList, psiElement.getLastChild());
-      if (added instanceof GrArgumentList) {
-        GrArgumentList addedArgumentList = (GrArgumentList)added;
-        setPsiElement(addedArgumentList);
-        return addedArgumentList;
-      }
-    }
-
-    return null;
+  public PsiElement create() {
+    return getDslFile().getWriter().createDslExpressionMap(this);
   }
 }

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
+import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceDirectoryModel;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.sourceSets.SourceDirectoryModel;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -210,7 +212,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
     assertNotNull(android);
-    assertFalse(android.hasValidPsiElement()); // Whole android block gets removed as it would become empty.
+    checkForInValidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
     assertEmpty(android.sourceSets());
   }
 

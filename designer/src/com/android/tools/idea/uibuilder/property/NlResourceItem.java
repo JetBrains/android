@@ -20,8 +20,9 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.editors.strings.StringsWriteUtils;
 import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.idea.common.property.PropertiesManager;
+import com.android.tools.idea.editors.strings.StringsWriteUtils;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -34,14 +35,14 @@ import static com.android.SdkConstants.PREFIX_THEME_REF;
 
 public class NlResourceItem extends PTableItem {
   private AndroidFacet myFacet;
-  private NlPropertiesManager myPropertiesManager;
+  private PropertiesManager myPropertiesManager;
   private ResourceValue myValue;
   private ResourceItem myItem;
 
   public NlResourceItem(@NotNull AndroidFacet facet,
                         @NotNull ResourceValue value,
                         @Nullable ResourceItem item,
-                        @NotNull NlPropertiesManager propertiesManager) {
+                        @NotNull PropertiesManager propertiesManager) {
     myFacet = facet;
     myPropertiesManager = propertiesManager;
     myValue = value;

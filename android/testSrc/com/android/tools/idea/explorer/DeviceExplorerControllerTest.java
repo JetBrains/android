@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.explorer;
 
-import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.concurrent.EdtExecutor;
+import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
+import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
 import com.android.tools.idea.explorer.mocks.*;
 import com.android.tools.idea.util.FutureUtils;
@@ -125,7 +128,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       }
     };
     myMockService = new MockDeviceFileSystemService(getProject(), myEdtExecutor);
-    myMockView = new MockDeviceExplorerView(getProject(), toolWindow, new MockDeviceFileSystemRenderer(), myModel);
+    myMockView = new MockDeviceExplorerView(getProject(), toolWindow, new MockDeviceFileSystemRendererFactory(), myModel);
     myMockFileManager = new MockDeviceExplorerFileManager(getProject(), myEdtExecutor);
     File downloadPath = FileUtil.createTempDirectory("device-explorer-temp", "", true);
     myMockFileManager.setDefaultDownloadPath(downloadPath.toPath());
@@ -166,6 +169,26 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         Disposer.dispose(myMockFileManager);
         myMockFileManager = null;
       }
+      myMockView = null;
+
+      myFooLink1 = null;
+      myFooFile1 = null;
+      myFooFile2 = null;
+      myFooDir = null;
+      myDevice1 = null;
+      myDevice2 = null;
+      myFoo = null;
+      myFile1 = null;
+      myFile2 = null;
+
+      if (myMockService != null) {
+        Disposer.dispose(myMockService);
+        myMockService = null;
+      }
+
+      myModel = null;
+      myTaskExecutor = null;
+      myEdtExecutor = null;
       ClipboardSynchronizer.getInstance().resetContent();
     }
     finally {
@@ -1704,6 +1727,13 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     }
     for (MouseListener listener : component.getMouseListeners()) {
       listener.mousePressed(event);
+    }
+  }
+
+  public static class MockDeviceFileSystemRendererFactory implements DeviceFileSystemRendererFactory {
+    @Override
+    public DeviceFileSystemRenderer create(DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
+      return new MockDeviceFileSystemRenderer();
     }
   }
 }

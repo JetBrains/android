@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.EXT_JAVA;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.smali.SmaliFileType.SMALI_EXTENSION;
 import static com.intellij.codeInsight.navigation.NavigationUtil.openFileWithPsiElement;
 import static com.intellij.openapi.util.io.FileUtil.join;

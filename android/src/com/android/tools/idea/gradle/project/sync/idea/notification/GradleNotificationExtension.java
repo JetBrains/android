@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.pom.NonNavigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -41,6 +42,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   }
 
   @VisibleForTesting
+  @TestOnly
   GradleNotificationExtension(@NotNull SyncErrorHandler... errorHandlers) {
     myErrorHandlers = errorHandlers;
   }

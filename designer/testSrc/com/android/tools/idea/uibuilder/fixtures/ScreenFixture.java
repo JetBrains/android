@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentFixture;
 import com.android.tools.idea.common.fixtures.ComponentListFixture;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,20 +37,19 @@ import static org.junit.Assert.fail;
 
 public class ScreenFixture {
   private final SyncNlModel myModel;
-  private final NlDesignSurface mySurface;
   private ScreenView myScreen;
   private double myScale = 0.5;
   private int myTranslateX = 0;
   private int myTranslateY = 0;
 
   public ScreenFixture(@NotNull SyncNlModel model) {
-    mySurface = (NlDesignSurface)model.getSurface();
     myModel = model;
   }
 
   public void tearDown() {
     ScreenView[] mocks = myScreen == null ? new ScreenView[0] : new ScreenView[]{myScreen};
     Mockito.reset(mocks);
+    // It's not obvious, but myScreen is indeed a Mockito mock, from LayoutTestUtilities.createScreen.
   }
 
   /**

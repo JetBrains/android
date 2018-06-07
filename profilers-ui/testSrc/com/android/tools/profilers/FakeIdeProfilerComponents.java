@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profilers.stacktrace.*;
+import com.intellij.ui.TextFieldWithHistory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,14 +24,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -73,24 +70,36 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     return new StackTraceViewStub(model);
   }
 
+  @NotNull
   @Override
-  public void installNavigationContextMenu(@NotNull JComponent component,
-                                           @NotNull CodeNavigator navigator,
-                                           @NotNull Supplier<CodeLocation> codeLocationSupplier) {
-    assertFalse(myComponentNavigations.containsKey(component));
-    myComponentNavigations.put(component, codeLocationSupplier);
+  public ContextMenuInstaller createContextMenuInstaller() {
+    return new ContextMenuInstaller() {
+      @Override
+      public void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
+        List<ContextMenuItem> menus = myComponentContextMenus.computeIfAbsent(component, k -> new ArrayList<>());
+        menus.add(contextMenuItem);
+      }
+
+      @Override
+      public void installNavigationContextMenu(@NotNull JComponent component,
+                                               @NotNull CodeNavigator navigator,
+                                               @NotNull Supplier<CodeLocation> codeLocationSupplier) {
+        assertFalse(myComponentNavigations.containsKey(component));
+        myComponentNavigations.put(component, codeLocationSupplier);
+      }
+    };
   }
 
+  @NotNull
   @Override
-  public void installContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
-    List<ContextMenuItem> menus = myComponentContextMenus.computeIfAbsent(component, k -> new ArrayList<>());
-    menus.add(contextMenuItem);
-  }
-
-  @Override
-  public void openExportDialog(@NotNull Supplier<String> dialogTitleSupplier,
-                               @NotNull Supplier<String> extensionSupplier,
-                               @NotNull Consumer<File> saveToFile) {
+  public ExportDialog createExportDialog() {
+    return new ExportDialog() {
+      @Override
+      public void open(@NotNull Supplier<String> dialogTitleSupplier,
+                       @NotNull Supplier<String> extensionSupplier,
+                       @NotNull Consumer<File> saveToFile) {
+      }
+    };
   }
 
   @Nullable
@@ -130,8 +139,36 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     return new JPanel();
   }
 
+  @NotNull
+  @Override
+  public AutoCompleteTextField createAutoCompleteTextField(@Nullable String placeHolder,
+                                                           @Nullable String value,
+                                                           @Nullable Collection<String> variants) {
+    return new AutoCompleteTextField() {
+      final JComponent DEFAULT_COMPONENT = new TextFieldWithHistory();
+
+      @NotNull
+      @Override
+      public JComponent getComponent() {
+        return DEFAULT_COMPONENT;
+      }
+
+      @Override
+      public void addOnDocumentChange(@NotNull Runnable callback) {
+      }
+
+      @NotNull
+      @Override
+      public String getText() {
+        return "";
+      }
+    };
+  }
+
   public static final class StackTraceViewStub implements StackTraceView {
     private StackTraceModel myModel;
+
+    private JPanel myComponent = new JPanel();
 
     public StackTraceViewStub(@NotNull StackTraceModel model) {
       myModel = model;
@@ -146,7 +183,11 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     @NotNull
     @Override
     public JComponent getComponent() {
-      return new JPanel();
+      return myComponent;
+    }
+
+    @Override
+    public void installNavigationContextMenu(@NotNull ContextMenuInstaller contextMenuInstaller) {
     }
   }
 }

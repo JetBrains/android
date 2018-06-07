@@ -25,15 +25,16 @@ import java.nio.file.Paths;
 
 public class LayoutFileDataTest extends AndroidTestCase {
   public void testParsingLayoutFile() throws IOException {
+    VirtualFile file = myFixture.copyFileToProject("editors/layoutInspector/LayoutCapture.li");
     File testData = Paths.get(getTestDataPath(), "editors/layoutInspector/LayoutCapture.li").toFile();
     VirtualFile layoutFile = LocalFileSystem.getInstance().findFileByIoFile(testData);
     LayoutFileData fileData = new LayoutFileData(layoutFile);
 
-    assertNotNull(fileData.myBufferedImage);
-    assertEquals(1920, fileData.myBufferedImage.getHeight());
-    assertEquals(1080, fileData.myBufferedImage.getWidth());
+    assertNotNull(fileData.getBufferedImage());
+    assertEquals(1920, fileData.getBufferedImage().getHeight());
+    assertEquals(1080, fileData.getBufferedImage().getWidth());
 
-    assertNotNull(fileData.myNode);
-    assertEquals(3, fileData.myNode.getChildCount());
+    assertNotNull(fileData.getNode());
+    assertEquals(3, fileData.getNode().getChildCount());
   }
 }

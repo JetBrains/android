@@ -19,20 +19,16 @@ import com.android.SdkConstants;
 import com.android.builder.model.ClassField;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.DynamicResourceValueRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ModuleResourceRepository;
-import com.android.tools.idea.res.MultiResourceRepository;
-import com.android.tools.idea.res.ResourceNotificationManager;
-import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
@@ -44,7 +40,6 @@ import java.util.stream.Collectors;
 
 public class StringResourceDataTest extends AndroidTestCase {
   private VirtualFile resourceDirectory;
-  private MultiResourceRepository myParent;
   private StringResourceData data;
 
   @Override
@@ -68,11 +63,10 @@ public class StringResourceDataTest extends AndroidTestCase {
 
     Disposer.register(myFacet, dynamicResourceValueRepository);
 
-    myParent = ModuleResourceRepository.createForTest(myFacet,
-                                                      Collections.singletonList(resourceDirectory), null,
-                                                      dynamicResourceValueRepository);
+    LocalResourceRepository parent =
+      ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory), null, dynamicResourceValueRepository);
 
-    data = new StringResourceRepository(myParent).getData(myFacet);
+    data = StringResourceRepository.create(parent).getData(myFacet);
   }
 
   public void testSummarizeLocales() {
@@ -259,44 +253,6 @@ public class StringResourceDataTest extends AndroidTestCase {
 
     assertEquals("key4", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals("Hello", tag.getValue().getText());
-  }
-
-  public void testResourceChange() {
-    // the resource change notification system is fundamentally broken as it only sends a notification
-    // of a change if we have called PsiResourceItem.getResourceValue for that resource first
-    // the very first time it will send the notification because the initialisation makes it think there is a change
-    StringResource resource = data.getStringResource(newStringResourceKey("key1"));
-    assertEquals("Key 1 default", resource.getDefaultValueAsString());
-
-    Ref<Boolean> changeEventHappened = new Ref<>(false);
-
-    ResourceChangeListener listener = reason -> {
-      changeEventHappened.set(true);
-      // simulate reloading the data on resource changed event
-      data = new StringResourceRepository(myParent).getData(myFacet);
-    };
-
-    ResourceNotificationManager.getInstance(myFacet.getModule().getProject()).addListener(listener, myFacet, null, null);
-
-    try {
-      // the first time we test this it always works because the initialisation has caused the generation of the
-      // resource to change from the initial value, to the value after we have added the listener.
-      changeEventHappened.set(false);
-      resource.setDefaultValue("new text");
-      UIUtil.dispatchAllInvocationEvents();
-
-      assertTrue(changeEventHappened.get());
-
-      // and now we test that subsequent changes are also correctly causing a change event
-      changeEventHappened.set(false);
-      resource.setDefaultValue("new text again");
-      UIUtil.dispatchAllInvocationEvents();
-
-      assertTrue(changeEventHappened.get());
-    }
-    finally {
-      ResourceNotificationManager.getInstance(myFacet.getModule().getProject()).removeListener(listener, myFacet, null, null);
-    }
   }
 
   @NotNull

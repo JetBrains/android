@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.compatibility;
 import com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader;
 import com.android.tools.idea.gradle.project.sync.compatibility.version.VersionRange;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.gradle.util.PositionInFile;
+import com.android.tools.idea.util.PositionInFile;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.base.Splitter;

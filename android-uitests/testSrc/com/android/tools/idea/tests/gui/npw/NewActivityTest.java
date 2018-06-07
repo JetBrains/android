@@ -56,11 +56,11 @@ public class NewActivityTest {
 
   private EditorFixture myEditor;
   private NewActivityWizardFixture myDialog;
-  private ConfigureBasicActivityStepFixture myConfigActivity;
+  private ConfigureBasicActivityStepFixture<NewActivityWizardFixture> myConfigActivity;
 
   @Before
   public void setUp() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     guiTest.ideFrame().getProjectView().selectProjectPane();
     myEditor = guiTest.ideFrame().getEditor();
     myEditor.open(PROVIDED_ACTIVITY);
@@ -78,13 +78,22 @@ public class NewActivityTest {
     assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.JAVA);
   }
 
-  @After
-  public void tearDown() {
-    setSavedKotlinSupport(false);
-    setSavedRenderSourceLanguage(Language.JAVA);
-  }
-
-  @RunIn(TestGroup.QA)
+  /**
+   * Verifies that a new activity can be created through the Wizard
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 9ab45c50-1eb0-44aa-95fb-17835baf2274
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Right click on the application module and select New > Activity > Basic Activity
+   *   2. Enter activity and package name. Click Finish
+   *   Verify:
+   *   Activity class and layout.xml files are created. The activity previews correctly in layout editor.
+   *   </pre>
+   */
+  @RunIn(TestGroup.SANITY)
   @Test
   public void createDefaultActivity() {
     myDialog.clickFinish();
@@ -349,16 +358,8 @@ public class NewActivityTest {
     return PropertiesComponent.getInstance().isTrueValue("SAVED_PROJECT_KOTLIN_SUPPORT");
   }
 
-  private static void setSavedKotlinSupport(boolean isSupported) {
-    PropertiesComponent.getInstance().setValue("SAVED_PROJECT_KOTLIN_SUPPORT", isSupported);
-  }
-
   @NotNull
   private static Language getSavedRenderSourceLanguage() {
       return Language.fromName(PropertiesComponent.getInstance().getValue("SAVED_RENDER_LANGUAGE"), Language.JAVA);
-  }
-
-  private static void setSavedRenderSourceLanguage(Language language) {
-    PropertiesComponent.getInstance().setValue("SAVED_RENDER_LANGUAGE", language.getName());
   }
 }

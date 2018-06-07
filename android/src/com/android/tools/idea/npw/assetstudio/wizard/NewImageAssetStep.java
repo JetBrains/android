@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -32,22 +29,23 @@ import java.util.Collections;
  * Step for generating Android icons from some image asset source.
  */
 public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel> {
+  private static final String IMAGE_ASSET_PANEL_PROPERTY = "imageAssetPanel";
 
-  private final GenerateImageAssetPanel myGenerateImageAssetPanel;
+  @NotNull private final GenerateImageAssetPanel myGenerateImageAssetPanel;
   @NotNull private final AndroidFacet myFacet;
 
   public NewImageAssetStep(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
     super(model, "Configure Image Asset");
-    AndroidVersion minSdkVersion = AndroidModuleInfo.getInstance(facet).getMinSdkVersion();
-    AndroidVersion targetSdkVersion = AndroidModuleInfo.getInstance(facet).getTargetSdkVersion();
-    myGenerateImageAssetPanel = new GenerateImageAssetPanel(facet, this, model.getPaths(), minSdkVersion, targetSdkVersion);
+    myGenerateImageAssetPanel = new GenerateImageAssetPanel(this, facet, model.getPaths());
     myFacet = facet;
+
+    PersistentStateUtil.load(myGenerateImageAssetPanel, model.getPersistentState().getChild(IMAGE_ASSET_PANEL_PROPERTY));
   }
 
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    return Collections.singletonList(new ConfirmGenerateImagesStep(getModel(), AndroidSourceSet.getSourceSets(myFacet, null)));
+    return Collections.singletonList(new ConfirmGenerateImagesStep(getModel(), AndroidPackageUtils.getModuleTemplates(myFacet, null)));
   }
 
   @NotNull
@@ -65,5 +63,10 @@ public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel>
   @Override
   protected void onProceeding() {
     getModel().setIconGenerator(myGenerateImageAssetPanel.getIconGenerator());
+  }
+
+  @Override
+  public void onWizardFinished() {
+    getModel().getPersistentState().setChild(IMAGE_ASSET_PANEL_PROPERTY, myGenerateImageAssetPanel.getState());
   }
 }

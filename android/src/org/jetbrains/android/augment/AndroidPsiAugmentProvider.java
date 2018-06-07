@@ -85,6 +85,7 @@ public class AndroidPsiAugmentProvider extends PsiAugmentProvider {
       }
       else if (AndroidUtils.MANIFEST_CLASS_NAME.equals(className) &&
                AndroidResourceUtil.isManifestJavaFile(facet, containingFile)) {
+        // aapt can generate Manifest files that include these permission groups
         return Arrays.asList((Psi)new PermissionClass(facet, aClass),
                              (Psi)new PermissionGroupClass(facet, aClass));
       }

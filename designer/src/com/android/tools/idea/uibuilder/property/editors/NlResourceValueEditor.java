@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.NlResourceItem;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
@@ -26,6 +27,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -35,9 +37,10 @@ import java.awt.event.KeyEvent;
 import java.util.EnumSet;
 import java.util.List;
 
-import static com.android.tools.idea.uibuilder.property.editors.NlBaseComponentEditor.*;
+import static com.android.tools.idea.common.property.editors.BaseComponentEditor.*;
 
 public class NlResourceValueEditor extends PTableCellEditor {
+  private final JPanel myPanel;
   private final TextEditorWithAutoCompletion myTextEditorWithAutoCompletion;
   private NlResourceItem myItem;
   private boolean myCompletionsUpdated;
@@ -47,7 +50,6 @@ public class NlResourceValueEditor extends PTableCellEditor {
   }
 
   private NlResourceValueEditor(@NotNull Project project) {
-    //noinspection UseDPIAwareInsets
     myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING,
                                                                                               HORIZONTAL_PADDING,
                                                                                               VERTICAL_SPACING + VERTICAL_PADDING,
@@ -67,16 +69,24 @@ public class NlResourceValueEditor extends PTableCellEditor {
         if (!myCompletionsUpdated) {
           editorFocusGained();
         }
+        // Select all when we gain focus for feedback on which editor is the active editor
         myTextEditorWithAutoCompletion.selectAll();
       }
 
       @Override
       public void focusLost(@NotNull FocusEvent event) {
-        enter();
         // Remove the selection after we lose focus for feedback on which editor is the active editor
         myTextEditorWithAutoCompletion.removeSelection();
       }
     });
+    myPanel = new AdtSecondaryPanel(new BorderLayout());
+    myPanel.add(myTextEditorWithAutoCompletion);
+    myPanel.setFocusable(false);
+  }
+
+  @Override
+  public JComponent getPreferredFocusComponent() {
+    return myTextEditorWithAutoCompletion;
   }
 
   @NotNull
@@ -105,10 +115,10 @@ public class NlResourceValueEditor extends PTableCellEditor {
   }
 
   @Override
-  public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+  public Component getTableCellEditorComponent(@NotNull JTable table, @Nullable Object value, boolean isSelected, int row, int column) {
     myItem = (NlResourceItem)value;
     myTextEditorWithAutoCompletion.setText(myItem != null ? myItem.getValue() : null);
-    return myTextEditorWithAutoCompletion;
+    return myPanel;
   }
 
   @Override

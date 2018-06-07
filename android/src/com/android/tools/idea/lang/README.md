@@ -1,6 +1,8 @@
 Custom language support
 =======================
 
+> Note: Custom language support has been partially migrated to `android-lang` module.
+
 There are a couple of custom languages that the Android plugin needs to support. Implementations were added over time and by different
 people, so they don't all follow the same conventions, but all are based on Grammar-Kit, which is the recommended way of creating parsers.
 This document was written while implementing SQL support, so most examples are from the [roomSql](roomSql/) package. Documentation for

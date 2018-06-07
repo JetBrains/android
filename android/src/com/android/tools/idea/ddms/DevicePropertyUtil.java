@@ -18,7 +18,6 @@ package com.android.tools.idea.ddms;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -40,33 +39,44 @@ public class DevicePropertyUtil {
 
   @NotNull
   public static String getManufacturer(@NotNull IDevice d, @NotNull String unknown) {
-    String m = d.getProperty(IDevice.PROP_DEVICE_MANUFACTURER);
-    if (d.isEmulator() && "unknown".equals(m)) {
+    return getManufacturer(d.getProperty(IDevice.PROP_DEVICE_MANUFACTURER), d.isEmulator(), unknown);
+  }
+
+  @NotNull
+  public static String getManufacturer(@Nullable String manufacturer, boolean isEmulator, @NotNull String unknown) {
+    if (isEmulator && "unknown".equals(manufacturer)) {
       // use argument provided to method rather than the "unknown" hardcoded into the emulator system image
-      m = unknown;
+      manufacturer = unknown;
     }
 
-    return m != null ? fixManufacturerName(m) : unknown;
+    return manufacturer != null ? fixManufacturerName(manufacturer) : unknown;
   }
 
   @NotNull
   public static String getModel(@NotNull IDevice d, @NotNull String unknown) {
-    String m = d.getProperty(IDevice.PROP_DEVICE_MODEL);
-    return m != null ? StringUtil.capitalizeWords(m, true) : unknown;
+    return getModel(d.getProperty(IDevice.PROP_DEVICE_MODEL), unknown);
+  }
+
+  @NotNull
+  public static String getModel(@Nullable String model, @NotNull String unknown) {
+    return model != null ? StringUtil.capitalizeWords(model, true) : unknown;
   }
 
   @NotNull
   public static String getBuild(@NotNull IDevice d) {
+    return getBuild(d.getProperty(IDevice.PROP_BUILD_VERSION),  d.getProperty(IDevice.PROP_BUILD_API_LEVEL));
+  }
+
+  @NotNull
+  public static String getBuild(@Nullable String buildVersion, @Nullable String apiLevel) {
     StringBuilder sb = new StringBuilder(20);
-    String v = d.getProperty(IDevice.PROP_BUILD_VERSION);
-    if (v != null) {
+    if (buildVersion != null) {
       sb.append("Android ");
-      sb.append(v);
+      sb.append(buildVersion);
     }
 
-    v = d.getProperty(IDevice.PROP_BUILD_API_LEVEL);
-    if (v != null) {
-      sb.append(String.format(", API %1$s", v));
+    if (apiLevel != null) {
+      sb.append(String.format(", API %1$s", apiLevel));
     }
 
     return sb.toString();

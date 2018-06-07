@@ -46,7 +46,8 @@ public final class NavigateToCodeAction extends AnAction {
   @Override
   public void update(AnActionEvent e) {
     super.update(e);
-    e.getPresentation().setEnabled(myLocationSupplier.get() != null);
+    CodeLocation codeLocation = myLocationSupplier.get();
+    e.getPresentation().setEnabled(codeLocation != null && myCodeNavigator.isNavigatable(codeLocation));
   }
 
   @Override

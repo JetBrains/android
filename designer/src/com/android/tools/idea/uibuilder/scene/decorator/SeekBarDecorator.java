@@ -21,7 +21,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -56,9 +56,12 @@ public class SeekBarDecorator extends SceneDecorator {
         Shape origClip = g.getClip();
         g.clipRect(x, y, width, height);
         g.setColor(colorSet.getFakeUI());
-        g.fillRoundRect(x + 2, y + height / 2 - height / 8, width / 2, height / 4, height / 4, height / 4);
-        g.drawRoundRect(x + 2, y + height / 2 - height / 8, width - 4, height / 4, height / 4, height / 4);
-        g.fillArc(x + width / 2 - height / 3, y + height / 6, 2 * height / 3, 2 * height / 3, 0, 360);
+        int drawHeight = Math.min(sceneContext.getSwingDimensionDip(30), height);
+        int h = drawHeight / 4;
+        int ch = 2 * drawHeight / 3;
+        g.fillRoundRect(x + 2, y + height / 2 - h / 2, width / 2, h, h, h);
+        g.drawRoundRect(x + 2, y + height / 2 - h / 2, width - 4, h, h, h);
+        g.fillArc(x + width / 2 - ch / 2, y + height / 2 - ch / 2, ch, ch, 0, 360);
         g.setClip(origClip);
       }
     }
@@ -68,10 +71,10 @@ public class SeekBarDecorator extends SceneDecorator {
   public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
-    int l = sceneContext.getSwingX(rect.x);
-    int t = sceneContext.getSwingY(rect.y);
-    int w = sceneContext.getSwingDimension(rect.width);
-    int h = sceneContext.getSwingDimension(rect.height);
+    int l = sceneContext.getSwingXDip(rect.x);
+    int t = sceneContext.getSwingYDip(rect.y);
+    int w = sceneContext.getSwingDimensionDip(rect.width);
+    int h = sceneContext.getSwingDimensionDip(rect.height);
     list.add(new DrawSeekBar(l, t, w, h));
   }
 }

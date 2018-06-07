@@ -104,7 +104,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
       calledValue2.set(reason);
     };
 
-    manager.addListener(listener1, myFacet, layout1, configuration1);
+    manager.addListener(listener1, myFacet, layout1.getVirtualFile(), configuration1);
     manager.addListener(listener2, myFacet, null, null);
 
     // Make sure that when we're modifying multiple files, with complicated
@@ -203,8 +203,8 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     assertFalse(version8.toString(), version7.equals(version8));
 
     // Finally check that once we remove the listeners there are no more notifications
-    manager.removeListener(listener1, myFacet, layout1, configuration1);
-    manager.removeListener(listener2, myFacet, layout2, configuration1);
+    manager.removeListener(listener1, myFacet, layout1.getVirtualFile(), configuration1);
+    manager.removeListener(listener2, myFacet, layout2.getVirtualFile(), configuration1);
     clear(called1, calledValue1, called2, calledValue2);
     addText(layout1, "@string/hello_world^", "2");
     ensureNotCalled(called1, called2);

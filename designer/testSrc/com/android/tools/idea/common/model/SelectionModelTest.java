@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.common.model;
 
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.SelectionListener;
-import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.openapi.util.Ref;
 import org.junit.Test;
 
@@ -29,7 +27,7 @@ import static org.mockito.Mockito.mock;
 
 public class SelectionModelTest {
   @Test
-  public void testBasic() throws Exception {
+  public void testBasic() {
     SelectionModel model = new SelectionModel();
     assertTrue(model.isEmpty());
     final Ref<Boolean> called = new Ref<Boolean>(false);

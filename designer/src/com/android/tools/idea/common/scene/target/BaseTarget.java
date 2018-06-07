@@ -43,11 +43,6 @@ public abstract class BaseTarget implements Target {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public boolean canChangeSelection() {
-    return true;
-  }
-
-  @Override
   public void setComponent(@NotNull SceneComponent component) {
     myComponent = component;
   }
@@ -58,16 +53,11 @@ public abstract class BaseTarget implements Target {
   }
 
   @Override
-  public void setOver(boolean over) {
+  public void setMouseHovered(boolean over) {
     if (over != mIsOver && myComponent != null) {
       myComponent.getScene().repaint();
     }
     mIsOver = over;
-  }
-
-  @Override
-  public void setExpandSize(boolean expand) {
-    //do nothing
   }
 
   @Override
@@ -103,20 +93,13 @@ public abstract class BaseTarget implements Target {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
-    picker.addRect(this, 0, transform.getSwingX(myLeft), transform.getSwingY(myTop),
-                   transform.getSwingX(myRight), transform.getSwingY(myBottom));
+    picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
+                   transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));
   }
 
   @Override
   public String getToolTipText() {
-    String str = myComponent.getNlComponent().getId();
-    if (str == null) {
-      str = myComponent.getComponentClassName();
-      if (str != null) {
-        str = str.substring(str.lastIndexOf('.') + 1);
-      }
-    }
-    return str;
+    return myComponent.getNlComponent().getTooltipText();
   }
 
   /**
@@ -127,11 +110,6 @@ public abstract class BaseTarget implements Target {
     NlWriteCommandAction.run(attributes.getComponent(), label, attributes::commit);
 
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
-  }
-
-  @Override
-  public void setComponentSelection(boolean selection) {
-
   }
 
   //endregion

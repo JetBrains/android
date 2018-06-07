@@ -85,7 +85,7 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
     myPlaceName = createPlaceName(module.getName());
     initializeDependencyDetails();
 
-    setIssuesViewer(new IssuesViewer(myContext, new SingleModuleIssuesRenderer()));
+    setIssuesViewer(new IssuesViewer(myContext, new SingleModuleIssuesRenderer(myContext)));
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new Tree(treeModel) {

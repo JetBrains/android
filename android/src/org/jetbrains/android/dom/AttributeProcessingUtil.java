@@ -17,14 +17,16 @@ package org.jetbrains.android.dom;
 
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.psi.TagToClassMapper;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CompletionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
@@ -34,7 +36,6 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.ResolvingConverter;
 import com.intellij.util.xml.XmlName;
 import com.intellij.util.xml.reflect.DomExtension;
-import org.jetbrains.android.ClassMaps;
 import org.jetbrains.android.dom.animation.InterpolatorElement;
 import org.jetbrains.android.dom.animation.fileDescriptions.InterpolatorDomFileDescription;
 import org.jetbrains.android.dom.attrs.*;
@@ -47,6 +48,7 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElement;
 import org.jetbrains.android.dom.manifest.UsesSdk;
 import org.jetbrains.android.dom.menu.MenuItem;
+import org.jetbrains.android.dom.navigation.NavActionElement;
 import org.jetbrains.android.dom.navigation.NavDestinationElement;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.raw.XmlRawResourceElement;
@@ -244,7 +246,26 @@ public class AttributeProcessingUtil {
       if (styleableName != null) {
         registerAttributes(facet, element, styleableName, getResourcePackage(c), callback, skipNames);
       }
+      for (PsiClass additional : getAdditionalAttributesClasses(facet, c)) {
+        String additionalStyleableName = additional.getName();
+        if (additionalStyleableName != null) {
+          registerAttributes(facet, element, additionalStyleableName, getResourcePackage(additional), callback, skipNames);
+        }
+      }
       c = getSuperclass(c);
+    }
+  }
+
+  /**
+   * Return the classes that hold attributes used in the specified class c.
+   * This is for classes from support libaries without attrs.xml like support lib v4.
+   */
+  private static Collection<PsiClass> getAdditionalAttributesClasses(@NotNull AndroidFacet facet, @NotNull PsiClass c) {
+    switch (StringUtil.notNullize(c.getQualifiedName())) {
+      case CLASS_NESTED_SCROLL_VIEW:
+        return Collections.singleton(getViewClassMap(facet).get(SCROLL_VIEW));
+      default:
+        return Collections.emptySet();
     }
   }
 
@@ -254,7 +275,8 @@ public class AttributeProcessingUtil {
     String qualifiedName = psiClass.getQualifiedName();
     return qualifiedName != null &&
            qualifiedName.startsWith(ANDROID_PKG_PREFIX) &&
-           !qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX) ? SYSTEM_RESOURCE_PACKAGE : null;
+           !qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX) &&
+           !qualifiedName.startsWith(ANDROID_ARCH_PKG_PREFIX) ? SYSTEM_RESOURCE_PACKAGE : null;
   }
 
   @Nullable
@@ -299,21 +321,18 @@ public class AttributeProcessingUtil {
 
   @NotNull
   public static Map<String, PsiClass> getPreferencesClassMap(@NotNull AndroidFacet facet) {
-    if (DumbService.isDumb(facet.getModule().getProject())) {
-      return Collections.emptyMap();
-    }
-    return ClassMaps.getInstance(facet).getClassMap(CLASS_PREFERENCE);
+    return getClassMap(facet, CLASS_PREFERENCE);
   }
 
   public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
     return getClassMap(facet, VIEW_CLASS_NAME);
   }
 
-  public static Map<String, PsiClass> getClassMap(@NotNull AndroidFacet facet, @NotNull String className) {
+  private static Map<String, PsiClass> getClassMap(@NotNull AndroidFacet facet, @NotNull String className) {
     if (DumbService.isDumb(facet.getModule().getProject())) {
       return Collections.emptyMap();
     }
-    return ClassMaps.getInstance(facet).getClassMap(className);
+    return TagToClassMapper.getInstance(facet.getModule()).getClassMap(className);
   }
 
   private static void registerAttributesFromSuffixedStyleables(@NotNull AndroidFacet facet,
@@ -372,10 +391,8 @@ public class AttributeProcessingUtil {
                                           @NotNull NavDestinationElement element,
                                           @NotNull Set<XmlName> skipAttrNames,
                                           @NotNull AttributeProcessor callback) {
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(facet);
-    final PsiClass psiClass = schema.getDestinationClassByTag(tag.getName());
-
-    if (psiClass != null) {
+    NavigationSchema schema = NavigationSchema.get(facet);
+    for (PsiClass psiClass : schema.getDestinationClassesByTagSlowly(tag.getName())) {
       registerAttributesForClassAndSuperclasses(facet, element, psiClass, callback, skipAttrNames);
     }
   }
@@ -430,6 +447,10 @@ public class AttributeProcessingUtil {
 
     String tagName = tag.getName();
     switch (tagName) {
+      case VIEW_FRAGMENT:
+        registerToolsAttribute(ATTR_LAYOUT, callback);
+        break;
+
       case VIEW_TAG:
         // In Android layout XMLs, one can write, e.g.
         //   <view class="LinearLayout" />
@@ -461,10 +482,6 @@ public class AttributeProcessingUtil {
         if (parentTagName != null) {
           registerAttributesForClassAndSuperclasses(facet, element, map.get(parentTagName), callback, skipAttrNames);
         }
-        break;
-
-      case NESTED_SCROLL_VIEW:
-        registerAttributesForClassAndSuperclasses(facet, element, map.get(SCROLL_VIEW), callback, skipAttrNames);
         break;
 
       default:
@@ -547,6 +564,10 @@ public class AttributeProcessingUtil {
     }
     else if (element instanceof NavDestinationElement) {
       processNavAttributes(facet, tag, (NavDestinationElement)element, skippedAttributes, callback);
+    }
+    else if (element instanceof NavActionElement) {
+      registerAttributesForClassAndSuperclasses(facet, element, NavigationSchema.get(facet).getActionClass(), callback,
+                                                skippedAttributes);
     }
 
     // If DOM element is annotated with @Styleable annotation, load a styleable definition
@@ -663,9 +684,8 @@ public class AttributeProcessingUtil {
       // android:showAsAction was introduced in API Level 11. Use the app: one if the project depends on appcompat. See com.android.tools
       // .lint.checks.AppCompatResourceDetector.
       if (name.equals(ATTR_SHOW_AS_ACTION)) {
-        AndroidModuleModel model = AndroidModuleModel.get(facet);
-
-        if (model != null && GradleUtil.dependsOn(model, APPCOMPAT_LIB_ARTIFACT)) {
+        boolean hasAppCompat = DependencyManagementUtil.dependsOn(facet.getModule(), GoogleMavenArtifactId.APP_COMPAT_V7);
+        if (hasAppCompat) {
           if (skippedAttributes.add(new XmlName(name, AUTO_URI))) {
             registerAttribute(attribute, "MenuItem", AUTO_URI, element, callback);
           }

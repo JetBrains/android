@@ -18,27 +18,24 @@ package com.android.tools.idea.common.model;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.common.model.ModelListener;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
-import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.common.fixtures.ComponentDescriptor;
-import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.util.NlTreeDumper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -58,8 +55,6 @@ import java.util.function.Consumer;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.*;
 
 /**
@@ -364,20 +359,23 @@ public class NlModelTest extends LayoutTestCase {
     GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
     List<GradleCoordinate> expectedDependencies =
       Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
-    when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), any())).thenReturn(true);
+    when(gradleDependencyManager.userWantToAddDependencies(eq(myModule), eq(expectedDependencies))).thenReturn(true);
+    when(gradleDependencyManager.findMissingDependencies(eq(myModule), eq(expectedDependencies))).thenReturn(expectedDependencies);
+    when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), any())).thenReturn(true);
     registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
     XmlTag recyclerViewTag =
       XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
 
     WriteCommandAction.runWriteCommandAction(
       model.getProject(), null, null,
-      () -> NlModelHelperKt.createComponent(model, screen(model).getScreen(), recyclerViewTag, frameLayout, null, InsertType.CREATE),
+      () -> NlModelHelperKt.createComponent(model, new ViewEditorImpl(screen(model).getScreen()), recyclerViewTag, frameLayout, null, InsertType.CREATE
+      ),
       model.getFile());
     model.notifyModified(NlModel.ChangeType.ADD_COMPONENTS);
-    when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
+    when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
       .thenReturn(true);
 
-    verify(gradleDependencyManager, atLeastOnce()).ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
+    verify(gradleDependencyManager, atLeastOnce()).addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,100:200x200, instance=1}\n" +
@@ -404,18 +402,20 @@ public class NlModelTest extends LayoutTestCase {
 
     GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
     registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
-    XmlTag recyclerViewTag =
-      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
-
-    NlComponent recyclerView =
-      NlModelHelperKt.createComponent(model, screen(model).getScreen(), recyclerViewTag, null, null, InsertType.CREATE);
     List<GradleCoordinate> expectedDependencies =
       Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
-    when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
+    when(gradleDependencyManager.userWantToAddDependencies(eq(myModule), eq(expectedDependencies))).thenReturn(true);
+    when(gradleDependencyManager.findMissingDependencies(eq(myModule), eq(expectedDependencies))).thenReturn(expectedDependencies);
+    when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
       .thenReturn(true);
 
-    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE);
-    verify(gradleDependencyManager).ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
+    XmlTag recyclerViewTag =
+      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
+    NlComponent recyclerView =
+      NlModelHelperKt.createComponent(model, new ViewEditorImpl(screen(model).getScreen()), recyclerViewTag, null, null, InsertType.CREATE);
+    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE, new ViewEditorImpl(screen(model).getScreen()));
+
+    verify(gradleDependencyManager).addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,100:200x200, instance=1}\n" +
@@ -448,7 +448,7 @@ public class NlModelTest extends LayoutTestCase {
     assertThat(frameLayout).isNotNull();
 
     GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
-    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO);
+    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO, new ViewEditorImpl(screen(model).getScreen()));
     verifyZeroInteractions(gradleDependencyManager);
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
@@ -533,12 +533,12 @@ public class NlModelTest extends LayoutTestCase {
 
     LayoutlibSceneManager.updateHierarchy(views, model);
 
-    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:500x500, instance=3}\n" +
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:500x500, instance=0}\n" +
                  // Make sure these instances are NOT reusing instances from before that
                  // mismatch, e.g. we should not get <Button> with instance=1 here
                  // since before the reparse instance=1 was associated with a <FrameLayout> !
-                 "    NlComponent{tag=<Button>, bounds=[0,0:500x500, instance=4}\n" +
-                 "    NlComponent{tag=<FrameLayout>, bounds=[0,0:300x300, instance=5}",
+                 "    NlComponent{tag=<Button>, bounds=[0,0:500x500, instance=2}\n" +
+                 "    NlComponent{tag=<FrameLayout>, bounds=[0,0:300x300, instance=3}",
                  myTreeDumper.toTree(model.getComponents()));
   }
 
@@ -549,11 +549,9 @@ public class NlModelTest extends LayoutTestCase {
                                "</resources>");
     SyncNlModel model = createDefaultModelBuilder(true).build();
     SceneView sceneView = mock(SceneView.class);
-    SelectionModel selectionModel = model.getSelectionModel();
+    SelectionModel selectionModel = model.getSurface().getSelectionModel();
     when(sceneView.getSelectionModel()).thenReturn(selectionModel);
     when(sceneView.getSurface()).thenReturn(model.getSurface());
-    LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, model.getSurface());
-    sceneManager.build();
     Configuration configuration = model.getConfiguration();
     String defaultTheme = configuration.getTheme();
     assertNotNull(defaultTheme);
@@ -600,7 +598,7 @@ public class NlModelTest extends LayoutTestCase {
                                                   "     android:layout_height=\"match_parent\" />" +
                                                   "</merge>");
     DesignSurface surface = createSurface(NlDesignSurface.class);
-    NlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, mergeXml);
+    NlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, mergeXml.getVirtualFile());
     when(surface.getModel()).thenReturn(model);
 
     XmlTag parentRoot = parentXml.getRootTag();
@@ -635,7 +633,7 @@ public class NlModelTest extends LayoutTestCase {
                                                             "               android:layout_height=\"48dp\" />" +
                                                             "</LinearLayout>");
     DesignSurface surface = createSurface(NlDesignSurface.class);
-    NlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, modelXml);
+    NlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, modelXml.getVirtualFile());
     when(surface.getModel()).thenReturn(model);
 
     TagSnapshot rootSnapshot = TagSnapshot.createTagSnapshot(modelXml.getRootTag(), null);
@@ -657,7 +655,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "         android:layout_width=\"match_parent\"" +
                                                            "         android:layout_height=\"match_parent\">" +
                                                            "</LinearLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml);
+    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml.getVirtualFile());
     ModelListener listener1 = mock(ModelListener.class);
     ModelListener remove1 = mock(ModelListener.class, invocation -> {
       model.removeListener((ModelListener)invocation.getMock());
@@ -710,10 +708,9 @@ public class NlModelTest extends LayoutTestCase {
                                                            "         android:layout_width=\"match_parent\"" +
                                                            "         android:layout_height=\"match_parent\">" +
                                                            "</LinearLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml);
+    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml.getVirtualFile());
 
     notifyAndCheckListeners(model, NlModel::notifyListenersModelUpdateComplete, listener -> listener.modelDerivedDataChanged(any()));
-    notifyAndCheckListeners(model, NlModel::notifyListenersRenderComplete, listener -> listener.modelRendered(any()));
     notifyAndCheckListeners(model, m -> m.notifyModified(NlModel.ChangeType.EDIT), listener -> listener.modelChanged(any()));
   }
 
@@ -724,7 +721,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "         android:layout_width=\"match_parent\"" +
                                                            "         android:layout_height=\"match_parent\">" +
                                                            "</LinearLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml);
+    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml.getVirtualFile());
     ModelListener listener1 = mock(ModelListener.class);
     ModelListener remove1 = mock(ModelListener.class, invocation -> {
       model.removeListener((ModelListener)invocation.getMock());
@@ -759,7 +756,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "         android:layout_width=\"match_parent\"" +
                                                            "         android:layout_height=\"match_parent\">" +
                                                            "</LinearLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml);
+    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml.getVirtualFile());
     ModelListener listener1 = mock(ModelListener.class);
     model.addListener(listener1);
 
@@ -799,7 +796,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "         android:layout_width=\"match_parent\"" +
                                                            "         android:layout_height=\"match_parent\">" +
                                                            "</RelativeLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml);
+    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml.getVirtualFile());
 
     long expectedModificationCount = model.getModificationCount();
     for (NlModel.ChangeType changeType : NlModel.ChangeType.values()) {

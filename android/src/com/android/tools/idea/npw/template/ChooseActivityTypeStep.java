@@ -21,7 +21,8 @@ import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.npw.project.AndroidPackageUtils;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.adtui.ASGallery;
@@ -51,6 +52,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
@@ -66,7 +68,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> {
   private final RenderTemplateModel myRenderModel;
   private @NotNull List<TemplateRenderer> myTemplateRenderers;
-  private @NotNull List<AndroidSourceSet> mySourceSets;
+  private @NotNull List<NamedModuleTemplate> myModuleTemplates;
 
   private @NotNull ASGallery<TemplateRenderer> myActivityGallery;
   private @NotNull ValidatorPanel myValidatorPanel;
@@ -78,9 +80,9 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   public ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel,
                                 @NotNull RenderTemplateModel renderModel,
                                 @NotNull FormFactor formFactor,
-                                @NotNull List<AndroidSourceSet> sourceSets) {
+                                @NotNull List<NamedModuleTemplate> moduleTemplates) {
     this(moduleModel, renderModel, formFactor);
-    init(formFactor, sourceSets, null);
+    init(formFactor, moduleTemplates, null);
   }
 
   public ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel,
@@ -89,8 +91,8 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
                                 @NotNull AndroidFacet facet,
                                 @NotNull VirtualFile targetDirectory) {
     this(moduleModel, renderModel, formFactor);
-    List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
-    init(formFactor, sourceSets, facet);
+    List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(facet, targetDirectory);
+    init(formFactor, moduleTemplates, facet);
   }
 
   private ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel, @NotNull RenderTemplateModel renderModel,
@@ -100,9 +102,9 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   }
 
   private void init(@NotNull FormFactor formFactor,
-                    @NotNull List<AndroidSourceSet> sourceSets,
+                    @NotNull List<NamedModuleTemplate> moduleTemplates,
                     @Nullable AndroidFacet facet) {
-    mySourceSets = sourceSets;
+    myModuleTemplates = moduleTemplates;
     myFacet = facet;
     List<TemplateHandle> templateHandles = TemplateManager.getInstance().getTemplateList(formFactor);
 
@@ -135,7 +137,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   @Override
   public Collection<? extends ModelWizardStep> createDependentSteps() {
     String title = message("android.wizard.config.activity.title");
-    return Lists.newArrayList(new ConfigureTemplateParametersStep(myRenderModel, title, mySourceSets, myFacet));
+    return Lists.newArrayList(new ConfigureTemplateParametersStep(myRenderModel, title, myModuleTemplates, myFacet));
   }
 
   @Override
@@ -188,8 +190,8 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
       validateTemplate();
     });
 
-    myListeners.receiveAndFire(getModel().enableCppSupport(), src -> {
-      TemplateRenderer[] listItems = createGalleryList(myTemplateRenderers, src.booleanValue());
+    myListeners.receiveAndFire(getModel().enableCppSupport().or(getModel().instantApp()), src -> {
+      TemplateRenderer[] listItems = createGalleryList(myTemplateRenderers);
       myActivityGallery.setModel(JBList.createDefaultListModel((Object[])listItems));
       myActivityGallery.setSelectedIndex(getDefaultSelectedTemplateIndex(listItems, isNewModule())); // Also fires the Selection Listener
     });
@@ -247,12 +249,22 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     return myFacet == null;
   }
 
-  private static TemplateRenderer[] createGalleryList(@NotNull List<TemplateRenderer> templateRenderers, boolean isCppProject) {
-    if (isCppProject) {
-      List<TemplateRenderer> filteredTemplates = templateRenderers.stream().filter(TemplateRenderer::isCppTemplate).collect(Collectors.toList());
-      if (filteredTemplates.size() > 1) {
-        return filteredTemplates.toArray(new TemplateRenderer[filteredTemplates.size()]);
-      }
+  private TemplateRenderer[] createGalleryList(@NotNull List<TemplateRenderer> templateRenderers) {
+    // Cpp and Iapp Templates are mutually exclusive, and Cpp take priority
+    Predicate<TemplateRenderer> predicate;
+    if (getModel().enableCppSupport().get()) {
+      predicate = TemplateRenderer::isCppTemplate;
+    }
+    else if (getModel().instantApp().get()) {
+      predicate = TemplateRenderer::isIappTemplate;
+    }
+    else {
+      predicate = templateRenderer -> true;
+    }
+
+    List<TemplateRenderer> filteredTemplates = templateRenderers.stream().filter(predicate).collect(Collectors.toList());
+    if (filteredTemplates.size() > 1) {
+      return filteredTemplates.toArray(new TemplateRenderer[filteredTemplates.size()]);
     }
 
     return templateRenderers.toArray(new TemplateRenderer[templateRenderers.size()]);
@@ -274,7 +286,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     }
 
     if (androidSdkInfo != null) {
-      if (androidSdkInfo.getApiLevel() < template.getMinSdk()) {
+      if (androidSdkInfo.getMinApiLevel() < template.getMinSdk()) {
         return message("android.wizard.activity.invalid.min.sdk", template.getMinSdk());
       }
 
@@ -318,6 +330,11 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
       // TODO: 2 - We should have a dedicated list for Cpp files, or at least add a specific flag to the Templates that are allowed.
       String title = myTemplate.getMetadata().getTitle();
       return "Empty Activity".equals(title) || "Basic Activity".equals(title);
+    }
+
+    boolean isIappTemplate() {
+      // TODO: See comments for #isCppTemplate()
+      return !"Settings Activity".equals(getTitle());
     }
 
     /**

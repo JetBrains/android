@@ -19,6 +19,7 @@ import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
+import com.google.common.base.CharMatcher;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +37,7 @@ public final class ModuleValidator implements Validator<String> {
   private @Nullable Project myProject; // May be null for new projects
   private @NotNull PathValidator myPathValidator;
   private @NotNull StringProperty myProjectPath;
+  private final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf("[/\\'");
 
   public ModuleValidator(@NotNull Project project) {
     this(new StringValueProperty(project.getBasePath()));
@@ -56,6 +58,11 @@ public final class ModuleValidator implements Validator<String> {
 
     if (myProject != null && ModuleManager.getInstance(myProject).findModuleByName(name) != null) {
       return new Result(Severity.ERROR, message("android.wizard.validate.module.already.exists", name));
+    }
+
+    int illegalCharIdx = ILLEGAL_CHARACTER_MATCHER.indexIn(name);
+    if (illegalCharIdx >= 0) {
+      return new Result(Severity.ERROR, message("android.wizard.validate.module.illegal.character", name.charAt(illegalCharIdx), name));
     }
 
     return myPathValidator.validate(new File(myProjectPath.get(), name));

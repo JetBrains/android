@@ -48,7 +48,8 @@ public abstract class ApplicationLogListener implements AndroidLogcatService.Log
     if (!line.getHeader().equals(myActiveHeader)) {
       myActiveHeader = line.getHeader();
       message = formatLogLine(line);
-    } else {
+    }
+    else {
       message = Strings.repeat(" ", formatLogLine(line).indexOf(line.getMessage())) + line.getMessage();
     }
 

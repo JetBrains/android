@@ -18,12 +18,29 @@ package com.android.tools.idea.common.scene;
 import com.android.tools.idea.common.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * A mechanism for adding {@link Target}s to {@link SceneComponent}s.
  */
 public interface TargetProvider {
+  /**
+   * Create the {@link Target}s for the given sceneComponent.
+   * @param sceneComponent the sceneComponent which created {@link Target}s associate with
+   * @return A list of {@link Target} which all associate to the given component.
+   */
   @NotNull
-  List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent);
+  List<Target> createTargets(@NotNull SceneComponent sceneComponent);
+
+  /**
+   * Create the {@link Target}s for the child component.
+   * @param parentComponent the parent of the given childComponent.
+   * @param childComponent  the component which created {@link Target}s associate with
+   * @return A list of {@link Target} which all associate to the given child component.
+   */
+  @NotNull
+  default List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
+    return Collections.emptyList();
+  }
 }

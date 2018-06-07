@@ -15,18 +15,14 @@
  */
 package com.android.tools.idea.common.model;
 
-import com.android.ide.common.rendering.api.RenderResources;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.rendering.TagSnapshot;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.handlers.relative.DependencyGraph;
+import com.android.tools.idea.uibuilder.model.AttributesHelperKt;
+import com.android.tools.idea.uibuilder.model.QualifiedName;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -39,12 +35,14 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -61,13 +59,15 @@ public class NlComponent implements NlAttributesHolder {
 
   @Nullable private XmlModelComponentMixin myMixin;
 
-  @Nullable public List<NlComponent> children;
+  private final List<NlComponent> children = Lists.newArrayList();
   private NlComponent myParent;
   @NotNull private final NlModel myModel;
+  //TODO(b/70264883): remove this reference to XmlTag to avoid problems with invalid Psi elements
   @NotNull private XmlTag myTag;
+  @NotNull private SmartPsiElementPointer<XmlTag> myTagPointer;
   @NotNull private String myTagName; // for non-read lock access elsewhere
   @Nullable private TagSnapshot mySnapshot;
-  final HashMap<Object, Object> myClientProperties = new HashMap<>();
+  private final HashMap<Object, Object> myClientProperties = new HashMap<>();
   private final ListenerCollection<ChangeListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private final ChangeEvent myChangeEvent = new ChangeEvent(this);
   private DependencyGraph myCachedDependencyGraph;
@@ -80,6 +80,24 @@ public class NlComponent implements NlAttributesHolder {
   public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
     myModel = model;
     myTag = tag;
+    Application application = ApplicationManager.getApplication();
+    if (application.isReadAccessAllowed()) {
+      myTagPointer = SmartPointerManager.getInstance(myModel.getProject()).createSmartPsiElementPointer(tag);
+      myTagName = tag.getName();
+    }
+    else {
+      application.runReadAction(() -> {
+        myTagPointer = SmartPointerManager.getInstance(myModel.getProject()).createSmartPsiElementPointer(tag);
+        myTagName = tag.getName();
+      });
+    }
+  }
+
+  @TestOnly
+  public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag, @NotNull SmartPsiElementPointer<XmlTag> tagPointer) {
+    myModel = model;
+    myTag = tag;
+    myTagPointer = tagPointer;
     myTagName = tag.getName();
   }
 
@@ -95,7 +113,20 @@ public class NlComponent implements NlAttributesHolder {
 
   @NotNull
   public XmlTag getTag() {
-    return myTag;
+    // HACK: We want to use SmartPsiElementPointer as they make sure that the XmlTag we return here is not invalid.
+    // However, SmartPsiElementPointer.getElement can return null when the underlying Psi element has been deleted. Since this method is
+    // annotated @NotNull, we return the original tag if the pointer gives a null result.
+    // We do this because the large usage of getTag makes it very risky for the moment to take care everywhere of a possible null value.
+    //TODO(b/70264883): Fix this properly by using more generally SmartPsiElementPointer instead of XmlTag in the layout editor codebase.
+    XmlTag tag;
+    Application application = ApplicationManager.getApplication();
+    if (application.isReadAccessAllowed()) {
+      tag = myTagPointer.getElement();
+    }
+    else {
+      tag = application.runReadAction((Computable<XmlTag>)myTagPointer::getElement);
+    }
+    return tag != null ? tag : myTag;
   }
 
   @NotNull
@@ -104,8 +135,25 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   public void setTag(@NotNull XmlTag tag) {
+    // HACK: see getTag
+    Application application = ApplicationManager.getApplication();
+    if (application.isReadAccessAllowed()) {
+      if (tag.isValid()) {
+        myTagPointer = SmartPointerManager.getInstance(myModel.getProject())
+          .createSmartPsiElementPointer(tag);
+      }
+      myTagName = tag.getName();
+    }
+    else {
+      application.runReadAction(() -> {
+        if (tag.isValid()) {
+          myTagPointer = SmartPointerManager.getInstance(myModel.getProject())
+            .createSmartPsiElementPointer(tag);
+        }
+        myTagName = tag.getName();
+      });
+    }
     myTag = tag;
-    myTagName = tag.getName();
   }
 
   @Nullable
@@ -125,9 +173,6 @@ public class NlComponent implements NlAttributesHolder {
     if (component == this) {
       throw new IllegalArgumentException();
     }
-    if (children == null) {
-      children = Lists.newArrayList();
-    }
     int index = before != null ? children.indexOf(before) : -1;
     if (index != -1) {
       children.add(index, component);
@@ -142,36 +187,36 @@ public class NlComponent implements NlAttributesHolder {
     if (component == this) {
       throw new IllegalArgumentException();
     }
-    if (children != null) {
-      children.remove(component);
-    }
+    children.remove(component);
     component.setParent(null);
   }
 
   public void setChildren(@Nullable List<NlComponent> components) {
-    children = components;
-    if (components != null) {
-      for (NlComponent component : components) {
-        if (component == this) {
-          throw new IllegalArgumentException();
-        }
-        component.setParent(this);
+    children.clear();
+    if (components == null) {
+      return;
+    }
+    children.addAll(components);
+    for (NlComponent component : components) {
+      if (component == this) {
+        throw new IllegalArgumentException();
       }
+      component.setParent(this);
     }
   }
 
   @NotNull
   public List<NlComponent> getChildren() {
-    return children != null ? children : Collections.emptyList();
+    return ImmutableList.copyOf(children);
   }
 
   public int getChildCount() {
-    return children != null ? children.size() : 0;
+    return children.size();
   }
 
   @Nullable
   public NlComponent getChild(int index) {
-    return children != null && index >= 0 && index < children.size() ? children.get(index) : null;
+    return index >= 0 && index < children.size() ? children.get(index) : null;
   }
 
   @NotNull
@@ -209,7 +254,7 @@ public class NlComponent implements NlAttributesHolder {
 
   @Nullable
   public NlComponent findViewByTag(@NotNull XmlTag tag) {
-    if (myTag == tag) {
+    if (getTag() == tag) {
       return this;
     }
 
@@ -224,16 +269,11 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   private void findViewsByTag(@NotNull XmlTag tag, @NotNull ImmutableList.Builder<NlComponent> builder) {
-    if (children == null && myTag == tag) {
-      builder.add(this);
-      return;
-    }
-
     for (NlComponent child : getChildren()) {
       child.findViewsByTag(tag, builder);
     }
 
-    if (myTag == tag) {
+    if (getTag() == tag) {
       builder.add(this);
     }
   }
@@ -246,7 +286,7 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   public boolean isRoot() {
-    return !(myTag.getParent() instanceof XmlTag);
+    return !(getTag().getParent() instanceof XmlTag);
   }
 
   public NlComponent getRoot() {
@@ -262,7 +302,7 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Nullable
   public String getId() {
-    String id = myCurrentTransaction != null ? myCurrentTransaction.getAndroidAttribute(ATTR_ID) : getAndroidAttribute(ATTR_ID);
+    String id = myCurrentTransaction != null ? myCurrentTransaction.getAndroidAttribute(ATTR_ID) : resolveAttribute(ANDROID_URI, ATTR_ID);
 
     return stripId(id);
   }
@@ -278,23 +318,6 @@ public class NlComponent implements NlAttributesHolder {
       }
     }
     return null;
-  }
-
-  /**
-   * Looks up the existing set of id's reachable from the given module
-   */
-  public static Collection<String> getIds(@NotNull NlModel model) {
-    AndroidFacet facet = model.getFacet();
-    AppResourceRepository resources = AppResourceRepository.getOrCreateInstance(facet);
-    Collection<String> ids = resources.getItemsOfType(ResourceType.ID);
-    Set<String> pendingIds = model.getPendingIds();
-    if (!pendingIds.isEmpty()) {
-      List<String> all = Lists.newArrayListWithCapacity(pendingIds.size() + ids.size());
-      all.addAll(ids);
-      all.addAll(pendingIds);
-      ids = all;
-    }
-    return ids;
   }
 
   @Nullable
@@ -324,21 +347,22 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Override
   public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
-    if (!myTag.isValid()) {
+    XmlTag tag = getTag();
+    if (!tag.isValid()) {
       // This could happen when trying to set an attribute in a component that has been already deleted
       return;
     }
 
     String prefix = null;
     if (namespace != null && !ANDROID_URI.equals(namespace)) {
-      prefix = AndroidResourceUtil.ensureNamespaceImported((XmlFile)myTag.getContainingFile(), namespace, null);
+      prefix = AndroidResourceUtil.ensureNamespaceImported((XmlFile)tag.getContainingFile(), namespace, null);
     }
     String previous = getAttribute(namespace, attribute);
     if (Objects.equals(previous, value)) {
       return;
     }
     // Handle validity
-    myTag.setAttribute(attribute, namespace, value);
+    tag.setAttribute(attribute, namespace, value);
     if (mySnapshot != null) {
       mySnapshot.setAttribute(attribute, namespace, prefix, value);
     }
@@ -377,52 +401,28 @@ public class NlComponent implements NlAttributesHolder {
     if (mySnapshot != null) {
       return mySnapshot.getAttribute(attribute, namespace);
     }
-    else if (AndroidPsiUtils.isValid(myTag)) {
-      return AndroidPsiUtils.getAttributeSafely(myTag, namespace, attribute);
-    }
     else {
-      // Newly created components for example
-      return null;
+      XmlTag tag = getTag();
+      if (AndroidPsiUtils.isValid(tag)) {
+        return AndroidPsiUtils.getAttributeSafely(tag, namespace, attribute);
+      }
+      else {
+        // Newly created components for example
+        return null;
+      }
     }
   }
 
   @Nullable
-  public String resolveAttribute(@NotNull String namespace, @NotNull String attribute) {
-    String attributeValue = getAttribute(namespace, attribute);
-
-    if (attributeValue != null) {
-      return attributeValue;
+  public String resolveAttribute(@Nullable String namespace, @NotNull String attribute) {
+    String value = getAttribute(namespace, attribute);
+    if (value != null) {
+      return value;
     }
-
-    String styleAttributeValue = getAttribute(null, "style");
-
-    if (styleAttributeValue == null) {
-      return null;
+    if (getMixin() != null) {
+      return getMixin().getAttribute(namespace, attribute);
     }
-
-    RenderResources resources = myModel.getConfiguration().getResourceResolver();
-
-    if (resources == null) {
-      return null;
-    }
-
-    // Pretend the style was referenced from a proper resource by constructing a temporary ResourceValue. TODO: aapt namespace?
-    ResourceValue tmpResourceValue = new ResourceValue(ResourceUrl.create(null, ResourceType.STYLE, myTagName),
-                                                       styleAttributeValue);
-
-    ResourceValue styleResourceValue = resources.resolveResValue(tmpResourceValue);
-
-    if (!(styleResourceValue instanceof StyleResourceValue)) {
-      return null;
-    }
-
-    ResourceValue itemResourceValue = resources.findItemInStyle((StyleResourceValue)styleResourceValue, attribute, true);
-
-    if (itemResourceValue == null) {
-      return null;
-    }
-
-    return itemResourceValue.getValue();
+    return null;
   }
 
   @NotNull
@@ -431,20 +431,21 @@ public class NlComponent implements NlAttributesHolder {
       return mySnapshot.attributes;
     }
 
-    if (myTag.isValid()) {
+    XmlTag tag = getTag();
+    if (tag.isValid()) {
       Application application = ApplicationManager.getApplication();
 
       if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<List<AttributeSnapshot>>)() -> AttributeSnapshot.createAttributesForTag(myTag));
+        return application.runReadAction((Computable<List<AttributeSnapshot>>)() -> AttributeSnapshot.createAttributesForTag(tag));
       }
-      return AttributeSnapshot.createAttributesForTag(myTag);
+      return AttributeSnapshot.createAttributesForTag(tag);
     }
 
     return Collections.emptyList();
   }
 
   public String ensureNamespace(@NotNull String prefix, @NotNull String namespace) {
-    return AndroidResourceUtil.ensureNamespaceImported((XmlFile)myTag.getContainingFile(), namespace, prefix);
+    return AndroidResourceUtil.ensureNamespaceImported((XmlFile)getTag().getContainingFile(), namespace, prefix);
   }
 
   public boolean isShowing() {
@@ -473,6 +474,17 @@ public class NlComponent implements NlAttributesHolder {
       return str.substring(index + 5);
     }
     return null;
+  }
+
+  /**
+   * Remove attributes that are not valid anymore for the current tag
+   */
+  public void removeObsoleteAttributes() {
+    Set<QualifiedName> obsoleteAttributes = AttributesHelperKt.getObsoleteAttributes(this);
+    AttributesTransaction transaction = startAttributeTransaction();
+    obsoleteAttributes.forEach(
+      qualifiedName -> transaction.removeAttribute(qualifiedName.getNamespace(), qualifiedName.getName()));
+    transaction.commit();
   }
 
   /**
@@ -547,26 +559,35 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   /**
+   * Returns the ID, but also assigns a default id if the component does not already have an id (even if the component does
+   * not need one according to [.needsDefaultId]
+   */
+  public String ensureId() {
+    if (getId() != null) {
+      return getId();
+    }
+    return assignId();
+  }
+
+  /**
    * Assign a new unique and valid id to this component. The id will not be du-duped against any existing pending ids.
    *
    * @param baseName The base (prefix) for the new id.
-   *
    * @return The new id.
    */
   @NotNull
   public String assignId(@NotNull String baseName) {
-    return assignId(baseName, getIds(getModel()));
+    return assignId(baseName, getModel().getIds());
   }
 
   /**
    * Assign a new unique and valid id to this component. The id will be based on the tag name.
    *
    * @param ids A collection of existing pending ids, so the newly-created id doesn't clash with existing pending ones.
-   *
    * @return The new id.
    */
   @NotNull
-  public String assignId(@NotNull Collection<String> ids) {
+  public String assignId(@NotNull Set<String> ids) {
     return assignId(getTagName(), ids);
   }
 
@@ -574,17 +595,27 @@ public class NlComponent implements NlAttributesHolder {
    * Assign a new unique and valid id to this component.
    *
    * @param baseName The base (prefix) for the new id.
-   * @param ids A collection of existing pending ids, so the newly-created id doesn't clash with existing pending ones.
-   *
+   * @param ids      A collection of existing pending ids, so the newly-created id doesn't clash with existing pending ones.
    * @return The new id.
    */
   @NotNull
-  public String assignId(@NotNull String baseName, @NotNull Collection<String> ids) {
+  public String assignId(@NotNull String baseName, @NotNull Set<String> ids) {
+    String newId = generateId(baseName, ids, ResourceFolderType.LAYOUT, getModel().getModule());
+    // If the component has an open transaction, assign the id in that transaction
+    NlAttributesHolder attributes = myCurrentTransaction == null ? this : myCurrentTransaction;
+    attributes.setAttribute(ANDROID_URI, ATTR_ID, NEW_ID_PREFIX + newId);
+
+    // TODO clear the pending ids
+    getModel().getPendingIds().add(newId);
+    return newId;
+  }
+
+  @NotNull
+  public static String generateId(@NotNull String baseName, @NotNull Set<String> ids, ResourceFolderType type, Module module) {
     String idValue = StringUtil.decapitalize(baseName.substring(baseName.lastIndexOf('.') + 1));
 
-    Module module = getModel().getModule();
     Project project = module.getProject();
-    idValue = ResourceHelper.prependResourcePrefix(module, idValue, ResourceFolderType.LAYOUT);
+    idValue = ResourceHelper.prependResourcePrefix(module, idValue, type);
 
     String nextIdValue = idValue;
     int index = 0;
@@ -603,19 +634,16 @@ public class NlComponent implements NlAttributesHolder {
       }
     }
 
-    String newId = idValue + (index == 0 ? "" : index);
-
-    // If the component has an open transaction, assign the id in that transaction
-    NlAttributesHolder attributes = myCurrentTransaction == null ? this : myCurrentTransaction;
-    attributes.setAttribute(ANDROID_URI, ATTR_ID, NEW_ID_PREFIX + newId);
-
-    // TODO clear the pending ids
-    getModel().getPendingIds().add(newId);
-    return newId;
+    return idValue + (index == 0 ? "" : index);
   }
 
-  public boolean isSelected() {
-    return getModel().getSelectionModel().isSelected(this);
+  @Nullable
+  public String getTooltipText() {
+    XmlModelComponentMixin mixin = getMixin();
+    if (mixin != null) {
+      return mixin.getTooltipText();
+    }
+    return null;
   }
 
   public abstract static class XmlModelComponentMixin {
@@ -630,9 +658,19 @@ public class NlComponent implements NlAttributesHolder {
       return myComponent;
     }
 
+    @Nullable
+    public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
+      return null;
+    }
+
     @Override
     public String toString() {
       return String.format("<%s>", myComponent.getTagName());
+    }
+
+    @Nullable
+    public String getTooltipText() {
+      return null;
     }
   }
 }

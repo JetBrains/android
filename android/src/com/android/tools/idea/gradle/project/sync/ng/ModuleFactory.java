@@ -46,7 +46,7 @@ class ModuleFactory {
   }
 
   @NotNull
-  Module createModule(@NotNull SyncAction.ModuleModels moduleModels) {
+  Module createModule(@NotNull GradleModuleModels moduleModels) {
     GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
     assert gradleProject != null;
     File imlFilePath = getModuleImlFilePath(gradleProject, moduleModels);
@@ -73,14 +73,14 @@ class ModuleFactory {
   }
 
   @NotNull
-  private File getModuleImlFilePath(@NotNull GradleProject gradleProject, @NotNull SyncAction.ModuleModels moduleModels) {
+  private File getModuleImlFilePath(@NotNull GradleProject gradleProject, @NotNull GradleModuleModels moduleModels) {
     String modulePath = getModulePath(gradleProject, moduleModels);
     String imlFileName = gradleProject.getName() + DOT_DEFAULT_EXTENSION;
     return new File(modulePath, imlFileName);
   }
 
   @NotNull
-  private String getModulePath(@NotNull GradleProject gradleProject, @NotNull SyncAction.ModuleModels moduleModels) {
+  private String getModulePath(@NotNull GradleProject gradleProject, @NotNull GradleModuleModels moduleModels) {
     GradleBuild gradleBuild = moduleModels.findModel(GradleBuild.class);
     if (gradleBuild != null) {
       File moduleDirPath = getModuleDirPath(gradleBuild, gradleProject.getPath());

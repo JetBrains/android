@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.run.AndroidBaseProgramRunner;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.intellij.execution.ExecutionException;
@@ -56,6 +57,9 @@ public class AndroidProfilerProgramRunner extends AndroidBaseProgramRunner {
     }
 
     ToolWindowManagerEx.getInstanceEx(env.getProject()).getToolWindow(AndroidProfilerToolWindowFactory.ID).show(null);
+
+    StudioFeatureTracker featureTracker = new StudioFeatureTracker();
+    featureTracker.trackRunWithProfiling();
 
     return descriptor;
   }

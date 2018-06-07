@@ -21,7 +21,6 @@
     <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.observable" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.compiler" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Eclipse" level="project" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" scope="TEST" />
@@ -53,15 +52,24 @@
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.junit" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="analytics-protos" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared:26.1.2" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker:26.1.2" level="project" />
     <orderEntry type="module" module-name="intellij.android.plugin" scope="RUNTIME" />
     <orderEntry type="library" name="commons-io" level="project" />
-    <orderEntry type="library" scope="TEST" name="lombok-ast" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.build:manifest-merger:26.0.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.build:manifest-merger:26.1.2" level="project" />
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="Mocks" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.usb-devices" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.android-lang" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.project-system" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.project-system-tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.jps.build" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt-testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.apkanalyzer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.android-adb" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="netty-codec-http" level="project" />
   </component>
 </module>

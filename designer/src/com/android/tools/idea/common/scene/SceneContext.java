@@ -16,17 +16,13 @@
 package com.android.tools.idea.common.scene;
 
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.naveditor.scene.NavColorSet;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.sherpa.drawing.AndroidColorSet;
-import com.android.tools.sherpa.drawing.BlueprintColorSet;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.intellij.reference.SoftReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,18 +88,33 @@ public class SceneContext {
   }
 
   @SwingCoordinate
-  public int getSwingX(@AndroidDpCoordinate float x) {
+  public int getSwingXDip(@AndroidDpCoordinate float x) {
     return (int) x;
   }
 
   @SwingCoordinate
-  public int getSwingY(@AndroidDpCoordinate float y) {
+  public int getSwingYDip(@AndroidDpCoordinate float y) {
     return (int) y;
   }
 
   @SwingCoordinate
-  public int getSwingDimension(@AndroidDpCoordinate float dim) {
+  public int getSwingX(@AndroidCoordinate int x) {
+    return x;
+  }
+
+  @SwingCoordinate
+  public int getSwingY(@AndroidCoordinate int y) {
+    return y;
+  }
+
+  @SwingCoordinate
+  public int getSwingDimensionDip(@AndroidDpCoordinate float dim) {
     return (int) dim;
+  }
+
+  @SwingCoordinate
+  public int getSwingDimension(@AndroidCoordinate int dim) {
+    return dim;
   }
 
   public ColorSet getColorSet() {
@@ -143,17 +154,7 @@ public class SceneContext {
       }
     }
     SceneViewTransform sceneViewTransform = new SceneViewTransform(sceneView);
-    ColorSet colorSet;
-    if (sceneView.getModel().getType() == NlLayoutType.NAV) {
-      colorSet = new NavColorSet();
-    }
-    else if (sceneView instanceof ScreenView && ((ScreenView)sceneView).getScreenViewType() == ScreenView.ScreenViewType.BLUEPRINT) {
-      colorSet = new BlueprintColorSet();
-    }
-    else {
-      colorSet = new AndroidColorSet();
-    }
-    sceneViewTransform.myColorSet = colorSet;
+    sceneViewTransform.myColorSet = sceneView.getColorSet();
 
     cache.put(sceneView, new SoftReference<>(sceneViewTransform));
     return sceneViewTransform;
@@ -207,14 +208,26 @@ public class SceneContext {
 
     @Override
     @SwingCoordinate
-    public int getSwingX(@AndroidDpCoordinate float x) {
+    public int getSwingXDip(@AndroidDpCoordinate float x) {
       return Coordinates.getSwingX(mySceneView, Coordinates.dpToPx(mySceneView, x));
     }
 
     @Override
     @SwingCoordinate
-    public int getSwingY(@AndroidDpCoordinate float y) {
+    public int getSwingYDip(@AndroidDpCoordinate float y) {
       return Coordinates.getSwingY(mySceneView, Coordinates.dpToPx(mySceneView, y));
+    }
+
+    @Override
+    @SwingCoordinate
+    public int getSwingX(@AndroidCoordinate int x) {
+      return Coordinates.getSwingX(mySceneView, x);
+    }
+
+    @Override
+    @SwingCoordinate
+    public int getSwingY(@AndroidCoordinate int y) {
+      return Coordinates.getSwingY(mySceneView, y);
     }
 
     @Override
@@ -225,13 +238,19 @@ public class SceneContext {
 
     @Override
     public void repaint() {
-      mySceneView.getSurface().repaint();
+      mySceneView.getSurface().needsRepaint();
     }
 
     @Override
     @SwingCoordinate
-    public int getSwingDimension(@AndroidDpCoordinate float dim) {
+    public int getSwingDimensionDip(@AndroidDpCoordinate float dim) {
       return Coordinates.getSwingDimension(mySceneView, Coordinates.dpToPx(mySceneView, dim));
+    }
+
+    @Override
+    @SwingCoordinate
+    public int getSwingDimension(@AndroidCoordinate int dim) {
+      return Coordinates.getSwingDimension(mySceneView, dim);
     }
   }
 }

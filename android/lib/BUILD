@@ -55,8 +55,8 @@ java_import(
 )
 
 java_import(
-    name = "libwebp",
-    jars = ["libwebp.jar"],
+    name = "jgraphx-3.4.0.1",
+    jars = ["jgraphx-3.4.0.1.jar"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
 )
@@ -116,5 +116,11 @@ filegroup(
         "javawriter-2.2.1.jar",
         "androidWidgets/**",
     ]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "sample-data",
+    srcs = glob(["sampleData/**"]),
     visibility = ["//visibility:public"],
 )

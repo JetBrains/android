@@ -51,8 +51,8 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -191,14 +191,12 @@ public class AndroidSdks {
   @Nullable
   public AndroidSdkData tryToChooseAndroidSdk() {
     if (mySdkData == null) {
-      if (myIdeInfo.isAndroidStudio()) {
-        // TODO fix circular dependency between IdeSdks and AndroidSdks
-        File path = IdeSdks.getInstance().getAndroidSdkPath();
-        if (path != null) {
-          mySdkData = getSdkData(path);
-          if (mySdkData != null) {
-            return mySdkData;
-          }
+      // TODO fix circular dependency between IdeSdks and AndroidSdks
+      File sdkPath = IdeSdks.getInstance().getAndroidSdkPath();
+      if (sdkPath != null) {
+        mySdkData = getSdkData(sdkPath);
+        if (mySdkData != null) {
+          return mySdkData;
         }
       }
 
@@ -268,6 +266,12 @@ public class AndroidSdks {
   public Sdk create(@NotNull IAndroidTarget target, @NotNull File sdkPath, @NotNull String sdkName, @NotNull Sdk jdk, boolean addRoots) {
     if (!target.getAdditionalLibraries().isEmpty()) {
       // Do not create an IntelliJ SDK for add-ons. Add-ons should be handled as module-level library dependencies.
+      // Instead, create the add-on parent, if missing
+      String parentHashString = target.getParent() == null ? null : target.getParent().hashString();
+      if (parentHashString != null && findSuitableAndroidSdk(parentHashString) == null) {
+        tryToCreate(sdkPath, parentHashString);
+      }
+
       return null;
     }
 

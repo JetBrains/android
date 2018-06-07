@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.rename.RenameDialog;
@@ -59,9 +60,7 @@ public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
                                              @NotNull final RenameHandler handler,
                                              @NotNull Robot robot)
   {
-    // We use SwingUtilities instead of FEST here because RenameDialog is modal and GuiActionRunner doesn't return until
-    //noinspection SSBasedInspection
-    SwingUtilities.invokeLater(
+    TransactionGuard.submitTransaction(element.getProject(),
       () -> handler.invoke(element.getProject(), new PsiElement[] { element }, SimpleDataContext.getProjectContext(element.getProject())));
     JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, RefactoringBundle.message("rename.title")).and(
       new GenericTypeMatcher<JDialog>(JDialog.class) {

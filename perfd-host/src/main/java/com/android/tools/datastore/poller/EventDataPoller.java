@@ -17,9 +17,11 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.database.EventsTable;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.EventProfiler;
+import com.android.tools.profiler.proto.EventProfiler.*;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import io.grpc.StatusRuntimeException;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * This class host an EventService that will provide callers access to all cached EventData. The data is populated from polling the service
  * passed into the connectService function.
@@ -27,14 +29,14 @@ import io.grpc.StatusRuntimeException;
 public class EventDataPoller extends PollRunner {
 
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
-  private int myProcessId = -1;
-  private final Common.Session mySession;
-  private final EventsTable myEventsTable;
-  private final EventServiceGrpc.EventServiceBlockingStub myEventPollingService;
+  @NotNull private final Common.Session mySession;
+  @NotNull private final EventsTable myEventsTable;
+  @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventPollingService;
 
-  public EventDataPoller(int processId, Common.Session session, EventsTable eventTable, EventServiceGrpc.EventServiceBlockingStub pollingService) {
+  public EventDataPoller(@NotNull Common.Session session,
+                         @NotNull EventsTable eventTable,
+                         @NotNull EventServiceGrpc.EventServiceBlockingStub pollingService) {
     super(POLLING_DELAY_NS);
-    myProcessId = processId;
     myEventsTable = eventTable;
     myEventPollingService = pollingService;
     mySession = session;
@@ -42,23 +44,19 @@ public class EventDataPoller extends PollRunner {
 
   @Override
   public void poll() throws StatusRuntimeException {
-    if (myProcessId == -1) {
-      return;
-    }
-
-    EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
-      .setProcessId(myProcessId)
+    EventDataRequest.Builder dataRequestBuilder = EventDataRequest.newBuilder()
+      .setSession(mySession)
       .setStartTimestamp(myDataRequestStartTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE);
     // Query for and cache activity data that has changed since our last polling.
-    EventProfiler.ActivityDataResponse activityResponse = myEventPollingService.getActivityData(dataRequestBuilder.build());
-    for (EventProfiler.ActivityData data : activityResponse.getDataList()) {
+    ActivityDataResponse activityResponse = myEventPollingService.getActivityData(dataRequestBuilder.build());
+    for (ActivityData data : activityResponse.getDataList()) {
       long id = data.getHash();
-      EventProfiler.ActivityData cached_data = myEventsTable.findActivityDataOrNull(data.getProcessId(), id, mySession);
+      ActivityData cached_data = myEventsTable.findActivityDataOrNull(mySession, id);
       if (cached_data != null) {
-        EventProfiler.ActivityData.Builder builder = cached_data.toBuilder();
+        ActivityData.Builder builder = cached_data.toBuilder();
         // Perfd may return states that we already have cached. This checks for that and only adds unique ones.
-        for (EventProfiler.ActivityStateData state : data.getStateChangesList()) {
+        for (ActivityStateData state : data.getStateChangesList()) {
           if (!cached_data.getStateChangesList().contains(state)) {
             builder.addStateChanges(state);
           }
@@ -70,7 +68,7 @@ public class EventDataPoller extends PollRunner {
       }
       else {
         myEventsTable.insertOrReplace(id, mySession, data);
-        for (EventProfiler.ActivityStateData state : data.getStateChangesList()) {
+        for (ActivityStateData state : data.getStateChangesList()) {
           if (state.getTimestamp() > myDataRequestStartTimestampNs) {
             myDataRequestStartTimestampNs = state.getTimestamp();
           }
@@ -80,8 +78,8 @@ public class EventDataPoller extends PollRunner {
 
     // Poll for system event data. If we have a duplicate event then we replace it with the incomming one.
     // we replace the event as the event information may have changed, eg now it has an uptime where previously it didn't
-    EventProfiler.SystemDataResponse systemResponse = myEventPollingService.getSystemData(dataRequestBuilder.build());
-    for (EventProfiler.SystemData data : systemResponse.getDataList()) {
+    SystemDataResponse systemResponse = myEventPollingService.getSystemData(dataRequestBuilder.build());
+    for (SystemData data : systemResponse.getDataList()) {
       long id = data.getEventId();
       myEventsTable.insertOrReplace(id, mySession, data);
     }

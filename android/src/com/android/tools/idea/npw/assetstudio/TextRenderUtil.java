@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.npw.assetstudio;
 
 import com.android.ide.common.util.AssetUtil;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
 import java.awt.geom.Rectangle2D;
@@ -29,22 +25,19 @@ import java.awt.image.BufferedImage;
 
 /**
  * A set of utility classes for rendering text to a {@link BufferedImage}, suitable for use as a
- * source image to {@link GraphicGenerator} objects.
+ * source image to {@link IconGenerator} objects.
  */
 public class TextRenderUtil {
     /**
-     * Renders the given string with the provided {@link Options} to a
-     * {@link BufferedImage}.
+     * Renders the given string with the provided {@link Options} to a {@link BufferedImage}.
      *
      * @param text The text to render.
      * @param paddingPercentage If nonzero, a percentage of the width or height
      *            (whichever is smaller) to add as padding around the text
      * @param options The optional parameters for rendering the text.
-     * @return An image, suitable for use as an input to a
-     *         {@link GraphicGenerator}.
+     * @return An image, suitable for use as an input to a {@link IconGenerator}.
      */
-    public static BufferedImage renderTextImage(String text, int paddingPercentage,
-            Options options) {
+    public static BufferedImage renderTextImage(String text, int paddingPercentage, Options options) {
         if (options == null) {
             options = new Options();
         }

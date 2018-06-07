@@ -76,7 +76,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
 
     GradleSyncState syncState = GradleSyncState.getInstance(getProject());
     assertFalse(syncState.isSyncNeeded().toBoolean());
-    assertTrue(ModuleDataBinding.isEnabled(myAndroidFacet));
+    assertTrue(ModuleDataBinding.getInstance(myAndroidFacet).isEnabled());
 
 
     // trigger initialization
