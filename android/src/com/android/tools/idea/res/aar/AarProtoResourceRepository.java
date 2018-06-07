@@ -30,6 +30,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.io.URLUtil;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -129,7 +130,7 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
       } catch (URISyntaxException e) {
         throw new Error("Internal error", e);
       }
-      myResourceUrlPrefix = myResApkUri.toString() + ':';
+      myResourceUrlPrefix = myResApkUri.toString() + URLUtil.JAR_SEPARATOR;
     } else {
       myResourcePathPrefix = myAarDirectory.getAbsolutePath() + File.separator;
       myResourceUrlPrefix = "file://" + myResourcePathPrefix;
@@ -184,11 +185,11 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
    * The string represents an URL in one of the following formats:
    * <ul>
    *  <li>file URL, e.g. "file:///foo/bar/res/layout/my_layout.xml"</li>
-   *  <li>URL of a zipped element inside the res.apk file, e.g. "apk:/foo/bar/res.apk:res/layout/my_layout.xml"</li>
+   *  <li>URL of a zipped element inside the res.apk file, e.g. "apk:/foo/bar/res.apk!/res/layout/my_layout.xml"</li>
    * </ul>
    *
    * @param relativeResourcePath the relative path of a file resource
-   * @return the URL pointing to to the file resource
+   * @return the URL pointing to the file resource
    * @see ResourceHelper#toFileResourcePathString(String)
    */
   @Nullable

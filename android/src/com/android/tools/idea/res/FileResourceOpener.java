@@ -30,6 +30,8 @@ import java.net.URI;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
+
 /**
  * Methods for working with Android file resources.
  */
@@ -69,7 +71,7 @@ public class FileResourceOpener {
    * Creates an {@link ByteArrayInputStream} for reading the contents of a resource. There is no
    * need to close the returned stream. The resource path can point either to a file on disk, or
    * to a ZIP file entry. In the latter case the resource path has the following format:
-   * "apk:<i>path_to_zip_file</i>:<i>path_to_zip_entry</i>.
+   * "apk:<i>path_to_zip_file</i>!/<i>path_to_zip_entry</i>.
    *
    * @param resourcePath the path to a file or a zip entry
    * @return the stream for reading contents of the file resource
@@ -79,11 +81,12 @@ public class FileResourceOpener {
   public static ByteArrayInputStream open(@NotNull String resourcePath) throws IOException {
     if (resourcePath.startsWith("apk:")) {
       int prefixLength = "apk:".length();
-      int colonPos = resourcePath.lastIndexOf(':');
-      if (colonPos < prefixLength) {
+      int separatorPos = resourcePath.lastIndexOf(JAR_SEPARATOR);
+      if (separatorPos < prefixLength) {
         throw new IllegalArgumentException("Invalid resource path \"" + resourcePath + "\"");
       }
-      return openZipEntry(resourcePath.substring(prefixLength, colonPos), resourcePath.substring(colonPos + 1));
+      return openZipEntry(resourcePath.substring(prefixLength, separatorPos),
+                          resourcePath.substring(separatorPos + JAR_SEPARATOR.length()));
     }
 
     if (resourcePath.startsWith("file:")) {
