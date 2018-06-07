@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore.poller
 
+import com.android.testutils.TestUtils
 import com.android.tools.datastore.DataStoreDatabase
 import com.android.tools.datastore.DataStorePollerTest
 import com.android.tools.datastore.DataStoreService
@@ -48,10 +49,11 @@ class ProfilerDevicePollerTest : DataStorePollerTest() {
 
   @Before
   fun setup() {
-    myDataStore = DataStoreService(SERVICE_NAME, SERVICE_PATH, pollTicker::run, FakeLogService())
+    val servicePath = TestUtils.createTempDirDeletedOnExit().absolutePath
+    myDataStore = DataStoreService(javaClass.simpleName, servicePath, pollTicker::run, FakeLogService())
     myProfilerService = FakeProfilerService()
     val namespace = DEFAULT_SHARED_NAMESPACE
-    myDatabase = myDataStore.createDatabase(SERVICE_PATH + namespace.myNamespace, namespace.myCharacteristic) { t -> }
+    myDatabase = myDataStore.createDatabase(servicePath + namespace.myNamespace, namespace.myCharacteristic) { _ -> }
     myTable = ProfilerTable()
     myTable.initialize(myDatabase.connection)
 
@@ -177,8 +179,6 @@ class ProfilerDevicePollerTest : DataStorePollerTest() {
   }
 
   companion object {
-    private val SERVICE_PATH = "/tmp/"
-    private val SERVICE_NAME = "ProfilerDevicePollerTest"
     private val PROCESS_1 = 11
     private val PROCESS_2 = 12
     private val PROCESS_3 = 13

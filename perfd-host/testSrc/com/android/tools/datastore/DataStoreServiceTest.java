@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.datastore.DataStoreService.BackingNamespace;
 import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.datastore.service.*;
@@ -47,11 +48,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class DataStoreServiceTest extends DataStorePollerTest {
-  private static final String SERVICE_PATH = "/tmp/";
   private static final String SERVICE_NAME = "DataStoreServiceTest";
-  private static final String SERVER_NAME = "TestServer";
   private static final VersionResponse EXPECTED_VERSION = VersionResponse.newBuilder().setVersion("TEST").build();
   private DataStoreService myDataStore;
+  private String myServicePath;
   private Server myService;
 
   @Rule
@@ -59,9 +59,10 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
   @Before
   public void setUp() throws Exception {
-    myDataStore = new DataStoreService(SERVICE_NAME, SERVICE_PATH, getPollTicker()::run, new FakeLogService());
+    myServicePath = TestUtils.createTempDirDeletedOnExit().getAbsolutePath();
+    myDataStore = new DataStoreService(SERVICE_NAME, myServicePath, getPollTicker()::run, new FakeLogService());
     myService = InProcessServerBuilder
-      .forName(SERVER_NAME)
+      .forName(myServicePath)
       .addService(new FakeProfilerService().bindService())
       .addService(new EventServiceStub().bindService())
       .addService(new CpuServiceStub().bindService())
@@ -79,7 +80,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
   @Test
   public void testServiceSetupWithExpectedName() {
-    ManagedChannel channel = InProcessChannelBuilder.forName(SERVICE_PATH).build();
+    ManagedChannel channel = InProcessChannelBuilder.forName(myServicePath).build();
     ProfilerServiceGrpc.newBlockingStub(channel);
   }
 
@@ -103,7 +104,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
   @Test
   public void testConnectServices() {
-    ManagedChannel channel = InProcessChannelBuilder.forName(SERVER_NAME).build();
+    ManagedChannel channel = InProcessChannelBuilder.forName(myServicePath).build();
     myDataStore.connect(channel);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
       myDataStore.getProfilerClient(DeviceId.of(DEVICE.getDeviceId()));
@@ -113,7 +114,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
   @Test
   public void testDisconnectServices() {
-    ManagedChannel channel = InProcessChannelBuilder.forName(SERVER_NAME).build();
+    ManagedChannel channel = InProcessChannelBuilder.forName(myServicePath).build();
     myDataStore.connect(channel);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
       ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
@@ -126,7 +127,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
   @Test
   public void testRegisterDb() {
-    FakeDataStoreService dataStoreService = new FakeDataStoreService("DataStoreServiceTestFake", SERVICE_PATH, getPollTicker()::run);
+    FakeDataStoreService dataStoreService = new FakeDataStoreService("DataStoreServiceTestFake", myServicePath, getPollTicker()::run);
     dataStoreService.assertCorrectness();
     dataStoreService.shutdown();
   }
@@ -136,7 +137,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     // Teardown datastore created in startup to unregister callbacks.
     myDataStore.shutdown();
     FakeDataStoreService dataStoreService =
-      new FakeDataStoreService("testSQLFailureCallsbackToExceptionHandler", SERVICE_PATH, getPollTicker()::run);
+      new FakeDataStoreService("testSQLFailureCallsbackToExceptionHandler", myServicePath, getPollTicker()::run);
 
     // Use an array making this object mutable by the lambda.
     final Throwable[] expectedException = new Throwable[1];
