@@ -78,6 +78,19 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     mySplitter = new JBSplitter(true, "android.apk.viewer", 0.62f);
     mySplitter.setName("apkViwerContainer");
 
+    // Setup focus root for a11y purposes
+    // Given that
+    // 1) IdeFrameImpl sets up a custom focus traversal policy that unconditionally set te focus to the preferred component
+    //    of the editor windows
+    // 2) IdeFrameImpl is the default focus cycle root for editor windows
+    // (see https://github.com/JetBrains/intellij-community/commit/65871b384739b52b1c0450235bc742d2ba7fb137#diff-5b11919bab177bf9ab13c335c32874be)
+    //
+    // We need to declare the root component of this custom editor to be a focus cycle root and
+    // setup the default focus traversal policy (layout) to ensure the TAB key cycles through all the
+    // components of this custom panel.
+    mySplitter.setFocusCycleRoot(true);
+    mySplitter.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
+
     // The APK Analyzer uses a copy of the APK to open it as an Archive. It does so far two reasons:
     // 1. We don't want the editor holding a lock on an APK (applies only to Windows)
     // 2. Since an Archive creates a FileSystem under the hood, we don't want the zip file's contents
