@@ -16,31 +16,33 @@
 package com.android.tools.idea.gradle.plugin;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
+import static com.android.tools.idea.gradle.util.BuildFileProcessor.getCompositeBuildFolderPaths;
 import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
 import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -111,8 +113,9 @@ public class AndroidPluginVersionUpdater {
       }
 
       // TODO add a trigger when the plug-in version changed (right now let as something changed in the project)
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject().setTrigger(TRIGGER_PROJECT_MODIFIED);
-      mySyncInvoker.requestProjectSync(myProject, request, null);
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      request.cleanProject = true;
+      mySyncInvoker.requestProjectSync(myProject, request);
     }
   }
 
@@ -133,7 +136,29 @@ public class AndroidPluginVersionUpdater {
    */
   @NotNull
   public UpdateResult updatePluginVersion(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
-    List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
+    UpdateResult result = new UpdateResult();
+    runWriteCommandAction(myProject, () -> updateAndroidPluginVersion(pluginVersion, gradleVersion, result));
+
+    // Update Gradle version only if plugin is successful updated, to avoid leaving the project
+    // in a inconsistent state.
+    if (result.isPluginVersionUpdated() && gradleVersion != null) {
+      runWriteCommandAction(myProject, () -> updateGradleWrapperVersion(gradleVersion, result));
+    }
+    return result;
+  }
+
+  /**
+   * Updates android plugin version.
+   *
+   * @param pluginVersion the plugin version to update to.
+   * @param gradleVersion the Gradle version that the project will use (or null if it will not change)
+   * @param result        result of the update operation.
+   */
+  private void updateAndroidPluginVersion(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion, @NotNull UpdateResult result) {
+    List<GradleBuildModel> modelsToUpdate = new ArrayList<>();
+
+    // Refresh the file system to avoid reading stale cached virtual files.
+    VirtualFileManager.getInstance().refreshWithoutFileWatcher(false /* synchronous */);
 
     BuildFileProcessor.getInstance().processRecursively(myProject, buildModel -> {
       DependenciesModel dependencies = buildModel.buildscript().dependencies();
@@ -144,37 +169,57 @@ public class AndroidPluginVersionUpdater {
           String versionValue = dependency.version().value();
           if (isEmpty(versionValue) || pluginVersion.compareTo(versionValue) != 0) {
             dependency.setVersion(pluginVersion.toString());
+            // Add Google Maven repository to buildscript (b/69977310)
+            if (gradleVersion != null) {
+              buildModel.buildscript().repositories().addGoogleMavenRepository(gradleVersion);
+            }
+            else {
+              // Gradle version will *not* change, use project version
+              buildModel.buildscript().repositories().addGoogleMavenRepository(myProject);
+            }
             modelsToUpdate.add(buildModel);
           }
           break;
         }
       }
       return true;
-    });
-
-    UpdateResult result = new UpdateResult();
+    }, true /* process composite builds */);
 
     boolean updateModels = !modelsToUpdate.isEmpty();
     if (updateModels) {
       try {
-        runWriteCommandAction(myProject, (ThrowableComputable<Void, RuntimeException>)() -> {
-          for (GradleBuildModel buildModel : modelsToUpdate) {
-            buildModel.applyChanges();
-          }
-          result.pluginVersionUpdated();
-          return null;
-        });
+        for (GradleBuildModel buildModel : modelsToUpdate) {
+          buildModel.applyChanges();
+        }
+        result.pluginVersionUpdated();
       }
       catch (Throwable e) {
         result.setPluginVersionUpdateError(e);
       }
     }
+    else {
+      result.setPluginVersionUpdateError(new RuntimeException("Failed to find gradle build models to update."));
+    }
+  }
 
-    if (gradleVersion != null) {
-      String basePath = myProject.getBasePath();
-      if (basePath != null) {
+  /**
+   * Updates Gradle version in wrapper.
+   *
+   * @param gradleVersion the gradle version to update to.
+   * @param result        the result of the update operation.
+   */
+  private void updateGradleWrapperVersion(@NotNull GradleVersion gradleVersion, @NotNull UpdateResult result) {
+    String basePath = myProject.getBasePath();
+    if (basePath == null) {
+      return;
+    }
+    List<File> projectRootFolders = new ArrayList<>();
+    projectRootFolders.add(new File(toSystemDependentPath(basePath)));
+    projectRootFolders.addAll(getCompositeBuildFolderPaths(myProject));
+    for (File rootFolder : projectRootFolders) {
+      if (rootFolder != null) {
         try {
-          File wrapperPropertiesFilePath = getDefaultPropertiesFilePath(new File(basePath));
+          File wrapperPropertiesFilePath = getDefaultPropertiesFilePath(rootFolder);
           GradleWrapper gradleWrapper = GradleWrapper.get(wrapperPropertiesFilePath);
           String current = gradleWrapper.getGradleVersion();
           GradleVersion parsedCurrent = null;
@@ -191,7 +236,6 @@ public class AndroidPluginVersionUpdater {
         }
       }
     }
-    return result;
   }
 
   public static class UpdateResult {
@@ -255,10 +299,11 @@ public class AndroidPluginVersionUpdater {
     void execute() {
       String msg = "Failed to update the version of the Android Gradle plugin.\n\n" +
                    "Please click 'OK' to perform a textual search and then update the build files manually.";
-      Messages.showErrorDialog(myProject, msg, "Unexpected Error");
-
-      String textToFind = AndroidPluginGeneration.getGroupId() + ":" + AndroidPluginGeneration.ORIGINAL.getArtifactId();
-      searchInBuildFiles(textToFind, myProject);
+      ApplicationManager.getApplication().invokeLater(() -> {
+        Messages.showErrorDialog(myProject, msg, "Unexpected Error");
+        String textToFind = AndroidPluginGeneration.getGroupId() + ":" + AndroidPluginGeneration.ORIGINAL.getArtifactId();
+        searchInBuildFiles(textToFind, myProject);
+      });
     }
   }
 }

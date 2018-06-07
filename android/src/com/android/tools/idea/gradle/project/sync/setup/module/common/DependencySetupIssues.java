@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
-import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -36,9 +34,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.MISSING_DEPENDENCIES;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ArrayUtil.toStringArray;
@@ -47,7 +45,6 @@ import static com.intellij.util.ArrayUtil.toStringArray;
  * Collects and reports dependencies that were not correctly set up during a Gradle sync.
  */
 public class DependencySetupIssues {
-  @NotNull private final Project myProject;
   @NotNull private final GradleSyncState mySyncState;
   @NotNull private final GradleSyncMessages mySyncMessages;
 
@@ -63,7 +60,6 @@ public class DependencySetupIssues {
   }
 
   public DependencySetupIssues(@NotNull Project project, @NotNull GradleSyncState syncState, @NotNull GradleSyncMessages syncMessages) {
-    myProject = project;
     mySyncState = syncState;
     mySyncMessages = syncMessages;
   }
@@ -139,7 +135,6 @@ public class DependencySetupIssues {
 
   private void reportModulesNotFoundIssues(@NotNull List<MissingModule> missingModules) {
     if (!missingModules.isEmpty()) {
-      boolean hasError = false;
       for (MissingModule missingModule : missingModules) {
         List<String> messageLines = new ArrayList<>();
 
@@ -155,21 +150,7 @@ public class DependencySetupIssues {
           String msg = String.format("Linking to library '%1$s' instead.", backupLibraryName);
           messageLines.add(msg);
         }
-        if (missingModule.isError()) {
-          hasError = true;
-        }
         mySyncMessages.report(new SyncMessage(MISSING_DEPENDENCIES, missingModule.issueType, toStringArray(messageLines)));
-      }
-
-      // If the project is really a subset of the project, attempt to find and include missing modules.
-      ProjectSubset projectSubset = ProjectSubset.getInstance(myProject);
-      String[] selection = projectSubset.getSelection();
-      boolean hasSelection = selection != null && selection.length > 0;
-      if (hasError && hasSelection && projectSubset.hasCachedModules()) {
-        String text = "The missing modules may have been excluded from the project subset.";
-        SyncMessage message = new SyncMessage(MISSING_DEPENDENCIES, MessageType.INFO, text);
-        message.add(new IncludeMissingModulesHyperlink(missingModules));
-        mySyncMessages.report(message);
       }
     }
   }
@@ -267,26 +248,6 @@ public class DependencySetupIssues {
       this.dependency = dependency;
       this.dependent = dependent;
       this.cause = cause;
-    }
-  }
-
-  /**
-   * "Quick Fix" link that attempts to find and include any modules that were not previously included in the project subset.
-   */
-  private static class IncludeMissingModulesHyperlink extends NotificationHyperlink {
-    @NotNull private final Set<String> myModuleGradlePaths;
-
-    IncludeMissingModulesHyperlink(@NotNull List<MissingModule> missingModules) {
-      super("include.missing.modules", "Find and include missing modules");
-      myModuleGradlePaths = new HashSet<>(missingModules.size());
-      for (MissingModule module : missingModules) {
-        myModuleGradlePaths.add(module.dependencyPath);
-      }
-    }
-
-    @Override
-    protected void execute(@NotNull Project project) {
-      ProjectSubset.getInstance(project).findAndIncludeModules(myModuleGradlePaths);
     }
   }
 }

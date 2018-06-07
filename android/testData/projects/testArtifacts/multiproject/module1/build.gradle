@@ -30,7 +30,7 @@ repositories {
 }
 
 dependencies {
-  testCompile 'junit:junit:4.12'
-  androidTestCompile 'com.google.code.gson:gson:2.2.4'
-  androidTestCompile project(':module3')
+  testImplementation 'junit:junit:4.12'
+  androidTestImplementation 'com.google.code.gson:gson:2.2.4'
+  androidTestImplementation project(':module3')
 }

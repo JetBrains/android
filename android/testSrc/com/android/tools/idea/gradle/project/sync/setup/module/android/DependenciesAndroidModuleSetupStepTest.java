@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
@@ -43,12 +43,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.DOCUMENTATION;
+import static com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep.isSelfDependencyByTest;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -98,8 +98,8 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     // Make sure DependenciesSetup#setUpLibraryDependency was invoked.
-    verify(myDependenciesSetup).setUpLibraryDependency(myModule, modelsProvider, "Gradle: myLibrary", COMPILE, dependency.getArtifactPath(),
-                                                       dependency.getPaths(BINARY), dependency.getPaths(DOCUMENTATION), exported);
+    verify(myDependenciesSetup).setUpLibraryDependency(myModule, modelsProvider, dependency.getName(), COMPILE, dependency.getArtifactPath(),
+                                                       dependency.getBinaryPaths(), exported);
   }
 
   @NotNull
@@ -134,9 +134,7 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
 
   @NotNull
   private static LibraryDependency createFakeLibraryDependency(@NotNull File jarsFolderPath) {
-    LibraryDependency dependency = new LibraryDependency(new File(jarsFolderPath, "myLibrary.jar"), COMPILE);
-    dependency.addPath(DOCUMENTATION, new File(jarsFolderPath, "myLibrary-javadoc.jar"));
-    return dependency;
+    return new LibraryDependency(new File(jarsFolderPath, "myLibrary.jar"), COMPILE);
   }
 
   @NotNull
@@ -146,17 +144,17 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
     return moduleFile.getParent();
   }
 
-  public void testUpdateModuleDependencyWithPlugin2dot3() throws IOException {
+  public void testUpdateModuleDependencyWithPlugin2dot3() {
     // Verify that module dependency is exported for plugin 2.3.
     updateModuleDependency("2.3.0", true);
   }
 
-  public void testUpdateModuleDependencyWithPlugin3dot0() throws IOException {
+  public void testUpdateModuleDependencyWithPlugin3dot0() {
     // Verify that module dependency is not exported for plugin 3.0.
     updateModuleDependency("3.0.0", false);
   }
 
-  private void updateModuleDependency(@NotNull String modelVersion, boolean exported) throws IOException {
+  private void updateModuleDependency(@NotNull String modelVersion, boolean exported) {
     String libModulePath = "mylib";
     // Create a lib module.
     Module libModule = createModule(libModulePath);
@@ -167,7 +165,7 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
     AndroidModuleModel moduleModel = createAndroidFacetAndModuleModel(modelVersion);
 
     // Create module dependency on lib module.
-    ModuleDependency dependency = new ModuleDependency(libModulePath, COMPILE);
+    ModuleDependency dependency = new ModuleDependency(libModulePath, COMPILE, libModule);
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
 
     mySetupStep.updateModuleDependency(myModule, modelsProvider, dependency, moduleModel);
@@ -193,5 +191,26 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
       }
     }
     return moduleOrderEntries;
+  }
+
+  public void testIsSelfDependencyByTest() {
+    String libModulePath = "lib";
+
+    // Create a lib module.
+    Module libModule = createModule(libModulePath);
+    GradleFacet facet = createAndAddGradleFacet(libModule);
+    facet.getConfiguration().GRADLE_PROJECT_PATH = libModulePath;
+
+    // Create module dependency on lib module.
+    ModuleDependency selfCompileDependency = new ModuleDependency(libModulePath, COMPILE, libModule);
+    ModuleDependency selfTestDependency = new ModuleDependency(libModulePath, TEST, libModule);
+    // Create module dependency on some other module.
+    ModuleDependency otherDependency = new ModuleDependency("other", TEST, createModule("other"));
+
+    // Verify that isSelfDependencyByTest is false for compile scope, and true for test scope.
+    assertFalse(isSelfDependencyByTest(libModule, selfCompileDependency));
+    assertTrue(isSelfDependencyByTest(libModule, selfTestDependency));
+    // Verify that isSelfDependencyByTest is false non-self dependency.
+    assertFalse(isSelfDependencyByTest(libModule, otherDependency));
   }
 }

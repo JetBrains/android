@@ -24,12 +24,12 @@ public class StatefulButtonMessageTest extends TestCase {
 
   public void testNotApplicable() {
     StatefulButtonMessage message = new StatefulButtonMessage("test", DefaultActionState.NOT_APPLICABLE);
-    assertNull(message.myMessageDisplay.getIcon());
+    assertNull(message.myMessageDisplay);
   }
 
   public void testInProgress() {
     StatefulButtonMessage message = new StatefulButtonMessage("test", DefaultActionState.IN_PROGRESS);
-    assertNull(message.myMessageDisplay.getIcon());
+    assertNull(message.myMessageDisplay);
   }
 
   public void testComplete() {

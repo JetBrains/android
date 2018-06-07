@@ -17,6 +17,7 @@ package com.android.tools.idea.concurrent;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 

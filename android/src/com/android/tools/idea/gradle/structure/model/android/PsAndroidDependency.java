@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;

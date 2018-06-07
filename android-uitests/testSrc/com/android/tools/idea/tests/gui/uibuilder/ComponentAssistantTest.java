@@ -59,7 +59,7 @@ public class ComponentAssistantTest {
                   .openAsInspector()
                   .hasComponentAssistantPanel());
 
-    layout.dragComponentToSurface("AppCompat", "android.support.v7.widget.RecyclerView");
+    layout.dragComponentToSurface("Containers", "RecyclerView");
     MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk();
     guiTest.ideFrame()
       .waitForGradleProjectSyncToFinish()

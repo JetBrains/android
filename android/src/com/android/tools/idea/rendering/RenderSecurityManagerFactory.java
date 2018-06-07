@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.tools.log.LogWrapper;
+import com.android.tools.idea.log.LogWrapper;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.sdk.AndroidPlatform;

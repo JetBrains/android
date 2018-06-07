@@ -17,6 +17,7 @@ import com.intellij.codeInspection.GlobalInspectionContext;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.codeInspection.ex.Tools;
 import com.intellij.codeInspection.lang.GlobalInspectionContextExtension;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
@@ -73,7 +74,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       }
     }
 
-    if (!AndroidFacet.hasAndroid(project)) {
+    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
       return;
     }
 

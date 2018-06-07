@@ -28,6 +28,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LargeFileWriteRequestor;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -133,11 +134,12 @@ public class CreateModuleFromArchiveAction extends WriteCommandAction<Object> {
       VirtualFile moduleRoot = VfsUtil.createDirectoryIfMissing(moduleLocation.getAbsolutePath());
       VirtualFile sourceFile = VfsUtil.findFileByIoFile(myArchivePath, true);
       if (sourceFile != null && moduleRoot != null) {
+        LargeFileWriteRequestor requestor = new LargeFileWriteRequestor() { };
         if (myMove) {
-          sourceFile.move(this, moduleRoot);
+          sourceFile.move(requestor, moduleRoot);
         }
         else {
-          VfsUtil.copy(this, sourceFile, moduleRoot);
+          sourceFile.copy(requestor, moduleRoot, sourceFile.getName());
         }
         VirtualFile buildGradle = moduleRoot.createChildData(this, SdkConstants.FN_BUILD_GRADLE);
         VfsUtil.saveText(buildGradle, getBuildGradleText(myArchivePath));

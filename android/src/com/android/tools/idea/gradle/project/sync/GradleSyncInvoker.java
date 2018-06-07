@@ -16,17 +16,17 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.application.Application;
@@ -40,7 +40,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.TaskInfo;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.wm.IdeFrame;
@@ -50,22 +49,22 @@ import com.intellij.openapi.wm.ex.WindowManagerEx;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
-import static com.android.tools.idea.gradle.util.Projects.setSyncRequestedDuringBuild;
 import static com.google.common.base.Strings.nullToEmpty;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_UNKNOWN;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.*;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 public class GradleSyncInvoker {
   @NotNull private final FileDocumentManager myFileDocumentManager;
@@ -85,12 +84,11 @@ public class GradleSyncInvoker {
     this(fileDocumentManager, ideInfo, syncFailureHandler, new PreSyncProjectCleanUp(), new PreSyncChecks());
   }
 
-  @VisibleForTesting
-  GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager,
-                    @NotNull IdeInfo ideInfo,
-                    @NotNull GradleSyncFailureHandler syncFailureHandler,
-                    @NotNull PreSyncProjectCleanUp preSyncProjectCleanUp,
-                    @NotNull PreSyncChecks preSyncChecks) {
+  private GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager,
+                            @NotNull IdeInfo ideInfo,
+                            @NotNull GradleSyncFailureHandler syncFailureHandler,
+                            @NotNull PreSyncProjectCleanUp preSyncProjectCleanUp,
+                            @NotNull PreSyncChecks preSyncChecks) {
     myFileDocumentManager = fileDocumentManager;
     myIdeInfo = ideInfo;
     mySyncFailureHandler = syncFailureHandler;
@@ -99,9 +97,19 @@ public class GradleSyncInvoker {
   }
 
   public void requestProjectSyncAndSourceGeneration(@NotNull Project project,
+                                                    @NotNull GradleSyncStats.Trigger trigger) {
+    requestProjectSyncAndSourceGeneration(project, trigger, null);
+  }
+
+  public void requestProjectSyncAndSourceGeneration(@NotNull Project project,
                                                     @NotNull GradleSyncStats.Trigger trigger,
                                                     @Nullable GradleSyncListener listener) {
-    requestProjectSync(project, new GradleSyncInvoker.Request().setTrigger(trigger), listener);
+    Request request = new Request(trigger);
+    requestProjectSync(project, request, listener);
+  }
+
+  public void requestProjectSync(@NotNull Project project, @NotNull Request request) {
+    requestProjectSync(project, request, null);
   }
 
   public void requestProjectSync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
@@ -116,13 +124,8 @@ public class GradleSyncInvoker {
     Runnable syncTask = () -> {
       ensureToolWindowContentInitialized(project, GRADLE_SYSTEM_ID);
       try {
-        if (prepareProject(project, request, listener)) {
-          if (StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get()) {
-            DumbService.getInstance(project).runWhenSmart(() -> sync(project, request, listener));
-          }
-          else {
-            sync(project, request, listener);
-          }
+        if (prepareProject(project, listener)) {
+          sync(project, request, listener);
         }
       }
       catch (ConfigurationException e) {
@@ -135,7 +138,7 @@ public class GradleSyncInvoker {
       application.invokeAndWait(syncTask);
       return;
     }
-    if (request.isRunInBackground()) {
+    if (request.runInBackground) {
       TransactionGuard.getInstance().submitTransactionLater(project, syncTask);
     }
     else {
@@ -161,10 +164,11 @@ public class GradleSyncInvoker {
     return false;
   }
 
-  private boolean prepareProject(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener)
+  private boolean prepareProject(@NotNull Project project, @Nullable GradleSyncListener listener)
     throws ConfigurationException {
     if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() || hasTopLevelGradleBuildFile(project)) {
-      if (!request.isNewOrImportedProject()) {
+      boolean isImportedProject = GradleProjectInfo.getInstance(project).isImportedProject();
+      if (!isImportedProject) {
         myFileDocumentManager.saveAllDocuments();
       }
       return true; // continue with sync.
@@ -196,32 +200,42 @@ public class GradleSyncInvoker {
       clearStoredGradleJvmArgs(project);
     }
 
-    PreSyncCheckResult canSync = myPreSyncChecks.canSync(project);
-    if (!canSync.isSuccess()) {
+    invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(project).removeProjectMessages());
+    PreSyncCheckResult checkResult = myPreSyncChecks.canSync(project);
+    if (!checkResult.isSuccess()) {
       // User should have already warned that something is not right and sync cannot continue.
-      String cause = nullToEmpty(canSync.getFailureCause());
-      handlePreSyncCheckFailure(project, cause, listener, request.getTrigger());
+      String cause = nullToEmpty(checkResult.getFailureCause());
+      handlePreSyncCheckFailure(project, cause, listener, request);
       return;
     }
 
+    // Do clean up tasks before calling sync started.
+    // During clean up, we might change some gradle files, for example, gradle property files based on http settings, gradle wrappers and etc.
+    // And any changes to gradle files after sync started will result in another sync needed.
+    myPreSyncProjectCleanUp.cleanUp(project);
+
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
+    boolean isImportedProject = GradleProjectInfo.getInstance(project).isImportedProject();
     boolean started;
-    if (request.isUseCachedGradleModels()) {
-      started = GradleSyncState.getInstance(project).skippedSyncStarted(!request.isNewOrImportedProject(), request.getTrigger());
+    if (request.useCachedGradleModels) {
+      started = GradleSyncState.getInstance(project).skippedSyncStarted(!isImportedProject, request);
     }
     else {
-      started = GradleSyncState.getInstance(project).syncStarted(!request.isNewOrImportedProject(), request.getTrigger());
+      started = GradleSyncState.getInstance(project).syncStarted(!isImportedProject, request);
     }
     if (!started) {
       return;
+    }
+
+    if (listener != null) {
+      listener.syncStarted(project, request.useCachedGradleModels, request.generateSourcesOnSuccess);
     }
 
     boolean useNewGradleSync = NewGradleSync.isEnabled();
     if (!useNewGradleSync) {
       removeAndroidModels(project);
     }
-    myPreSyncProjectCleanUp.cleanUp(project);
 
     GradleSync gradleSync = useNewGradleSync ? new NewGradleSync(project) : new IdeaGradleSync(project);
     gradleSync.sync(request, listener);
@@ -230,9 +244,12 @@ public class GradleSyncInvoker {
   private void handlePreSyncCheckFailure(@NotNull Project project,
                                          @NotNull String failureCause,
                                          @Nullable GradleSyncListener syncListener,
-                                         @NotNull GradleSyncStats.Trigger trigger) {
+                                         @NotNull GradleSyncInvoker.Request request) {
     GradleSyncState syncState = GradleSyncState.getInstance(project);
-    if (syncState.syncStarted(true, trigger)) {
+    if (syncState.syncStarted(true, request)) {
+      if (syncListener != null) {
+        syncListener.syncStarted(project, request.useCachedGradleModels, request.generateSourcesOnSuccess);
+      }
       mySyncFailureHandler.createTopLevelModelAndOpenProject(project);
       syncState.syncFailed(failureCause);
       if (syncListener != null) {
@@ -255,89 +272,36 @@ public class GradleSyncInvoker {
   }
 
   public static class Request {
-    private boolean myRunInBackground = true;
-    private boolean myGenerateSourcesOnSuccess = true;
-    private boolean myCleanProject;
-    private boolean myUseCachedGradleModels;
-    private boolean myNewOrImportedProject;
-    private boolean mySkipAndroidPluginUpgrade;
-    private GradleSyncStats.Trigger myTrigger = TRIGGER_UNKNOWN;
+    public final GradleSyncStats.Trigger trigger;
 
-    public boolean isRunInBackground() {
-      return myRunInBackground;
+    public boolean runInBackground = true;
+    public boolean generateSourcesOnSuccess = true;
+    public boolean cleanProject;
+    public boolean useCachedGradleModels;
+    public boolean skipAndroidPluginUpgrade;
+
+    @NotNull
+    public static Request projectLoaded() {
+      return new Request(TRIGGER_PROJECT_LOADED);
     }
 
     @NotNull
-    public Request setRunInBackground(boolean runInBackground) {
-      myRunInBackground = runInBackground;
-      return this;
-    }
-
-    public boolean isGenerateSourcesOnSuccess() {
-      return myGenerateSourcesOnSuccess;
+    public static Request projectModified() {
+      return new Request(TRIGGER_PROJECT_MODIFIED);
     }
 
     @NotNull
-    public Request setGenerateSourcesOnSuccess(boolean generateSourcesOnSuccess) {
-      myGenerateSourcesOnSuccess = generateSourcesOnSuccess;
-      return this;
+    public static Request userRequest() {
+      return new Request(TRIGGER_USER_REQUEST);
     }
 
-    public boolean isCleanProject() {
-      return myCleanProject;
+    public Request(@NotNull GradleSyncStats.Trigger trigger) {
+      this.trigger = trigger;
     }
-
-    @NotNull
-    public Request setCleanProject() {
-      myCleanProject = true;
-      return this;
-    }
-
-    public boolean isUseCachedGradleModels() {
-      return myUseCachedGradleModels;
-    }
-
-    @NotNull
-    public Request setUseCachedGradleModels(boolean useCachedGradleModels) {
-      myUseCachedGradleModels = useCachedGradleModels;
-      return this;
-    }
-
-    public boolean isNewOrImportedProject() {
-      return myNewOrImportedProject;
-    }
-
-    @NotNull
-    public Request setNewOrImportedProject() {
-      myNewOrImportedProject = true;
-      return this;
-    }
-
-    public boolean isSkipAndroidPluginUpgrade() {
-      return mySkipAndroidPluginUpgrade;
-    }
-
-    @TestOnly
-    public void setSkipAndroidPluginUpgrade() {
-      assert ApplicationManager.getApplication().isUnitTestMode();
-      mySkipAndroidPluginUpgrade = true;
-    }
-
-    @NotNull
-    public GradleSyncStats.Trigger getTrigger() {
-      return myTrigger;
-    }
-
-    @NotNull
-    public Request setTrigger(GradleSyncStats.Trigger trigger) {
-      myTrigger = trigger;
-      return this;
-    }
-
 
     @NotNull
     public ProgressExecutionMode getProgressExecutionMode() {
-      return isRunInBackground() ? IN_BACKGROUND_ASYNC : MODAL_SYNC;
+      return runInBackground ? IN_BACKGROUND_ASYNC : MODAL_SYNC;
     }
 
     @Override
@@ -349,29 +313,26 @@ public class GradleSyncInvoker {
         return false;
       }
       Request request = (Request)o;
-      return myRunInBackground == request.myRunInBackground &&
-             myCleanProject == request.myCleanProject &&
-             myGenerateSourcesOnSuccess == request.myGenerateSourcesOnSuccess &&
-             myUseCachedGradleModels == request.myUseCachedGradleModels &&
-             myNewOrImportedProject == request.myNewOrImportedProject &&
-             myTrigger == request.myTrigger;
+      return runInBackground == request.runInBackground &&
+             cleanProject == request.cleanProject &&
+             generateSourcesOnSuccess == request.generateSourcesOnSuccess &&
+             useCachedGradleModels == request.useCachedGradleModels &&
+             trigger == request.trigger;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(myRunInBackground, myCleanProject, myGenerateSourcesOnSuccess, myUseCachedGradleModels,
-                              myNewOrImportedProject, myTrigger);
+      return Objects.hashCode(runInBackground, cleanProject, generateSourcesOnSuccess, useCachedGradleModels, trigger);
     }
 
     @Override
     public String toString() {
       return "RequestSettings{" +
-             "myRunInBackground=" + myRunInBackground +
-             ", myCleanProject=" + myCleanProject +
-             ", myGenerateSourcesOnSuccess=" + myGenerateSourcesOnSuccess +
-             ", myUseCachedGradleModels=" + myUseCachedGradleModels +
-             ", myNewOrImportedProject=" + myNewOrImportedProject +
-             ", myTrigger=" + myTrigger +
+             "myRunInBackground=" + runInBackground +
+             ", myCleanProject=" + cleanProject +
+             ", myGenerateSourcesOnSuccess=" + generateSourcesOnSuccess +
+             ", myUseCachedGradleModels=" + useCachedGradleModels +
+             ", myTrigger=" + trigger +
              '}';
     }
   }

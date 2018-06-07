@@ -44,6 +44,7 @@ public class DetachedToolWindowManager implements ProjectComponent {
   private final Application myApplication;
   private final Project myProject;
   private final FileEditorManager myEditorManager;
+  private final MyFileEditorManagerListener myEditorManagerListener;
   private final Map<FileEditor, WorkBench> myWorkBenchMap;
   private final HashMap<String, DetachedToolWindow> myToolWindowMap;
   private DetachedToolWindowFactory myDetachedToolWindowFactory;
@@ -59,6 +60,7 @@ public class DetachedToolWindowManager implements ProjectComponent {
     myApplication = application;
     myProject = currentProject;
     myEditorManager = fileEditorManager;
+    myEditorManagerListener = new MyFileEditorManagerListener();
     myWorkBenchMap = new IdentityHashMap<>(13);
     myToolWindowMap = new HashMap<>(8);
     //noinspection unchecked
@@ -68,6 +70,11 @@ public class DetachedToolWindowManager implements ProjectComponent {
   @VisibleForTesting
   void setDetachedToolWindowFactory(@NotNull DetachedToolWindowFactory factory) {
     myDetachedToolWindowFactory = factory;
+  }
+
+  @VisibleForTesting
+  FileEditorManagerListener getFileEditorManagerListener() {
+    return myEditorManagerListener;
   }
 
   public void register(@Nullable FileEditor fileEditor, @NotNull WorkBench workBench) {
@@ -101,7 +108,7 @@ public class DetachedToolWindowManager implements ProjectComponent {
 
   @Override
   public void projectOpened() {
-    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
+    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myEditorManagerListener);
   }
 
   @Override
@@ -139,6 +146,9 @@ public class DetachedToolWindowManager implements ProjectComponent {
   }
 
   public void updateToolWindowsForWorkBench(@Nullable WorkBench workBench) {
+    if (myProject.isDisposed()) {
+      return;
+    }
     Set<String> ids = new HashSet<>(myToolWindowMap.keySet());
     if (workBench != null) {
       //noinspection unchecked

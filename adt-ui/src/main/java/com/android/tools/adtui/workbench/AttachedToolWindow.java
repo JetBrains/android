@@ -2,6 +2,8 @@
 package com.android.tools.adtui.workbench;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -28,10 +30,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
@@ -273,6 +272,7 @@ class AttachedToolWindow<T> implements Disposable {
       myContent.setCloseAutoHideWindow(this::closeAutoHideWindow);
       myContent.setRestoreToolWindow(this::restore);
       myContent.setStartFiltering(this::startFiltering);
+      myContent.setStopFiltering(this::stopFiltering);
       myPanel.add(createHeader(myContent.supportsFiltering(), myContent.getAdditionalActions()), BorderLayout.NORTH);
       myPanel.add(myContent.getComponent(), BorderLayout.CENTER);
     }
@@ -292,10 +292,10 @@ class AttachedToolWindow<T> implements Disposable {
 
   @NotNull
   private JComponent createHeader(boolean includeSearchButton, @NotNull List<AnAction> additionalActions) {
-    JPanel header = new JPanel(new BorderLayout());
+    JPanel header = new AdtSecondaryPanel(new BorderLayout());
     header.add(createTitlePanel(myDefinition.getTitle(), includeSearchButton, mySearchField), BorderLayout.CENTER);
     header.add(createActionPanel(includeSearchButton, additionalActions), BorderLayout.EAST);
-    header.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+    header.setBorder(new SideBorder(StudioColorsKt.getBorder(), SideBorder.BOTTOM));
     return header;
   }
 
@@ -337,10 +337,18 @@ class AttachedToolWindow<T> implements Disposable {
     showSearchField(true);
   }
 
+  private void stopFiltering() {
+    if (myContent == null || !myContent.supportsFiltering()) {
+      return;
+    }
+    mySearchField.setText("");
+    showSearchField(false);
+  }
+
   @NotNull
   private JComponent createActionPanel(boolean includeSearchButton, @NotNull List<AnAction> additionalActions) {
     Dimension buttonSize = myDefinition.getButtonSize();
-    int border = buttonSize.equals(NAVBAR_MINIMUM_BUTTON_SIZE) ? 2 : 0;
+    int border = buttonSize.equals(NAVBAR_MINIMUM_BUTTON_SIZE) ? 4 : 2;
     JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
     actionPanel.setOpaque(false);
     actionPanel.setBorder(JBUI.Borders.empty(border, 0));
@@ -689,7 +697,9 @@ class AttachedToolWindow<T> implements Disposable {
     }
   }
 
-  private class MySearchField extends SearchTextFieldWithStoredHistory implements KeyListener {
+  private class MySearchField extends SearchTextField implements KeyListener {
+    private Component myOldFocusComponent;
+
     private MySearchField(@NotNull String propertyName) {
       super(propertyName);
       addKeyboardListener(this);
@@ -701,14 +711,21 @@ class AttachedToolWindow<T> implements Disposable {
           }
         }
       });
+      getTextEditor().addFocusListener(new FocusAdapter() {
+        @Override
+        public void focusGained(@NotNull FocusEvent event) {
+          myOldFocusComponent = event.getOppositeComponent();
+        }
+      });
     }
 
     @Override
     protected void onFocusLost() {
-      Component focusedDescendent = IdeFocusManager.getGlobalInstance().getFocusedDescendantFor(this);
-      if (focusedDescendent == null && getText().trim().isEmpty()) {
+      Component focusedDescendant = IdeFocusManager.getGlobalInstance().getFocusedDescendantFor(this);
+      if (focusedDescendant == null && getText().trim().isEmpty()) {
         showSearchField(false);
       }
+      myOldFocusComponent = null;
     }
 
     @Override
@@ -731,6 +748,15 @@ class AttachedToolWindow<T> implements Disposable {
       }
       if (event.getKeyCode() == KeyEvent.VK_ESCAPE && getText().isEmpty()) {
         showSearchField(false);
+        if (myOldFocusComponent != null) {
+          myOldFocusComponent.requestFocus();
+        }
+        else if (myContent != null) {
+          myContent.getFocusedComponent().requestFocus();
+        }
+        else {
+          mySearchActionButton.requestFocus();
+        }
       }
     }
 

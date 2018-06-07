@@ -31,6 +31,7 @@ public class DnDTransferItem {
   private final boolean myFromPalette;
   private final long myModelId;
   private final ImmutableList<DnDTransferComponent> myComponents;
+  private boolean myIsCut;
 
   /**
    * Create a drag and drop item for a new component from the palette.
@@ -85,6 +86,18 @@ public class DnDTransferItem {
 
   public long getModelId() {
     return myModelId;
+  }
+
+  public void setIsCut() {
+    myIsCut = true;
+  }
+
+  public boolean isCut() {
+    return myIsCut;
+  }
+
+  public void consumeCut() {
+    myIsCut = false;
   }
 
   public ImmutableList<DnDTransferComponent> getComponents() {

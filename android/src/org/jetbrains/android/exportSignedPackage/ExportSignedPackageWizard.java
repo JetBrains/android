@@ -39,8 +39,8 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -192,7 +192,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V1_ENABLED, Boolean.toString(myV1Signature)));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V2_ENABLED, Boolean.toString(myV2Signature)));
 
-        Map<Module, File> appModulesToOutputs = Collections.singletonMap(myFacet.getModule(), new File(myApkPath));
+        Map<Module, File> appModulesToOutputs = Collections.singletonMap(myFacet.getModule(), getApkLocation(myApkPath, myBuildType));
 
         assert myProject != null;
 
@@ -213,6 +213,13 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   }
 
   @VisibleForTesting
+  @NotNull
+  public static File getApkLocation(@NotNull String apkFolderPath, @NotNull String buildType) {
+    return new File(apkFolderPath, buildType);
+  }
+
+  @VisibleForTesting
+  @NotNull
   public static List<String> getAssembleTasks(String gradleProjectPath,
                                                AndroidProject androidProject,
                                                String buildType,

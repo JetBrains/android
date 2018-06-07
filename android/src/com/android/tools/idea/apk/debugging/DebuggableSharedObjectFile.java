@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 
 /**
  * User-selected .so file that contains debug symbols.

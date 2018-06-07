@@ -2,11 +2,17 @@
 <!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
 <GrpcList>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStartRequest">
-        <Message>process_id: 1234
+        <Message>session {
+  session_id: 1234
+  pid: 4321
+}
 </Message>
         <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryStartRequest</clazz>
         <functionCalled>profiler.proto.MemoryService/StartMonitoringApp</functionCalled>
-        <message>process_id: 1234
+        <message>session {
+  session_id: 1234
+  pid: 4321
+}
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStartResponse">
@@ -16,13 +22,19 @@
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetJvmtiData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest">
-        <Message>process_id: 1234
+        <Message>session {
+  session_id: 1234
+  pid: 4321
+}
 start_time: -9223372036854775808
 end_time: 9223372036854775807
 </Message>
         <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest</clazz>
         <functionCalled>profiler.proto.MemoryService/GetJvmtiData</functionCalled>
-        <message>process_id: 1234
+        <message>session {
+  session_id: 1234
+  pid: 4321
+}
 start_time: -9223372036854775808
 end_time: 9223372036854775807
 </message>
@@ -34,13 +46,19 @@ end_time: 9223372036854775807
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest">
-        <Message>process_id: 1234
+        <Message>session {
+  session_id: 1234
+  pid: 4321
+}
 start_time: -9223372036854775808
 end_time: 9223372036854775807
 </Message>
         <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest</clazz>
         <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
-        <message>process_id: 1234
+        <message>session {
+  session_id: 1234
+  pid: 4321
+}
 start_time: -9223372036854775808
 end_time: 9223372036854775807
 </message>
@@ -52,12 +70,18 @@ end_time: 9223372036854775807
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest">
-        <Message>process_id: 1234
+        <Message>session {
+  session_id: 1234
+  pid: 4321
+}
 end_time: 9223372036854775807
 </Message>
         <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest</clazz>
         <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
-        <message>process_id: 1234
+        <message>session {
+  session_id: 1234
+  pid: 4321
+}
 end_time: 9223372036854775807
 </message>
     </GrpcCall>
@@ -68,12 +92,18 @@ end_time: 9223372036854775807
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest">
-        <Message>process_id: 1234
+        <Message>session {
+  session_id: 1234
+  pid: 4321
+}
 end_time: 9223372036854775807
 </Message>
         <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest</clazz>
         <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
-        <message>process_id: 1234
+        <message>session {
+  session_id: 1234
+  pid: 4321
+}
 end_time: 9223372036854775807
 </message>
     </GrpcCall>
@@ -108,12 +138,18 @@ heap_dump_infos {
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetHeapDump" Class="class com.android.tools.profiler.proto.MemoryProfiler$DumpDataRequest">
-        <Message>process_id: 1234
+        <Message>session {
+  session_id: 1234
+  pid: 4321
+}
 dump_time: 86400000000000
 </Message>
         <clazz>class com.android.tools.profiler.proto.MemoryProfiler$DumpDataRequest</clazz>
         <functionCalled>profiler.proto.MemoryService/GetHeapDump</functionCalled>
-        <message>process_id: 1234
+        <message>session {
+  session_id: 1234
+  pid: 4321
+}
 dump_time: 86400000000000
 </message>
     </GrpcCall>
@@ -128,12 +164,18 @@ data: "Test Data"
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetHeapDump" Class="class com.android.tools.profiler.proto.MemoryProfiler$DumpDataRequest">
-        <Message>process_id: 1234
+        <Message>session {
+  session_id: 1234
+  pid: 4321
+}
 dump_time: 86401000000000
 </Message>
         <clazz>class com.android.tools.profiler.proto.MemoryProfiler$DumpDataRequest</clazz>
         <functionCalled>profiler.proto.MemoryService/GetHeapDump</functionCalled>
-        <message>process_id: 1234
+        <message>session {
+  session_id: 1234
+  pid: 4321
+}
 dump_time: 86401000000000
 </message>
     </GrpcCall>
@@ -146,11 +188,17 @@ dump_time: 86401000000000
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopRequest">
-        <Message>process_id: 1234
+        <Message>session {
+  session_id: 1234
+  pid: 4321
+}
 </Message>
         <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopRequest</clazz>
         <functionCalled>profiler.proto.MemoryService/StopMonitoringApp</functionCalled>
-        <message>process_id: 1234
+        <message>session {
+  session_id: 1234
+  pid: 4321
+}
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopResponse">

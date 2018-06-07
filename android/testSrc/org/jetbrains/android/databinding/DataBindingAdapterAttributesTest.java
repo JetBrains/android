@@ -16,6 +16,7 @@
 package org.jetbrains.android.databinding;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -23,6 +24,8 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
+
+import java.util.Arrays;
 
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING;
 
@@ -64,5 +67,17 @@ public class DataBindingAdapterAttributesTest extends AndroidGradleTestCase {
       documentManager.commitAllDocuments();
     });
     assertFalse(myFixture.doHighlighting(HighlightSeverity.WARNING).isEmpty());
+
+    // Check that we do not return duplicate attributes (http://b/67408823)
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      document.insertString(document.getLineEndOffset(line), " android:paddin");
+      documentManager.commitAllDocuments();
+    });
+    editor.getCaretModel().moveToOffset(document.getLineEndOffset(line));
+    long paddingCompletions = Arrays.stream(myFixture.completeBasic())
+      .map(LookupElement::getLookupString)
+      .filter("padding"::equals)
+      .count();
+    assertEquals(1, paddingCompletions);
   }
 }

@@ -16,21 +16,24 @@
 package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.SystemProperties;
+import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
@@ -40,23 +43,42 @@ public class LaunchAndroidApplicationTest {
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String APP_NAME = "app";
-  private static final String APPLICATION_STARTED = ".*Application started.*";
-  private static final String FATAL_SIGNAL_11 = ".*Fatal signal 11.*";
+  private static final String FATAL_SIGNAL_11_OR_6 = ".*SIGSEGV.*|.*SIGABRT.*";
   private static final String PROCESS_NAME = "google.simpleapplication";
   private static final String INSTRUMENTED_TEST_CONF_NAME = "instrumented_test";
   private static final String ANDROID_INSTRUMENTED_TESTS = "Android Instrumented Tests";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
     ".*adb shell am start .*google\\.simpleapplication.*", Pattern.DOTALL);
+  private static final Pattern ADB_SHELL_AM_START = Pattern.compile(
+    ".*adb shell am start .*com\\.example\\.hellojni.*", Pattern.DOTALL);
   private static final Pattern INSTRUMENTED_TEST_OUTPUT = Pattern.compile(
     ".*adb shell am instrument .*AndroidJUnitRunner.*Tests ran to completion.*", Pattern.DOTALL);
   private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
   private static final Pattern DEBUG_OUTPUT = Pattern.compile(".*Connected to the target VM.*", Pattern.DOTALL);
 
-  @RunIn(TestGroup.QA)
+
+  /**
+   * Verifies that a project can be deployed on an emulator
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 579892c4-e1b6-48f7-a5a2-69a12c12ce83
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import SimpleApplication
+   *   2. Add a few layout elements to the default activity
+   *   3. Click Run
+   *   4. From the device chooser dialog, select the running emulator and click Ok
+   *   Verify:
+   *   Project builds successfully and runs on the emulator
+   *   </pre>
+   */
+  @RunIn(TestGroup.SANITY)
   @Test
   public void testRunOnEmulator() throws Exception {
     InstantRunSettings.setShowStatusNotifications(false);
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
@@ -73,10 +95,28 @@ public class LaunchAndroidApplicationTest {
     ideFrameFixture.stopApp();
   }
 
-  @RunIn(TestGroup.QA)
+  /**
+   * Verifies that debugger can be invoked on an application by setting breakpoints
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: b9daba2b-067f-434b-91b2-c02197ac1521
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import SimpleApplication
+   *   2. Open the default activity class file
+   *   3. In the OnCreate method, add a breakpoint
+   *   4. Click on Debug project
+   *   5. Select a running emulator
+   *   Verify:
+   *   The application is deployed on the emulator/device and the breakpoint is hit when the first screen loads
+   *   </pre>
+   */
+  @RunIn(TestGroup.SANITY)
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
@@ -123,7 +163,13 @@ public class LaunchAndroidApplicationTest {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
     ExecutionToolWindowFixture.ContentFixture contentWindow = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
-    contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(APPLICATION_STARTED, Pattern.DOTALL)), 120);
+
+    // Workaround:
+    // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
+    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(ADB_SHELL_AM_START), 120);
+    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess("com.example.hellojni");
+
     contentWindow.stop();
   }
 
@@ -144,16 +190,23 @@ public class LaunchAndroidApplicationTest {
    *   1. Open Android Studio
    *   2. Import VulkanCrashes project.
    *   3. Navigate to the downloaded vulkan directory.
-   *   3. Compile and run build.gradle file on the emulator.
+   *   3. Compile and run app on the emulator (Nexus 6P).
    *   Verify:
    *   1. Application crashes in the emulator.
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void testVulkanCrashes() throws IOException, ClassNotFoundException {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("VulkanCrashes");
+
+    emulator.createAVD(guiTest.ideFrame().invokeAvdManager(),
+                       "Nexus 6P",
+                       "x86 Images",
+                       new ChooseSystemImageStepFixture.SystemImage("Nougat", "24", "x86", "Android 7.0"),
+                       emulator.getDefaultAvdName());
+
     // The app must run under the debugger, otherwise there is a race condition where
     // the app may crash before Android Studio can connect to the console.
     ideFrameFixture
@@ -161,10 +214,9 @@ public class LaunchAndroidApplicationTest {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
-    // Look for text indicating a crash. Full text looks something like:
-    // A/libc: Fatal signal 11 (SIGSEGV), code 1, fault addr 0x122 in tid 2462 (.tutorials.five)
+    // Look for text indicating a crash. Check for both SIGSEGV and SIGABRT since they are both given in some cases.
     ExecutionToolWindowFixture.ContentFixture contentWindow = ideFrameFixture.getDebugToolWindow().findContent(APP_NAME);
-    contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(FATAL_SIGNAL_11, Pattern.DOTALL)), 120);
+    contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(FATAL_SIGNAL_11_OR_6, Pattern.DOTALL)), 120);
     contentWindow.stop();
   }
 
@@ -235,6 +287,63 @@ public class LaunchAndroidApplicationTest {
   }
 
   /**
+   * To verify that importing a sample project and deploying on test device.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: ae1223a3-b42d-4c8f-8837-5c6f7e8c583a
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open Android Studio
+   *   2. Import Background/Job Scheduler from sample projects
+   *   3. Create an emulator
+   *   4. Deploy the project on the emulator
+   *   Verify:
+   *   1. The sample project is built successfully and deployed on the emulator.
+   *   </pre>
+   * <p>
+   */
+  @RunIn(TestGroup.SANITY)
+  @Test
+  public void importSampleProject() throws Exception {
+    BrowseSamplesWizardFixture samplesWizard = guiTest.welcomeFrame()
+      .importCodeSample();
+    samplesWizard.selectSample("Ui/Done Bar")
+      .clickNext()
+      .clickFinish();
+
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+
+    ideFrameFixture
+      .waitForGradleProjectSyncToFail()
+      .getEditor()
+      .open("Application/build.gradle")
+      .select("buildToolsVersion \"(.*)\"")
+      .enterText("27.0.3")
+      .invokeAction(EditorFixture.EditorAction.SAVE);
+
+    ideFrameFixture.requestProjectSync();
+
+    GuiTests.findAndClickButtonWhenEnabled(
+      ideFrameFixture.waitForDialog("Android Gradle Plugin Update Recommended", 120),
+      "Update");
+
+    ideFrameFixture.waitForGradleProjectSyncToFinish(Wait.seconds(60));
+
+    emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
+
+    String appName = "Application";
+    ideFrameFixture
+      .runApp(appName)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+
+    ideFrameFixture.getRunToolWindow().findContent(appName)
+      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+  }
+
+  /**
    * To verify that instrumentation tests can be added and executed.
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
@@ -257,7 +366,7 @@ public class LaunchAndroidApplicationTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void testRunInstrumentationTest() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
@@ -294,5 +403,60 @@ public class LaunchAndroidApplicationTest {
       .invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
 
     debugToolWindow.pressResumeProgram();
+  }
+
+  /**
+   * To verify that build cache can be turned off successfully and ensure that android.dexOptions.preDexLibraries is either true or false
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 73c60c6c-6228-41ad-87b1-2f0708bbb50e
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import SimpleApplication
+   *   2. <user-home-directory>/.android/build-cache delete the existing build-cache directory.
+   *   3. Open the gradle.properties and don't do any modification
+   *   4. Build the project (verify 1)
+   *   5. Repeat 1 to 4 with below modifications
+   *   On (3),add android.enableBuildCache=false (verify 2)
+   *   On (3),add android.enableBuildCache=true (verify 3)
+   *   Verify:
+   *   1. You should be able to see build-cache generated with cached data in <user-home-directory>/.android/build-cache . Build cache will be enalbed by default
+   *   2. You should see that build-cache is not generated.
+   *   3. Verify that build-cache is generated.
+   *   </pre>
+   * <p>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void turnOnOrOffBuildCache() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
+
+    File homeDir = new File(SystemProperties.getUserHome());
+    File androidHomeDir = new File(homeDir, ".android");
+    File buildCacheDir = new File(androidHomeDir, "build-cache");
+    FileUtil.delete(buildCacheDir);
+
+    ideFrameFixture.waitAndInvokeMenuPath("Build", "Rebuild Project")
+      .waitForBuildToFinish(REBUILD);
+    assertThat(buildCacheDir.exists()).isTrue();
+
+    FileUtil.delete(buildCacheDir);
+    ideFrameFixture.getEditor()
+      .open("gradle.properties")
+      .moveBetween("true", "")
+      .enterText("\nandroid.enableBuildCache=false");
+    ideFrameFixture.waitAndInvokeMenuPath("Build", "Rebuild Project")
+      .waitForBuildToFinish(REBUILD);
+    assertThat(buildCacheDir.exists()).isFalse();
+
+    ideFrameFixture.getEditor()
+      .open("gradle.properties")
+      .select("(false)")
+      .enterText("true");
+    ideFrameFixture.waitAndInvokeMenuPath("Build", "Rebuild Project")
+      .waitForBuildToFinish(REBUILD);
+    assertThat(buildCacheDir.exists()).isTrue();
   }
 }

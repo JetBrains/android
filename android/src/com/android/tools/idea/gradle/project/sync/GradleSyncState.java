@@ -15,18 +15,26 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.ProjectStructure;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
+import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.project.IndexingSuspender;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Ordering;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
+import com.google.wireless.android.sdk.stats.KotlinSupport;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
@@ -45,7 +53,7 @@ import com.intellij.util.messages.Topic;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jps.incremental.Utils;
+import org.jetbrains.annotations.Nullable;
 
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.*;
@@ -53,6 +61,7 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static com.intellij.openapi.ui.MessageType.ERROR;
 import static com.intellij.openapi.ui.MessageType.INFO;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.formatDuration;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 
@@ -63,8 +72,6 @@ public class GradleSyncState {
   @VisibleForTesting
   static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC = new Topic<>("Project sync with Gradle", GradleSyncListener.class);
 
-  private static final int INDEXING_WAIT_TIMEOUT_MILLIS = 5000;
-
   @NotNull private final Project myProject;
   @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
@@ -72,10 +79,9 @@ public class GradleSyncState {
   @NotNull private final StateChangeNotification myChangeNotification;
   @NotNull private final GradleSyncSummary mySummary;
   @NotNull private final GradleFiles myGradleFiles;
+  @NotNull private final ProjectStructure myProjectStructure;
 
   @NotNull private final Object myLock = new Object();
-  @NotNull private final Object myIndexingLock = new Object();
-  private boolean myFlagIsIndexingAware = StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get();
 
   @GuardedBy("myLock")
   private boolean mySyncNotificationsEnabled;
@@ -116,8 +122,9 @@ public class GradleSyncState {
                          @NotNull AndroidProjectInfo androidProjectInfo,
                          @NotNull GradleProjectInfo gradleProjectInfo,
                          @NotNull GradleFiles gradleFiles,
-                         @NotNull MessageBus messageBus) {
-    this(project, androidProjectInfo, gradleProjectInfo, gradleFiles, messageBus, new StateChangeNotification(project),
+                         @NotNull MessageBus messageBus,
+                         @NotNull ProjectStructure projectStructure) {
+    this(project, androidProjectInfo, gradleProjectInfo, gradleFiles, messageBus, projectStructure, new StateChangeNotification(project),
          new GradleSyncSummary(project));
   }
 
@@ -127,6 +134,7 @@ public class GradleSyncState {
                   @NotNull GradleProjectInfo gradleProjectInfo,
                   @NotNull GradleFiles gradleFiles,
                   @NotNull MessageBus messageBus,
+                  @NotNull ProjectStructure projectStructure,
                   @NotNull StateChangeNotification changeNotification,
                   @NotNull GradleSyncSummary summary) {
     myProject = project;
@@ -136,6 +144,10 @@ public class GradleSyncState {
     myChangeNotification = changeNotification;
     mySummary = summary;
     myGradleFiles = gradleFiles;
+    myProjectStructure = projectStructure;
+
+    // Call in to make sure IndexingSuspender instance is constructed.
+    IndexingSuspender.ensureInitialised(myProject);
   }
 
   public boolean areSyncNotificationsEnabled() {
@@ -149,25 +161,27 @@ public class GradleSyncState {
    * uses the models cached in disk.
    *
    * @param notifyUser indicates whether the user should be notified.
+   * @param request    the request which initiated the sync.
    * @return {@code true} if there another sync is not already in progress and this sync request can continue; {@code false} if the
    * current request cannot continue because there is already one in progress.
    */
-  public boolean skippedSyncStarted(boolean notifyUser, GradleSyncStats.Trigger trigger) {
-    return syncStarted(true, notifyUser, trigger);
+  public boolean skippedSyncStarted(boolean notifyUser,  @NotNull GradleSyncInvoker.Request request) {
+    return syncStarted(true, notifyUser, request);
   }
 
   /**
    * Notification that a sync has started.
    *
    * @param notifyUser indicates whether the user should be notified.
+   * @param request    the request which initiated the sync.
    * @return {@code true} if there another sync is not already in progress and this sync request can continue; {@code false} if the
    * current request cannot continue because there is already one in progress.
    */
-  public boolean syncStarted(boolean notifyUser, GradleSyncStats.Trigger trigger) {
-    return syncStarted(false, notifyUser, trigger);
+  public boolean syncStarted(boolean notifyUser, @NotNull GradleSyncInvoker.Request request) {
+    return syncStarted(false, notifyUser, request);
   }
 
-  private boolean syncStarted(boolean syncSkipped, boolean notifyUser, GradleSyncStats.Trigger trigger) {
+  private boolean syncStarted(boolean syncSkipped, boolean notifyUser, @NotNull GradleSyncInvoker.Request request) {
     synchronized (myLock) {
       if (mySyncInProgress) {
         LOG.info(String.format("Sync already in progress for project '%1$s'.", myProject.getName()));
@@ -175,33 +189,30 @@ public class GradleSyncState {
       }
       mySyncSkipped = syncSkipped;
       mySyncInProgress = true;
-      myFlagIsIndexingAware = StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get();
-      ensureNoIndexingDuringSync();
     }
 
     LOG.info(String.format("Started sync with Gradle for project '%1$s'.", myProject.getName()));
 
-    setSyncStartedTimeStamp(System.currentTimeMillis(), trigger);
+    setSyncStartedTimeStamp(System.currentTimeMillis(), request.trigger);
     addInfoToEventLog("Gradle sync started");
 
     if (notifyUser) {
       notifyStateChanged();
     }
 
+    if (mySummary.getSyncTimestamp() < 0) {
+      // If this is the first Gradle sync for this project this session, make sure that GradleSyncResultPublisher
+      // has been initialized so that it will begin broadcasting sync results on PROJECT_SYSTEM_SYNC_TOPIC.
+      GradleSyncResultPublisher.getInstance(myProject);
+    }
+
     mySummary.reset();
-    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject));
+    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject, syncSkipped, request.generateSourcesOnSuccess));
 
     AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_STARTED);
     UsageTracker.getInstance().log(event);
 
     return true;
-  }
-
-  private void ensureNoIndexingDuringSync() {
-    if (myFlagIsIndexingAware) {
-      IndexingSuspender.queue(myProject, "Gradle Sync", myIndexingLock,
-                              this::isSyncInProgress, INDEXING_WAIT_TIMEOUT_MILLIS);
-    }
   }
 
   @VisibleForTesting
@@ -256,6 +267,7 @@ public class GradleSyncState {
   }
 
   public void syncFailed(@NotNull String message) {
+    myProjectStructure.clearData();
     long syncEndTimestamp = System.currentTimeMillis();
     // If mySyncStartedTimestamp is -1, that means sync has not started or syncFailed has been called for this invocation.
     // Reset sync state and don't log the events or notify listener again.
@@ -304,9 +316,9 @@ public class GradleSyncState {
     GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
     String gradleVersionString = gradleVersion != null ? gradleVersion.toString() : "";
 
-    // @formatter:off
-    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_ENDED).setGradleVersion(gradleVersionString);
-    // @formatter:on
+    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_ENDED)
+      .setGradleVersion(gradleVersionString)
+      .setKotlinSupport(generateKotlinSupportProto());
     UsageTracker.getInstance().log(event);
 
     syncFinished(syncEndTimestamp);
@@ -320,7 +332,7 @@ public class GradleSyncState {
   @VisibleForTesting
   @NotNull
   String getFormattedSyncDuration(long syncEndTimestamp) {
-    return Utils.formatDuration(getSyncDurationMS(syncEndTimestamp));
+    return formatDuration(getSyncDurationMS(syncEndTimestamp), "");
   }
 
   private void addInfoToEventLog(@NotNull String message) {
@@ -343,15 +355,6 @@ public class GradleSyncState {
     synchronized (myLock) {
       mySyncInProgress = false;
       mySyncSkipped = false;
-      unblockIndexing();
-    }
-  }
-
-  private void unblockIndexing() {
-    if (myFlagIsIndexingAware) {
-      synchronized (myIndexingLock) {
-        myIndexingLock.notifyAll();
-      }
     }
   }
 
@@ -415,19 +418,14 @@ public class GradleSyncState {
 
   /**
    * Indicates whether a project sync with Gradle is needed. A Gradle sync is usually needed when a build.gradle or settings.gradle file has
-   * been updated <b>after</b> the last project sync was performed.
+   * been updated <b>after</b> the last project sync began.
    *
    * @return {@code YES} if a sync with Gradle is needed, {@code FALSE} otherwise, or {@code UNSURE} If the timestamp of the last Gradle
    * sync cannot be found.
    */
   @NotNull
   public ThreeState isSyncNeeded() {
-    long lastSync = mySummary.getSyncTimestamp();
-    if (lastSync < 0) {
-      // Previous sync may have failed. We don't know if a sync is needed or not. Let client code decide.
-      return ThreeState.UNSURE;
-    }
-    return myGradleFiles.areGradleFilesModified(lastSync) ? ThreeState.YES : ThreeState.NO;
+    return myGradleFiles.areGradleFilesModified()? ThreeState.YES: ThreeState.NO;
   }
 
   @NotNull
@@ -440,7 +438,6 @@ public class GradleSyncState {
     setSyncSetupStartedTimeStamp(syncSetupTimestamp);
     addInfoToEventLog("Project setup started");
     LOG.info(String.format("Started setup of project '%1$s'.", myProject.getName()));
-
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).setupStarted(myProject));
     AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_SETUP_STARTED);
     UsageTracker.getInstance().log(event);
@@ -482,11 +479,59 @@ public class GradleSyncState {
     syncStats.setTotalTimeMs(getSyncTotalTimeMs())
              .setIdeTimeMs(getSyncIdeTimeMs())
              .setGradleTimeMs(getSyncGradleTimeMs())
-             .setTrigger(myTrigger);
+             .setTrigger(myTrigger)
+             .setEmbeddedRepoEnabled(AndroidStudioGradleIdeSettings.getInstance().isEmbeddedMavenRepoEnabled());
     // @formatter:on
     event.setCategory(GRADLE_SYNC).setKind(kind).setGradleSyncStats(syncStats);
     return event;
   }
+
+  @NotNull
+  private KotlinSupport.Builder generateKotlinSupportProto() {
+
+    Ordering<GradleVersion> ordering = Ordering.natural().nullsFirst();
+    GradleVersion kotlinVersion = null;
+    GradleVersion ktxVersion = null;
+
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      AndroidModuleModel model = AndroidModuleModel.get(module);
+      if (model == null) {
+        continue;
+      }
+
+      IdeDependencies dependencies = model.getSelectedMainCompileLevel2Dependencies();
+
+      kotlinVersion = ordering.max(kotlinVersion, findVersion("org.jetbrains.kotlin:kotlin-stdlib", dependencies.getJavaLibraries()));
+      ktxVersion = ordering.max(ktxVersion, findVersion("androidx.core:core-ktx", dependencies.getAndroidLibraries()));
+    }
+
+    KotlinSupport.Builder result = KotlinSupport.newBuilder();
+    if (kotlinVersion != null) {
+      result.setKotlinSupportVersion(kotlinVersion.toString());
+    }
+    if (ktxVersion != null) {
+      result.setAndroidKtxVersion(ktxVersion.toString());
+    }
+    return result;
+  }
+
+  @Nullable
+  private static GradleVersion findVersion(@NotNull String artifact, @NotNull Iterable<Library> libraries) {
+    for (Library library : libraries) {
+      String coordinateString = library.getArtifactAddress();
+      if (coordinateString.startsWith(artifact)) {
+        GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateString);
+        if (coordinate == null) {
+          return null;
+        }
+
+        return coordinate.getVersion();
+      }
+    }
+
+    return null;
+  }
+
 
   @VisibleForTesting
   long getSyncTotalTimeMs() {

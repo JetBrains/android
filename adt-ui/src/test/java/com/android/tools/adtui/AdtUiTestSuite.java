@@ -16,33 +16,11 @@
 package com.android.tools.adtui;
 
 import com.android.testutils.JarTestSuiteRunner;
-import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(AdtUiTestSuite.class)  // a suite mustn't contain itself
-public class AdtUiTestSuite {
-
-  private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
-
-  static {
-    System.setProperty("idea.home", createTmpDir("tools/idea").toString());
-    VfsRootAccess.allowRootAccess("/");  // Bazel tests are sandboxed so we disable VfsRoot checks.
-  }
-
-  private static Path createTmpDir(String p) {
-    Path path = Paths.get(TMP_DIR, p);
-    try {
-      Files.createDirectories(path);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return path;
-  }
+public class AdtUiTestSuite extends IdeaTestSuiteBase {
 }
 

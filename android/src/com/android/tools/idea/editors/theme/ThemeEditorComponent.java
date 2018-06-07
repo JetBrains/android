@@ -43,18 +43,22 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiField;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.refactoring.rename.RenameDialog;
+import com.intellij.refactoring.rename.RenameProcessor;
+import com.intellij.refactoring.rename.RenameViewDescriptor;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.MutableCollectionComboBoxModel;
 import com.intellij.ui.PopupMenuListenerAdapter;
+import com.intellij.usageView.UsageInfo;
+import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -150,7 +154,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
   private final ThemeEditorTable myAttributesTable;
 
   private final ResourceChangeListener myResourceChangeListener;
-  private boolean myIsSubscribedResourceNotification;
+  private Disposable myResourceNotificationUnsubscriber;
 
   private final ThemeSelectionPanel.ThemeChangedListener myThemeChangedListener = new ThemeSelectionPanel.ThemeChangedListener() {
     @Override
@@ -461,9 +465,13 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
    * Unsubscribe {@link #myResourceChangeListener} from the from the {@link ResourceNotificationManager} for the given {@link AndroidFacet}
    */
   private void unsubscribeResourceNotification(@NotNull ResourceNotificationManager manager, @NotNull AndroidFacet facet) {
-    if (myIsSubscribedResourceNotification) {
+    if (myResourceNotificationUnsubscriber != null) {
       manager.removeListener(myResourceChangeListener, facet, null, null);
-      myIsSubscribedResourceNotification = false;
+      Disposable unsubscriber = myResourceNotificationUnsubscriber;
+      // Dispose of the unsubscribe may call unsubscribeResourceNotification again. Clear myResourceNotificationUnsubscriber
+      // to not call dispose twice (Disposer supports it correctly though).
+      myResourceNotificationUnsubscriber = null;
+      Disposer.dispose(unsubscriber);
     }
   }
 
@@ -488,7 +496,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
    */
   private void subscribeResourceNotification() {
     // Already subscribed, we check this, because sometimes selectNotify can be called twice
-    if (myIsSubscribedResourceNotification) {
+    if (myResourceNotificationUnsubscriber != null) {
       return;
     }
 
@@ -496,15 +504,12 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     final AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentContextModule());
     assert facet != null : myThemeEditorContext.getCurrentContextModule().getName() + " module doesn't have an AndroidFacet";
     manager.addListener(myResourceChangeListener, facet, null, null);
-    myIsSubscribedResourceNotification = true;
 
-    Disposer.register(facet, new Disposable() {
-      @Override
-      public void dispose() {
-        // If the module is disposed, remove subscription
-        unsubscribeResourceNotification(manager, facet);
-      }
-    });
+    myResourceNotificationUnsubscriber = () -> {
+      // If the module is disposed, remove subscription
+      unsubscribeResourceNotification(manager, facet);
+    };
+    Disposer.register(facet, myResourceNotificationUnsubscriber);
   }
 
   /**
@@ -588,7 +593,25 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     if (namePsiElement == null) {
       return;
     }
-    RenameDialog renameDialog = new RenameDialog(myThemeEditorContext.getProject(), namePsiElement, null, null);
+    RenameDialog renameDialog = new RenameDialog(myThemeEditorContext.getProject(), namePsiElement, null, null) {
+      @Override
+      protected RenameProcessor createRenameProcessor(String newName) {
+        return new RenameProcessor(myThemeEditorContext.getProject(), namePsiElement, newName, isSearchInComments(), isSearchInNonJavaFiles()) {
+          @NotNull
+          @Override
+          protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
+            LinkedHashMap<PsiElement, String> map = new LinkedHashMap<>();
+
+            // Generated R.java files are read-only. Filter out PsiFields.
+            getElements().stream()
+              .filter(element -> !(element instanceof PsiField))
+              .forEach(element -> map.put(element, getNewName(element)));
+
+            return new RenameViewDescriptor(map);
+          }
+        };
+      }
+    };
     renameDialog.show();
     if (renameDialog.isOK()) {
       String newName = renameDialog.getNewName();
@@ -867,31 +890,10 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       // Check whenever we reload the theme as any external file could have been changed that would affect this.
       // e.g. change to the manifest to use a theme.
       final PsiElement name = selectedTheme.getNamePsiElement();
-      mySwingWorker = new SwingWorker<Boolean, Object>() {
-        @Override
-        protected Boolean doInBackground() throws Exception {
-          assert name != null; // it's a project theme, so we should always have a name.
-
-          // Work around bug 67309838 in Kotlin plugin by creating a read action
-          return ApplicationManager.getApplication().runReadAction(
-            (Computable<PsiReference>)() -> ReferencesSearch.search(name).findFirst()) == null;
-        }
-
-        @Override
-        protected void done() {
-          if (isCancelled()) {
-            return;
-          }
-          try {
-            myPanel.setShowThemeNotUsedWarning(get());
-          }
-          catch (Exception ex) {
-            // should never happen, as we are calling get from done.
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-      mySwingWorker.execute();
+      DumbService.getInstance(myProject).smartInvokeLater(() -> {
+        assert name != null; // it's a project theme, so we should always have a name.
+        myPanel.setShowThemeNotUsedWarning(ReferencesSearch.search(name).findFirst() == null);
+      });
     }
 
     myThemeEditorContext.setCurrentTheme(selectedTheme);
@@ -1000,6 +1002,9 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     myAttributesTable.removeEditor();
     if (mySwingWorker != null) {
       mySwingWorker.cancel(true);
+    }
+    if (myResourceNotificationUnsubscriber != null) {
+      Disposer.dispose(myResourceNotificationUnsubscriber);
     }
     super.dispose();
   }

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model.build;
 
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.dsl.model.ext.ExtModel;
+import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
 
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 
 /**
  * Tests resolving references to project, parent, rootProject etc.
@@ -44,7 +44,7 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     String expectedRootDir = getBaseDirPath(myProject).getPath();
-    ExtModel ext = getSubModuleGradleBuildModel().ext();
+    ExtModelImpl ext = (ExtModelImpl)getSubModuleGradleBuildModel().ext();
     assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd", String.class));
     assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd1", String.class));
     assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd2", String.class));
@@ -73,7 +73,7 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
 
     String expectedRootDir = getBaseDirPath(myProject).getPath();
     String expectedSubModuleDir = mySubModuleBuildFile.getParent();
-    ExtModel ext = getSubModuleGradleBuildModel().ext();
+    ExtModelImpl ext = (ExtModelImpl)getSubModuleGradleBuildModel().ext();
     assertEquals("projectDir", expectedSubModuleDir, ext.getLiteralProperty("pd", String.class));
     assertEquals("projectDir", expectedSubModuleDir, ext.getLiteralProperty("pd1", String.class));
     assertEquals("projectDir", expectedRootDir, ext.getLiteralProperty("pd2", String.class));

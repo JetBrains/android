@@ -52,6 +52,7 @@ class MockClassInstance extends ClassInstance {
     return mockHeap;
   }
 
+  @NotNull
   @Override
   public List<FieldValue> getValues() {
     return myFieldValues;
@@ -72,6 +73,7 @@ class MockClassInstance extends ClassInstance {
     return mySoftReferences;
   }
 
+  @NotNull
   @Override
   public ArrayList<Instance> getHardReverseReferences() {
     return myHardReferences;

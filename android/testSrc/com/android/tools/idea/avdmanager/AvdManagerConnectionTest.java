@@ -102,17 +102,24 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     mFileOp.createNewFile(userQemu);
     assertTrue("Could not create " + AvdManager.USERDATA_QEMU_IMG + " in " + mAvdFolder,
                mFileOp.exists(userQemu));
+    // Also make a 'snapshots' sub-directory with a file
+    File snapshotsDir = new File(mAvdFolder, AvdManager.SNAPSHOTS_DIRECTORY);
+    String snapshotFile = snapshotsDir.getAbsolutePath() + "/aSnapShotFile.txt";
+    mFileOp.recordExistingFile(snapshotFile, "Some contents for the file");
+    assertTrue("Could not create " + snapshotFile,
+               mFileOp.exists(new File (snapshotFile)));
 
     // Do the "wipe-data"
     assertTrue("Could not wipe data from AVD", mAvdManagerConnection.wipeUserData(avd));
 
     assertFalse("Expected NO " + AvdManager.USERDATA_QEMU_IMG + " in " + mAvdFolder + " after wipe-data",
-               mFileOp.exists(userQemu));
+                mFileOp.exists(userQemu));
+    assertFalse("wipe-data did not remove the '" + AvdManager.SNAPSHOTS_DIRECTORY + "' directory",
+                mFileOp.exists(snapshotsDir));
 
     File userData = new File(mAvdFolder, AvdManager.USERDATA_IMG);
     assertTrue("Expected " + AvdManager.USERDATA_IMG + " in " + mAvdFolder + " after wipe-data",
                mFileOp.exists(userData));
-
   }
 
   public void testEmulatorVersionIsAtLeast() throws Exception {
@@ -249,6 +256,12 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertTrue(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
   }
 
+  public void testGetHardwareProperties() {
+    recordEmulatorHardwareProperties(mFileOp);
+    assertEquals("800M", mAvdManagerConnection.getSdCardSizeFromHardwareProperties());
+    assertEquals("2G", mAvdManagerConnection.getInternalStorageSizeFromHardwareProperties());
+  }
+
 
   private static void recordGoogleApisSysImg23(MockFileOp fop) {
     fop.recordExistingFile("/sdk/system-images/android-23/google_apis/x86_64/system.img");
@@ -277,6 +290,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
                            + "    <type-details xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
                            + "        xsi:type=\"ns3:genericDetailsType\"/>"
                            + "    <revision><major>23</major><minor>4</minor><micro>5</micro></revision>"
+                           + "    <display-name>Google APIs Intel x86 Atom_64 System Image</display-name>"
                            + "  </localPackage>"
                            + "</ns2:repository>");
   }
@@ -284,5 +298,18 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
   private static void recordEmulatorSupportsFastBoot(MockFileOp fop) {
     fop.recordExistingFile("/sdk/emulator/lib/advancedFeatures.ini",
                            "FastSnapshotV1=on\n");
+  }
+
+  private static void recordEmulatorHardwareProperties(MockFileOp fop) {
+    fop.recordExistingFile("/sdk/emulator/lib/hardware-properties.ini",
+                           "name        = sdcard.size\n"
+                           + "type        = diskSize\n"
+                           + "default     = 800M\n"
+                           + "abstract    = SD Card Image Size\n"
+                           + "# Data partition size.\n"
+                           + "name        = disk.dataPartition.size\n"
+                           + "type        = diskSize\n"
+                           + "default     = 2G\n"
+                           + "abstract    = Ideal size of data partition\n");
   }
 }

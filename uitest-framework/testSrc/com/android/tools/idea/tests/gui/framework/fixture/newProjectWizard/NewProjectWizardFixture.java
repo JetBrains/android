@@ -16,8 +16,8 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.adtui.ASGallery;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.progress.ProgressManager;
 import org.fest.swing.core.Robot;
@@ -39,26 +39,26 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   }
 
   @NotNull
-  public ConfigureAndroidProjectStepFixture getConfigureAndroidProjectStep() {
+  public ConfigureAndroidProjectStepFixture<NewProjectWizardFixture> getConfigureAndroidProjectStep() {
     JRootPane rootPane = findStepWithTitle("Create Android Project");
-    return new ConfigureAndroidProjectStepFixture(robot(), rootPane);
+    return new ConfigureAndroidProjectStepFixture<>(this, rootPane);
   }
 
   @NotNull
-  public ConfigureFormFactorStepFixture getConfigureFormFactorStep() {
+  public ConfigureFormFactorStepFixture<NewProjectWizardFixture> getConfigureFormFactorStep() {
     JRootPane rootPane = findStepWithTitle("Target Android Devices");
-    return new ConfigureFormFactorStepFixture(robot(), rootPane);
+    return new ConfigureFormFactorStepFixture<>(this, rootPane);
   }
 
-  public ConfigureInstantModuleStepFixture getConfigureInstantModuleStep() {
+  public ConfigureInstantModuleStepFixture<NewProjectWizardFixture> getConfigureInstantModuleStep() {
     JRootPane rootPane = findStepWithTitle("Configure the feature module");
-    return new ConfigureInstantModuleStepFixture(robot(), rootPane);
+    return new ConfigureInstantModuleStepFixture<>(this, rootPane);
   }
 
   @NotNull
-  public ConfigureCppStepFixture getConfigureCppStepFixture() {
-    JRootPane rootPane = findStepWithTitle("Customize C++ Support");
-    return new ConfigureCppStepFixture(robot(), rootPane);
+  public ConfigureCppStepFixture<NewProjectWizardFixture> getConfigureCppStepFixture() {
+    JRootPane rootPane = findStepWithTitle("Customize C++ Support", 30);
+    return new ConfigureCppStepFixture<>(this, rootPane);
   }
 
   public NewProjectWizardFixture chooseActivity(@NotNull String activity) {
@@ -69,15 +69,14 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   }
 
   @NotNull
-  public ChooseOptionsForNewFileStepFixture getChooseOptionsForNewFileStep() {
-    JRootPane rootPane = findStepWithTitle(StudioFlags.NPW_NEW_PROJECT.get() ? "Configure Activity" : "Customize the Activity");
-    return new ChooseOptionsForNewFileStepFixture(robot(), rootPane);
+  public ChooseOptionsForNewFileStepFixture<NewProjectWizardFixture> getChooseOptionsForNewFileStep() {
+    JRootPane rootPane = findStepWithTitle("Configure Activity");
+    return new ChooseOptionsForNewFileStepFixture<>(this, rootPane);
   }
 
   @NotNull
-  @Override
   public NewProjectWizardFixture clickFinish() {
-    super.clickFinish();
+    super.clickFinish(Wait.seconds(10));
 
     // Wait for gradle project importing to finish
     // b/66170375

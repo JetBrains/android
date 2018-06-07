@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <TextView android:id="@+id/anchor1" />
+    <EditText android:id="@+id/editText" />
+    <android.support.constraint.Barrier
+        android:id="@+id/barrier"
+        app:barrierDirection="end"
+        app:constraint_referenced_ids="anchor1,editText" />
+</android.support.constraint.ConstraintLayout>

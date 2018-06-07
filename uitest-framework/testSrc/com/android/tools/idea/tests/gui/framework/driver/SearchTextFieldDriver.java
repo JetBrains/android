@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class SearchTextFieldDriver extends JComponentDriver implements TextDisplayDriver<SearchTextField> {
+public class SearchTextFieldDriver extends JComponentDriver<SearchTextField> implements TextDisplayDriver<SearchTextField> {
   public SearchTextFieldDriver(@NotNull Robot robot) {
     super(robot);
   }
@@ -67,5 +67,12 @@ public class SearchTextFieldDriver extends JComponentDriver implements TextDispl
     focusAndWaitForFocusGain(textBox.getTextEditor());
     GuiTask.execute(() -> textBox.getTextEditor().selectAll());
     robot.pressAndReleaseKey(KeyEvent.VK_DELETE);
+  }
+
+  @Override
+  @RunsInEDT
+  public void pressAndReleaseKeys(@NotNull SearchTextField textBox, @NotNull int... keyCodes) {
+    focusAndWaitForFocusGain(textBox.getTextEditor());
+    robot.pressAndReleaseKeys(keyCodes);
   }
 }

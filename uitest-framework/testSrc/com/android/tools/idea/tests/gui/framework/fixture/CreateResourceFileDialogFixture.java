@@ -15,9 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.intellij.ide.actions.TemplateKindCombo;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.android.actions.CreateResourceFileDialogBase;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 
 import static org.junit.Assert.assertEquals;
 
@@ -33,6 +40,26 @@ public class CreateResourceFileDialogFixture extends IdeaDialogFixture<CreateRes
 
   public CreateResourceFileDialogFixture requireName(@NotNull String name) {
     assertEquals(name, getDialogWrapper().getFileName());
+    return this;
+  }
+
+  public CreateResourceFileDialogFixture setFilename(@NotNull String name) {
+    JTextField textField = robot().finder().findByLabel(target(), "File name:", JTextField.class, true);
+    new JTextComponentFixture(robot(), textField).deleteText().enterText(name);
+    return this;
+  }
+
+  public CreateResourceFileDialogFixture clickOk() {
+    GuiTests.findAndClickOkButton(this);
+    return this;
+  }
+
+  public CreateResourceFileDialogFixture setType(@NotNull String type) {
+    ApplicationManager.getApplication().invokeAndWait(
+      () -> robot().finder()
+        .findByLabel(target(), "Resource type:", TemplateKindCombo.class, true)
+        .setSelectedName(type),
+      ModalityState.any());
     return this;
   }
 }

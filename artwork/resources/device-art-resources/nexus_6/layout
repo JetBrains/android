@@ -9,18 +9,18 @@ parts {
   }
   portrait {
     background {
-      image port_back.png
+      image port_back.webp
     }
     onion {
-      image port_fore.png
+      image port_fore.webp
     }
   }
   landscape {
     background {
-      image land_back.png
+      image land_back.webp
     }
     onion {
-      image land_fore.png
+      image land_fore.webp
     }
   }
 }

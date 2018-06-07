@@ -22,6 +22,7 @@ import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
 import com.android.tools.idea.uibuilder.handlers.grid.draw.GridLayoutDecorator;
 import com.android.tools.idea.uibuilder.handlers.grid.draw.GridLayoutV7Decorator;
+import com.android.tools.idea.uibuilder.handlers.relative.draw.RelativeLayoutDecorator;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,6 +52,7 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
       ourConstructorMap.put(SdkConstants.LINEAR_LAYOUT, LinearLayoutDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.GRID_LAYOUT, GridLayoutDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.CLASS_GRID_LAYOUT_V7, GridLayoutV7Decorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.RELATIVE_LAYOUT, RelativeLayoutDecorator.class.getConstructor());
     }
     catch (NoSuchMethodException e) {
       // ignore invalid component

@@ -69,18 +69,19 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
 
     long startTimeMs = System.currentTimeMillis();
     LayoutInspectorResult result = LayoutInspectorBridge.captureView(myWindow, options);
-    if (!result.getError().isEmpty()) {
-      myError = result.getError();
-      return;
-    }
-
     long captureDurationMs = System.currentTimeMillis() - startTimeMs;
     UsageTracker.getInstance()
       .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
              .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(myClient.getDevice()))
              .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
                                         .setType(LayoutInspectorEvent.LayoutInspectorEventType.CAPTURE)
-                                        .setDurationInMs(captureDurationMs)));
+                                        .setDurationInMs(captureDurationMs)
+                                        .setDataSize(result.getError().isEmpty() ? result.getData().length : 0)));
+
+    if (!result.getError().isEmpty()) {
+      myError = result.getError();
+      return;
+    }
 
     myData = result.getData();
   }
@@ -100,12 +101,9 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
         OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, file);
         List<FileEditor> editors = FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
 
-        if (LayoutInspectorContext.isDumpDisplayListEnabled()) {
-          Optional<FileEditor> optionalEditor = editors.stream().filter(e -> e instanceof LayoutInspectorEditor).findFirst();
-          if (optionalEditor.isPresent()) {
-            ((LayoutInspectorEditor)optionalEditor.get()).setSources(myClient, myWindow);
-          }
-        }
+        editors.stream().filter(e -> e instanceof LayoutInspectorEditor).findFirst().ifPresent((editor) -> {
+          ((LayoutInspectorEditor)editor).setSources(myClient, myWindow);
+        });
       }));
     }
     catch (IOException e) {

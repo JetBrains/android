@@ -26,6 +26,6 @@ android {
 }
 
 dependencies {
-  compile project(':module3')
-  compile project(':module4')
+  api project(':module3')
+  api project(':module4')
 }

@@ -67,7 +67,7 @@ public class PathValidatorTest {
     assertRulePasses(myFileOp, PathValidator.IS_EMPTY, new File("/not/empty.txt"));
   }
 
-  // @Test this test won't pass on Windows
+  @Test
   public void testInvalidSlashesRuleMatches() throws Exception {
     // java.io.File normalizes all the forward slashes to backslashes during construction on Windows, so it becomes virtually impossible
     // to pass a File with an "invalid" slash. Note that this behavior isn't symmetric to Linux/MacOSX,

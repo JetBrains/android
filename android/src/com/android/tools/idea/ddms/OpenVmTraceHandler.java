@@ -18,6 +18,7 @@ package com.android.tools.idea.ddms;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.editors.vmtrace.VmTraceCaptureType;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureHandle;

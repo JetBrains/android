@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.TestBuildAction;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ArrayListMultimap;
@@ -30,6 +29,7 @@ import com.intellij.util.TimeoutUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -79,10 +79,15 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
 
     CountDownLatch countDownLatch = new CountDownLatch(1);
     ForkJoinPool.commonPool().execute(() -> {
-      ListMultimap<Path, String> tasks = ArrayListMultimap.create();
-      tasks.put(Projects.getBaseDirPath(getProject()).toPath(), "assembleDebug");
-      runner.run(tasks, BuildMode.ASSEMBLE, Collections.emptyList());
-      countDownLatch.countDown();
+      try {
+        ListMultimap<Path, String> tasks = ArrayListMultimap.create();
+        tasks.put(new File(getProject().getBasePath()).toPath(), "assembleDebug");
+        runner.run(tasks, BuildMode.ASSEMBLE, Collections.emptyList());
+        countDownLatch.countDown();
+      }
+      catch (InvocationTargetException | InterruptedException e) {
+        e.printStackTrace();
+      }
     });
     UIUtil.dispatchAllInvocationEvents();
 

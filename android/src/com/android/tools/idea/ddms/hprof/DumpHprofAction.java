@@ -20,7 +20,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.tools.adtui.EventData;
 import com.android.tools.idea.ddms.DeviceContext;
-import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.ddms.actions.AbstractClientAction;
 import com.android.tools.idea.editors.hprof.HprofCaptureType;
 import com.android.tools.idea.monitor.memory.MemoryMonitorView;

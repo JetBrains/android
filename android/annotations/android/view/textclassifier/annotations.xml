@@ -35,7 +35,7 @@
     </annotation>
   </item>
   <item name="android.view.textclassifier.TextClassification java.lang.String getText()">
-    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.textclassifier.TextClassification.Builder android.view.textclassifier.TextClassification.Builder setEntityType(java.lang.String, float) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -62,7 +62,7 @@
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.textclassifier.TextClassification.Builder android.view.textclassifier.TextClassification.Builder setText(java.lang.String) 0">
-    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.textclassifier.TextClassificationManager">
     <annotation name="android.support.annotation.SystemService">

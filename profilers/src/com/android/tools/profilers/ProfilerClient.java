@@ -27,6 +27,7 @@ public class ProfilerClient {
   @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
   @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
   @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventClient;
+  @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyClient;
 
   public ProfilerClient(String name) {
     // Optimization - In-process direct-executor channel which allows us to communicate between the profiler and perfd-host without
@@ -37,6 +38,7 @@ public class ProfilerClient {
     myCpuClient = CpuServiceGrpc.newBlockingStub(channel);
     myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
     myEventClient = EventServiceGrpc.newBlockingStub(channel);
+    myEnergyClient = EnergyServiceGrpc.newBlockingStub(channel);
   }
 
   @NotNull
@@ -63,5 +65,9 @@ public class ProfilerClient {
   public EventServiceGrpc.EventServiceBlockingStub getEventClient() {
     return myEventClient;
   }
-}
 
+  @NotNull
+  public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient() {
+    return myEnergyClient;
+  }
+}

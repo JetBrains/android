@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +26,7 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Tests for {@link DependenciesModel} and {@link ModuleDependencyModel}.
+ * Tests for {@link DependenciesModelImpl} and {@link ModuleDependencyModelImpl}.
  */
 public class ModuleDependencyTest extends GradleFileModelTestCase {
   public void testParsingWithCompactNotation() throws IOException {
@@ -232,10 +233,27 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     assertMatches(expected, dependency);
   }
 
-  public void assertMatches(@NotNull ExpectedModuleDependency expected, @NotNull ModuleDependencyModel actual) {
+  // Test for b/68188327
+  public void testMuliTypeApplicationStatementDoesNotThrowException() throws IOException {
+    String text = "dependencies {\n" +
+                  "    implementation group: 'my.test.dep', name: 'artifact', version: 'version', {\n" +
+                  "        exclude module: 'module1'\n" +
+                  "        exclude module: 'module2'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
+
+    // Note: this is not correct behaviour, this tests that no exception occurs.
+    // TODO(b/69115152): fix the implementation of this
+    assertThat(dependencies).hasSize(0);
+  }
+
+  private static void assertMatches(@NotNull ExpectedModuleDependency expected, @NotNull ModuleDependencyModel actual) {
     assertEquals("configurationName", expected.configurationName, actual.configurationName());
     assertEquals("path", expected.path, actual.path());
     assertEquals("configuration", expected.configuration, actual.configuration());
   }
-
 }

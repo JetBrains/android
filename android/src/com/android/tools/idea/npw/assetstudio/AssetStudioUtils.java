@@ -18,13 +18,15 @@ package com.android.tools.idea.npw.assetstudio;
 import com.android.ide.common.util.AssetUtil;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.adtui.ImageUtils;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.google.common.base.CaseFormat;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
@@ -34,6 +36,47 @@ import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
  * Utility methods helpful for working with and generating Android assets.
  */
 public final class AssetStudioUtils {
+  /**
+   * Scales the given rectangle by the given scale factor.
+   *
+   * @param rect        the rectangle to scale
+   * @param scaleFactor the factor to scale by
+   * @return the scaled rectangle
+   */
+  public static Rectangle scaleRectangle(Rectangle rect, double scaleFactor) {
+    return new Rectangle(
+        roundToInt(rect.x * scaleFactor),
+        roundToInt(rect.y * scaleFactor),
+        roundToInt(rect.width * scaleFactor),
+        roundToInt(rect.height * scaleFactor));
+  }
+
+  /**
+   * Scales the given rectangle by the given scale factor preserving the location of its center.
+   *
+   * @param rect        the rectangle to scale
+   * @param scaleFactor the factor to scale by
+   * @return the scaled rectangle
+   */
+  public static Rectangle scaleRectangleAroundCenter(Rectangle rect, double scaleFactor) {
+    int width = roundToInt(rect.width * scaleFactor);
+    int height = roundToInt(rect.height * scaleFactor);
+    return new Rectangle(
+        roundToInt(rect.x * scaleFactor - (width - rect.width) / 2.),
+        roundToInt(rect.y * scaleFactor - (width - rect.width) / 2.),
+        width,
+        height);
+  }
+
+  /**
+   * Similar to Math.round(float) but takes a double argument.
+   *
+   * @param f a floating point number to be rounded to an integer
+   * @return the value of the argument rounded to the nearest integer
+   */
+  public static int roundToInt(double f) {
+    return Math.round((float)f);
+  }
 
   /**
    * Create a tiny dummy image, so that we can always return a {@link NotNull} result if an image
@@ -97,7 +140,7 @@ public final class AssetStudioUtils {
    * Returns true if a resource with the same name is already found at a location implied by the
    * input parameters.
    */
-  public static boolean resourceExists(@NotNull AndroidProjectPaths paths, @NotNull ResourceFolderType resourceType, @NotNull String name) {
+  public static boolean resourceExists(@NotNull AndroidModuleTemplate paths, @NotNull ResourceFolderType resourceType, @NotNull String name) {
     File resDir = paths.getResDirectory();
     if (resDir == null) {
       return false;
@@ -136,7 +179,7 @@ public final class AssetStudioUtils {
   }
 
   /**
-   * Like {@link #resourceExists(AndroidProjectPaths, ResourceFolderType, String)} but a useful
+   * Like {@link #resourceExists(AndroidModuleTemplate, ResourceFolderType, String)} but a useful
    * fallback if information about the current paths is not known.
    */
   public static boolean resourceExists(@NotNull AndroidFacet facet, @NotNull ResourceType resourceType, @NotNull String name) {
@@ -144,6 +187,21 @@ public final class AssetStudioUtils {
     return repository.hasResourceItem(resourceType, name);
   }
 
+  /**
+   * Returns the name of an enum value as a lower camel case string.
+   */
+  public static String toLowerCamelCase(Enum<?> enumValue) {
+    return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, enumValue.name());
+  }
+
+  /**
+   * Returns the name of an enum value as an upper camel case string.
+   */
+  public static String toUpperCamelCase(Enum<?> enumValue) {
+    return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, enumValue.name());
+  }
+
+  /** Do not instantiate. All methods are static. */
   private AssetStudioUtils() {
   }
 }

@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
@@ -45,14 +42,13 @@ public class SceneMouseInteraction {
   public float getLastY() { return myLastY; }
 
   /**
-   * Simulate a click on a given resize handle of the component with componentId
+   * Simulate a click on a given resize handle of the {@link SceneComponent} component
    *
-   * @param componentId the id of the component we want to click on
+   * @param component   the component we want to click on
    * @param targetClass the class of target we want to click on
    * @param pos         which target to click on
    */
-  public void mouseDown(String componentId, Class targetClass, int pos) {
-    SceneComponent component = myScene.getSceneComponent(componentId);
+  public void mouseDown(SceneComponent component, Class targetClass, int pos) {
     if (component != null) {
       List<Target> targets = component.getTargets();
       int n = 0;
@@ -72,6 +68,17 @@ public class SceneMouseInteraction {
    * Simulate a click on a given resize handle of the component with componentId
    *
    * @param componentId the id of the component we want to click on
+   * @param targetClass the class of target we want to click on
+   * @param pos         which target to click on
+   */
+  public void mouseDown(String componentId, Class targetClass, int pos) {
+    mouseDown(myScene.getSceneComponent(componentId), targetClass, pos);
+  }
+
+  /**
+   * Simulate a click on a given resize handle of the component with componentId
+   *
+   * @param componentId the id of the component we want to click on
    * @param type        the type of resize handle we want to click on
    */
   public void mouseDown(String componentId, ResizeBaseTarget.Type type) {
@@ -83,17 +90,26 @@ public class SceneMouseInteraction {
   }
 
   /**
+   * Simulate a click on a given anchor of the {@link SceneComponent} component
+   *
+   * @param component   the component we want to click on
+   * @param type        the type of anchor we want to click on
+   */
+  public void mouseDown(SceneComponent component, AnchorTarget.Type type) {
+    if (component != null) {
+      AnchorTarget target = ConstraintComponentUtilities.getAnchorTarget(component, type);
+      mouseDown(target.getCenterX(), target.getCenterY());
+    }
+  }
+
+  /**
    * Simulate a click on a given anchor of the component with componentId
    *
    * @param componentId the id of the component we want to click on
    * @param type        the type of anchor we want to click on
    */
   public void mouseDown(String componentId, AnchorTarget.Type type) {
-    SceneComponent component = myScene.getSceneComponent(componentId);
-    if (component != null) {
-      AnchorTarget target = ConstraintComponentUtilities.getAnchorTarget(component, type);
-      mouseDown(target.getCenterX(), target.getCenterY());
-    }
+    mouseDown(myScene.getSceneComponent(componentId), type);
   }
 
   /**
@@ -128,15 +144,13 @@ public class SceneMouseInteraction {
   }
 
   /**
-   * Simulate releasing the mouse above the given anchor of the component
-   * with the given componentId
+   * Simulate releasing the mouse above the given anchor of the {@link SceneComponent} component
    *
-   * @param componentId the id of the component we will release the mouse above
+   * @param component   the component we will release the mouse above
    * @param targetClass the class of target we want to click on
    * @param pos         which target to click on
    */
-  public void mouseRelease(String componentId, Class targetClass, int pos) {
-    SceneComponent component = myScene.getSceneComponent(componentId);
+  public void mouseRelease(SceneComponent component, Class targetClass, int pos) {
     if (component != null) {
       List<Target> targets = component.getTargets();
       int n = 0;
@@ -150,6 +164,18 @@ public class SceneMouseInteraction {
         }
       }
     }
+  }
+
+  /**
+   * Simulate releasing the mouse above the given anchor of the component
+   * with the given componentId
+   *
+   * @param componentId the id of the component we will release the mouse above
+   * @param targetClass the class of target we want to click on
+   * @param pos         which target to click on
+   */
+  public void mouseRelease(String componentId, Class targetClass, int pos) {
+    mouseRelease(myScene.getSceneComponent(componentId), targetClass, pos);
   }
 
   /**
@@ -231,13 +257,9 @@ public class SceneMouseInteraction {
   }
 
   /**
-   * Select the widget corresponding to the componentId
-   *
-   * @param componentId
-   * @param selected
+   * Select the widget corresponding to the {@link SceneComponent} component
    */
-  public void select(String componentId, boolean selected) {
-    SceneComponent component = myScene.getSceneComponent(componentId);
+  public void select(SceneComponent component, boolean selected) {
     if (component != null) {
       if (selected) {
         myScene.select(Collections.singletonList(component));
@@ -246,6 +268,13 @@ public class SceneMouseInteraction {
       }
       repaint();
     }
+  }
+
+  /**
+   * Select the widget corresponding to the componentId
+   */
+  public void select(String componentId, boolean selected) {
+    select(myScene.getSceneComponent(componentId), selected);
   }
 
   /**

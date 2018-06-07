@@ -25,9 +25,7 @@ import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import freemarker.template.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +49,7 @@ import java.util.Map;
  * </code>
  */
 public class RenderingContext {
-  private final Project myProject;
+  private final ContextTarget myContextTarget;
   private final String myTitle;
   private final Map<String, Object> myParamMap;
   private final File myOutputRoot;
@@ -70,7 +68,7 @@ public class RenderingContext {
   private final boolean myDryRun;
   private final boolean myShowErrors;
 
-  private RenderingContext(@Nullable Project project,
+  private RenderingContext(@NotNull ContextTarget contextTarget,
                            @NotNull File initialTemplatePath,
                            @NotNull String commandName,
                            @NotNull Map<String, Object> paramMap,
@@ -86,7 +84,7 @@ public class RenderingContext {
                            @Nullable Collection<String> outPlugins,
                            @Nullable Collection<String> outClasspathEntries,
                            @Nullable SetMultimap<String, String> outDependencies) {
-    myProject = useDefaultProjectIfNeeded(project);
+    myContextTarget = contextTarget;
     myTitle = commandName;
     myParamMap = FreemarkerUtils.createParameterMap(paramMap);
     myOutputRoot = outputRoot;
@@ -109,7 +107,12 @@ public class RenderingContext {
 
   @NotNull
   public Project getProject() {
-    return myProject;
+    return myContextTarget.myProject;
+  }
+
+  @Nullable
+  public Module getModule() {
+    return myContextTarget.myModule;
   }
 
   /**
@@ -272,7 +275,7 @@ public class RenderingContext {
   @Override
   public String toString() {
     return "RenderingContext{" +
-           "myProject=" + myProject +
+           "myContextTarget=" + myContextTarget +
            ", myTitle='" + myTitle + '\'' +
            ", myParamMap=" + myParamMap +
            ", myOutputRoot=" + myOutputRoot +
@@ -293,15 +296,10 @@ public class RenderingContext {
            '}';
   }
 
-  @NotNull
-  private static Project useDefaultProjectIfNeeded(@Nullable Project project) {
-    // Project creation: no current project to read code style settings from yet, so use defaults
-    return project != null ? project : ProjectManagerEx.getInstanceEx().getDefaultProject();
-  }
-
   public static final class Builder {
     private final File myInitialTemplatePath;
     private final Project myProject;
+    private Module myModule;
     private String myCommandName;
     private Map<String, Object> myParams;
     private File myOutputRoot;
@@ -358,10 +356,8 @@ public class RenderingContext {
      * Specify the module.
      * This can be useful for finding build files.
      */
-    public Builder withModule(@NotNull Module module) {
-      VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
-      assert roots.length > 0;
-      myModuleRoot = VfsUtilCore.virtualToIoFile(roots[0]);
+    public Builder withModule(@Nullable Module module) {
+      myModule = module;
       return this;
     }
 
@@ -493,9 +489,34 @@ public class RenderingContext {
         myClasspathEntries = null;
         myDependencies = null;
       }
-      return new RenderingContext(myProject, myInitialTemplatePath, myCommandName, myParams, myOutputRoot, myModuleRoot, myPerformSync,
-                                  myFindOnlyReferences, myDryRun, myShowErrors, mySourceFiles, myTargetFiles, myOpenFiles,
+
+      // Project creation: no current project to read code style settings from yet, so use defaults
+      Project project = myProject == null ? ProjectManagerEx.getInstanceEx().getDefaultProject() : myProject;
+      ContextTarget contextTarget = myModule == null ? new ContextTarget(project) : new ContextTarget(myModule);
+
+      return new RenderingContext(contextTarget, myInitialTemplatePath, myCommandName, myParams, myOutputRoot, myModuleRoot,
+                                  myPerformSync, myFindOnlyReferences, myDryRun, myShowErrors, mySourceFiles, myTargetFiles, myOpenFiles,
                                   myPlugins, myClasspathEntries, myDependencies);
+    }
+  }
+
+  private static class ContextTarget {
+    @NotNull final Project myProject;
+    @Nullable final Module myModule;
+
+    private ContextTarget(@NotNull Project project) {
+      myProject = project;
+      myModule = null;
+    }
+
+    private ContextTarget(@NotNull Module module) {
+      myProject = module.getProject();
+      myModule = module;
+    }
+
+    @Override
+    public String toString() {
+      return "RenderingContext{" + "myProject=" + myProject + ", myModule=" + myModule + "}";
     }
   }
 }

@@ -47,6 +47,12 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   // ViewGroupHandler
 
   @Override
+  @Nullable
+  public CustomPanel getLayoutCustomPanel() {
+    return myHandler.getLayoutCustomPanel();
+  }
+
+  @Override
   public boolean acceptsChild(@NotNull NlComponent layout, @NotNull NlComponent newChild) {
     return myHandler.acceptsChild(layout, newChild);
   }
@@ -259,8 +265,14 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
 
   @Override
   @NotNull
-  public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
-    return myHandler.createTargets(sceneComponent, isParent);
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
+    return myHandler.createTargets(sceneComponent);
+  }
+
+  @NotNull
+  @Override
+  public List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
+    return myHandler.createChildTargets(parentComponent, childComponent);
   }
 
   @NotNull

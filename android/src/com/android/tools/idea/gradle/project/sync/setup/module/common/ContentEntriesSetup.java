@@ -32,7 +32,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.ContentEntries.isPathInContentEntry;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 
 public abstract class ContentEntriesSetup {
   @NotNull private final ModifiableRootModel myModuleModel;

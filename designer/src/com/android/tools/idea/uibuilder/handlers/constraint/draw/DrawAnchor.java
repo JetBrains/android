@@ -20,8 +20,8 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
-import com.android.tools.sherpa.animation.Animation;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.animation.Animation;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -205,10 +205,10 @@ public class DrawAnchor extends DrawRegion {
                          int type,
                          boolean isConnected,
                          int mode) {
-    @SwingCoordinate int l = transform.getSwingX(left);
-    @SwingCoordinate int t = transform.getSwingY(top);
-    @SwingCoordinate int w = transform.getSwingDimension(right - left);
-    @SwingCoordinate int h = transform.getSwingDimension(bottom - top);
+    @SwingCoordinate int l = transform.getSwingXDip(left);
+    @SwingCoordinate int t = transform.getSwingYDip(top);
+    @SwingCoordinate int w = transform.getSwingDimensionDip(right - left);
+    @SwingCoordinate int h = transform.getSwingDimensionDip(bottom - top);
     list.add(new DrawAnchor(l, t, w, h, type, isConnected, mode));
   }
 }

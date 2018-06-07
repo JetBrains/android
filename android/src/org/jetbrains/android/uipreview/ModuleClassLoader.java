@@ -6,6 +6,7 @@ import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.res.AppResourceRepository;
@@ -21,6 +22,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -39,7 +41,6 @@ import java.util.stream.Stream;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 
 /**
  * Render class loader responsible for loading classes in custom views
@@ -362,8 +363,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   private static void registerLibraryResourceFiles(@NotNull Module module, @NotNull File jarFile) {
     File aarDir = jarFile.getParentFile();
-    if (aarDir.getPath().endsWith(DOT_AAR) || aarDir.getPath().contains(EXPLODED_AAR)) {
-      if (aarDir.getPath().contains(EXPLODED_AAR)) {
+    if (aarDir.getPath().endsWith(DOT_AAR) || aarDir.getPath().contains(FilenameConstants.EXPLODED_AAR)) {
+      if (aarDir.getPath().contains(FilenameConstants.EXPLODED_AAR)) {
         if (aarDir.getPath().endsWith(LIBS_FOLDER)) {
           // Some libraries recently started packaging jars inside a sub libs folder inside jars
           aarDir = aarDir.getParentFile();

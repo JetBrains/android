@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.CMakeModel;
+import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.NdkBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModel;
-import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.NdkBuildModel;
+import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.NdkBuildModelImpl;
 
 import java.io.File;
 
 /**
- * Tests for {@link ExternalNativeBuildModel}.
+ * Tests for {@link ExternalNativeBuildModelImpl}.
  */
 public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
   public void testCMake() throws Exception {
@@ -41,9 +45,9 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     ExternalNativeBuildModel externalNativeBuild = android.externalNativeBuild();
-    assertTrue(externalNativeBuild.hasValidPsiElement());
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
     CMakeModel cmake = externalNativeBuild.cmake();
-    assertTrue(cmake.hasValidPsiElement());
+    checkForValidPsiElement(cmake, CMakeModelImpl.class);
     assertEquals("path", new File("foo/bar"), cmake.path());
   }
 
@@ -62,9 +66,9 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     ExternalNativeBuildModel externalNativeBuild = android.externalNativeBuild();
-    assertTrue(externalNativeBuild.hasValidPsiElement());
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
     CMakeModel cmake = externalNativeBuild.cmake();
-    assertTrue(cmake.hasValidPsiElement());
+    checkForValidPsiElement(cmake, CMakeModelImpl.class);
     assertEquals("path", new File("foo/bar"), cmake.path());
   }
 
@@ -83,16 +87,16 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     ExternalNativeBuildModel externalNativeBuild = android.externalNativeBuild();
-    assertTrue(externalNativeBuild.hasValidPsiElement());
-    assertTrue(externalNativeBuild.cmake().hasValidPsiElement());
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
 
     externalNativeBuild.removeCMake();
-    assertTrue(externalNativeBuild.hasValidPsiElement());
-    assertFalse(externalNativeBuild.cmake().hasValidPsiElement());
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForInValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
 
     buildModel.resetState();
-    assertTrue(externalNativeBuild.hasValidPsiElement());
-    assertTrue(externalNativeBuild.cmake().hasValidPsiElement());
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
   }
 
   public void testRemoveCMakeAndApplyChanges() throws Exception {
@@ -110,24 +114,24 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     ExternalNativeBuildModel externalNativeBuild = android.externalNativeBuild();
-    assertTrue(externalNativeBuild.hasValidPsiElement());
-    assertTrue(externalNativeBuild.cmake().hasValidPsiElement());
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
 
     externalNativeBuild.removeCMake();
-    assertTrue(externalNativeBuild.hasValidPsiElement());
-    assertFalse(externalNativeBuild.cmake().hasValidPsiElement());
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForInValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
 
     applyChanges(buildModel);
-    assertFalse(externalNativeBuild.hasValidPsiElement()); // Empty blocks are removed automatically.
-    assertFalse(externalNativeBuild.cmake().hasValidPsiElement());
+    checkForInValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class); // empty blocks removed
+    checkForInValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
 
     buildModel.reparse();
     android = buildModel.android();
     assertNotNull(android);
 
     externalNativeBuild = android.externalNativeBuild();
-    assertFalse(externalNativeBuild.hasValidPsiElement());
-    assertFalse(externalNativeBuild.cmake().hasValidPsiElement());
+    checkForInValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForInValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
   }
 
   public void testAddCMakePathAndReset() throws Exception {
@@ -193,9 +197,9 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     ExternalNativeBuildModel externalNativeBuild = android.externalNativeBuild();
-    assertTrue(externalNativeBuild.hasValidPsiElement());
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
     NdkBuildModel ndkBuild = externalNativeBuild.ndkBuild();
-    assertTrue(ndkBuild.hasValidPsiElement());
+    checkForValidPsiElement(ndkBuild, NdkBuildModelImpl.class);
     assertEquals("path", new File("foo/Android.mk"), ndkBuild.path());
   }
 
@@ -214,9 +218,9 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     ExternalNativeBuildModel externalNativeBuild = android.externalNativeBuild();
-    assertTrue(externalNativeBuild.hasValidPsiElement());
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
     NdkBuildModel ndkBuild = externalNativeBuild.ndkBuild();
-    assertTrue(ndkBuild.hasValidPsiElement());
+    checkForValidPsiElement(ndkBuild, NdkBuildModelImpl.class);
     assertEquals("path", new File("foo/Android.mk"), ndkBuild.path());
   }
 
@@ -235,16 +239,16 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     ExternalNativeBuildModel externalNativeBuild = android.externalNativeBuild();
-    assertTrue(externalNativeBuild.hasValidPsiElement());
-    assertTrue(externalNativeBuild.ndkBuild().hasValidPsiElement());
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
 
     externalNativeBuild.removeNdkBuild();
-    assertTrue(externalNativeBuild.hasValidPsiElement());
-    assertFalse(externalNativeBuild.ndkBuild().hasValidPsiElement());
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForInValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
 
     buildModel.resetState();
-    assertTrue(externalNativeBuild.hasValidPsiElement());
-    assertTrue(externalNativeBuild.ndkBuild().hasValidPsiElement());
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
   }
 
   public void testRemoveNdkBuildAndApplyChanges() throws Exception {
@@ -262,24 +266,24 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     ExternalNativeBuildModel externalNativeBuild = android.externalNativeBuild();
-    assertTrue(externalNativeBuild.hasValidPsiElement());
-    assertTrue(externalNativeBuild.ndkBuild().hasValidPsiElement());
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
 
     externalNativeBuild.removeNdkBuild();
-    assertTrue(externalNativeBuild.hasValidPsiElement());
-    assertFalse(externalNativeBuild.ndkBuild().hasValidPsiElement());
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForInValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
 
     applyChanges(buildModel);
-    assertFalse(externalNativeBuild.hasValidPsiElement()); // Empty blocks are removed automatically.
-    assertFalse(externalNativeBuild.ndkBuild().hasValidPsiElement());
+    checkForInValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForInValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
 
     buildModel.reparse();
     android = buildModel.android();
     assertNotNull(android);
 
     externalNativeBuild = android.externalNativeBuild();
-    assertFalse(externalNativeBuild.hasValidPsiElement());
-    assertFalse(externalNativeBuild.ndkBuild().hasValidPsiElement());
+    checkForInValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForInValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
   }
 
   public void testAddNdkBuildPathAndReset() throws Exception {

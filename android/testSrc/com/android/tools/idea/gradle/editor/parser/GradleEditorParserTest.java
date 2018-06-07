@@ -26,6 +26,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
 import com.intellij.util.Processor;
 import org.jetbrains.android.AndroidTestBase;
@@ -297,6 +298,8 @@ public class GradleEditorParserTest extends LightPlatformCodeInsightFixtureTestC
     File projectRoot = VfsUtilCore.virtualToIoFile(vfsProjectRoot);
     FileUtil.copyDir(fromDir, projectRoot);
     vfsProjectRoot.refresh(false, true);
+    // Make sure intellij contains no changes that the file system doesn't.
+    PsiDocumentManager.getInstance(project).commitAllDocuments();
   }
 
   /**

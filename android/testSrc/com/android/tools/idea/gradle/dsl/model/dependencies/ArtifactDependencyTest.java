@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.*;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -28,11 +29,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Tests for {@link DependenciesModel} and {@link ArtifactDependencyModel}.
+ * Tests for {@link DependenciesModelImpl} and {@link ArtifactDependencyModelImpl}.
  */
 public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
@@ -220,8 +221,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(1));
 
     expected = new ExpectedArtifactDependency("test", "service", "org.gradle.test.classifiers", "1.0");
-    expected.classifier = "jdk15";
-    expected.extension = "jar";
+    expected.setClassifier("jdk15");
+    expected.setExtension("jar");
     expected.assertMatches(dependencies.get(2));
   }
 
@@ -238,8 +239,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(dependencies).hasSize(1);
 
     ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "service", "org.gradle.test.classifiers", "1.0");
-    expected.classifier = "jdk14";
-    expected.extension = "jar";
+    expected.setClassifier("jdk14");
+    expected.setExtension("jar");
     expected.assertMatches(dependencies.get(0));
   }
 
@@ -252,7 +253,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
 
-    ArtifactDependencySpec newDependency = new ArtifactDependencySpec("appcompat-v7", "com.android.support", "22.1.1");
+    ArtifactDependencySpecImpl newDependency = new ArtifactDependencySpecImpl("appcompat-v7", "com.android.support", "22.1.1");
     dependenciesModel.addArtifact(COMPILE, newDependency);
 
     assertTrue(buildModel.isModified());
@@ -262,8 +263,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(dependencies).hasSize(2);
 
     ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "service", "org.gradle.test.classifiers", "1.0");
-    expected.classifier = "jdk14";
-    expected.extension = "jar";
+    expected.setClassifier("jdk14");
+    expected.setExtension("jar");
     expected.assertMatches(dependencies.get(0));
 
     expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
@@ -279,13 +280,14 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
 
-    ArtifactDependencySpec newDependency = new ArtifactDependencySpec("espresso-contrib", "com.android.support.test.espresso", "2.2.2");
+    ArtifactDependencySpecImpl newDependency =
+      new ArtifactDependencySpecImpl("espresso-contrib", "com.android.support.test.espresso", "2.2.2");
     dependenciesModel.addArtifact(ANDROID_TEST_COMPILE,
                                   newDependency,
-                                  ImmutableList.of(new ArtifactDependencySpec("support-v4", "com.android.support", null),
-                                                   new ArtifactDependencySpec("support-annotations", "com.android.support", null),
-                                                   new ArtifactDependencySpec("recyclerview-v7", "com.android.support", null),
-                                                   new ArtifactDependencySpec("design", "com.android.support", null)));
+                                  ImmutableList.of(new ArtifactDependencySpecImpl("support-v4", "com.android.support", null),
+                                                   new ArtifactDependencySpecImpl("support-annotations", "com.android.support", null),
+                                                   new ArtifactDependencySpecImpl("recyclerview-v7", "com.android.support", null),
+                                                   new ArtifactDependencySpecImpl("design", "com.android.support", null)));
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
@@ -296,8 +298,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     ArtifactDependencyModel jdkDependency = dependencies.get(0);
     ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "service", "org.gradle.test.classifiers", "1.0");
-    expected.classifier = "jdk14";
-    expected.extension = "jar";
+    expected.setClassifier("jdk14");
+    expected.setExtension("jar");
     expected.assertMatches(jdkDependency);
     assertNull(jdkDependency.configuration());
 
@@ -498,8 +500,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(0));
 
     expected = new ExpectedArtifactDependency("test", "service", "org.gradle.test.classifiers", "1.0");
-    expected.classifier = "jdk15";
-    expected.extension = "jar";
+    expected.setClassifier("jdk15");
+    expected.setExtension("jar");
     expected.assertMatches(dependencies.get(1));
   }
 
@@ -529,8 +531,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(0));
 
     expected = new ExpectedArtifactDependency("test", "service", "org.gradle.test.classifiers", "1.0");
-    expected.classifier = "jdk15";
-    expected.extension = "jar";
+    expected.setClassifier("jdk15");
+    expected.setExtension("jar");
     expected.assertMatches(dependencies.get(1));
   }
 
@@ -607,8 +609,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
 
-    ArtifactDependencySpec guavaSpec = new ArtifactDependencySpec("guava", "com.google.guava", "18.0");
-    ArtifactDependencySpec guiceSpec = new ArtifactDependencySpec("guice", "com.google.code.guice", "2.0");
+    ArtifactDependencySpecImpl guavaSpec = new ArtifactDependencySpecImpl("guava", "com.google.guava", "18.0");
+    ArtifactDependencySpecImpl guiceSpec = new ArtifactDependencySpecImpl("guice", "com.google.code.guice", "2.0");
 
     assertTrue(dependenciesModel.containsArtifact(COMPILE, guavaSpec));
     assertFalse(dependenciesModel.containsArtifact(COMPILE, guiceSpec));
@@ -848,7 +850,265 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(2));
   }
 
-  public static class ExpectedArtifactDependency extends ArtifactDependencySpec {
+  public void testReplaceDependencyByPsiElement() throws IOException {
+    String text = "dependencies {\n" +
+                  "  compile 'com.android.support:appcompat-v7:22.1.1'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
+    expected.assertMatches(dependencies.get(0));
+
+    ArtifactDependencySpec newDep = ArtifactDependencySpec.create("com.google.guava:guava:18.0");
+    boolean result = dependenciesModel.replaceArtifactByPsiElement(dependencies.get(0).getPsiElement(), newDep);
+    assertTrue(result);
+
+    applyChangesAndReparse(buildModel);
+    dependencies = buildModel.dependencies().artifacts();
+
+    assertThat(dependencies).hasSize(1);
+
+    expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
+    expected.assertMatches(dependencies.get(0));
+  }
+
+  public void testReplaceDependencyByChildElement() throws IOException {
+    String text = "dependencies {\n" +
+                  "  test 'org.gradle.test.classifiers:service:1.0:jdk15@jar'\n" +
+                  "  compile 'com.android.support:appcompat-v7:22.1.1'\n" +
+                  "  testCompile('org.hibernate:hibernate:3.1') { \n" +
+                  "    force = true\n" +
+                  "  }\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(3);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
+    expected.assertMatches(dependencies.get(1));
+
+    ArtifactDependencySpec newDep = ArtifactDependencySpec.create("com.google.guava:guava:18.0");
+    boolean result = dependenciesModel.replaceArtifactByPsiElement(dependencies.get(1).compactNotation().getPsiElement(), newDep);
+    assertTrue(result);
+
+    applyChangesAndReparse(buildModel);
+    dependencies = buildModel.dependencies().artifacts();
+
+    assertThat(dependencies).hasSize(3);
+
+    expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
+    expected.assertMatches(dependencies.get(1));
+  }
+
+  public void testReplaceDependencyFailsIsPsiElementIsNotFound() throws IOException {
+    String text = "dependencies {\n" +
+                  "  testCompile('org.hibernate:hibernate:3.1') { \n" +
+                  "    force = true\n" +
+                  "  }\n" +
+                  "  testCompile 'org.gradle.test.classifiers:service:1.0:jdk15@jar'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ArtifactDependencySpec newDep = ArtifactDependencySpec.create("com.google.guava:guava:18.0");
+    boolean result = dependenciesModel.replaceArtifactByPsiElement(dependencies.get(0).getPsiElement().getParent(), newDep);
+    assertFalse(result);
+
+    result = dependenciesModel.replaceArtifactByPsiElement(dependencies.get(1).getPsiElement().getContainingFile(), newDep);
+    assertFalse(result);
+
+    applyChangesAndReparse(buildModel);
+    dependencies = buildModel.dependencies().artifacts();
+
+    // Make sure none of the dependencies have changed.
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(TEST_COMPILE, "hibernate", "org.hibernate", "3.1");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(TEST_COMPILE, "service", "org.gradle.test.classifiers", "1.0");
+    expected.setClassifier("jdk15");
+    expected.setExtension("jar");
+    expected.assertMatches(dependencies.get(1));
+  }
+
+  public void testReplaceDependencyUsingMapNotationWithCompactNotation() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "guice", "com.google.code.guice", "1.0");
+    expected.assertMatches(dependencies.get(0));
+
+    ArtifactDependencySpec newDep = ArtifactDependencySpec.create("com.google.guava:guava:18.0");
+    boolean result = dependenciesModel.replaceArtifactByPsiElement(dependencies.get(0).getPsiElement(), newDep);
+    assertTrue(result);
+
+    applyChangesAndReparse(buildModel);
+    dependencies = buildModel.dependencies().artifacts();
+
+    // Make sure the new dependency is correct.
+    expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
+    expected.assertMatches(dependencies.get(0));
+  }
+
+  public void testReplaceDependencyUsingMapNotationAddingFields() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile name: 'name'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "name", null, null);
+    expected.assertMatches(dependencies.get(0));
+
+    ArtifactDependencySpec newDep = ArtifactDependencySpec.create("com.google.guava:guava:18.0:class@aar");
+    boolean result = dependenciesModel.replaceArtifactByPsiElement(dependencies.get(0).getPsiElement(), newDep);
+    assertTrue(result);
+
+    applyChangesAndReparse(buildModel);
+
+    expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
+    expected.setClassifier("class");
+    expected.setExtension("aar");
+    expected.assertMatches(buildModel.dependencies().artifacts().get(0));
+  }
+
+  public void testReplaceDependencyUsingMapNotationDeleteFields() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0', classifier: 'high', ext: 'bleh'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "guice", "com.google.code.guice", "1.0");
+    expected.setClassifier("high");
+    expected.setExtension("bleh");
+    expected.assertMatches(dependencies.get(0));
+
+    ArtifactDependencySpec newDep = ArtifactDependencySpec.create("com.google.guava:guava:+");
+    boolean result = dependenciesModel.replaceArtifactByPsiElement(dependencies.get(0).getPsiElement(), newDep);
+    assertTrue(result);
+
+    applyChangesAndReparse(buildModel);
+
+    expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "+");
+    expected.assertMatches(buildModel.dependencies().artifacts().get(0));
+  }
+
+  public void testReplaceDependencyInArgumentList() throws IOException {
+    String text = "dependencies {\n" +
+                  "  compile('com.google.code.guice:guice:1.0', 'com.google.guava:guava:18.0')\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "guice", "com.google.code.guice", "1.0");
+    expected.assertMatches(dependencies.get(0));
+    expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
+    expected.assertMatches(dependencies.get(1));
+
+    ArtifactDependencySpec newDep = ArtifactDependencySpec.create("com.google.guava:guava:+");
+    boolean result = dependenciesModel.replaceArtifactByPsiElement(dependencies.get(1).getPsiElement(), newDep);
+    assertTrue(result);
+
+    applyChangesAndReparse(buildModel);
+
+    expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "+");
+    expected.assertMatches(buildModel.dependencies().artifacts().get(1));
+  }
+
+  public void testReplaceMethodDependencyWithClosure() throws IOException {
+    String text = "dependencies {\n" +
+                  "  testCompile('org.hibernate:hibernate:3.1') { \n" +
+                  "    force = true\n" + // Note: We currently preserve the whole closure.
+                  "  }\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(TEST_COMPILE, "hibernate", "org.hibernate", "3.1");
+    expected.assertMatches(dependencies.get(0));
+
+    ArtifactDependencySpec newDep = ArtifactDependencySpec.create("com.google.guava:guava:+");
+    boolean result = dependenciesModel.replaceArtifactByPsiElement(dependencies.get(0).getPsiElement(), newDep);
+    assertTrue(result);
+
+    applyChangesAndReparse(buildModel);
+
+    expected = new ExpectedArtifactDependency(TEST_COMPILE, "guava", "com.google.guava", "+");
+    expected.assertMatches(buildModel.dependencies().artifacts().get(0));
+  }
+
+  public void testReplaceApplicationDependencies() throws IOException {
+    String text = "dependencies {\n" +
+                  "  testCompile 'org.gradle.test.classifiers:service:1.0',  'com.google.guava:guava:+'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(TEST_COMPILE, "service", "org.gradle.test.classifiers", "1.0");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(TEST_COMPILE, "guava", "com.google.guava", "+");
+    expected.assertMatches(dependencies.get(1));
+
+    ArtifactDependencySpec newDep = ArtifactDependencySpec.create("org.hibernate:hibernate:3.1");
+    boolean result = dependenciesModel.replaceArtifactByPsiElement(dependencies.get(0).getPsiElement(), newDep);
+    assertTrue(result);
+
+    applyChangesAndReparse(buildModel);
+
+    expected = new ExpectedArtifactDependency(TEST_COMPILE, "hibernate", "org.hibernate", "3.1");
+    expected.assertMatches(buildModel.dependencies().artifacts().get(0));
+  }
+
+  public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {
     @NotNull public String configurationName;
 
     public ExpectedArtifactDependency(@NotNull String configurationName,
@@ -861,20 +1121,20 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     public void assertMatches(@NotNull ArtifactDependencyModel actual) {
       assertEquals("configurationName", configurationName, actual.configurationName());
-      assertEquals("group", group, actual.group().value());
-      assertEquals("name", name, actual.name().value());
-      assertEquals("version", version, actual.version().value());
-      assertEquals("classifier", classifier, actual.classifier().value());
-      assertEquals("extension", extension, actual.extension().value());
+      assertEquals("group", getGroup(), actual.group().value());
+      assertEquals("name", getName(), actual.name().value());
+      assertEquals("version", getVersion(), actual.version().value());
+      assertEquals("classifier", getClassifier(), actual.classifier().value());
+      assertEquals("extension", getExtension(), actual.extension().value());
     }
 
     public boolean matches(@NotNull ArtifactDependencyModel dependency) {
       return configurationName.equals(dependency.configurationName()) &&
-             name.equals(dependency.name().value()) &&
-             Objects.equal(group, dependency.group().value()) &&
-             Objects.equal(version, dependency.version().value()) &&
-             Objects.equal(classifier, dependency.classifier().value()) &&
-             Objects.equal(extension, dependency.extension().value());
+             getName().equals(dependency.name().value()) &&
+             Objects.equal(getGroup(), dependency.group().value()) &&
+             Objects.equal(getVersion(), dependency.version().value()) &&
+             Objects.equal(getClassifier(), dependency.classifier().value()) &&
+             Objects.equal(getExtension(), dependency.extension().value());
     }
   }
 }

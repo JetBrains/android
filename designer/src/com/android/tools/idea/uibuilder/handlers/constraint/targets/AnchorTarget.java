@@ -122,8 +122,9 @@ public class AnchorTarget extends BaseTarget {
   public void setThisIsTheTarget(boolean target) {
     myThisIsTheTarget = target;
   }
+
   @Override
-  public void setOver(boolean over) {
+  public void setMouseHovered(boolean over) {
     if (over != mIsOver) {
       changeState(mIsOver, over);
       mIsOver = over;
@@ -161,10 +162,9 @@ public class AnchorTarget extends BaseTarget {
   }
 
   @Override
-  public void setComponentSelection(boolean selection) {
+  public void onComponentSelectionChanged(boolean selection) {
     String dir;
     switch (myType) {
-
       case LEFT:
         dir = DecoratorUtilities.LEFT_CONNECTION;
         break;
@@ -541,12 +541,19 @@ public class AnchorTarget extends BaseTarget {
         marginValue = Math.max(marginValue, 0);
       }
       String margin = String.format(SdkConstants.VALUE_N_DP, marginValue);
-      attributes.setAttribute(SdkConstants.ANDROID_URI, ConstraintComponentUtilities.ourMapMarginAttributes.get(attribute), margin);
+      String attr = ConstraintComponentUtilities.ourMapMarginAttributes.get(attribute);
+      attributes.setAttribute(SdkConstants.ANDROID_URI, attr, margin);
+      if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attr)) {
+        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, margin);
+      }
+      else if (SdkConstants.ATTR_LAYOUT_MARGIN_START.equals(attr)) {
+        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, margin);
+      }
       scene.needsRebuildList();
       myConnectedX = myLastX;
       myConnectedY = myLastY;
     }
-    ConstraintComponentUtilities.cleanup(attributes, myComponent);
+    ConstraintComponentUtilities.cleanup(attributes, myComponent.getNlComponent());
     attributes.apply();
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
     myRenderingTemporaryConnection = true;
@@ -622,7 +629,7 @@ public class AnchorTarget extends BaseTarget {
   private void disconnectMe(NlComponent component) {
     AttributesTransaction attributes = component.startAttributeTransaction();
     clearMe(attributes);
-    ConstraintComponentUtilities.cleanup(attributes, myComponent);
+    ConstraintComponentUtilities.cleanup(attributes, myComponent.getNlComponent());
     attributes.apply();
     NlWriteCommandAction.run(component, "Constraint Disconnected", attributes::commit);
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);

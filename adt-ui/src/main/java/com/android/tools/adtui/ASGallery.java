@@ -81,12 +81,23 @@ public class ASGallery<E> extends JBList {
   public ASGallery() {
     this(new DefaultListModel(), Functions.<Image>constant(null), Functions.toStringFunction(), new Dimension(0, 0), null);
   }
+
   public ASGallery(@NotNull ListModel model,
                    @NotNull Function<? super E, Image> imageProvider,
                    @NotNull Function<? super E, String> labelProvider,
                    @NotNull Dimension thumbnailSize,
                    @Nullable Action defaultAction) {
-    myThumbnailSize = JBDimension.create(thumbnailSize);
+    this(model, imageProvider, labelProvider, thumbnailSize, defaultAction, false);
+  }
+
+  public ASGallery(@NotNull ListModel model,
+                   @NotNull Function<? super E, Image> imageProvider,
+                   @NotNull Function<? super E, String> labelProvider,
+                   @NotNull Dimension thumbnailSize,
+                   @Nullable Action defaultAction,
+                   boolean disableSpeedSearch) {
+
+      myThumbnailSize = JBDimension.create(thumbnailSize);
     myLabelProvider = labelProvider;
     myDefaultAction = defaultAction;
 
@@ -110,12 +121,14 @@ public class ASGallery<E> extends JBList {
 
     installListeners();
     installKeyboardActions();
-    TreeUIHelper.getInstance().installListSpeedSearch(this, new Convertor<Object, String>() {
-      @Override
-      public String convert(Object o) {
-        return myLabelProvider.apply((E)o);
-      }
-    });
+    if (!disableSpeedSearch) {
+      TreeUIHelper.getInstance().installListSpeedSearch(this, new Convertor<Object, String>() {
+        @Override
+        public String convert(Object o) {
+          return myLabelProvider.apply((E)o);
+        }
+      });
+    }
   }
 
   private void installListeners() {

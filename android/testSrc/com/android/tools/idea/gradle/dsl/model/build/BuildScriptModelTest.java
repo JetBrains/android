@@ -15,25 +15,26 @@
  */
 package com.android.tools.idea.gradle.dsl.model.build;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.ExpectedArtifactDependency;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel;
+import com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl;
 import com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
 
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel.GOOGLE_DEFAULT_REPO_NAME;
-import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel.GOOGLE_DEFAULT_REPO_URL;
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_NAME;
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_URL;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Tests for {@link BuildScriptModel}.
+ * Tests for {@link BuildScriptModelImpl}.
  */
 public class BuildScriptModelTest extends GradleFileModelTestCase {
   public void testParseDependencies() throws IOException {
@@ -62,8 +63,8 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     BuildScriptModel buildScriptModel = buildModel.buildscript();
     DependenciesModel dependenciesModel = buildScriptModel.dependencies();
 
-    assertFalse(buildScriptModel.hasValidPsiElement());
-    assertFalse(dependenciesModel.hasValidPsiElement());
+    assertFalse(hasPsiElement(buildScriptModel));
+    assertFalse(hasPsiElement(dependenciesModel));
     assertThat(dependenciesModel.artifacts()).isEmpty();
 
     dependenciesModel.addArtifact("classpath", "com.android.tools.build:gradle:2.0.0-alpha2");
@@ -82,8 +83,8 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     buildScriptModel = buildModel.buildscript();
     dependenciesModel = buildScriptModel.dependencies();
 
-    assertTrue(buildScriptModel.hasValidPsiElement());
-    assertTrue(dependenciesModel.hasValidPsiElement());
+    assertTrue(hasPsiElement(buildScriptModel));
+    assertTrue(hasPsiElement(dependenciesModel));
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
     expected.assertMatches(dependencies.get(0));
@@ -141,8 +142,8 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     assertEquals("url", "https://jcenter.bintray.com/", repository.url());
 
     repositoryModel = repositories.get(1);
-    assertTrue(repositoryModel instanceof GoogleDefaultRepositoryModel);
-    GoogleDefaultRepositoryModel googleRepository = (GoogleDefaultRepositoryModel)repositoryModel;
+    assertTrue(repositoryModel instanceof GoogleDefaultRepositoryModelImpl);
+    GoogleDefaultRepositoryModelImpl googleRepository = (GoogleDefaultRepositoryModelImpl)repositoryModel;
     assertEquals("name", GOOGLE_DEFAULT_REPO_NAME, googleRepository.name());
     assertEquals("url", GOOGLE_DEFAULT_REPO_URL, googleRepository.url());
   }

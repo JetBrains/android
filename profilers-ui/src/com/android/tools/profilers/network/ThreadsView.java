@@ -24,8 +24,11 @@ import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayout;
+import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.network.httpdata.HttpData;
+import com.google.common.collect.ImmutableMap;
+import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,17 +38,18 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Path2D;
+import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
+
+import static com.android.tools.profilers.ProfilerLayout.*;
 
 /**
  * Displays network connection information of all threads.
@@ -57,23 +61,20 @@ final class ThreadsView {
   private static final int ROW_HEIGHT = STATE_HEIGHT + 2 * (SELECTION_OUTLINE_BORDER + SELECTION_OUTLINE_PADDING);
 
   @NotNull
-  private final JTable myThreadsTable;
-
-  @NotNull
-  private final JLayeredPane myPanel;
+  private final HoverRowTable myThreadsTable;
 
   @NotNull
   private final AspectObserver myObserver;
 
   ThreadsView(@NotNull NetworkProfilerStageView stageView) {
-    myThreadsTable =
-      new HoverRowTable(new ThreadsTableModel(stageView.getStage().getHttpDataFetcher()), ProfilerColors.DEFAULT_HOVER_COLOR);
+    ThreadsTableModel model = new ThreadsTableModel(stageView.getStage().getHttpDataFetcher());
+    myThreadsTable = new HoverRowTable(model, ProfilerColors.DEFAULT_HOVER_COLOR);
     TimelineRenderer timelineRenderer = new TimelineRenderer(myThreadsTable, stageView.getStage());
+    myThreadsTable.getColumnModel().getColumn(0).setCellRenderer(new BorderlessTableCellRenderer());
     myThreadsTable.getColumnModel().getColumn(1).setCellRenderer(timelineRenderer);
     myThreadsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myThreadsTable.setShowVerticalLines(true);
     myThreadsTable.setShowHorizontalLines(false);
-    myThreadsTable.setTableHeader(null);
     myThreadsTable.setCellSelectionEnabled(false);
     myThreadsTable.setFocusable(false);
     myThreadsTable.setRowMargin(0);
@@ -87,28 +88,67 @@ final class ThreadsView {
         myThreadsTable.getColumnModel().getColumn(1).setPreferredWidth((int)(myThreadsTable.getWidth() * 7.0 / 8));
       }
     });
+    myThreadsTable.setTableHeaderBorder(TABLE_COLUMN_HEADER_BORDER);
 
-    myPanel = new JLayeredPane();
-    JComponent tooltip = new TableTooltipView(myThreadsTable, stageView.getStage()).getComponent();
+    TableRowSorter<ThreadsTableModel> sorter = new TableRowSorter<>(model);
+    sorter.setComparator(0, Comparator.comparing(String::toString));
+    sorter.setComparator(1, Comparator.comparing((List<HttpData> data) -> data.get(0).getStartTimeUs()));
+    myThreadsTable.setRowSorter(sorter);
 
-    myPanel.add(myThreadsTable, Integer.valueOf(0));
-    myPanel.add(tooltip, Integer.valueOf(1));
-    myPanel.addComponentListener(new ComponentAdapter() {
+    myThreadsTable.addMouseListener(new MouseAdapter() {
       @Override
-      public void componentResized(ComponentEvent e) {
-        myThreadsTable.setSize(myPanel.getSize());
-        tooltip.setSize(myPanel.getSize());
+      public void mouseClicked(MouseEvent e) {
+        Range selection = stageView.getStage().getStudioProfilers().getTimeline().getSelectionRange();
+        HttpData data = findHttpDataUnderCursor(myThreadsTable, selection, e);
+        if (data != null) {
+          stageView.getStage().setSelectedConnection(data);
+          e.consume();
+        }
       }
     });
 
+    TooltipView.install(myThreadsTable, stageView.getStage());
+
     myObserver = new AspectObserver();
     stageView.getStage().getAspect().addDependency(myObserver)
-      .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, timelineRenderer::updateRows);
+      .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, () -> {
+        timelineRenderer.updateRows();
+        myThreadsTable.repaint();
+      });
   }
 
   @NotNull
   JComponent getComponent() {
-    return myPanel;
+    return myThreadsTable;
+  }
+
+  @Nullable
+  private static HttpData findHttpDataUnderCursor(@NotNull JTable table, @NotNull Range range, @NotNull MouseEvent e) {
+    Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), table);
+    int row = table.rowAtPoint(p);
+    int column = table.columnAtPoint(p);
+
+    if (row == -1 || column == -1) {
+      return null;
+    }
+
+    if (column == 1) {
+      Rectangle cellBounds = table.getCellRect(row, column, false);
+      int modelIndex = table.convertRowIndexToModel(row);
+      List<HttpData> dataList = (List<HttpData>)table.getModel().getValueAt(modelIndex, 1);
+      double at = positionToRange(p.x - cellBounds.x, cellBounds.getWidth(), range);
+      for (HttpData data : dataList) {
+        if (data.getStartTimeUs() <= at && at <= data.getEndTimeUs()) {
+          return data;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private static double positionToRange(double x, double width, @NotNull Range range) {
+    return (x * range.getLength()) / width + range.getMin();
   }
 
   private static final class ThreadsTableModel extends AbstractTableModel {
@@ -160,6 +200,11 @@ final class ThreadsView {
     }
 
     @Override
+    public String getColumnName(int column) {
+      return column == 0 ? "Initiating thread" : "Timeline";
+    }
+
+    @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
       if (columnIndex == 0) {
         return myThreads.get(rowIndex).get(0).getJavaThreads().get(0).getName();
@@ -172,12 +217,12 @@ final class ThreadsView {
 
   private static final class TimelineRenderer implements TableCellRenderer, TableModelListener {
     @NotNull private final JTable myTable;
-    @NotNull private final List<JComponent> myRows;
+    @NotNull private final List<JComponent> myConnectionsInfo;
     @NotNull private final NetworkProfilerStage myStage;
 
     TimelineRenderer(@NotNull JTable table, @NotNull NetworkProfilerStage stage) {
       myTable = table;
-      myRows = new ArrayList<>();
+      myConnectionsInfo = new ArrayList<>();
       myStage = stage;
       myTable.getModel().addTableModelListener(this);
       tableChanged(new TableModelEvent(myTable.getModel()));
@@ -189,33 +234,31 @@ final class ThreadsView {
     }
 
     private void updateRows() {
-      myRows.clear();
+      myConnectionsInfo.clear();
       for (int index = 0; index < myTable.getModel().getRowCount(); ++index) {
         List<HttpData> data = (List<HttpData>)myTable.getModel().getValueAt(index, 1);
-        assert !data.isEmpty();
-
-        AxisComponent axisTicks = createAxis();
-        axisTicks.setMarkerLengths(myTable.getRowHeight(), 0);
-        axisTicks.setShowLabels(false);
-
-        JPanel panel = new JPanel(new TabularLayout("*", "*"));
-        panel.setPreferredSize(new Dimension((int)panel.getPreferredSize().getWidth(), myTable.getRowHeight()));
-
-        if (index == 0) {
-          AxisComponent axisLabels = createAxis();
-          axisLabels.setMarkerLengths(0, 0);
-          axisLabels.setShowLabels(true);
-          panel.add(axisLabels, new TabularLayout.Constraint(0, 0));
-        }
-        panel.add(new ConnectionsInfoComponent(myTable, data, myStage), new TabularLayout.Constraint(0, 0));
-        panel.add(axisTicks, new TabularLayout.Constraint(0, 0));
-        myRows.add(panel);
+        myConnectionsInfo.add(new ConnectionsInfoComponent(myTable, data, myStage));
       }
     }
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      return myRows.get(row);
+      JPanel panel = new JBPanel(new TabularLayout("*", "*"));
+
+      if (row == 0) {
+        // Show timeline labels in front of the chart components
+        AxisComponent axisLabels = createAxis();
+        axisLabels.setMarkerLengths(0, 0);
+        panel.add(axisLabels, new TabularLayout.Constraint(0, 0));
+      }
+
+      panel.add(myConnectionsInfo.get(table.convertRowIndexToModel(row)), new TabularLayout.Constraint(0, 0));
+      // Show timeline lines behind chart components
+      AxisComponent axisTicks = createAxis();
+      axisTicks.setMarkerLengths(myTable.getRowHeight(), 0);
+      axisTicks.setShowLabels(false);
+      panel.add(axisTicks, new TabularLayout.Constraint(0, 0));
+      return panel;
     }
 
     @NotNull
@@ -239,7 +282,6 @@ final class ThreadsView {
    */
   private static final class ConnectionsInfoComponent extends JComponent {
     private static final int NAME_PADDING = 6;
-    private static final int WARNING_SIZE = 10;
 
     @NotNull private final List<HttpData> myDataList;
     @NotNull private final Range myRange;
@@ -268,11 +310,6 @@ final class ThreadsView {
         double endLimit = (i + 1 < myDataList.size()) ? rangeToPosition(myDataList.get(i + 1).getStartTimeUs()) : getWidth();
 
         drawState(g2d, data, endLimit);
-
-        if (data.getJavaThreads().size() > 1) {
-          drawWarning(g2d, data, endLimit);
-        }
-
         drawConnectionName(g2d, data, endLimit);
       }
 
@@ -285,38 +322,18 @@ final class ThreadsView {
 
     private void drawState(@NotNull Graphics2D g2d, @NotNull HttpData data, double endLimit) {
       double prev = rangeToPosition(data.getStartTimeUs());
-      g2d.setColor(ProfilerColors.NETWORK_THREADS_TABLE_SENDING);
+      g2d.setColor(ProfilerColors.NETWORK_SENDING_COLOR);
 
       if (data.getDownloadingTimeUs() > 0) {
         double download = rangeToPosition(data.getDownloadingTimeUs());
         // draw sending
-        g2d.fill(new Rectangle2D.Double(prev, (getHeight() - STATE_HEIGHT) / 2, download - prev, STATE_HEIGHT));
-        g2d.setColor(ProfilerColors.NETWORK_THREADS_TABLE_RECEIVING);
+        g2d.fill(new Rectangle2D.Double(prev, (getHeight() - STATE_HEIGHT) / 2.0, download - prev, STATE_HEIGHT));
+        g2d.setColor(ProfilerColors.NETWORK_RECEIVING_COLOR);
         prev = download;
       }
 
       double end = (data.getEndTimeUs() > 0) ? rangeToPosition(data.getEndTimeUs()) : endLimit;
-      g2d.fill(new Rectangle2D.Double(prev, (getHeight() - STATE_HEIGHT) / 2, end - prev, STATE_HEIGHT));
-    }
-
-    private void drawWarning(@NotNull Graphics2D g2d, @NotNull HttpData data, double endLimit) {
-      double start = rangeToPosition(data.getStartTimeUs());
-      double end = (data.getEndTimeUs() > 0) ? rangeToPosition(data.getEndTimeUs()) : endLimit;
-
-      double stateY = (getHeight() - STATE_HEIGHT) / 2;
-
-      Path2D triangle = new Path2D.Double();
-      triangle.moveTo(end - Math.min(end - start, WARNING_SIZE), stateY);
-      triangle.lineTo(end, stateY);
-      triangle.lineTo(end, stateY + WARNING_SIZE);
-      triangle.closePath();
-
-      g2d.setColor(getBackground());
-      g2d.setStroke(new BasicStroke(2));
-      g2d.draw(triangle);
-
-      g2d.setColor(ProfilerColors.NETWORK_THREADS_TABLE_WARNING);
-      g2d.fill(triangle);
+      g2d.fill(new Rectangle2D.Double(prev, (getHeight() - STATE_HEIGHT) / 2.0, end - prev, STATE_HEIGHT));
     }
 
     private void drawConnectionName(@NotNull Graphics2D g2d, @NotNull HttpData data, double endLimit) {
@@ -327,7 +344,7 @@ final class ThreadsView {
 
       FontMetrics metrics = getFontMetrics(getFont());
       String text =
-        AdtUiUtils.getFittedString(metrics, HttpData.getUrlName(data.getUrl()), (float)(end - start - 2 * NAME_PADDING), 1);
+        AdtUiUtils.shrinkToFit(HttpData.getUrlName(data.getUrl()), metrics, (float)(end - start - 2 * NAME_PADDING));
 
       double availableSpace = (end - start - metrics.stringWidth(text));
       g2d.drawString(text, (float)(start + availableSpace / 2.0), (float)((getHeight() - metrics.getHeight()) * 0.5 + metrics.getAscent()));
@@ -339,7 +356,7 @@ final class ThreadsView {
       g2d.setStroke(new BasicStroke(SELECTION_OUTLINE_BORDER));
       g2d.setColor(myTable.getSelectionBackground());
       Rectangle2D rect = new Rectangle2D.Double(start - SELECTION_OUTLINE_PADDING,
-                                                (getHeight() - STATE_HEIGHT) / 2 - SELECTION_OUTLINE_PADDING,
+                                                (getHeight() - STATE_HEIGHT) / 2.0 - SELECTION_OUTLINE_PADDING,
                                                 end - start + 2 * SELECTION_OUTLINE_PADDING,
                                                 STATE_HEIGHT + 2 * SELECTION_OUTLINE_PADDING);
       g2d.draw(rect);
@@ -350,111 +367,89 @@ final class ThreadsView {
     }
   }
 
-  private final static class TableTooltipView extends MouseAdapter {
+  private final static class TooltipView extends MouseAdapter {
     @NotNull private final NetworkProfilerStage myStage;
     @NotNull private final JTable myTable;
 
-    @NotNull private final JPanel myComponent;
     @NotNull private final TooltipComponent myTooltipComponent;
-    @NotNull private final JLabel myLabel;
+    @NotNull private final JPanel myContent;
 
-
-    TableTooltipView(@NotNull JTable table, @NotNull NetworkProfilerStage stage) {
+    private TooltipView(@NotNull JTable table, @NotNull NetworkProfilerStage stage) {
       myTable = table;
       myStage = stage;
 
-      myLabel = new JLabel();
-      myLabel.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-      myLabel.setBorder(new EmptyBorder(5, 10, 5, 10));
-      myLabel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
-      myLabel.setFont(myLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
-      myLabel.setOpaque(true);
+      myContent = new JPanel(new TabularLayout("*", "*"));
+      myContent.setBorder(TOOLTIP_BORDER);
+      myContent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
+      myContent.setFont(myContent.getFont().deriveFont(TOOLTIP_FONT_SIZE));
 
-      myComponent = new JPanel(new TabularLayout("*", "*"));
-      myTooltipComponent = new TooltipComponent(myLabel);
-      myTooltipComponent.registerListenersOn(myComponent);
+      myTooltipComponent = new TooltipComponent(myContent, table, ProfilerLayeredPane.class);
+      myTooltipComponent.registerListenersOn(table);
       myTooltipComponent.setVisible(false);
-
-      myComponent.add(myTooltipComponent, new TabularLayout.Constraint(0, 0));
-      myComponent.setOpaque(false);
-      myComponent.addMouseMotionListener(this);
-      myComponent.addMouseListener(this);
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
       myTooltipComponent.setVisible(false);
-      HttpData data = findHttpDataUnderCursor(e);
+      Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+      HttpData data = findHttpDataUnderCursor(myTable, selection, e);
       if (data != null) {
         showTooltip(data);
       }
     }
 
-    @Override
-    public void mouseClicked(MouseEvent e) {
-      HttpData data = findHttpDataUnderCursor(e);
-      if (data != null) {
-        myStage.setSelectedConnection(data);
-        e.consume();
-      }
-    }
-
-    @Nullable
-    private HttpData findHttpDataUnderCursor(@NotNull MouseEvent e) {
-      Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), myTable);
-      int row = myTable.rowAtPoint(p);
-      int column = myTable.columnAtPoint(p);
-
-      if (row == -1 || column == -1) {
-        return null;
-      }
-
-      if (column == 1) {
-        Rectangle cellBounds = myTable.getCellRect(row, column, false);
-        List<HttpData> dataList = (List<HttpData>)myTable.getModel().getValueAt(row, 1);
-        double at = positionToRange(p.x - cellBounds.x, cellBounds.getWidth());
-        for (HttpData data : dataList) {
-          if (data.getStartTimeUs() <= at && at <= data.getEndTimeUs()) {
-            return data;
-          }
-        }
-      }
-
-      return null;
-    }
-
-    JComponent getComponent() {
-      return myComponent;
-    }
-
     private void showTooltip(@NotNull HttpData data) {
       myTooltipComponent.setVisible(true);
 
-      StringBuilder text = new StringBuilder("<html> <style> p { margin-bottom: 5px; }  p, li { font-size: 11;}</style>");
-      text.append("<p style='font-size:12.5'>").append(data.getJavaThreads().get(0).getName()).append("</p>");
+      String urlName = HttpData.getUrlName(data.getUrl());
+      long duration = data.getEndTimeUs() - data.getStartTimeUs();
 
-      text.append("<p>").append(HttpData.getUrlName(data.getUrl())).append("</p>");
+      myContent.removeAll();
+      addToContent(newTooltipLabel(urlName));
+      JLabel durationLabel = newTooltipLabel(TimeAxisFormatter.DEFAULT.getFormattedDuration(duration));
+      durationLabel.setForeground(ProfilerColors.TOOLTIP_TIME_COLOR);
+      addToContent(durationLabel);
 
       if (data.getJavaThreads().size() > 1) {
-        text.append("<p style='margin-bottom:-5;'>Also accessed by:</p>");
-        text.append("<ul>");
-        for (int i = 1; i < data.getJavaThreads().size(); ++i) {
-          text.append("<li>").append(data.getJavaThreads().get(i).getName()).append("</li>");
-        }
-        text.append("</ul>");
-      }
-      text.append("</html>");
+        JPanel divider = new JPanel();
+        divider.setPreferredSize(new Dimension(0, 5));
+        divider.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER));
+        divider.setBackground(myContent.getBackground());
+        myContent.add(divider, new TabularLayout.Constraint(myContent.getComponentCount(), 0));
 
-      myLabel.setText(text.toString());
+        JLabel alsoAccessedByLabel = newTooltipLabel("Also accessed by:");
+        alsoAccessedByLabel.setFont(alsoAccessedByLabel.getFont().deriveFont(ImmutableMap.of(
+          TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD
+        )));
+
+        addToContent(alsoAccessedByLabel);
+        for (int i = 1; i < data.getJavaThreads().size(); ++i) {
+          JLabel label = newTooltipLabel(data.getJavaThreads().get(i).getName());
+          addToContent(label);
+          if (i == data.getJavaThreads().size() - 1) {
+            label.setBorder(new EmptyBorder(5, 0, 5, 0));
+          }
+        }
+      }
     }
 
-    private double positionToRange(double x, double width) {
-      Range range = myStage.getStudioProfilers().getTimeline().getSelectionRange();
-      return (x * range.getLength()) / width + range.getMin();
+    private void addToContent(@NotNull JComponent component) {
+      component.setBorder(new EmptyBorder(5, 0, 0, 0));
+      myContent.add(component, new TabularLayout.Constraint(myContent.getComponentCount(), 0));
+    }
+
+    private static JLabel newTooltipLabel(String text) {
+      JLabel label = new JLabel(text);
+      label.setForeground(ProfilerColors.TOOLTIP_TEXT);
+      label.setFont(label.getFont().deriveFont(TOOLTIP_FONT_SIZE));
+      return label;
+    }
+
+    /**
+     * Construct our tooltip view and attach it to the target table.
+     */
+    public static void install(@NotNull JTable table, @NotNull NetworkProfilerStage stage) {
+      table.addMouseMotionListener(new TooltipView(table, stage));
     }
   }
 }

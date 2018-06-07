@@ -18,6 +18,7 @@ package com.android.tools.idea.startup;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
+import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
@@ -31,6 +32,9 @@ import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -45,7 +49,10 @@ import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectManagerAdapter;
+import com.intellij.openapi.roots.OrderEnumerationHandler;
 import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
@@ -54,12 +61,10 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.SdkConstants.EXT_JAR;
-import static com.android.tools.idea.gradle.util.AndroidStudioPreferences.cleanUpPreferences;
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.startup.Actions.hideAction;
 import static com.android.tools.idea.startup.Actions.replaceAction;
 import static com.intellij.openapi.actionSystem.IdeActions.*;
-import static com.intellij.openapi.options.Configurable.APPLICATION_CONFIGURABLE;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.io.FileUtilRt.getExtension;
@@ -73,23 +78,17 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
  * </p>
  */
 public class AndroidStudioInitializer implements Runnable {
-
-  private static final Logger LOG = Logger.getInstance(AndroidStudioInitializer.class);
-
-  private static final List<String> IDE_SETTINGS_TO_REMOVE = Lists.newArrayList("org.jetbrains.plugins.javaFX.JavaFxSettingsConfigurable",
-                                                                                "org.intellij.plugins.xpathView.XPathConfigurable",
-                                                                                "org.intellij.lang.xpath.xslt.impl.XsltConfigImpl$UIImpl");
-
   @Override
   public void run() {
     checkInstallation();
-    removeIdeSettings();
     setUpNewFilePopupActions();
     setUpMakeActions();
     disableGroovyLanguageInjection();
     setUpNewProjectActions();
     setupAnalytics();
     disableIdeaJUnitConfigurations();
+    hideRarelyUsedIntellijActions();
+    renameSynchronizeAction();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
@@ -119,17 +118,17 @@ public class AndroidStudioInitializer implements Runnable {
   private static void checkInstallation() {
     String studioHome = PathManager.getHomePath();
     if (isEmpty(studioHome)) {
-      LOG.info("Unable to find Studio home directory");
+      getLog().info("Unable to find Studio home directory");
       return;
     }
     File studioHomePath = toSystemDependentPath(studioHome);
     if (!studioHomePath.isDirectory()) {
-      LOG.info(String.format("The path '%1$s' does not belong to an existing directory", studioHomePath.getPath()));
+      getLog().info(String.format("The path '%1$s' does not belong to an existing directory", studioHomePath.getPath()));
       return;
     }
     File androidPluginLibFolderPath = new File(studioHomePath, join("plugins", "android", "lib"));
     if (!androidPluginLibFolderPath.isDirectory()) {
-      LOG.info(String.format("The path '%1$s' does not belong to an existing directory", androidPluginLibFolderPath.getPath()));
+      getLog().info(String.format("The path '%1$s' does not belong to an existing directory", androidPluginLibFolderPath.getPath()));
       return;
     }
 
@@ -170,15 +169,6 @@ public class AndroidStudioInitializer implements Runnable {
     }
 
     return false;
-  }
-
-  private static void removeIdeSettings() {
-    try {
-      cleanUpPreferences(Extensions.getRootArea().getExtensionPoint(APPLICATION_CONFIGURABLE), IDE_SETTINGS_TO_REMOVE);
-    }
-    catch (Throwable e) {
-      LOG.info("Failed to clean up IDE preferences", e);
-    }
   }
 
   // Remove popup actions that we don't use
@@ -227,9 +217,8 @@ public class AndroidStudioInitializer implements Runnable {
           }
         }
 
-        LOG.info("Failed to disable 'org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector'");
+        getLog().info("Failed to disable 'org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector'");
       }
-
     });
   }
 
@@ -270,5 +259,21 @@ public class AndroidStudioInitializer implements Runnable {
     // We hide actions registered by the JUnit plugin and instead we use those registered in android-junit.xml
     hideAction("excludeFromSuite");
     hideAction("AddToISuite");
+  }
+
+  private static void hideRarelyUsedIntellijActions() {
+    // Hide the Save File as Template action due to its rare use in Studio.
+    hideAction("SaveFileAsTemplate");
+  }
+
+  private static void renameSynchronizeAction() {
+    // Rename the Synchronize action to Sync with File System to look better next to Sync Project with Gradle Files.
+    AnAction action = ActionManager.getInstance().getAction(IdeActions.ACTION_SYNCHRONIZE);
+    action.getTemplatePresentation().setText("S_ync with File System", true);
+  }
+
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(AndroidStudioInitializer.class);
   }
 }

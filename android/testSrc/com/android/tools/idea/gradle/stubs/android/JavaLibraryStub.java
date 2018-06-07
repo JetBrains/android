@@ -50,6 +50,12 @@ public class JavaLibraryStub implements JavaLibrary {
 
   @Override
   @Nullable
+  public String getBuildId() {
+    return null;
+  }
+
+  @Override
+  @Nullable
   public String getProject() {
     return null;
   }

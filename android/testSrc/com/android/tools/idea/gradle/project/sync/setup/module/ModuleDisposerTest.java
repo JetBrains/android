@@ -32,7 +32,7 @@ import org.mockito.Mock;
 import java.io.File;
 import java.util.Collections;
 
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;

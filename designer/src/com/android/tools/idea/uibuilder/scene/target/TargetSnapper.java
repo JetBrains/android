@@ -251,4 +251,9 @@ public class TargetSnapper {
   public Notch getSnappedNotchY() {
     return myCurrentNotchY;
   }
+
+  public void cleanNotch() {
+    myCurrentNotchX = null;
+    myCurrentNotchY = null;
+  }
 }

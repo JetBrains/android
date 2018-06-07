@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
@@ -25,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.rules.ExternalResource;
 
 public class EmulatorTestRule extends ExternalResource {
+
+  public static final long DEFAULT_EMULATOR_WAIT_SECONDS = 240;
 
   private static final String DEFAULT_AVD_NAME = "device under test";
 
@@ -43,7 +44,7 @@ public class EmulatorTestRule extends ExternalResource {
 
   @Override
   protected void after() {
-    getEmulatorConnection().killEmulatorProcesses();
+    getEmulatorConnection().killEmulator();
     // Remove all AVDs
     for (AvdInfo avdInfo: getEmulatorConnection().getAvds(true)) {
       getEmulatorConnection().deleteAvd(avdInfo);
@@ -54,21 +55,30 @@ public class EmulatorTestRule extends ExternalResource {
                         String tab,
                         ChooseSystemImageStepFixture.SystemImage image,
                         String avdName) {
-    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
+    createAVD(avdManagerDialog, "Nexus 5", tab, image, avdName);
+  }
 
-    avdEditWizard.selectHardware()
-      .selectHardwareProfile("Nexus 5");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getChooseSystemImageStep()
+  public void createAVD(AvdManagerDialogFixture avdManagerDialog,
+                        String hardwareProfile,
+                        String tab,
+                        ChooseSystemImageStepFixture.SystemImage image,
+                        String avdName) {
+    avdManagerDialog.createNew()
+      .selectHardware()
+      .selectHardwareProfile(hardwareProfile)
+      .wizard()
+      .clickNext()
+      .getChooseSystemImageStep()
       .selectTab(tab)
-      .selectSystemImage(image);
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getConfigureAvdOptionsStep()
+      .selectSystemImage(image)
+      .wizard()
+      .clickNext()
+      .getConfigureAvdOptionsStep()
       .setAvdName(avdName)
-      .selectGraphicsSoftware();
-    avdEditWizard.clickFinish();
+      .selectGraphicsSoftware()
+      .wizard()
+      .clickFinish();
+
     avdManagerDialog.close();
   }
 

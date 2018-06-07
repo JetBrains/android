@@ -14,9 +14,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 abstract class ManifestInnerClass extends AndroidLightClass {
   private CachedValue<PsiField[]> myFieldsCache;
   private final AndroidFacet myFacet;

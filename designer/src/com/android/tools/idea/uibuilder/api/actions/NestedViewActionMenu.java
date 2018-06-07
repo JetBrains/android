@@ -31,7 +31,7 @@ import java.util.List;
  * However, if there is just a single row, it will be shown as a plain
  * menu instead.
  */
-public final class NestedViewActionMenu extends ViewAction {
+public class NestedViewActionMenu extends ViewAction {
   private final List<List<ViewAction>> myActions;
 
   /**

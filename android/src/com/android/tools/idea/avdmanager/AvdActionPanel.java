@@ -16,9 +16,13 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
@@ -57,9 +61,11 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
 
   private boolean myFocused;
   private int myFocusedComponent = -1;
+  private boolean myHighlighted = false;
 
   public interface AvdRefreshProvider {
     void refreshAvds();
+    void refreshAvdsAndSelect(@Nullable AvdInfo avdToSelect);
     @Nullable Project getProject();
 
     @NotNull JComponent getComponent();
@@ -142,7 +148,9 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     //actionList.add(new ExportAvdAction(this)); // TODO: implement export/import
     actionList.add(new WipeAvdDataAction(this));
 
-    if (AvdWizardUtils.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler())) {
+    if (EmulatorAdvFeatures.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler(),
+                                                     new StudioLoggerProgressIndicator(AvdActionPanel.class),
+                                                     new LogWrapper(Logger.getInstance(AvdManagerConnection.class)))) {
       actionList.add(new ColdBootNowAction(this));
     }
     actionList.add(new ShowAvdOnDiskAction(this));
@@ -162,6 +170,11 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
   @Override
   public void refreshAvds() {
     myRefreshProvider.refreshAvds();
+  }
+
+  @Override
+  public void refreshAvdsAndSelect(@Nullable AvdInfo avdToSelect) {
+    myRefreshProvider.refreshAvdsAndSelect(avdToSelect);
   }
 
   @Nullable
@@ -211,12 +224,21 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     }
   }
 
+  public void setHighlighted(boolean highlighted) {
+    myHighlighted = highlighted;
+  }
+
   private class FocusableHyperlinkLabel extends HyperlinkLabel {
+    Icon myHighlightedIcon;
+
     FocusableHyperlinkLabel(String text, Icon icon) {
       super(text, JBColor.foreground(), JBColor.background(), JBColor.foreground());
       setIcon(icon);
       setOpaque(false);
       setUseIconAsLink(true);
+      if (icon != null) {
+        myHighlightedIcon = ColoredIconGenerator.INSTANCE.generateWhiteIcon(myIcon);
+      }
     }
 
     @Override
@@ -225,6 +247,15 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
       if (myFocused && myFocusedComponent != -1 && myVisibleComponents.get(myFocusedComponent) == this) {
         g.setColor(UIUtil.getTableSelectionForeground());
         UIUtil.drawDottedRectangle(g, 0, 0, getWidth() - 2, getHeight() - 2);
+      }
+      if (myIcon != null) {
+        // Repaint the icon
+        Icon theIcon = myIcon;
+        if (myHighlighted && myHighlightedIcon != null) {
+          // Use white when the cell is highlighted
+          theIcon = myHighlightedIcon;
+        }
+        theIcon.paintIcon(this, g, 0, (getHeight() - theIcon.getIconHeight()) / 2);
       }
     }
   }

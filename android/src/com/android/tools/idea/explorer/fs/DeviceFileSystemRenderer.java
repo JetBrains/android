@@ -22,10 +22,10 @@ import javax.swing.*;
 /**
  * Provide Swing components to help with rendering
  */
-public interface DeviceFileSystemRenderer {
+public interface DeviceFileSystemRenderer<S extends DeviceFileSystem> {
   /**
    * Returns a {@link ListCellRenderer} used to render device names in UI components.
    */
   @NotNull
-  ListCellRenderer<DeviceFileSystem> getDeviceNameListRenderer();
+  ListCellRenderer<S> getDeviceNameListRenderer();
 }

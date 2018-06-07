@@ -17,9 +17,10 @@ package com.android.tools.idea.gradle.dsl.parser.java;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 /**
  * Holds the data in addition to the project element, which added by Java plugin
@@ -27,23 +28,23 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 public class JavaDslElement extends BaseCompileOptionsDslElement {
   @NonNls public static final String JAVA_BLOCK_NAME = "java";
 
-  public JavaDslElement(@Nullable GradleDslElement parent) {
+  public JavaDslElement(@NotNull GradleDslElement parent) {
     super(parent, JAVA_BLOCK_NAME);
   }
 
   @Override
   @Nullable
-  public GroovyPsiElement getPsiElement() {
+  public PsiElement getPsiElement() {
     return null; // This class just act as an intermediate class for java properties and doesn't represent any real element on the file.
   }
 
   @Override
   @Nullable
-  public GroovyPsiElement create() {
+  public PsiElement create() {
     return myParent == null ? null : myParent.create();
   }
 
   @Override
-  public void setPsiElement(@Nullable GroovyPsiElement psiElement) {
+  public void setPsiElement(@Nullable PsiElement psiElement) {
   }
 }

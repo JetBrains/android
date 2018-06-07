@@ -15,62 +15,63 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 /**
- * Tests for {@link ArtifactDependencySpec}.
+ * Tests for {@link ArtifactDependencySpecImpl}.
  */
 public class ArtifactDependencySpecTest {
   private ArtifactDependencySpec myDependency;
 
   @Before
   public void setUp() {
-    myDependency = new ArtifactDependencySpec("name", "group", "version");
+    myDependency = new ArtifactDependencySpecImpl("name", "group", "version");
   }
 
   @Test
   public void testCreate1() {
-    myDependency = ArtifactDependencySpec.create("group:name:version:classifier@extension");
+    myDependency = ArtifactDependencySpecImpl.create("group:name:version:classifier@extension");
     assertNotNull(myDependency);
-    assertEquals("group", myDependency.group);
-    assertEquals("name", myDependency.name);
-    assertEquals("version", myDependency.version);
-    assertEquals("classifier", myDependency.classifier);
-    assertEquals("extension", myDependency.extension);
+    assertEquals("group", myDependency.getGroup());
+    assertEquals("name", myDependency.getName());
+    assertEquals("version", myDependency.getVersion());
+    assertEquals("classifier", myDependency.getClassifier());
+    assertEquals("extension", myDependency.getExtension());
   }
 
   @Test
   public void testCreate2() {
-    myDependency = ArtifactDependencySpec.create("group:name:version@extension");
+    myDependency = ArtifactDependencySpecImpl.create("group:name:version@extension");
     assertNotNull(myDependency);
-    assertEquals("group", myDependency.group);
-    assertEquals("name", myDependency.name);
-    assertEquals("version", myDependency.version);
-    assertNull(myDependency.classifier);
-    assertEquals("extension", myDependency.extension);
+    assertEquals("group", myDependency.getGroup());
+    assertEquals("name", myDependency.getName());
+    assertEquals("version", myDependency.getVersion());
+    assertNull(myDependency.getClassifier());
+    assertEquals("extension", myDependency.getExtension());
   }
 
   @Test
   public void testCreate3() {
-    myDependency = ArtifactDependencySpec.create("group:name:version@extension");
+    myDependency = ArtifactDependencySpecImpl.create("group:name:version@extension");
     assertNotNull(myDependency);
-    assertEquals("group", myDependency.group);
-    assertEquals("name", myDependency.name);
-    assertEquals("version", myDependency.version);
-    assertNull(myDependency.classifier);
-    assertEquals("extension", myDependency.extension);
+    assertEquals("group", myDependency.getGroup());
+    assertEquals("name", myDependency.getName());
+    assertEquals("version", myDependency.getVersion());
+    assertNull(myDependency.getClassifier());
+    assertEquals("extension", myDependency.getExtension());
   }
 
   @Test
   public void testCreate4() {
-    myDependency = ArtifactDependencySpec.create("com.google.javascript:closure-compiler:v20151216");
+    myDependency = ArtifactDependencySpecImpl.create("com.google.javascript:closure-compiler:v20151216");
     assertNotNull(myDependency);
-    assertEquals("com.google.javascript", myDependency.group);
-    assertEquals("closure-compiler", myDependency.name);
-    assertEquals("v20151216", myDependency.version);
+    assertEquals("com.google.javascript", myDependency.getGroup());
+    assertEquals("closure-compiler", myDependency.getName());
+    assertEquals("v20151216", myDependency.getVersion());
   }
 
   @Test
@@ -80,52 +81,52 @@ public class ArtifactDependencySpecTest {
 
   @Test
   public void testGetCompactNotationWithoutExtension() {
-    myDependency.classifier = "classifier";
+    myDependency.setClassifier("classifier");
     assertEquals("group:name:version:classifier", myDependency.compactNotation());
   }
 
   @Test
   public void testGetCompactNotationWithoutClassifier() {
-    myDependency.extension = "ext";
+    myDependency.setExtension("ext");
     assertEquals("group:name:version@ext", myDependency.compactNotation());
   }
 
   @Test
   public void testGetCompactNotation() {
-    myDependency.classifier = "classifier";
-    myDependency.extension = "ext";
+    myDependency.setClassifier("classifier");
+    myDependency.setExtension("ext");
     assertEquals("group:name:version:classifier@ext", myDependency.compactNotation());
   }
 
   @Test
   public void testEqualsFalse() {
-    myDependency = ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk15@jar");
+    myDependency = ArtifactDependencySpecImpl.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk15@jar");
     ArtifactDependencySpec theirDependency =
-      ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-beta1:jdk15@jar");
+      ArtifactDependencySpecImpl.create("org.gradle.test.classifiers:service:1.0.0-beta1:jdk15@jar");
     assertFalse(myDependency.equals(theirDependency));
   }
 
   @Test
   public void testEqualsTrue() {
-    myDependency = ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk15@jar");
+    myDependency = ArtifactDependencySpecImpl.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk15@jar");
     ArtifactDependencySpec theirDependency =
-      ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk15@jar");
+      ArtifactDependencySpecImpl.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk15@jar");
     assertTrue(myDependency.equals(theirDependency));
   }
 
   @Test
   public void testEqualsIgnoreVersionFalse() {
-    myDependency = ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk15@jar");
+    myDependency = ArtifactDependencySpecImpl.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk15@jar");
     ArtifactDependencySpec theirDependency =
-      ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk16@jar");
+      ArtifactDependencySpecImpl.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk16@jar");
     assertFalse(myDependency.equalsIgnoreVersion(theirDependency));
   }
 
   @Test
   public void testeEqualsIgnoreVersionTrue() {
-    myDependency = ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk15@jar");
+    myDependency = ArtifactDependencySpecImpl.create("org.gradle.test.classifiers:service:1.0.0-alpha4:jdk15@jar");
     ArtifactDependencySpec theirDependency =
-      ArtifactDependencySpec.create("org.gradle.test.classifiers:service:1.0.0-beta1:jdk15@jar");
+      ArtifactDependencySpecImpl.create("org.gradle.test.classifiers:service:1.0.0-beta1:jdk15@jar");
     assertTrue(myDependency.equalsIgnoreVersion(theirDependency));
   }
 }

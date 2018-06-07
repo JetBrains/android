@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -65,7 +66,8 @@ public class JavaLanguageLevelModuleSetupStepTest extends IdeaTestCase {
     when(myJavaModuleModel.getJavaLanguageLevel()).thenReturn(JDK_1_7);
 
     Module module = getModule();
-    mySetupStep.setUpModule(module, modelsProvider, myJavaModuleModel, null, null);
+    ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
+    mySetupStep.setUpModule(context, myJavaModuleModel);
 
     // Commit changes to verify results.
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
@@ -82,7 +84,8 @@ public class JavaLanguageLevelModuleSetupStepTest extends IdeaTestCase {
     when(myJavaModuleModel.getJavaLanguageLevel()).thenReturn(null);
 
     Module module = getModule();
-    mySetupStep.setUpModule(module, modelsProvider, myJavaModuleModel, null, null);
+    ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
+    mySetupStep.setUpModule(context, myJavaModuleModel);
 
     // Commit changes to verify results.
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
@@ -105,7 +108,8 @@ public class JavaLanguageLevelModuleSetupStepTest extends IdeaTestCase {
     when(myJavaModuleModel.getJavaLanguageLevel()).thenReturn(null);
 
     Module module = getModule();
-    mySetupStep.setUpModule(module, modelsProvider, myJavaModuleModel, null, null);
+    ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
+    mySetupStep.setUpModule(context, myJavaModuleModel);
 
     // Commit changes to verify results.
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);

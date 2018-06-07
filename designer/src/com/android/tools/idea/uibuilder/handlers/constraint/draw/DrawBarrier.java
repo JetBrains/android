@@ -20,7 +20,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 
 import java.awt.*;
 
@@ -107,9 +107,9 @@ public class DrawBarrier extends DrawRegion {
   public static void add(DisplayList list, SceneContext transform,
                          @AndroidDpCoordinate float left, @AndroidDpCoordinate float top, @AndroidDpCoordinate float size,
                          int direction, boolean selected) {
-    int l = transform.getSwingX(left);
-    int t = transform.getSwingY(top);
-    int pixSze = transform.getSwingDimension(size);
+    int l = transform.getSwingXDip(left);
+    int t = transform.getSwingYDip(top);
+    int pixSze = transform.getSwingDimensionDip(size);
     list.add(new DrawBarrier(l, t, pixSze, direction, selected));
   }
 }

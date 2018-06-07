@@ -17,7 +17,7 @@ package org.jetbrains.android.maven;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.gradle.project.sync.hyperlink.CustomNotificationListener;
+import com.android.tools.idea.ui.CustomNotificationListener;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.Jdks;
@@ -83,7 +83,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 
 /**
  * @author Eugene.Kudelevsky

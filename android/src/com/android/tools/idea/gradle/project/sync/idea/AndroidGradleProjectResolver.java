@@ -20,14 +20,15 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
 import com.android.builder.model.level2.GlobalLibraryMap;
+import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
+import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.project.model.*;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProject;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProjectImpl;
-import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
@@ -45,6 +46,7 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.module.StdModuleTypes;
@@ -69,7 +71,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
@@ -77,8 +78,8 @@ import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersion
 import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
@@ -294,6 +295,19 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @Override
+  @NotNull
+  public Collection<TaskData> populateModuleTasks(@NotNull IdeaModule gradleModule,
+                                                  @NotNull DataNode<ModuleData> ideModule,
+                                                  @NotNull DataNode<ProjectData> ideProject)
+    throws IllegalArgumentException, IllegalStateException {
+    // Gradle doesn't support running tasks for included projects. Don't create task node if this module belongs to an included projects.
+    if (resolverCtx.getModels().getIncludedBuilds().contains(gradleModule.getProject())) {
+      return Collections.emptyList();
+    }
+    return nextResolver.populateModuleTasks(gradleModule, ideModule, ideProject);
+  }
+
+  @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
     populateModuleBuildDirs(gradleProject);
     populateGlobalLibraryMap(gradleProject);
@@ -311,7 +325,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     for (IdeaModule ideaModule : ideaProject.getChildren()) {
       GradleProject gradleProject = ideaModule.getGradleProject();
       if (gradleProject != null) {
-        myDependenciesFactory.findAndAddBuildFolderPath(gradleProject);
+        try {
+          myDependenciesFactory.findAndAddBuildFolderPath(gradleProject.getPath(), gradleProject.getBuildDirectory());
+        }
+        catch (UnsupportedOperationException exception) {
+          // getBuildDirectory is available for Gradle versions older than 2.0.
+          // For older versions of gradle, there's no way to get build directory.
+        }
       }
     }
   }
@@ -332,7 +352,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
     // GlobalLibraryMap will be null for pre 3.0 plugins, or for 3.0 plugin with VERSION_3 model.
     if (globalLibraryMap != null) {
-      myDependenciesFactory.setupGlobalLibraryMap(globalLibraryMap);
+      myDependenciesFactory.setUpGlobalLibraryMap(globalLibraryMap);
     }
   }
 
@@ -431,7 +451,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   private static String getUnsupportedModelVersionErrorMsg(@Nullable GradleVersion modelVersion) {
     StringBuilder builder = new StringBuilder();
     builder.append(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX);
-    String recommendedVersion = String.format("The recommended version is %1$s.", GRADLE_PLUGIN_RECOMMENDED_VERSION);
+    String recommendedVersion = String.format("The recommended version is %1$s.", AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
     if (modelVersion != null) {
       builder.append(String.format(" (%1$s).", modelVersion.toString())).append(" ").append(recommendedVersion);
       if (modelVersion.getMajor() == 0 && modelVersion.getMinor() <= 8) {

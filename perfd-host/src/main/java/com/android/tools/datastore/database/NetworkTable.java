@@ -17,7 +17,7 @@ package com.android.tools.datastore.database;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
-import com.google.protobuf3jarjar.InvalidProtocolBufferException;
+import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,10 +37,11 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
   }
 
   private static final Map<NetworkProfiler.NetworkProfilerData.DataCase, Integer> DATACASE_REQUEST_TYPE_MAP = new HashMap<>();
-  private static final int BODY_COLUMN = 2;
-  private static final int REQUEST_COLUMN = 3;
-  private static final int RESPONSE_COLUMN = 4;
-  private static final int THREADS_COLUMN = 5;
+  private static final int REQUEST_COLUMN = 2;
+  private static final int RESPONSE_COLUMN = 3;
+  private static final int REQUEST_BODY_COLUMN = 4;
+  private static final int RESPONSE_BODY_COLUMN = 5;
+  private static final int THREADS_COLUMN = 6;
 
   static {
     DATACASE_REQUEST_TYPE_MAP
@@ -51,29 +52,22 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
                                   NetworkProfiler.NetworkDataRequest.Type.CONNECTIVITY.getNumber());
   }
 
-  private static Logger getLogger() {
-    return Logger.getInstance(NetworkTable.class);
-  }
-
-  public NetworkTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
-    super(sesstionIdLookup);
-  }
-
   @Override
   public void initialize(@NotNull Connection connection) {
     super.initialize(connection);
     try {
-      createTable("Network_Data", "Id INTEGER NOT NULL", "Type INTEGER NOT NULL", "EndTime INTEGER", "Data BLOB");
-      createTable("Network_Connection", "ProcessId INTEGER NOT NULL", "Session INTEGER NOT NULL", "Id INTEGER NOT NULL",
+      createTable("Network_Data", "Session INTEGER NOT NULL", "Type INTEGER NOT NULL", "EndTime INTEGER", "Data BLOB");
+      createTable("Network_Connection", "Session INTEGER NOT NULL", "Id INTEGER NOT NULL",
                   "StartTime INTEGER",
                   "EndTime INTEGER",
-                  "ConnectionData BLOB", "BodyData BLOB", "RequestData BLOB", "ResponseData BLOB", "ThreadsData BLOB",
-                  "PRIMARY KEY(ProcessId, Id)");
-      createUniqueIndex("Network_Data", "Id", "Type", "EndTime");
-      createUniqueIndex("Network_Connection", "ProcessId", "Session", "Id");
+                  "ConnectionData BLOB", "RequestData BLOB", "ResponseData BLOB", "RequestBodyData BLOB", "ResponseBodyData BLOB",
+                  "ThreadsData BLOB",
+                  "PRIMARY KEY(Session, Id)");
+      createUniqueIndex("Network_Data", "Session", "Type", "EndTime");
+      createUniqueIndex("Network_Connection", "Session", "Id");
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -81,28 +75,29 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
   public void prepareStatements() {
     try {
       createStatement(NetworkStatements.INSERT_NETWORK_DATA,
-                      "INSERT OR IGNORE INTO Network_Data (Id, Type, EndTime, Data) VALUES (?, ?, ?, ?)");
+                      "INSERT OR IGNORE INTO Network_Data (Session, Type, EndTime, Data) VALUES (?, ?, ?, ?)");
       createStatement(NetworkStatements.QUERY_NETWORK_DATA_BY_TYPE,
-                      "SELECT Data FROM Network_Data WHERE (Id = ? OR Id = ?) AND Type = ? AND EndTime > ? AND EndTime <= ?");
+                      "SELECT Data FROM Network_Data WHERE Session = ? AND Type = ? AND EndTime > ? AND EndTime <= ?");
       createStatement(NetworkStatements.QUERY_NETWORK_DATA,
-                      "SELECT Data FROM Network_Data WHERE (Id = ? OR Id = ? ) AND EndTime > ? AND EndTime <= ?");
+                      "SELECT Data FROM Network_Data WHERE Session = ? AND EndTime > ? AND EndTime <= ?");
 
       createStatement(NetworkStatements.QUERY_COMMON_CONNECTION_DATA,
-                      "SELECT ConnectionData FROM Network_Connection WHERE ProcessId = ? AND Session = ? AND (EndTime > ? OR EndTime = 0) AND StartTime <= ?");
+                      "SELECT ConnectionData FROM Network_Connection WHERE Session = ? AND (EndTime > ? OR EndTime = 0) AND StartTime <= ?");
       createStatement(NetworkStatements.FIND_CONNECTION_DATA,
-                      "SELECT ConnectionData, BodyData, RequestData, ResponseData, ThreadsData FROM Network_Connection WHERE Id = ? AND Session = ?");
+                      "SELECT ConnectionData, RequestData, ResponseData, RequestBodyData, ResponseBodyData, ThreadsData FROM Network_Connection WHERE Id = ? AND Session = ?");
       createStatement(NetworkStatements.INSERT_CONNECTION_DATA,
-                      "INSERT OR REPLACE INTO Network_Connection (ProcessId, Session, Id, StartTime, EndTime, ConnectionData, BodyData, RequestData, ResponseData, ThreadsData) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                      "INSERT OR REPLACE INTO Network_Connection (Session, Id, StartTime, EndTime, ConnectionData, RequestData, ResponseData, RequestBodyData, ResponseBodyData, ThreadsData) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
   public List<NetworkProfiler.HttpConnectionData> getNetworkConnectionDataByRequest(NetworkProfiler.HttpRangeRequest request) {
     List<NetworkProfiler.HttpConnectionData> datas = new ArrayList<>();
     try {
-      ResultSet results = executeQuery(NetworkStatements.QUERY_COMMON_CONNECTION_DATA, request.getProcessId(), request.getSession(),
+      ResultSet results = executeQuery(NetworkStatements.QUERY_COMMON_CONNECTION_DATA,
+                                       request.getSession().getSessionId(),
                                        request.getStartTimestamp(),
                                        request.getEndTimestamp());
       while (results.next()) {
@@ -112,7 +107,7 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
       }
     }
     catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return datas;
   }
@@ -123,11 +118,11 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
     try {
       if (request.getType() == NetworkProfiler.NetworkDataRequest.Type.ALL) {
         results =
-          executeQuery(NetworkStatements.QUERY_NETWORK_DATA, request.getProcessId(), Common.AppId.ANY_VALUE, request.getStartTimestamp(),
+          executeQuery(NetworkStatements.QUERY_NETWORK_DATA, request.getSession().getSessionId(), request.getStartTimestamp(),
                        request.getEndTimestamp());
       }
       else {
-        results = executeQuery(NetworkStatements.QUERY_NETWORK_DATA_BY_TYPE, request.getProcessId(), Common.AppId.ANY_VALUE,
+        results = executeQuery(NetworkStatements.QUERY_NETWORK_DATA_BY_TYPE, request.getSession().getSessionId(),
                                request.getType().getNumber(),
                                request.getStartTimestamp(), request.getEndTimestamp());
       }
@@ -138,14 +133,14 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
       }
     }
     catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return datas;
   }
 
-  public void insert(int appId, NetworkProfiler.NetworkProfilerData data) {
-    execute(NetworkStatements.INSERT_NETWORK_DATA, appId, DATACASE_REQUEST_TYPE_MAP.get(data.getDataCase()),
-            data.getBasicInfo().getEndTimestamp(), data.toByteArray());
+  public void insert(@NotNull Common.Session session, NetworkProfiler.NetworkProfilerData data) {
+    execute(NetworkStatements.INSERT_NETWORK_DATA, session.getSessionId(), DATACASE_REQUEST_TYPE_MAP.get(data.getDataCase()),
+            data.getEndTimestamp(), data.toByteArray());
   }
 
   public NetworkProfiler.HttpDetailsResponse getHttpDetailsResponseById(long connId,
@@ -166,7 +161,7 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
       }
     }
     catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return null;
   }
@@ -177,11 +172,12 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
         return Optional.of(REQUEST_COLUMN);
       case RESPONSE:
         return Optional.of(RESPONSE_COLUMN);
+      case REQUEST_BODY:
+        return Optional.of(REQUEST_BODY_COLUMN);
       case RESPONSE_BODY:
-        return Optional.of(BODY_COLUMN);
+        return Optional.of(RESPONSE_BODY_COLUMN);
       case ACCESSING_THREADS:
         return Optional.of(THREADS_COLUMN);
-      case REQUEST_BODY:
       case UNSPECIFIED:
       case UNRECOGNIZED:
         return Optional.empty();
@@ -189,22 +185,23 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
     throw new AssertionError(type);
   }
 
-  public void insertOrReplace(int processId,
-                              Common.Session session,
+  public void insertOrReplace(Common.Session session,
                               NetworkProfiler.HttpDetailsResponse request,
                               NetworkProfiler.HttpDetailsResponse response,
-                              NetworkProfiler.HttpDetailsResponse body,
+                              NetworkProfiler.HttpDetailsResponse requestBody,
+                              NetworkProfiler.HttpDetailsResponse responseBody,
                               NetworkProfiler.HttpDetailsResponse threads,
-                              NetworkProfiler.HttpConnectionData data) {
-    long id = data.getConnId();
-    long startTime = data.getStartTimestamp();
-    long endTime = data.getEndTimestamp();
-    byte[] commonData = data.toByteArray();
-    byte[] responseData = response == null ? null : response.toByteArray();
+                              NetworkProfiler.HttpConnectionData connection) {
+    long id = connection.getConnId();
+    long startTime = connection.getStartTimestamp();
+    long endTime = connection.getEndTimestamp();
+    byte[] commonData = connection.toByteArray();
     byte[] requestData = request == null ? null : request.toByteArray();
-    byte[] bodyData = body == null ? null : body.toByteArray();
+    byte[] responseData = response == null ? null : response.toByteArray();
+    byte[] requestBodyData = requestBody == null ? null : requestBody.toByteArray();
+    byte[] responseBodyData = responseBody == null ? null : responseBody.toByteArray();
     byte[] threadsData = threads == null ? null : threads.toByteArray();
-    execute(NetworkStatements.INSERT_CONNECTION_DATA, processId, session, id, startTime, endTime, commonData, bodyData, requestData,
-            responseData, threadsData);
+    execute(NetworkStatements.INSERT_CONNECTION_DATA, session, id, startTime, endTime, commonData, requestData, responseData,
+            requestBodyData, responseBodyData, threadsData);
   }
 }

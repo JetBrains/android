@@ -22,13 +22,14 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
 public class AndroidProfilerToolWindow extends AspectObserver implements Disposable {
 
@@ -38,6 +39,8 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   private final StudioProfilers myProfilers;
   @NotNull
   private final Project myProject;
+  @NotNull
+  private final ProfilerLayeredPane myLayeredPane;
 
   public AndroidProfilerToolWindow(@NotNull final Project project) {
     myProject = project;
@@ -46,14 +49,31 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     ProfilerClient client = service.getProfilerClient();
     myProfilers = new StudioProfilers(client, new IntellijProfilerServices(myProject));
 
-    StartupManager.getInstance(project)
-      .runWhenProjectIsInitialized(() -> myProfilers.setPreferredProcessName(getPreferredProcessName(myProject)));
-
     myView = new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject));
+    myLayeredPane = new ProfilerLayeredPane();
+    service.getDataStoreService().setNoPiiExceptionHanlder(myProfilers.getIdeServices()::reportNoPiiException);
+    initializeUi();
 
     myProfilers.addDependency(this)
       .onChange(ProfilerAspect.MODE, this::updateToolWindow)
       .onChange(ProfilerAspect.STAGE, this::updateToolWindow);
+  }
+
+  private void initializeUi() {
+    JComponent content = myView.getComponent();
+    myLayeredPane.add(content, JLayeredPane.DEFAULT_LAYER);
+    myLayeredPane.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        content.setBounds(0, 0, myLayeredPane.getWidth(), myLayeredPane.getHeight());
+        content.revalidate();
+        content.repaint();
+      }
+    });
+  }
+
+  public void profileProject(@NotNull Project project) {
+    myProfilers.setPreferredProcessName(getPreferredProcessName(project));
   }
 
   public void updateToolWindow() {
@@ -75,7 +95,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   }
 
   public JComponent getComponent() {
-    return myView.getComponent();
+    return myLayeredPane;
   }
 
   @Nullable

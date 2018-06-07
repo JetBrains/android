@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.MockAxisFormatter;
@@ -22,6 +23,7 @@ import org.junit.Test;
 
 import java.awt.*;
 
+import static com.android.tools.adtui.AxisComponent.REMOVE_MAJOR_TICK_DENSITY;
 import static org.junit.Assert.*;
 
 public class AxisComponentTest {
@@ -33,7 +35,7 @@ public class AxisComponentTest {
     AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.RIGHT);
     component.setShowMin(true);
     component.setShowMax(true);
-    component.render();
+    component.caluculateMarkers(new Dimension(100, 100));
     assertEquals("1cm", component.getMinLabel());
     assertEquals("5cm", component.getMaxLabel());
   }
@@ -54,5 +56,18 @@ public class AxisComponentTest {
     component.setMarkerLengths(5, 5);
     Dimension dimension = component.getPreferredSize();
     assertFalse(dimension.getWidth() > dimension.getHeight());
+  }
+
+  @Test
+  public void testSmallTimelines() {
+    final int MAJOR_TICKS = 5;
+    AxisComponentModel model = new AxisComponentModel(new Range(10, 50), new MockAxisFormatter(1, MAJOR_TICKS - 1, 1));
+    model.setGlobalRange(new Range(0, 100));
+    AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.RIGHT);
+    FontMetrics fontMetrics = component.getFontMetrics(AdtUiUtils.DEFAULT_FONT);
+    component.caluculateMarkers(new Dimension(100, (MAJOR_TICKS * (fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent()) * 3 + 1) / 2));
+    assertTrue(component.getMarkerLabelDensity() >= REMOVE_MAJOR_TICK_DENSITY);
+    component.caluculateMarkers(new Dimension(100, MAJOR_TICKS * (fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent())));
+    assertTrue(component.getMarkerLabelDensity() < REMOVE_MAJOR_TICK_DENSITY);
   }
 }

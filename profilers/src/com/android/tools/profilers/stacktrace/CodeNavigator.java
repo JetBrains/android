@@ -50,6 +50,8 @@ public abstract class CodeNavigator {
     myFeatureTracker.trackNavigateToCode();
   }
 
+  public abstract boolean isNavigatable(@NotNull CodeLocation location);
+
   protected abstract void handleNavigate(@NotNull CodeLocation location);
 
   public interface Listener {

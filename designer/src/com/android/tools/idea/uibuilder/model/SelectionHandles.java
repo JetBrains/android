@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.surface.DesignSurface;
 import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.SelectionHandle.Position;
 
@@ -58,10 +59,10 @@ public class SelectionHandles implements Iterable<SelectionHandle> {
    * @return a {@link SelectionHandle} under the point, or null if not found
    */
   public SelectionHandle findHandle(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y,
-                                    @AndroidDpCoordinate int distance) {
-    @AndroidCoordinate int ax = Coordinates.dpToPx(myComponent.getModel(), x);
-    @AndroidCoordinate int ay = Coordinates.dpToPx(myComponent.getModel(), y);
-    @AndroidCoordinate int aDistance = Coordinates.dpToPx(myComponent.getModel(), distance);
+                                    @AndroidDpCoordinate int distance, @NotNull DesignSurface surface) {
+    @AndroidCoordinate int ax = Coordinates.dpToPx(surface, x);
+    @AndroidCoordinate int ay = Coordinates.dpToPx(surface, y);
+    @AndroidCoordinate int aDistance = Coordinates.dpToPx(surface, distance);
     for (SelectionHandle handle : myHandles) {
       if (handle.contains(ax, ay, aDistance)) {
         return handle;

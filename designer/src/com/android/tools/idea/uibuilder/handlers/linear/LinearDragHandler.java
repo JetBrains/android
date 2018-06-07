@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear;
 
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.TemporarySceneComponent;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearDragTarget;
-import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearSeparatorTarget;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.TemporarySceneComponent;
-import com.android.tools.idea.common.scene.target.Target;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,15 +48,39 @@ class LinearDragHandler extends DragHandler {
                            @NotNull List<NlComponent> components,
                            @NotNull DragType type) {
     super(editor, handler, layout, components, type);
-
     assert !components.isEmpty();
     NlComponent dragged = components.get(0);
-    myComponent = new TemporarySceneComponent(layout.getScene(), components.get(0));
-    myDragTarget = new LinearDragTarget(handler, type.equals(DragType.CREATE));
-    myComponent.setSize(editor.pxToDp(NlComponentHelperKt.getW(dragged)), editor.pxToDp(NlComponentHelperKt.getH(dragged)), false);
-    myComponent.setTargetProvider((sceneComponent, isParent) -> ImmutableList.of(myDragTarget), false);
+    SceneComponent component;
+    LinearDragTarget dragTarget = null;
+
+    component = layout.getScene().getSceneComponent(dragged);
+    if (component != null) {
+      dragTarget = findExistingDragTarget(component);
+    }
+    else {
+      component = new TemporarySceneComponent(layout.getScene(), components.get(0));
+      component.setSize(editor.pxToDp(NlComponentHelperKt.getW(dragged)), editor.pxToDp(NlComponentHelperKt.getH(dragged)), false);
+    }
+
+    if (dragTarget == null) {
+      dragTarget = new LinearDragTarget(handler, type.equals(DragType.CREATE));
+    }
+
+    myDragTarget = dragTarget;
+    myComponent = component;
+    component.setTargetProvider(sceneComponent -> ImmutableList.of(myDragTarget));
     myComponent.setDrawState(SceneComponent.DrawState.DRAG);
     layout.addChild(myComponent);
+  }
+
+  @Nullable
+  private static LinearDragTarget findExistingDragTarget(@NotNull SceneComponent component) {
+    for (Target target : component.getTargets()) {
+      if (target instanceof LinearDragTarget) {
+        return (LinearDragTarget)target;
+      }
+    }
+    return null;
   }
 
   @Override
@@ -66,7 +91,7 @@ class LinearDragHandler extends DragHandler {
 
   @Override
   public void cancel() {
-    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
+    Scene scene = editor.getScene();
     scene.removeComponent(myComponent);
     myDragTarget.cancel();
   }
@@ -83,17 +108,13 @@ class LinearDragHandler extends DragHandler {
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
-    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
+    Scene scene = editor.getScene();
     if (myComponent != null) {
-      @AndroidDpCoordinate int dx = editor.pxToDp(x) - myComponent.getDrawWidth() / 2;
-      @AndroidDpCoordinate int dy = editor.pxToDp(y) - myComponent.getDrawHeight() / 2;
-      myDragTarget.mouseRelease(dx, dy, ourEmptyTargetList);
+      myDragTarget.cancel();
       scene.removeComponent(myComponent);
-      if (!myDragTarget.isDragHandled()) {
-        // If the target didn't handled the insertion, we delegate
-        // the insertion to the drag handler
-        super.commit(x, y, modifiers, insertType);
-      }
+      LinearSeparatorTarget closest = myDragTarget.getClosest();
+      int index = closest != null ? closest.getInsertionIndex() : -1;
+      editor.insertChildren(layout.getNlComponent(), components, index, insertType);
       scene.checkRequestLayoutStatus();
     }
   }

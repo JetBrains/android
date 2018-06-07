@@ -19,8 +19,6 @@ import com.android.annotations.Nullable;
 import com.android.repository.api.Downloader;
 import com.android.repository.api.ProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.io.HttpRequests;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +49,6 @@ public class StudioDownloader implements Downloader {
   @Override
   public void downloadFully(@NotNull URL url, @NotNull File target, @Nullable String checksum, @NotNull ProgressIndicator indicator)
     throws IOException {
-
     if (target.exists() && checksum != null) {
       if (checksum.equals(Downloader.hash(new BufferedInputStream(new FileInputStream(target)), target.length(), indicator))) {
         return;

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidModuleCleanupStep;
@@ -23,7 +24,6 @@ import com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRo
 import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -46,6 +46,8 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
   @Mock private AndroidModuleSetup myModuleSetup;
   @Mock private AndroidModuleValidator myValidator;
   @Mock private AndroidModuleCleanupStep myCleanupStep;
+  @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
+  @Mock private ModuleSetupContext myModuleSetupContext;
 
   private AndroidModuleModelDataService myService;
 
@@ -57,7 +59,7 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
     AndroidModuleValidator.Factory validatorFactory = mock(AndroidModuleValidator.Factory.class);
     when(validatorFactory.create(getProject())).thenReturn(myValidator);
 
-    myService = new AndroidModuleModelDataService(myModuleSetup, validatorFactory, myCleanupStep);
+    myService = new AndroidModuleModelDataService(myModuleSetupContextFactory, myModuleSetup, validatorFactory, myCleanupStep);
   }
 
   public void testGetTargetDataKey() {
@@ -75,9 +77,10 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
     Project project = getProject();
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
 
-    myService.importData(Lists.newArrayList(dataNode), mock(ProjectData.class), project, modelsProvider);
+    when(myModuleSetupContextFactory.create(appModule, modelsProvider)).thenReturn(myModuleSetupContext);
+    myService.importData(Collections.singletonList(dataNode), mock(ProjectData.class), project, modelsProvider);
 
-    verify(myModuleSetup).setUpModule(appModule, modelsProvider, androidModel, null, null, false);
+    verify(myModuleSetup).setUpModule(myModuleSetupContext, androidModel, false);
     verify(myValidator).validate(appModule, androidModel);
     verify(myValidator).fixAndReportFoundIssues();
   }

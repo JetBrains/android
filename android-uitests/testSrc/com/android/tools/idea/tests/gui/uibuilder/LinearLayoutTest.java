@@ -21,15 +21,16 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.util.GuiTestFileUtils;
+import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.structure.StructureTreeDecorator;
 import com.android.xml.XmlBuilder;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,6 +52,7 @@ public final class LinearLayoutTest {
   private Path myMainStylePath;
   private Path myLayoutPath;
 
+  @Ignore("b/66680171")
   @Before
   public void setUp() {
     WizardUtils.createNewProject(myGuiTest, "Empty Activity");
@@ -105,6 +107,7 @@ public final class LinearLayoutTest {
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/70726902
   /**
    * Tries the case where style is referenced indirectly, e.g. through a reference in the theme.
    */
@@ -165,7 +168,6 @@ public final class LinearLayoutTest {
     JTreeFixture treeFixture = editor.getComponentTree();
 
     treeFixture.replaceCellReader((tree, value) -> {
-      assert value != null;
       return StructureTreeDecorator.toString((NlComponent)value);
     });
 
@@ -188,7 +190,7 @@ public final class LinearLayoutTest {
     GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myLayoutPath), layout);
     NlEditorFixture layoutEditor = myGuiTest.ideFrame().getEditor().open(myLayoutPath.toString()).getLayoutEditor(true);
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
-    layoutEditor.getComponentToolbar().getButtonByIcon(AndroidIcons.Views.VerticalLinearLayout).click();
+    layoutEditor.getComponentToolbar().getButtonByIcon(StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT).click();
     assertEquals("LinearLayout (vertical)", getComponentTree().valueAt(0));
   }
 }

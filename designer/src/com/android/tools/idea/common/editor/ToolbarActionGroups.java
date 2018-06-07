@@ -35,4 +35,9 @@ public class ToolbarActionGroups {
   protected ActionGroup getEastGroup() {
     return ActionGroup.EMPTY_GROUP;
   }
+
+  @NotNull
+  protected ActionGroup getNorthEastGroup() {
+    return ActionGroup.EMPTY_GROUP;
+  }
 }

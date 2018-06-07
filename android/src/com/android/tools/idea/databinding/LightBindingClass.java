@@ -19,8 +19,6 @@ import com.android.SdkConstants;
 import com.android.ide.common.res2.DataBindingResourceType;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.java.JavaParserDefinition;
@@ -45,6 +43,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +53,7 @@ import java.util.Map;
  * configurations.
  */
 public class LightBindingClass extends AndroidLightClassBase {
-  static final int STATIC_METHOD_COUNT = 6;
+  private static final int STATIC_METHOD_COUNT = 6;
   private DataBindingInfo myInfo;
   private CachedValue<PsiMethod[]> myPsiMethodsCache;
   private CachedValue<PsiField[]> myPsiFieldsCache;
@@ -65,6 +64,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   private final AndroidFacet myFacet;
   private static Lexer ourJavaLexer;
   private PsiFile myVirtualPsiFile;
+  private final Object myLock = new Object();
 
   protected LightBindingClass(final AndroidFacet facet, @NotNull PsiManager psiManager, DataBindingInfo info) {
     super(psiManager);
@@ -75,7 +75,7 @@ public class LightBindingClass extends AndroidLightClassBase {
 
     CachedValuesManager cachedValuesManager = CachedValuesManager.getManager(info.getProject());
     myAliasCache =
-      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<Map<String, String>>(facet) {
+      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<Map<String, String>>(facet, myLock) {
         @Override
         Map<String, String> doCompute() {
           Map<String, String> result = new HashMap<>();
@@ -90,18 +90,18 @@ public class LightBindingClass extends AndroidLightClassBase {
 
         @Override
         Map<String, String> defaultValue() {
-          return Maps.newHashMap();
+          return new HashMap<>();
         }
       }, false);
 
     myPsiMethodsCache =
-      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiMethod[]>(facet) {
+      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiMethod[]>(facet, myLock) {
         @Override
         PsiMethod[] doCompute() {
           List<PsiDataBindingResourceItem> variables = myInfo.getItems(DataBindingResourceType.VARIABLE);
           PsiElementFactory factory = PsiElementFactory.SERVICE.getInstance(myInfo.getProject());
           // generate getter if this is merged or does not have an alternative layout in another configuration
-          List<PsiMethod> methods = Lists.newArrayListWithCapacity(variables.size() * 2 + STATIC_METHOD_COUNT);
+          List<PsiMethod> methods = new ArrayList<>(variables.size() * 2 + STATIC_METHOD_COUNT);
           // if this is merged, we override all setters (even if we don't use that variable
           DataBindingInfo mergedInfo = myInfo.getMergedInfo();
           if (mergedInfo == null) {
@@ -128,7 +128,7 @@ public class LightBindingClass extends AndroidLightClassBase {
       }, false);
 
     myPsiFieldsCache =
-      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiField[]>(facet) {
+      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiField[]>(facet, myLock) {
         @Override
         PsiField[] doCompute() {
           if (myInfo.getMergedInfo() != null) {
@@ -165,7 +165,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   }
 
   @NotNull
-  private PsiMethod createConstructor(PsiElementFactory factory) {
+  private static PsiMethod createConstructor(PsiElementFactory factory) {
     PsiMethod constructor = factory.createConstructor();
     PsiUtil.setModifierProperty(constructor, PsiModifier.PRIVATE, true);
     return constructor;
@@ -257,7 +257,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     for (PsiMethod method : getMethods()) {
       if (name.equals(method.getName())) {
         if (matched == null) {
-          matched = Lists.newArrayList();
+          matched = new ArrayList<>();
         }
         matched.add(method);
       }
@@ -493,9 +493,10 @@ public class LightBindingClass extends AndroidLightClassBase {
     }
 
     @Override
+    @Nullable
     public PsiFile getContainingFile() {
       PsiClass containingClass = super.getContainingClass();
-      return containingClass == null ? null : containingClass.getContainingFile();
+      return containingClass.getContainingFile();
     }
 
     @NotNull
@@ -525,15 +526,25 @@ public class LightBindingClass extends AndroidLightClassBase {
     }
 
     @Override
+    @Nullable
     public PsiFile getContainingFile() {
       PsiClass containingClass = super.getContainingClass();
       return containingClass == null ? null : containingClass.getContainingFile();
     }
 
-    @NotNull
     @Override
+    @NotNull
     public PsiElement getNavigationElement() {
       return myViewWithId.tag;
+    }
+
+    @Override
+    @NotNull
+    public PsiElement setName(@NotNull String name) {
+      // This method is called by rename refactoring and has to succeed in order for the refactoring to succeed.
+      // There no need to change the name since once the refactoring is complete, this object will be replaced
+      // by a new one reflecting the changed source code.
+      return this;
     }
   }
 }

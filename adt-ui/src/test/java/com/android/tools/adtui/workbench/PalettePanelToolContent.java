@@ -39,6 +39,7 @@ class PalettePanelToolContent implements ToolContent<String> {
   private Runnable myRestore;
   private Runnable myAutoClose;
   private StartFilteringListener myStartFilteringListener;
+  private Runnable myStopFiltering;
   private boolean myDisposed;
   private boolean myGearActionPerformed;
   private boolean myAdditionalActionPerformed;
@@ -174,6 +175,17 @@ class PalettePanelToolContent implements ToolContent<String> {
   public void startFiltering(char character) {
     if (myStartFilteringListener != null) {
       myStartFilteringListener.startFiltering(character);
+    }
+  }
+
+  @Override
+  public void setStopFiltering(@NotNull Runnable runnable) {
+    myStopFiltering = runnable;
+  }
+
+  public void stopFiltering() {
+    if (myStopFiltering != null) {
+      myStopFiltering.run();
     }
   }
 

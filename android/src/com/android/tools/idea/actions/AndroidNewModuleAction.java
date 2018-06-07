@@ -19,7 +19,7 @@ package com.android.tools.idea.actions;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
-import com.android.tools.idea.npw.module.NewModuleModel;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -45,9 +45,16 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
   }
 
   @Override
+  public void update(AnActionEvent e) {
+    Project project = e.getProject();
+    boolean isAvailable = project != null && ProjectSystemUtil.getProjectSystem(project).allowsFileCreation();
+    e.getPresentation().setVisible(isAvailable);
+  }
+
+  @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
-    if (project != null) {
+    if (project != null && ProjectSystemUtil.getProjectSystem(project).allowsFileCreation()) {
       if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
         SdkQuickfixUtils.showSdkMissingDialog();
         return;
@@ -58,7 +65,7 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
         moduleDescriptions.addAll(provider.getDescriptions());
       }
 
-      ChooseModuleTypeStep chooseModuleTypeStep = new ChooseModuleTypeStep(new NewModuleModel(project), moduleDescriptions);
+      ChooseModuleTypeStep chooseModuleTypeStep = new ChooseModuleTypeStep(project, moduleDescriptions);
       ModelWizard wizard = new ModelWizard.Builder().addStep(chooseModuleTypeStep).build();
 
       new StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).setUseNewUx(true).build().show();

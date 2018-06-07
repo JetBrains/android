@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.ui.GuiTestingService;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -23,8 +24,6 @@ import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-
-import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
 public class SimulatedSyncErrors {
   private static Key<ExternalSystemException> SIMULATED_ERROR_KEY = Key.create("com.android.tools.idea.gradle.sync.simulated.errors");
@@ -79,6 +78,6 @@ public class SimulatedSyncErrors {
   }
 
   private static boolean isTestMode() {
-    return isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode();
+    return GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode();
   }
 }

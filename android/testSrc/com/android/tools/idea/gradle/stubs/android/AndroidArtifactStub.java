@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.IdeDependenciesStub;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStub;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
@@ -40,6 +40,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
 
   private InstantRun myInstantRun;
   private TestOptions myTestOptions;
+  @Nullable private final String myInstrumentedTestTaskName;
 
   public AndroidArtifactStub(@NotNull String name,
                              @NotNull String folderName,
@@ -50,6 +51,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
     AndroidArtifactOutputStub output = new AndroidArtifactOutputStub(new OutputFileStub(new File(name + "-" + buildType + ".apk")));
     myOutputs = Collections.singletonList(output);
     myIdeLevel2DependenciesStub = new IdeDependenciesStub();
+    myInstrumentedTestTaskName = "instrumentedTestsTaskName";
   }
 
   @Override
@@ -132,6 +134,12 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
   @Override
   public TestOptions getTestOptions() {
     return myTestOptions != null ? myTestOptions : mock(TestOptions.class);
+  }
+
+  @Nullable
+  @Override
+  public String getInstrumentedTestTaskName() {
+    return myInstrumentedTestTaskName;
   }
 
   public AndroidArtifactStub setInstantRun(InstantRun instantRun) {

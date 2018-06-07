@@ -70,6 +70,16 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
               map.put(id, Collections.<String>emptySet());
             }
           }
+          else if (AndroidResourceUtil.isConstraintReferencedIds(nsURI, nsPrefix, key)) {
+            // the value of app:constraint_referenced_ids has is a list of id which separated by comma.
+            if (value != null) {
+              for (String id : value.split(",")) {
+                if (id != null) {
+                  map.put("," + id, Collections.emptySet());
+                }
+              }
+            }
+          }
         }
       });
       if (!map.isEmpty()) {

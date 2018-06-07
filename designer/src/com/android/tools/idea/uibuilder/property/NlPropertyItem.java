@@ -27,6 +27,8 @@ import com.android.tools.adtui.ptable.StarState;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.property.renderer.NlAttributeRenderer;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
@@ -59,7 +61,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @NotNull
   protected final List<NlComponent> myComponents;
   @NotNull
-  protected final NlPropertiesManager myPropertiesManager;
+  protected final PropertiesManager myPropertiesManager;
   @Nullable
   protected final AttributeDefinition myDefinition;
   @NotNull
@@ -74,7 +76,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   public static NlPropertyItem create(@NotNull XmlName name,
                                       @Nullable AttributeDefinition attributeDefinition,
                                       @NotNull List<NlComponent> components,
-                                      @NotNull NlPropertiesManager propertiesManager) {
+                                      @NotNull PropertiesManager propertiesManager) {
     if (attributeDefinition != null && attributeDefinition.getFormats().contains(AttributeFormat.Flag)) {
       return new NlFlagPropertyItem(name, attributeDefinition, components, propertiesManager);
     }
@@ -89,7 +91,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   protected NlPropertyItem(@NotNull XmlName name,
                            @Nullable AttributeDefinition attributeDefinition,
                            @NotNull List<NlComponent> components,
-                           @NotNull NlPropertiesManager propertiesManager) {
+                           @NotNull PropertiesManager propertiesManager) {
     assert !components.isEmpty();
     if (attributeDefinition == null &&
         !ATTRS_WITHOUT_DEFINITIONS.contains(name.getLocalName()) &&

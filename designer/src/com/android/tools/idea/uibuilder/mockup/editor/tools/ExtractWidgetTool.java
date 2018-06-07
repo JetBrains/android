@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
@@ -31,6 +32,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -56,15 +58,19 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
    * Here we define all the actions we want to display for the widget creation
    */
   private static ImmutableList<CreatorAction> ourWidgetCreationActions = new ImmutableList.Builder<CreatorAction>()
+    // TODO: add new Icons to StudioIcons and replace this.
     .add(new CreatorAction(VIEW, "Create new widget from selection", AndroidIcons.Mockup.CreateWidget))
+    // TODO: add new Icons to StudioIcons and replace this.
     .add(new CreatorAction(VIEW_INCLUDE, "Create new layout from selection", AndroidIcons.Mockup.CreateLayout, true))
-    .add(new CreatorAction(IMAGE_VIEW, "Create new ImageView", AndroidIcons.Views.ImageView))
-    .add(new CreatorAction(FLOATING_ACTION_BUTTON, "Create new FloatingActionButton", AndroidIcons.Views.FloatingActionButton))
-    .add(new CreatorAction(TEXT_VIEW, "Create new TextView", AndroidIcons.Views.TextView))
-    .add(new CreatorAction(RECYCLER_VIEW, "Create new RecyclerView", AndroidIcons.Views.RecyclerView))
+    .add(new CreatorAction(IMAGE_VIEW, "Create new ImageView", StudioIcons.LayoutEditor.Palette.IMAGE_VIEW))
+    .add(new CreatorAction(FLOATING_ACTION_BUTTON, "Create new FloatingActionButton", StudioIcons.LayoutEditor.Palette.FLOATING_ACTION_BUTTON))
+    .add(new CreatorAction(TEXT_VIEW, "Create new TextView", StudioIcons.LayoutEditor.Palette.TEXT_VIEW))
+    // TODO: Should have an icon named "RECYCLER_VIEW" in StudioIcons.
+    .add(new CreatorAction(RECYCLER_VIEW, "Create new RecyclerView", StudioIcons.LayoutEditor.Palette.RECYCLER_VIEW))
     .build();
 
   private static ImmutableList<CreatorAction> ourOtherCreationActions = new ImmutableList.Builder<CreatorAction>()
+    // TODO: add new Icons to StudioIcons and replace this.
     .add(new CreatorAction(ATTR_DRAWABLE, "Create drawable", AndroidIcons.Mockup.ExtractBg))
     .build();
 
@@ -215,7 +221,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
       @Override
       public void actionPerformed(AnActionEvent e) {
         Mockup mockup = myMockupEditor.getMockup();
-        ScreenView currentScreenView = mySurface.getCurrentSceneView();
+        SceneView currentScreenView = mySurface.getCurrentSceneView();
         if (mockup == null) {
           myMockupEditor.showError("Cannot create a widget from an empty mockup");
           LOGGER.warn("MockupEditor has no associated mockup");

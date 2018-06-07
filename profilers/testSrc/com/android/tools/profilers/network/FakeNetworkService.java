@@ -17,6 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
+import com.android.tools.profilers.network.httpdata.HttpData;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,15 +30,9 @@ import java.util.stream.Collectors;
 import static com.android.tools.profiler.proto.NetworkProfiler.*;
 
 public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
-  public static final int FAKE_APP_ID = 1111;
-  public static final String FAKE_STACK_TRACE =
-    "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)\n" +
-    "com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:%d)";
-
-  private int myAppId;
-
   @NotNull private List<HttpData> myHttpDataList;
   @NotNull private List<NetworkProfilerData> myDataList;
+  private Common.Session mySession;
 
   private FakeNetworkService(@NotNull Builder builder) {
     myDataList = builder.myDataList;
@@ -47,7 +42,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
   @Override
   public void startMonitoringApp(NetworkStartRequest request,
                                  StreamObserver<NetworkStartResponse> responseObserver) {
-    myAppId = request.getProcessId();
+    mySession = request.getSession();
     responseObserver.onNext(NetworkStartResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
@@ -55,13 +50,13 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
   @Override
   public void stopMonitoringApp(NetworkStopRequest request,
                                 StreamObserver<NetworkStopResponse> responseObserver) {
-    myAppId = request.getProcessId();
+    mySession = request.getSession();
     responseObserver.onNext(NetworkStopResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
 
-  public int getProcessId() {
-    return myAppId;
+  public Common.Session getSession() {
+    return mySession;
   }
 
   @Override
@@ -71,7 +66,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
     long endTime = request.getEndTimestamp();
 
     for (NetworkProfilerData data : myDataList) {
-      long current = data.getBasicInfo().getEndTimestamp();
+      long current = data.getEndTimestamp();
       if (current > startTime && current <= endTime) {
         if ((request.getType() == NetworkDataRequest.Type.ALL) ||
             (request.getType() == NetworkDataRequest.Type.SPEED &&
@@ -91,13 +86,13 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
   @Override
   public void getHttpRange(HttpRangeRequest request,
                            StreamObserver<HttpRangeResponse> responseObserver) {
-    HttpRangeResponse.Builder builder =
-      HttpRangeResponse.newBuilder();
+    HttpRangeResponse.Builder builder = HttpRangeResponse.newBuilder();
     long requestStartTime = request.getStartTimestamp();
     long requestEndTime = request.getEndTimestamp();
 
     for (HttpData data : myHttpDataList) {
       long startTime = TimeUnit.MICROSECONDS.toNanos(data.getStartTimeUs());
+      long uploadTime = TimeUnit.MICROSECONDS.toNanos(data.getUploadedTimeUs());
       long downloadTime = TimeUnit.MICROSECONDS.toNanos(data.getDownloadingTimeUs());
       long endTime = TimeUnit.MICROSECONDS.toNanos(data.getEndTimeUs());
 
@@ -105,6 +100,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
         HttpConnectionData.Builder dataBuilder = HttpConnectionData.newBuilder();
         dataBuilder.setConnId(data.getId())
           .setStartTimestamp(startTime)
+          .setUploadedTimestamp(uploadTime)
           .setDownloadingTimestamp(downloadTime)
           .setEndTimestamp(endTime)
           .build();
@@ -125,23 +121,29 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
     switch (request.getType()) {
       case REQUEST:
         HttpDetailsResponse.Request.Builder requestBuilder = HttpDetailsResponse.Request.newBuilder();
-        String requestHeaders = data.getRequestHeaders().entrySet().stream().map(x -> x.getKey() + " = " + x.getValue())
+        String requestHeaders = data.getRequestHeader().getFields().entrySet().stream().map(x -> x.getKey() + " = " + x.getValue())
           .collect(Collectors.joining("\n"));
-        requestBuilder.setTrace(data.getStackTrace().getTrace())
+        requestBuilder.setTraceId(data.getTraceId())
           .setMethod(data.getMethod())
           .setUrl(data.getUrl())
           .setFields(requestHeaders);
         response.setRequest(requestBuilder.build());
         break;
+      case REQUEST_BODY:
+        HttpDetailsResponse.Body.Builder requestBodyBuilder = HttpDetailsResponse.Body.newBuilder();
+        requestBodyBuilder.setPayloadId(data.getRequestPayloadId());
+        response.setRequestBody(requestBodyBuilder.build());
+        break;
       case RESPONSE:
         HttpDetailsResponse.Response.Builder responseBuilder = HttpDetailsResponse.Response.newBuilder();
-        responseBuilder.setFields(formatFakeResponseFields(data.getId()));
+        responseBuilder.setFields(TestHttpData.fakeResponseFields(data.getId()));
         response.setResponse(responseBuilder.build());
         break;
       case RESPONSE_BODY:
-        HttpDetailsResponse.Body.Builder bodyBuilder = HttpDetailsResponse.Body.newBuilder();
-        bodyBuilder.setPayloadId(data.getResponsePayloadId());
-        response.setResponseBody(bodyBuilder.build());
+        HttpDetailsResponse.Body.Builder responseBodyBuilder = HttpDetailsResponse.Body.newBuilder();
+        responseBodyBuilder.setPayloadId(data.getResponsePayloadId());
+        responseBodyBuilder.setPayloadSize(TestHttpData.fakeContentSize(data.getId()));
+        response.setResponseBody(responseBodyBuilder.build());
         break;
       case ACCESSING_THREADS:
         HttpDetailsResponse.AccessingThreads.Builder threadsBuilder = HttpDetailsResponse.AccessingThreads.newBuilder();
@@ -157,34 +159,11 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
   }
 
   @NotNull
-  public static HttpData newHttpData(long id, long startS, long downloadS, long endS) {
-    return newHttpDataBuilder(id, startS, downloadS, endS).build();
-  }
-
-  @NotNull
-  public static HttpData.Builder newHttpDataBuilder(long id, long startS, long downloadS, long endS) {
-    long startUs = TimeUnit.SECONDS.toMicros(startS);
-    long downloadUs = TimeUnit.SECONDS.toMicros(downloadS);
-    long endUs = TimeUnit.SECONDS.toMicros(endS);
-    HttpData.Builder builder = new HttpData.Builder(id, startUs, endUs, downloadUs);
-    builder.setTrace(String.format(FAKE_STACK_TRACE, id));
-    builder.setUrl("http://example.com/" + id);
-    builder.setMethod("method " + id);
-    if (endS != 0) {
-      builder.setResponsePayloadId("payloadId " + id);
-      builder.setResponseFields(formatFakeResponseFields(id));
-    }
-    return builder;
-  }
-
-  @NotNull
   public static NetworkProfilerData newSpeedData(long timestampSec,
                                                  long sent,
                                                  long received) {
     NetworkProfilerData.Builder builder = NetworkProfilerData.newBuilder();
-    builder.setBasicInfo(Common.CommonData.newBuilder()
-                           .setProcessId(FAKE_APP_ID)
-                           .setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec)));
+    builder.setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec));
     builder.setSpeedData(SpeedData.newBuilder().setReceived(received).setSent(sent));
     return builder.build();
   }
@@ -194,9 +173,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
                                                  @NotNull ConnectivityData.NetworkType networkType,
                                                  @NotNull ConnectivityData.RadioState radioState) {
     NetworkProfilerData.Builder builder = NetworkProfilerData.newBuilder();
-    builder.setBasicInfo(Common.CommonData.newBuilder()
-                           .setProcessId(FAKE_APP_ID)
-                           .setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec)));
+    builder.setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec));
     builder.setConnectivityData(ConnectivityData.newBuilder()
                                   .setDefaultNetworkType(networkType)
                                   .setRadioState(radioState));
@@ -206,22 +183,14 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
   @NotNull
   public static NetworkProfilerData newConnectionData(long timestampSec, int value) {
     NetworkProfilerData.Builder builder = NetworkProfilerData.newBuilder();
-    builder.setBasicInfo(Common.CommonData.newBuilder()
-                           .setProcessId(FAKE_APP_ID)
-                           .setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec)));
+    builder.setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec));
     builder.setConnectionData(ConnectionData.newBuilder().setConnectionNumber(value).build());
     return builder.build();
   }
 
-  @NotNull
-  private static String formatFakeResponseFields(long id) {
-    return "status line = HTTP/1.1 302 Found \n Content-Type = image/jpeg; \n" +
-           String.format("connId = %d\n Content-Length = %d\n", id, id);
-  }
-
   @Nullable
   private HttpData findHttpData(long id) {
-    for (HttpData data: myHttpDataList) {
+    for (HttpData data : myHttpDataList) {
       if (data.getId() == id) {
         return data;
       }

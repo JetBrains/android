@@ -17,9 +17,8 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkFacetModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkModuleCleanupStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -35,16 +34,20 @@ import java.util.Map;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 
 public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleModel> {
+  @NotNull private final ModuleSetupContext.Factory myModuleSetupContextFactory;
   @NotNull private final NdkModuleSetup myModuleSetup;
   @NotNull private final NdkModuleCleanupStep myCleanupStep;
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public NdkModuleModelDataService() {
-    this(new NdkModuleSetup(new NdkFacetModuleSetupStep(), new ContentRootModuleSetupStep()), new NdkModuleCleanupStep());
+    this(new ModuleSetupContext.Factory(), new NdkModuleSetup(), new NdkModuleCleanupStep());
   }
 
   @VisibleForTesting
-  NdkModuleModelDataService(@NotNull NdkModuleSetup moduleSetup, @NotNull NdkModuleCleanupStep cleanupStep) {
+  NdkModuleModelDataService(@NotNull ModuleSetupContext.Factory moduleSetupContextFactory,
+                            @NotNull NdkModuleSetup moduleSetup,
+                            @NotNull NdkModuleCleanupStep cleanupStep) {
+    myModuleSetupContextFactory = moduleSetupContextFactory;
     myModuleSetup = moduleSetup;
     myCleanupStep = cleanupStep;
   }
@@ -59,13 +62,14 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
   protected void importData(@NotNull Collection<DataNode<NdkModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
-                            @NotNull Map<String, NdkModuleModel> modelsByName) {
+                            @NotNull Map<String, NdkModuleModel> modelsByModuleName) {
     boolean syncSkipped = GradleSyncState.getInstance(project).isSyncSkipped();
 
     for (Module module : modelsProvider.getModules()) {
-      NdkModuleModel ndkModuleModel = modelsByName.get(module.getName());
+      NdkModuleModel ndkModuleModel = modelsByModuleName.get(module.getName());
       if (ndkModuleModel != null) {
-        myModuleSetup.setUpModule(module, modelsProvider, ndkModuleModel, null, null, syncSkipped);
+        ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
+        myModuleSetup.setUpModule(context, ndkModuleModel, syncSkipped);
       }
       else {
         onModelNotFound(module, modelsProvider);

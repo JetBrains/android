@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -81,13 +81,13 @@ public abstract class CpuTreeNode<T extends CpuTreeNode> {
 
     for (CaptureNode node : myNodes) {
       myTotal += getIntersection(range, node);
-      for (HNode<MethodModel> child : node.getChildren()) {
+      for (CaptureNode child : node.getChildren()) {
         myChildrenTotal += getIntersection(range, child);
       }
     }
   }
 
-  protected static double getIntersection(@NotNull Range range, @NotNull HNode<MethodModel> node) {
+  protected static double getIntersection(@NotNull Range range, @NotNull CaptureNode node) {
     Range intersection = range.getIntersection(new Range(node.getStart(), node.getEnd()));
     return intersection.isEmpty() ? 0.0 : intersection.getLength();
   }
@@ -101,9 +101,12 @@ public abstract class CpuTreeNode<T extends CpuTreeNode> {
     myChildrenTotal = 0;
   }
 
-  abstract public String getMethodName();
+  @NotNull
+  abstract public CaptureNodeModel getMethodModel();
 
-  abstract public String getClassName();
+  abstract public CaptureNode.FilterType getFilterType();
 
-  abstract public String getSignature();
+  public boolean isUnmatched() {
+    return getFilterType() == CaptureNode.FilterType.UNMATCH;
+  }
 }

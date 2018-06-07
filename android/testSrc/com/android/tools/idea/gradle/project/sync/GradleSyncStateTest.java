@@ -16,13 +16,15 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import org.mockito.Mock;
 
 import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
+import static com.google.common.truth.Truth.assertThat;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
@@ -32,10 +34,11 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link GradleSyncState}.
  */
 public class GradleSyncStateTest extends IdeaTestCase {
-  @Mock private GradleSyncListener mySyncListener;
+  @Mock private GradleSyncListener myGradleSyncListener;
   @Mock private GradleSyncState.StateChangeNotification myChangeNotification;
   @Mock private GradleSyncSummary mySummary;
   @Mock private GradleFiles myGradleFiles;
+  @Mock private ProjectStructure myProjectStructure;
 
   private GradleSyncState mySyncState;
 
@@ -46,40 +49,46 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
     MessageBus messageBus = mock(MessageBus.class);
 
-    Project project = getProject();
-    mySyncState = new GradleSyncState(myProject, AndroidProjectInfo.getInstance(project), GradleProjectInfo.getInstance(project),
-                                      myGradleFiles, messageBus, myChangeNotification, mySummary);
+    mySyncState = new GradleSyncState(myProject, AndroidProjectInfo.getInstance(myProject), GradleProjectInfo.getInstance(myProject),
+                                      myGradleFiles, messageBus, myProjectStructure, myChangeNotification, mySummary);
 
-    when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(mySyncListener);
+    when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(myGradleSyncListener);
+  }
+
+  public void testSyncStartedWithSyncSkipped() {
+    mySyncState.skippedSyncStarted(false /* no user notification */, new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED));
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject, true, true);
   }
 
   public void testSyncStartedWithoutUserNotification() {
     assertFalse(mySyncState.isSyncInProgress());
 
     // TODO Add trigger for testing?
-    boolean syncStarted = mySyncState.syncStarted(false /* no user notification */, TRIGGER_PROJECT_MODIFIED);
+    boolean syncStarted = mySyncState.syncStarted(false /* no user notification */,
+                                                  new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED));
     assertTrue(syncStarted);
     assertTrue(mySyncState.isSyncInProgress());
 
     // Trying to start a sync again should not work.
-    assertFalse(mySyncState.syncStarted(false, TRIGGER_PROJECT_MODIFIED));
+    assertFalse(mySyncState.syncStarted(false, new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED)));
 
     verify(myChangeNotification, never()).notifyStateChanged();
     verify(mySummary, times(1)).reset(); // 'reset' should have been called only once.
-    verify(mySyncListener, times(1)).syncStarted(myProject);
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject, false, true);
   }
 
   public void testSyncStartedWithUserNotification() {
     assertFalse(mySyncState.isSyncInProgress());
 
     // TODO Add trigger for testing?
-    boolean syncStarted = mySyncState.syncStarted(true /* user notification */, TRIGGER_PROJECT_MODIFIED);
+    boolean syncStarted = mySyncState.syncStarted(true /* user notification */,
+                                                  new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED));
     assertTrue(syncStarted);
     assertTrue(mySyncState.isSyncInProgress());
 
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).reset(); // 'reset' should have been called only once.
-    verify(mySyncListener, times(1)).syncStarted(myProject);
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject, false, true);
   }
 
   public void testSyncSkipped() {
@@ -89,14 +98,14 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
     verify(myChangeNotification, never()).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(timestamp);
-    verify(mySyncListener, times(1)).syncSkipped(myProject);
+    verify(myGradleSyncListener, times(1)).syncSkipped(myProject);
   }
 
   public void testSyncSkippedAfterSyncStarted() {
     long timestamp = -1231231231299L; // Some random number
 
     // TODO Add trigger for testing?
-    boolean b = mySyncState.syncStarted(false, TRIGGER_PROJECT_MODIFIED);
+    mySyncState.syncStarted(false, new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED));
     mySyncState.syncSkipped(timestamp);
     assertFalse(mySyncState.isSyncInProgress());
   }
@@ -109,7 +118,8 @@ public class GradleSyncStateTest extends IdeaTestCase {
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(anyLong());
     verify(mySummary, times(1)).setSyncErrorsFound(true);
-    verify(mySyncListener, times(1)).syncFailed(myProject, msg);
+    verify(myGradleSyncListener, times(1)).syncFailed(myProject, msg);
+    verify(myProjectStructure, times(1)).clearData();
   }
 
   public void testSyncFailedWithoutSyncStarted() {
@@ -117,7 +127,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
     mySyncState.setSyncStartedTimeStamp(-1, TRIGGER_PROJECT_MODIFIED);
     mySyncState.syncFailed(msg);
     verify(mySummary, never()).setSyncErrorsFound(true);
-    verify(mySyncListener, never()).syncFailed(myProject, msg);
+    verify(myGradleSyncListener, never()).syncFailed(myProject, msg);
   }
 
   public void testSyncEnded() {
@@ -125,19 +135,19 @@ public class GradleSyncStateTest extends IdeaTestCase {
     mySyncState.syncEnded();
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(anyLong());
-    verify(mySyncListener, times(1)).syncSucceeded(myProject);
+    verify(myGradleSyncListener, times(1)).syncSucceeded(myProject);
   }
 
   public void testSyncEndedWithoutSyncStarted() {
     mySyncState.setSyncStartedTimeStamp(-1, TRIGGER_PROJECT_MODIFIED);
     mySyncState.syncEnded();
-    verify(mySyncListener, never()).syncSucceeded(myProject);
+    verify(myGradleSyncListener, never()).syncSucceeded(myProject);
   }
 
   public void testSetupStarted() {
     mySyncState.setupStarted();
 
-    verify(mySyncListener, times(1)).setupStarted(myProject);
+    verify(myGradleSyncListener, times(1)).setupStarted(myProject);
   }
 
   public void testGetSyncTimesSuccess() {
@@ -236,10 +246,21 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
   public void testGetFormattedSyncDuration() {
     mySyncState.setSyncStartedTimeStamp(0, TRIGGER_PROJECT_MODIFIED);
-    assertEquals("10 s", mySyncState.getFormattedSyncDuration(10000));
-    assertEquals("2 m", mySyncState.getFormattedSyncDuration(120000));
-    assertEquals("2 m 10 s", mySyncState.getFormattedSyncDuration(130000));
-    assertEquals("2 m 10 s 100 ms", mySyncState.getFormattedSyncDuration(130100));
-    assertEquals("1 h 2 m 10 s 100 ms", mySyncState.getFormattedSyncDuration(3730100));
+    assertEquals("10s", mySyncState.getFormattedSyncDuration(10000));
+    assertEquals("2m", mySyncState.getFormattedSyncDuration(120000));
+    assertEquals("2m 10s", mySyncState.getFormattedSyncDuration(130000));
+    assertEquals("2m 10s 100ms", mySyncState.getFormattedSyncDuration(130100));
+    assertEquals("1h 2m 10s 100ms", mySyncState.getFormattedSyncDuration(3730100));
   }
+
+  public void testIsSyncNeeded_IfNeverSynced() {
+    when(myGradleFiles.areGradleFilesModified()).thenAnswer((invocation) -> true);
+    assertThat(mySyncState.isSyncNeeded()).isSameAs(ThreeState.YES);
+  }
+
+  public void testSyncNotNeeded_IfNothingModified() {
+    when(myGradleFiles.areGradleFilesModified()).thenAnswer((invocation -> false));
+    assertThat(mySyncState.isSyncNeeded()).isSameAs(ThreeState.NO);
+  }
+
 }

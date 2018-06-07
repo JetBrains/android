@@ -27,6 +27,7 @@
   <depends optional="true" config-file="database-support.xml">com.intellij.database</depends>
 
   <xi:include href="android-junit.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="../com/android/tools/idea/resourceExplorer/META-INF/resources-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
 
@@ -34,10 +35,6 @@
     <component>
       <implementation-class>org.jetbrains.android.AndroidPlugin</implementation-class>
       <interface-class>org.jetbrains.android.AndroidPlugin</interface-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.gradle.project.sync.compatibility.CompatibilityChecksMetadataUpdater</implementation-class>
-      <headless-implementation-class/>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.apk.viewer.ApkFileSystem</implementation-class>
@@ -64,42 +61,31 @@
       <implementation-class>com.android.tools.idea.res.ResourceNotificationManager</implementation-class>
     </component>
     <component>
+      <implementation-class>com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild</implementation-class>
+    </component>
+    <component>
       <implementation-class>com.android.tools.idea.profiling.view.EmptyManager</implementation-class>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.profiling.view.AnalysisResultsManager</implementation-class>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.res.ResourceClassRegistry</implementation-class>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>
+      <loadForDefaultProject/>
+    </component>
   </project-components>
   <actions>
     <action id="Project.CallGraph" internal="true" text="Contextual Call Paths" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
     <action id="Project.InterproceduralThreadAnnotations" internal="true" text="Interprocedural Thread Annotation Checker" class="com.android.tools.idea.experimental.callgraph.WrongThreadInterproceduralAction"/>
-    <group id="Project.Subview" text="Project Subview" class="com.android.tools.idea.gradle.project.subset.ProjectSubsetGroup">
-      <separator/>
-      <action id="ConfigureSubView" class="com.android.tools.idea.gradle.project.subset.ConfigureProjectSubsetAction"/>
-      <action id="IncludeModuleForFile" class="com.android.tools.idea.gradle.project.subset.IncludeModuleForFileAction"/>
-      <separator/>
-      <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="AddToFavorites"/>
-    </group>
     <group id="Library.Properties">
       <separator/>
       <action id="LibraryProperties" class="com.android.tools.idea.gradle.actions.LibraryPropertiesAction"/>
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="RevealIn"/>
     </group>
-    <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty" icon="AllIcons.Actions.Compile">
-      <add-to-group group-id="BuildMenu" anchor="first"/>
-    </action>
 
-    <group id="AndroidToolbarMakeGroup">
-      <reference ref="MakeGradleProject"/>
-      <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="before"/>
-    </group>
-
-    <action id="MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleProject"/>
-    </action>
-    <action id="RebuildGradleProject" class="com.android.tools.idea.gradle.actions.RebuildGradleProjectAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
-    </action>
     <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
     </action>
@@ -122,6 +108,10 @@
       <add-to-group group-id="ProjectViewPopupMenu" anchor="before" relative-to-action="CutCopyPasteGroup"/>
       <add-to-group group-id="FileMenu" anchor="before" relative-to-action="FileMainSettingsGroup"/>
     </group>
+
+    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync">
+      <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
+    </action>
 
     <action class="com.android.tools.idea.actions.ExportProjectZip" id="Android.ExportProjectZip" text="Export to Zip File...">
       <add-to-group group-id="ExportImportGroup" anchor="last"/>
@@ -156,22 +146,29 @@
     <action id="Android.OpenStringResourceEditor" class="com.android.tools.idea.actions.OpenStringResourceEditorAction">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="EditSource"/>
     </action>
-    <group id="AndroidToolsGroup" popup="true" text="Android" icon="AndroidIcons.Android"
-           class="org.jetbrains.android.actions.AndroidToolsActionGroup">
-      <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync"/>
-      <action id="Android.RunDdms" class="org.jetbrains.android.actions.AndroidRunDdmsAction" icon="AndroidIcons.Android"/>
+    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidIcons.Android">
+      <separator/>
       <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
           icon="AndroidIcons.AvdManager"/>
-      <action id="Android.EnableDdms" class="org.jetbrains.android.actions.AndroidEnableAdbServiceAction"/>
       <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction"/>
-      <add-to-group group-id="ToolsMenu" anchor="last"/>
+      <separator/>
+      <action id="Android.RunLayoutInspector" class="org.jetbrains.android.actions.AndroidRunLayoutInspectorAction"/>
+      <action id="Android.ShowThemeEditor" class="com.android.tools.idea.actions.AndroidShowThemeEditor"/>
+      <separator/>
+      <group id="AndroidToolsGroupExtension"/>
+      <separator/>
+      <add-to-group group-id="ToolsMenu" anchor="first"/>
+    </group>
+
+    <group id="Android.MainToolBarGradleGroup">
+      <reference id="Android.SyncProject" />
+      <add-to-group group-id="MainToolBar" anchor="after" relative-to-action="SaveAll"/>
     </group>
 
     <group id="Android.MainToolBarActionGroup">
       <separator/>
-      <reference id="Android.RunAndroidAvdManager" />
+      <reference id="Android.RunAndroidAvdManager"/>
       <separator/>
-      <reference id="Android.SyncProject" />
       <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="MainToolBarSettings" />
     </group>
 
@@ -185,17 +182,14 @@
     <group id="Internal.Android" text="Android" popup="true" internal="true">
       <action internal="true" id="Android.CleanImportProject" class="com.android.tools.idea.gradle.actions.CleanImportProjectAction" />
       <action internal="true" id="Android.StopGradleDaemons" class="com.android.tools.idea.gradle.actions.StopGradleDaemonsAction" />
-      <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.adb.GetAdbAction" />
-      <action internal="true" id="Android.TerminateAdbAction" class="com.android.tools.idea.ddms.adb.TerminateAdbAction" />
+      <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.actions.GetAdbAction" />
+      <action internal="true" id="Android.TerminateAdbAction" class="com.android.tools.idea.ddms.actions.TerminateAdbAction" />
       <action internal="true" id="Android.GenerateLayoutTestSkeletonAction" class="com.android.tools.idea.uibuilder.actions.GenerateLayoutTestSkeletonAction"/>
       <action internal="true" id="StatisticsViewer" class="com.android.tools.idea.stats.ShowStatisticsViewerAction" text="Show statistics viewer"/>
       <action internal="true" id="Android.EditFlags" class="com.android.tools.idea.flags.ShowStudioFlagsDialogAction"/>
-      <action internal="true" id="Android.ShowRoomSchema" class="com.android.tools.idea.lang.roomSql.ShowRoomSchemaAction"/>
+      <action internal="true" id="Android.ShowRoomSchema" class="com.android.tools.idea.actions.ShowRoomSchemaAction"/>
       <add-to-group group-id="Internal"/>
     </group>
-    <action id="Android.RunLayoutInspector" class="org.jetbrains.android.actions.AndroidRunLayoutInspectorAction">
-      <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
-    </action>
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedApkAction">
       <add-to-group group-id="BuildMenu" anchor="last"/>
     </action>
@@ -219,6 +213,10 @@
     </action>
     <action id="AndroidUnusedResourceAction" class="org.jetbrains.android.refactoring.UnusedResourcesAction" text="Remove Unused Resources..."
             description="Removes Unused Resources">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
+    <action id="AndroidMigrateToAppCompatAction" class="org.jetbrains.android.refactoring.MigrateToAppCompatAction" text="Migrate App To AppCompat..."
+            description="Migrate App To AppCompat">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="AndroidExtractStyleAction" class="org.jetbrains.android.refactoring.AndroidExtractStyleAction" text="St_yle..."
@@ -247,9 +245,6 @@
     <action class="com.android.tools.idea.actions.license.ShowLicensesUsedAction" id="Android.ShowLicenses">
       <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="Help.KeymapReference" />
     </action>
-    <action class="com.android.tools.idea.actions.AndroidShowThemeEditor" id="Android.ShowThemeEditor">
-      <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
-    </action>
     <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferSupportAnnotationsAction">
       <add-to-group group-id="InspectCodeGroup" anchor="after" relative-to-action="InferNullity"/>
     </action>
@@ -272,10 +267,10 @@
     <action
         id="DeveloperServices.ConnectionAssistant"
         class="com.android.tools.idea.connection.assistant.OpenConnectionAssistantSidePanelAction"
-        icon="AndroidIcons.Assistant.Assistant"
+        icon="StudioIcons.Shell.ToolWindows.ASSISTANT"
         text="Connection Assistant"
         description="Help debug device connection">
-      <add-to-group group-id="ToolsMenu" relative-to-action="AndroidToolsGroup" anchor="before"/>
+      <add-to-group group-id="AndroidToolsGroupExtension"/>
     </action>
     <action
       id="LayoutEditor.AddSampleData"
@@ -290,6 +285,11 @@
       <keyboard-shortcut first-keystroke="control meta R" keymap="Mac OS X 10.5+"/>
       <!-- <add-to-group group-id="RunnerActions" anchor="after" relative-to-action="Run" /> registered in code in AndroidPlugin -->
     </action>
+    <action id="Android.FixAndroidRunConfigurations"
+            class="com.android.tools.idea.gradle.project.FixAndroidRunConfigurationsAction"
+            text="Fix Android Run Configurations"
+            description="Add &quot;Gradle-aware Make&quot; launch task to Android Run Configuration(s) if it is missing">
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
@@ -302,13 +302,11 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
     <projectTaskRunner implementation="com.android.tools.idea.gradle.project.build.AndroidProjectTaskRunner" id="android"
                        order="first, before gradle"/>
     <!-- InstantRunPositionManager overrides and actually replaces PositionManagerImpl,
          so we need to set order to prevent overriding other position managers as well -->
     <debugger.positionManagerFactory implementation="com.android.tools.idea.fd.debugger.InstantRunPositionManagerFactory" order="first"/>
-    <debuggerExtension implementation="com.android.tools.idea.fd.debugger.InstantRunDebuggerExtension"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"/>
     <applicationService serviceInterface="com.android.tools.idea.res.ResourceFolderRepositoryFileCache"
                         serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl"/>
@@ -330,8 +328,8 @@
     <consoleActionsPostProcessor implementation="com.android.tools.idea.logcat.LogcatConsoleActionsPostProcessor" />
     <applicationService serviceImplementation="com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData" />
     <applicationService serviceImplementation="com.android.tools.idea.IdeInfo" />
+    <applicationService serviceImplementation="com.android.tools.idea.ui.GuiTestingService"/>
     <applicationService serviceImplementation="com.android.tools.idea.flags.StudioFlagSettings"/>
-    <applicationService serviceImplementation="com.android.tools.idea.ddms.adb.AdbService" />
     <applicationService serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatService" />
     <applicationService serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUiRegistry"/>
@@ -354,6 +352,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.SupportedModuleChecker"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.LibraryFilePaths"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.BuildFileProcessor"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleVersions"/>
@@ -386,7 +385,6 @@
     <applicationService serviceInterface="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"
                         serviceImplementation="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"/>
 
-    <applicationService serviceImplementation="com.android.tools.adtui.workbench.WorkBenchManager" />
     <applicationService serviceInterface="com.intellij.openapi.help.HelpManager"
                         serviceImplementation="com.android.tools.idea.help.StudioHelpManagerImpl"
                         overrides="true"/>
@@ -395,6 +393,7 @@
     <applicationService serviceInterface="com.android.tools.idea.fonts.DownloadableFontCacheService"
                         serviceImplementation="com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl" />
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.ng.ExtraGradleSyncModelsManager"/>
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
     <statisticsService   implementationClass="com.android.tools.idea.stats.AndroidStatisticsService" key="android-studio" />
@@ -450,23 +449,14 @@
     <!--<frameworkSupport implementation="org.jetbrains.android.facet.AndroidSupportProvider"/>-->
 
     <fileTypeFactory implementation="org.jetbrains.android.fileTypes.AndroidFileTypeFactory"/>
-    <fileTypeFactory implementation="com.android.tools.idea.lang.proguard.ProguardFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.lang.databinding.DbFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.hprof.HprofFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.allocations.AllocationsFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.vmtrace.VmTraceFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.layoutInspector.LayoutInspectorFileTypeFactory" />
-    <lang.parserDefinition language="Renderscript"
-                           implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
-    <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition" />
+
     <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbParserDefinition" />
-
-    <lang.syntaxHighlighterFactory language="Renderscript" implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
-    <lang.syntaxHighlighterFactory language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory" />
     <lang.syntaxHighlighterFactory language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbSyntaxHighlighterFactory" />
-
-    <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter" />
-
     <lang.braceMatcher language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbPairedBraceMatcher"/>
 
     <languageInjector implementation="com.android.tools.idea.lang.databinding.DbLanguageInjector" />
@@ -475,6 +465,7 @@
     <fileEditorProvider implementation="com.android.tools.idea.editors.manifest.ManifestEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.apk.viewer.ApkEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.editors.fonts.FontEditorProvider" />
+    <fileEditorProvider implementation="com.android.tools.idea.resourceExplorer.ResourceExplorerEditorProvider"/>
 
     <runConfigurationProducer implementation="com.android.tools.idea.run.AndroidConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducer" order="first"/>
@@ -499,7 +490,6 @@
     <completion.contributor language="JAVA" implementationClass="org.jetbrains.android.inspections.ResourceTypeCompletionContributor"
                             id="resourceTypeCompletion" order="after javaBasic2ClassName"/>
     <completion.contributor language="TEXT" implementationClass="com.android.tools.idea.run.AndroidActivityAliasCompletionContributor" order="first"/>
-    <completion.contributor language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCompletionContributor" />
 
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidResourceRenameResourceProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
@@ -608,6 +598,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAppCompatCustomView" displayName="Appcompat Custom Widgets" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintAppCompatCustomViewInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAppCompatMethod" displayName="Using Wrong AppCompat Method" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintAppCompatMethodInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAppCompatResource" displayName="Menu namespace" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintAppCompatResourceInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintAppIndexingService" displayName="App Indexing Background Services" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintAppIndexingServiceInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAppLinksAutoVerifyError" displayName="App Links Auto Verification Failure" bundle="messages.AndroidBundle" enabledByDefault="false" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintAppLinksAutoVerifyErrorInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAppLinksAutoVerifyWarning" displayName="Potential App Links Auto Verification Failure" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintAppLinksAutoVerifyWarningInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAppLinkUrlError" displayName="URL not supported by app for Firebase App Indexing" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintAppLinkUrlErrorInspection"/>
@@ -674,6 +665,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGradlePluginVersion" displayName="Incompatible Android Gradle Plugin" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintGradlePluginVersionInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGrantAllUris" displayName="Content provider shares everything" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintGrantAllUrisInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGridLayout" displayName="GridLayout validation" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintGridLayoutInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintHalfFloat" displayName="Incorrect Half Float" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintHalfFloatInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintHandlerLeak" displayName="Handler reference leaks" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintHandlerLeakInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintHardcodedDebugMode" displayName="Hardcoded value of android:debuggable in the manifest" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintHardcodedDebugModeInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintHardcodedText" displayName="Hardcoded text" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintHardcodedTextInspection"/>
@@ -942,7 +934,7 @@
                       anchor="right"
                       secondary="true"
                       conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
-                      icon="AndroidIcons.DeviceExplorer.ToolWindow"
+                      icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
                       factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
     <facet.toolWindow id="Captures"
                       facetIdList="android"
@@ -950,34 +942,38 @@
                       secondary="false"
                       icon="AndroidIcons.CapturesToolWindow"
                       factoryClass="com.android.tools.idea.profiling.view.CapturesToolWindowFactory"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.settings.AndroidStudioGradleProjectSettings"/>
-    <projectConfigurable provider="com.android.tools.idea.gradle.project.settings.AndroidStudioGradleProjectSettingsConfigurableProvider"
-                         nonDefaultProject="true"
-                         id ="android.studio.gradle" displayName="Android Studio" parentId="reference.settingsdialog.project.gradle"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings"/>
+    <applicationConfigurable provider="com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettingsConfigurableProvider"
+                             nonDefaultProject="true"
+                             id ="android.studio.gradle" displayName="Android Studio" parentId="reference.settingsdialog.project.gradle"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.subset.ProjectSubset"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectInfo"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectInfo"/>
     <projectService serviceImplementation="com.android.tools.idea.apk.debugging.DexSourceFiles"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.ProjectStructure"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.RunConfigurationChecker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.GradleProjectBuilder"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.BuildSettings"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncState"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.GradleBuildState"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidNotification"/>
+    <projectService serviceImplementation="com.android.tools.idea.project.IndexingSuspender"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildTreeViewConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.run.DevicePickerStateService" />
+    <projectService serviceImplementation="com.android.tools.idea.fd.InstantRunManager" />
     <projectService serviceImplementation="com.android.tools.idea.fd.InstantRunStatsService" />
     <projectService serviceImplementation="com.android.tools.idea.fd.FlightRecorder" />
 
@@ -992,7 +988,6 @@
     <projectService serviceInterface="com.android.tools.idea.configurations.ConfigurationStateManager"
                     serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage"/>
-    <projectService serviceImplementation="com.android.tools.idea.startup.DelayedInitialization"/>
 
     <xml.xmlExtension implementation="org.jetbrains.android.dom.AndroidXmlExtension" order="first"/>
     <psi.referenceProvider language="XML" providerClass="org.jetbrains.android.dom.AndroidXmlReferenceProvider">
@@ -1014,6 +1009,13 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.dependencies.GradleDependencyManager"/>
     <projectService serviceImplementation="com.android.tools.idea.res.ProjectResourceRepositoryRootListener"/>
     <projectService serviceImplementation="com.android.tools.idea.structure.services.DeveloperServices" />
+    <projectService serviceImplementation="com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel$StateStorage" />
+
+    <moduleService serviceImplementation="org.jetbrains.android.compiler.ModuleSourceAutogenerating" />
+    <moduleService serviceImplementation="org.jetbrains.android.TagToClassMapperImpl"
+                   serviceInterface="com.android.tools.idea.psi.TagToClassMapper" />
+    <moduleService serviceImplementation="org.jetbrains.android.resourceManagers.ModuleResourceManagers" />
+    <moduleService serviceImplementation="com.android.tools.idea.databinding.ModuleDataBinding" />
 
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
                          key="android.dex.compiler.configurable.display.name" bundle="messages.AndroidBundle" parentId="project.propCompiler"/>
@@ -1060,7 +1062,7 @@
     <editorNotificationProvider implementation="com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider"/>
 
     <compileServer.plugin classpath="jps/android-jps-plugin.jar;android-common.jar;build-common.jar;android-rt.jar"/>
-    <compileServer.plugin classpath="sdklib.jar;../../../lib/android-base-common.jar;jarutils.jar;layoutlib-api.jar"/>
+    <compileServer.plugin classpath="sdklib.jar;common-26.1.2.jar;jarutils.jar;layoutlib-api.jar"/>
     <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
     <inlineActionHandler implementation="org.jetbrains.android.refactoring.AndroidInlineStyleHandler"/>
@@ -1074,6 +1076,7 @@
     <compiler.buildTargetScopeProvider implementation="org.jetbrains.android.compiler.AndroidBuildTargetScopeProvider"/>
     <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
+    <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
     <treeStructureProvider implementation="com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider" id="android"/>
     <projectViewNodeDecorator id="android.build.node.decorator" implementation="com.android.tools.idea.gradle.projectView.BuildNodeDecorator"/>
     <projectViewNodeDecorator id="android.module.node.decorator" implementation="com.android.tools.idea.gradle.projectView.ModuleNodeIconDecorator"/>
@@ -1099,9 +1102,6 @@
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.ArrayMapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.SupportArrayMapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.MeasureSpecRenderer" />
-
-    <xdebugger.configurableProvider implementation="com.android.tools.idea.ddms.adb.AdbConfigurableProvider" />
-    <applicationService serviceImplementation="com.android.tools.idea.ddms.adb.AdbOptionsService" />
 
     <xdebugger.configurableProvider implementation="com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider" />
     <applicationService serviceImplementation="com.android.tools.idea.logcat.output.LogcatOutputSettings" />
@@ -1132,6 +1132,10 @@
     <refactoring.safeDeleteProcessor
         id="android_string_resource"
         implementation="com.android.tools.idea.editors.strings.StringResourceSafeDeleteProcessorDelegate"/>
+
+    <!-- Custom BuildOutputParsers -->
+    <externalSystemOutputParserProvider implementation="com.android.tools.idea.gradle.project.build.output.GradleOutputParserProvider"
+                                        id="gradle"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
@@ -1157,8 +1161,8 @@
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.pluginVersionUpgradeStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgradeStep"/>
-    <extensionPoint qualifiedName="com.android.gradle.sync.extraJavaSyncModel"
-                    interface="com.android.tools.idea.gradle.project.sync.ng.ExtraJavaSyncModelExtension"/>
+    <extensionPoint qualifiedName="com.android.gradle.sync.extraGradleSyncJavaModels"
+                    interface="com.android.tools.idea.gradle.project.sync.ng.ExtraGradleSyncJavaModels"/>
     <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.syncErrorHandler"
                     interface="com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler"/>
@@ -1194,10 +1198,6 @@
                     interface="org.jetbrains.android.actions.NewResourceCreationHandler" />
     <extensionPoint qualifiedName="com.android.run.androidLaunchTaskContributor"
                     interface="com.android.tools.idea.run.AndroidLaunchTaskContributor" />
-    <extensionPoint qualifiedName="com.android.project.buildSystemService"
-                    interface="com.android.tools.idea.project.BuildSystemService" />
-    <extensionPoint qualifiedName="com.android.project.featureEnableService"
-                    interface="com.android.tools.idea.project.FeatureEnableService" />
     <extensionPoint qualifiedName="com.android.rendering.renderErrorContributor"
                     interface="com.android.tools.idea.rendering.RenderErrorContributor$Provider" />
     <extensionPoint qualifiedName="org.jetbrains.android.uipreview.viewLoaderExtension"
@@ -1207,6 +1207,10 @@
                     interface="org.jetbrains.android.inspections.lint.AndroidLintQuickFixProvider" />
     <extensionPoint qualifiedName="com.android.tools.idea.npw.template.convertJavaToKotlinProvider"
                     interface="com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
+                    interface="com.android.tools.idea.ui.GuiTestingStatusProvider" />
+    <extensionPoint qualifiedName="com.android.tools.gradleModelProvider"
+                    interface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
@@ -1283,8 +1287,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android.project">
-    <buildSystemService implementation="com.android.tools.idea.gradle.project.GradleBuildSystemService"/>
-    <featureEnableService implementation="com.android.tools.idea.gradle.project.GradleFeatureEnableService"/>
+    <projectsystem implementation="com.android.tools.idea.project.DefaultProjectSystem"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.rendering">
@@ -1298,15 +1301,6 @@
     <deployTargetProvider implementation="com.android.tools.idea.run.editor.EmulatorTargetProvider" />
     <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
   </extensions>
-
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.res.ResourceClassRegistry</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.fd.InstantRunManager</implementation-class>
-    </component>
-  </project-components>
 
   <!-- data binding-->
   <extensions defaultExtensionNs="com.intellij">
@@ -1322,29 +1316,8 @@
     <applicationConfigurable groupId="editor" id="android.databinding"
                              provider="com.android.tools.idea.databinding.config.DataBindingConfigurableProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.databinding.config.DataBindingConfiguration"/>
+    <automaticRenamerFactory implementation="com.android.tools.idea.databinding.DataBindingRenamerFactory"/>
   </extensions>
-
-  <!-- Android IDL support -->
-  <extensions defaultExtensionNs="com.intellij">
-    <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
-    <lang.syntaxHighlighterFactory key="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighterFactory"/>
-    <annotator language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlClassNameAnnotator" order="first"/>
-    <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
-
-    <!--
-    <lang.formatter language="AIDL" implementationClass="com.intellij.lang.java.JavaFormattingModelBuilder"/>
-    -->
-  </extensions>
-
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>
-      <loadForDefaultProject/>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.adtui.workbench.DetachedToolWindowManager</implementation-class>
-    </component>
-  </project-components>
 
   <module-components>
     <component>
@@ -1357,26 +1330,8 @@
     <assistantBundleCreator implementation="com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator"/>
     <actionHandler implementation="com.android.tools.idea.connection.assistant.actions.RestartAdbAction"/>
     <actionStateManager implementation="com.android.tools.idea.connection.assistant.actions.RestartAdbActionStateManager"/>
+    <actionHandler implementation="com.android.tools.idea.connection.assistant.actions.ListUsbDevicesAction"/>
+    <actionStateManager implementation="com.android.tools.idea.connection.assistant.actions.ListUsbDevicesActionStateManager"/>
+    <actionHandler implementation="com.android.tools.idea.connection.assistant.actions.SubmitReportAction"/>
   </extensions>
-
-  <!-- Room SQL support. -->
-  <extensions defaultExtensionNs="com.intellij">
-    <fileTypeFactory implementation="com.android.tools.idea.lang.roomSql.RoomSqlFileTypeFactory" />
-    <lang.parserDefinition language="RoomSql"
-                           implementationClass="com.android.tools.idea.lang.roomSql.parser.RoomSqlParserDefinition" />
-    <lang.syntaxHighlighterFactory language="RoomSql"
-                                   implementationClass="com.android.tools.idea.lang.roomSql.RoomSqlSyntaxHighlighterFactory" />
-    <concatenationAwareInjector implementation="com.android.tools.idea.lang.roomSql.RoomSqlLanguageInjector" />
-    <moduleService serviceImplementation="com.android.tools.idea.lang.roomSql.RoomSchemaManager"/>
-    <projectService serviceImplementation="com.android.tools.idea.lang.roomSql.RoomSqlPsiFacade"/>
-    <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomTableNameImpl"
-                             implementationClass="com.android.tools.idea.lang.roomSql.RoomNameElementManipulator"/>
-    <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomColumnNameImpl"
-                             implementationClass="com.android.tools.idea.lang.roomSql.RoomNameElementManipulator"/>
-    <lang.findUsagesProvider language="RoomSql"
-                             implementationClass="com.android.tools.idea.lang.roomSql.RoomFindUsagesProvider"/>
-    <referencesSearch implementation="com.android.tools.idea.lang.roomSql.RoomReferenceSearchExecutor"/>
-    <usageTypeProvider implementation="com.android.tools.idea.lang.roomSql.RoomUsageTypeProvider"/>
-  </extensions>
-
 </idea-plugin>

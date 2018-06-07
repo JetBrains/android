@@ -31,17 +31,20 @@ class AttributeColumn<T extends MemoryObject> {
   private final Supplier<ColoredTreeCellRenderer> myRendererSuppier;
   private final int myHeaderAlignment;
   private final int myPreferredWidth;
+  private final SortOrder mySortOrderPreference;
   private final Comparator<MemoryObjectTreeNode<T>> myComparator;
 
   public AttributeColumn(@NotNull String name,
                          @NotNull Supplier<ColoredTreeCellRenderer> rendererSupplier,
                          int headerAlignment,
                          int preferredWidth,
+                         @NotNull SortOrder sortOrderPreference,
                          @NotNull Comparator<MemoryObjectTreeNode<T>> comparator) {
     myName = name;
     myRendererSuppier = rendererSupplier;
     myHeaderAlignment = headerAlignment;
     myPreferredWidth = preferredWidth;
+    mySortOrderPreference = sortOrderPreference;
     myComparator = comparator;
   }
 
@@ -59,6 +62,7 @@ class AttributeColumn<T extends MemoryObject> {
       .setRenderer(myRendererSuppier.get())
       .setHeaderAlignment(myHeaderAlignment)
       .setPreferredWidth(myPreferredWidth)
+      .setSortOrderPreference(mySortOrderPreference)
       .setComparator(myComparator)
       .setHeaderBorder(border);
   }

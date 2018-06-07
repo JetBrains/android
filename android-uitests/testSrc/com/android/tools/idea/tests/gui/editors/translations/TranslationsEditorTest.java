@@ -26,10 +26,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDia
 import com.android.tools.idea.tests.gui.framework.fixture.translations.FixedColumnTableFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture.SimpleColoredComponent;
-import com.android.tools.idea.tests.util.GuiTestFileUtils;
-import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.notification.Notification;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
@@ -80,7 +83,7 @@ public final class TranslationsEditorTest {
   private TranslationsEditorFixture myTranslationsEditor;
 
   private void importSimpleApplication() throws IOException {
-    myGuiTest.importSimpleApplication();
+    myGuiTest.importSimpleLocalApplication();
     openTranslationsEditor(FileSystems.getDefault().getPath("app", "src", "main", "res", "values", "strings.xml"));
   }
 
@@ -156,10 +159,8 @@ public final class TranslationsEditorTest {
     IdeFrameFixture frame = myGuiTest.ideFrame();
 
     VirtualFile debugValuesEn = frame.findFileByRelativePath("app/src/debug/res/values-en", false);
-    assert debugValuesEn != null;
 
     VirtualFile mainValuesEn = frame.findFileByRelativePath("app/src/main/res/values-en", false);
-    assert mainValuesEn != null;
 
     myTranslationsEditor.getTable().tableHeader().showPopupMenuAt(ENGLISH_COLUMN).menuItem("removeLocaleMenuItem").click();
 
@@ -377,20 +378,18 @@ public final class TranslationsEditorTest {
 
   @Test
   public void invalidDefaultValueXml() throws IOException {
-    WizardUtils.createNewProject(myGuiTest, "Empty Activity");
+    myGuiTest.importSimpleLocalApplication();
     Path stringsXml = FileSystems.getDefault().getPath("app", "src", "main", "res", "values", "strings.xml");
 
-    GuiTestFileUtils.writeAndReloadDocument(
-      myGuiTest.getProjectPath().toPath().resolve(stringsXml),
-
+    CharSequence text =
       "<resources>\n" +
       "    <string name=\"oslo_bysykkel_terms_url\">https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s</string>\n" +
-      "</resources>\n");
+      "</resources>\n";
 
+    new WriteAndSaveDocumentAction(myGuiTest.getProjectPath().toPath().resolve(stringsXml), text).execute();
     openTranslationsEditor(stringsXml);
 
-    SimpleColoredComponent component = myTranslationsEditor.getCellRenderer(1, 1);
-    assert component != null;
+    SimpleColoredComponent component = myTranslationsEditor.getCellRenderer(4, 1);
 
     assertEquals("https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s", component.myValue);
     assertEquals(SimpleTextAttributes.STYLE_WAVED, component.myAttributes.getStyle());
@@ -400,25 +399,44 @@ public final class TranslationsEditorTest {
 
   @Test
   public void invalidTranslationXml() throws IOException {
-    WizardUtils.createNewProject(myGuiTest, "Empty Activity");
+    myGuiTest.importSimpleLocalApplication();
     Path stringsXml = FileSystems.getDefault().getPath("app", "src", "main", "res", "values-en", "strings.xml");
 
-    GuiTestFileUtils.writeAndReloadDocument(
-      myGuiTest.getProjectPath().toPath().resolve(stringsXml),
-
+    CharSequence text =
       "<resources>\n" +
       "    <string name=\"oslo_bysykkel_terms_url\">https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s</string>\n" +
-      "</resources>\n");
+      "</resources>\n";
 
+    new WriteAndSaveDocumentAction(myGuiTest.getProjectPath().toPath().resolve(stringsXml), text).execute();
     openTranslationsEditor(stringsXml);
 
-    SimpleColoredComponent component = myTranslationsEditor.getCellRenderer(0, 1);
-    assert component != null;
+    SimpleColoredComponent component = myTranslationsEditor.getCellRenderer(5, 3);
 
     assertEquals("https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s", component.myValue);
     assertEquals(SimpleTextAttributes.STYLE_WAVED, component.myAttributes.getStyle());
     assertEquals(JBColor.RED, component.myAttributes.getFgColor());
     assertEquals("Invalid XML", component.myTooltipText);
+  }
+
+  @SuppressWarnings("NewClassNamingConvention")
+  private static final class WriteAndSaveDocumentAction extends WriteAction<Void> {
+    private final VirtualFile myFile;
+    private final CharSequence myText;
+
+    private WriteAndSaveDocumentAction(@NotNull Path path, @NotNull CharSequence text) {
+      myFile = LocalFileSystem.getInstance().findFileByIoFile(path.toFile());
+      myText = text;
+    }
+
+    @Override
+    protected void run(@NotNull Result<Void> result) {
+      FileDocumentManager manager = FileDocumentManager.getInstance();
+
+      Document document = manager.getDocument(myFile);
+      document.setText(myText);
+
+      manager.saveDocument(document);
+    }
   }
 
   @Test

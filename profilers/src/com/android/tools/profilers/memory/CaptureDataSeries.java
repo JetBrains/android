@@ -18,36 +18,30 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.TimeUnit;
 
 abstract class CaptureDataSeries<T extends CaptureObject> implements DataSeries<CaptureDurationData<T>> {
   @NotNull protected final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
-  @Nullable protected final Common.Session mySession;
-  protected final int myProcessId;
-  @NotNull protected final RelativeTimeConverter myConverter;
+  @NotNull protected final Common.Session mySession;
   @NotNull protected final FeatureTracker myFeatureTracker;
 
   protected CaptureDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
-                              @Nullable Common.Session session, int processId,
-                              @NotNull RelativeTimeConverter converter, @NotNull FeatureTracker featureTracker) {
+                              @NotNull Common.Session session,
+                              @NotNull FeatureTracker featureTracker) {
     myClient = client;
-    myProcessId = processId;
-    myConverter = converter;
     mySession = session;
     myFeatureTracker = featureTracker;
   }
 
-  public static long getHostTime(long time) {
-    return TimeUnit.NANOSECONDS.toMicros(time);
+  protected static long getHostTime(long timeNs) {
+    return TimeUnit.NANOSECONDS.toMicros(timeNs);
   }
 
-  public static long getDurationUs(long startTimeNs, long endTimeNs) {
+  protected static long getDurationUs(long startTimeNs, long endTimeNs) {
     return endTimeNs == Long.MAX_VALUE ? Long.MAX_VALUE : TimeUnit.NANOSECONDS.toMicros(endTimeNs - startTimeNs);
   }
 }

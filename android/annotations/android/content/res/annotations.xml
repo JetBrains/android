@@ -112,6 +112,7 @@
     <annotation name="android.support.annotation.ArrayRes" />
   </item>
   <item name="android.content.res.Resources android.content.res.XmlResourceParser getAnimation(int) 0">
+    <annotation name="android.support.annotation.AnimatorRes" />
     <annotation name="android.support.annotation.AnimRes" />
   </item>
   <item name="android.content.res.Resources android.content.res.XmlResourceParser getLayout(int) 0">
@@ -149,6 +150,9 @@
   </item>
   <item name="android.content.res.Resources boolean getBoolean(int) 0">
     <annotation name="android.support.annotation.BoolRes" />
+  </item>
+  <item name="android.content.res.Resources float getDimension(int)">
+    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.content.res.Resources float getDimension(int) 0">
     <annotation name="android.support.annotation.DimenRes" />
@@ -327,8 +331,14 @@
   <item name="android.content.res.TypedArray boolean hasValueOrEmpty(int) 0">
     <annotation name="android.support.annotation.StyleableRes" />
   </item>
+  <item name="android.content.res.TypedArray float getDimension(int, float)">
+    <annotation name="android.support.annotation.Px" />
+  </item>
   <item name="android.content.res.TypedArray float getDimension(int, float) 0">
     <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray float getDimension(int, float) 1">
+    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.content.res.TypedArray float getFloat(int, float) 0">
     <annotation name="android.support.annotation.StyleableRes" />

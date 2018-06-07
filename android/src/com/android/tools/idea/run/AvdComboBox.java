@@ -19,8 +19,10 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.tools.idea.avdmanager.ModuleAvds;
+import com.android.tools.idea.avdmanager.AvdManagerUtils;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -41,8 +43,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -129,7 +129,7 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
       if (myAddEmptyElement) {
         newAvdList.add(IdDisplay.create("", ""));
       }
-      for (AvdInfo avd : ModuleAvds.getInstance(facet).getAllAvds()) {
+      for (AvdInfo avd : getAllAvds(facet)) {
         String displayName = avd.getProperties().get(AVD_INI_DISPLAY_NAME);
         final String avdName = displayName == null || displayName.isEmpty() ? avd.getName() : displayName;
         if (!filteringSet.contains(avdName)) {
@@ -149,6 +149,14 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
       getComboBox().setModel(new DefaultComboBoxModel(newAvds));
       getComboBox().setSelectedItem(selected);
     }
+  }
+
+  @NotNull
+  public List<AvdInfo> getAllAvds(AndroidFacet facet) {
+    AvdManager manager = AvdManagerUtils.getAvdManagerSilently(facet);
+    return manager != null && AvdManagerUtils.reloadAvds(manager, facet.getModule().getProject())
+           ? Arrays.asList(manager.getAllAvds())
+           : ImmutableList.of();
   }
 
   @Nullable

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;

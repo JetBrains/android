@@ -17,10 +17,11 @@ package com.android.tools.idea.uibuilder.handlers.preference;
 
 import android.widget.ListView;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
@@ -28,21 +29,18 @@ import org.mockito.Mockito;
 import java.util.Collections;
 
 import static com.android.SdkConstants.FQCN_LIST_VIEW;
-import static com.android.SdkConstants.PreferenceTags.CHECK_BOX_PREFERENCE;
-import static com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY;
-import static com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN;
+import static com.android.SdkConstants.PreferenceTags.*;
 
 abstract class PreferenceScreenTestCase extends LayoutTestCase {
 
   @Override
   @NotNull
   protected ViewEditor editor(@NotNull ScreenView screenView) {
-    ViewEditor editor = super.editor(screenView);
+    ListView list = Mockito.mock(ListView.class);
+    Mockito.when(list.getDividerHeight()).thenReturn(2);
 
-    ListView listView = Mockito.mock(ListView.class);
-    Mockito.when(listView.getDividerHeight()).thenReturn(2);
-    ViewInfo view = new ViewInfo(FQCN_LIST_VIEW, null, 0, 0, 0, 0, listView, null);
-    Mockito.when(editor.getRootViews()).thenReturn(Collections.singletonList(view));
+    ViewEditorImpl editor = new ViewEditorImpl(screenView);
+    editor.setRootViews(Collections.singletonList(new ViewInfo(FQCN_LIST_VIEW, null, 0, 0, 0, 0, list, null)));
 
     return editor;
   }

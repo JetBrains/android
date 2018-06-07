@@ -22,6 +22,7 @@ import com.android.ide.common.res2.ResourceRepository;
 import com.android.ide.common.res2.ResourceTable;
 import com.android.ide.common.resources.TestResourceRepository;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.util.Pair;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -38,7 +39,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static java.io.File.separatorChar;
 
 public class ResourceClassGeneratorTest extends AndroidTestCase {
@@ -201,7 +201,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     LocalResourceRepository resourcesA = new LocalResourceRepositoryDelegate("A", repositoryA);
     String aarPath = AndroidTestBase.getTestDataPath() + separatorChar +
                      "rendering" + separatorChar +
-                     EXPLODED_AAR + separatorChar +
+                     FilenameConstants.EXPLODED_AAR + separatorChar +
                      "my_aar_lib" + separatorChar +
                      "res";
     FileResourceRepository libraryRepository = FileResourceRepository.get(new File(aarPath), LIBRARY_NAME);
@@ -254,6 +254,38 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     String rAttr = Arrays.stream(clz.getDeclaredFields()).map(Field::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     assertEquals("public static final int my.test.pkg.R$attr.app_declared_attr", rAttr);
     assertNotNull(clz.newInstance());
+  }
+
+  public void testIndexOverflow() throws Exception {
+    StringBuilder attributes = new StringBuilder();
+    for (int i = 0; i < 1000; i++) {
+      attributes.append("    <attr name=\"overflow_").append(i).append("\" />\n");
+    }
+
+    final ResourceRepository repository = TestResourceRepository.createRes2(new Object[]{
+      "values/styles.xml", "" +
+                           "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                           "<resources>\n" +
+                           "    <declare-styleable name=\"AppStyleable\">\n" +
+                           attributes.toString() +
+                           "    </declare-styleable>\n" +
+                           "</resources>\n"});
+    LocalResourceRepository resources = new LocalResourceRepositoryDelegate("resources", repository);
+    AppResourceRepository appResources = new AppResourceRepository(myFacet, ImmutableList.of(resources), Collections.emptyList());
+
+    assertEquals(1, appResources.getItemsOfType(ResourceType.DECLARE_STYLEABLE).size());
+
+    ResourceClassGenerator generator = ResourceClassGenerator.create(appResources);
+    assertNotNull(generator);
+
+    String name = "my.test.pkg.R$styleable";
+    Class<?> clz = generateClass(generator, name);
+    assertNotNull(clz);
+    assertEquals(name, clz.getName());
+    Object rClass = clz.newInstance();
+    assertNotNull(rClass);
+    int[] iArray = (int[])clz.getDeclaredField("AppStyleable").get(rClass);
+    assertEquals(1000, iArray.length);
   }
 
   private static class LocalResourceRepositoryDelegate extends LocalResourceRepository {

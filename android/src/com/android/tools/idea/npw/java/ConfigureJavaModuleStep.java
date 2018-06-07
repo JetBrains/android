@@ -31,8 +31,8 @@ import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
-import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.collect.Lists;
@@ -43,7 +43,6 @@ import javax.swing.*;
 import java.util.Collection;
 
 import static com.android.tools.idea.npw.project.NewProjectModel.getInitialDomain;
-import static org.jetbrains.android.util.AndroidBundle.message;
 
 
 public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleModel> {
@@ -85,7 +84,7 @@ public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleMo
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
     myValidatorPanel.registerValidator(model.className(), new ClassNameValidator());
 
-    myRootPanel = new StudioWizardStepPanel(myValidatorPanel, message("android.wizard.module.config.title"));
+    myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 

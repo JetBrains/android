@@ -35,12 +35,12 @@ public abstract class ToggleViewAction extends ViewAction {
   /**
    * Creates a new {@linkplain ToggleViewAction}
    *
-   * @param unselectedIcon  the icon shown when the action is in the unselected state
+   * @param unselectedIcon  the icon shown when the action is in the unselected state (or null, if no icon in the unselected state)
    * @param selectedIcon    the icon shown when the action is in the selected state
    * @param unselectedLabel the label or tooltip to show when in the unselected state
    * @param selectedLabel   the label or tooltip to show when in the selected state (or if null, use the unselectedLabel in both cases)
    */
-  public ToggleViewAction(@NotNull Icon unselectedIcon,
+  public ToggleViewAction(@Nullable Icon unselectedIcon,
                           @NotNull Icon selectedIcon,
                           @NotNull String unselectedLabel,
                           @Nullable String selectedLabel) {
@@ -79,7 +79,7 @@ public abstract class ToggleViewAction extends ViewAction {
   /**
    * Returns the unselected icon
    */
-  @NotNull
+  @Nullable
   public final Icon getUnselectedIcon() {
     return myIcon;
   }

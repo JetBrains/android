@@ -19,25 +19,22 @@ import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.model.NlDependencyManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
-import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.function.Predicate;
 
 import static com.android.SdkConstants.VALUE_N_DP;
-import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.res.ResourceHelper.parseFloatAttribute;
 import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
 
@@ -68,17 +65,15 @@ public abstract class ViewEditor {
     return null;
   }
 
-  public abstract int getDpi();
-
   /**
    * Converts a device independent pixel to a screen pixel for the current screen density
    *
    * @param dp the device independent pixel dimension
    * @return the corresponding pixel dimension
    */
-  public int dpToPx(int dp) {
-    int dpi = getDpi();
-    return dp * dpi / DEFAULT_DENSITY;
+  @AndroidCoordinate
+  public int dpToPx(@AndroidDpCoordinate int dp) {
+    return Coordinates.dpToPx(getScene().getDesignSurface(), dp);
   }
 
   /**
@@ -87,9 +82,9 @@ public abstract class ViewEditor {
    * @param px the pixel dimension (in Android screen pixels)
    * @return the corresponding dp dimension
    */
+  @AndroidDpCoordinate
   public int pxToDp(@AndroidCoordinate int px) {
-    int dpi = getDpi();
-    return px * DEFAULT_DENSITY / dpi;
+    return Coordinates.pxToDp(getScene().getDesignSurface(), px);
   }
 
   /**
@@ -143,12 +138,6 @@ public abstract class ViewEditor {
   @NotNull
   public abstract Collection<ViewInfo> getRootViews();
 
-  public abstract boolean moduleContainsResource(@NotNull ResourceType type, @NotNull String name);
-
-  public abstract void copyVectorAssetToMainModuleSourceSet(@NotNull String asset);
-
-  public abstract void copyLayoutToMainModuleSourceSet(@NotNull String layout, @Language("XML") @NotNull String xml);
-
   /**
    * Measures the children of the given parent and returns them as a map to view info instances.
    *
@@ -167,18 +156,49 @@ public abstract class ViewEditor {
   @Nullable
   public abstract String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types);
 
+  /**
+   * Open a dialog to pick a class among classes derived from a specified set of super classes.
+   *
+   * @param title        the title representing the class being picked ex: "Fragments", "Views"
+   * @param superTypes   the possible super classes that the user is picking a class from
+   * @param filter       a filter for the qualified name of the class, or null to specify user defined classes only
+   * @param currentValue the current value which may be initially selected in the class selector
+   * @return class name if user has selected one, or null if either the user cancelled, no classes were found, or we are in dumb mode.
+   */
   @Nullable
-  public abstract String displayClassInput(@NotNull Set<String> superTypes,
-                                           @Nullable Predicate<PsiClass> filter,
+  public abstract String displayClassInput(@NotNull String title,
+                                           @NotNull Set<String> superTypes,
+                                           @Nullable Predicate<String> filter,
                                            @Nullable String currentValue);
 
+  @NotNull
+  public abstract Scene getScene();
+
   /**
-   * Opens the resource using the resource resolver in the configuration.
+   * If the children have dependencies that are not met by the project, this method will add them after asking the developer.
+   * This method should NOT be called from within a write transaction.
    *
-   * @param reference   the resource reference
-   * @param currentFile the currently open file. It's pushed onto the file navigation stack under the resource to open.
-   * @return true if the resource was opened
-   * @see RenderResources#findResValue(String, boolean)
+   * @return true if the children can be inserted into the parent
    */
-  public abstract boolean openResource(@NotNull Configuration configuration, @NotNull String reference, @NotNull VirtualFile currentFile);
+  public abstract boolean canInsertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index);
+
+  /**
+   * Inserts the children into the parent. This method will also add missing dependencies after prompting the developer.
+   * If no user interaction is wanted you can call canInsertChildren first and then addDependencies if neccessary.
+   * This method can optionally be called from within a write transaction.
+   *
+   * @param index the index at which to insert the children or -1 to insert them at the end. If existing children are being moved to a new
+   *              position, the index is based on the state before the move.
+   */
+  public abstract void insertChildren(@NotNull NlComponent parent,
+                                      @NotNull List<NlComponent> children,
+                                      int index,
+                                      @NotNull InsertType insertType);
+
+  /**
+   * Get the dependency manager to handle adding missing dependency and
+   * check current dependencies
+   */
+  @NotNull
+  public abstract NlDependencyManager getDependencyManager();
 }

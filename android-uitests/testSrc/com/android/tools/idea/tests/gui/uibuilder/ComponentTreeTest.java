@@ -17,13 +17,16 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.util.GuiTestFileUtils;
+import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import org.intellij.lang.annotations.Language;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +42,8 @@ public final class ComponentTreeTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
+  @Ignore("b/66680171")
+  @RunIn(TestGroup.UNRELIABLE)  // b/66912463
   @Test
   public void testDropThatOpensDialog() throws IOException {
     WizardUtils.createNewProject(myGuiTest);
@@ -58,7 +63,7 @@ public final class ComponentTreeTest {
 
     NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
     layoutEditor.waitForRenderToFinish();
-    layoutEditor.getPaletteItemList(4).drag("ImageView");
+    layoutEditor.getPalette().dragComponent("Widgets", "ImageView");
     // TODO This step takes around 10 s when this UI test does it (not when I do it manually). Make it faster.
     layoutEditor.getComponentTree().drop("android.support.constraint.ConstraintLayout");
 

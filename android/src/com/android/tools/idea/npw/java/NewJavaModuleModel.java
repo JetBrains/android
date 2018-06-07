@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.java;
 
-import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.templates.Template;
@@ -46,7 +46,7 @@ public final class NewJavaModuleModel extends WizardModel {
 
   @NotNull private final StringProperty myLibraryName = new StringValueProperty("lib");
   @NotNull private final StringProperty myPackageName = new StringValueProperty();
-  @NotNull private final StringProperty myClassName = new StringValueProperty("myClass");
+  @NotNull private final StringProperty myClassName = new StringValueProperty("MyClass");
   @NotNull private final BoolProperty myCreateGitIgnore = new BoolValueProperty(true);
 
   public NewJavaModuleModel(@NotNull Project project,
@@ -86,7 +86,7 @@ public final class NewJavaModuleModel extends WizardModel {
     Map<String, Object> myTemplateValues = Maps.newHashMap();
 
     new TemplateValueInjector(myTemplateValues)
-      .setModuleRoots(GradleAndroidProjectPaths.createDefaultSourceSetAt(moduleRoot).getPaths(), packageName().get())
+      .setModuleRoots(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths(), packageName().get())
       .setJavaVersion(myProject);
 
     myTemplateValues.put(TemplateMetadata.ATTR_CLASS_NAME, className().get());

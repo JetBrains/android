@@ -15,42 +15,39 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator;
 
-import com.android.SdkConstants;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.draw.DrawCommand;
-import com.android.tools.idea.common.scene.draw.DrawComponentFrame;
-import com.android.tools.idea.common.scene.draw.DrawTextRegion;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.scene.draw.*;
+import com.android.tools.idea.common.scene.draw.DrawTruncatedText;
+import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
+import com.android.tools.idea.naveditor.model.NavCoordinate;
+import com.android.tools.idea.naveditor.scene.draw.DrawFilledRectangle;
+import com.android.tools.idea.naveditor.scene.draw.DrawRectangle;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.*;
 
 
 /**
  * {@link SceneDecorator} for the whole of a navigation flow (that is, the root component).
  */
 public class NavigationDecorator extends SceneDecorator {
-  private static final int BASELINE_OFFSET = 35;
-  private static final int FONT_SIZE = 30;
+  // Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
+  @NavCoordinate private static final int NAVIGATION_ARC_SIZE = 12;
+  @NavCoordinate private static final int NAVIGATION_BORDER_THICKNESS = 2;
 
   @Override
   protected void addBackground(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    if (isDisplayRoot(sceneContext, component)) {
-      return;
-    }
+  }
 
-    Rectangle rect = new Rectangle();
-    component.fillRect(rect);
-    SceneComponent.DrawState state = component.getDrawState();
-    DrawComponentBackground.add(list, sceneContext, rect, state.ordinal(), true);
+  @Override
+  protected void addFrame(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
   }
 
   @Override
@@ -59,28 +56,26 @@ public class NavigationDecorator extends SceneDecorator {
       return;
     }
 
-    Rectangle bounds = Coordinates.getSwingRectDip(sceneContext, component.fillDrawRect(0, null));
-    // TODO: baseline based on text size
-    String label = component.getNlComponent().getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL);
-    if (label == null) {
-      label = NlComponent.stripId(component.getId());
-    }
-    if (label == null) {
-      label = "navigation";
-    }
-    double scale = sceneContext.getScale();
-    list.add(new DrawTextRegion(bounds.x, bounds.y, bounds.width, bounds.height, DecoratorUtilities.ViewStates.NORMAL.getVal(),
-                                (int)(scale * BASELINE_OFFSET), label, true, false, DrawTextRegion.TEXT_ALIGNMENT_CENTER,
-                                DrawTextRegion.TEXT_ALIGNMENT_CENTER, FONT_SIZE, (float)scale));
-  }
+    Rectangle bounds = Coordinates.getSwingRect(sceneContext, component.fillDrawRect(0, null));
 
-  @Override
-  protected void addFrame(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    if (isDisplayRoot(sceneContext, component)) {
-      return;
+    @SwingCoordinate int arcSize = Coordinates.getSwingDimension(sceneContext, NAVIGATION_ARC_SIZE);
+    list.add(new DrawFilledRectangle(bounds, sceneContext.getColorSet().getComponentBackground(), arcSize));
+
+    @SwingCoordinate int strokeThickness = strokeThickness(sceneContext, component, NAVIGATION_BORDER_THICKNESS);
+    Rectangle frameRectangle = new Rectangle(bounds);
+    frameRectangle.grow(strokeThickness, strokeThickness);
+
+    Color frameColor = frameColor(sceneContext, component);
+    list.add(new DrawRectangle(frameRectangle, frameColor, strokeThickness, arcSize));
+
+    String text = NavComponentHelperKt.getIncludeFileName(component.getNlComponent());
+    if (text == null) {
+      text = "Nested Graph";
     }
 
-    DrawComponentFrame.add(list, sceneContext, component.fillRect(null), component.getDrawState().ordinal(), true);
+    Font font = scaledFont(sceneContext, Font.BOLD);
+    list.add(new DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, text, bounds,
+                                   textColor(sceneContext, component), font, true));
   }
 
   @Override
@@ -95,21 +90,24 @@ public class NavigationDecorator extends SceneDecorator {
     list.add(createDrawCommand(displayList, component));
   }
 
+  @Override
+  protected void buildListChildren(@NotNull DisplayList list,
+                                   long time,
+                                   @NotNull SceneContext sceneContext,
+                                   @NotNull SceneComponent component) {
+    if (isDisplayRoot(sceneContext, component)) {
+      super.buildListChildren(list, time, sceneContext, component);
+      return;
+    }
+
+    // TODO: Either set an appropriate clip here, or make this the default behavior in the base class
+    for (SceneComponent child : component.getChildren()) {
+      child.buildDisplayList(time, list, sceneContext);
+    }
+  }
+
   private static boolean isDisplayRoot(@NotNull SceneContext sceneContext, @NotNull SceneComponent sceneComponent) {
     NavDesignSurface navSurface = (NavDesignSurface)sceneContext.getSurface();
     return navSurface != null && sceneComponent.getNlComponent() == navSurface.getCurrentNavigation();
-  }
-
-  public static DrawCommand createDrawCommand(DisplayList list, SceneComponent component) {
-    int level = DrawCommand.COMPONENT_LEVEL;
-
-    if (component.isDragging()) {
-      level = DrawCommand.TOP_LEVEL;
-    }
-    else if (component.isSelected()) {
-      level = DrawCommand.COMPONENT_SELECTED_LEVEL;
-    }
-
-    return list.getCommand(level);
   }
 }

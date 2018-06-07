@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -46,17 +46,19 @@ import java.util.function.Consumer;
 
 public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
-  private final ProfilingConfiguration myPreSelectedConfiguration;
+  private final CpuProfilerConfigModel myProfilerModel;
   private Consumer<ProfilingConfiguration> myOnCloseCallback;
+  private final int myDeviceLevel;
 
   public CpuProfilingConfigurationsDialog(final Project project,
-                                          boolean isDeviceAtLeastO,
-                                          ProfilingConfiguration preSelectedConfiguration,
+                                          int deviceLevel,
+                                          CpuProfilerConfigModel model,
                                           Consumer<ProfilingConfiguration> onCloseCallback,
                                           FeatureTracker featureTracker) {
-    super(project, new ProfilingConfigurable(project, preSelectedConfiguration, isDeviceAtLeastO, featureTracker), IdeModalityType.IDE);
-    myPreSelectedConfiguration = preSelectedConfiguration;
+    super(project, new ProfilingConfigurable(project, model, deviceLevel, featureTracker), IdeModalityType.IDE);
+    myProfilerModel = model;
     myOnCloseCallback = onCloseCallback;
+    myDeviceLevel = deviceLevel;
     setHorizontalStretch(1.3F);
     // TODO: add help button on the bottom-left corner when we have the URL for it.
   }
@@ -69,13 +71,14 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
   @Override
   public void dispose() {
-    ProfilingConfiguration selectedConfig = myPreSelectedConfiguration;
+    ProfilingConfiguration selectedConfig = myProfilerModel.getProfilingConfiguration();
     if (getExitCode() == OK_EXIT_CODE) {
       selectedConfig = getSelectedConfiguration(); // Call this *before* dispose, otherwise it will be null
     }
     super.dispose();
-
-    myOnCloseCallback.accept(selectedConfig);
+    // If selected configuration is not supported by the device, we don't try to apply the callback on it.
+    boolean selectedConfigSupported = selectedConfig != null && selectedConfig.isDeviceLevelSupported(myDeviceLevel);
+    myOnCloseCallback.accept(selectedConfigSupported ? selectedConfig : null);
   }
 
   private static class ProfilingConfigurable implements Configurable {
@@ -120,18 +123,24 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
      */
     private CpuProfilingConfigPanel myProfilersPanel;
 
+    private CpuProfilerConfigModel myProfilerModel;
+
+    private int myDeviceLevel;
+
     public ProfilingConfigurable(Project project,
-                                 ProfilingConfiguration preSelectedConfiguration,
-                                 boolean isDeviceAtLeastO,
+                                 CpuProfilerConfigModel model,
+                                 int deviceLevel,
                                  FeatureTracker featureTracker) {
       myProject = project;
       myFeatureTracker = featureTracker;
-      myProfilersPanel = new CpuProfilingConfigPanel(isDeviceAtLeastO);
+      myProfilerModel = model;
+      myDeviceLevel = deviceLevel;
+      myProfilersPanel = new CpuProfilingConfigPanel(myDeviceLevel);
 
       myConfigurationsModel = new DefaultListModel<>();
       myConfigurations = new JBList<>(myConfigurationsModel);
       setUpConfigurationsList();
-      selectConfiguration(preSelectedConfiguration);
+      selectConfiguration(myProfilerModel.getProfilingConfiguration());
     }
 
     @Nullable
@@ -149,27 +158,15 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       });
 
       // Restore saved configurations
-      for (ProfilingConfiguration configuration : CpuProfilingConfigService.getInstance(myProject).getConfigurations()) {
-        // We don't check for device API when listing the configurations. The user should be able to view and the simpleperf configurations,
-        // besides the fact they can't select them to profile devices older than O.
-        if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLE_PERF
-            && !StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
-          continue; // Don't add simpleperf configurations if flag is disabled.
-        }
+      for (ProfilingConfiguration configuration : myProfilerModel.getCustomProfilingConfigurations()) {
         myConfigurationsModel.addElement(configuration);
       }
 
       // Add default configurations
-      int defaultConfigCount = 0;
-      for (ProfilingConfiguration configuration : ProfilingConfiguration.getDefaultProfilingConfigurations()) {
-        if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLE_PERF
-            && !StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
-          continue; // Don't add simpleperf default configurations if flag is disabled.
-        }
-        myConfigurationsModel.addElement(configuration);
-        defaultConfigCount++;
+      for (ProfilingConfiguration configuration : myProfilerModel.getDefaultProfilingConfigurations()) {
+          myConfigurationsModel.addElement(configuration);
       }
-      myDefaultConfigurationsCount = defaultConfigCount;
+      myDefaultConfigurationsCount = myProfilerModel.getDefaultProfilingConfigurations().size();
     }
 
     private int getCustomConfigurationCount() {
@@ -226,16 +223,15 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     @Override
     public void apply() throws ConfigurationException {
       CpuProfilingConfigService profilingConfigService = CpuProfilingConfigService.getInstance(myProject);
-      List<ProfilingConfiguration> configsToSave = new ArrayList<>();
-      for (int i = 0; i < getCustomConfigurationCount(); i++) {
-        configsToSave.add(myConfigurationsModel.get(i));
-      }
-
-      List<ProfilingConfiguration> defaultConfigs = ProfilingConfiguration.getDefaultProfilingConfigurations();
 
       // Check for configs with repeated names
       Set<String> configNames = new HashSet<>();
-      for (ProfilingConfiguration config : configsToSave) {
+      List<ProfilingConfiguration> configsToSave = new ArrayList<>();
+      for (int i = 0; i < myConfigurationsModel.getSize(); i++) {
+        ProfilingConfiguration config = myConfigurationsModel.getElementAt(i);
+        if (config.isDefault()) {
+          continue;
+        }
         String configName = config.getName();
         if (StringUtil.isEmpty(configName)) {
           throw new ConfigurationException("Empty configuration names are not allowed. Please rename or delete them before continuing.");
@@ -244,14 +240,8 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
           throw new ConfigurationException("Configuration with name \"" + configName + "\" already exists.");
         }
 
-        for (ProfilingConfiguration defaultConfig : defaultConfigs) {
-          if (configName.equals(defaultConfig.getName())) {
-            throw new ConfigurationException("\"" + configName + "\" is already being used as a default configuration." +
-                                             " Please choose another name.");
-          }
-        }
-
         configNames.add(configName);
+        configsToSave.add(config);
       }
 
       profilingConfigService.setConfigurations(configsToSave);
@@ -285,17 +275,20 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, 25));
         panel.setBackground(list.getBackground());
-
         String cellText = value.getName();
         if (index >= getCustomConfigurationCount()) {
           cellText += " - Default";
+        }
+
+        // TODO(b/69367377): Update the design for features that are supported outside the current device level.
+        if (!value.isDeviceLevelSupported(myDeviceLevel)) {
+          cellText += String.format(" (API Level %d+)", value.getRequiredDeviceLevel());
         }
         myLabel.setText(cellText);
         myLabel.setForeground(isSelected ? Gray._255 : JBColor.BLACK);
         if (isSelected) {
           panel.setBackground(ProfilerColors.CPU_PROFILING_CONFIGURATIONS_SELECTED);
         }
-
         panel.add(myLabel, BorderLayout.CENTER);
 
         return panel;

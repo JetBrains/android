@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.common.analytics;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.uibuilder.palette.PaletteMode;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
-import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.google.common.base.CaseFormat;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.*;
 import com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewGroup;
@@ -117,6 +115,12 @@ public class UsageTrackerUtil {
     switch (groupName) {
       case "All":
         return ViewGroup.ALL_GROUPS;
+      case "All Results":
+        return ViewGroup.ALL_RESULTS;
+      case "Common":
+        return ViewGroup.COMMON;
+      case "Buttons":
+        return ViewGroup.BUTTONS;
       case "Widgets":
         return ViewGroup.WIDGETS;
       case "Text":
@@ -139,6 +143,8 @@ public class UsageTrackerUtil {
         return ViewGroup.DESIGN;
       case "AppCompat":
         return ViewGroup.APP_COMPAT;
+      case "Legacy":
+        return ViewGroup.LEGACY;
       default:
         return ViewGroup.CUSTOM;
     }
@@ -161,19 +167,6 @@ public class UsageTrackerUtil {
 
       default:
         return LayoutPaletteEvent.ViewOption.NORMAL;
-    }
-  }
-
-  @NotNull
-  static LayoutPaletteEvent.ViewType convertPaletteMode(@NotNull PaletteMode paletteMode) {
-    switch (paletteMode) {
-      case LARGE_ICONS:
-        return LayoutPaletteEvent.ViewType.LARGE_IONS;
-      case SMALL_ICONS:
-        return LayoutPaletteEvent.ViewType.SMALL_ICONS;
-      case ICON_AND_NAME:
-      default:
-        return LayoutPaletteEvent.ViewType.ICON_AND_NAME;
     }
   }
 
@@ -274,7 +267,6 @@ public class UsageTrackerUtil {
   }
 
   @NotNull
-  @VisibleForTesting
   static AndroidView convertTagName(@NotNull String tagName) {
     tagName = acceptedGoogleTagNamespace(tagName) ? StringUtil.getShortName(tagName, '.') : CUSTOM_NAME;
     return AndroidView.newBuilder()

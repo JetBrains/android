@@ -198,6 +198,12 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
   }
 
+  public boolean hasParents() {
+    synchronized (ITEM_MAP_LOCK) {
+      return myParents != null && !myParents.isEmpty();
+    }
+  }
+
   protected void invalidateParentCaches() {
     synchronized (ITEM_MAP_LOCK) {
       if (myParents != null) {

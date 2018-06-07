@@ -16,7 +16,6 @@
 package com.android.tools.idea.observable.expressions.bool;
 
 import com.android.tools.idea.observable.ObservableValue;
-import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,10 +26,6 @@ import java.util.Collection;
  * chained expressions.
  */
 public final class BooleanExpressions {
-
-  public static ObservableBool alwaysTrue() { return new BoolValueProperty(true); }
-
-  public static ObservableBool alwaysFalse() { return new BoolValueProperty(false); }
 
   public static ObservableBool any(ObservableValue<Boolean>... values) {
     return new AnyExpression(values);

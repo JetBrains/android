@@ -16,8 +16,8 @@
 package com.android.tools.idea.instantapp;
 
 import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;

@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -41,7 +42,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    ExtModel extModel = getGradleBuildModel().ext();
+    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
     assertEquals(21, extModel.getLiteralProperty("COMPILE_SDK_VERSION", Integer.class));
     assertEquals("src/java", extModel.getLiteralProperty("srcDirName", String.class));
   }
@@ -54,7 +55,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    ExtModel extModel = getGradleBuildModel().ext();
+    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
     assertEquals(21, extModel.getLiteralProperty("COMPILE_SDK_VERSION", Integer.class));
     assertEquals("src/java", extModel.getLiteralProperty("srcDirName", String.class));
   }
@@ -66,7 +67,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
                   "]";
     writeToBuildFile(text);
 
-    ExtModel extModel = getGradleBuildModel().ext();
+    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
     assertEquals("com.google.guava:guava:19.0-rc1", extModel.getLiteralProperty("libraries.guava", String.class));
   }
 
@@ -78,7 +79,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    ExtModel extModel = getGradleBuildModel().ext();
+    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
     assertEquals(21, extModel.getLiteralProperty("COMPILE_SDK_VERSION", Integer.class));
 
     AndroidModel androidModel = getGradleBuildModel().android();
@@ -96,7 +97,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    ExtModel extModel = getGradleBuildModel().ext();
+    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
     assertEquals(21, extModel.getLiteralProperty("constants.COMPILE_SDK_VERSION", Integer.class));
 
     AndroidModel androidModel = getGradleBuildModel().android();
@@ -117,7 +118,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    ExtModel extModel = buildModel.ext();
+    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
     assertEquals(21, extModel.getLiteralProperty("SDK_VERSION", Integer.class));
     assertEquals(21, extModel.getLiteralProperty("COMPILE_SDK_VERSION", Integer.class));
 
@@ -126,7 +127,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion());
 
     ProductFlavorModel defaultConfig = androidModel.defaultConfig();
-    assertEquals("targetSdkVersion", "21", defaultConfig.targetSdkVersion());
+    assertEquals("targetSdkVersion", 21, defaultConfig.targetSdkVersion());
   }
 
   public void testResolveMultiModuleExtProperty() throws IOException {
@@ -143,11 +144,11 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    ExtModel extModel = buildModel.ext();
+    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
     assertEquals(21, extModel.getLiteralProperty("SDK_VERSION", Integer.class));
 
     GradleBuildModel subModuleBuildModel = getSubModuleGradleBuildModel();
-    ExtModel subModuleExtModel = subModuleBuildModel.ext();
+    ExtModelImpl subModuleExtModel = (ExtModelImpl)getSubModuleGradleBuildModel().ext();
     assertNull(subModuleExtModel.getLiteralProperty("SDK_VERSION", Integer.class).value()); // SDK_VERSION is not defined in the sub module.
 
     AndroidModel androidModel = subModuleBuildModel.android();
@@ -168,7 +169,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    ExtModel extModel = buildModel.ext();
+    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
     assertEquals("android", extModel.getLiteralProperty("ANDROID", String.class));
     assertEquals(23, extModel.getLiteralProperty("SDK_VERSION", Integer.class));
 
@@ -209,7 +210,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    ExtModel extModel = buildModel.ext();
+    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
     assertEquals("test", extModel.getLiteralProperty("TEST_STRING", String.class));
 
     AndroidModel androidModel = buildModel.android();
@@ -227,7 +228,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    ExtModel extModel = buildModel.ext();
+    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
 
     GradleDslExpressionList testStringsList = extModel.getPropertyElement("TEST_STRINGS", GradleDslExpressionList.class);
     assertNotNull(testStringsList);
@@ -248,7 +249,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    ExtModel extModel = buildModel.ext();
+    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
     assertEquals("test", extModel.getLiteralProperty("TEST_STRING", String.class));
 
     AndroidModel androidModel = buildModel.android();
@@ -266,7 +267,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    ExtModel extModel = buildModel.ext();
+    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
     assertEquals("test", extModel.getLiteralProperty("TEST_STRING", String.class));
 
     AndroidModel androidModel = buildModel.android();
@@ -285,7 +286,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModelImpl buildModel = getGradleBuildModel();
     assertNotNull(buildModel);
 
     ExtModel extModel = buildModel.ext();
@@ -295,9 +296,9 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertNotNull(expressionMap);
     assertEquals(ImmutableMap.of("test1", "value1", "test2", "value2"), expressionMap.getValues(String.class));
 
-    AndroidModel androidModel = buildModel.android();
+    AndroidModelImpl androidModel = buildModel.android();
     assertNotNull(androidModel);
-    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
+    ProductFlavorModelImpl defaultConfig = androidModel.defaultConfig();
     assertNotNull(defaultConfig);
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("test1", "value1", "test2", "value2"),
                  defaultConfig.testInstrumentationRunnerArguments());
@@ -312,7 +313,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    ExtModel extModel = buildModel.ext();
+    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
     assertEquals("test", extModel.getLiteralProperty("TEST_STRING", String.class));
 
     AndroidModel androidModel = buildModel.android();
@@ -336,7 +337,8 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToSubModulePropertiesFile(subModulePropertiesText);
     writeToSubModuleBuildFile(subModuleBuildText);
 
-    assertEquals("value_from_sub_module_build_file", getSubModuleGradleBuildModel().ext().getLiteralProperty("test", String.class));
+    ExtModelImpl extModel = (ExtModelImpl)getSubModuleGradleBuildModel().ext();
+    assertEquals("value_from_sub_module_build_file", extModel.getLiteralProperty("test", String.class));
   }
 
   public void testResolveVariableInSubModulePropertiesFile() throws IOException {
@@ -352,7 +354,8 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToSubModulePropertiesFile(subModulePropertiesText);
     writeToSubModuleBuildFile(subModuleBuildText);
 
-    assertEquals("value_from_sub_module_properties_file", getSubModuleGradleBuildModel().ext().getLiteralProperty("test", String.class));
+    ExtModelImpl extModel = (ExtModelImpl)getSubModuleGradleBuildModel().ext();
+    assertEquals("value_from_sub_module_properties_file", extModel.getLiteralProperty("test", String.class));
   }
 
   public void testResolveVariableInMainModulePropertiesFile() throws IOException {
@@ -366,7 +369,8 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToBuildFile(mainModuleBuildText);
     writeToSubModuleBuildFile(subModuleBuildText);
 
-    assertEquals("value_from_main_module_properties_file", getSubModuleGradleBuildModel().ext().getLiteralProperty("test", String.class));
+    ExtModelImpl extModel = (ExtModelImpl)getSubModuleGradleBuildModel().ext();
+    assertEquals("value_from_main_module_properties_file", extModel.getLiteralProperty("test", String.class));
   }
 
   public void testResolveVariableInMainModuleBuildFile() throws IOException {
@@ -378,7 +382,8 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToBuildFile(mainModuleBuildText);
     writeToSubModuleBuildFile(subModuleBuildText);
 
-    assertEquals("value_from_main_module_build_file", getSubModuleGradleBuildModel().ext().getLiteralProperty("test", String.class));
+    ExtModelImpl extModel = (ExtModelImpl)getSubModuleGradleBuildModel().ext();
+    assertEquals("value_from_main_module_build_file", extModel.getLiteralProperty("test", String.class));
   }
 
   public void testResolveMultiLevelExtPropertyWithHistory() throws IOException {
@@ -389,7 +394,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    ExtModel extModel = buildModel.ext();
+    ExtModelImpl extModel = (ExtModelImpl)buildModel.ext();
 
     GradleNullableValue<Integer> third = extModel.getLiteralProperty("THIRD", Integer.class);
     verifyGradleValue(third, "ext.THIRD", "SECOND");
@@ -421,7 +426,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     GradleBuildModel buildModel = getSubModuleGradleBuildModel();
-    ExtModel extModel = buildModel.ext();
+    ExtModelImpl extModel = (ExtModelImpl)buildModel.ext();
 
     GradleNullableValue<Integer> second = extModel.getLiteralProperty("SECOND", Integer.class);
     verifyGradleValue(second, "ext.SECOND", "FIRST", toSystemIndependentPath(mySubModuleBuildFile.getPath()));
@@ -448,7 +453,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleBuildText);
 
     GradleBuildModel buildModel = getSubModuleGradleBuildModel();
-    ExtModel extModel = buildModel.ext();
+    ExtModelImpl extModel = (ExtModelImpl)buildModel.ext();
 
     GradleNullableValue<String> third = extModel.getLiteralProperty("third", String.class);
     verifyGradleValue(third, "ext.third", "second", toSystemIndependentPath(mySubModuleBuildFile.getPath()));
@@ -466,10 +471,77 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleNotNullValue<Object> first = secondResolvedVariables.get("first");
     assertNotNull(first);
     assertEquals(toSystemIndependentPath(myPropertiesFile.getPath()), toSystemIndependentPath(first.getFile().getPath()));
-    assertEquals("first", first.getPropertyName());
     assertNull(first.getPsiElement()); // There are no psi elements in the properties file.
     assertNull(first.getDslText());
     assertEquals("value_from_gradle_properties", first.value());
     assertEquals(0, first.getResolvedVariables().size());
+  }
+
+  public void testFlatDefVariablesAreResolved() throws IOException {
+    String text = "def world = 'WORLD'\n" +
+                  "def foo = 'bar'\n" +
+                  "ext.first = \"Hello ${world}\"\n";
+
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModelImpl extModel = (ExtModelImpl)buildModel.ext();
+
+    // Make sure that we get the correct value for the property
+    GradleNullableValue<String> value = extModel.getLiteralProperty("first", String.class);
+    assertEquals("Hello WORLD", value);
+
+    // But we also can't get the value from the def'd variables.
+    // TODO: Work out if we need some way of accessing and editing these
+    GradleNullableValue<String> defValue = extModel.getLiteralProperty("world", String.class);
+    assertNull(defValue.value());
+  }
+
+  public void testNestedDefVariablesAreResolved() throws IOException {
+    String text = "def world = 'world'\n" +
+                  "def foo = 'bar'\n" +
+                  "ext {\n" +
+                  "    second = \"Welcome to $foo $world!\"\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModelImpl extModel = (ExtModelImpl)buildModel.ext();
+
+    GradleNullableValue<String> value = extModel.getLiteralProperty("second", String.class);
+    assertEquals("Welcome to bar world!", value.value());
+  }
+
+
+  public void testMultipleDefDeclarations() throws IOException {
+    String text = "def olleh = 'hello', dlrow = 'world'\n" +
+                  "ext.prop = \"hello $dlrow\"\n" +
+                  "ext.prop2 = \"$olleh world\"";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModelImpl extModel = (ExtModelImpl)buildModel.ext();
+
+    GradleNullableValue<String> propValue = extModel.getLiteralProperty("prop", String.class);
+    assertEquals("hello world", propValue.value());
+    GradleNullableValue<String> prop2Value = extModel.getLiteralProperty("prop2", String.class);
+    assertEquals("hello world", prop2Value.value());
+  }
+
+  public void testDefUsedInDefResolved() throws IOException {
+    String text = "def animal = 'penguin'\n" +
+                  "def message = \"${animal}s are cool!\"\n" +
+                  "ext.greeting = \"Hello, $message\"";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModelImpl extModel = (ExtModelImpl)buildModel.ext();
+
+    GradleNullableValue<String> value = extModel.getLiteralProperty("greeting", String.class);
+    assertEquals("Hello, penguins are cool!", value.value());
   }
 }

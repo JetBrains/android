@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.SplitsModel;
+import com.android.tools.idea.gradle.dsl.api.android.splits.AbiModel;
+import com.android.tools.idea.gradle.dsl.api.android.splits.DensityModel;
+import com.android.tools.idea.gradle.dsl.api.android.splits.LanguageModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.splits.AbiModel;
-import com.android.tools.idea.gradle.dsl.model.android.splits.DensityModel;
-import com.android.tools.idea.gradle.dsl.model.android.splits.LanguageModel;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -164,17 +166,17 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
     SplitsModel splits = android.splits();
-    assertTrue(splits.hasValidPsiElement());
+    assertTrue(hasPsiElement(splits));
 
     AbiModel abi = splits.abi();
-    assertTrue(abi.hasValidPsiElement());
+    assertTrue(hasPsiElement(abi));
     abi.removeEnable();
     abi.removeAllExclude();
     abi.removeAllInclude();
     abi.removeUniversalApk();
 
     DensityModel density = splits.density();
-    assertTrue(density.hasValidPsiElement());
+    assertTrue(hasPsiElement(density));
     density.removeAuto();
     density.removeAllCompatibleScreens();
     density.removeEnable();
@@ -182,7 +184,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     density.removeAllInclude();
 
     LanguageModel language = splits.language();
-    assertTrue(language.hasValidPsiElement());
+    assertTrue(hasPsiElement(language));
     language.removeEnable();
     language.removeAllInclude();
 
@@ -191,7 +193,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     android = buildModel.android();
     assertNotNull(android);
     splits = android.splits();
-    assertFalse(splits.hasValidPsiElement());
+    assertFalse(hasPsiElement(splits));
   }
 
   private void verifySplitsValues() {
@@ -227,7 +229,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertNull("exclude", abi.exclude());
     assertNull("include", abi.include());
     assertNull("universalApk", abi.universalApk());
-    assertFalse(abi.hasValidPsiElement());
+    assertFalse(hasPsiElement(abi));
 
     DensityModel density = splits.density();
     assertNull("auto", density.auto());
@@ -235,12 +237,12 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertNull("enable", density.enable());
     assertNull("exclude", density.exclude());
     assertNull("include", density.include());
-    assertFalse(density.hasValidPsiElement());
+    assertFalse(hasPsiElement(density));
 
     LanguageModel language = splits.language();
     assertNull("enable", language.enable());
     assertNull("include", language.include());
-    assertFalse(language.hasValidPsiElement());
+    assertFalse(hasPsiElement(language));
   }
 
   public void testRemoveBlockElements() throws Exception {
@@ -261,10 +263,10 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
     SplitsModel splits = android.splits();
-    assertTrue(splits.hasValidPsiElement());
-    assertTrue(splits.abi().hasValidPsiElement());
-    assertTrue(splits.density().hasValidPsiElement());
-    assertTrue(splits.language().hasValidPsiElement());
+    assertTrue(hasPsiElement(splits));
+    assertTrue(hasPsiElement(splits.abi()));
+    assertTrue(hasPsiElement(splits.density()));
+    assertTrue(hasPsiElement(splits.language()));
 
     splits.removeAbi();
     splits.removeDensity();
@@ -274,10 +276,10 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     android = buildModel.android();
     assertNotNull(android);
     splits = android.splits();
-    assertFalse(splits.hasValidPsiElement());
-    assertFalse(splits.abi().hasValidPsiElement());
-    assertFalse(splits.density().hasValidPsiElement());
-    assertFalse(splits.language().hasValidPsiElement());
+    assertFalse(hasPsiElement(splits));
+    assertFalse(hasPsiElement(splits.abi()));
+    assertFalse(hasPsiElement(splits.density()));
+    assertFalse(hasPsiElement(splits.language()));
   }
 
   public void testRemoveOneOfElementsInTheList() throws Exception {
@@ -366,21 +368,21 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
     SplitsModel splits = android.splits();
-    assertTrue(splits.hasValidPsiElement());
+    assertTrue(hasPsiElement(splits));
 
     AbiModel abi = splits.abi();
-    assertTrue(splits.hasValidPsiElement());
+    assertTrue(hasPsiElement(abi));
     assertEquals("exclude", ImmutableList.of("abi-exclude"), abi.exclude());
     assertEquals("include", ImmutableList.of("abi-include"), abi.include());
 
     DensityModel density = splits.density();
-    assertTrue(density.hasValidPsiElement());
+    assertTrue(hasPsiElement(density));
     assertEquals("compatibleScreens", ImmutableList.of("screen"), density.compatibleScreens());
     assertEquals("exclude", ImmutableList.of("density-exclude"), density.exclude());
     assertEquals("include", ImmutableList.of("density-include"), density.include());
 
     LanguageModel language = splits.language();
-    assertTrue(language.hasValidPsiElement());
+    assertTrue(hasPsiElement(language));
     assertEquals("include", ImmutableList.of("language-include"), language.include());
 
     abi.removeExclude("abi-exclude");
@@ -398,7 +400,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     abi = splits.abi();
     assertNull("exclude", abi.exclude());
     assertNull("include", abi.include());
-    assertFalse(abi.hasValidPsiElement());
+    assertFalse(hasPsiElement(abi));
 
     density = splits.density();
     assertNull("compatibleScreens", density.compatibleScreens());
@@ -407,9 +409,9 @@ public class SplitsModelTest extends GradleFileModelTestCase {
 
     language = splits.language();
     assertNull("include", language.include());
-    assertFalse(language.hasValidPsiElement());
+    assertFalse(hasPsiElement(language));
 
-    assertFalse(splits.hasValidPsiElement());
+    assertFalse(hasPsiElement(splits));
   }
 
   public void testResetStatement() throws Exception {

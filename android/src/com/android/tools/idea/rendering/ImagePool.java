@@ -91,7 +91,13 @@ public class ImagePool {
    */
   @NotNull
   private static String getPoolKey(int w, int h, int type) {
-    return String.format("%dx%d-%d", w, h, type);
+    return new StringBuilder()
+      .append(w)
+      .append('x')
+      .append(h)
+      .append('-')
+      .append(type)
+      .toString();
   }
 
   public ImagePool() {

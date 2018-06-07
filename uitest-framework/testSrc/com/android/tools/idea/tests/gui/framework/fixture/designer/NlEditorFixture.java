@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
-import com.android.tools.adtui.treegrid.TreeGrid;
+import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.common.editor.NlEditor;
 import com.android.tools.idea.common.editor.NlEditorPanel;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -30,8 +30,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceDirector
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
-import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -39,8 +37,9 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JMenuItemFixture;
 import org.fest.swing.fixture.JPanelFixture;
+import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +55,7 @@ import java.util.List;
 public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorPanel> {
   private final DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface> myDesignSurfaceFixture;
   private NlPropertyInspectorFixture myPropertyFixture;
+  private NlPaletteFixture myPaletteFixture;
   private final ComponentDragAndDrop myDragAndDrop;
 
   public NlEditorFixture(@NotNull Robot robot, @NotNull NlEditor editor) {
@@ -73,8 +73,15 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     myDragAndDrop = new ComponentDragAndDrop(robot);
   }
 
+  @NotNull
   public NlEditorFixture waitForRenderToFinish() {
     myDesignSurfaceFixture.waitForRenderToFinish();
+    return this;
+  }
+
+  @NotNull
+  public NlEditorFixture waitForRenderToFinish(@NotNull Wait wait) {
+    myDesignSurfaceFixture.waitForRenderToFinish(wait);
     return this;
   }
 
@@ -83,6 +90,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return ((NlDesignSurfaceFixture)myDesignSurfaceFixture).findView(tag, occurrence);
   }
 
+  @NotNull
   public List<NlComponent> getSelection() {
     return myDesignSurfaceFixture.getSelection();
   }
@@ -97,19 +105,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   public void waitForErrorPanelToContain(@NotNull String errorText) {
     myDesignSurfaceFixture.waitForErrorPanelToContain(errorText);
-  }
-
-  @NotNull
-  public JListFixture getPaletteItemList(int i) {
-    Robot robot = robot();
-
-    @SuppressWarnings("unchecked")
-    TreeGrid<Palette.Item> grid = (TreeGrid<Palette.Item>)robot.finder().findByName(target(), "itemTreeGrid");
-
-    JListFixture fixture = new JListFixture(robot, grid.getLists().get(i));
-    fixture.replaceCellReader((list, listIndex) -> ((Palette.Item)list.getModel().getElementAt(listIndex)).getTitle());
-
-    return fixture;
   }
 
   @NotNull
@@ -141,9 +136,10 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return myPropertyFixture;
   }
 
-  public NlRhsToolbarFixture getRhsToolbar() {
-    ActionToolbarImpl toolbar = robot().finder().findByName(target(), "NlRhsToolbar", ActionToolbarImpl.class);
-    return new NlRhsToolbarFixture(this, toolbar);
+  @NotNull
+  public NlRhsConfigToolbarFixture getRhsConfigToolbar() {
+    ActionToolbarImpl toolbar = robot().finder().findByName(target(), "NlRhsConfigToolbar", ActionToolbarImpl.class);
+    return new NlRhsConfigToolbarFixture(this, toolbar);
   }
 
   @NotNull
@@ -151,7 +147,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     JTreeFixture fixture = new JTreeFixture(robot(), (JTree)robot().finder().findByName(target(), "componentTree"));
 
     fixture.replaceCellReader((tree, value) -> {
-      assert value != null;
       return ((NlComponent)value).getTagName();
     });
 
@@ -162,21 +157,27 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return fixture;
   }
 
+  @NotNull
   public JPanelFixture getBackNavigationPanel() {
     return new JPanelFixture(robot(), BackNavigationComponent.BACK_NAVIGATION_COMPONENT_NAME);
   }
 
   @NotNull
-  public NlEditorFixture dragComponentToSurface(@NotNull String group, @NotNull String item) {
-    NlPaletteTreeGrid treeGrid = robot().finder().findByType(NlPaletteTreeGrid.class, true);
-    new JListFixture(robot(), treeGrid.getCategoryList()).selectItem(group);
+  public NlPaletteFixture getPalette() {
+    if (myPaletteFixture == null) {
+      Wait.seconds(10).expecting("WorkBench is showing").until(() -> myDesignSurfaceFixture.target().isShowing());
+      Container workBench = SwingUtilities.getAncestorOfClass(WorkBench.class, myDesignSurfaceFixture.target());
+      myPaletteFixture = NlPaletteFixture.create(robot(), workBench);
+    }
+    return myPaletteFixture;
+  }
 
-    // Wait until the list has been expanded in UI (eliminating flakiness).
-    JList list = GuiTests.waitUntilShowing(robot(), treeGrid, Matchers.byName(JList.class, group));
-    new JListFixture(robot(), list).drag(item);
+  @NotNull
+  public NlEditorFixture dragComponentToSurface(@NotNull String group, @NotNull String item) {
+    getPalette().dragComponent(group, item);
+
     DesignSurface target = myDesignSurfaceFixture.target();
     SceneView sceneView = target.getCurrentSceneView();
-    assert sceneView != null;
 
     myDragAndDrop
       .drop(target, new Point(sceneView.getX() + sceneView.getSize().width / 2, sceneView.getY() + sceneView.getSize().height / 2));
@@ -190,10 +191,10 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * @see #resizeToAndroidSize(int, int)
    * @see #endResizeInteraction()
    */
+  @NotNull
   public NlEditorFixture startResizeInteraction() {
     DesignSurface surface = myDesignSurfaceFixture.target();
     SceneView screenView = surface.getCurrentSceneView();
-    assert screenView != null;
 
     Dimension size = screenView.getSize();
     robot().pressMouse(surface, new Point(screenView.getX() + size.width + 24, screenView.getY() + size.height + 24));
@@ -206,10 +207,10 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * @see #startResizeInteraction()
    * @see #endResizeInteraction()
    */
+  @NotNull
   public NlEditorFixture resizeToAndroidSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height) {
     DesignSurface surface = myDesignSurfaceFixture.target();
     SceneView screenView = surface.getCurrentSceneView();
-    assert screenView != null;
 
     robot().moveMouse(surface, Coordinates.getSwingXDip(screenView, width), Coordinates.getSwingYDip(screenView, height));
     return this;
@@ -221,29 +222,35 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * @see #startResizeInteraction()
    * @see #resizeToAndroidSize(int, int)
    */
+  @NotNull
   public NlEditorFixture endResizeInteraction() {
     robot().releaseMouse(MouseButton.LEFT_BUTTON);
     return this;
   }
 
   /**
-   * Ensures only the design view is being displayed.
+   * Ensures only the design view is being displayed, and zooms to fit.
    * Only applicable if {@code target()} is a {@link NlDesignSurface}.
    */
+  @NotNull
   public NlEditorFixture showOnlyDesignView() {
     getConfigToolbar().selectDesign();
+    getRhsConfigToolbar().zoomToFit();
     return this;
   }
 
   /**
-   * Ensures only the blueprint view is being displayed.
+   * Ensures only the blueprint view is being displayed, and zooms to fit.
    * Only applicable if {@code target()} is a {@link NlDesignSurface}.
    */
+  @NotNull
   public NlEditorFixture showOnlyBlueprintView() {
     getConfigToolbar().selectBlueprint();
+    getRhsConfigToolbar().zoomToFit();
     return this;
   }
 
+  @NotNull
   public NlEditorFixture mouseWheelZoomIn(int amount) {
     robot().click(myDesignSurfaceFixture.target());
     robot().pressModifiers(InputEvent.CTRL_MASK);
@@ -252,13 +259,14 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return this;
   }
 
+  @NotNull
   public NlEditorFixture mouseWheelScroll(int amount) {
     robot().click(myDesignSurfaceFixture.target());
     robot().rotateMouseWheel(myDesignSurfaceFixture.target(), amount);
     return this;
   }
 
-  public NlEditorFixture dragMouseFromCenter(int dx, int dy, MouseButton mouseButton, int modifiers) {
+  public void dragMouseFromCenter(int dx, int dy, @NotNull MouseButton mouseButton, int modifiers) {
     DesignSurface surface = myDesignSurfaceFixture.target();
     robot().moveMouse(surface);
     robot().pressModifiers(modifiers);
@@ -266,7 +274,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     robot().moveMouse(surface, surface.getWidth() / 2 + dx, surface.getHeight() / 2 + dy);
     robot().releaseMouseButtons();
     robot().releaseModifiers(modifiers);
-    return this;
   }
 
   @NotNull
@@ -274,16 +281,47 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return myDesignSurfaceFixture.getAllComponents();
   }
 
+  @NotNull
   public Point getScrollPosition() {
     return myDesignSurfaceFixture.target().getScrollPosition();
   }
 
+  @NotNull
   public IssuePanelFixture getIssuePanel() {
     return myDesignSurfaceFixture.getIssuePanelFixture();
   }
 
-  public MorphDialogFixture openMorphDialogForComponent(NlComponentFixture componentFixture) {
-    componentFixture.invokeContextMenuAction("Morph View...");
+  public void enlargeBottomComponentSplitter() {
+    target().setIssuePanelProportion(0.2f);
+  }
+
+  @NotNull
+  public MorphDialogFixture findMorphDialog() {
     return new MorphDialogFixture(robot());
+  }
+
+  /**
+   * Returns the popup menu item for the provided component in the component tree
+   */
+  @NotNull
+  public JPopupMenuFixture getTreePopupMenuItemForComponent(@NotNull NlComponent component) {
+    return getComponentTree().showPopupMenuAt(buildTreePathTo(component));
+  }
+
+  /**
+   * Build the string representation of the path to the provided component in the component tree
+   */
+  @NotNull
+  private static String buildTreePathTo(NlComponent current) {
+    StringBuilder builder = new StringBuilder(current.getTag().getName());
+    while ((current = current.getParent()) != null) {
+      builder.insert(0, current.getTag().getName() + "/");
+      current = current.getParent();
+    }
+    return builder.toString();
+  }
+
+  public void invokeContextMenuAction(@NotNull String actionLabel) {
+    new JMenuItemFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(JMenuItem.class, actionLabel))).click();
   }
 }

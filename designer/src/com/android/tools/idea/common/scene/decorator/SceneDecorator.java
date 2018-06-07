@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * The generic Scene Decorator
@@ -111,7 +113,7 @@ public class SceneDecorator {
                                    long time,
                                    @NotNull SceneContext sceneContext,
                                    @NotNull SceneComponent component) {
-    ArrayList<SceneComponent> children = component.getChildren();
+    List<SceneComponent> children = component.getChildren();
     if (!children.isEmpty()) {
       Rectangle rect = new Rectangle();
       component.fillRect(rect);

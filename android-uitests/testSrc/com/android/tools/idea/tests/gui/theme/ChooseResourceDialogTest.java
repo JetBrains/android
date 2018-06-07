@@ -59,6 +59,7 @@ public class ChooseResourceDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/71956091
   @Test
   public void testColorStateList() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("StateListApplication");
@@ -110,11 +111,12 @@ public class ChooseResourceDialogTest {
     assertFalse(state3.getValueComponent().hasWarningIcon());
     assertFalse(state3.isAlphaVisible());
 
-    dialog.waitForErrorLabel();
+    dialog.waitForErrorPanel();
     dialog.clickCancel();
     stateListCell.stopEditing();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/70699703
   @Test
   public void testEditColorReference() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("StateListApplication");
@@ -169,8 +171,8 @@ public class ChooseResourceDialogTest {
     assertThat(text).endsWith(badText);
 
     final String expectedError = "<html><font color='#ff0000'><left>'" + badText +
-                                 "' is not a valid resource name character</left></b></font></html>";
-    Wait.seconds(1).expecting("error to update").until(() -> dialog.getError().equals(expectedError));
+                                 "' is not a valid resource name character</left><br/></font></html>";
+    Wait.seconds(100).expecting("error to update").until(() -> dialog.getError().equals(expectedError));
 
     dialog.clickCancel();
     colorCell.cancelEditing();
@@ -235,7 +237,6 @@ public class ChooseResourceDialogTest {
 
     // Get property sheet, find text property, open customizer
     NlPropertyFixture property = layout.getPropertiesPanel().openAsInspector().findProperty("text");
-    assert property != null;
 
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTableFixture nameTable = dialog.getResourceNameTable();
@@ -294,11 +295,10 @@ public class ChooseResourceDialogTest {
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
 
     NlPropertyFixture property = fixture.findProperty("srcCompat");
-    assert property != null;
 
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
-    tabs.requireTabTitles("Drawable", "Color", "ID", "String", "Style");
+    tabs.requireTabTitles("Drawable", "Color", "Array", "ID", "String", "Style");
 
     dialog.getSearchField().enterText("che");
     JListFixture projectList = dialog.getList("Project");
@@ -337,6 +337,7 @@ public class ChooseResourceDialogTest {
   /**
    * Test if the color tab is selected by default when selecting a resource for backgroundTint
    */
+  @RunIn(TestGroup.UNRELIABLE)  // b/71771751
   @Test
   public void testDefaultProperty() throws IOException {
     guiTest.importSimpleApplication();
@@ -357,7 +358,6 @@ public class ChooseResourceDialogTest {
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
 
     NlPropertyFixture property = fixture.findProperty("backgroundTint");
-    assert property != null;
 
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
@@ -387,11 +387,10 @@ public class ChooseResourceDialogTest {
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
 
     NlPropertyFixture property = fixture.findProperty("srcCompat");
-    assert property != null;
 
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
-    tabs.requireTabTitles("Drawable", "Color", "ID", "String", "Style");
+    tabs.requireTabTitles("Drawable", "Color", "Array", "ID", "String", "Style");
 
     dialog.getSearchField().enterText("ic_launcher ");
     JListFixture projectList = dialog.getList("Project");
@@ -400,5 +399,45 @@ public class ChooseResourceDialogTest {
                  listToString(projectList));
 
     dialog.clickCancel();
+  }
+
+  @Test
+  public void testArray() throws IOException {
+    guiTest.importSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/spinner.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    layout.waitForRenderToFinish();
+
+    // Find and click the first text view
+    NlComponentFixture spinner = layout.findView("Spinner", 0);
+    spinner.click();
+    assertThat(layout.getSelection()).containsExactly(spinner.getComponent());
+
+    // Get property sheet, find srcCompat property, open customizer
+    NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
+
+    NlPropertyFixture property = fixture.findProperty("entries");
+
+    ChooseResourceDialogFixture dialog = property.clickCustomizer();
+    JTabbedPaneFixture tabs = dialog.getTabs();
+    tabs.requireTabTitles("Drawable", "Color", "Array", "ID", "String", "Style");
+
+    dialog.clickOnTab("Array");
+
+    // This should jump to the project list and select the first one: ic_launcher
+    JTableFixture nameTable = dialog.getResourceNameTable();
+
+    assertEquals("Project             \n" +
+                 "my_array  one       \n",
+                 tableToString(nameTable, 0, 2, 0, 5, 10));
+    nameTable.cell("my_array").click();
+
+    dialog.clickOK();
+
+    Wait.seconds(2).expecting("property to have the new value").until(() -> property.getValue().equals("@array/my_array"));
   }
 }

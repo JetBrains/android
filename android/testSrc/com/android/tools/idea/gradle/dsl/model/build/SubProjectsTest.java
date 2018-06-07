@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.build;
 
+import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
 import com.intellij.pom.java.LanguageLevel;
 
 /**

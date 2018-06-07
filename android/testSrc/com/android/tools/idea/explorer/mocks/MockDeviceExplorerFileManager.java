@@ -17,7 +17,7 @@ package com.android.tools.idea.explorer.mocks;
 
 import com.android.tools.idea.explorer.DeviceExplorerFileManager;
 import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl;
-import com.android.tools.idea.explorer.FutureCallbackExecutor;
+import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.FutureValuesTracker;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
@@ -95,12 +95,12 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
 
   @Override
   @NotNull
-  public ListenableFuture<Void> openFileInEditor(@NotNull Path localPath, boolean focusEditor) {
+  public ListenableFuture<Void> openFileInEditor(@NotNull DeviceFileEntry deviceFileEntry, @NotNull Path localPath, boolean focusEditor) {
     myOpenFileInEditorTracker.produce(localPath);
     if (myOpenFileInEditorError != null) {
       return Futures.immediateFailedFuture(myOpenFileInEditorError);
     }
-    return myFileManagerImpl.openFileInEditor(localPath, focusEditor);
+    return myFileManagerImpl.openFileInEditor(deviceFileEntry, localPath, focusEditor);
   }
 
   @Override

@@ -24,17 +24,17 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
+import com.android.tools.idea.Projects;
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.assetstudio.LauncherLegacyIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidLauncherIconGenerator;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
@@ -52,7 +52,8 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.KotlinSupport;
 import com.intellij.analysis.AnalysisScope;
@@ -62,6 +63,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -84,6 +86,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Documented;
@@ -97,7 +100,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.npw.NewProjectWizardState.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -255,7 +257,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     // This is necessary to fully resolve dynamic gradle coordinates such as ...:appcompat-v7:+ => appcompat-v7:25.3.1
     // keeping it exactly the same as they are resolved within the NPW flow.
     myIdeComponents = new IdeComponents(null);
-    myIdeComponents.replaceService(RepositoryUrlManager.class, new RepositoryUrlManager(true));
+    myIdeComponents.replaceService(RepositoryUrlManager.class,
+                                   new RepositoryUrlManager(IdeGoogleMavenRepository.INSTANCE, true));
   }
 
   @Override
@@ -324,7 +327,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   private final ProjectStateCustomizer withKotlin = ((templateMap, projectMap) -> {
     projectMap.put(ATTR_KOTLIN_SUPPORT, true);
-    projectMap.put(ATTR_KOTLIN_VERSION, TestUtils.KOTLIN_VERSION_FOR_TESTS);
+    projectMap.put(ATTR_KOTLIN_VERSION, TestUtils.getKotlinVersionForTests());
     projectMap.put(ATTR_LANGUAGE, Language.KOTLIN.getName());
     templateMap.put(ATTR_KOTLIN_SUPPORT, true);
     templateMap.put(ATTR_LANGUAGE, Language.KOTLIN.getName());
@@ -495,7 +498,11 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testNewProjectWithScrollActivityWithKotlin() throws Exception {
-    checkCreateTemplate("activities", "ScrollActivity", true, withKotlin);
+    checkCreateTemplate("activities", "ScrollActivity", true,
+                        (templateMap, projectMap) -> {
+                          withKotlin.customize(templateMap, projectMap);
+                          templateMap.put("menuName", "menu_scroll_activity");
+                        });
   }
 
   @TemplateCheck
@@ -534,8 +541,18 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewTvActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "AndroidTVActivity", false, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewProjectWithTvActivity() throws Exception {
     checkCreateTemplate("activities", "AndroidTVActivity", true);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithTvActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "AndroidTVActivity", true, withKotlin);
   }
 
   @TemplateCheck
@@ -583,9 +600,22 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewBroadcastReceiverWithKotlin() throws Exception {
+    // No need to try this template with multiple platforms, one is adequate
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "BroadcastReceiver", false, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewContentProvider() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "ContentProvider");
+  }
+
+  @TemplateCheck
+  public void testNewContentProviderWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "ContentProvider", false, withKotlin);
   }
 
   @TemplateCheck
@@ -598,6 +628,12 @@ public class TemplateTest extends AndroidGradleTestCase {
   public void testNewIntentService() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "IntentService");
+  }
+
+  @TemplateCheck
+  public void testNewIntentServiceWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "IntentService", false, withKotlin);
   }
 
   @TemplateCheck
@@ -619,6 +655,12 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewListFragmentWithKotlin() throws Exception {
+    myApiSensitiveTemplate = true;
+    checkCreateTemplate("other", "ListFragment", false, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewModalBottomSheet() throws Exception {
     myApiSensitiveTemplate = true;
     checkCreateTemplate("other", "ModalBottomSheet");
@@ -637,9 +679,21 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewBlankFragmentWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "BlankFragment", false, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewService() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "Service");
+  }
+
+  @TemplateCheck
+  public void testNewServiceWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "Service", false, withKotlin);
   }
 
   @TemplateCheck
@@ -685,6 +739,27 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testFontFolder() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "FontFolder", false,
+                        (templateMap, projectMap) -> templateMap.put("newLocation", "src/main/res/font"));
+  }
+
+  @TemplateCheck
+  public void testRawFolder() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "RawFolder", false,
+                        (templateMap, projectMap) -> templateMap.put("newLocation", "src/main/res/raw"));
+  }
+
+  @TemplateCheck
+  public void testXmlFolder() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "XmlFolder", false,
+                        (templateMap, projectMap) -> templateMap.put("newLocation", "src/main/res/xml"));
+  }
+
+  @TemplateCheck
   public void testRenderSourceFolder() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "RsFolder", false,
@@ -707,13 +782,28 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testAndroidAutoMediaServiceWithKotlin() throws Exception {
+    checkCreateTemplate("other", "AndroidAutoMediaService", false, withKotlin);
+  }
+
+  @TemplateCheck
   public void testAndroidAutoMessagingService() throws Exception {
     checkCreateTemplate("other", "AndroidAutoMessagingService");
   }
 
   @TemplateCheck
+  public void testAndroidAutoMessagingServiceWithKotlin() throws Exception {
+    checkCreateTemplate("other", "AndroidAutoMessagingService", false , withKotlin);
+  }
+
+  @TemplateCheck
   public void testWatchFaceService() throws Exception {
     checkCreateTemplate("other", "WatchFaceService");
+  }
+
+  @TemplateCheck
+  public void testWatchFaceServiceWithKotlin() throws Exception {
+    checkCreateTemplate("other", "WatchFaceService", true, withKotlin);
   }
 
   @TemplateCheck
@@ -924,8 +1014,8 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   private void checkTemplate(File templateFile, boolean createWithProject, @NotNull ProjectStateCustomizer customizer) throws Exception {
-    Map<String, Object> templateOverrides = Maps.newHashMap();
-    Map<String, Object> projectOverrides = Maps.newHashMap();
+    Map<String, Object> templateOverrides = new HashMap<>();
+    Map<String, Object> projectOverrides = new HashMap<>();
     customizer.customize(templateOverrides, projectOverrides);
     checkTemplate(templateFile, createWithProject, templateOverrides, projectOverrides);
   }
@@ -1325,21 +1415,22 @@ public class TemplateTest extends AndroidGradleTestCase {
       ProjectConnection connection = connector.connect();
       BuildLauncher buildLauncher = connection.newBuild().forTasks("assembleDebug");
 
-      // Avoid going online to satisfy dependencies (as this will violate the Bazel sandbox) by using the "--offline" argument.
-      List<String> commandLineArguments = Lists.newArrayList("--offline");
+      List<String> commandLineArguments = new ArrayList<>();
       GradleInitScripts initScripts = GradleInitScripts.getInstance();
       initScripts.addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
       buildLauncher.withArguments(ArrayUtil.toStringArray(commandLineArguments));
+      @SuppressWarnings("resource")
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
       try {
-        buildLauncher.run();
+        buildLauncher.setStandardError(baos).run();
       }
       //// Use the following commented out code to debug the generated project in case of a failure.
-      //catch (Exception e) {
-      //  File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
-      //  FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
-      //  System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
-      //  throw e;
-      //}
+      catch (Exception e) {
+        //  File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
+        //  FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
+        //  System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
+        throw new Exception(baos.toString("UTF-8"), e);
+      }
       finally {
         connection.close();
 
@@ -1361,7 +1452,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       }
 
       if (CHECK_LINT) {
-        assertLintsCleanly(project, Severity.INFORMATIONAL, Sets.newHashSet(ManifestDetector.TARGET_NEWER));
+        assertLintsCleanly(project, Severity.INFORMATIONAL, Collections.singleton(ManifestDetector.TARGET_NEWER));
         // TODO: Check for other warnings / inspections, such as unused imports?
       }
     }
@@ -1399,11 +1490,11 @@ public class TemplateTest extends AndroidGradleTestCase {
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     ApplicationManager.getApplication().runWriteAction(() -> {
       int minSdkVersion = Integer.parseInt((String)moduleState.get(ATTR_MIN_API));
-      AndroidIconGenerator assetGenerator = new AndroidLauncherIconGenerator(minSdkVersion);
-      assetGenerator.name().set("ic_launcher");
-      assetGenerator.sourceAsset().setValue(new ImageAsset());
-      createProject(projectState, myFixture.getProject(), assetGenerator);
-      assetGenerator.dispose();
+      IconGenerator iconGenerator = new LauncherLegacyIconGenerator(minSdkVersion);
+      iconGenerator.outputName().set("ic_launcher");
+      iconGenerator.sourceAsset().setValue(new ImageAsset());
+      createProject(projectState, myFixture.getProject(), iconGenerator);
+      Disposer.dispose(iconGenerator);
       FileDocumentManager.getInstance().saveAllDocuments();
     });
 
@@ -1418,25 +1509,25 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  private void createProject(@NotNull final TestNewProjectWizardState projectState, @NotNull Project project,
-                                    @Nullable AndroidIconGenerator assetGenerator) {
+  private void createProject(@NotNull TestNewProjectWizardState projectState, @NotNull Project project,
+                             @Nullable IconGenerator iconGenerator) {
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
-    List<String> errors = Lists.newArrayList();
+    List<String> errors = new ArrayList<>();
     try {
       moduleState.populateDirectoryParameters();
       String moduleName = moduleState.getString(ATTR_MODULE_NAME);
       File projectRoot = new File(moduleState.getString(ATTR_PROJECT_LOCATION));
       File moduleRoot = new File(projectRoot, moduleName);
       if (FileUtilRt.createDirectory(projectRoot)) {
-        if (moduleState.getBoolean(ATTR_CREATE_ICONS) && assetGenerator != null) {
-          assetGenerator.generateImageIconsIntoPath(GradleAndroidProjectPaths.createDefaultSourceSetAt(moduleRoot).getPaths());
+        if (moduleState.getBoolean(ATTR_CREATE_ICONS) && iconGenerator != null) {
+          iconGenerator.generateIconsToDisk(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths());
         }
         projectState.updateParameters();
 
         // If this is a new project, instantiate the project-level files
         Template projectTemplate = projectState.getProjectTemplate();
         final RenderingContext projectContext =
-          createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, moduleState.getParameters());
+            createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, moduleState.getParameters());
         projectTemplate.render(projectContext, false);
         // check usage tracker after project render
         verifyLastLoggedUsage(Template.titleToTemplateRenderer(projectTemplate.getMetadata().getTitle()), projectContext.getParamMap());
@@ -1518,7 +1609,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     throws Exception {
     BuiltinIssueRegistry registry = new LintIdeIssueRegistry();
     Map<Issue, Map<File, List<ProblemData>>> map = new HashMap<>();
-    LintIdeClient client = LintIdeClient.forBatch(project, map, new AnalysisScope(project), Sets.newHashSet(registry.getIssues()));
+    LintIdeClient client = LintIdeClient.forBatch(project, map, new AnalysisScope(project), new HashSet<>(registry.getIssues()));
     List<Module> modules = Arrays.asList(ModuleManager.getInstance(project).getModules());
     LintRequest request = new LintIdeRequest(client, project, null, modules, false);
     EnumSet<Scope> scope = EnumSet.allOf(Scope.class);
@@ -1618,6 +1709,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   // Create a dummy version of this class that just collects all the templates it will test when it is run.
   // It is important that this class is not run by JUnit!
+  @SuppressWarnings("JUnitTestClassNamingConvention")
   public static class CoverageChecker extends TemplateTest {
     @Override
     protected boolean shouldRunTest() {

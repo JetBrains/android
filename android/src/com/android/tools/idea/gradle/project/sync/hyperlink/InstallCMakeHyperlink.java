@@ -70,7 +70,7 @@ public class InstallCMakeHyperlink extends NotificationHyperlink {
           if (cmakePackage != null) {
             ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(cmakePackage.getPath()));
             if (dialog != null && dialog.showAndGet()) {
-              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
+              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
             }
             return;
           }

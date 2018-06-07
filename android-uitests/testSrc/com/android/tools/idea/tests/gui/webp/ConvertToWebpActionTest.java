@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.webp;
 
-import com.android.tools.idea.rendering.webp.WebpNativeLibHelper;
+import com.android.tools.adtui.webp.WebpNativeLibHelper;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -37,7 +37,6 @@ import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,7 +65,7 @@ public class ConvertToWebpActionTest {
       return;
     }
 
-    Project project = guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")
+    Project project = guiTest.importProjectAndWaitForProjectSyncToFinish("ImportLocalWebpProject")
       .getProject();
 
     VirtualFile webpIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.webp");
@@ -101,7 +100,7 @@ public class ConvertToWebpActionTest {
       return;
     }
 
-    Project project = guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")
+    Project project = guiTest.importProjectAndWaitForProjectSyncToFinish("ImportLocalWebpProject")
       .getProject();
 
     guiTest.ideFrame()
@@ -142,10 +141,10 @@ public class ConvertToWebpActionTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void testConvertFromPngToWebp() throws IOException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")
+    guiTest.importProjectAndWaitForProjectSyncToFinish("ImportLocalWebpProject")
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png")
@@ -187,10 +186,10 @@ public class ConvertToWebpActionTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void testConvertFromWebPToPng() throws IOException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")
+    guiTest.importProjectAndWaitForProjectSyncToFinish("ImportLocalWebpProject")
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test2.webp")
@@ -214,7 +213,7 @@ public class ConvertToWebpActionTest {
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Create a project with minsdk 15.
+   *   1. Import ConvertFrom9Patch project with minsdk 15.
    *   2. Right click on any .png file and select Create 9-patch file... option. (verify 1)
    *   3. Right click on res folder and select Convert to WebP.. (verify 2) (verify 3)
    *   4. Click OK on the popped up window. (verify 4)
@@ -232,7 +231,7 @@ public class ConvertToWebpActionTest {
   @RunIn(TestGroup.QA)
   @Test
   public void testCannotConvertFrom9PatchAndTransparentImagesToWebp() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("MinSdk15App");
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("ConvertFrom9Patch");
 
     PaneFixture androidPane = ideFrame.getProjectView().selectAndroidPane();
 

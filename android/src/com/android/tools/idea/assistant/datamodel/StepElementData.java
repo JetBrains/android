@@ -62,7 +62,7 @@ public interface StepElementData {
   /**
    * Returns Image defination
    */
-  @Nullable
+  @NotNull
   DefaultTutorialBundle.Image getImage();
 
 }

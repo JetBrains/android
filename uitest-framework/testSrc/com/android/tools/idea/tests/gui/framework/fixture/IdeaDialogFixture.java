@@ -34,7 +34,7 @@ import java.lang.ref.WeakReference;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickCancelButton;
 import static org.fest.reflect.core.Reflection.field;
 
-public abstract class IdeaDialogFixture<T extends DialogWrapper> extends ComponentFixture<IdeaDialogFixture, JDialog>
+public class IdeaDialogFixture<T extends DialogWrapper> extends ComponentFixture<IdeaDialogFixture, JDialog>
   implements ContainerFixture<JDialog> {
   @NotNull private final T myDialogWrapper;
 

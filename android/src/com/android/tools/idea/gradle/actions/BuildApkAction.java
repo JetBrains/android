@@ -16,25 +16,22 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class BuildApkAction extends DumbAwareAction {
   private static final String ACTION_TEXT = "Build APK(s)";
@@ -53,27 +50,12 @@ public class BuildApkAction extends DumbAwareAction {
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
-      List<Module> appModules = new ArrayList<>();
-
-      for (Module module : ModuleManager.getInstance(project).getModules()) {
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null) {
-          AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-          if (androidModel != null && (androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP
-                                       || androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP)) {
-            String assembleTaskName = facet.getProperties().ASSEMBLE_TASK_NAME;
-            if (isNotEmpty(assembleTaskName)) {
-              appModules.add(module);
-            }
-          }
-        }
-      }
-
+      ImmutableList<Module> appModules = ProjectStructure.getInstance(project).getAppModules();
       if (!appModules.isEmpty()) {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
         gradleBuildInvoker.add(new GoToApkLocationTask(appModules, ACTION_TEXT));
-        gradleBuildInvoker.assemble(appModules.toArray(new Module[appModules.size()]),
-                                    TestCompileType.ALL,
+        Module[] modulesToBuild = appModules.toArray(new Module[appModules.size()]);
+        gradleBuildInvoker.assemble(modulesToBuild, TestCompileType.ALL, Collections.emptyList(),
                                     new OutputBuildAction(getModuleGradlePaths(appModules)));
       }
     }

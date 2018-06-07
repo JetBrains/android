@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.editors.BaseComponentEditor;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
-import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.renderer.NlBooleanRenderer;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ThreeStateCheckBox;
@@ -27,7 +31,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
-public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponentEditor {
+public class NlBooleanEditor extends BaseComponentEditor implements NlComponentEditor {
+  @VisibleForTesting static final String TIP_TEXT_DONT_CARE = "(No value)";
+  @VisibleForTesting static final String TIP_TEXT_NOT_SELECTED = "false";
+  @VisibleForTesting static final String TIP_TEXT_SELECTED = "true";
+
   private final JPanel myPanel;
   private final ThreeStateCheckBox myCheckbox;
   private final BrowsePanel myBrowsePanel;
@@ -50,7 +58,7 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
     super(listener);
     myCheckbox = new ThreeStateCheckBox();
     myCheckbox.addActionListener(this::checkboxChanged);
-    myPanel = new JPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
+    myPanel = new AdtSecondaryPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
     myPanel.add(myCheckbox, BorderLayout.LINE_START);
     myPanel.setBorder(JBUI.Borders.empty(VERTICAL_SPACING, 0, HORIZONTAL_SPACING, 0));
 
@@ -75,6 +83,7 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
     myValue = propValue;
     ThreeStateCheckBox.State state = NlBooleanRenderer.getState(propValue);
     myCheckbox.setState(state == null ? ThreeStateCheckBox.State.NOT_SELECTED : state);
+    updateTipText();
     if (myBrowsePanel != null) {
       myBrowsePanel.setProperty(property);
     }
@@ -95,5 +104,21 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
   private void checkboxChanged(@SuppressWarnings("unused") ActionEvent event) {
     myValue = NlBooleanRenderer.getBoolean(myCheckbox.getState());
     stopEditing(myValue);
+
+    updateTipText();
+  }
+
+  private void updateTipText() {
+    switch(myCheckbox.getState()) {
+      case DONT_CARE:
+        myCheckbox.setToolTipText(TIP_TEXT_DONT_CARE);
+        break;
+      case NOT_SELECTED:
+        myCheckbox.setToolTipText(TIP_TEXT_NOT_SELECTED);
+        break;
+      case SELECTED:
+        myCheckbox.setToolTipText(TIP_TEXT_SELECTED);
+        break;
+    }
   }
 }

@@ -15,23 +15,20 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.res.ResourceHelper;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ThemeMenuAction extends AnAction {
+public class ThemeMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
 
   public ThemeMenuAction(@NotNull ConfigurationHolder renderContext) {
+    super("", "Theme in Editor", StudioIcons.LayoutEditor.Toolbar.THEME_BUTTON);
     myRenderContext = renderContext;
-    Presentation presentation = getTemplatePresentation();
-    presentation.setDescription("Theme in Editor");
-    presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.THEME_BUTTON);
-    updatePresentation(presentation);
   }
 
   @Override
@@ -89,7 +86,7 @@ public class ThemeMenuAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null) {
       ThemeSelectionDialog dialog = new ThemeSelectionDialog(configuration);

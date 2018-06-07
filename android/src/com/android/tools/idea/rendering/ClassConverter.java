@@ -16,14 +16,15 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.LayoutLog;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.org.objectweb.asm.*;
+import org.jetbrains.org.objectweb.asm.commons.ClassRemapper;
 import org.jetbrains.org.objectweb.asm.commons.Remapper;
-import org.jetbrains.org.objectweb.asm.commons.RemappingClassAdapter;
 import org.jetbrains.org.objectweb.asm.commons.SimpleRemapper;
 
 import java.util.Collection;
@@ -71,16 +72,17 @@ public class ClassConverter {
    * Rewrites the given class to a version runnable on the current JDK
    */
   @NotNull
-  public static byte[] rewriteClass(@NotNull byte[] classData, int layoutlibApi) {
+  public static byte[] rewriteClass(@NotNull byte[] classData) {
     int current = getCurrentClassVersion();
-    return rewriteClass(classData, current, 0, layoutlibApi);
+    return rewriteClass(classData, current, 0);
   }
 
   /**
    * Rewrites the given class to the given target class file version.
    */
+  @VisibleForTesting
   @NotNull
-  public static byte[] rewriteClass(@NotNull byte[] classData, final int maxVersion, final int minVersion, int layoutlibApi) {
+  static byte[] rewriteClass(@NotNull byte[] classData, final int maxVersion, final int minVersion) {
     assert maxVersion >= minVersion;
 
     final ClassWriter classWriter = new ClassWriter(0);
@@ -175,10 +177,8 @@ public class ClassConverter {
     };
 
     ClassReader reader = new ClassReader(classData);
-    if (layoutlibApi >= 16) {
-      // From layoutlib API 16, we rewrite all methods using SimpleDateFormat and DateFormat to use the android.icu versions
-      classVisitor = new RemappingClassAdapter(classVisitor, TYPE_REMAPPER);
-    }
+    // From layoutlib API 16, we rewrite all methods using SimpleDateFormat and DateFormat to use the android.icu versions
+    classVisitor = new ClassRemapper(classVisitor, TYPE_REMAPPER);
 
     reader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 

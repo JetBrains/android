@@ -58,12 +58,12 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
   // http://b/62543184
   public void testRunActivityWithNewCreatedProject() {
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
-    when(myGradleProjectInfo.isNewOrImportedProject()).thenReturn(true);
+    when(myGradleProjectInfo.isImportedProject()).thenReturn(true);
 
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    verify(mySyncInvoker, never()).requestProjectSync(same(project), any(), any());
+    verify(mySyncInvoker, never()).requestProjectSync(same(project), any());
   }
 
   public void testRunActivityWithExistingGradleProject() {
@@ -73,8 +73,10 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setUseCachedGradleModels(true).setTrigger(TRIGGER_PROJECT_LOADED);
-    verify(mySyncInvoker, times(1)).requestProjectSync(project, request, null);
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectLoaded();
+    request.useCachedGradleModels = true;
+
+    verify(mySyncInvoker, times(1)).requestProjectSync(project, request);
   }
 
 
@@ -84,6 +86,6 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    verify(mySyncInvoker, never()).requestProjectSync(same(project), any(), any());
+    verify(mySyncInvoker, never()).requestProjectSync(same(project), any());
   }
 }

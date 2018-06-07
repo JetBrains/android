@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class SyncExecutionCallback extends ActionCallback {
-  @Nullable private SyncAction.ProjectModels myModels;
+  @Nullable private SyncProjectModels myModels;
   @Nullable private Throwable mySyncError;
 
   static class Factory {
@@ -31,11 +31,11 @@ class SyncExecutionCallback extends ActionCallback {
   }
 
   @Nullable
-  SyncAction.ProjectModels getModels() {
+  SyncProjectModels getModels() {
     return myModels;
   }
 
-  void setDone(@Nullable SyncAction.ProjectModels models) {
+  void setDone(@Nullable SyncProjectModels models) {
     myModels = models;
     setDone();
   }

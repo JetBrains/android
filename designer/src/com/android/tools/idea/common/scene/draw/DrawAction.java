@@ -19,7 +19,7 @@ import com.android.tools.idea.uibuilder.graphics.NlIcon;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 
 import javax.swing.*;
 import java.awt.*;
@@ -120,14 +120,14 @@ public class DrawAction extends DrawRegion {
                          Rectangle src,
                          NlIcon icon,
                          boolean isOver) {
-    int l = transform.getSwingX(left);
-    int t = transform.getSwingY(top);
-    int w = transform.getSwingDimension(right - left);
-    int h = transform.getSwingDimension(bottom - top);
-    src.x = transform.getSwingX(src.x);
-    src.y = transform.getSwingY(src.y);
-    src.width = transform.getSwingDimension(src.width);
-    src.height = transform.getSwingDimension(src.height);
+    int l = transform.getSwingXDip(left);
+    int t = transform.getSwingYDip(top);
+    int w = transform.getSwingDimensionDip(right - left);
+    int h = transform.getSwingDimensionDip(bottom - top);
+    src.x = transform.getSwingXDip(src.x);
+    src.y = transform.getSwingYDip(src.y);
+    src.width = transform.getSwingDimensionDip(src.width);
+    src.height = transform.getSwingDimensionDip(src.height);
     list.add(new DrawAction(l, t, w, h, src.x, src.y, src.width, src.height, icon, isOver));
   }
 }

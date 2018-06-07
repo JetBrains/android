@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -30,9 +29,11 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.lint.checks.CheckResultDetector.CHECK_RESULT;
+
 public class AndroidLintCheckResultInspection extends AndroidLintInspectionBase {
   public AndroidLintCheckResultInspection() {
-    super(AndroidBundle.message("android.lint.inspections.check.result"), SupportAnnotationDetector.CHECK_RESULT);
+    super(AndroidBundle.message("android.lint.inspections.check.result"), CHECK_RESULT);
   }
 
   @Override

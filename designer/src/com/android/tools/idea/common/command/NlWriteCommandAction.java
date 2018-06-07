@@ -18,14 +18,12 @@ package com.android.tools.idea.common.command;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.templates.TemplateUtils;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -90,27 +88,20 @@ public final class NlWriteCommandAction implements Runnable {
     protected void run() throws Throwable {
       myRunnable.run();
 
-      // TODO caen is refactoring NlModel in a way that will likely break this. Revisit this when he finishes his refactor.
-      ViewEditor editor = myModel.getSurface().getViewEditor();
-
       myComponents.forEach(component -> {
-        cleanUpAttributes(editor, component);
+        cleanUpAttributes(component);
         reformatAndRearrange(component);
       });
     }
 
-    private void cleanUpAttributes(@Nullable ViewEditor editor, @NotNull NlComponent component) {
-      if (editor == null) {
-        return;
-      }
-
+    private void cleanUpAttributes(@NotNull NlComponent component) {
       ViewGroupHandler handler = ViewHandlerManager.get(getProject()).findLayoutHandler(component, true);
 
       if (handler == null) {
         return;
       }
 
-      handler.cleanUpAttributes(editor, component);
+      handler.cleanUpAttributes(component);
     }
 
     private void reformatAndRearrange(@NotNull NlComponent component) {

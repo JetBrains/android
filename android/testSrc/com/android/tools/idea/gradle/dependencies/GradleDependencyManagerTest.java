@@ -19,18 +19,15 @@ import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.TestMessagesDialog;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.ui.Messages;
 
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
-import static com.android.SdkConstants.LEANBACK_V17_ARTIFACT;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB;
 import static com.android.tools.idea.testing.TestProjectPaths.SPLIT_BUILD_FILES;
 import static com.google.common.truth.Truth.assertThat;
@@ -44,14 +41,6 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
   private static final GradleCoordinate DUMMY_DEPENDENCY = new GradleCoordinate("dummy.group", "dummy.artifact", "0.0.0");
 
   private static final List<GradleCoordinate> DEPENDENCIES = ImmutableList.of(APP_COMPAT_DEPENDENCY, DUMMY_DEPENDENCY);
-
-  public void testDependsOn() throws Exception {
-    loadSimpleApplication();
-    GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
-    Module appModule = myModules.getAppModule();
-    assertTrue(dependencyManager.dependsOn(appModule, APPCOMPAT_LIB_ARTIFACT));
-    assertFalse(dependencyManager.dependsOn(appModule, LEANBACK_V17_ARTIFACT));
-  }
 
   public void testFindMissingDependenciesWithRegularProject() throws Exception {
     loadSimpleApplication();
@@ -75,9 +64,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
 
-    Messages.setTestDialog(new TestMessagesDialog(Messages.OK));
-
-    boolean found = dependencyManager.ensureLibraryIsIncluded(myModules.getAppModule(), dependencies, null);
+    boolean found = dependencyManager.addDependenciesAndSync(myModules.getAppModule(), dependencies, null);
     assertTrue(found);
 
     // @formatter:off
@@ -88,18 +75,51 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();
   }
 
-  public void testDependencyCanBeCancelledByUser() throws Exception {
+  @SuppressWarnings("unused")
+  public void ignore_testAddDependencyAndSync() throws Exception {
     loadSimpleApplication();
-
-    List<GradleCoordinate> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
-    assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
+    List<GradleCoordinate> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
 
-    Messages.setTestDialog(new TestMessagesDialog(Messages.NO));
-
-    boolean found = dependencyManager.ensureLibraryIsIncluded(myModules.getAppModule(), dependencies, null);
-    assertFalse(found);
+    // Setup:
+    // 1. RecyclerView artifact should not be declared in build script.
+    // 2. RecyclerView should not be declared or resolved.
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
+    assertFalse(isRecyclerViewDeclared());
+    assertFalse(isRecyclerViewResolved());
+
+    boolean result = dependencyManager.addDependenciesAndSync(myModules.getAppModule(), dependencies, null);
+
+    // If addDependencyAndSync worked correctly,
+    // 1. findMissingDependencies with the added dependency should return empty.
+    // 2. RecyclerView should be declared and resolved (because the required artifact has been synced)
+    assertTrue(result);
+    assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();
+    assertTrue(isRecyclerViewDeclared());
+    assertTrue(isRecyclerViewResolved());
+  }
+
+  public void testAddDependencyWithoutSync() throws Exception {
+    loadSimpleApplication();
+    GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
+    List<GradleCoordinate> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
+
+    // Setup:
+    // 1. RecyclerView artifact should not be declared in build script.
+    //    // 2. RecyclerView should not be declared or resolved.
+    assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
+    assertFalse(isRecyclerViewDeclared());
+    assertFalse(isRecyclerViewResolved());
+
+    boolean result = dependencyManager.addDependenciesWithoutSync(myModules.getAppModule(), dependencies);
+
+    // If addDependencyWithoutSync worked correctly,
+    // 1. findMissingDependencies with the added dependency should return empty.
+    // 2. RecyclerView should be declared but NOT yet resolved (because we didn't sync)
+    assertTrue(result);
+    assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();
+    assertTrue(isRecyclerViewDeclared());
+    assertFalse(isRecyclerViewResolved());
   }
 
   public void testAddedSupportDependencyIsSameVersionAsExistingSupportDependency() throws Exception {
@@ -112,5 +132,15 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     assertThat(missing.size()).isEqualTo(1);
     assertThat(missing.get(0).getId()).isEqualTo(SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT);
     assertThat(missing.get(0).toString()).isEqualTo("com.android.support:recyclerview-v7:25.3.1");
+  }
+
+  private boolean isRecyclerViewDeclared() {
+    return ProjectSystemUtil.getModuleSystem(myModules.getAppModule())
+             .getDeclaredVersion(GoogleMavenArtifactId.RECYCLERVIEW_V7) != null;
+  }
+
+  private boolean isRecyclerViewResolved() {
+    return ProjectSystemUtil.getModuleSystem(myModules.getAppModule())
+             .getResolvedVersion(GoogleMavenArtifactId.RECYCLERVIEW_V7) != null;
   }
 }

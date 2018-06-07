@@ -43,8 +43,8 @@ public class AndroidLintLintBaselineInspection extends AndroidLintInspectionBase
   public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
                                              @NotNull PsiElement endElement,
                                              @NotNull String message,
-                                             @org.jetbrains.annotations.Nullable LintFix fixData) {
-    if (LintBaseline.isFilteredMessage(message, TextFormat.RAW)) {
+                                             @Nullable LintFix fixData) {
+    if (LintBaseline.Companion.isFilteredMessage(message, TextFormat.RAW)) {
       return new AndroidLintQuickFix[]{
         new DefaultLintQuickFix("Temporarily turn off the baseline and re-run the analysis") {
           @Override
@@ -59,7 +59,7 @@ public class AndroidLintLintBaselineInspection extends AndroidLintInspectionBase
       };
     }
 
-    if (LintBaseline.isFixedMessage(message, TextFormat.RAW)) {
+    if (LintBaseline.Companion.isFixedMessage(message, TextFormat.RAW)) {
       return new AndroidLintQuickFix[]{
         new DefaultLintQuickFix("Update baseline file to remove fixed issues") {
           @Override

@@ -94,7 +94,7 @@ public final class FakeInstanceObject implements InstanceObject {
 
   @Override
   @Nullable
-  public AllocationStack getCallStack() {
+  public AllocationStack getAllocationCallStack() {
     return myAllocationStack;
   }
 

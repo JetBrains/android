@@ -20,6 +20,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.SelectSdkDialog;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -44,8 +45,6 @@ import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
-import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
 public class SdkSync {
   private static final String ERROR_DIALOG_TITLE = "Sync Android SDKs";
@@ -153,7 +152,8 @@ public class SdkSync {
           // Use project's SDK
           setIdeSdk(localProperties, projectAndroidSdkPath);
         }
-        if (isGuiTestingMode() && !getGuiTestSuiteState().isSkipSdkMerge()) {
+        if (GuiTestingService.getInstance().isGuiTestingMode() &&
+            !GuiTestingService.getInstance().getGuiTestSuiteState().isSkipSdkMerge()) {
           mergeIfNeeded(projectAndroidSdkPath, ideAndroidSdkPath);
         }
       });

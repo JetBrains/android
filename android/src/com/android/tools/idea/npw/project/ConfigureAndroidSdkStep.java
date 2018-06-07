@@ -4,7 +4,7 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.welcome.wizard.FirstRunWizard;
+import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizard;
 import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ui.components.JBLabel;

@@ -20,7 +20,6 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
-import com.google.idea.blaze.android.run.test.ReattachingDebugConnectorTaskBase;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;

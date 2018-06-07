@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.service.repo.ExternalRepository;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -58,6 +58,6 @@ public class UpgradeAppenginePluginVersionHyperlink extends NotificationHyperlin
     myDependency.setVersion(latest.toString());
     runWriteCommandAction(project, myBuildModel::applyChanges);
 
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
   }
 }

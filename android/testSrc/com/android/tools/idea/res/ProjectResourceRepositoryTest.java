@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
@@ -30,7 +30,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -42,6 +41,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.ui.UIUtil;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -195,13 +195,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     // Now remove one of the modules, which should automatically cause the repo to have different roots.
     WriteCommandAction.runWriteCommandAction(
       getProject(), () -> removeModuleDependency(myModule, modules.getModule("plib2").getName()));
-    DumbService dumbService = DumbService.getInstance(getProject());
-    dumbService.runWhenSmart(() -> {
-      assertEquals(originalChildren.size() - 1, resources.getChildren().size());
-      assertEquals(originalDirs.size() - 1, resources.getResourceDirs().size());
-    });
-    if (dumbService.isDumb())
-      dumbService.waitForSmartMode();
+    assertEquals(originalChildren.size() - 1, resources.getChildren().size());
+    assertEquals(originalDirs.size() - 1, resources.getResourceDirs().size());
   }
 
   public void testHasResourcesOfType() {
@@ -284,6 +279,10 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     else if (testName.equals("rootChangeListener")) {
       addModuleWithAndroidFacet(projectBuilder, modules, "plib1", PROJECT_TYPE_LIBRARY);
       addModuleWithAndroidFacet(projectBuilder, modules, "plib2", PROJECT_TYPE_LIBRARY);
+    }
+    else if (testName.equals("resourceOverride")) {
+      addModuleWithAndroidFacet(projectBuilder, modules, "level1", PROJECT_TYPE_LIBRARY, true);
+      addModuleWithAndroidFacet(projectBuilder, modules, "level2", PROJECT_TYPE_LIBRARY, false);
     }
   }
 
@@ -382,6 +381,66 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertEquals("Unique", firstValue.getValue());
 
     assertFalse(lib1Resources.hasResourceItem(ResourceType.STRING, "unique_string"));
+  }
+
+  // Regression test for https://issuetracker.google.com/issues/68799367
+  public void testResourceOverride() {
+    Modules modules = new Modules(getProject());
+    Module lib1 = modules.getModule("level1");
+    Module lib2 = modules.getModule("level2");
+    Module app = modules.getAppModule();
+
+    assertNotNull(lib1);
+    assertNotNull(lib2);
+    assertNotNull(app);
+
+    AndroidFacet appFacet = AndroidFacet.getInstance(app);
+
+    // Set up project dependencies
+    addModuleDependency(lib1, lib2);
+
+    // Dependencies: app -> lib1 -> lib2
+    assertTrue(ModuleRootManager.getInstance(lib1).isDependsOn(lib2));
+    assertTrue(ModuleRootManager.getInstance(app).isDependsOn(lib1));
+    assertFalse(ModuleRootManager.getInstance(app).isDependsOn(lib2));
+    assertFalse(ModuleRootManager.getInstance(lib2).isDependsOn(lib1));
+
+    @Language("XML")
+    final String level1Strings = "<resources>\n" +
+                                 "    <string name=\"test_string\">LEVEL 1</string>\n" +
+                                 "</resources>";
+    @Language("XML")
+    final String level2Strings = "<resources>\n" +
+                                 "    <string name=\"test_string\">LEVEL 2</string>\n" +
+                                 "</resources>";
+
+    // Set up string override
+    myFixture.addFileToProject(      "additionalModules/level1/res/values/strings.xml", level1Strings).getVirtualFile();
+    myFixture.addFileToProject("additionalModules/level2/res/values/strings.xml", level2Strings).getVirtualFile();
+
+    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(appFacet);
+    List<ResourceItem> resolved = appResources.getResourceItem(ResourceType.STRING, "test_string");
+    assertEquals(1, resolved.size());
+    assertEquals("LEVEL 1", resolved.get(0).getValueText());
+
+    // Retry reversing the library dependency to ensure the order does not depend on anything other than the
+    // dependency order (like for example, alphabetical order of the modules).
+    removeModuleDependency(lib1, lib2.getName());
+    removeModuleDependency(app, lib1.getName());
+
+    addModuleDependency(app, lib2);
+    addModuleDependency(lib2, lib1);
+
+    // app -> lib2 -> lib1
+    assertTrue(ModuleRootManager.getInstance(lib2).isDependsOn(lib1));
+    assertTrue(ModuleRootManager.getInstance(app).isDependsOn(lib2));
+    assertFalse(ModuleRootManager.getInstance(app).isDependsOn(lib1));
+    assertFalse(ModuleRootManager.getInstance(lib1).isDependsOn(lib2));
+
+    appResources = AppResourceRepository.getOrCreateInstance(appFacet);
+    resolved = appResources.getResourceItem(ResourceType.STRING, "test_string");
+    assertEquals(1, resolved.size());
+    assertEquals("LEVEL 2", resolved.get(0).getValueText());
   }
 
   private static void addModuleDependency(Module from, Module to) {

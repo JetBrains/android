@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Describes different types of drag modes. The semantics of how a drop is handled
  * can vary:
@@ -38,13 +40,13 @@ package com.android.tools.idea.uibuilder.api;
  */
 public enum DragType {
   /** Create the dragged components */
-  CREATE("Create Components"),
+  CREATE("Create"),
   /** Copy the dragged components */
-  COPY("Copy Components"),
+  COPY("Copy"),
   /** Move the dragged components */
-  MOVE("Move Components"),
+  MOVE("Move"),
   /** Copy the dragged components with paste semantics */
-  PASTE("Paste Components");
+  PASTE("Paste");
 
   private final String myDescription;
 
@@ -53,7 +55,10 @@ public enum DragType {
   }
 
   /** Returns a description of the drag type */
-  public String getDescription() {
-    return myDescription;
+  public String getDescription(@NotNull String componentType) {
+    if (componentType.isEmpty()) {
+      componentType = "Components";
+    }
+    return myDescription + " " + componentType;
   }
 }

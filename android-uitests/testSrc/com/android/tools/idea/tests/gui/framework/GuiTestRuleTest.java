@@ -53,7 +53,7 @@ public class GuiTestRuleTest {
 
   @Test
   public void makeSimpleApplication() throws Exception {
-    GradleInvocationResult result = guiTest.importSimpleApplication().invokeProjectMake();
+    GradleInvocationResult result = guiTest.importSimpleLocalApplication().invokeProjectMake();
     assertThat(result.isBuildSuccessful()).named("Gradle build successful").isTrue();
   }
 

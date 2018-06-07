@@ -21,9 +21,8 @@ import com.android.tools.idea.explorer.fs.DeviceState;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.concurrency.BoundedTaskExecutor;
 import org.hamcrest.core.IsInstanceOf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +50,7 @@ public class AdbDeviceFileSystemTest {
   @Nullable private Disposable myParentDisposable;
   @Nullable private AdbDeviceFileSystem myFileSystem;
   @Nullable private MockDdmlibDevice myMockDevice;
-  @Nullable private ExecutorService myCallbackExecutor;
+  @Nullable private BoundedTaskExecutor myCallbackExecutor;
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
@@ -62,10 +61,10 @@ public class AdbDeviceFileSystemTest {
   @Before
   public void setUp() throws Exception {
     myParentDisposable = Disposer.newDisposable();
-    myCallbackExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("EDT Simulation Thread",
-                                                                              PooledThreadExecutor.INSTANCE,
-                                                                              1,
-                                                                              myParentDisposable);
+    myCallbackExecutor = new BoundedTaskExecutor("EDT simulation thread",
+                                                 PooledThreadExecutor.INSTANCE,
+                                                 1,
+                                                 myParentDisposable);
     ExecutorService taskExecutor = PooledThreadExecutor.INSTANCE;
     myMockDevice = new MockDdmlibDevice();
     Function<Void, File> adbRuntimeError = aVoid -> {
@@ -397,7 +396,7 @@ public class AdbDeviceFileSystemTest {
       }
     }));
     // Ensure all progress callbacks have been executed
-    myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
+    myCallbackExecutor.waitAllTasksExecuted(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
     // Assert
     assertThat(result).isNull();
@@ -429,7 +428,7 @@ public class AdbDeviceFileSystemTest {
       }
     }));
     // Ensure all progress callbacks have been executed
-    myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
+    myCallbackExecutor.waitAllTasksExecuted(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
     // Assert
     assertThat(result).isNull();
@@ -464,7 +463,7 @@ public class AdbDeviceFileSystemTest {
       }
     }));
     // Ensure all progress callbacks have been executed
-    myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
+    myCallbackExecutor.waitAllTasksExecuted(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
     // Assert
     assertThat(error).isNotNull();
@@ -497,7 +496,7 @@ public class AdbDeviceFileSystemTest {
       }
     }));
     // Ensure all progress callbacks have been executed
-    myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
+    myCallbackExecutor.waitAllTasksExecuted(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
     // Assert
     assertThat(result).isNull();
@@ -532,7 +531,7 @@ public class AdbDeviceFileSystemTest {
       }
     }));
     // Ensure all progress callbacks have been executed
-    myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
+    myCallbackExecutor.waitAllTasksExecuted(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
     // Assert
     assertThat(result).isNull();

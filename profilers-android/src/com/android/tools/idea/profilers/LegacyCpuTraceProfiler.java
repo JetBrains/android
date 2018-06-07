@@ -17,8 +17,6 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.profiler.proto.CpuProfiler.*;
 
-import java.util.concurrent.Executor;
-
 /**
  * An interface to perform method-level tracing using JDWP.
  */

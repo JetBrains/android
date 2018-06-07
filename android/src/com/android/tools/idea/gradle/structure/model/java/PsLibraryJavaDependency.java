@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.java;
 
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsDependency;

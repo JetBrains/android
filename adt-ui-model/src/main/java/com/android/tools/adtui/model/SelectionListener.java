@@ -32,5 +32,11 @@ public interface SelectionListener extends EventListener {
    * ESC to dismiss a focused selection).
    */
   default void selectionCleared() {}
+
+  /**
+   * Event fired when the user attemps to create a selection when no duration data is present in
+   * the selected range.
+   */
+  default void selectionCreationFailure() {}
 }
 

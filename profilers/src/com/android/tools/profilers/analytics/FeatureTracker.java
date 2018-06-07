@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.analytics;
 
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +37,12 @@ public interface FeatureTracker {
   void trackEnterStage(@NotNull Class<? extends Stage> stage);
 
   /**
+   * Track when the user clicks the Profile button. This can happen via the tool bar, or the run menu.
+   * This is in contrast to when the user attaches profilers to an app that was already running.
+   */
+  void trackRunWithProfiling();
+
+  /**
    * Track when we begin profiling a target process.
    */
   void trackProfilingStarted();
@@ -52,13 +58,13 @@ public interface FeatureTracker {
    * Track when the user takes an action to change the current device. This will only be tracked
    * if the device actually changes.
    */
-  void trackChangeDevice(@Nullable Profiler.Device device);
+  void trackChangeDevice(@Nullable Common.Device device);
 
   /**
    * Track when the user takes an action to change the current process. This will only be tracked
    * if the process actually changes.
    */
-  void trackChangeProcess(@Nullable Profiler.Process process);
+  void trackChangeProcess(@Nullable Common.Process process);
 
   /**
    * Track when the user takes an action to return back to the top-level monitor view (from a
@@ -180,9 +186,9 @@ public interface FeatureTracker {
   void trackSelectNetworkRequest();
 
   /**
-   * Track the user opening up the "Response" tab in the network details view.
+   * Track the user opening up the "Overview" tab in the network details view.
    */
-  void trackSelectNetworkDetailsResponse();
+  void trackSelectNetworkDetailsOverview();
 
   /**
    * Track the user opening up the "Headers" tab in the network details view.
@@ -190,9 +196,34 @@ public interface FeatureTracker {
   void trackSelectNetworkDetailsHeaders();
 
   /**
+   * Track the user opening up the "Response" tab in the network details view.
+   */
+  void trackSelectNetworkDetailsResponse();
+
+  /**
+   * Track the user opening up the "Request" tab in the network details view.
+   */
+  void trackSelectNetworkDetailsRequest();
+
+  /**
    * Track the user opening up the "Trace" tab in the network details view.
    */
   void trackSelectNetworkDetailsStack();
+
+  /**
+   * Track the user opening up the "Error" tab in the network details view.
+   */
+  void trackSelectNetworkDetailsError();
+
+  /**
+   * Track the user selecting the "Connections View" tab.
+   */
+  void trackSelectNetworkConnectionsView();
+
+  /**
+   * Track the user selecting the "Threads View" tab.
+   */
+  void trackSelectNetworkThreadsView();
 
   /**
    * Track the user opening up the CPU profiling configurations dialog.
@@ -203,4 +234,9 @@ public interface FeatureTracker {
    * Track the user creating custom CPU profiling configurations.
    */
   void trackCreateCustomProfilingConfig();
+
+  /**
+   * Track when the user uses the filter component in the profilers.
+   */
+  void trackFilterMetadata(@NotNull FilterMetadata filterMetadata);
 }

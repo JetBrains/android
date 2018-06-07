@@ -59,7 +59,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Preconditions.checkState;
@@ -636,6 +636,10 @@ public class IdeSdks {
     return false;
   }
 
+  public interface IdeSdkChangeListener {
+    void sdkPathChanged(@NotNull File newSdkPath);
+  }
+
   @TestOnly
   public static void removeJdksOn(@NotNull Disposable disposable) {
     Disposer.register(disposable, () -> WriteAction.run(() -> {
@@ -643,10 +647,5 @@ public class IdeSdks {
         ProjectJdkTable.getInstance().removeJdk(sdk);
       }
     }));
-
-  }
-
-  public interface IdeSdkChangeListener {
-    void sdkPathChanged(@NotNull File newSdkPath);
   }
 }

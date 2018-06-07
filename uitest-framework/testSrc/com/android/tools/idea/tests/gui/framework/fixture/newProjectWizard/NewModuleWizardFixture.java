@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.adtui.ASGallery;
 import com.intellij.openapi.progress.ProgressManager;
@@ -29,20 +31,29 @@ import javax.swing.*;
 
 public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizardFixture> {
   @NotNull
-  public static NewModuleWizardFixture find(@NotNull IdeFrameFixture fixture) {
-    Robot robot = fixture.robot();
+  public static NewModuleWizardFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
+    Robot robot = ideFrameFixture.robot();
     JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, "Create New Module"));
-    return new NewModuleWizardFixture(robot, dialog);
+    return new NewModuleWizardFixture(ideFrameFixture, dialog);
   }
 
-  private NewModuleWizardFixture(@NotNull Robot robot, @NotNull JDialog target) {
-    super(NewModuleWizardFixture.class, robot, target);
+  private final IdeFrameFixture myIdeFrameFixture;
+
+  private NewModuleWizardFixture(@NotNull IdeFrameFixture fixture, @NotNull JDialog target) {
+    super(NewModuleWizardFixture.class, fixture.robot(), target);
+    myIdeFrameFixture = fixture;
   }
 
   @NotNull
-  public ConfigureAndroidModuleStepFixture getConfigureAndroidModuleStep() {
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> getConfigureAndroidModuleStep() {
     JRootPane rootPane = findStepWithTitle("Configure the new module");
-    return new ConfigureAndroidModuleStepFixture(robot(), rootPane);
+    return new ConfigureAndroidModuleStepFixture<>(this, rootPane);
+  }
+
+  @NotNull
+  public ConfigureBasicActivityStepFixture<NewModuleWizardFixture> getConfigureActivityStep() {
+    JRootPane rootPane = findStepWithTitle("Configure Activity");
+    return new ConfigureBasicActivityStepFixture<>(this, rootPane);
   }
 
   public NewModuleWizardFixture chooseModuleType(@NotNull String activity) {
@@ -58,9 +69,8 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
-  @Override
-  public NewModuleWizardFixture clickFinish() {
-    super.clickFinish();
+  public IdeFrameFixture clickFinish() {
+    super.clickFinish(Wait.seconds(10));
 
     // Wait for gradle project importing to finish
     Wait.seconds(30).expecting("Modal Progress Indicator to finish")
@@ -68,6 +78,6 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
         robot().waitForIdle();
         return !ProgressManager.getInstance().hasModalProgressIndicator();
       });
-    return myself();
+    return myIdeFrameFixture;
   }
 }

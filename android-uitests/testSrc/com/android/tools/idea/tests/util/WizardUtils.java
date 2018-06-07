@@ -23,10 +23,14 @@ public final class WizardUtils {
   private WizardUtils() {
   }
 
+  /** @deprecated Avoid until b/66680171 is otherwise addressed. */
+  @Deprecated
   public static void createNewProject(@NotNull GuiTestRule guiTest) {
     createNewProject(guiTest, "Empty Activity");
   }
 
+  /** @deprecated Avoid until b/66680171 is otherwise addressed. */
+  @Deprecated
   public static void createNewProject(@NotNull GuiTestRule guiTest, @NotNull String activity) {
     NewProjectWizardFixture wizard = guiTest.welcomeFrame().createNewProject();
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.common.editor;
 
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlLayoutType;
+import com.intellij.codeInsight.hint.ImplementationViewComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -27,11 +28,19 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+
 public class NlEditorProvider implements FileEditorProvider, DumbAware {
   /**
    * FileEditorProvider ID for the layout editor
    */
   public static final String DESIGNER_ID = "android-designer2";
+
+  /**
+   * Name of the class that handles the quick definition feature in IntelliJ.
+   * This class should be used by quick definition only.
+   */
+  private static final String CALLER_NAME_OF_QUICK_DEFINITION = ImplementationViewComponent.class.getName();
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile virtualFile) {
@@ -54,8 +63,16 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
   @NotNull
   @Override
   public FileEditorPolicy getPolicy() {
-    return AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()
-           ? FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR
-           : FileEditorPolicy.PLACE_BEFORE_DEFAULT_EDITOR;
+    if (AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()) {
+      return FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR;
+    }
+    if (Arrays.stream(Thread.currentThread().getStackTrace())
+      .anyMatch(element -> CALLER_NAME_OF_QUICK_DEFINITION.equals(element.getClassName()))) {
+      // This function is called by quick definition, make the default editor as preferred editor.
+      // This is a hack fixed for http://b/37050828
+      return FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR;
+    }
+
+    return FileEditorPolicy.PLACE_BEFORE_DEFAULT_EDITOR;
   }
 }

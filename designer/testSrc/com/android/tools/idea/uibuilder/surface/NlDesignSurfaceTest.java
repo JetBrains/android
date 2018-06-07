@@ -17,9 +17,12 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
+import com.android.tools.idea.common.surface.Layer;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -34,6 +37,9 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Assume;
 import org.mockito.Mockito;
 
+import javax.swing.*;
+import java.awt.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
@@ -59,29 +65,62 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     }
   }
 
+  public void testLayers() {
+    ImmutableList<Layer> droppedLayers;
+
+    assertEmpty(mySurface.myLayers);
+    ModelBuilder modelBuilder = model("absolute.xml",
+                                      component(ABSOLUTE_LAYOUT)
+                                        .withBounds(0, 0, 1000, 1000)
+                                        .matchParentWidth()
+                                        .matchParentHeight());
+    NlModel model = modelBuilder.build();
+    mySurface.setModel(model);
+    mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
+    assertEquals(6, mySurface.myLayers.size());
+
+    droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
+    mySurface.setScreenMode(SceneMode.BLUEPRINT_ONLY, false);
+    assertEquals(5, mySurface.myLayers.size());
+    // Make sure all dropped layers are disposed.
+    assertEmpty(droppedLayers.stream().filter(Disposer::isDisposed).collect(Collectors.toList()));
+
+    droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
+    mySurface.setScreenMode(SceneMode.BOTH, false);
+    assertEquals(10, mySurface.myLayers.size());
+    // Make sure all dropped layers are disposed.
+    assertEmpty(droppedLayers.stream().filter(Disposer::isDisposed).collect(Collectors.toList()));
+
+    droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
+    mySurface.setModel(null);
+    assertEmpty(mySurface.myLayers);
+    // Make sure all dropped layers are disposed.
+    assertEmpty(droppedLayers.stream().filter(layer -> !Disposer.isDisposed(layer)).collect(Collectors.toList()));
+  }
+
   public void testScreenMode() {
     // Just in case, cleanup current preference to make testing environment consistence.
-    PropertiesComponent.getInstance().unsetValue(NlDesignSurface.ScreenMode.SCREEN_MODE_PROPERTY);
+    PropertiesComponent.getInstance().unsetValue(SceneMode.Companion.getSCREEN_MODE_PROPERTY());
 
     // Test the default behavior when there is no setting.
-    assertEquals(NlDesignSurface.ScreenMode.loadPreferredMode(), NlDesignSurface.ScreenMode.DEFAULT_SCREEN_MODE);
+    assertEquals(SceneMode.Companion.loadPreferredMode(), SceneMode.Companion.getDEFAULT_SCREEN_MODE());
 
     // Test the save and load functions
-    NlDesignSurface.ScreenMode[] modes = NlDesignSurface.ScreenMode.values();
-    for (NlDesignSurface.ScreenMode mode : modes) {
-      NlDesignSurface.ScreenMode.savePreferredMode(mode);
+    SceneMode[] modes = SceneMode.values();
+    for (SceneMode mode : modes) {
+      SceneMode.Companion.savePreferredMode(mode);
       // The loaded mode should be same as the saved mode
-      assertEquals(NlDesignSurface.ScreenMode.loadPreferredMode(), mode);
+      assertEquals(SceneMode.Companion.loadPreferredMode(), mode);
     }
 
     // Test when the illegal mode is setup. (This happens when removing old mode or renaming the exist mode)
-    PropertiesComponent.getInstance().setValue(NlDesignSurface.ScreenMode.SCREEN_MODE_PROPERTY, "_illegalMode");
-    assertEquals(NlDesignSurface.ScreenMode.loadPreferredMode(), NlDesignSurface.ScreenMode.DEFAULT_SCREEN_MODE);
+    PropertiesComponent.getInstance().setValue(SceneMode.Companion.getSCREEN_MODE_PROPERTY(), "_illegalMode");
+    assertEquals(SceneMode.Companion.loadPreferredMode(), SceneMode.Companion.getDEFAULT_SCREEN_MODE());
 
     // Test next() function
-    assertEquals(NlDesignSurface.ScreenMode.SCREEN_ONLY.next(), NlDesignSurface.ScreenMode.BLUEPRINT_ONLY);
-    assertEquals(NlDesignSurface.ScreenMode.BLUEPRINT_ONLY.next(), NlDesignSurface.ScreenMode.BOTH);
-    assertEquals(NlDesignSurface.ScreenMode.BOTH.next(), NlDesignSurface.ScreenMode.SCREEN_ONLY);
+    assertEquals(SceneMode.SCREEN_ONLY.next(), SceneMode.BLUEPRINT_ONLY);
+    assertEquals(SceneMode.BLUEPRINT_ONLY.next(), SceneMode.BOTH);
+    assertEquals(SceneMode.BOTH.next(), SceneMode.SCREEN_ONLY);
   }
 
   public void testEmptyRenderSuccess() {
@@ -94,10 +133,10 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
-    assertNull(mySurface.getCurrentSceneView().getSceneManager().getRenderResult());
+    assertNull(mySurface.getSceneManager().getRenderResult());
 
     mySurface.requestRender();
-    assertTrue(mySurface.getCurrentSceneView().getSceneManager().getRenderResult().getRenderResult().isSuccess());
+    assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
     assertFalse(mySurface.getIssueModel().hasRenderError());
   }
 
@@ -120,7 +159,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
-    assertNull(mySurface.getCurrentSceneView().getSceneManager().getRenderResult());
+    assertNull(mySurface.getSceneManager().getRenderResult());
 
     mySurface.requestRender();
 
@@ -157,20 +196,20 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
-    assertNull(mySurface.getCurrentSceneView().getSceneManager().getRenderResult());
+    assertNull(mySurface.getSceneManager().getRenderResult());
 
-    mySurface.setScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY, false);
+    mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
     mySurface.requestRender();
-    assertTrue(mySurface.getCurrentSceneView().getSceneManager().getRenderResult().getRenderResult().isSuccess());
+    assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
     assertNotNull(mySurface.getCurrentSceneView());
-    assertNull(mySurface.getBlueprintView());
+    assertNull(mySurface.getSceneManager().getSecondarySceneView());
 
-    mySurface.setScreenMode(NlDesignSurface.ScreenMode.BOTH, false);
+    mySurface.setScreenMode(SceneMode.BOTH, false);
     mySurface.requestRender();
-    assertTrue(mySurface.getCurrentSceneView().getSceneManager().getRenderResult().getRenderResult().isSuccess());
+    assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
 
-    ScreenView screenView = mySurface.getCurrentSceneView();
-    ScreenView blueprintView = mySurface.getBlueprintView();
+    SceneView screenView = mySurface.getCurrentSceneView();
+    SceneView blueprintView = mySurface.getSceneManager().getSecondarySceneView();
     assertNotNull(screenView);
     assertNotNull(blueprintView);
 
@@ -204,12 +243,12 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
     NlComponent button = model.find("cuteLittleButton");
-    model.getSelectionModel().setSelection(ImmutableList.of(button));
+    mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
     handler.performCopy(dataContext);
     handler.performPaste(dataContext);
     NlComponent button2 = model.find("cuteLittleButton2");
     assertNotNull(button2);
-    model.getSelectionModel().setSelection(ImmutableList.of(button2));
+    mySurface.getSelectionModel().setSelection(ImmutableList.of(button2));
     handler.performCopy(dataContext);
     handler.performPaste(dataContext);
     NlComponent button3 = model.find("cuteLittleButton3");
@@ -220,7 +259,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
    * Cut a component and check that the id of the new component has been conserved
    */
   public void testCutPasteWithId() {
-    Assume.assumeFalse("Test is failing on mac, ignoring for now", SystemInfo.isMac); // TODO remove once mac cut is fixed
     NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -237,7 +275,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
     NlComponent button = model.find("cuteLittleButton");
-    model.getSelectionModel().setSelection(ImmutableList.of(button));
+    mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
     handler.performCut(dataContext);
     handler.performPaste(dataContext);
     assertComponentWithId(model, "cuteLittleButton");
@@ -247,7 +285,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
    * Cut a component and check that the id of the new component has been conserved
    */
   public void testMultipleCutPasteWithId() {
-    Assume.assumeFalse("Test is failing on mac, ignoring for now", SystemInfo.isMac); // TODO remove once mac cut is fixed
     NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -276,7 +313,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     NlComponent button = model.find("cuteLittleButton");
     NlComponent button2 = model.find("cuteLittleButton2");
     NlComponent button3 = model.find("cuteLittleButton3");
-    model.getSelectionModel().setSelection(ImmutableList.of(button, button2, button3));
+    mySurface.getSelectionModel().setSelection(ImmutableList.of(button, button2, button3));
     handler.performCut(dataContext);
     handler.performPaste(dataContext);
     assertComponentWithId(model, "cuteLittleButton");
@@ -316,8 +353,9 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     NlComponent button = model.find("cuteLittleButton");
     NlComponent button2 = model.find("cuteLittleButton2");
     NlComponent button3 = model.find("cuteLittleButton3");
-    model.getSelectionModel().setSelection(ImmutableList.of(button, button2, button3));
+    mySurface.getSelectionModel().setSelection(ImmutableList.of(button, button2, button3));
     handler.performCopy(dataContext);
+    mySurface.getSelectionModel().clear();
     handler.performPaste(dataContext);
     assertComponentWithId(model, "cuteLittleButton4");
     assertComponentWithId(model, "cuteLittleButton5");
@@ -325,7 +363,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   }
 
   public void testCutThenCopyWithId() {
-    Assume.assumeFalse("Test is failing on mac, ignoring for now", SystemInfo.isMac); // TODO remove once mac cut is fixed
     NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -342,15 +379,56 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
     NlComponent button = model.find("cuteLittleButton");
-    model.getSelectionModel().setSelection(ImmutableList.of(button));
+    mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
     handler.performCut(dataContext);
     handler.performPaste(dataContext);
     NlComponent button2 = model.find("cuteLittleButton");
     assertNotNull("Component should have been pasted with the id cuteLittleButton", button2);
 
-    model.getSelectionModel().setSelection(ImmutableList.of(button2));
+    mySurface.getSelectionModel().setSelection(ImmutableList.of(button2));
     handler.performCopy(dataContext);
     handler.performPaste(dataContext);
+    assertComponentWithId(model, "cuteLittleButton2");
+  }
+
+  /**
+   * Cut component1, paste it, copy it, cut the copy and paste it.
+   * The copy should keep the same id as the first time.
+   */
+  public void testCutPasteCut() {
+    NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 200, 200)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        component(BUTTON)
+          .id("@+id/cuteLittleButton")
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp")
+      ))
+      .build();
+    mySurface.setModel(model);
+    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DataContext dataContext = Mockito.mock(DataContext.class);
+    NlComponent button = model.find("cuteLittleButton");
+    mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
+    handler.performCut(dataContext);
+    handler.performPaste(dataContext);
+    NlComponent buttonCut = model.find("cuteLittleButton");
+    assertNotNull("Component should have been pasted with the id cuteLittleButton", buttonCut);
+
+    mySurface.getSelectionModel().setSelection(ImmutableList.of(buttonCut));
+    handler.performCopy(dataContext);
+    handler.performPaste(dataContext);
+    assertComponentWithId(model, "cuteLittleButton2");
+
+    NlComponent buttonCopied = model.find("cuteLittleButton2");
+    mySurface.getSelectionModel().setSelection(ImmutableList.of(buttonCopied));
+    handler.performCut(dataContext);
+    handler.performPaste(dataContext);
+    handler.performPaste(dataContext);
+    assertNull(model.find("cuteLittleButton4"));
     assertComponentWithId(model, "cuteLittleButton2");
   }
 
@@ -372,15 +450,23 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     double origScale = mySurface.getScale();
     assertEquals(origScale, mySurface.getMinScale());
 
+    SceneView view = mySurface.getCurrentSceneView();
+    JViewport viewport = mySurface.getScrollPane().getViewport();
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+
     mySurface.zoom(ZoomType.IN);
     double scale = mySurface.getScale();
     assertTrue(scale > origScale);
+    assertEquals(new Point(8, 8), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
 
-    mySurface.zoom(ZoomType.IN);
+    mySurface.zoom(ZoomType.IN, 100, 100);
     assertTrue(mySurface.getScale() > scale);
+    assertEquals(new Point(12, 12), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
 
+    mySurface.zoom(ZoomType.OUT, 100, 100);
+    assertEquals(new Point(7, 7), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
     mySurface.zoom(ZoomType.OUT);
-    mySurface.zoom(ZoomType.OUT);
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
     mySurface.zoom(ZoomType.OUT);
 
     assertEquals(mySurface.getScale(), origScale);

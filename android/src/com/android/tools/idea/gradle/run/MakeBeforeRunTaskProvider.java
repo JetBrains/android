@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.run;
 
 import com.android.builder.model.TestedTargetVariant;
 import com.android.ddmlib.IDevice;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
@@ -27,10 +28,13 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -43,12 +47,14 @@ import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Ordering;
+import com.google.common.collect.Lists;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.ModuleRunProfile;
@@ -72,9 +78,13 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -83,8 +93,8 @@ import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.android.tools.idea.gradle.util.GradleProjects.getModulesToBuildFromSelection;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
-import static com.android.tools.idea.gradle.util.Projects.getModulesToBuildFromSelection;
 import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_ADVANCED_PROFILING_TRANSFORMS;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
@@ -156,7 +166,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     // "Gradle-aware Make" is only available in Android Studio.
     if (configurationTypeIsSupported(runConfiguration)) {
       MakeBeforeRunTask task = new MakeBeforeRunTask();
-      if (runConfiguration instanceof PreferGradleMake) {
+      if (configurationTypeIsEnabledByDefault(runConfiguration)) {
         // For Android configurations, we want to replace the default make, so this new task needs to be enabled.
         // In AndroidRunConfigurationType#configureBeforeTaskDefaults we disable the default make, which is
         // enabled by default. For other configurations we leave it disabled, so we don't end up with two different
@@ -171,11 +181,15 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
   }
 
-  private boolean configurationTypeIsSupported(@NotNull RunConfiguration runConfiguration) {
+  public boolean configurationTypeIsSupported(@NotNull RunConfiguration runConfiguration) {
     if (myAndroidProjectInfo.isApkProject()) {
       return false;
     }
     return runConfiguration instanceof PreferGradleMake || isUnitTestConfiguration(runConfiguration);
+  }
+
+  public boolean configurationTypeIsEnabledByDefault(@NotNull RunConfiguration runConfiguration) {
+    return runConfiguration instanceof PreferGradleMake;
   }
 
   private static boolean isUnitTestConfiguration(@NotNull RunConfiguration runConfiguration) {
@@ -240,7 +254,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       // See: https://code.google.com/p/android/issues/detail?id=70718
       GradleSyncState syncState = GradleSyncState.getInstance(myProject);
       if (syncState.isSyncNeeded() != ThreeState.NO) {
-        GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setRunInBackground(false).setTrigger(TRIGGER_PROJECT_MODIFIED);
+
+        GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+        request.runInBackground = false;
+
         GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, new GradleSyncListener.Adapter() {
           @Override
           public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
@@ -357,7 +374,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   @NotNull
-  public static List<String> getProfilingOptions(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> devices) {
+  private static List<String> getProfilingOptions(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> devices) {
     if (!StudioFlags.PROFILER_ENABLED.get() || !(configuration instanceof AndroidRunConfigurationBase) || devices.isEmpty()) {
       return Collections.emptyList();
     }
@@ -368,12 +385,14 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     AndroidVersion minVersion = Ordering.natural().min(versionLists);
     List<String> arguments = new LinkedList<>();
     ProfilerState state = ((AndroidRunConfigurationBase)configuration).getProfilerState();
-    if (state.ADVANCED_PROFILING_ENABLED &&
-        (minVersion.getFeatureLevel() < 26 || !StudioFlags.PROFILER_USE_JVMTI.get())) {
+    if (state.ADVANCED_PROFILING_ENABLED && minVersion.getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP &&
+        (minVersion.getFeatureLevel() < AndroidVersion.VersionCodes.O || !StudioFlags.PROFILER_USE_JVMTI.get())) {
       File file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform(minVersion);
       arguments.add(createProjectProperty(ANDROID_ADVANCED_PROFILING_TRANSFORMS, file.getAbsolutePath()));
 
       Properties profilerProperties = state.toProperties();
+      profilerProperties.setProperty(StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.getId(),
+                                     String.valueOf(StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get()));
       try {
         File propertiesFile = createTempFile("profiler", ".properties");
         propertiesFile.deleteOnExit(); // TODO: It'd be nice to clean this up sooner than at exit.

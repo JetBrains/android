@@ -34,7 +34,7 @@ public class StaticEnumConverter extends ResolvingConverter<String> {
 
   /**
    * Flag to control whether converter has information about all available values.
-   * If set to true, entering attribute value that's not present in myValues would
+   * If set to true, entering attribute value that's not present in values would
    * result in validation error and would be highlighted as such.
    */
   private boolean myContainsAllValues = true;

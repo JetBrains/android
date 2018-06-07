@@ -23,7 +23,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.replaceSyncMessagesService;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.AndroidGradleTests.updateGradleVersions;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -40,7 +40,7 @@ public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase
   }
 
   public void testHandleError() throws Exception {
-    loadSimpleApplication();
+    loadSimpleApplication_pre3dot0();
 
     // Update plugin to 2.2 and expect sync to fail, and the new error handler to provide a better error description than the original
     // exception message.

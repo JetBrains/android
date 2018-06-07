@@ -76,7 +76,10 @@ public class VersionCompatibilityChecker {
     return ServiceManager.getService(VersionCompatibilityChecker.class);
   }
 
-  public VersionCompatibilityChecker() {
+  private VersionCompatibilityChecker() {
+    // Check if there is a new version available on the server.
+    new CompatibilityChecksMetadataUpdater().initiateUpdateIfNecessary();
+
     reloadMetadata();
   }
 

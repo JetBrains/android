@@ -22,6 +22,7 @@ import com.intellij.codeInspection.ui.InspectionTree;
 import com.intellij.codeInspection.ui.InspectionTreeNode;
 import com.intellij.openapi.wm.ToolWindowId;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -34,7 +35,7 @@ public class InspectionsFixture extends ToolWindowFixture {
 
   @NotNull
   static InspectionsFixture find(IdeFrameFixture ideFrameFixture) {
-    InspectionTree tree = GuiTests.waitUntilFound(ideFrameFixture.robot(), Matchers.byType(InspectionTree.class));
+    InspectionTree tree = GuiTests.waitUntilFound(ideFrameFixture.robot(), null, Matchers.byType(InspectionTree.class), 30);
     return new InspectionsFixture(ideFrameFixture, tree);
   }
 

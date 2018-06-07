@@ -37,7 +37,7 @@ public class SingleUnitAxisFormatter extends BaseAxisFormatter {
   private final String mUnit;
 
   public SingleUnitAxisFormatter(int maxMinorTicks, int maxMajorTicks, int unitMinimalInterval, String unit) {
-    super(maxMinorTicks, maxMajorTicks, 1 /* No larger scale, so we can set anything */);
+    super(maxMinorTicks, maxMajorTicks, 1 /* No larger scale, so we can set anything */, true);
     mUnitMinimalInterval = unitMinimalInterval;
     mUnit = unit;
   }

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenPluginBuildFileHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.google.common.annotations.VisibleForTesting;
@@ -69,9 +70,14 @@ public class OldAndroidPluginErrorHandler extends BaseSyncErrorHandler {
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink());
-    AndroidPluginInfo result = searchInBuildFilesOnly(project);
-    if (result != null && result.getPluginBuildFile() != null) {
-      hyperlinks.add(new OpenFileHyperlink(result.getPluginBuildFile().getPath()));
+    if (project.isInitialized()) {
+      AndroidPluginInfo result = searchInBuildFilesOnly(project);
+      if (result != null && result.getPluginBuildFile() != null) {
+        hyperlinks.add(new OpenFileHyperlink(result.getPluginBuildFile().getPath()));
+      }
+    }
+    else {
+      hyperlinks.add(new OpenPluginBuildFileHyperlink());
     }
     return hyperlinks;
   }

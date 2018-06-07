@@ -47,16 +47,19 @@ public final class RangeTooltipComponent extends AnimatedComponent {
   @Nullable
   private Point myLastPoint;
 
-  public RangeTooltipComponent(@NotNull Range hightlight, @NotNull Range view, @NotNull Range data, Component component) {
+  public RangeTooltipComponent(@NotNull Range hightlight, @NotNull Range view, @NotNull Range data, Component component,
+                               @Nullable Class<? extends JLayeredPane> preferredTooltipParent) {
     myHighlightRange = hightlight;
     myViewRange = view;
     myDataRange = data;
 
-    myTooltipComponent = new TooltipComponent(component);
-    add(myTooltipComponent);
-
+    myTooltipComponent = new TooltipComponent(component, this, preferredTooltipParent);
     myViewRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::viewRangeChanged);
     myHighlightRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::highlightRangeChanged);
+  }
+
+  public RangeTooltipComponent(@NotNull Range hightlight, @NotNull Range view, @NotNull Range data, Component component) {
+    this(hightlight, view, data, component, null);
   }
 
   public void registerListenersOn(Component component) {
@@ -131,8 +134,5 @@ public final class RangeTooltipComponent extends AnimatedComponent {
     path.moveTo(pos, 0);
     path.lineTo(pos, dim.getHeight());
     g.draw(path);
-
-    myTooltipComponent.setBounds(0, 0, getWidth(), getHeight());
-    myTooltipComponent.repaint();
   }
 }

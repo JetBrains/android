@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.error;
 
-import com.android.tools.idea.rendering.HtmlBuilderHelper;
-import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.rendering.HtmlBuilderHelper;
+import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.TextFormat;
 import com.android.utils.HtmlBuilder;
-import com.android.utils.Pair;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.command.CommandProcessor;
@@ -38,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkListener;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static com.android.tools.lint.detector.api.TextFormat.HTML;
@@ -93,7 +93,7 @@ public abstract class NlIssue {
    * and a {@link Runnable} to execute the fix
    */
   @NotNull
-  public Stream<Pair<String, Runnable>> getFixes() {
+  public Stream<Fix> getFixes() {
     return Stream.empty();
   }
 
@@ -266,7 +266,7 @@ public abstract class NlIssue {
 
     @NotNull
     @Override
-    public Stream<Pair<String, Runnable>> getFixes() {
+    public Stream<Fix> getFixes() {
       AndroidLintInspectionBase inspection = myIssue.inspection;
       AndroidLintQuickFix[] quickFixes = inspection.getQuickFixes(myIssue.startElement, myIssue.endElement,
                                                                   myIssue.message, myIssue.quickfixData);
@@ -277,13 +277,31 @@ public abstract class NlIssue {
     }
 
     @NotNull
-    private Pair<String, Runnable> createQuickFixPair(@NotNull AndroidLintQuickFix fix) {
-      return Pair.of(fix.getName(), createQuickFixRunnable(fix));
+    private Fix createQuickFixPair(@NotNull AndroidLintQuickFix fix) {
+      return new Fix(fix.getName(), createQuickFixRunnable(fix));
     }
 
     @NotNull
-    private Pair<String, Runnable> createQuickFixPair(@NotNull IntentionAction fix) {
-      return Pair.of(fix.getText(), createQuickFixRunnable(fix));
+    private Fix createQuickFixPair(@NotNull IntentionAction fix) {
+      return new Fix(fix.getText(), createQuickFixRunnable(fix));
+    }
+
+    @Override
+    public boolean equals(Object object) {
+      if (!(object instanceof NlLintIssueWrapper)) {
+        return false;
+      }
+      NlLintIssueWrapper other = (NlLintIssueWrapper)object;
+      return super.equals(object)
+             && Objects.equals(other.myIssue.startElement, this.myIssue.startElement)
+             && Objects.equals(other.myIssue.endElement, this.myIssue.endElement);
+    }
+
+    @Override
+    public int hashCode() {
+      int res = super.hashCode();
+      res += 31 * Objects.hash(myIssue.startElement, myIssue.endElement);
+      return res;
     }
 
     @NotNull
@@ -316,6 +334,33 @@ public abstract class NlIssue {
             null);
         }
       };
+    }
+  }
+
+  /**
+   * Representation of a quick fix for the issue
+   */
+  public static class Fix {
+    String myDescription;
+    Runnable myRunnable;
+
+    /**
+     * @param description Descption of the fix
+     * @param runnable    Action to exectute the fix
+     */
+    private Fix(@NotNull String description, @NotNull Runnable runnable) {
+      myDescription = description;
+      myRunnable = runnable;
+    }
+
+    @NotNull
+    public String getDescription() {
+      return myDescription;
+    }
+
+    @NotNull
+    public Runnable getRunnable() {
+      return myRunnable;
     }
   }
 }

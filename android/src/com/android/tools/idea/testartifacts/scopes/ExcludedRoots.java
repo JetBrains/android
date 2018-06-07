@@ -16,16 +16,15 @@
 package com.android.tools.idea.testartifacts.scopes;
 
 import com.android.builder.model.SourceProvider;
+import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeDependencies;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -40,8 +39,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
-import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
+import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -50,26 +48,23 @@ import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static org.jetbrains.android.facet.IdeaSourceProvider.getAllSourceFolders;
 
 class ExcludedRoots {
-  @NotNull private final Module myModule;
   @NotNull private final ExcludedModules myExcludedModules;
   private final boolean myAndroidTest;
 
   @NotNull private final Set<File> myExcludedRoots = new HashSet<>();
   @NotNull private final Set<String> myIncludedRootNames = new HashSet<>();
 
-  ExcludedRoots(@NotNull Module module,
-                @NotNull ExcludedModules excludedModules,
+  ExcludedRoots(@NotNull ExcludedModules excludedModules,
                 @NotNull DependencySet dependenciesToExclude,
                 @NotNull DependencySet dependenciesToInclude,
                 boolean isAndroidTest) {
-    myModule = module;
     myExcludedModules = excludedModules;
     myAndroidTest = isAndroidTest;
     addFolderPathsFromExcludedModules();
     addRemainingModelsIfNecessary();
 
     for (LibraryDependency libraryDependency : dependenciesToInclude.onLibraries()) {
-      File[] binaryPaths = libraryDependency.getPaths(BINARY);
+      File[] binaryPaths = libraryDependency.getBinaryPaths();
       for (File binaryPath : binaryPaths) {
         myIncludedRootNames.add(binaryPath.getName());
       }
@@ -160,13 +155,13 @@ class ExcludedRoots {
 
   private void addLibraryPaths(@NotNull DependencySet dependencies) {
     for (LibraryDependency dependency : dependencies.onLibraries()) {
-      Collections.addAll(myExcludedRoots, dependency.getPaths(BINARY));
+      Collections.addAll(myExcludedRoots, dependency.getBinaryPaths());
     }
   }
 
   void removeLibraryPaths(@NotNull DependencySet dependencies) {
     for (LibraryDependency dependency : dependencies.onLibraries()) {
-      for (File path : dependency.getPaths(BINARY)) {
+      for (File path : dependency.getBinaryPaths()) {
         myExcludedRoots.remove(path);
       }
     }
@@ -174,9 +169,8 @@ class ExcludedRoots {
     //// Now we need to add to 'excluded' roots the libraries that are in the modules to include, but are in the scope that needs to be
     //// excluded.
     //// https://code.google.com/p/android/issues/detail?id=206481
-    Project project = myModule.getProject();
     for (ModuleDependency dependency : dependencies.onModules()) {
-      Module module = dependency.getModule(project);
+      Module module = dependency.getModule();
       if (module != null) {
         addLibraryPaths(module);
       }

@@ -52,6 +52,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
   private AvdInfo myMarshmallowAvdInfo;
   private AvdInfo myPreviewAvdInfo;
+  private AvdInfo myZuluAvdInfo;
   private Map<String, String> myPropertiesMap = Maps.newHashMap();
 
   @Override
@@ -67,7 +68,6 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsMarshmallow.setTag(IdDisplay.create("google_apis", "Google APIs"));
     detailsMarshmallow.setAbi("x86");
-    detailsMarshmallow.setVendor(IdDisplay.create("google", "Google"));
     detailsMarshmallow.setApiLevel(23);
     pkgMarshmallow.setTypeDetails((TypeDetails) detailsMarshmallow);
     pkgMarshmallow.setInstalledPath(new File(SDK_LOCATION, "23-marshmallow-x86"));
@@ -80,14 +80,26 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsNPreview.setTag(IdDisplay.create("google_apis", "Google APIs"));
     detailsNPreview.setAbi("x86");
-    detailsNPreview.setVendor(IdDisplay.create("google", "Google"));
     detailsNPreview.setApiLevel(23);
     detailsNPreview.setCodename("N"); // Setting a code name is the key!
     pkgNPreview.setTypeDetails((TypeDetails) detailsNPreview);
     pkgNPreview.setInstalledPath(new File(SDK_LOCATION, "n-preview-x86"));
     fileOp.recordExistingFile(new File(pkgNPreview.getLocation(), SystemImageManager.SYS_IMG_NAME));
 
-    packages.setLocalPkgInfos(ImmutableList.of(pkgMarshmallow, pkgNPreview));
+    // Image with an unknown API level
+    // (This is not supposed to happen. But it does sometimes.)
+    String zuluPath = "system-images;android-Z;google_apis;x86";
+    FakePackage.FakeLocalPackage pkgZulu = new FakePackage.FakeLocalPackage(zuluPath);
+    DetailsTypes.SysImgDetailsType detailsZulu =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    detailsZulu.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsZulu.setAbi("x86");
+    detailsZulu.setApiLevel(99);
+    pkgZulu.setTypeDetails((TypeDetails) detailsZulu);
+    pkgZulu.setInstalledPath(new File(SDK_LOCATION, "zulu-x86"));
+    fileOp.recordExistingFile(new File(pkgZulu.getLocation(), SystemImageManager.SYS_IMG_NAME));
+
+    packages.setLocalPkgInfos(ImmutableList.of(pkgMarshmallow, pkgNPreview, pkgZulu));
 
     RepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
 
@@ -101,11 +113,15 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
       sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation());
     ISystemImage NPreviewImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(NPreviewPath, progress).getLocation());
+    ISystemImage ZuluImage = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(zuluPath, progress).getLocation());
 
     myMarshmallowAvdInfo =
       new AvdInfo("name", new File("ini"), "folder", marshmallowImage, myPropertiesMap);
     myPreviewAvdInfo =
       new AvdInfo("name", new File("ini"), "folder", NPreviewImage, myPropertiesMap);
+    myZuluAvdInfo =
+      new AvdInfo("name", new File("ini"), "folder", ZuluImage, myPropertiesMap);
   }
 
   public void testIsGoogleApiTag() throws Exception {
@@ -156,5 +172,15 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     // For an actual Preview, the URL will be Default_32.png, but
     // we now know that N-Preview became Nougat.
     assertTrue("Wrong icon fetched for Preview API: " + iconUrl, iconUrl.endsWith("Nougat_32.png"));
+
+    optionsModel = new AvdOptionsModel(myZuluAvdInfo);
+
+    optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
+    Disposer.register(getTestRootDisposable(), optionsStep);
+    optionsStep.updateSystemImageData();
+    icon = optionsStep.getSystemImageIcon();
+    assertNotNull(icon);
+    iconUrl = icon.toString();
+    assertTrue("Wrong icon fetched for unknown API: " + iconUrl, iconUrl.endsWith("Default_32.png"));
   }
 }

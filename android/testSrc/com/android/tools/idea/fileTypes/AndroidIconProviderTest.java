@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class AndroidIconProviderTest extends AndroidTestCase {
-  public void test() {
+  public void testFlagIcons() {
     VirtualFile vFile = myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
     PsiFile file = PsiManager.getInstance(getProject()).findFile(vFile);
     assertNotNull(file);
@@ -35,7 +35,8 @@ public class AndroidIconProviderTest extends AndroidTestCase {
     checkIcon("res/wrong/path.xml", null);
     checkIcon("res/layout/file.xml", null);
     checkIcon("res/layout-land/file.xml", null);
-    checkIcon("res/values-no/strings.xml", "NO");
+    checkIcon("res/values-no/strings.xml", null);
+    checkIcon("res/values-no-rNO/strings.xml", "NO");
     checkIcon("res/values-en-rUS/strings.xml", "US");
     checkIcon("res/values-en-rGB/strings.xml", "GB");
   }

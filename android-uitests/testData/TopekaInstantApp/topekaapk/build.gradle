@@ -1,0 +1,31 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion project.compileSdkVersion
+    buildToolsVersion "${project.buildToolsVersion}"
+
+    dataBinding {
+        enabled true
+    }
+
+    defaultConfig {
+        applicationId "com.google.samples.apps.topeka"
+        minSdkVersion 21
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation project(':topekaui')
+//    implementation project(':topekabase')
+}

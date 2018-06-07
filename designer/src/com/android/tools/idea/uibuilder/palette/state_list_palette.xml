@@ -14,39 +14,39 @@
   ~ limitations under the License.
   -->
 <palette>
-  <item tag="item" title="Pressed">
+  <item tag="item" id="pressed" title="Pressed">
     <xml><![CDATA[<item android:state_pressed="true" />]]></xml>
   </item>
 
-  <item tag="item" title="Focused">
+  <item tag="item" id="focused" title="Focused">
     <xml><![CDATA[<item android:state_focused="true" />]]></xml>
   </item>
 
-  <item tag="item" title="Hovered">
+  <item tag="item" id="hovered" title="Hovered">
     <xml><![CDATA[<item android:state_hovered="true" />]]></xml>
   </item>
 
-  <item tag="item" title="Selected">
+  <item tag="item" id="selected" title="Selected">
     <xml><![CDATA[<item android:state_selected="true" />]]></xml>
   </item>
 
-  <item tag="item" title="Checkable">
+  <item tag="item" id="checkable" title="Checkable">
     <xml><![CDATA[<item android:state_checkable="true" />]]></xml>
   </item>
 
-  <item tag="item" title="Checked">
+  <item tag="item" id="checked" title="Checked">
     <xml><![CDATA[<item android:state_checked="true" />]]></xml>
   </item>
 
-  <item tag="item" title="Enabled">
+  <item tag="item" id="enabled" title="Enabled">
     <xml><![CDATA[<item android:state_enabled="true" />]]></xml>
   </item>
 
-  <item tag="item" title="Activated">
+  <item tag="item" id="activated" title="Activated">
     <xml><![CDATA[<item android:state_activated="true" />]]></xml>
   </item>
 
-  <item tag="item" title="Window Focused">
+  <item tag="item" id="window" title="Window Focused">
     <xml><![CDATA[<item android:state_window_focused="true" />]]></xml>
   </item>
 </palette>

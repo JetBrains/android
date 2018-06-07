@@ -16,9 +16,12 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
+import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -29,49 +32,56 @@ import com.intellij.openapi.startup.StartupManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.util.Projects.open;
+import static com.android.tools.idea.gradle.util.GradleProjects.open;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.invokeLater;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.scheduleExternalViewStructureUpdate;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
+import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 class SyncResultHandler {
   @NotNull private final Project myProject;
   @NotNull private final GradleSyncState mySyncState;
+  @NotNull private final GradleProjectInfo myProjectInfo;
   @NotNull private final ProjectSetup.Factory myProjectSetupFactory;
   @NotNull private final PostSyncProjectSetup myPostSyncProjectSetup;
 
   SyncResultHandler(@NotNull Project project) {
-    this(project, GradleSyncState.getInstance(project), new ProjectSetup.Factory(), PostSyncProjectSetup.getInstance(project));
+    this(project, GradleSyncState.getInstance(project), GradleProjectInfo.getInstance(project), new ProjectSetup.Factory(),
+         PostSyncProjectSetup.getInstance(project));
   }
 
   @VisibleForTesting
   SyncResultHandler(@NotNull Project project,
                     @NotNull GradleSyncState syncState,
+                    @NotNull GradleProjectInfo projectInfo,
                     @NotNull ProjectSetup.Factory projectSetupFactory,
                     @NotNull PostSyncProjectSetup postSyncProjectSetup) {
     myProject = project;
     mySyncState = syncState;
+    myProjectInfo = projectInfo;
     myProjectSetupFactory = projectSetupFactory;
     myPostSyncProjectSetup = postSyncProjectSetup;
   }
 
   void onSyncFinished(@NotNull SyncExecutionCallback callback,
+                      @NotNull PostSyncProjectSetup.Request setupRequest,
                       @NotNull ProgressIndicator indicator,
-                      @Nullable GradleSyncListener syncListener,
-                      boolean isProjectNew) {
-    SyncAction.ProjectModels models = callback.getModels();
+                      @Nullable GradleSyncListener syncListener) {
+    SyncProjectModels models = callback.getModels();
     if (models != null) {
       try {
-        setUpProject(myProject, models, indicator, syncListener);
+        setUpProject(models, setupRequest, indicator, syncListener);
         Runnable runnable = () -> {
           boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
-          if (isProjectNew && (!isTest || !GradleProjectImporter.ourSkipSetupFromTest)) {
+          boolean isImportedProject = myProjectInfo.isImportedProject();
+          if (isImportedProject && (!isTest || !GradleProjectImporter.ourSkipSetupFromTest)) {
             open(myProject);
           }
           if (!isTest) {
             myProject.save();
           }
-          if (isProjectNew) {
+          if (isImportedProject) {
             // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
             // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
             // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
@@ -97,32 +107,49 @@ class SyncResultHandler {
     }
   }
 
-  private void setUpProject(@NotNull Project project,
-                            @NotNull SyncAction.ProjectModels models,
+  private void setUpProject(@NotNull SyncProjectModels models,
+                            @NotNull PostSyncProjectSetup.Request setupRequest,
                             @NotNull ProgressIndicator indicator,
                             @Nullable GradleSyncListener syncListener) {
     try {
       if (syncListener != null) {
-        syncListener.setupStarted(project);
+        syncListener.setupStarted(myProject);
       }
       mySyncState.setupStarted();
 
-      ProjectSetup projectSetup = myProjectSetupFactory.create(project);
+      ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
       projectSetup.setUpProject(models, indicator);
-      projectSetup.commit( /* synchronous */);
+      projectSetup.commit();
+      scheduleExternalViewStructureUpdate(myProject, SYSTEM_ID);
 
       if (syncListener != null) {
-        syncListener.syncSucceeded(project);
+        syncListener.syncSucceeded(myProject);
       }
 
-      PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
-        myPostSyncProjectSetup.setUpProject(request, indicator);
-      });
+      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator));
     }
     catch (Throwable e) {
       notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
     }
+  }
+
+  void onSyncSkipped(@NotNull CachedProjectModels projectModelsCache,
+                     @NotNull PostSyncProjectSetup.Request setupRequest,
+                     @NotNull ProgressIndicator indicator,
+                     @Nullable GradleSyncListener syncListener) throws ModelNotFoundInCacheException {
+    if (syncListener != null) {
+      syncListener.setupStarted(myProject);
+    }
+    mySyncState.setupStarted();
+    ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
+    projectSetup.setUpProject(projectModelsCache, indicator);
+    projectSetup.commit();
+
+    if (syncListener != null) {
+      syncListener.syncSkipped(myProject);
+    }
+
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator));
   }
 
   void onSyncFailed(@NotNull SyncExecutionCallback callback, @Nullable GradleSyncListener syncListener) {
@@ -133,6 +160,12 @@ class SyncResultHandler {
   }
 
   private void notifyAndLogSyncError(@NotNull String errorMessage, @Nullable Throwable error, @Nullable GradleSyncListener syncListener) {
+    if (ApplicationManager.getApplication().isUnitTestMode() && error != null) {
+      // This is extremely handy when debugging sync errors in tests. Do not remove.
+      System.out.println("***** sync error: " + error.getMessage());
+      error.printStackTrace();
+    }
+
     if (syncListener != null) {
       syncListener.syncFailed(myProject, errorMessage);
     }

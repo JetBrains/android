@@ -242,7 +242,7 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
   @NotNull
   private GroupDragHandler getMenuHandler(SyncNlModel model) {
     ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
-    Scene scene = new SyncLayoutlibSceneManager(model).build();
+    Scene scene = new SyncLayoutlibSceneManager(model).getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 
     List<NlComponent> items = Collections.singletonList(mock(NlComponent.class));

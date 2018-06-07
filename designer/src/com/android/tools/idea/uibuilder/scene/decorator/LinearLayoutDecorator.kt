@@ -77,10 +77,10 @@ class LinearLayoutDecorator : SceneDecorator() {
                              component: SceneComponent) {
     @AndroidDpCoordinate val rect = Rectangle()
     component.fillDrawRect(0, rect)
-    @SwingCoordinate val l = sceneContext.getSwingX(rect.x.toFloat())
-    @SwingCoordinate val t = sceneContext.getSwingY(rect.y.toFloat())
-    @SwingCoordinate val w = sceneContext.getSwingDimension(rect.width.toFloat())
-    @SwingCoordinate val h = sceneContext.getSwingDimension(rect.height.toFloat())
+    @SwingCoordinate val l = sceneContext.getSwingXDip(rect.x.toFloat())
+    @SwingCoordinate val t = sceneContext.getSwingYDip(rect.y.toFloat())
+    @SwingCoordinate val w = sceneContext.getSwingDimensionDip(rect.width.toFloat())
+    @SwingCoordinate val h = sceneContext.getSwingDimensionDip(rect.height.toFloat())
 
     var vertical = false
     sceneContext.surface?.project?.let {

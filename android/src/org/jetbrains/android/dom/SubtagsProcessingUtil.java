@@ -163,7 +163,7 @@ public class SubtagsProcessingUtil {
       registerXmlResourcesSubtags(facet, element.getXmlTag(), (XmlResourceElement)element, subtagProcessor);
     }
     else if (element instanceof NavDestinationElement) {
-      NavigationSchema schema = NavigationSchema.getOrCreateSchema(facet);
+      NavigationSchema schema = NavigationSchema.get(facet);
       Multimap<Class<? extends AndroidDomElement>, String> subtags = schema.getDestinationSubtags(element.getXmlTag().getName());
       for (Class<? extends AndroidDomElement> c : subtags.keys()) {
         registerSubtags(element.getXmlTag(), subtags.get(c), subtags.get(c), c, subtagProcessor);

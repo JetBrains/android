@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.DataBindingModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 
 /**
@@ -123,7 +125,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     DataBindingModel dataBinding = android.dataBinding();
-    assertTrue(dataBinding.hasValidPsiElement());
+    checkForValidPsiElement(dataBinding, DataBindingModelImpl.class);
     assertEquals("addDefaultAdapters", Boolean.TRUE, dataBinding.addDefaultAdapters());
     assertEquals("enabled", Boolean.FALSE, dataBinding.enabled());
     assertEquals("version", "1.0", dataBinding.version());
@@ -137,7 +139,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     dataBinding = android.dataBinding();
-    assertFalse(dataBinding.hasValidPsiElement());
+    checkForInValidPsiElement(dataBinding, DataBindingModelImpl.class);
     assertNull("addDefaultAdapters", dataBinding.addDefaultAdapters());
     assertNull("enabled", dataBinding.enabled());
     assertNull("version", dataBinding.version());

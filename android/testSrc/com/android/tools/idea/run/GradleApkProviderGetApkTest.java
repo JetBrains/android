@@ -16,12 +16,15 @@
 package com.android.tools.idea.run;
 
 import com.android.build.OutputFile;
-import com.android.builder.model.*;
+import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.ProjectBuildOutput;
+import com.android.builder.model.TestVariantBuildOutput;
+import com.android.builder.model.VariantBuildOutput;
 import com.android.ddmlib.IDevice;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.google.common.collect.Lists;

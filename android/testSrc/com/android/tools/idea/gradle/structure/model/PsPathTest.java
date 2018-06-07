@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.model;
 
 import org.junit.Test;
 
-import static com.android.tools.idea.gradle.structure.model.PsPath.EMPTY_PATH;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -45,7 +44,7 @@ public class PsPathTest {
   public void emptyPath_compareToAndEquals() {
     PsPath a = new TestPath("");
 
-    assertEquals(0, a.compareTo(EMPTY_PATH));
-    assertNotEquals(EMPTY_PATH, a);
+    assertEquals(0, a.compareTo(TestPath.EMPTY_PATH));
+    assertNotEquals(TestPath.EMPTY_PATH, a);
   }
 }

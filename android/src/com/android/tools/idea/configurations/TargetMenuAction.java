@@ -21,10 +21,7 @@ import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
@@ -147,7 +144,7 @@ public class TargetMenuAction extends DropDownAction {
         break;
       }
 
-      String title = getRenderingTargetLabel(target, false);
+      String title = getRenderingTargetLabel(target, true);
       boolean select = current == target;
       group.add(new SetTargetAction(myRenderContext, title, target, select));
     }
@@ -193,9 +190,6 @@ public class TargetMenuAction extends DropDownAction {
       if (target.isPlatform()) {
         String codename = version.getCodename();
         if (codename != null && !codename.isEmpty()) {
-          if (codename.equals("MNC")) {
-            return "M";
-          }
           // The target menu brief label is deliberately short; typically it's just a 2 digit
           // API number. If this is a preview platform we should display the codename, but only
           // if it's a really short codename; if not, just display the first letter (since Android
@@ -217,7 +211,7 @@ public class TargetMenuAction extends DropDownAction {
     return String.format("API %1$d: %2$s", version.getApiLevel(), target.getShortClasspathName());
   }
 
-  private static class TogglePickBestAction extends ToggleAction {
+  private static class TogglePickBestAction extends AnAction implements Toggleable {
     private final ConfigurationManager myManager;
 
     TogglePickBestAction(ConfigurationManager manager) {
@@ -229,18 +223,27 @@ public class TargetMenuAction extends DropDownAction {
       }
     }
 
-    @Override
-    public boolean isSelected(AnActionEvent e) {
+    private boolean isSelected() {
       return myManager.getStateManager().getProjectState().isPickTarget();
     }
 
-    @Override
-    public void setSelected(AnActionEvent e, boolean state) {
+    private void setSelected(boolean state) {
       myManager.getStateManager().getProjectState().setPickTarget(state);
       if (state) {
         // Make sure we have the best target: force recompute on next getTarget()
         myManager.setTarget(null);
       }
+    }
+
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent event) {
+      setSelected(!isSelected());
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent event) {
+      Presentation presentation = event.getPresentation();
+      presentation.putClientProperty(SELECTED_PROPERTY, isSelected());
     }
   }
 

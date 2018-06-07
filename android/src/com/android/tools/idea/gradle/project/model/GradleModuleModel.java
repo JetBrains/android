@@ -46,8 +46,6 @@ public class GradleModuleModel implements ModuleModel {
   @Nullable private final String myGradleVersion;
 
   /**
-   * Creates a new {@link GradleModuleModel}.
-   *
    * @param moduleName    the name of the IDE module.
    * @param gradleProject the model obtained from Gradle.
    * @param buildFilePath the path of the build.gradle file.

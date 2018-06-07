@@ -36,7 +36,7 @@ class ExcludedModules implements Iterable<Module> {
 
   void add(@NotNull DependencySet dependencies) {
     for (ModuleDependency dependency : dependencies.onModules()) {
-      Module dependencyModule = dependency.getModule(myProject);
+      Module dependencyModule = dependency.getModule();
       if (dependencyModule != null) {
         myExcludedModules.add(dependencyModule);
       }
@@ -45,7 +45,7 @@ class ExcludedModules implements Iterable<Module> {
 
   void remove(@NotNull DependencySet dependencies) {
     for (ModuleDependency dependency : dependencies.onModules()) {
-      Module dependencyModule = dependency.getModule(myProject);
+      Module dependencyModule = dependency.getModule();
       if (dependencyModule != null) {
         myExcludedModules.remove(dependencyModule);
       }

@@ -24,6 +24,7 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
  * A {@link LaunchTask} to show the profiler tool window button on run/debug.
  */
 public final class AndroidProfilerToolWindowTaskContributor implements AndroidLaunchTaskContributor {
+
   @NotNull
   @Override
   public LaunchTask getTask(@NotNull Module module, @NotNull String applicationId) {
@@ -58,7 +60,16 @@ public final class AndroidProfilerToolWindowTaskContributor implements AndroidLa
     @Override
     public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
       ApplicationManager.getApplication().invokeLater(
-        () -> ToolWindowManagerEx.getInstanceEx(myProject).getToolWindow(AndroidProfilerToolWindowFactory.ID).setShowStripeButton(true));
+        () -> {
+          ToolWindow window = ToolWindowManagerEx.getInstanceEx(myProject).getToolWindow(AndroidProfilerToolWindowFactory.ID);
+          if (window != null) {
+            window.setShowStripeButton(true);
+            AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerTooWindow(myProject);
+            if (profilerToolWindow != null) {
+              profilerToolWindow.profileProject(myProject);
+            }
+          }
+        });
       return true;
     }
   }

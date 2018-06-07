@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Represents a repository defined with jcenter {}.
  */
-public class JCenterRepositoryModel extends MavenRepositoryModel {
+public class JCenterRepositoryModel extends MavenRepositoryModelImpl {
   public JCenterRepositoryModel(@NotNull MavenRepositoryDslElement dslElement) {
     super(dslElement, "BintrayJCenter2", "https://jcenter.bintray.com/");
   }

@@ -15,23 +15,29 @@
  */
 package com.android.tools.idea.common.fixtures;
 
+import com.android.sdklib.devices.Device;
+import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.utils.XmlUtils;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -48,7 +54,6 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.io.File;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static com.android.SdkConstants.DOT_XML;
@@ -71,7 +76,7 @@ public class ModelBuilder {
   private final BiConsumer<? super NlModel, ? super NlModel> myModelUpdater;
   private final String myPath;
   private final Class<? extends DesignSurface> mySurfaceClass;
-  private final BiFunction<XmlTag, NlModel, NlComponent> myComponentFactory;
+  private Device myDevice;
 
   public ModelBuilder(@NotNull AndroidFacet facet,
                       @NotNull JavaCodeInsightTestFixture fixture,
@@ -80,8 +85,7 @@ public class ModelBuilder {
                       @NotNull Function<? super SyncNlModel, ? extends SceneManager> managerFactory,
                       @NotNull BiConsumer<? super NlModel, ? super NlModel> modelUpdater,
                       @NotNull String path,
-                      @NotNull Class<? extends DesignSurface> surfaceClass,
-                      @NotNull BiFunction<XmlTag, NlModel, NlComponent> componentFactory) {
+                      @NotNull Class<? extends DesignSurface> surfaceClass) {
     assertTrue(name, name.endsWith(DOT_XML));
     myFacet = facet;
     myFixture = fixture;
@@ -91,7 +95,6 @@ public class ModelBuilder {
     myModelUpdater = modelUpdater;
     myPath = path;
     mySurfaceClass = surfaceClass;
-    myComponentFactory = componentFactory;
   }
 
   public ModelBuilder name(@NotNull String name) {
@@ -129,6 +132,11 @@ public class ModelBuilder {
     return myRoot.findByBounds(x, y, width, height);
   }
 
+  public ModelBuilder setDevice(@NotNull Device device) {
+    myDevice = device;
+    return this;
+  }
+
   public SyncNlModel build() {
     // Creates a design-time version of a model
     final Project project = myFacet.getModule().getProject();
@@ -161,23 +169,28 @@ public class ModelBuilder {
       XmlDocument document = xmlFile.getDocument();
       assertNotNull(document);
 
-      SyncNlModel model = SyncNlModel.create(createSurface(mySurfaceClass), myFixture.getProject(), myFacet, xmlFile);
+      SyncNlModel model = SyncNlModel.create(createSurface(mySurfaceClass), myFixture.getProject(), myFacet, xmlFile.getVirtualFile());
       DesignSurface surface = model.getSurface();
+      Disposer.register(project, surface);
       when(surface.getModel()).thenReturn(model);
+      when(surface.getConfiguration()).thenReturn(model.getConfiguration());
+      when(surface.getSceneScalingFactor()).thenCallRealMethod();
       SceneManager sceneManager = myManagerFactory.apply(model);
-      SelectionModel selectionModel = model.getSelectionModel();
+      SelectionModel selectionModel = surface.getSelectionModel();
       when(surface.getSelectionModel()).thenReturn(selectionModel);
       when(surface.getSceneManager()).thenReturn(sceneManager);
-      Scene scene = sceneManager.build();
+      if (myDevice != null) {
+        model.getConfiguration().setDevice(myDevice, true);
+      }
+      Scene scene = sceneManager.getScene();
       when(surface.getScene()).thenReturn(scene);
       when(surface.getProject()).thenReturn(project);
-      when(surface.getConfiguration()).thenReturn(model.getConfiguration());
       when(surface.createInteractionOnClick(anyInt(), anyInt())).thenCallRealMethod();
       when(surface.doCreateInteractionOnClick(anyInt(), anyInt(), any())).thenCallRealMethod();
       when(surface.createInteractionOnDrag(any(), any())).thenCallRealMethod();
       SceneView sceneView;
       if (mySurfaceClass.equals(NlDesignSurface.class)) {
-        sceneView = mockSceneView(model, surface);
+        sceneView = createSceneView(surface);
         when(surface.getCurrentSceneView()).thenReturn(sceneView);
       }
 
@@ -186,8 +199,14 @@ public class ModelBuilder {
   }
 
   @NotNull
-  private static ScreenView mockSceneView(SyncNlModel model, DesignSurface surface) {
-    return new ScreenView(((NlDesignSurface)surface), ScreenView.ScreenViewType.NORMAL, model) {
+  private static SceneView createSceneView(DesignSurface surface) {
+    return new SceneView(surface, surface.getSceneManager()) {
+      @NotNull
+      @Override
+      protected ImmutableList<Layer> createLayers() {
+        return ImmutableList.of();
+      }
+
       @NotNull
       @Override
       public Dimension getPreferredSize(@Nullable Dimension dimension) {
@@ -196,8 +215,8 @@ public class ModelBuilder {
 
       @NotNull
       @Override
-      public Color getBgColor() {
-        return Color.BLACK;
+      public ColorSet getColorSet() {
+        return new ColorSet();
       }
     };
   }

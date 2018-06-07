@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.repository.Revision;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.TipOfTheDayManager;
@@ -38,7 +39,6 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ResourceUtil;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.Transient;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,7 +73,7 @@ public class WhatsNew implements StartupActivity, DumbAware {
 
     WhatsNewData data = service.getState();
 
-    if (AndroidPlugin.isGuiTestingMode() && !data.myIsUnderTest) {
+    if (GuiTestingService.getInstance().isGuiTestingMode() && !data.myIsUnderTest) {
       return;
     }
 

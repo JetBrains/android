@@ -19,7 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

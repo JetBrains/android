@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.property.NlProperty;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -70,7 +71,9 @@ public class EmptyProperty implements NlProperty {
 
   @Override
   public void setValue(@Nullable Object value) {
-    throw new IllegalStateException();
+    if (value != null) {
+      throw new IllegalStateException();
+    }
   }
 
   @Override

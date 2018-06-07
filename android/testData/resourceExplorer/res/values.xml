@@ -1,0 +1,84 @@
+<!--
+  Copyright 2012 The Android Open Source Project
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  -->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2" xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Titles -->
+    <string name="app_name">Animations Demo</string>
+    <string name="title_crossfade">Simple Crossfade</string>
+    <string name="title_card_flip">Card Flip</string>
+    <string name="title_screen_slide">Screen Slide</string>
+    <string name="title_zoom">Zoom</string>
+    <string name="title_layout_changes">Layout Changes</string>
+    <string name="title_template_step">Step <xliff:g id="step_number">%1$d</xliff:g>: Lorem
+        Ipsum</string>
+    <string name="ellipsis">Here it is: \u2026!</string>
+
+    <item type="id" name="action_next" />
+    <item type="id" name="action_flip" />
+
+    <style name="DarkTheme" parent="android:Theme.Holo">
+        <item name="android:actionBarStyle">@style/DarkActionBar</item>
+    </style>
+
+    <style name="DarkActionBar" parent="android:Widget.Holo.ActionBar">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textColor">#008</item>
+    </style>
+
+    <integer name="card_flip_time_full">300</integer>
+    <integer name="card_flip_time_half">150</integer>
+
+    <declare-styleable name="MyCustomView">
+        <attr name="watchType" format="enum">
+            <enum name="type_stopwatch" value="1"/>
+            <enum name="type_countdown" value="0"/>
+        </attr>
+        <attr name="flagType" format="enum">
+            <flag name="flag1" value="0x10"/>
+            <flag name="flag2" value="0x20"/>
+        </attr>
+        <attr name="crash" format="boolean" />
+        <attr name="android:minWidth" />
+        <attr name="ignore_no_format" />
+    </declare-styleable>
+
+    <plurals name="my_plural" tools:quantity="two">
+        <item quantity="one">@string/hello</item>
+        <item quantity="two">@string/hello_two</item>
+        <item quantity="other">@string/hello_many</item>
+    </plurals>
+
+    <string-array name="security_questions" tools:index="3">
+        <item>Question 1</item>
+        <item>Question 2</item>
+        <item>Question 3</item>
+        <item>Question 4</item>
+        <item>Question 5</item>
+    </string-array>
+
+    <integer-array name="integers">
+        <item>10</item>
+        <item>20</item>
+    </integer-array>
+
+    <array name="my_colors">
+        <item>#FFFF0000</item>
+        <item>#FF00FF00</item>
+        <item>#FF0000FF</item>
+    </array>
+
+</resources>

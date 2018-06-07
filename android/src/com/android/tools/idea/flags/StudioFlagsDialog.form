@@ -7,6 +7,17 @@
     <properties/>
     <border type="none"/>
     <children>
+      <grid id="cbd770" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints border-constraint="North"/>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="68c7f" class="com.intellij.ui.SearchTextField" binding="mySearchTextField">
+            <constraints border-constraint="Center"/>
+            <properties/>
+          </component>
+        </children>
+      </grid>
       <scrollpane id="2db46" class="com.intellij.ui.components.JBScrollPane" binding="myScrollPane">
         <constraints border-constraint="Center"/>
         <properties>

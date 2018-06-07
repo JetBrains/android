@@ -19,10 +19,7 @@ import com.android.tools.adtui.FlatTabbedPane;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayout;
-import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
@@ -42,13 +39,16 @@ import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
 
 /**
@@ -64,7 +64,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private final RelativeTimeConverter myTimeConverter;
+  @NotNull private final ProfilerTimeline myTimeline;
 
   @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
 
@@ -82,7 +82,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   public MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
-    myTimeConverter = myStage.getStudioProfilers().getRelativeTimeConverter();
+    myTimeline = myStage.getStudioProfilers().getTimeline();
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged)
       .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, this::instanceChanged);
@@ -112,6 +112,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
           SwingConstants.LEFT),
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
+        SortOrder.ASCENDING,
         Comparator.comparing(o -> (o.getAdapter()).getName())));
     myAttributeColumns.put(
       InstanceAttribute.DEPTH,
@@ -126,6 +127,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.ASCENDING,
         Comparator.comparingInt(o -> o.getAdapter().getDepth())));
     myAttributeColumns.put(
       InstanceAttribute.ALLOCATION_TIME,
@@ -138,13 +140,14 @@ final class MemoryInstanceDetailsView extends AspectObserver {
             if (instanceObject.getAllocTime() > Long.MIN_VALUE) {
               return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
                 TimeUnit.MILLISECONDS.toMicros(1),
-                TimeUnit.NANOSECONDS.toMicros(myTimeConverter.convertToRelativeTime(instanceObject.getAllocTime())));
+                myTimeline.convertToRelativeTimeUs(instanceObject.getAllocTime()));
             }
           }
           return "";
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.ASCENDING,
         Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getAllocTime())));
     myAttributeColumns.put(
       InstanceAttribute.DEALLOCATION_TIME,
@@ -157,13 +160,14 @@ final class MemoryInstanceDetailsView extends AspectObserver {
             if (instanceObject.getDeallocTime() < Long.MAX_VALUE) {
               return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
                 TimeUnit.MILLISECONDS.toMicros(1),
-                TimeUnit.NANOSECONDS.toMicros(myTimeConverter.convertToRelativeTime(instanceObject.getDeallocTime())));
+                myTimeline.convertToRelativeTimeUs(instanceObject.getDeallocTime()));
             }
           }
           return "";
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getDeallocTime())));
     myAttributeColumns.put(
       InstanceAttribute.NATIVE_SIZE,
@@ -174,6 +178,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingLong(o -> o.getAdapter().getNativeSize())));
     myAttributeColumns.put(
       InstanceAttribute.SHALLOW_SIZE,
@@ -184,6 +189,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingInt(o -> o.getAdapter().getShallowSize())));
     myAttributeColumns.put(
       InstanceAttribute.RETAINED_SIZE,
@@ -194,6 +200,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingLong(o -> o.getAdapter().getRetainedSize())));
 
     // Fires the handler once at the beginning to ensure we are sync'd with the latest selection state in the MemoryProfilerStage.
@@ -315,6 +322,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     builder.setBorder(DEFAULT_TOP_BORDER);
     builder.setShowVerticalLines(true);
+    builder.setTableIntercellSpacing(new Dimension());
     return builder.build();
   }
 
@@ -341,7 +349,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     final JTree tree = new JTree(treeModel);
     int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
     tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
-    tree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
+    tree.setBorder(TABLE_ROW_BORDER);
     tree.setRootVisible(true);
     tree.setShowsRootHandles(true);
     tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -363,7 +371,8 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       }
     });
 
-    myIdeProfilerComponents.installNavigationContextMenu(tree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
+    ContextMenuInstaller contextMenuInstaller = myIdeProfilerComponents.createContextMenuInstaller();
+    contextMenuInstaller.installNavigationContextMenu(tree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
       TreePath selection = tree.getSelectionPath();
       if (selection == null) {
         return null;
@@ -379,7 +388,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       }
     });
 
-    myIdeProfilerComponents.installContextMenu(tree, new ContextMenuItem() {
+    contextMenuInstaller.installGenericContextMenu(tree, new ContextMenuItem() {
       @NotNull
       @Override
       public String getText() {

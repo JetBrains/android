@@ -16,10 +16,12 @@
 package com.android.tools.idea.uibuilder.menu;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurfaceHelper;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,8 +36,9 @@ public final class SearchItemHandler extends MenuHandler {
   }
 
   static void onChildInserted(@NotNull ViewEditor editor) {
-    if (!editor.moduleContainsResource(ResourceType.DRAWABLE, SEARCH_ICON)) {
-      editor.copyVectorAssetToMainModuleSourceSet(SEARCH_ICON);
+    if (!DesignSurfaceHelper.moduleContainsResource(editor.getModel().getFacet(), ResourceType.DRAWABLE, SEARCH_ICON)) {
+      NlModel model = editor.getModel();
+      DesignSurfaceHelper.copyVectorAssetToMainModuleSourceSet(model.getProject(), model.getFacet(), SEARCH_ICON);
     }
   }
 

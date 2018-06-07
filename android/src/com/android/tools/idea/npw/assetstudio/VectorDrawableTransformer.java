@@ -18,6 +18,9 @@ package com.android.tools.idea.npw.assetstudio;
 import com.android.SdkConstants;
 import com.android.utils.CharSequences;
 import com.android.utils.XmlUtils;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.util.LineSeparator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
@@ -137,7 +140,7 @@ public class VectorDrawableTransformer {
       Indenter indenter = new Indenter(originalDrawable);
       // Copy contents before the first element.
       indenter.copy(1, 1, startLine, startColumn, "", result);
-      String lineDelimiter = detectLineDelimiter(originalDrawable);
+      String lineSeparator = detectLineSeparator(originalDrawable);
       // Output the "vector" element with the xmlns:android attribute.
       result.append(String.format("<vector %s:%s=\"%s\"", SdkConstants.XMLNS, SdkConstants.ANDROID_NS_NAME, SdkConstants.NS_RESOURCES));
       // Copy remaining namespace attributes.
@@ -145,7 +148,7 @@ public class VectorDrawableTransformer {
         String prefix = parser.getNamespacePrefix(i);
         String uri = parser.getNamespaceUri(i);
         if (!SdkConstants.ANDROID_NS_NAME.equals(prefix) || !SdkConstants.NS_RESOURCES.equals(uri)) {
-          result.append(String.format("%s        %s:%s=\"%s\"", lineDelimiter, SdkConstants.XMLNS, prefix, uri));
+          result.append(String.format("%s        %s:%s=\"%s\"", lineSeparator, SdkConstants.XMLNS, prefix, uri));
         }
       }
 
@@ -154,10 +157,10 @@ public class VectorDrawableTransformer {
           "%s        android:height=\"%sdp\"" +
           "%s        android:viewportWidth=\"%s\"" +
           "%s        android:viewportHeight=\"%s\"",
-          lineDelimiter, XmlUtils.formatFloatAttribute(targetWidth),
-          lineDelimiter, XmlUtils.formatFloatAttribute(targetHeight),
-          lineDelimiter, XmlUtils.formatFloatAttribute(viewportWidth),
-          lineDelimiter, XmlUtils.formatFloatAttribute(viewportHeight)));
+          lineSeparator, XmlUtils.formatFloatAttribute(targetWidth),
+          lineSeparator, XmlUtils.formatFloatAttribute(targetHeight),
+          lineSeparator, XmlUtils.formatFloatAttribute(viewportWidth),
+          lineSeparator, XmlUtils.formatFloatAttribute(viewportHeight)));
 
       // Copy remaining attributes.
       for (int i = 0; i < parser.getAttributeCount(); i++) {
@@ -168,7 +171,7 @@ public class VectorDrawableTransformer {
           if (prefix != null) {
             name = prefix + ':' + name;
           }
-          result.append(String.format("%s        %s=\"%s\"", lineDelimiter, name, parser.getAttributeValue(i)));
+          result.append(String.format("%s        %s=\"%s\"", lineSeparator, name, parser.getAttributeValue(i)));
         }
       }
       result.append('>');
@@ -178,12 +181,12 @@ public class VectorDrawableTransformer {
       String translateY = isSignificantlyDifferentFromZero(y / viewportHeight) ? XmlUtils.formatFloatAttribute(y) : null;
       if (translateX != null || translateY != null) {
         // Wrap the contents of the drawable into a translation group.
-        result.append(lineDelimiter);
+        result.append(lineSeparator);
         result.append("    <group");
         String delimiter = " ";
         if (translateX != null) {
           result.append(String.format("%sandroid:translateX=\"%s\"", delimiter, translateX));
-          delimiter = lineDelimiter + "            ";
+          delimiter = lineSeparator + "            ";
         }
         if (translateY != null) {
           result.append(String.format("%sandroid:translateY=\"%s\"", delimiter, translateY));
@@ -203,10 +206,10 @@ public class VectorDrawableTransformer {
         startColumn = endColumnNumber;
       }
       if (startColumn != 1) {
-        result.append(lineDelimiter);
+        result.append(lineSeparator);
       }
       if (translateX != null || translateY != null) {
-        result.append(String.format("    </group>%s", lineDelimiter));
+        result.append(String.format("    </group>%s", lineSeparator));
       }
       // Copy the closing </vector> tag and the remainder of the document.
       while (parser.nextToken() != XmlPullParser.END_DOCUMENT) {
@@ -224,12 +227,12 @@ public class VectorDrawableTransformer {
     }
   }
 
-  private static String detectLineDelimiter(CharSequence str) {
-    int pos = CharSequences.indexOf(str, '\n');
-    if (pos > 0 && str.charAt(pos - 1) == '\r') {
-      return "\r\n";
+  private static String detectLineSeparator(CharSequence str) {
+    LineSeparator separator = StringUtil.detectSeparators(str);
+    if (separator != null) {
+      return separator.getSeparatorString();
     }
-    return "\n";
+    return CodeStyleSettingsManager.getInstance().getCurrentSettings().getLineSeparator();
   }
 
   private static double getDoubleAttributeValue(@NotNull KXmlParser parser, @NotNull String namespaceUri, @NotNull String attributeName,

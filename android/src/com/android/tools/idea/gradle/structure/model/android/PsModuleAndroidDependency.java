@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;

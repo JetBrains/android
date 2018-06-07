@@ -53,11 +53,6 @@ public class SdkReplacer {
       }
 
       @Override
-      public int getMinTargetSdk() {
-        return 23;
-      }
-
-      @Override
       public long getCompatApiMinVersion() {
         return 1;
       }
@@ -75,7 +70,6 @@ public class SdkReplacer {
 
     String componentKey = InstantAppSdks.class.getName();
     ComponentAdapter componentAdapter = picoContainer.unregisterComponent(componentKey);
-    assert componentAdapter != null;
 
     picoContainer.registerComponentInstance(componentKey, newService);
     assertSame(newService, picoContainer.getComponentInstance(componentKey));

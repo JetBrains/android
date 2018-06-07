@@ -23,9 +23,9 @@ import com.android.builder.model.Variant;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.OnDeviceOrchestratorRemoteAndroidTestRunner;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.TestRunParameters;
@@ -475,6 +475,13 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return null;
   }
 
+  @NotNull
+  @Override
+  protected LaunchOptions.Builder getLaunchOptions() {
+    // `am instrument` force stops the target package anyway, so there's no need for an explicit `am force-stop` for every APK involved.
+    return super.getLaunchOptions().setForceStopRunningApp(false);
+  }
+
   @VisibleForTesting
   class MyApplicationLaunchTask implements LaunchTask {
     @Nullable private final String myInstrumentationTestRunner;
@@ -543,7 +550,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       // run in a separate thread as this will block until the tests complete
       ApplicationManager.getApplication().executeOnPooledThread(() -> {
         try {
-          runner.run(new AndroidTestListener(launchStatus, printer));
+          runner.run(new AndroidTestListener(launchStatus, printer), new UsageTrackerTestRunListener(myArtifact, device));
         }
         catch (Exception e) {
           LOG.info(e);

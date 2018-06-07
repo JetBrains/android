@@ -15,18 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import android.support.constraint.solver.widgets.ConstraintAnchor;
 import com.android.SdkConstants;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.sherpa.drawing.BlueprintColorSet;
-import com.android.tools.sherpa.drawing.ColorSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -46,7 +50,7 @@ import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 /**
  * UI component for Constraint Inspector
  */
-public class WidgetConstraintPanel extends JPanel {
+public class WidgetConstraintPanel extends AdtSecondaryPanel {
   private static final String HORIZONTAL_TOOL_TIP_TEXT = "Horizontal Bias";
   private static final String VERTICAL_TOOL_TIP_TEXT = "Vertical Bias";
   private final SingleWidgetView mMain;
@@ -85,8 +89,8 @@ public class WidgetConstraintPanel extends JPanel {
     InspectorColorSet() {
       mDrawBackground = false;
       mDrawWidgetInfos = true;
-      mInspectorBackgroundColor = new JBColor(0xe8e8e8, 0x3c3f41);
-      mInspectorFillColor = new JBColor(0xdcdcdc, 0x45494a);
+      mInspectorBackgroundColor = StudioColorsKt.getSecondaryPanelBackground();
+      mInspectorFillColor = StudioColorsKt.getSecondaryPanelBackground();
       mInspectorHighlightsStrokeColor = JBColor.border();
       mInspectorStrokeColor = JBColor.foreground();
       mInspectorConstraintColor = new JBColor(0x4481d8, 0x4880c8);
@@ -97,13 +101,10 @@ public class WidgetConstraintPanel extends JPanel {
     super(new GridBagLayout());
     super.setBorder(new EmptyBorder(4, 0, 0, 0));
     ColorSet colorSet = new InspectorColorSet();
-    setBackground(colorSet.getInspectorBackgroundColor());
     mMain = new SingleWidgetView(this, colorSet);
-    setPreferredSize(new Dimension(200, 216));
+    setPreferredSize(new Dimension(JBUI.scale(200), JBUI.scale(216)));
     mVerticalSlider.setMajorTickSpacing(50);
     mHorizontalSlider.setMajorTickSpacing(50);
-    mVerticalSlider.setBackground(colorSet.getInspectorBackgroundColor());
-    mHorizontalSlider.setBackground(colorSet.getInspectorBackgroundColor());
     mHorizontalSlider.setToolTipText(HORIZONTAL_TOOL_TIP_TEXT);
     mVerticalSlider.setToolTipText(VERTICAL_TOOL_TIP_TEXT);
     mVerticalSlider.setName(VERTICAL_BIAS_SLIDER);
@@ -127,6 +128,8 @@ public class WidgetConstraintPanel extends JPanel {
     add(mHorizontalSlider, gbc);
     mVerticalSlider.setUI(new WidgetSliderUI(mVerticalSlider, colorSet));
     mHorizontalSlider.setUI(new WidgetSliderUI(mHorizontalSlider, colorSet));
+    mHorizontalSlider.setBackground(StudioColorsKt.getSecondaryPanelBackground());
+    mVerticalSlider.setBackground(StudioColorsKt.getSecondaryPanelBackground());
     mHorizontalSlider.addChangeListener(e -> setHorizontalBias());
     mVerticalSlider.addChangeListener(e -> setVerticalBias());
     mHorizontalSlider.addMouseListener(mDoubleClickListener);
@@ -362,6 +365,7 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   private void setDimension(NlComponent component, String attribute, int currentValue) {
+    attribute = ConstraintComponentUtilities.mapStartEndStrings(component, attribute);
     String marginString = component.getLiveAttribute(SdkConstants.ANDROID_URI, attribute);
     int marginValue = -1;
     if (marginString != null) {
@@ -572,10 +576,13 @@ public class WidgetConstraintPanel extends JPanel {
 
   public void setLeftMargin(int margin) {
     setDimension(mComponent, SdkConstants.ATTR_LAYOUT_MARGIN_START, margin);
+    setDimension(mComponent, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, margin);
   }
 
   public void setRightMargin(int margin) {
     setDimension(mComponent, SdkConstants.ATTR_LAYOUT_MARGIN_END, margin);
+    setDimension(mComponent, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, margin);
+
   }
 
   public void setBottomMargin(int margin) {
@@ -617,8 +624,7 @@ public class WidgetConstraintPanel extends JPanel {
       case SingleWidgetView.FIXED:
         String oldValue = (String)mComponent.getClientProperty(SdkConstants.ATTR_LAYOUT_WIDTH);
         if (oldValue == null) {
-          float dipValue = mComponent.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-          oldValue = ((int)(0.5f + NlComponentHelperKt.getW(mComponent) / dipValue)) + "dp";
+          oldValue = Coordinates.pxToDp(mComponent.getModel(), NlComponentHelperKt.getW(mComponent)) + "dp";
         }
         setAndroidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, oldValue);
         break;
@@ -642,8 +648,7 @@ public class WidgetConstraintPanel extends JPanel {
       case SingleWidgetView.FIXED:
         String oldValue = (String)mComponent.getClientProperty(SdkConstants.ATTR_LAYOUT_HEIGHT);
         if (oldValue == null) {
-          float dipValue = mComponent.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-          oldValue = ((int)(0.5f + NlComponentHelperKt.getH(mComponent) / dipValue)) + "dp";
+          oldValue = Coordinates.pxToDp(mComponent.getModel(), NlComponentHelperKt.getH(mComponent)) + "dp";
         }
         setAndroidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, oldValue);
         break;

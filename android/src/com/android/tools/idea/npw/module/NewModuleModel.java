@@ -78,8 +78,8 @@ public final class NewModuleModel extends WizardModel {
 
     myApplicationName = new StringValueProperty(message("android.wizard.module.config.new.application"));
     myApplicationName.addConstraint(String::trim);
-    myIsLibrary.addListener(sender -> myApplicationName.set(
-      message(myIsLibrary.get() ? "android.wizard.module.config.new.library" : "android.wizard.module.config.new.application")));
+    myIsLibrary.addListener(sender -> updateApplicationName());
+    myIsInstantApp.addListener(sender -> updateApplicationName());
 
     myMultiTemplateRenderer = new MultiTemplateRenderer();
   }
@@ -183,7 +183,7 @@ public final class NewModuleModel extends WizardModel {
     Map<String, Object> renderTemplateValues = Maps.newHashMap();
     new TemplateValueInjector(renderTemplateValues)
       .setBuildVersion(renderModel.androidSdkInfo().getValue(), project)
-      .setModuleRoots(renderModel.getSourceSet().get().getPaths(), packageName().get());
+      .setModuleRoots(renderModel.getTemplate().get().getPaths(), packageName().get());
 
     getRenderTemplateValues().setValue(renderTemplateValues);
   }
@@ -223,46 +223,14 @@ public final class NewModuleModel extends WizardModel {
         myTemplateValues.put(ATTR_INSTANT_APP_PACKAGE_NAME, myProjectPackageName.get());
 
         if (renderTemplateValues != null) {
-          renderTemplateValues.put(ATTR_IS_LIBRARY_MODULE, true);
-
-          String projectPath = project.getBasePath();
-          assert projectPath != null;
-          String defaultResourceSuffix = join("src", "main", "res");
-          File projectRoot = new File(projectPath);
-          File baseModuleRoot = new File(projectRoot, "base");
-          File baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
-          if (myCreateInExistingProject) {
-            Module baseFeature = InstantApps.findBaseFeature(project);
-            if (baseFeature == null) {
-              baseModuleRoot = new File(projectRoot, myModuleName.get());
-              baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
-              renderTemplateValues.put(ATTR_IS_BASE_FEATURE, true);
-              String monolithicModuleName = InstantApps.findMonolithicModuleName(project);
-              if (monolithicModuleName != null) {
-                renderTemplateValues.put(ATTR_MONOLITHIC_MODULE_NAME, monolithicModuleName);
-              }
-            }
-            else {
-              AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
-              assert moduleModel != null;
-              baseModuleRoot = moduleModel.getRootDirPath();
-              Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
-              assert !resDirectories.isEmpty();
-              baseModuleResourceRoot = resDirectories.iterator().next();
-            }
-          }
-
           new TemplateValueInjector(renderTemplateValues)
-            .setInstantAppSupport();
-          // TODO: Figure out a way to put more of the IAPP ATTRS inside TemplateValueInjector
-          renderTemplateValues.put(ATTR_BASE_FEATURE_NAME, baseModuleRoot.getName());
-          renderTemplateValues.put(ATTR_BASE_FEATURE_DIR, baseModuleRoot.getPath());
-          renderTemplateValues.put(ATTR_BASE_FEATURE_RES_DIR, baseModuleResourceRoot.getPath());
+            .setInstantAppSupport(myCreateInExistingProject, project, myModuleName.get());
         }
 
         if (myCreateInExistingProject) {
+          boolean hasInstantAppWrapper = myIsInstantApp.get() && InstantApps.findBaseFeature(project) == null;
           myTemplateValues.put(ATTR_HAS_MONOLITHIC_APP_WRAPPER, false);
-          myTemplateValues.put(ATTR_HAS_INSTANT_APP_WRAPPER, false);
+          myTemplateValues.put(ATTR_HAS_INSTANT_APP_WRAPPER, hasInstantAppWrapper);
         }
       }
 
@@ -311,6 +279,18 @@ public final class NewModuleModel extends WizardModel {
       // @formatter:on
       return template.render(context, dryRun);
     }
+  }
+
+  private void updateApplicationName() {
+    String msgId;
+    if (myIsInstantApp.get()) {
+      boolean isNewBaseFeature = myProject.get().isPresent() && InstantApps.findBaseFeature(myProject.getValue()) == null;
+      msgId = isNewBaseFeature ? "android.wizard.module.config.new.base.feature": "android.wizard.module.config.new.feature";
+    }
+    else {
+      msgId = myIsLibrary.get() ? "android.wizard.module.config.new.library" : "android.wizard.module.config.new.application";
+    }
+    myApplicationName.set(message(msgId));
   }
 
   @NotNull

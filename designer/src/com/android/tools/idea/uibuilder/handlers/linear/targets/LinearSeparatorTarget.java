@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
-import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearPlaceholder;
 import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearSeparator;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -60,7 +59,6 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
    * @param atEnd          if true, a separator will be drawn at the end of the component
    */
   public LinearSeparatorTarget(boolean layoutVertical, boolean atEnd) {
-    super();
     myLayoutVertical = layoutVertical;
     myAtEnd = atEnd;
   }
@@ -129,8 +127,8 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
   @Override
   public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
     picker.addRect(this, 10,
-                   transform.getSwingX(myLeft), transform.getSwingY(myTop),
-                   transform.getSwingX(myRight) + 1, transform.getSwingY(myBottom) + 1);
+                   transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
+                   transform.getSwingXDip(myRight) + 1, transform.getSwingYDip(myBottom) + 1);
   }
 
   /**
@@ -161,6 +159,12 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
     myHighLightSize = myLayoutVertical ? height : width;
   }
 
+  /**
+   * Returns true if the separator is the last one among its siblings.
+   * <p>
+   * This is useful to know if a component should be inserted before
+   * or after the owner of this target
+   */
   public boolean isAtEnd() {
     return myAtEnd;
   }
@@ -171,7 +175,6 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
                    @NotNull ArrayList<Notch> horizontalNotches,
                    @NotNull ArrayList<Notch> verticalNotches) {
 
-    Notch.Action action = attributes -> LinearLayoutHandler.insertComponentAtTarget(snappableComponent, this, false);
     if (myLayoutVertical) {
       int value = owner.getDrawY();
       int displayValue = owner.getDrawY();
@@ -188,7 +191,7 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
       else {
         value -= snappableComponent.getDrawHeight() / 2f + 0.5f;
       }
-      Notch.Vertical notch = new Notch.Vertical(owner, value, displayValue, action);
+      Notch.Vertical notch = new Notch.Vertical(owner, value, displayValue);
       notch.setGap(owner.getDrawHeight() / 2);
       notch.setTarget(this);
       verticalNotches.add(notch);
@@ -209,11 +212,24 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
       else {
         value -= snappableComponent.getDrawWidth() / 2f + 0.5f;
       }
-      Notch.Horizontal notch = new Notch.Horizontal(owner, value, displayValue, action);
+      Notch.Horizontal notch = new Notch.Horizontal(owner, value, displayValue);
       notch.setGap(owner.getDrawWidth() / 2);
       notch.setTarget(this);
       horizontalNotches.add(notch);
     }
+  }
+
+  /**
+   * Get the insertion index corresponding to this separator target or -1 if
+   * the insertion can't be found or the component should be inserted at the end
+   */
+  public int getInsertionIndex() {
+    NlComponent before = !isAtEnd() ? myComponent.getNlComponent() : null;
+    NlComponent parent = before != null ? before.getParent() : null;
+    if (parent != null) {
+      return parent.getChildren().indexOf(before);
+    }
+    return -1;
   }
 
   @Override

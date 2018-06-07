@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import com.intellij.openapi.util.text.StringUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -168,6 +169,11 @@ public class VectorDrawableTransformerTest {
         "    </group>\n" +
         "</vector>\n";
     String result = VectorDrawableTransformer.resizeAndCenter(ORIGINAL, new Dimension(100, 100), 2.5, null);
+    assertEquals(expected, result);
+    // Check the same transformation but with Windows line separators.
+    String original = StringUtil.replace(ORIGINAL, "\n", "\r\n");
+    result = VectorDrawableTransformer.resizeAndCenter(original, new Dimension(100, 100), 2.5, null);
+    expected = StringUtil.replace(expected, "\n", "\r\n");
     assertEquals(expected, result);
   }
 

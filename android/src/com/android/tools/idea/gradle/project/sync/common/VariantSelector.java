@@ -22,10 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static java.util.Collections.sort;
 
 public class VariantSelector {
   @Nullable
@@ -44,7 +44,7 @@ public class VariantSelector {
       }
     }
     List<Variant> sortedVariants = Lists.newArrayList(variants);
-    sort(sortedVariants, (o1, o2) -> o1.getName().compareTo(o2.getName()));
+    sortedVariants.sort(Comparator.comparing(Variant::getName));
     return sortedVariants.isEmpty() ? null : sortedVariants.get(0);
   }
 }

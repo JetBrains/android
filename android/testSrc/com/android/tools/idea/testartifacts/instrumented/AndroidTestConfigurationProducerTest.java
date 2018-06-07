@@ -16,10 +16,18 @@
 package com.android.tools.idea.testartifacts.instrumented;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.io.Files;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
+
+import java.io.File;
+import java.nio.charset.StandardCharsets;
 
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromDirectory;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromFile;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 
 /**
@@ -57,10 +65,54 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertNull(createAndroidTestConfigurationFromDirectory(getProject(), "app/src/test/java"));
   }
 
+  public void testCannotCreateAndroidTestConfigurationFromJUnitTestClassWithKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    assertNull(createAndroidTestConfigurationFromFile(
+      getProject(), "app/src/test/java/com/example/android/kotlin/ExampleUnitTest.kt"));
+  }
+
+  public void testCanCreateAndroidTestConfigurationFromAndroidTestDirectoryWithKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromDirectory(getProject(), "app/src/androidTest/java");
+    assertNotNull(runConfig);
+    assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
+  }
+
+  public void testCannotCreateAndroidTestConfigurationFromJUnitTestDirectoryWithKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    assertNull(createAndroidTestConfigurationFromDirectory(getProject(), "app/src/test/java"));
+  }
+
   public void testCanCreateAndroidTestConfigurationFromFromTestOnlyModule() throws Exception {
     loadProject(TEST_ONLY_MODULE, "test");
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "com.example.android.app.ExampleTest");
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
+  }
+
+  public void testRuntimeQualifiedNameIsUsed() throws Exception {
+    loadSimpleApplication();
+
+    File projectDir = VfsUtilCore.virtualToIoFile(myFixture.getProject().getBaseDir());
+    File newTestFile = new File(projectDir, "app/src/androidTest/java/google/simpleapplication/SomeTest.java");
+    Files.createParentDirs(newTestFile);
+    Files.write(
+      "package google.simpleapplication;\n" +
+      "\n" +
+      "import android.app.Application;\n" +
+      "import android.test.ApplicationTestCase;\n" +
+      "\n" +
+      "public class SomeTest {\n" +
+      "  public static class InnerClassTest extends ApplicationTestCase<Application> {\n" +
+      "    \n" +
+      "  }\n" +
+      "}",
+      newTestFile,
+      StandardCharsets.UTF_8);
+
+    LocalFileSystem.getInstance().refreshAndFindFileByIoFile(newTestFile);
+
+    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "google.simpleapplication.SomeTest.InnerClassTest");
+    assertEquals(runConfig.CLASS_NAME, "google.simpleapplication.SomeTest$InnerClassTest");
   }
 }

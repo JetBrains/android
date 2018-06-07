@@ -29,7 +29,6 @@ import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,8 +50,10 @@ public class InstantRunTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Rule public final ScreenshotsDuringTest movie = new ScreenshotsDuringTest();
 
   private static final String APP_NAME = "app";
+  private static final Pattern EMPTY_OUTPUT= Pattern.compile("^$", Pattern.DOTALL);
   private static final Pattern RUN_OUTPUT =
     Pattern.compile(".*Connected to process (\\d+) .*", Pattern.DOTALL);
   private static final Pattern CMAKE_RUN_OUTPUT =
@@ -82,9 +83,10 @@ public class InstantRunTest {
    *   2. Make sure the instant run hot swap is applied in Run tool window.
    *   </pre>
    */
+  @RunIn(TestGroup.SANITY)
   @Test
   public void hotSwap() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
@@ -99,10 +101,10 @@ public class InstantRunTest {
     ideFrameFixture
       .getEditor()
       .open("app/src/main/java/google/simpleapplication/MyActivity.java")
-      .enterText(Strings.repeat("\n", 10));
+      .moveBetween("setContentView(R.layout.activity_my);", "")
+      .enterText("\nSystem.out.println(\"Hello, hot swap!\");");
 
     ideFrameFixture
-      .waitForGradleProjectSyncToFinish()
       .findApplyChangesButton()
       .click();
 
@@ -134,9 +136,10 @@ public class InstantRunTest {
    *   2. Make sure the instant run cold swap is applied in Run tool window.
    *   </pre>
    */
+  @RunIn(TestGroup.SANITY)
   @Test
   public void coldSwap() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
@@ -153,16 +156,16 @@ public class InstantRunTest {
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
+      .waitForRenderToFinish(Wait.seconds(30))
       .dragComponentToSurface("Text", "TextView")
-      .waitForRenderToFinish();
+      .waitForRenderToFinish(Wait.seconds(30));
 
     ideFrameFixture
-      .waitForGradleProjectSyncToFinish()
       .findApplyChangesButton()
       .click();
 
     // Studio takes a few seconds to reset Run tool window contents.
-    Wait.seconds(10).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
+    Wait.seconds(30).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
     String newPid = extractPidFromOutput(contentFixture.getOutput(), RUN_OUTPUT);
     // (Cold swap) Verify the inequality of PIDs before and after IR
@@ -187,9 +190,9 @@ public class InstantRunTest {
    *   Verify that instant run cold swap is applied in Run tool window.
    */
   @Test
-  @Ignore("b/37506663: Please ask QA team for enabling this test.")
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/37506663
   public void activityRunningOnSeparateProcess() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
@@ -209,7 +212,6 @@ public class InstantRunTest {
       .enterText("\nandroid:process=\":foo\"");
 
     ideFrameFixture
-      .waitForGradleProjectSyncToFinish()
       .findApplyChangesButton()
       .click();
 
@@ -243,9 +245,10 @@ public class InstantRunTest {
    *   2. Make sure the instant run is applied in EventLog tool window.
    *   </pre>
    */
+  @RunIn(TestGroup.SANITY)
   @Test
   public void changeManifest() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
@@ -265,7 +268,6 @@ public class InstantRunTest {
       .enterText("<uses-permission android:name=\"android.permission.INTERNET\" /\n");
 
     ideFrameFixture
-      .waitForGradleProjectSyncToFinish()
       .findApplyChangesButton()
       .click();
 
@@ -295,7 +297,7 @@ public class InstantRunTest {
    */
   @Test
   public void unnecessaryCleanCheck() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
@@ -355,6 +357,7 @@ public class InstantRunTest {
    *   </pre>
    */
   @Test
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/68046183 - this test is flaking out
   public void modifyVariableDuringDebugSession() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("Project204792");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -421,6 +424,7 @@ public class InstantRunTest {
    *   2. Make sure the instant run hot swap is applied in Run tool window.
    *   </pre>
    */
+  @RunIn(TestGroup.SANITY)
   @Test
   public void cmakeHotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmake");
@@ -438,10 +442,10 @@ public class InstantRunTest {
     ideFrameFixture
       .getEditor()
       .open("app/src/main/java/google/basiccmake/MainActivity.java")
-      .enterText(Strings.repeat("\n", 10));
+      .moveBetween("tv.setText(stringFromJNI());", "")
+      .enterText("\nSystem.out.println(\"Hello, CMake hot swap!\");");
 
     ideFrameFixture
-      .waitForGradleProjectSyncToFinish()
       .findApplyChangesButton()
       .click();
 
@@ -471,7 +475,7 @@ public class InstantRunTest {
   @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void installingPlatformWhileDeployingApp() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     emulator.createAVD(guiTest.ideFrame().invokeAvdManager(),
                        "x86 Images",
                        new ChooseSystemImageStepFixture.SystemImage("Lollipop", "22", "x86", "Android 5.1"),
@@ -554,7 +558,7 @@ public class InstantRunTest {
       .getEditor()
       .open(MAIN_LAYOUT_FILE, EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
-      .dragComponentToSurface("Widgets", "Button");
+      .dragComponentToSurface("Buttons", "Button");
 
     ideFrameFixture
       .getEditor()
@@ -569,7 +573,7 @@ public class InstantRunTest {
       .enterText("\nandroid.widget.TextView a = (android.widget.TextView)findViewById(R.id.view1);" +
                  "\nandroid.widget.Button b = (android.widget.Button)findViewById(R.id.view2);");
 
-    ideFrameFixture.waitForGradleProjectSyncToFinish()
+    ideFrameFixture
       .runApp(APP_NAME)
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
@@ -598,7 +602,6 @@ public class InstantRunTest {
       .enterText("view1");
 
     ideFrameFixture
-      .waitForGradleProjectSyncToFinish()
       .findApplyChangesButton()
       .click();
 
@@ -647,10 +650,15 @@ public class InstantRunTest {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
-    ideFrameFixture
+    PatternTextMatcher runningAppMatcher = new PatternTextMatcher(RUN_OUTPUT);
+
+    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture
       .getRunToolWindow()
-      .findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+      .findContent(APP_NAME);
+    contentFixture.waitForOutput(runningAppMatcher, EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
+
+    contentFixture.clickClearAllButton()
+      .waitForOutput(new PatternTextMatcher(EMPTY_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
 
     ideFrameFixture
       .getEditor()
@@ -659,8 +667,8 @@ public class InstantRunTest {
       .enterText("\"Instant Run\"");
 
     ideFrameFixture
-      .waitForGradleProjectSyncToFinish()
       .findApplyChangesButton()
       .click();
+    contentFixture.waitForOutput(runningAppMatcher, EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
   }
 }

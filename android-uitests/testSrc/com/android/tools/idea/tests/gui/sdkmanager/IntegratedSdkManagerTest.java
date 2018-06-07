@@ -20,7 +20,13 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.*;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.sdk.SdkProblemDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.sdk.SelectSdkDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.sdk.SyncAndroidSdkDialogFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.dualView.TreeTableView;
 import org.fest.reflect.exception.ReflectionError;
@@ -51,7 +57,7 @@ public class IntegratedSdkManagerTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private static final String INSTALL_PACKAGE_TAB = "SDK Platforms";
-  private static final String SDK_PLATFORM_VERSION = "API 21";
+  private static final String SDK_PLATFORM_VERSION = "API 18";
 
   /**
    * To verify that the new SDK Manager integrates into the Android Studio user interface,
@@ -66,14 +72,14 @@ public class IntegratedSdkManagerTest {
    *   1. Open Android Studio
    *   2. Open File > Settings > System Settings > Android SDK
    *   3. Select "SDK Tools" tab
-   *   4. Select a package that is not pre-installed (we choose "API 21" here)
+   *   4. Select a package that is not pre-installed
    *   5. Click OK
    *   6. Click yes to confirm
    *   7. Wait until the package is installed and click finish.
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void installPackage() throws Exception {
     guiTest.importSimpleApplication();
@@ -93,7 +99,8 @@ public class IntegratedSdkManagerTest {
               method("cycleState").in(object).invoke();
               return true;
             }
-          } catch (ReflectionError e) {
+          } catch (ReflectionError ignored) {
+            //ignored. Continue iterating through the loop
           }
         }
         return false;
@@ -105,7 +112,7 @@ public class IntegratedSdkManagerTest {
     DialogFixture downloadDialog =
       findDialog(withTitle("SDK Quickfix Installation")).withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
     JButtonFixture finish = downloadDialog.button(withText("Finish"));
-    Wait.seconds(120).expecting("Android source to be installed").until(finish::isEnabled);
+    Wait.seconds(180).expecting("Android source to be installed").until(finish::isEnabled);
     finish.click();
   }
 
@@ -140,9 +147,12 @@ public class IntegratedSdkManagerTest {
 
   private static IdeFrameFixture setInvalidSdk(IdeFrameFixture fixture) {
     setInvalidSdkPath();
-    // Gradle tries to set the sdkData after a sync, so we wait for the sync to finish before setting the sdkData to null
+    // Changing the SDK path triggers a gradle sync, and that will show a couple of dialogs to select/sync the SDK.
     fixture.waitForGradleProjectSyncToFail();
-    AndroidSdks.getInstance().setSdkData(null);
+    SelectSdkDialogFixture.find(fixture.robot())
+      .clickCancel();
+    SyncAndroidSdkDialogFixture.find(fixture.robot())
+      .clickNo();
     return fixture;
   }
 
@@ -150,12 +160,15 @@ public class IntegratedSdkManagerTest {
    * Its OK to call this method, and not set the Android SDK back on tear down. The value is reset every time a test starts by
    * a call to {@link GuiTests#setUpSdks()}
    */
+  @SuppressWarnings("ResultOfMethodCallIgnored")
   private static void setInvalidSdkPath() {
     ApplicationManager.getApplication().invokeAndWait(() -> ApplicationManager.getApplication().runWriteAction(
       () -> {
-        File invalidAndroidSdkPath = GuiTests.getProjectCreationDirPath();
-        boolean ignored = new File(invalidAndroidSdkPath, SdkConstants.FD_PLATFORMS).mkdirs();
+        File invalidAndroidSdkPath = GuiTests.getProjectCreationDirPath(null);
+        File androidSdkPlatformPath = new File(invalidAndroidSdkPath, SdkConstants.FD_PLATFORMS);
+        androidSdkPlatformPath.mkdirs();
         IdeSdks.getInstance().setAndroidSdkPath(invalidAndroidSdkPath, null);
+        androidSdkPlatformPath.delete(); // Simulate user removing the Android SDK
       }));
 
     AndroidSdks.getInstance().setSdkData(null);

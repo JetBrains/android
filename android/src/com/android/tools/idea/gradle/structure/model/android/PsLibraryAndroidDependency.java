@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;

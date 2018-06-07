@@ -46,9 +46,11 @@ final class GridDragHandler extends DragHandler {
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
+    NlComponent layoutComponent = layout.getNlComponent();
+
     // Without this case the children array is empty and the array access throws an ArrayIndexOutOfBoundsException
     if (layout.getChildCount() == 0) {
-      insertComponents(-1, insertType);
+      editor.insertChildren(layoutComponent, components, -1, insertType);
       return;
     }
 
@@ -63,7 +65,7 @@ final class GridDragHandler extends DragHandler {
         return;
       }
       AttributesTransaction transaction = component.startAttributeTransaction();
-      switch (layout.getNlComponent().getTagName()) {
+      switch (layoutComponent.getTagName()) {
         case SdkConstants.GRID_LAYOUT: {
           transaction.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW, String.valueOf(row));
           transaction.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN, String.valueOf(column));
@@ -76,7 +78,7 @@ final class GridDragHandler extends DragHandler {
         }
       }
       transaction.commit();
-      insertComponents(-1, insertType);
+      editor.insertChildren(layoutComponent, components, -1, insertType);
       return;
     }
 
@@ -92,7 +94,7 @@ final class GridDragHandler extends DragHandler {
     child.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, Integer.toString(row));
     child.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, Integer.toString(column));
 
-    insertComponents(-1, insertType);
+    editor.insertChildren(layoutComponent, components, -1, insertType);
   }
 
   /**

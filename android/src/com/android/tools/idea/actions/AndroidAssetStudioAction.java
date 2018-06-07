@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.intellij.ide.IdeView;
@@ -46,13 +47,11 @@ public abstract class AndroidAssetStudioAction extends AnAction {
     final Module module = LangDataKeys.MODULE.getData(dataContext);
     final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
 
-    if (module == null ||
-        view == null ||
-        view.getDirectories().length == 0 ||
-        AndroidFacet.getInstance(module) == null) {
-      return false;
-    }
-    return true;
+    return module != null &&
+           view != null &&
+           view.getDirectories().length > 0 &&
+           AndroidFacet.getInstance(module) != null &&
+           ProjectSystemUtil.getProjectSystem(module.getProject()).allowsFileCreation();
   }
 
   @Override
@@ -70,7 +69,6 @@ public abstract class AndroidAssetStudioAction extends AnAction {
     }
 
     final Module module = LangDataKeys.MODULE.getData(dataContext);
-
     if (module == null) {
       return;
     }

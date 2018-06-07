@@ -16,8 +16,10 @@
 package com.android.tools.datastore;
 
 import com.android.tools.datastore.DataStoreService.BackingNamespace;
+import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.datastore.service.*;
 import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.Profiler.*;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
 import io.grpc.ServerServiceDefinition;
@@ -31,22 +33,25 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runners.model.MultipleFailureException;
 
 import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 import java.util.function.Consumer;
 
 import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURABLE;
 import static com.android.tools.datastore.DataStoreDatabase.Characteristic.PERFORMANT;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class DataStoreServiceTest extends DataStorePollerTest {
-
   private static final String SERVICE_PATH = "/tmp/";
   private static final String SERVICE_NAME = "DataStoreServiceTest";
   private static final String SERVER_NAME = "TestServer";
-  private static final Profiler.VersionResponse EXPECTED_VERSION = Profiler.VersionResponse.newBuilder().setVersion("TEST").build();
+  private static final VersionResponse EXPECTED_VERSION = VersionResponse.newBuilder().setVersion("TEST").build();
   private DataStoreService myDataStore;
   private Server myService;
 
@@ -86,6 +91,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     expectedServices.add(CpuService.class);
     expectedServices.add(NetworkService.class);
     expectedServices.add(MemoryService.class);
+    expectedServices.add(EnergyService.class);
 
     List<ServicePassThrough> services = myDataStore.getRegisteredServices();
     for (ServicePassThrough service : services) {
@@ -100,8 +106,8 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     ManagedChannel channel = InProcessChannelBuilder.forName(SERVER_NAME).build();
     myDataStore.connect(channel);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
-      myDataStore.getProfilerClient(DataStorePollerTest.SESSION);
-    Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build());
+      myDataStore.getProfilerClient(DeviceId.of(DEVICE.getDeviceId()));
+    VersionResponse response = stub.getVersion(VersionRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build());
     assertEquals(response, EXPECTED_VERSION);
   }
 
@@ -111,17 +117,46 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     myDataStore.connect(channel);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
       ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
-    Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build());
+    VersionResponse response = stub.getVersion(VersionRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build());
     assertEquals(response, EXPECTED_VERSION);
-    myDataStore.disconnect(DataStorePollerTest.SESSION);
+    myDataStore.disconnect(DeviceId.of(DEVICE.getDeviceId()));
     myExpectedException.expect(StatusRuntimeException.class);
-    stub.getVersion(Profiler.VersionRequest.getDefaultInstance());
+    stub.getVersion(VersionRequest.getDefaultInstance());
   }
 
   @Test
   public void testRegisterDb() {
     FakeDataStoreService dataStoreService = new FakeDataStoreService("DataStoreServiceTestFake", SERVICE_PATH, getPollTicker()::run);
     dataStoreService.assertCorrectness();
+    dataStoreService.shutdown();
+  }
+
+  @Test
+  public void testSQLFailureCallsbackToExceptionHandler() throws Exception {
+    // Teardown datastore created in startup to unregister callbacks.
+    myDataStore.shutdown();
+    FakeDataStoreService dataStoreService = new FakeDataStoreService("testSQLFailureCallsbackToExceptionHandler", SERVICE_PATH, getPollTicker()::run);
+
+    // Use an array making this object mutable by the lambda.
+    final Throwable[] expectedException = new Throwable[1];
+    dataStoreService.setNoPiiExceptionHanlder((t) -> expectedException[0] = t );
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
+      ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName("testSQLFailureCallsbackToExceptionHandler").usePlaintext(true).build());
+
+    // Test that a normal RPC call does not trigger an exception
+    stub.getAgentStatus(AgentStatusRequest.getDefaultInstance());
+    assertThat(expectedException[0]).isNull();
+
+    // Close the connection then test that we get the expected SQLException
+    dataStoreService.getPassthrough().dropProfilerTable();
+    stub.getAgentStatus(AgentStatusRequest.getDefaultInstance());
+    assertThat(expectedException[0]).isInstanceOf(SQLException.class);
+
+    // Because we throw an error connection closes in the middle of the test, trying to call shutdown on the service will log an exception.
+    // The exception is thrown when the connections attempts to commit the database but the connection is closed,
+    // then we close the connection.
+    myExpectedException.expect(AssertionError.class);
+    dataStoreService.shutdown();
   }
 
   private static class MemoryServiceStub extends MemoryServiceGrpc.MemoryServiceImplBase {
@@ -138,26 +173,20 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
     @Override
-    public void getVersion(Profiler.VersionRequest request, StreamObserver<Profiler.VersionResponse> responseObserver) {
+    public void getVersion(VersionRequest request, StreamObserver<VersionResponse> responseObserver) {
       responseObserver.onNext(EXPECTED_VERSION);
       responseObserver.onCompleted();
     }
 
     @Override
-    public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> responseObserver) {
-      String serial = DataStorePollerTest.SESSION.getDeviceSerial();
-      String bootid = DataStorePollerTest.SESSION.getBootId();
-      Profiler.Device device = Profiler.Device.newBuilder()
-        .setSerial(serial)
-        .setBootId(bootid)
-        .build();
-      responseObserver.onNext(Profiler.GetDevicesResponse.newBuilder().addDevice(device).build());
+    public void getDevices(GetDevicesRequest request, StreamObserver<GetDevicesResponse> responseObserver) {
+      responseObserver.onNext(GetDevicesResponse.newBuilder().addDevice(DEVICE).build());
       responseObserver.onCompleted();
     }
 
     @Override
-    public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
-      responseObserver.onNext(Profiler.GetProcessesResponse.getDefaultInstance());
+    public void getProcesses(GetProcessesRequest request, StreamObserver<GetProcessesResponse> responseObserver) {
+      responseObserver.onNext(GetProcessesResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
   }
@@ -183,7 +212,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
     @NotNull
     @Override
-    DataStoreDatabase createDatabase(@NotNull String dbPath, @NotNull DataStoreDatabase.Characteristic characteristic) {
+    DataStoreDatabase createDatabase(@NotNull String dbPath, @NotNull DataStoreDatabase.Characteristic characteristic, @NotNull Consumer<Throwable> noPiiExceptionHandler) {
       if (myCreatedDbPaths == null) {
         // This method is being called from the parent class's constructor, so we need to lazily create it.
         // Also, calling an overridden method in the parent constructor is super bad form. But we're lucky we can get away with it here.
@@ -194,7 +223,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
       }
       myCreatedDbPaths.add(dbPath);
       myCreatedCharacteristics.add(characteristic);
-      return super.createDatabase(dbPath, characteristic);
+      return super.createDatabase(dbPath, characteristic, noPiiExceptionHandler);
     }
 
     public void assertCorrectness() {
@@ -205,18 +234,26 @@ public class DataStoreServiceTest extends DataStorePollerTest {
         assertEquals(myPassthrough.getBackingNamespaces().get(i).myCharacteristic, myCreatedCharacteristics.get(i));
       }
     }
+
+    public FakeServicePassthrough getPassthrough() {
+      return myPassthrough;
+    }
   }
 
-  private static class FakeServicePassthrough implements ServicePassThrough {
+  private static class FakeServicePassthrough extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough {
     @NotNull private final List<BackingNamespace> myNamespaces = Arrays.asList(
       new BackingNamespace("durable", DURABLE), new BackingNamespace("inmemory", PERFORMANT));
 
     @NotNull private final Map<BackingNamespace, Connection> myReceivedBackingStores = new HashMap<>();
 
+    @NotNull private final ProfilerTable myProfilerTable = new ProfilerTable();
+
+    private Connection myConnection;
+
     @NotNull
     @Override
     public ServerServiceDefinition bindService() {
-      return ServerServiceDefinition.builder("FakeServicePassthrough").build();
+      return super.bindService();
     }
 
     @NotNull
@@ -230,6 +267,21 @@ public class DataStoreServiceTest extends DataStorePollerTest {
       assert myNamespaces.contains(namespace) && !myReceivedBackingStores.containsKey(namespace) && !myReceivedBackingStores
         .containsValue(connection);
       myReceivedBackingStores.put(namespace, connection);
+      myProfilerTable.initialize(connection);
+      myConnection = connection;
+    }
+
+    @Override
+    public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentStatusResponse> responseObserver) {
+      responseObserver.onNext(myProfilerTable.getAgentStatus(request));
+      responseObserver.onCompleted();
+    }
+
+    public void dropProfilerTable(){
+      try (Statement stmt = myConnection.createStatement()) {
+        stmt.execute("DROP TABLE Profiler_Processes");
+      } catch (SQLException ex) {
+      }
     }
 
     public void assertCorrectness() {

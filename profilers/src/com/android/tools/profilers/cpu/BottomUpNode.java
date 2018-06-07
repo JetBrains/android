@@ -15,15 +15,16 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
 
-  private final List<HNode<MethodModel>> myPathNodes = new ArrayList<>();
+  private final List<CaptureNode> myPathNodes = new ArrayList<>();
   private final boolean myIsRoot;
   private boolean myChildrenBuilt;
 
@@ -52,14 +53,24 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
       }
     }
 
+    // We use a separate map for unmatched children, because we can not merge unmatched with matched,
+    // i.e all merged children should have the same {@link CaptureNode.FilterType};
     Map<String, BottomUpNode> children = new HashMap<>();
+    Map<String, BottomUpNode> unmatchedChildren = new HashMap<>();
+
     for (CaptureNode curNode : allNodes) {
       assert curNode.getData() != null;
       String curId = curNode.getData().getId();
-      BottomUpNode child = children.get(curId);
+
+      BottomUpNode child = curNode.isUnmatched() ? unmatchedChildren.get(curId) : children.get(curId);
       if (child == null) {
         child = new BottomUpNode(curId);
-        children.put(curId, child);
+        if (curNode.isUnmatched()) {
+          unmatchedChildren.put(curId, child);
+        }
+        else {
+          children.put(curId, child);
+        }
         addChild(child);
       }
       child.addPathNode(curNode);
@@ -73,7 +84,7 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     }
   }
 
-  private void addPathNode(@NotNull HNode<MethodModel> node) {
+  private void addPathNode(@NotNull CaptureNode node) {
     myPathNodes.add(node);
   }
 
@@ -82,19 +93,28 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
       return false;
     }
 
+    // We use a separate map for unmatched children, because we can not merge unmatched with matched,
+    // i.e all merged children should have the same {@link CaptureNode.FilterType};
     Map<String, BottomUpNode> children = new HashMap<>();
+    Map<String, BottomUpNode> unmatchedChildren = new HashMap<>();
+
     assert myPathNodes.size() == getNodes().size();
     for (int i = 0; i < myPathNodes.size(); ++i) {
-      HNode<MethodModel> parent = myPathNodes.get(i).getParent();
+      CaptureNode parent = myPathNodes.get(i).getParent();
       if (parent == null) {
         continue;
       }
       assert parent.getData() != null;
       String parentId = parent.getData().getId();
-      BottomUpNode child = children.get(parentId);
+      BottomUpNode child = parent.isUnmatched() ? unmatchedChildren.get(parentId) : children.get(parentId);
       if (child == null) {
         child = new BottomUpNode(parentId);
-        children.put(parentId, child);
+        if (parent.isUnmatched()) {
+          unmatchedChildren.put(parentId, child);
+        }
+        else {
+          children.put(parentId, child);
+        }
         addChild(child);
       }
       child.addPathNode(parent);
@@ -116,11 +136,11 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     // then the second method can't be outerSoFar.
     // It's used to exclude nodes which aren't at the top of the
     // call stack from the total time calculation.
-    HNode<MethodModel> outerSoFar = null;
+    CaptureNode outerSoFar = null;
 
     // myNodes is sorted by CaptureNode#getStart() in increasing order,
     // if they are equal then ancestor comes first
-    for (CaptureNode node: myNodes) {
+    for (CaptureNode node : myNodes) {
       if (outerSoFar == null || node.getEnd() > outerSoFar.getEnd()) {
         if (outerSoFar != null) {
           // |outerSoFar| is at the top of the call stack
@@ -142,30 +162,23 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     myChildrenTotal = myTotal - self;
   }
 
+  @NotNull
   @Override
-  public String getMethodName() {
+  public CaptureNodeModel getMethodModel() {
     if (myIsRoot) {
-      return "";
+      // Return a dummy entry for the root.
+      return new SingleNameModel("");
     }
-    MethodModel method = myPathNodes.get(0).getData();
-    return (method == null ? "" : method.getName());
+    CaptureNodeModel model = myPathNodes.get(0).getData();
+    assert model != null;
+    return model;
   }
 
   @Override
-  public String getClassName() {
+  public CaptureNode.FilterType getFilterType() {
     if (myIsRoot) {
-      return "";
+      return CaptureNode.FilterType.MATCH;
     }
-    MethodModel method = myPathNodes.get(0).getData();
-    return (method == null ? "" : method.getClassName());
-  }
-
-  @Override
-  public String getSignature() {
-    if (myIsRoot) {
-      return "";
-    }
-    MethodModel method = myPathNodes.get(0).getData();
-    return (method == null ? "" : method.getSignature());
+    return myPathNodes.get(0).getFilterType();
   }
 }
