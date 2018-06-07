@@ -40,9 +40,9 @@ public final class SelectorHandler extends ViewGroupHandler {
   public Icon getIcon(@NotNull NlComponent component) {
     switch (component.getTagName()) {
       case SdkConstants.TAG_SELECTOR:
-        return StudioIcons.LayoutEditor.Palette.MENU;
+        return StudioIcons.LayoutEditor.Menu.MENU;
       case SdkConstants.TAG_ITEM:
-        return StudioIcons.LayoutEditor.Palette.ITEM;
+        return StudioIcons.LayoutEditor.Menu.ITEM;
       default:
         return super.getIcon(component);
     }
