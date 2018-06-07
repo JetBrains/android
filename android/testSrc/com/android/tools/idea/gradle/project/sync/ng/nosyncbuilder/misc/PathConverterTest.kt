@@ -26,7 +26,7 @@ class PathConverterTest : TestCase() {
     val childString = "path/to/child.file"
     val fileString = "$rootString/$childString"
 
-    val converter = PathConverter(File(rootString), File("/"))
+    val converter = PathConverter(File(rootString), File("/"), File("/lib"), File("/out"))
 
     assertEquals(childString, converter.fileToProto(File(fileString)).relativePath)
   }
@@ -38,7 +38,7 @@ class PathConverterTest : TestCase() {
     val file = File(root, childString)
     val sdkFile = File(sdkRoot, childString)
 
-    val converter = PathConverter(root, sdkRoot)
+    val converter = PathConverter(root, sdkRoot, File("/lib"), File("/out"))
 
     assertEquals(childString, converter.fileToProto(file, PathConverter.DirType.MODULE).relativePath)
     assertEquals(childString, converter.fileToProto(sdkFile, PathConverter.DirType.SDK).relativePath)
@@ -52,7 +52,7 @@ class PathConverterTest : TestCase() {
     val badRoot = File("/root/baddir")
     val file = File(root, "path/to/child.file")
 
-    val converter = PathConverter(badRoot, File("/"))
+    val converter = PathConverter(badRoot, File("/"), File("/lib"), File("/out"))
 
     assertFails {
       converter.fileToProto(file)
@@ -64,7 +64,7 @@ class PathConverterTest : TestCase() {
     val childString = "path/to/child.file"
     val file = File(root, "path/to/child.file")
 
-    val converter = PathConverter(root, File("/"))
+    val converter = PathConverter(root, File("/"), File("/lib"), File("/out"))
 
     val proto = FileProto.File.newBuilder()
       .setRelativePath(childString)
@@ -79,7 +79,7 @@ class PathConverterTest : TestCase() {
       .setRelativePath("/")
       .build()!!
 
-    val converter = PathConverter(File("/"), File("/"))
+    val converter = PathConverter(File("/"), File("/"), File("/lib"), File("/out"))
 
     assertFails {
       converter.fileFromProto(proto)

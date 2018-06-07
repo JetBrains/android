@@ -18,15 +18,19 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.FileProto
 import java.io.File
 
-class PathConverter(moduleDirFile: File, sdkDirFile: File) {
+class PathConverter(moduleDirFile: File, sdkDirFile: File, libraryDirFile: File, outDirFile: File) {
   enum class DirType {
     MODULE,
-    SDK
+    SDK,
+    LIBRARY,
+    OUT
   }
 
   private val knownDirs = mapOf(
     DirType.MODULE to moduleDirFile.toPath(),
-    DirType.SDK to sdkDirFile.toPath()
+    DirType.SDK to sdkDirFile.toPath(),
+    DirType.LIBRARY to libraryDirFile.toPath(), // Gradle cached libraries
+    DirType.OUT to outDirFile.toPath() // output directory where artifacts are stored
   )
 
   private fun toRelativePath(fileFile: File, dirType: DirType): String {

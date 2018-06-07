@@ -43,6 +43,6 @@ message NativeLibrary {
 message GlobalLibraryMap {
     map<string, AndroidLibrary> android_libraries = 1;
     map<string, JavaLibrary> java_libraries = 2;
-    map<string, ModuleDependency> module_dependencies = 3;
-    map<string, NativeLibrary> native_libraries = 4;
+    map<string, NativeLibrary> native_libraries = 3;
+    map<string, ModuleDependency> module_dependencies = 4;
 }

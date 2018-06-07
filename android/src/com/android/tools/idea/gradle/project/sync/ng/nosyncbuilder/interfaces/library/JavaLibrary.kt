@@ -15,24 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library
 
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.LibraryProto
+import java.io.File
 
-/**
- * Wrapper for [artifactAddress], common library type.
- *
- * It should never be implemented, use more specific types such as [AndroidLibrary] instead.
- */
-interface Library {
-  /**
-   * The artifact address in a unique way.
-   *
-   * This is either a module path for sub-modules (with optional variant name), or a maven coordinate for external dependencies.
-   * TODO make it not null when NativeDependencies will be supported
-   */
-  val artifactAddress: String?
+interface JavaLibrary : Library {
+  /** The artifact location. */
+  val artifact: File
+
+  fun toProto(converter: PathConverter) = LibraryProto.JavaLibrary.newBuilder()
+    .setLibrary(LibraryProto.Library.newBuilder().setArtifactAddress(artifactAddress))
+    .setArtifact(converter.fileToProto(artifact, PathConverter.DirType.OUT))
+    .build()!!
 }
-
-// Outside because of inheritance.
-fun Library.toProto(): LibraryProto.Library = LibraryProto.Library.newBuilder()
-  .setArtifactAddress(artifactAddress)
-  .build()!!

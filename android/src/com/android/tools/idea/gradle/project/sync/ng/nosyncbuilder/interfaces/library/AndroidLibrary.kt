@@ -15,19 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library
 
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.LibraryProto
+import java.io.File
 
-/** Represents a dependency on another module.*/
-interface ModuleDependency : Library {
-  val buildId: String
-  /** The gradle path. */
-  val projectPath: String
-  val variant: String
+interface AndroidLibrary : Library {
+  /** The path to the android artifact. */
+  val artifact: File
+  /** The list of local Jar files that are included in the dependency. */
+  val localJars: Collection<File>
+  /** The location of the unzipped bundle folder. */
+  val bundleFolder: File
 
-  fun toProto() = LibraryProto.ModuleDependency.newBuilder()
+  fun toProto(converter: PathConverter) = LibraryProto.AndroidLibrary.newBuilder()
     .setLibrary(LibraryProto.Library.newBuilder().setArtifactAddress(artifactAddress))
-    .setBuildId(buildId)
-    .setProjectPath(projectPath)
-    .setVariant(variant)
+    .setArtifact(converter.fileToProto(artifact, PathConverter.DirType.OUT))
+    .addAllLocalJars(localJars.map { converter.fileToProto(it, PathConverter.DirType.LIBRARY) })
+    .setBundleFolder(converter.fileToProto(bundleFolder, PathConverter.DirType.LIBRARY))
     .build()!!
 }

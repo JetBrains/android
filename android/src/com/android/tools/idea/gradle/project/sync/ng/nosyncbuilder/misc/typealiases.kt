@@ -32,3 +32,5 @@ typealias OldClassField = com.android.builder.model.ClassField
 typealias OldJavaCompileOptions = com.android.builder.model.JavaCompileOptions
 typealias OldApiVersion = com.android.builder.model.ApiVersion
 typealias OldTestedTargetVariant = com.android.builder.model.TestedTargetVariant
+typealias Level2Library = com.android.builder.model.level2.Library
+typealias Level2GlobalLibraryMap = com.android.builder.model.level2.GlobalLibraryMap
