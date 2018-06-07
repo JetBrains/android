@@ -40,11 +40,16 @@ class CpuProfilingConfigurationView {
   /**
    * Fake configuration to represent "Edit configurations..." entry on the profiling configurations combobox.
    */
-  static final ProfilingConfiguration EDIT_CONFIGURATIONS_ENTRY = new ProfilingConfiguration();
+  static final ProfilingConfiguration EDIT_CONFIGURATIONS_ENTRY = new ProfilingConfiguration("Edit Configuration Entry",
+                                                                                             CpuProfilerType.UNSPECIFIED_PROFILER,
+                                                                                             CpuProfilerConfiguration.Mode.UNSTATED);
+
   /**
    * Fake configuration to represent a separator on the profiling configurations combobox.
    */
-  static final ProfilingConfiguration CONFIG_SEPARATOR_ENTRY = new ProfilingConfiguration();
+  static final ProfilingConfiguration CONFIG_SEPARATOR_ENTRY = new ProfilingConfiguration("Configuration Separator Entry",
+                                                                                          CpuProfilerType.UNSPECIFIED_PROFILER,
+                                                                                          CpuProfilerConfiguration.Mode.UNSTATED);
 
   /**
    * A fake configuration shown when an API-initiated tracing is in progress. It exists for UX purpose only and isn't something
