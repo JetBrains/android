@@ -22,6 +22,7 @@ import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
+import com.android.ide.common.util.PathString;
 import com.android.resources.LayoutDirection;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ScreenOrientation;
@@ -62,10 +63,8 @@ import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.xmlpull.v1.XmlPullParserException;
 
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -485,6 +484,8 @@ public class RenderTask {
       Module module = getContext().getModule();
       myIncludedWithin = layout != null ? IncludeReference.get(module, xmlFile, resolver) : IncludeReference.NONE;
     }
+
+    ILayoutPullParser topParser = null;
     if (myIncludedWithin != IncludeReference.NONE) {
       assert Comparing.equal(myIncludedWithin.getToFile(), xmlFile.getVirtualFile());
       // TODO: Validate that we're really including the same layout here!
@@ -495,40 +496,28 @@ public class RenderTask {
       //
       VirtualFile layoutVirtualFile = myIncludedWithin.getFromFile();
 
-      try {
-        // Get the name of the layout actually being edited, without the extension
-        // as it's what IXmlPullParser.getParser(String) will receive.
-        String queryLayoutName = ResourceHelper.getResourceName(xmlFile);
-        myLayoutlibCallback.setLayoutParser(queryLayoutName, modelParser);
+      // Get the name of the layout actually being edited, without the extension
+      // as it's what IXmlPullParser.getParser(String) will receive.
+      String queryLayoutName = ResourceHelper.getResourceName(xmlFile);
+      myLayoutlibCallback.setLayoutParser(queryLayoutName, modelParser);
 
-        // Attempt to read from PSI
-        ILayoutPullParser topParser;
-        topParser = null;
-        PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(getContext().getProject(), layoutVirtualFile);
-        if (psiFile instanceof XmlFile) {
-          LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
-          // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
-          parser.setProvideViewCookies(myProvideCookiesForIncludedViews);
-          topParser = parser;
-        }
-
+      // Attempt to read from PSI
+      PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(getContext().getProject(), layoutVirtualFile);
+      if (psiFile instanceof XmlFile) {
+        LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
+        // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
+        parser.setProvideViewCookies(myProvideCookiesForIncludedViews);
+        topParser = parser;
+      } else {
+        // TODO(namespaces, b/74003372): figure out where to get the namespace from.
+        topParser = LayoutFilePullParser.create(new PathString(myIncludedWithin.getFromPath()), ResourceNamespace.TODO());
         if (topParser == null) {
-          // TODO(namespaces, b/74003372): figure out where to get the namespace from.
-          topParser = LayoutFilePullParser.create(myIncludedWithin.getFromPath(), ResourceNamespace.TODO());
+          myLogger.error(null, String.format("Could not read layout file %1$s", myIncludedWithin.getFromPath()), null, null, null);
         }
-
-        return topParser;
-      }
-      catch (IOException e) {
-        myLogger.error(null, String.format("Could not read layout file %1$s", myIncludedWithin.getFromPath()), e, null, e);
-      }
-      catch (XmlPullParserException e) {
-        myLogger.error(null, String.format("XML parsing error: %1$s", e.getMessage()), e, null,
-                       e.getDetail() != null ? e.getDetail() : e);
       }
     }
 
-    return null;
+    return topParser;
   }
 
   /**

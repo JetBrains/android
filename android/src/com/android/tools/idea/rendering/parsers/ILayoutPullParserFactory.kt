@@ -17,7 +17,7 @@ package com.android.tools.idea.rendering.parsers
 
 import com.android.ide.common.rendering.api.ILayoutPullParser
 import com.android.ide.common.rendering.api.LayoutlibCallback
-import java.io.File
+import com.android.ide.common.util.PathString
 
 /**
  * A factory for creating [ILayoutPullParser]s.
@@ -27,5 +27,5 @@ interface ILayoutPullParserFactory {
    * Creates a parser for the given XML file and returns it. May return null to indicate that this
    * factory does not provide a parser for the given file.
    */
-  fun create(xml: File, layoutlibCallback: LayoutlibCallback): ILayoutPullParser?
+  fun create(xml: PathString, layoutlibCallback: LayoutlibCallback): ILayoutPullParser?
 }

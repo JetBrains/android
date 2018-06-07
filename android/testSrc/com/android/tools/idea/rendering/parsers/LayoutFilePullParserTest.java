@@ -15,28 +15,25 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.util.PathString;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
-
-import java.io.File;
 
 import static com.android.SdkConstants.*;
 import static org.xmlpull.v1.XmlPullParser.END_TAG;
 import static org.xmlpull.v1.XmlPullParser.START_TAG;
 
 public class LayoutFilePullParserTest extends AndroidTestCase {
-  public LayoutFilePullParserTest() {
-  }
-
   public void testParser() throws Exception {
     @SuppressWarnings("SpellCheckingInspection")
     VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/designtime.xml", "res/layout/designtime.xml");
     assertNotNull(virtualFile);
-    File file = VfsUtilCore.virtualToIoFile(virtualFile);
+    PathString file = new PathString(VfsUtilCore.virtualToIoFile(virtualFile));
 
-    LayoutFilePullParser parser = LayoutFilePullParser.create(file, ResourceNamespace.RES_AUTO);
+    ILayoutPullParser parser = LayoutFilePullParser.create(file, ResourceNamespace.RES_AUTO);
 
     assertNull(parser.getName());
 
