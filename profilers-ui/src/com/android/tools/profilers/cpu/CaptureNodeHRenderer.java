@@ -121,11 +121,13 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
       double idleTimeWidth = ratio * fullDrawingArea.getWidth();
       // The Idle time is drawn at the end of our total time, as such we start at our width minus our idle time.
       double startPosition = fullDrawingArea.getX() + fullDrawingArea.getWidth() - idleTimeWidth;
+      // Need to remove the clampped start from our width when normalizing our width else we end up with the wrong width.
+      double clamppedStart = Math.min(drawingArea.getWidth() + drawingArea.getX(), Math.max(0, startPosition));
       // The minimum of our clamped areas ending position and our idle time ending position.
       double clampedWidth =
-        Math.max(0, Math.min(drawingArea.getX() + drawingArea.getWidth(), startPosition + idleTimeWidth) - startPosition);
+        Math.max(0, (drawingArea.getX() + drawingArea.getWidth()) - clamppedStart);
       g.setPaint(idleColor);
-      g.fill(new Rectangle2D.Double(Math.min(drawingArea.getWidth() + drawingArea.getX(), Math.max(0, startPosition)),
+      g.fill(new Rectangle2D.Double(clamppedStart,
                                     fullDrawingArea.getY(),
                                     clampedWidth,
                                     fullDrawingArea.getHeight()));
