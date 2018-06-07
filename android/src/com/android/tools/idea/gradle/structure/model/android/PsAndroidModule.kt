@@ -19,10 +19,7 @@ import com.android.builder.model.AndroidProject.*
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
-import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
-import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
@@ -34,19 +31,40 @@ import javax.swing.Icon
 
 class PsAndroidModule(
   parent: PsProject,
-  name: String,
-  val resolvedModel: AndroidModuleModel?,
-  gradlePath: String,
-  parsedModel: GradleBuildModel?
-) : PsModule(parent, name, gradlePath, parsedModel) {
+  gradlePath: String
+) : PsModule(parent, gradlePath) {
+  var resolvedModel: AndroidModuleModel? = null
+  var projectType: Int? = null
+  var isLibrary: Boolean = false
+  override var rootDir: File? = null
+  override var icon: Icon? = null
+
   private var buildTypeCollection: PsBuildTypeCollection? = null
   private var productFlavorCollection: PsProductFlavorCollection? = null
   private var variantCollection: PsVariantCollection? = null
   private var dependencyCollection: PsAndroidModuleDependencyCollection? = null
   private var signingConfigCollection: PsSigningConfigCollection? = null
 
-  val projectType: Int? get() = resolvedModel?.androidProject?.projectType ?: parsedModel?.parsedModelModuleType()
-  val isLibrary: Boolean get() = projectType != PROJECT_TYPE_APP
+  fun init(
+    name: String,
+    resolvedModel: AndroidModuleModel?,
+    parsedModel: GradleBuildModel?
+  ) {
+    super.init(name, parsedModel)
+    this.resolvedModel = resolvedModel
+
+    projectType = resolvedModel?.androidProject?.projectType ?: parsedModel?.parsedModelModuleType()
+    isLibrary = projectType != PROJECT_TYPE_APP
+    rootDir = resolvedModel?.rootDirPath ?: parsedModel?.virtualFile?.path?.let { File(it).parentFile }
+    icon = projectType?.let { getAndroidModuleIcon(it) }
+
+    // TODO(solodkyy): Support collection refreshes.
+    buildTypeCollection = null
+    productFlavorCollection = null
+    variantCollection = null
+    dependencyCollection = null
+    signingConfigCollection = null
+  }
 
   val buildTypes: List<PsBuildType> get() = getOrCreateBuildTypeCollection().items()
   val productFlavors: List<PsProductFlavor> get() = getOrCreateProductFlavorCollection().items()
@@ -76,11 +94,6 @@ class PsAndroidModule(
   override fun canDependOn(module: PsModule): Boolean =
     // 'module' is either a Java library or an AAR module.
     (module as? PsAndroidModule)?.isLibrary == true
-
-  override val rootDir: File?
-    get() = resolvedModel?.rootDirPath ?: parsedModel?.virtualFile?.path?.let { File(it).parentFile }
-
-  override val icon: Icon? get() = projectType?.let { getAndroidModuleIcon(it) }
 
   override fun populateRepositories(repositories: MutableList<ArtifactRepository>) {
     super.populateRepositories(repositories)
