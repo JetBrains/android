@@ -17,11 +17,13 @@ package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants.ATTR_STYLE
 import com.android.SdkConstants.BUTTON
+import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.EnumValueUtil.checkSection
 import com.android.tools.idea.uibuilder.property2.testutils.EnumValueUtil.patchLibraryNameOfAllAppCompatStyles
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.android.AndroidTestCase
 
 private const val APPCOMPAT_STYLES = """
@@ -67,9 +69,15 @@ class StyleEnumSupportTest: AndroidTestCase() {
         "Widget.Button.Small",
         "Widget.Button.Toggle")
     var index = 0
+    dumpStyles(values)
     index = checkSection(values, index, PROJECT_HEADER, 2, expectedProjectValues, expectedProjectDisplayValues)
     index = checkSection(values, index, APPCOMPAT_HEADER, 2, expectedAppCompatValues, expectedAppCompatDisplayValues)
     index = checkSection(values, index, ANDROID_HEADER, -40, expectedAndroidValues, expectedAndroidDisplayValues)
     assertThat(index).isEqualTo(-1)
+  }
+
+  // Temporary dump the styles generated in order to help with fixing b/80518128
+  private fun dumpStyles(values: List<EnumValue>) {
+    values.forEach { Logger.getInstance(StyleEnumSupportTest::class.java).warn("enum: $it   header: ${it.header}") }
   }
 }
