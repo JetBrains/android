@@ -30,7 +30,7 @@ internal class PsJavaDependencyCollection(private val parent: PsJavaModule) : Ps
   private fun addDependencies() {
     val parsedDependencies = parent.parsedDependencies
 
-    val gradleModel = parent.gradleModel
+    val gradleModel = parent.resolvedModel
     gradleModel?.jarLibraryDependencies?.forEach { libraryDependency ->
       val moduleVersion = libraryDependency.moduleVersion
       if (moduleVersion != null) {
