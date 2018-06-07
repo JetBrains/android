@@ -625,7 +625,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleFlavoredApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.FlavorsExecutionTest"],
     tags = COMMON_TAGS + [
