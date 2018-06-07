@@ -162,7 +162,8 @@ public class ErrorReporter extends ErrorReportSubmitter {
     else if ("ANR".equals(type)) {
       StudioPerformanceWatcherReport perfReport =
         new StudioPerformanceWatcherReport.Builder().setFile((String)map.get("file")).setThreadDump((String)map.get("threadDump")).build();
-      StudioCrashReporter.getInstance().submit(perfReport);
+      // Performance reports are not limited by a rate limiter.
+      StudioCrashReporter.getInstance().submit(perfReport, true);
     }
     else if ("Crashes".equals(type)) {
       //noinspection unchecked
@@ -176,7 +177,8 @@ public class ErrorReporter extends ErrorReportSubmitter {
 
       StudioCrashReport report =
         new StudioCrashReport.Builder().setDescriptions(descriptions).setIsJvmCrash(isJvmCrash).setUptimeInMs(uptimeInMs).build();
-      StudioCrashReporter.getInstance().submit(report);
+      // Crash reports are not limited by a rate limiter.
+      StudioCrashReporter.getInstance().submit(report, true);
     }
     return true;
   }
