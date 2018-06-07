@@ -520,26 +520,6 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "androidTestBasicBarImplementation",
       "androidTestPaidBarImplementation")
   }
-
-  fun testProjectTypeDetection() {
-    loadProject(PSD_SAMPLE)
-
-    val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
-
-    assertThat(moduleWithSyncedModel(project, "app").projectType).isEqualTo(AndroidProject.PROJECT_TYPE_APP)
-    assertThat(moduleWithSyncedModel(project, "lib").projectType).isEqualTo(AndroidProject.PROJECT_TYPE_LIBRARY)
-  }
-
-  fun testFallbackProjectTypeDetection() {
-    loadProject(PSD_SAMPLE)
-
-    val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
-
-    assertThat(moduleWithoutSyncedModel(project, "app").projectType).isEqualTo(AndroidProject.PROJECT_TYPE_APP)
-    assertThat(moduleWithoutSyncedModel(project, "lib").projectType).isEqualTo(AndroidProject.PROJECT_TYPE_LIBRARY)
-  }
 }
 
 private fun moduleWithoutSyncedModel(project: PsProject, name: String): PsAndroidModule {

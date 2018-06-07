@@ -17,10 +17,7 @@ package com.android.tools.idea.gradle.structure.model.java
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
-import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
-import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.*
 import com.intellij.icons.AllIcons
 import java.io.File
 import javax.swing.Icon
@@ -31,6 +28,7 @@ class PsJavaModule(
   ) : PsModule(parent, gradlePath) {
   var resolvedModel: JavaModuleModel? = null
   override var rootDir: File? = null
+  override val projectType: PsModuleType = PsModuleType.JAVA
   override val icon: Icon? = AllIcons.Nodes.PpJdk
   private var myDependencyCollection: PsJavaDependencyCollection? = null
 

@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.AndroidProject.*
+import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon
@@ -34,7 +33,7 @@ class PsAndroidModule(
   gradlePath: String
 ) : PsModule(parent, gradlePath) {
   var resolvedModel: AndroidModuleModel? = null
-  var projectType: Int? = null
+  override var projectType: PsModuleType = PsModuleType.UNKNOWN
   var isLibrary: Boolean = false
   override var rootDir: File? = null
   override var icon: Icon? = null
@@ -53,10 +52,12 @@ class PsAndroidModule(
     super.init(name, parsedModel)
     this.resolvedModel = resolvedModel
 
-    projectType = resolvedModel?.androidProject?.projectType ?: parsedModel?.parsedModelModuleType()
-    isLibrary = projectType != PROJECT_TYPE_APP
+    projectType =
+      moduleTypeFromAndroidModuleType(resolvedModel?.androidProject?.projectType).takeUnless { it == PsModuleType.UNKNOWN }
+      ?: parsedModel?.parsedModelModuleType() ?: PsModuleType.UNKNOWN
+    isLibrary = projectType.androidModuleType != PROJECT_TYPE_APP
     rootDir = resolvedModel?.rootDirPath ?: parsedModel?.virtualFile?.path?.let { File(it).parentFile }
-    icon = projectType?.let { getAndroidModuleIcon(it) }
+    icon = projectType.androidModuleType?.let { getAndroidModuleIcon(it) }
 
     // TODO(solodkyy): Support collection refreshes.
     buildTypeCollection = null
@@ -263,17 +264,4 @@ class PsAndroidModule(
   private fun resetDeclaredDependencies() {
     dependencyCollection = null
   }
-}
-
-private fun GradleBuildModel.parsedModelModuleType(): Int? =
-  plugins().mapNotNull { moduleProjectTypeFromPlugin(it.name().asString().orEmpty()) }.firstOrNull()
-
-private fun moduleProjectTypeFromPlugin(plugin: String): Int? = when (plugin) {
-  "com.android.application", "android" -> PROJECT_TYPE_APP
-  "com.android.library", "android-library" -> PROJECT_TYPE_LIBRARY
-  "com.android.instantapp" -> PROJECT_TYPE_INSTANTAPP
-  "com.android.feature" -> PROJECT_TYPE_FEATURE
-  "com.android.dynamic-feature" -> PROJECT_TYPE_DYNAMIC_FEATURE
-  "com.android.test" -> PROJECT_TYPE_TEST
-  else -> null
 }
