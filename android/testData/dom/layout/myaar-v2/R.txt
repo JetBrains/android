@@ -1,0 +1,1 @@
+int string my_aar_string 0x7f020001

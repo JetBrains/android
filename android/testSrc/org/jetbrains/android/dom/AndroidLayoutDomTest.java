@@ -3,6 +3,7 @@ package org.jetbrains.android.dom;
 import com.android.SdkConstants;
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.ModuleDataBinding;
+import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -1312,7 +1313,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
 
   public void testAarDependencyHighlightingNamespaced() throws Throwable {
     enableNamespacing("myapp");
-    PsiTestUtil.addLibrary(myModule, "myapklib.aar", getTestDataPath() + "/" + myTestFolder + "/myaar-v2", "classes.jar", "res");
+    ResourcesTestsUtil.addBinaryAarDependency(myModule);
     doTestHighlighting();
   }
 

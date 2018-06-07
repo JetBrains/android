@@ -23,6 +23,8 @@ import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.light.LightElement
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
@@ -54,6 +56,14 @@ sealed class LightRClassesTestBase : AndroidTestCase() {
     finally {
       super.tearDown()
     }
+  }
+
+  protected fun resolveReferenceUnderCaret(): PsiElement? {
+    // We cannot use myFixture.elementAtCaret or TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED because JavaTargetElementEvaluator doesn't
+    // consider synthetic PSI elements as "acceptable" and just returns null instead, so it wouldn't test much.
+    val rReference = TargetElementUtil.findReference(myFixture.editor)!!
+    val resolve = rReference.resolve()
+    return resolve
   }
 
   class SingleModule : LightRClassesTestBase() {
@@ -213,13 +223,71 @@ sealed class LightRClassesTestBase : AndroidTestCase() {
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
 
-      // We cannot use myFixture.elementAtCaret or TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED because JavaTargetElementEvaluator doesn't
-      // consider synthetic PSI elements as "acceptable" and just returns null instead, so it wouldn't test much.
-      val rReference = TargetElementUtil.findReference(myFixture.editor)!!
-      assertThat(rReference.resolve()).isNull()
+      assertThat(resolveReferenceUnderCaret()).isNull()
 
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).isEmpty()
+    }
+  }
+
+  class NamespacedModuleWithAar : LightRClassesTestBase() {
+
+    override fun setUp() {
+      super.setUp()
+      enableNamespacing("p1.p2")
+      addBinaryAarDependency(myModule)
+    }
+
+    fun testTopLevelClass() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(com.example.mylibrary.${caret}R.string.my_aar_string);
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      assertThat(resolveReferenceUnderCaret()).isInstanceOf(AarPackageRClass::class.java)
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsExactly("R", "BuildConfig")
+    }
+
+    fun testResourceNames() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(com.example.mylibrary.R.string.${caret}my_aar_string);
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      assertThat(resolveReferenceUnderCaret()).isInstanceOf(LightElement::class.java)
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsExactly("my_aar_string", "class")
     }
   }
 }

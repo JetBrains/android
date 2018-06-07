@@ -5,15 +5,18 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
-import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceClassRegistry;
+import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.utils.SdkUtils;
 import com.google.common.collect.Maps;
@@ -379,41 +382,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
     LocalResourceRepository appResources = repositoryManager.getAppResources(true);
 
-    // We need to figure out the layout of the resources relative to the jar file. This changed over time, so we check for different
-    // layouts until we find one we recognize.
-    File resourcesDirectory = null;
-
-    File aarDir = jarFile.getParentFile();
-    if (aarDir.getPath().endsWith(DOT_AAR) || aarDir.getPath().contains(FilenameConstants.EXPLODED_AAR)) {
-      if (aarDir.getPath().contains(FilenameConstants.EXPLODED_AAR)) {
-        if (aarDir.getPath().endsWith(LIBS_FOLDER)) {
-          // Some libraries recently started packaging jars inside a sub libs folder inside jars
-          aarDir = aarDir.getParentFile();
-        }
-        // Gradle plugin version 1.2.x and later has classes in aar-dir/jars/
-        if (aarDir.getPath().endsWith(FD_JARS)) {
-          aarDir = aarDir.getParentFile();
-        }
-      }
-      String path = aarDir.getPath();
-      if (path.endsWith(DOT_AAR) || path.contains(FilenameConstants.EXPLODED_AAR)) {
-        resourcesDirectory = aarDir;
-      }
-    }
-
-    if (resourcesDirectory == null) {
-      // Build cache? We need to compute the package name in a slightly different way.
-      File parentFile = aarDir.getParentFile();
-      if (parentFile != null) {
-        File manifest = new File(parentFile, ANDROID_MANIFEST_XML);
-        if (manifest.exists()) {
-          resourcesDirectory = parentFile;
-        }
-      }
-      if (resourcesDirectory == null) {
-        return;
-      }
-    }
+    File resourcesDirectory = AndroidProjectModelUtils.findResFolder(jarFile);
+    if (resourcesDirectory == null) return;
 
     ResourceClassRegistry registry = ResourceClassRegistry.get(module.getProject());
 

@@ -34,7 +34,7 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
     myInnerClasses = new PsiClass[types.length];
 
     for (int i = 0; i < types.length; i++) {
-      myInnerClasses[i] = new MyInnerClass(types[i].getName());
+      myInnerClasses[i] = new MyInnerClass(types[i]);
     }
   }
 
@@ -84,15 +84,15 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
 
   private class MyInnerClass extends ResourceTypeClassBase {
 
-    public MyInnerClass(String name) {
-      super(AndroidInternalRClass.this, name);
+    public MyInnerClass(@NotNull ResourceType resourceType) {
+      super(AndroidInternalRClass.this, resourceType);
     }
 
     @NotNull
     @Override
     protected PsiField[] doGetFields() {
       return buildResourceFields(mySystemResourceManager, mySystemResourceManager.getResourceRepository(), ResourceNamespace.ANDROID, false,
-                                 myName, AndroidInternalRClass.this);
+                                 myResourceType, AndroidInternalRClass.this);
     }
   }
 

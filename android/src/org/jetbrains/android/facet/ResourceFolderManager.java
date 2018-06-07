@@ -265,7 +265,12 @@ public class ResourceFolderManager extends AndroidFacetScopedService implements 
           }
 
           if (res != null) {
-            dirs.put(res, libraryName);
+            // TODO(b/74425399): Use AndroidProjectModelUtils instead of all this code. Temporarily for testing, we use res.apk when found.
+            if (new File(res.getParentFile(), FN_RESOURCE_STATIC_LIBRARY).exists()) {
+              dirs.put(res.getParentFile(), libraryName);
+            } else {
+              dirs.put(res, libraryName);
+            }
           }
         }
       }
