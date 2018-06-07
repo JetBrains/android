@@ -62,6 +62,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.*
 import com.intellij.ui.ColorUtil
+import com.intellij.util.io.URLUtil.JAR_SEPARATOR
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
@@ -703,7 +704,7 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
  * Converts a file resource path from [String] to [PathString]. The supported formats:
  * - file path, e.g. "/foo/bar/res/layout/my_layout.xml"
  * - file URL, e.g. "file:///foo/bar/res/layout/my_layout.xml"
- * - URL of a zipped element inside an APK file, e.g. "apk:/foo/bar/res.apk:res/layout/my_layout.xml"
+ * - URL of a zipped element inside an APK file, e.g. "apk:/foo/bar/res.apk!/res/layout/my_layout.xml"
  *
  * @param resourcePath the file resource path to convert
  * @return the converted resource path, or null if the `resourcePath` doesn't point to a file resource
@@ -711,13 +712,13 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
 private fun toFileResourcePathString(resourcePath: String): PathString? {
   if (resourcePath.startsWith("apk:")) {
     val prefixLength = "apk:".length
-    val colonPos = resourcePath.lastIndexOf(':')
-    if (colonPos < prefixLength) {
+    val separatorPos = resourcePath.lastIndexOf(JAR_SEPARATOR)
+    if (separatorPos < prefixLength) {
       throw IllegalArgumentException("Invalid resource path \"$resourcePath\"")
     }
     return try {
-      val uri = URI("apk", resourcePath.substring(prefixLength, colonPos).replace('\\', '/'), null)
-      PathString(uri, resourcePath.substring(colonPos + 1))
+      val uri = URI("apk", resourcePath.substring(prefixLength, separatorPos).replace('\\', '/'), null)
+      PathString(uri, resourcePath.substring(separatorPos + JAR_SEPARATOR.length))
     }
     catch (e: URISyntaxException) {
       null
