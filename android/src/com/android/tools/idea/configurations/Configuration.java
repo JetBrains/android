@@ -66,6 +66,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.*;
  * etc for use when rendering a layout.
  */
 public class Configuration implements Disposable, ModificationTracker {
+  public static final String AVD_ID_PREFIX = "_android_virtual_device_id_";
   public static final String CUSTOM_DEVICE_ID = "Custom";
 
   /** The associated file */
