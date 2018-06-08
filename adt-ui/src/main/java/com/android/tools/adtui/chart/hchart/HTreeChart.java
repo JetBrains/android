@@ -109,23 +109,22 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   private int myCachedMaxHeight;
 
   /**
-   * Create a Horizontal Tree Chart.
-   * @param globalXRange the bounding range of chart visible area, if not null.
-   * @param viewXRange the range of the chart's visible area.
+   * Creates a Horizontal Tree Chart.
    */
-  @VisibleForTesting
-  public HTreeChart(@Nullable Range globalXRange, @NotNull Range viewXRange, Orientation orientation, @NotNull HTreeChartReducer<N> reducer) {
+  private HTreeChart(@NotNull Builder<N> builder) {
+    myGlobalXRange = builder.myGlobalXRange;
+    myXRange = builder.myXRange;
+    myRoot = builder.myRoot;
+    myReducer = builder.myReducer;
+    myRenderer = builder.myRenderer;
+    myOrientation = builder.myOrientation;
+    myRootVisible = builder.myRootVisible;
+
+    myYRange = new Range(INITIAL_Y_POSITION, INITIAL_Y_POSITION);
     myRectangles = new ArrayList<>();
     myNodes = new ArrayList<>();
     myDrawnNodes = new ArrayList<>();
     myDrawnRectangles = new ArrayList<>();
-    myGlobalXRange = globalXRange != null ? globalXRange : new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
-    myXRange = viewXRange;
-    myRoot = null;
-    myReducer = reducer;
-    myYRange = new Range(INITIAL_Y_POSITION, INITIAL_Y_POSITION);
-    myOrientation = orientation;
-    myRootVisible = true;
 
     setFocusable(true);
     initializeInputMap();
@@ -133,15 +132,6 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     setFont(AdtUiUtils.DEFAULT_FONT);
     myXRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::changed);
     myYRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::changed);
-    changed();
-  }
-
-  public HTreeChart(@Nullable Range globalXRange, @NotNull Range viewXRange, Orientation orientation) {
-    this(globalXRange, viewXRange, orientation, new DefaultHTreeChartReducer<>());
-  }
-
-  public void setRootVisible(boolean rootVisible) {
-    myRootVisible = rootVisible;
     changed();
   }
 
@@ -294,10 +284,6 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
 
   private double positionToRange(double x) {
     return x / getWidth() * myXRange.getLength() + myXRange.getMin();
-  }
-
-  public void setHRenderer(@NotNull HRenderer<N> r) {
-    this.myRenderer = r;
   }
 
   public void setHTree(@Nullable N root) {
@@ -468,6 +454,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
 
     while (!queue.isEmpty()) {
       N n = queue.poll();
+      assert n != null;
       if (n.getDepth() > maxDepth) {
         maxDepth = n.getDepth();
       }
@@ -481,6 +468,61 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     // We have this because the padding near the chart's head (the outermost frame on call stacks)
     // is there because the root node of the tree is invisible.
     return (mDefaultFontMetrics.getHeight() + PADDING) * maxDepth + HEIGHT_PADDING;
+  }
+
+  public static class Builder<N extends HNode<N>> {
+    @Nullable private final N myRoot;
+    @NotNull private final Range myXRange;
+    @NotNull private final HRenderer<N> myRenderer;
+
+    @NotNull private Orientation myOrientation = Orientation.TOP_DOWN;
+    @NotNull private Range myGlobalXRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
+    private boolean myRootVisible = true;
+    @NotNull private HTreeChartReducer<N> myReducer = new DefaultHTreeChartReducer<>();
+
+    /**
+     * Creates a builder for {@link HTreeChart<N>}
+     * @param xRange - the range of the chart's visible area
+     * @param renderer - a {@link HRenderer<N>} which is responsible for rendering a single node.
+     */
+    public Builder(@Nullable N root, @NotNull Range xRange, @NotNull HRenderer<N> renderer) {
+      myRoot = root;
+      myXRange = xRange;
+      myRenderer = renderer;
+    }
+
+    @NotNull
+    public Builder<N> setOrientation(@NotNull Orientation orientation) {
+      myOrientation = orientation;
+      return this;
+    }
+
+    @NotNull
+    public Builder<N> setRootVisible(boolean visible) {
+      myRootVisible = visible;
+      return this;
+    }
+
+    /**
+     * @param globalXRange the bounding range of chart's visible area,
+     *                     if it's not set, it assumes that there is no bounding range of chart.
+     */
+    @NotNull
+    public Builder<N> setGlobalXRange(@NotNull Range globalXRange) {
+      myGlobalXRange = globalXRange;
+      return this;
+    }
+
+    @VisibleForTesting
+    public Builder<N> setReducer(@NotNull HTreeChartReducer<N> reducer) {
+      myReducer = reducer;
+      return this;
+    }
+
+    @NotNull
+    public HTreeChart<N> build() {
+      return new HTreeChart<>(this);
+    }
   }
 
   public enum Orientation {TOP_DOWN, BOTTOM_UP}

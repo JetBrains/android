@@ -18,6 +18,7 @@ package com.android.tools.profilers.visualtests;
 import com.android.testutils.TestUtils;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
+import com.android.tools.adtui.chart.hchart.HTreeChartReducer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
@@ -59,14 +60,14 @@ public class CpuHTreeChartReducerVisualTest extends VisualTest {
     CaptureNode node = parseAndGetHNode();
     myRange.set(node.getStart(), node.getEnd());
 
-    myChart = new HTreeChart<>(null, myRange, HTreeChart.Orientation.TOP_DOWN);
-    myChart.setHRenderer(new CaptureNodeHRenderer());
-    myChart.setHTree(node);
+    myChart = new HTreeChart.Builder<>(node, myRange, new CaptureNodeHRenderer())
+      .setOrientation(HTreeChart.Orientation.TOP_DOWN)
+      .build();
 
-    myNotOptimizedChart = new HTreeChart<>(null, myRange, HTreeChart.Orientation.TOP_DOWN, (rectangles, nodes) -> {
-    });
-    myNotOptimizedChart.setHRenderer(new CaptureNodeHRenderer());
-    myNotOptimizedChart.setHTree(node);
+    myNotOptimizedChart = new HTreeChart.Builder<>(node, myRange, new CaptureNodeHRenderer())
+      .setOrientation(HTreeChart.Orientation.TOP_DOWN)
+      .setReducer((rectangles, nodes) -> {})
+      .build();
 
     panel.setLayout(new GridLayout(2, 1));
     panel.add(myChart);

@@ -65,15 +65,15 @@ public class CaptureNodeModelRendererVisualTest extends VisualTest {
   protected void populateUi(@NotNull JPanel panel) {
     CaptureNode artNode = parseArtTraceAndGetHNode();
     myArtRange.set(artNode.getStart(), artNode.getEnd());
-    myArtChart = new HTreeChart<>(null, myArtRange, HTreeChart.Orientation.TOP_DOWN);
-    myArtChart.setHRenderer(new CaptureNodeHRenderer());
-    myArtChart.setHTree(artNode);
+    myArtChart = new HTreeChart.Builder<>(artNode, myArtRange, new CaptureNodeHRenderer())
+      .setOrientation(HTreeChart.Orientation.TOP_DOWN)
+      .build();
 
     CaptureNode simpleperfNode = parseSimpleperfTraceAndGetHNode();
     mySimpleperfRange.set(simpleperfNode.getStart(), simpleperfNode.getEnd());
-    mySimpleperfChart = new HTreeChart<>(null,mySimpleperfRange, HTreeChart.Orientation.TOP_DOWN);
-    mySimpleperfChart.setHRenderer(new CaptureNodeHRenderer());
-    mySimpleperfChart.setHTree(simpleperfNode);
+    mySimpleperfChart = new HTreeChart.Builder<>(simpleperfNode, mySimpleperfRange, new CaptureNodeHRenderer())
+      .setOrientation(HTreeChart.Orientation.TOP_DOWN)
+      .build();
 
     panel.setLayout(new GridLayout(2, 1));
     panel.add(myArtChart);
