@@ -75,8 +75,8 @@ class MigrateToAppCompatUtil {
     return findRefs(project, aClass);
   }
 
-  public static List<UsageInfo> findPackageUsages(Project project, PsiMigration migration, String qName) {
-    PsiPackage aPackage = AndroidRefactoringUtil.findOrCreatePackage(project, migration, qName);
+  public static List<UsageInfo> findPackageUsages(Project project, String qName) {
+    PsiPackage aPackage = JavaPsiFacade.getInstance(project).findPackage(qName);
     return findRefs(project, aPackage);
   }
 

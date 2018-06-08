@@ -22,6 +22,7 @@ import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.google.common.collect.Range
@@ -33,6 +34,9 @@ import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.project.DumbModeTask
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.GeneratedSourcesFilter
 import com.intellij.openapi.ui.Messages
@@ -45,7 +49,6 @@ import com.intellij.psi.impl.migration.PsiMigrationManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringBundle
-import com.intellij.refactoring.RefactoringHelper
 import com.intellij.refactoring.listeners.RefactoringEventData
 import com.intellij.refactoring.util.RefactoringUIUtil
 import com.intellij.usageView.UsageInfo
@@ -92,13 +95,13 @@ open class MigrateToAndroidxProcessor(val project: Project,
                                  private val migrationMap: List<AppCompatMigrationEntry>,
                                  versionProvider: ((String, String, String) -> String)? = null) : BaseRefactoringProcessor(project) {
   private val elements: MutableList<PsiElement> = ArrayList()
-  private var psiMigration: PsiMigration? = startMigration(project)
   private val refsToShorten: MutableList<SmartPsiElementPointer<PsiElement>> = ArrayList()
   private val versionProvider = versionProvider ?: ::getLibraryRevision
 
   final override fun createUsageViewDescriptor(usages: Array<out UsageInfo>) = MigrateToAndroidxUsageViewDescriptor(elements.toTypedArray())
 
   private fun startMigration(project: Project): PsiMigration {
+    finishFindMigration()
     val migration = PsiMigrationManager.getInstance(project).startMigration()
     for (entry in migrationMap) {
       when (entry) {
@@ -121,45 +124,43 @@ open class MigrateToAndroidxProcessor(val project: Project,
     }
 
     try {
-      psiMigration?.let { migration ->
-        val gradleDependencyEntries = mutableMapOf<com.intellij.openapi.util.Pair<String, String>, GradleMigrationEntry>()
-        for (entry in migrationMap) {
-          when (entry.type) {
-            CHANGE_CLASS -> {
-              val clsEntry = entry as ClassMigrationEntry
-              val classUsages = MigrateToAppCompatUtil.findClassUsages(project, clsEntry.myOldName)
-              val infos = mutableListOf<UsageInfo>()
-              classUsages
-                .filter(generatedCodeUsages)
-                .map { ClassMigrationUsageInfo(it, clsEntry) }
-                .toCollection(infos)
+      val gradleDependencyEntries = mutableMapOf<com.intellij.openapi.util.Pair<String, String>, GradleMigrationEntry>()
+      for (entry in migrationMap) {
+        when (entry.type) {
+          CHANGE_CLASS -> {
+            val clsEntry = entry as ClassMigrationEntry
+            val classUsages = MigrateToAppCompatUtil.findClassUsages(project, clsEntry.myOldName)
+            val infos = mutableListOf<UsageInfo>()
+            classUsages
+              .filter(generatedCodeUsages)
+              .map { ClassMigrationUsageInfo(it, clsEntry) }
+              .toCollection(infos)
 
-              usageAccumulator.addAll(infos)
-            }
-            CHANGE_PACKAGE -> {
-              val pkgEntry = entry as PackageMigrationEntry
-              val packageUsages = MigrateToAppCompatUtil.findPackageUsages(project, migration, pkgEntry.myOldName)
-              val infos = mutableListOf<UsageInfo>()
-              packageUsages
-                .filter(generatedCodeUsages)
-                .map { PackageMigrationUsageInfo(it, pkgEntry) }
-                .toCollection(infos)
+            usageAccumulator.addAll(infos)
+          }
+          CHANGE_PACKAGE -> {
+            val pkgEntry = entry as PackageMigrationEntry
+            val packageUsages = MigrateToAppCompatUtil.findPackageUsages(project, pkgEntry.myOldName)
+            val infos = mutableListOf<UsageInfo>()
+            packageUsages
+              .filter(generatedCodeUsages)
+              .map { PackageMigrationUsageInfo(it, pkgEntry) }
+              .toCollection(infos)
 
-              usageAccumulator.addAll(infos)
-            }
-            CHANGE_GRADLE_DEPENDENCY -> {
-              val migrationEntry = entry as GradleDependencyMigrationEntry
-              gradleDependencyEntries[migrationEntry.compactKey()] = migrationEntry
-            }
-            UPGRADE_GRADLE_DEPENDENCY_VERSION -> {
-              val migrationEntry = entry as UpdateGradleDepedencyVersionMigrationEntry
-              gradleDependencyEntries[migrationEntry.compactKey()] = migrationEntry
-            }
+            usageAccumulator.addAll(infos)
+          }
+          CHANGE_GRADLE_DEPENDENCY -> {
+            val migrationEntry = entry as GradleDependencyMigrationEntry
+            gradleDependencyEntries[migrationEntry.compactKey()] = migrationEntry
+          }
+          UPGRADE_GRADLE_DEPENDENCY_VERSION -> {
+            val migrationEntry = entry as UpdateGradleDepedencyVersionMigrationEntry
+            gradleDependencyEntries[migrationEntry.compactKey()] = migrationEntry
           }
         }
-
-        usageAccumulator.addAll(findUsagesInBuildFiles(project, gradleDependencyEntries))
       }
+
+      usageAccumulator.addAll(findUsagesInBuildFiles(project, gradleDependencyEntries))
     }
     finally {
       ApplicationManager.getApplication().invokeLater(Runnable {
@@ -175,7 +176,6 @@ open class MigrateToAndroidxProcessor(val project: Project,
   }
 
   override fun performRefactoring(usages: Array<out UsageInfo>) {
-    finishFindMigration()
     val migration = startMigration(project)
     refsToShorten.clear()
     try {
@@ -218,19 +218,19 @@ open class MigrateToAndroidxProcessor(val project: Project,
     catch (e: IncorrectOperationException) {
       RefactoringUIUtil.processIncorrectOperation(project, e)
     }
-    finally {
-      migration.finish()
+
+    if (usages.any { it is MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo }) {
+      // If we modified gradle entries, request sync
+      DumbService.getInstance(project).queueTask(object: DumbModeTask() {
+        override fun performInDumbMode(indicator: ProgressIndicator) {
+          val syncRequest = GradleSyncInvoker.Request.projectModified()
+          syncRequest.generateSourcesOnSuccess = true
+          syncRequest.runInBackground = false
+          GradleSyncInvoker.getInstance().requestProjectSync(project, syncRequest)
+        }
+      })
     }
   }
-
-  /**
-   * We do not want to apply [com.intellij.refactoring.OptimizeImportsRefactoringHelper] since the project might be broken after changing
-   * the imports.
-   *
-   * This is a workaround for http://b/79220682.
-   */
-  override fun shouldApplyRefactoringHelper(key: RefactoringHelper<*>): Boolean =
-    key::class.simpleName == "KotlinRefactoringHelperForDelayedRequests"
 
   override fun performPsiSpoilingRefactoring() {
     val styleManager = JavaCodeStyleManager.getInstance(myProject)
@@ -239,6 +239,8 @@ open class MigrateToAndroidxProcessor(val project: Project,
       styleManager.shortenClassReferences(element)
     }
     refsToShorten.clear()
+
+    finishFindMigration()
   }
 
   override fun getCommandName(): String = AndroidBundle.message("android.refactoring.migrateto.androidx")
@@ -254,26 +256,35 @@ open class MigrateToAndroidxProcessor(val project: Project,
   override fun skipNonCodeUsages() = true
 
   override fun refreshElements(elements: Array<PsiElement>) {
-    psiMigration = startMigration(myProject)
   }
 
   override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
-    if (refUsages.get().isEmpty()) {
+    val filtered = refUsages.get().filter {
+        when (it) {
+          is ClassMigrationUsageInfo -> {
+            return@filter it.mapEntry.myOldName != it.mapEntry.myNewName
+          }
+          is PackageMigrationUsageInfo -> {
+            return@filter it.mapEntry.myOldName != it.mapEntry.myNewName
+          }
+          else -> true
+        }
+      }.toTypedArray()
+
+    if (filtered.isEmpty()) {
       if (!ApplicationManager.getApplication().isUnitTestMode) {
         Messages.showInfoMessage(myProject, RefactoringBundle.message("migration.no.usages.found.in.the.project"),
                                  AndroidBundle.message("android.refactoring.migrateto.androidx"))
       }
       return false
     }
+    refUsages.set(filtered)
     isPreviewUsages = true
     return true
   }
 
   private fun finishFindMigration() {
-    if (psiMigration != null) {
-      psiMigration?.finish()
-      psiMigration = null
-    }
+    PsiMigrationManager.getInstance(project)?.currentMigration?.finish()
   }
 
   /**
