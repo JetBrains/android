@@ -13,16 +13,11 @@
 // limitations under the License.
 package com.android.tools.idea.projectsystem
 
-import com.android.ide.common.gradle.model.IdeAndroidProject
-import com.android.ide.common.gradle.model.IdeVariant
+import com.android.ide.common.gradle.model.*
 import com.android.ide.common.util.PathString
 import com.android.projectmodel.AndroidPathType
 import com.android.projectmodel.AndroidProject
 import com.android.projectmodel.matchArtifactsWith
-import com.android.tools.idea.projectsystem.gradle.MAIN_ARTIFACT_NAME
-import com.android.tools.idea.projectsystem.gradle.filesToPathStrings
-import com.android.tools.idea.projectsystem.gradle.getProjectType
-import com.android.tools.idea.projectsystem.gradle.toProjectModel
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat

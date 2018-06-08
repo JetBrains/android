@@ -17,10 +17,7 @@ package com.android.tools.idea.gradle.project.model;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
-import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.*;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
