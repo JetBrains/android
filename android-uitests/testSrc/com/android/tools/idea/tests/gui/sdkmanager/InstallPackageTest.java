@@ -103,7 +103,7 @@ public class InstallPackageTest {
     });
 
     ideSettingsDialogFixture.clickOK();
-    MessagesFixture.findByTitle(guiTest.robot(), "Confirm Change", 30).clickOk();
+    MessagesFixture.findByTitle(guiTest.robot(), "Confirm Change", 60).clickOk();
     DialogFixture downloadDialog =
       findDialog(withTitle("SDK Quickfix Installation")).withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
     JButtonFixture finish = downloadDialog.button(withText("Finish"));
