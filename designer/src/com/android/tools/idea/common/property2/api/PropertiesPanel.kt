@@ -18,12 +18,18 @@ package com.android.tools.idea.common.property2.api
 import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.common.property2.impl.ui.PropertiesPage
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.StringUtil.escapeProperty
 import java.awt.BorderLayout
 import java.util.*
+import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.properties.Delegates
+
+private const val RECENT_TAB_PREFIX = "android.last.property.tab."
+private const val PROPERTY_TAB_NAME = "tab.name"
 
 /**
  * The top level class for creating UI classes and model classes for a properties panel.
@@ -41,6 +47,7 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
   private val views = IdentityHashMap<PropertiesModel<*>, PropertiesView<*>>()
   private val tabbedPanel = CommonTabbedPane()
   private val hidden = JPanel()
+  private var updatingPageVisibility = false
 
   @VisibleForTesting
   val pages = mutableListOf<PropertiesPage>()
@@ -51,6 +58,7 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
   init {
     hidden.isVisible = false
     Disposer.register(parentDisposable, this)
+    tabbedPanel.addChangeListener({ saveMostRecentTabPage() })
   }
 
   fun addView(view: PropertiesView<*>) {
@@ -89,9 +97,30 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
       val tab = view.tabs[index]
       val page = lookupPage(index)
       tab.attachToInspector(page)
+      page.component.putClientProperty(PROPERTY_TAB_NAME, tab.name)
     }
     pages.subList(view.tabs.size, pages.size).clear()
-    updatePageVisibility()
+    val preferredTab = PropertiesComponent.getInstance().getValue(RECENT_TAB_PREFIX + escapeProperty(view.id, true))
+    updatePageVisibility(preferredTab)
+  }
+
+  private fun saveMostRecentTabPage() {
+    if (updatingPageVisibility) {
+      return
+    }
+    val tabName = selectedTab()
+    val view = activeView ?: return
+    PropertiesComponent.getInstance().setValue(RECENT_TAB_PREFIX + escapeProperty(view.id, true), tabName)
+  }
+
+  @VisibleForTesting
+  fun selectedTab(): String? {
+    val layout = component.layout as? BorderLayout ?: return null
+    var component = layout.getLayoutComponent(BorderLayout.CENTER) ?: return null
+    if (component == tabbedPanel) {
+      component = tabbedPanel.selectedComponent
+    }
+    return (component as? JComponent)?.getClientProperty(PROPERTY_TAB_NAME) as? String
   }
 
   /**
@@ -106,32 +135,47 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
    *  swing component tree such that LookAndFeel changes are applied while they are hidden.
    *  The [hidden] panel is always hidden, and serves as the keeper of other hidden pages.
    */
-  private fun updatePageVisibility() {
+  private fun updatePageVisibility(preferredTabName: String? = null) {
     val view = activeView ?: return
     val visibleTabCount = findVisibleTabCount()
+    var preferredTabIndex = -1
     assert(view.tabs.size == pages.size)
-    component.removeAll()
-    tabbedPanel.removeAll()
-    for (index in view.tabs.indices) {
-      val tab = view.tabs[index]
-      val page = pages[index]
-      val tabVisible = filter.isEmpty() || tab.searchable
-      page.component.isVisible = tabVisible
-      when {
-        !tabVisible -> hidden.add(page.component)
-        visibleTabCount == 1 -> component.add(page.component, BorderLayout.CENTER)
-        else -> tabbedPanel.add(page.component, tab.name)
+    updatingPageVisibility = true
+    try {
+      component.removeAll()
+      tabbedPanel.removeAll()
+      for (index in view.tabs.indices) {
+        val tab = view.tabs[index]
+        val page = pages[index]
+        val tabVisible = filter.isEmpty() || tab.searchable
+        page.component.isVisible = tabVisible
+        when {
+          !tabVisible -> hidden.add(page.component)
+          visibleTabCount == 1 -> component.add(page.component, BorderLayout.CENTER)
+          else -> {
+            tabbedPanel.add(page.component, tab.name)
+            if (tab.name == preferredTabName) {
+              preferredTabIndex = tabbedPanel.componentCount - 1
+            }
+          }
+        }
       }
+      if (visibleTabCount < 2) {
+        hidden.add(tabbedPanel)
+      }
+      else {
+        component.add(tabbedPanel, BorderLayout.CENTER)
+        if (preferredTabIndex >= 0) {
+          tabbedPanel.selectedIndex = preferredTabIndex
+        }
+      }
+      component.add(hidden, BorderLayout.SOUTH)
+      component.revalidate()
+      component.repaint()
     }
-    if (visibleTabCount < 2) {
-      hidden.add(tabbedPanel)
+    finally {
+      updatingPageVisibility = false
     }
-    else {
-      component.add(tabbedPanel, BorderLayout.CENTER)
-    }
-    component.add(hidden, BorderLayout.SOUTH)
-    component.revalidate()
-    component.repaint()
   }
 
   private fun findVisibleTabCount(): Int {
