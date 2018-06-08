@@ -26,8 +26,8 @@ class PsJavaModule(
   parent: PsProject,
   gradlePath: String
   ) : PsModule(parent, gradlePath) {
-  var resolvedModel: JavaModuleModel? = null
-  override var rootDir: File? = null
+  var resolvedModel: JavaModuleModel? = null ; private set
+  override var rootDir: File? = null ; private set
   override val projectType: PsModuleType = PsModuleType.JAVA
   override val icon: Icon? = AllIcons.Nodes.PpJdk
   private var myDependencyCollection: PsJavaDependencyCollection? = null

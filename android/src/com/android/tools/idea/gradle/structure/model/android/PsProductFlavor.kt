@@ -15,7 +15,6 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.ProductFlavor
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
