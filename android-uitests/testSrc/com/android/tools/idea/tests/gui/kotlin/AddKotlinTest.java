@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.kotlin;
 
 import com.android.tools.idea.npw.template.ConvertJavaToKotlinDefaultImpl;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogFixture;
@@ -27,6 +28,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
@@ -77,8 +79,18 @@ public class AddKotlinTest {
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
   public void addKotlinClass() throws Exception {
-    IdeFrameFixture ideFrameFixture =
+    try {
       guiTest.importProjectAndWaitForProjectSyncToFinish(PROJECT_DIR_NAME);
+    } catch (WaitTimedOutError timeout) {
+      // Timed out while waiting for project to sync and index. However, we are not concerned
+      // about how long the test requires to sync and index here. The timeout is there just to
+      // handle infinite loops, which we already handle with GuiTestRule's timeout. Honestly,
+      // this timeout can be expanded. This call acts as an expansion of the timeout we can't
+      // modify in GradleGuiTestProjectSystem
+      GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(2)));
+    }
+
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     ProjectViewFixture.PaneFixture projectPane = ideFrameFixture.getProjectView().selectProjectPane();
 
