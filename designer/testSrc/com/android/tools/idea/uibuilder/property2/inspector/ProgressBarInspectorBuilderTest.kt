@@ -161,8 +161,8 @@ class ProgressBarInspectorBuilderTest {
     util.addProperty(ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE, NelePropertyType.COLOR_OR_DRAWABLE)
     util.addProperty(ANDROID_URI, ATTR_MAXIMUM, NelePropertyType.INTEGER)
     util.addProperty(ANDROID_URI, ATTR_PROGRESS, NelePropertyType.INTEGER)
-    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE, NelePropertyType.BOOLEAN)
-    util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NelePropertyType.BOOLEAN)
+    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE, NelePropertyType.THREE_STATE_BOOLEAN)
+    util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NelePropertyType.THREE_STATE_BOOLEAN)
   }
 
   private fun addOptionalProperties(util: InspectorTestUtil) {

@@ -35,8 +35,11 @@ class NeleControlTypeProvider(private val enumSupportProvider: EnumSupportProvid
       enumSupportProvider(property) != null ->
         ControlType.COMBO_BOX
 
-      property.type == NelePropertyType.BOOLEAN ->
+      property.type == NelePropertyType.THREE_STATE_BOOLEAN ->
         ControlType.THREE_STATE_BOOLEAN
+
+      property.type == NelePropertyType.BOOLEAN ->
+        ControlType.BOOLEAN
 
       else ->
         ControlType.TEXT_EDITOR

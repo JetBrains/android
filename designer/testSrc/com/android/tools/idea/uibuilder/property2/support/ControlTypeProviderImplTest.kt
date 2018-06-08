@@ -56,7 +56,7 @@ class ControlTypeProviderImplTest {
   @Test
   fun testComboBoxForEnumSupport() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
-    val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_HEIGHT, NelePropertyType.BOOLEAN)
+    val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_HEIGHT, NelePropertyType.DIMENSION)
     val enumSupportProvider = createEnumSupportProvider()
     val enumSupport = mock(EnumSupport::class.java)
     `when`(enumSupportProvider.invoke(property)).thenReturn(enumSupport)
@@ -67,7 +67,7 @@ class ControlTypeProviderImplTest {
   @Test
   fun testBooleanForBooleanTypes() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
-    val property = util.makeProperty(ANDROID_URI, ATTR_CLICKABLE, NelePropertyType.BOOLEAN)
+    val property = util.makeProperty(ANDROID_URI, ATTR_CLICKABLE, NelePropertyType.THREE_STATE_BOOLEAN)
     val enumSupportProvider = createEnumSupportProvider()
     val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
     assertThat(controlTypeProvider(property)).isEqualTo(ControlType.THREE_STATE_BOOLEAN)

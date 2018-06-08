@@ -37,6 +37,7 @@ enum class NelePropertyType {
   READONLY_STRING,
   STRING,
   STYLE,
+  THREE_STATE_BOOLEAN,
   TEXT_APPEARANCE;
 
   val resourceTypes: EnumSet<ResourceType>
@@ -55,6 +56,7 @@ enum class NelePropertyType {
       NelePropertyType.STRING -> EnumSet.of(ResourceType.STRING)
       NelePropertyType.STYLE -> EnumSet.of(ResourceType.STYLE)
       NelePropertyType.TEXT_APPEARANCE -> EnumSet.of(ResourceType.STYLE)
+      NelePropertyType.THREE_STATE_BOOLEAN -> EnumSet.of(ResourceType.BOOL)
       else -> EnumSet.noneOf(ResourceType.BOOL.javaClass)
     }
 }

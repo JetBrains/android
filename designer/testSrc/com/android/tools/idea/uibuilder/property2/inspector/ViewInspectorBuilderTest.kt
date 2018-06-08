@@ -482,7 +482,7 @@ class ViewInspectorBuilderTest {
     util.addProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NelePropertyType.STRING)
     util.addProperty(ANDROID_URI, ATTR_BACKGROUND, NelePropertyType.COLOR_OR_DRAWABLE)
     util.addProperty(ANDROID_URI, ATTR_SCALE_TYPE, NelePropertyType.INTEGER)
-    util.addProperty(ANDROID_URI, ATTR_ADJUST_VIEW_BOUNDS, NelePropertyType.BOOLEAN)
-    util.addProperty(ANDROID_URI, ATTR_CROP_TO_PADDING, NelePropertyType.BOOLEAN)
+    util.addProperty(ANDROID_URI, ATTR_ADJUST_VIEW_BOUNDS, NelePropertyType.THREE_STATE_BOOLEAN)
+    util.addProperty(ANDROID_URI, ATTR_CROP_TO_PADDING, NelePropertyType.THREE_STATE_BOOLEAN)
   }
 }
