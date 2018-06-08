@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.structure.FastGradleSync
+import com.android.tools.idea.gradle.structure.GradleResolver
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon
 import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaemon
@@ -38,7 +38,7 @@ import javax.annotation.concurrent.GuardedBy
 class PsContextImpl constructor (override val project: PsProject, parentDisposable: Disposable) : PsContext, Disposable {
   private val lock = Any()
   override val analyzerDaemon: PsAnalyzerDaemon
-  private val gradleSync: FastGradleSync = FastGradleSync()
+  private val gradleSync: GradleResolver = GradleResolver()
   override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon
 
   private val changeEventDispatcher = EventDispatcher.create(PsContext.ChangeListener::class.java)
@@ -74,7 +74,7 @@ class PsContextImpl constructor (override val project: PsProject, parentDisposab
   private fun requestGradleSync() {
     val project = this.project.ideProject
     gradleSyncEventDispatcher.multicaster.syncStarted(project, false, false)
-    val callback = gradleSync.requestProjectSync(project)
+    val callback = gradleSync.requestProjectResolved(project)
     callback.doWhenDone { gradleSyncEventDispatcher.multicaster.syncSucceeded(project) }
     callback.doWhenRejected { _ ->
       val failure = callback.failure!!
