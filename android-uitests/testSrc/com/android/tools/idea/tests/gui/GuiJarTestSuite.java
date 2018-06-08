@@ -47,6 +47,7 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
       "tools/adt/idea/artwork/resources/device-art-resources",
       "tools/adt/idea/android/lib",
       "tools/base/templates",
+      "tools/external/gradle",
       "tools/idea/build.txt",
       "tools/idea/java",
       "tools/idea/bin",
