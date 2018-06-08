@@ -30,7 +30,7 @@ class PsModuleTypeTest : DependencyTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject)
 
     Truth.assertThat(moduleWithSyncedModel(project, "app").projectType).isEqualTo(PsModuleType.ANDROID_APP)
     Truth.assertThat(moduleWithSyncedModel(project, "lib").projectType).isEqualTo(PsModuleType.ANDROID_LIBRARY)
@@ -41,7 +41,7 @@ class PsModuleTypeTest : DependencyTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject)
 
     Truth.assertThat(moduleWithoutSyncedModel(project, "app").projectType).isEqualTo(PsModuleType.ANDROID_APP)
     Truth.assertThat(moduleWithoutSyncedModel(project, "lib").projectType).isEqualTo(PsModuleType.ANDROID_LIBRARY)

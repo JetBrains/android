@@ -31,7 +31,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
 
   fun testGetModuleVariables_project() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val variables = psProject.variables.getModuleVariables()
     assertThat(variables.size, equalTo(1))
     assertThat(
@@ -44,7 +44,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
 
   fun testGetModuleVariables() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables.getModuleVariables()
     assertThat(variables.size, equalTo(9))
@@ -77,7 +77,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
         throw UnsupportedOperationException()
     }
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     run {
       val variables = psAppModule.variables.getAvailableVariablesFor(stringWithDotsProperty).toSet()
@@ -97,7 +97,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
 
   fun testGetVariableScopes() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val scopes = psAppModule.variables.getVariableScopes()
     assertThat(scopes.map { it.name }, equalTo(listOf("testGetVariableScopes", "app")))
@@ -106,14 +106,14 @@ class PsVariablesTest : AndroidGradleTestCase() {
 
   fun testGetNewVariableName() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     assertThat(psProject.variables.getNewVariableName("someVar"), equalTo("someVar1"))
     assertThat(psProject.variables.getNewVariableName("otherVar"), equalTo("otherVar"))
   }
 
   fun testGetOrCreateVariable() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables
     val tmp123 = variables.getOrCreateVariable("tmp123")

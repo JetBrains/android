@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.AndroidProject
 import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.testing.TestProjectPaths.*
@@ -33,7 +34,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject)
 
     val appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule);
@@ -47,7 +48,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject)
 
     val appModule = moduleWithoutSyncedModel(project, "app")
     assertNotNull(appModule);
@@ -61,7 +62,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProject(resolvedProject)
+    var project = PsProjectImpl(resolvedProject)
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -73,7 +74,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.applyChanges()
 
     requestSyncAndWait()
-    project = PsProject(resolvedProject)
+    project = PsProjectImpl(resolvedProject)
     appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
@@ -86,7 +87,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProject(resolvedProject)
+    var project = PsProjectImpl(resolvedProject)
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -99,7 +100,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.applyChanges()
 
     requestSyncAndWait()
-    project = PsProject(resolvedProject)
+    project = PsProjectImpl(resolvedProject)
     appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
@@ -115,7 +116,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject)
 
     val appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -138,7 +139,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject)
 
     val appModule = moduleWithoutSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -161,7 +162,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    var project = PsProject(resolvedProject)
+    var project = PsProjectImpl(resolvedProject)
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -182,7 +183,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProject(resolvedProject)
+    project = PsProjectImpl(resolvedProject)
     appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
@@ -199,7 +200,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProject(resolvedProject)
+    var project = PsProjectImpl(resolvedProject)
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -216,7 +217,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProject(resolvedProject)
+    project = PsProjectImpl(resolvedProject)
     appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
@@ -229,7 +230,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject)
 
     val libModule = moduleWithSyncedModel(project, "lib")
     assertNotNull(libModule)
@@ -252,7 +253,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject)
 
     val libModule = moduleWithoutSyncedModel(project, "lib")
     assertNotNull(libModule)
@@ -270,7 +271,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    var project = PsProject(resolvedProject)
+    var project = PsProjectImpl(resolvedProject)
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -291,7 +292,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProject(resolvedProject)
+    project = PsProjectImpl(resolvedProject)
     appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
@@ -308,7 +309,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProject(resolvedProject)
+    var project = PsProjectImpl(resolvedProject)
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -325,7 +326,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProject(resolvedProject)
+    project = PsProjectImpl(resolvedProject)
     appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
@@ -342,7 +343,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject)
 
     val appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -375,7 +376,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject)
 
     val appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -391,7 +392,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(BASIC)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject)
 
     val appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
@@ -412,7 +413,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(BASIC)
 
     val resolvedProject = myFixture.project
-    var project = PsProject(resolvedProject)
+    var project = PsProjectImpl(resolvedProject)
 
     var appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
@@ -431,7 +432,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProject(resolvedProject)
+    project = PsProjectImpl(resolvedProject)
     appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
 
@@ -443,7 +444,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(BASIC)
 
     val resolvedProject = myFixture.project
-    var project = PsProject(resolvedProject)
+    var project = PsProjectImpl(resolvedProject)
 
     var appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
@@ -459,7 +460,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProject(resolvedProject)
+    project = PsProjectImpl(resolvedProject)
     appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
 
@@ -471,7 +472,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject)
 
     val appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)

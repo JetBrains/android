@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
+import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.PsModel
 
 /**
  * A description of a reason why a dependency is included in a build.
  */
-sealed class ReverseDependency : PsModel() {
+sealed class ReverseDependency : PsChildModel() {
   /**
    * The requested spec of the library whose presence in the build is justified by the reverse dependency.
    */

@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-abstract class PsChildModel protected constructor() : PsModel {
-  override var isModified: Boolean = false
-    set(value) {
-      field = value
-      if (value) {
-        parent?.isModified = true
-      }
-    }
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.intellij.openapi.project.Project
+import java.util.function.Consumer
 
-  override fun toString(): String = name
+interface PsProject : PsModel {
+  val resolvedModel: Project
+  val parsedModel: ProjectBuildModel
+  val variables: PsVariables
+  val pomDependencyCache: PsPomDependencyCache
+  val modelCount: Int
+
+  fun findModuleByName(moduleName: String): PsModule?
+  fun findModuleByGradlePath(gradlePath: String): PsModule?
+  fun forEachModule(consumer: Consumer<PsModule>)
+  fun applyChanges()
 }

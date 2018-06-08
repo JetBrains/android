@@ -19,6 +19,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptors
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.asParsed
@@ -37,7 +38,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject)
     val appModule = project.findModuleByName("app") as PsAndroidModule
     val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule)
 
@@ -79,7 +80,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject)
     val appModule = project.findModuleByName("app") as PsAndroidModule
     val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule)
 

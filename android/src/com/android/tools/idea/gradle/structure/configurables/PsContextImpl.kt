@@ -32,6 +32,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.EventDispatcher
 import com.intellij.util.ExceptionUtil
+import java.util.function.Consumer
 import javax.annotation.concurrent.GuardedBy
 
 class PsContextImpl constructor (override val project: PsProject, parentDisposable: Disposable) : PsContext, Disposable {
@@ -65,7 +66,7 @@ class PsContextImpl constructor (override val project: PsProject, parentDisposab
 
     analyzerDaemon = PsAnalyzerDaemon(this, libraryUpdateCheckerDaemon)
     analyzerDaemon.reset()
-    project.forEachModule { analyzerDaemon.queueCheck(it) }
+    project.forEachModule(Consumer { analyzerDaemon.queueCheck(it) })
 
     Disposer.register(parentDisposable, this)
   }
