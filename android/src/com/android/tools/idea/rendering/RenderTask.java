@@ -46,7 +46,6 @@ import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.*;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -65,10 +64,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -276,8 +272,8 @@ public class RenderTask {
   }
 
   /**
-   * Sets the overriding background color to be used, if any. The color should be a
-   * bitmask of AARRGGBB. The default is null.
+   * Sets the overriding background color to be used, if any. The color should be a bitmask of AARRGGBB.
+   * The default is null.
    *
    * @param overrideBgColor the overriding background color to be used in the rendering,
    *                        in the form of a AARRGGBB bitmask, or null to use no custom background.
@@ -336,7 +332,7 @@ public class RenderTask {
     myLayoutlibCallback.reset();
 
     if (modelParser instanceof LayoutPsiPullParser) {
-      // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour
+      // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour.
       boolean useSrcCompat = DependencyManagementUtil.dependsOn(getContext().getModule(), GoogleMavenArtifactId.APP_COMPAT_V7) ||
                              DependencyManagementUtil.dependsOn(getContext().getModule(), GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
       ((LayoutPsiPullParser)modelParser).setUseSrcCompat(useSrcCompat);
@@ -355,12 +351,10 @@ public class RenderTask {
 
     Module module = context.getModule();
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
-    final SessionParams params =
-      new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver,
-                        myLayoutlibCallback,
-                        context.getMinSdkVersion().getApiLevel(),
-                        context.getTargetSdkVersion().getApiLevel(),
-                        myLogger, simulatedPlatform);
+    SessionParams params =
+        new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver,
+                          myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
+                          myLogger, simulatedPlatform);
     params.setAssetRepository(myAssetRepository);
 
     params.setFlag(RenderParamsFlags.FLAG_KEY_ROOT_TAG, AndroidPsiUtils.getRootTagName(psiFile));
@@ -372,7 +366,7 @@ public class RenderTask {
     // TODO: Be smarter about setting this; start without it, and on the first request
     // for an extended view info, re-render in the same session, and then set a flag
     // which will cause this to create extended view info each time from then on in the
-    // same session
+    // same session.
     params.setExtendedViewInfoMode(true);
 
     MergedManifest manifestInfo = MergedManifest.get(module);
@@ -392,7 +386,7 @@ public class RenderTask {
       // ignore.
     }
 
-    // Don't show navigation buttons on older platforms
+    // Don't show navigation buttons on older platforms.
     Device device = configuration.getDevice();
     if (!myShowDecorations || HardwareConfigHelper.isWear(device)) {
       params.setForceNoDecor();
@@ -437,7 +431,7 @@ public class RenderTask {
       myLayoutlibCallback.setResourceResolver(resolver);
 
       RenderSecurityManager securityManager =
-        isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, getContext().getPlatform()) : null;
+          isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, getContext().getPlatform()) : null;
       if (securityManager != null) {
         securityManager.setActive(true, myCredential);
       }
@@ -452,8 +446,7 @@ public class RenderTask {
           // Advance the frame time to display the material progress bars
           session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
         }
-        RenderResult result =
-          RenderResult.create(this, session, psiFile, myLogger, myImagePool.copyOf(session.getImage()));
+        RenderResult result = RenderResult.create(this, session, psiFile, myLogger, myImagePool.copyOf(session.getImage()));
         myRenderSession = session;
         addDiagnostics(result.getRenderResult());
         return result;
@@ -472,13 +465,13 @@ public class RenderTask {
   }
 
   @Nullable
-  private ILayoutPullParser getIncludingLayoutParser(ResourceResolver resolver, ILayoutPullParser modelParser) {
+  private ILayoutPullParser getIncludingLayoutParser(RenderResources resolver, ILayoutPullParser modelParser) {
     XmlFile xmlFile = getXmlFile();
     if (xmlFile == null) {
       throw new IllegalStateException("getIncludingLayoutParser shouldn't be called on RenderTask without PsiFile");
     }
 
-    // Code to support editing included layout
+    // Code to support editing included layout.
     if (myIncludedWithin == null) {
       String layout = IncludeReference.getIncludingLayout(xmlFile);
       Module module = getContext().getModule();
@@ -501,7 +494,7 @@ public class RenderTask {
       String queryLayoutName = ResourceHelper.getResourceName(xmlFile);
       myLayoutlibCallback.setLayoutParser(queryLayoutName, modelParser);
 
-      // Attempt to read from PSI
+      // Attempt to read from PSI.
       PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(getContext().getProject(), layoutVirtualFile);
       if (psiFile instanceof XmlFile) {
         LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
@@ -677,7 +670,7 @@ public class RenderTask {
    * If {@link #inflate()} hasn't been called before, this method will implicitly call it.
    */
   @NotNull
-  ListenableFuture<RenderResult> render(@NotNull final IImageFactory factory) {
+  ListenableFuture<RenderResult> render(@NotNull IImageFactory factory) {
     myImageFactoryDelegate = factory;
 
     return renderInner();
@@ -741,11 +734,10 @@ public class RenderTask {
 
     RenderTaskContext context = getContext();
     Module module = getContext().getModule();
-    final DrawableParams params =
-      new DrawableParams(drawableResourceValue, module, hardwareConfig,
-                         context.getConfiguration().getResourceResolver(), myLayoutlibCallback,
-                         context.getMinSdkVersion().getApiLevel(),
-                         context.getTargetSdkVersion().getApiLevel(), myLogger);
+    DrawableParams params =
+        new DrawableParams(drawableResourceValue, module, hardwareConfig, context.getConfiguration().getResourceResolver(),
+                           myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
+                           myLogger);
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
 
@@ -771,7 +763,7 @@ public class RenderTask {
    */
   @NotNull
   @SuppressWarnings("unchecked")
-  public List<BufferedImage> renderDrawableAllStates(ResourceValue drawableResourceValue) {
+  public List<BufferedImage> renderDrawableAllStates(@Nullable ResourceValue drawableResourceValue) {
     if (drawableResourceValue == null) {
       return Collections.emptyList();
     }
@@ -780,14 +772,13 @@ public class RenderTask {
 
     RenderTaskContext context = getContext();
     Module module = context.getModule();
-    final DrawableParams params =
-      new DrawableParams(drawableResourceValue, module, hardwareConfig,
-                         context.getConfiguration().getResourceResolver(), myLayoutlibCallback,
-                         context.getMinSdkVersion().getApiLevel(),
-                         context.getTargetSdkVersion().getApiLevel(), myLogger);
+    DrawableParams params =
+        new DrawableParams(drawableResourceValue, module, hardwareConfig, context.getConfiguration().getResourceResolver(),
+                           myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
+                           myLogger);
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
-    final boolean supportsMultipleStates = myLayoutLib.supports(Features.RENDER_ALL_DRAWABLE_STATES);
+    boolean supportsMultipleStates = myLayoutLib.supports(Features.RENDER_ALL_DRAWABLE_STATES);
     if (supportsMultipleStates) {
       params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_ALL_DRAWABLE_STATES, Boolean.TRUE);
     }
@@ -841,17 +832,17 @@ public class RenderTask {
   }
 
   /**
-   * Measure the children of the given parent tag, applying the given filter to the
-   * pull parser's attribute values.
+   * Measure the children of the given parent tag, applying the given filter to the pull parser's
+   * attribute values.
    *
    * @param parent the parent tag to measure children for
    * @param filter the filter to apply to the attribute values
    * @return a map from the children of the parent to new bounds of the children
    */
   @Nullable
-  public Map<XmlTag, ViewInfo> measureChildren(XmlTag parent, final AttributeFilter filter) {
+  public Map<XmlTag, ViewInfo> measureChildren(@NotNull XmlTag parent, @Nullable AttributeFilter filter) {
     ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter, parent, myLogger);
-    Map<XmlTag, ViewInfo> map = Maps.newHashMap();
+    Map<XmlTag, ViewInfo> map = new HashMap<>();
     RenderSession session = null;
     try {
       session = RenderService.runRenderAction(() -> measure(modelParser));
@@ -892,7 +883,7 @@ public class RenderTask {
    * @return a view info, if found
    */
   @Nullable
-  public ViewInfo measureChild(XmlTag tag, final AttributeFilter filter) {
+  public ViewInfo measureChild(@NotNull XmlTag tag, @Nullable AttributeFilter filter) {
     XmlTag parent = tag.getParentTag();
     if (parent != null) {
       Map<XmlTag, ViewInfo> map = measureChildren(parent, filter);
@@ -921,17 +912,16 @@ public class RenderTask {
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     Module module = getContext().getModule();
-    final SessionParams params = new SessionParams(
-      parser,
-      RenderingMode.NORMAL,
-      module /* projectKey */,
-      hardwareConfig,
-      resolver,
-      myLayoutlibCallback,
-      context.getMinSdkVersion().getApiLevel(),
-      context.getTargetSdkVersion().getApiLevel(),
-      myLogger);
-    //noinspection deprecation We want to measure while creating the session. RenderSession.measure would require a second call
+    SessionParams params = new SessionParams(parser,
+                                             RenderingMode.NORMAL,
+                                             module /* projectKey */,
+                                             hardwareConfig,
+                                             resolver,
+                                             myLayoutlibCallback,
+                                             context.getMinSdkVersion().getApiLevel(),
+                                             context.getTargetSdkVersion().getApiLevel(),
+                                             myLogger);
+    //noinspection deprecation We want to measure while creating the session. RenderSession.measure would require a second call.
     params.setLayoutOnly();
     params.setForceNoDecor();
     params.setExtendedViewInfoMode(true);
@@ -941,8 +931,7 @@ public class RenderTask {
     MergedManifest manifestInfo = MergedManifest.get(module);
     try {
       params.setRtlSupport(manifestInfo.isRtlSupported());
-    } catch (Exception e) {
-      // ignore.
+    } catch (Exception ignore) {
     }
 
     try {
@@ -952,7 +941,7 @@ public class RenderTask {
       return myLayoutLib.createSession(params);
     }
     catch (RuntimeException t) {
-      // Exceptions from the bridge
+      // Exceptions from the bridge.
       myLogger.error(null, t.getLocalizedMessage(), t, null, null);
       throw t;
     }
