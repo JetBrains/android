@@ -17,10 +17,7 @@ package com.android.tools.idea.uibuilder.property2.testutils
 
 import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.idea.common.property2.api.*
-import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.FlagPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
+import com.android.tools.idea.common.property2.impl.model.*
 import com.android.tools.idea.common.property2.impl.support.PropertiesTableImpl
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertiesProvider
@@ -173,6 +170,9 @@ class FakeEditorProviderImpl: EditorProvider<NelePropertyItem> {
 
       ControlType.FLAG_EDITOR ->
         return Pair(FlagPropertyEditorModel(property as FlagsPropertyItem<*>), JPanel())
+
+      ControlType.BOOLEAN ->
+        return Pair(BooleanPropertyEditorModel(property), JPanel())
     }
   }
 }

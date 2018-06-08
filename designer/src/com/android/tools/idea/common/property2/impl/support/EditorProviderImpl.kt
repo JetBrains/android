@@ -61,6 +61,12 @@ class EditorProviderImpl<in P : PropertyItem>(
         val editor = FlagPropertyEditor(model)
         return Pair(model, editor)
       }
+
+      ControlType.BOOLEAN -> {
+        val model = BooleanPropertyEditorModel(property)
+        val editor = PropertyCheckBox(model)
+        return Pair(model, editor)
+      }
     }
   }
 

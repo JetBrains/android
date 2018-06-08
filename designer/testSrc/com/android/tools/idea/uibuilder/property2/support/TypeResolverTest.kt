@@ -26,7 +26,7 @@ class TypeResolverTest {
 
   @Test
   fun testFromAttributeDefinition() {
-    assertThat(resolve(ATTR_TEXT_ALL_CAPS, AttributeFormat.Boolean)).isEqualTo(NelePropertyType.BOOLEAN)
+    assertThat(resolve(ATTR_TEXT_ALL_CAPS, AttributeFormat.Boolean)).isEqualTo(NelePropertyType.THREE_STATE_BOOLEAN)
     assertThat(resolve(ATTR_TEXT_COLOR, AttributeFormat.Color)).isEqualTo(NelePropertyType.COLOR_OR_DRAWABLE)
     assertThat(resolve(ATTR_ELEVATION, AttributeFormat.Dimension)).isEqualTo(NelePropertyType.DIMENSION)
     assertThat(resolve(ATTR_MAXIMUM, AttributeFormat.Float)).isEqualTo(NelePropertyType.FLOAT)

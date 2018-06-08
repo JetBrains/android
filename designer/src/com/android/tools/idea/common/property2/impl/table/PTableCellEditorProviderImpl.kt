@@ -55,7 +55,7 @@ class PTableCellEditorImpl<in P : PropertyItem>(
     get() = model?.value
 
   override val isBooleanEditor: Boolean
-    get() = controlType == ControlType.THREE_STATE_BOOLEAN
+    get() = controlType == ControlType.THREE_STATE_BOOLEAN || controlType == ControlType.BOOLEAN
 
   override fun toggleValue() {
     model?.toggleValue()

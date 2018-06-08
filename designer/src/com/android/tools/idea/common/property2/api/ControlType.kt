@@ -21,9 +21,10 @@ package com.android.tools.idea.common.property2.api
  * These control types are supported with standard swing implementations.
  */
 enum class ControlType {
+  BOOLEAN,
   TEXT_EDITOR,
   DROPDOWN,
   COMBO_BOX,
   THREE_STATE_BOOLEAN,
-  FLAG_EDITOR
+  FLAG_EDITOR,
 }

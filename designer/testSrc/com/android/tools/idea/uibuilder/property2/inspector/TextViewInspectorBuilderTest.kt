@@ -164,7 +164,7 @@ class TextViewInspectorBuilderTest {
     util.addProperty(ANDROID_URI, ATTR_LINE_SPACING_EXTRA, NelePropertyType.DIMENSION)
     util.addProperty(ANDROID_URI, ATTR_TEXT_STYLE, NelePropertyType.STRING)
     util.addFlagsProperty(ANDROID_URI, ATTR_TEXT_STYLE, listOf(TextStyle.VALUE_BOLD, TextStyle.VALUE_ITALIC))
-    util.addProperty(ANDROID_URI, ATTR_TEXT_ALL_CAPS, NelePropertyType.BOOLEAN)
+    util.addProperty(ANDROID_URI, ATTR_TEXT_ALL_CAPS, NelePropertyType.THREE_STATE_BOOLEAN)
     util.addProperty(ANDROID_URI, ATTR_TEXT_COLOR, NelePropertyType.COLOR)
   }
 

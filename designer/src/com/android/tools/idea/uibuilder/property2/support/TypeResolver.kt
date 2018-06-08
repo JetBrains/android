@@ -39,7 +39,7 @@ object TypeResolver {
 
     for (format in attribute.formats) {
       when (format) {
-        AttributeFormat.Boolean -> return NelePropertyType.BOOLEAN
+        AttributeFormat.Boolean -> return NelePropertyType.THREE_STATE_BOOLEAN
         AttributeFormat.Color -> return NelePropertyType.COLOR_OR_DRAWABLE // We dont know if a drawable is acceptable !!!
         AttributeFormat.Dimension -> return NelePropertyType.DIMENSION
         AttributeFormat.Float -> return NelePropertyType.FLOAT
