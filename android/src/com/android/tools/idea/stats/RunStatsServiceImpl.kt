@@ -137,6 +137,7 @@ class RunStatsServiceImpl : RunStatsService() {
 
   override fun notifyEmulatorStarted(isSuccessful: Boolean) {
     val currentRun = myRun?: return
+    if (myRun?.emulatorStartTimestamp == null) return
     synchronized(lock) {
       currentRun.emulatorFinishTimestamp = System.currentTimeMillis()
     }

@@ -419,7 +419,6 @@ public class AvdManagerConnection {
 
     final ProcessHandler processHandler;
     try {
-      RunStatsService.get(project).notifyEmulatorStarting();
       processHandler = runner.start();
     }
     catch (ExecutionException e) {

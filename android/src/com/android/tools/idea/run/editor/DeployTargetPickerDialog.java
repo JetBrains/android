@@ -26,6 +26,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.stats.RunStatsService;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -39,6 +40,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -367,7 +369,9 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
     // NOTE: WE ARE LAUNCHING EMULATORS HERE
     for (AndroidDevice device : devices) {
       if (!device.isRunning()) {
-        device.launch(myFacet.getModule().getProject());
+        Project project = myFacet.getModule().getProject();
+        RunStatsService.get(project).notifyEmulatorStarting();
+        device.launch(project);
       }
     }
 
