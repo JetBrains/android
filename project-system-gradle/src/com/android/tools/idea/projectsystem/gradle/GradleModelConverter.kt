@@ -22,8 +22,8 @@ import com.android.ide.common.util.PathString
 import com.android.projectmodel.*
 import com.android.projectmodel.AndroidProject
 import com.android.projectmodel.Variant
-import com.android.resources.ResourceType
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.gradle.project.model.classFieldsToDynamicResourceValues
 import java.io.File
 
 // This file contains utilities for converting Gradle model types (from builder-model) into project model types.
@@ -287,7 +287,7 @@ class GradleModelConverter(
                 manifestValues = mergedConfig.manifestValues.copy(
                     applicationId = applicationId
                 ),
-                resValues = mergedConfig.resValues + getResValues(resValues)
+                resValues = mergedConfig.resValues + classFieldsToDynamicResourceValues(resValues)
             )
           }
 
@@ -427,17 +427,6 @@ class GradleModelConverter(
     return builder.build()
   }
 
-  private fun getResValues(classFields: Map<String, ClassField>): Map<String, DynamicResourceValue> {
-    val result = HashMap<String, DynamicResourceValue>()
-    for (field in classFields.values) {
-      val resourceType = ResourceType.getEnum(field.type)
-      if (resourceType != null) {
-        result[field.name] = DynamicResourceValue(resourceType, field.value)
-      }
-    }
-    return result
-  }
-
   private fun getBaseConfig(config: BaseConfig): Config {
     with(config) {
       val sources = HashMap<AndroidPathType, List<PathString>>()
@@ -449,7 +438,7 @@ class GradleModelConverter(
           versionNameSuffix = versionNameSuffix,
           manifestPlaceholderValues = manifestPlaceholders,
           sources = SourceSet(sources),
-          resValues = getResValues(resValues)
+          resValues = classFieldsToDynamicResourceValues(resValues)
       )
     }
   }
