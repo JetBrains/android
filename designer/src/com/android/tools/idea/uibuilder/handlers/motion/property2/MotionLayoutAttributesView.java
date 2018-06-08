@@ -33,9 +33,10 @@ import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.*;
 
 public class MotionLayoutAttributesView {
+  private static final String MOTION_VIEW_NAME = "Motion";
 
   public static PropertiesView<MotionPropertyItem> createMotionView(@NotNull MotionLayoutAttributesModel model) {
-    PropertiesView<MotionPropertyItem> view = new PropertiesView<>(model);
+    PropertiesView<MotionPropertyItem> view = new PropertiesView<>(MOTION_VIEW_NAME, model);
     PropertiesViewTab<MotionPropertyItem> tab = view.addTab("");
     MotionControlTypeProvider controlTypeProvider = new MotionControlTypeProvider();
     EditorProvider<MotionPropertyItem> editorProvider =

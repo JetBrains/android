@@ -35,6 +35,7 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.JPanel
 
+private const val VIEW_NAME = "LayoutEditor"
 private const val BASIC_PAGE = "Basic"
 private const val ADVANCED_PAGE = "Advanced"
 
@@ -43,7 +44,7 @@ private const val ADVANCED_PAGE = "Advanced"
  */
 class NelePropertiesPanelToolContent(facet: AndroidFacet) : JPanel(BorderLayout()), ToolContent<DesignSurface> {
   private val componentModel = NelePropertiesModel(this, facet)
-  private val componentView = PropertiesView(componentModel)
+  private val componentView = PropertiesView(VIEW_NAME, componentModel)
   private val motionModel = MotionLayoutAttributesModel(this)
   private val motionEditorView = MotionLayoutAttributesView.createMotionView(motionModel)
   private val properties = PropertiesPanel(componentModel)
