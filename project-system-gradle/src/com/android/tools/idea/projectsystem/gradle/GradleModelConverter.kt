@@ -432,7 +432,7 @@ class GradleModelConverter(
     for (field in classFields.values) {
       val resourceType = ResourceType.getEnum(field.type)
       if (resourceType != null) {
-        result.put(field.name, ResValue(resourceType, field.value))
+        result[field.name] = ResValue(resourceType, field.value)
       }
     }
     return result
@@ -441,8 +441,8 @@ class GradleModelConverter(
   private fun getBaseConfig(config: BaseConfig): Config {
     with(config) {
       val sources = HashMap<AndroidPathType, List<PathString>>()
-      sources.put(AndroidPathType.PROGUARD_FILE, filesToPathStrings(proguardFiles))
-      sources.put(AndroidPathType.CONSUMER_PROGUARD_FILE, filesToPathStrings(consumerProguardFiles))
+      sources[AndroidPathType.PROGUARD_FILE] = filesToPathStrings(proguardFiles)
+      sources[AndroidPathType.CONSUMER_PROGUARD_FILE] = filesToPathStrings(consumerProguardFiles)
 
       return Config(
           applicationIdSuffix = applicationIdSuffix,
