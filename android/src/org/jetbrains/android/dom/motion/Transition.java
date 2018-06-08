@@ -19,8 +19,12 @@ import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.NameStrategy;
 import org.jetbrains.android.dom.Styleable;
 
+import java.util.List;
+
 @DefinesXml
 @NameStrategy(PascalNameStrategy.class)
 @Styleable(value = "Transition", packageName = "android.support.constraint")
 public interface Transition extends MotionElement {
+  OnSwipe getOnSwipe();
+  List<KeyFrameSet> getKeyFrameSets();
 }
