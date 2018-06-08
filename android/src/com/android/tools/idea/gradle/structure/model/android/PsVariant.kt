@@ -27,13 +27,8 @@ open class PsVariant(override val parent: PsAndroidModule,
 
   private var myBuildType: String = ""
   private var myProductFlavors: List<String> = listOf()
-  var resolvedModel: IdeVariant? = null
+  var resolvedModel: IdeVariant? = null ; private set
   private var myArtifactCollection: PsAndroidArtifactCollection? = null
-
-  constructor (parent: PsAndroidModule, name: String, buildType: String, productFlavors: List<String>, resolvedModel: IdeVariant?)
-    : this(parent, name) {
-    init(buildType, productFlavors, resolvedModel)
-  }
 
   internal fun init(buildType: String, productFlavors: List<String>, resolvedModel: IdeVariant?) {
     myBuildType = buildType

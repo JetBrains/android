@@ -32,11 +32,11 @@ class PsAndroidModule(
   parent: PsProject,
   gradlePath: String
 ) : PsModule(parent, gradlePath) {
-  var resolvedModel: AndroidModuleModel? = null
-  override var projectType: PsModuleType = PsModuleType.UNKNOWN
-  var isLibrary: Boolean = false
-  override var rootDir: File? = null
-  override var icon: Icon? = null
+  var resolvedModel: AndroidModuleModel? = null; private set
+  override var projectType: PsModuleType = PsModuleType.UNKNOWN; private set
+  var isLibrary: Boolean = false; private set
+  override var rootDir: File? = null; private set
+  override var icon: Icon? = null; private set
 
   private var buildTypeCollection: PsBuildTypeCollection? = null
   private var productFlavorCollection: PsProductFlavorCollection? = null
