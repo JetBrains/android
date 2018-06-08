@@ -16,16 +16,13 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ClassField;
-import com.android.builder.model.Variant;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -81,7 +78,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     });
 
     Disposer.register(parent, this);
-    BuildVariantView.getInstance(myFacet.getModule().getProject()).addListener(this);
+    BuildVariantUpdater.getInstance(myFacet.getModule().getProject()).addSelectionChangeListener(this);
   }
 
   @Override
@@ -90,7 +87,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
 
     Project project = myFacet.getModule().getProject();
     if (!project.isDisposed()) {
-      BuildVariantView.getInstance(project).removeListener(this);
+      BuildVariantUpdater.getInstance(project).removeSelectionChangeListener(this);
     }
   }
 

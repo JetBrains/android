@@ -87,7 +87,6 @@ public class BuildVariantView {
   private JBTable myVariantsTable;
   private JPanel myNotificationPanel;
 
-  private final List<BuildVariantSelectionChangeListener> myBuildVariantSelectionChangeListeners = new ArrayList<>();
   private final List<Conflict> myConflicts = new ArrayList<>();
 
   @NotNull
@@ -96,28 +95,15 @@ public class BuildVariantView {
   }
 
   public BuildVariantView(@NotNull Project project) {
-    myProject = project;
-    myUpdater = new BuildVariantUpdater();
-    ((JComponent)myVariantsTable.getParent().getParent()).setBorder(JBUI.Borders.empty());
+    this(project, BuildVariantUpdater.getInstance(project));
   }
 
   @VisibleForTesting
-  void setUpdater(@NotNull BuildVariantUpdater updater) {
+  public BuildVariantView(@NotNull Project project, @NotNull BuildVariantUpdater updater) {
+    myProject = project;
     myUpdater = updater;
-  }
-
-  public void addListener(@NotNull BuildVariantSelectionChangeListener listener) {
-    //noinspection SynchronizeOnThis
-    synchronized (this) {
-      myBuildVariantSelectionChangeListeners.add(listener);
-    }
-  }
-
-  public void removeListener(@NotNull BuildVariantSelectionChangeListener listener) {
-    //noinspection SynchronizeOnThis
-    synchronized (this) {
-      myBuildVariantSelectionChangeListeners.remove(listener);
-    }
+    myUpdater.addSelectionChangeListener(this::invokeListeners);
+    ((JComponent)myVariantsTable.getParent().getParent()).setBorder(JBUI.Borders.empty());
   }
 
   private void createUIComponents() {
@@ -476,7 +462,7 @@ public class BuildVariantView {
         editor.addItemListener(e -> {
           if (e.getStateChange() == ItemEvent.SELECTED) {
             BuildVariantItem selectedVariant = (BuildVariantItem)e.getItem();
-            buildVariantSelected(selectedVariant.myModuleName, selectedVariant.myBuildVariantName);
+            myUpdater.updateSelectedVariant(myProject, selectedVariant.myModuleName, selectedVariant.myBuildVariantName);
           }
         });
         DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);
@@ -508,25 +494,13 @@ public class BuildVariantView {
     }
   }
 
-  @VisibleForTesting
-  void buildVariantSelected(@NotNull String moduleName, @NotNull String variantName) {
-    myUpdater.updateSelectedVariant(myProject, moduleName, variantName, () -> invokeListeners());
-  }
-
   private void invokeListeners() {
-    Runnable invokeListenersTask = () -> {
-      updateContents();
-      for (BuildVariantSelectionChangeListener listener : myBuildVariantSelectionChangeListeners) {
-        listener.selectionChanged();
-      }
-    };
-
     Application application = ApplicationManager.getApplication();
     if (application.isUnitTestMode()) {
-      invokeListenersTask.run();
+      updateContents();
     }
     else {
-      application.invokeLater(invokeListenersTask);
+      application.invokeLater(this::updateContents);
     }
   }
 

@@ -16,7 +16,7 @@
 package org.jetbrains.android.facet;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.ProjectResourceRepositoryRootListener;
@@ -185,7 +185,7 @@ public class ResourceFolderManager extends AndroidFacetScopedService implements 
         // Also refresh the app resources whenever the variant changes
         if (!myVariantListenerAdded) {
           myVariantListenerAdded = true;
-          BuildVariantView.getInstance(facet.getModule().getProject()).addListener(this::invalidate);
+          BuildVariantUpdater.getInstance(facet.getModule().getProject()).addSelectionChangeListener(this::invalidate);
         }
       }
       // Listen to root change events. Be notified when project is initialized so we can update the
