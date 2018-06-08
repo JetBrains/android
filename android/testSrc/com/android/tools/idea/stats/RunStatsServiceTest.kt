@@ -112,6 +112,18 @@ class RunStatsServiceTest {
     assertNull(myRunStatsService.myRun)
   }
 
+  // Test handling b/109945164
+  @Test
+  fun testStartedEmulatorWithoutStartEvent() {
+    val duration = 500
+    val currentTimeMillis = System.currentTimeMillis() - duration
+    myRunStatsService.myRun = Run(UUID.randomUUID(), packageName, StudioRunEvent.RunType.DEBUG, currentTimeMillis)
+    myRunStatsService.notifyEmulatorStarted(false)
+    val usages = myUsageTracker.usages.filterNotNull()
+
+    Truth.assertThat(usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }).hasSize(0)
+  }
+
   @Test
   fun testDeployStarted() {
     myRunStatsService.myRun = Run(UUID.randomUUID(), packageName, StudioRunEvent.RunType.DEBUG, System.currentTimeMillis())
