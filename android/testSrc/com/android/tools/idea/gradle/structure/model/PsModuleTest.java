@@ -43,7 +43,7 @@ public class PsModuleTest extends AndroidGradleTestCase {
 
   public void testApplyChanges() throws Exception {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION);
-    PsProject psProject = new PsProject(getProject());
+    PsProject psProject = new PsProjectImpl(getProject());
     PsAndroidModule psAppModule = (PsAndroidModule)psProject.findModuleByName("app");
     Document buildFileDocument = getDocument();
     assumeThat(buildFileDocument.getText(), not(containsString(UPDATED_GUAVA_COORDINATES)));
@@ -62,7 +62,7 @@ public class PsModuleTest extends AndroidGradleTestCase {
 
   public void testLocalRepositories() throws Exception {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION);
-    PsProject psProject = new PsProject(getProject());
+    PsProject psProject = new PsProjectImpl(getProject());
     PsAndroidModule psAppModule = (PsAndroidModule)psProject.findModuleByName("app");
     assertThat(psAppModule.getParsedModel().repositories().repositories(), hasItem(instanceOf(MavenRepositoryModel.class)));
     List<String> mavenRepositories =

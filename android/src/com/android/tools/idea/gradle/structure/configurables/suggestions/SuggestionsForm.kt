@@ -21,6 +21,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
+import java.util.function.Consumer
 
 class SuggestionsForm(
     private val context: PsContext,
@@ -37,9 +38,9 @@ class SuggestionsForm(
     setViewComponent(issuesViewer.panel)
     renderIssues(listOf())
 
-    context.project.forEachModule { module ->
+    context.project.forEachModule(Consumer { module ->
       module.addDependencyChangedListener(this) { dependencyChanged() }
-    }
+    })
   }
 
   private fun dependencyChanged() {
@@ -50,7 +51,7 @@ class SuggestionsForm(
   private fun analyzeProject() {
     val daemon = context.analyzerDaemon
     daemon.removeIssues(PROJECT_ANALYSIS)
-    context.project.forEachModule({ daemon.queueCheck(it) })
+    context.project.forEachModule(Consumer { daemon.queueCheck(it) })
     updateLoading()
   }
 

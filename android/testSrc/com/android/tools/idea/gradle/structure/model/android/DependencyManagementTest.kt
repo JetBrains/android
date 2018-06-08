@@ -16,10 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
-import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
-import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
 import com.intellij.openapi.project.Project
 import org.hamcrest.CoreMatchers.*
@@ -37,7 +34,7 @@ class DependencyManagementTest : DependencyTestCase() {
 
   private fun reparse() {
     resolvedProject = myFixture.project
-    project = PsProject(resolvedProject)
+    project = PsProjectImpl(resolvedProject)
   }
 
   fun testParsedDependencies() {

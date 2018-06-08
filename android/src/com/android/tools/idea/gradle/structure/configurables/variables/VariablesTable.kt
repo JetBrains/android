@@ -37,6 +37,7 @@ import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.MouseEvent
 import java.util.*
+import java.util.function.Consumer
 import javax.swing.*
 import javax.swing.border.EmptyBorder
 import javax.swing.plaf.basic.BasicTreeUI
@@ -90,7 +91,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
 
     val moduleNodes = mutableListOf<ModuleNode>()
-    context.project.forEachModule { module -> module.variables.let { variables -> moduleNodes.add(createRoot(variables)) } }
+    context.project.forEachModule(Consumer { module -> module.variables.let { variables -> moduleNodes.add(createRoot(variables)) } })
     moduleNodes.sortBy { it.variables.name }
     moduleNodes.add(0, createRoot(context.project.variables))
 

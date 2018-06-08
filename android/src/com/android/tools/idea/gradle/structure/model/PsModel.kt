@@ -17,23 +17,14 @@ package com.android.tools.idea.gradle.structure.model
 
 import javax.swing.Icon
 
-abstract class PsModel protected constructor() {
+interface PsModel {
+  val parent: PsModel?
 
-  abstract val parent: PsModel?
+  var isModified: Boolean
 
-  open var isModified: Boolean = false
-    set(value) {
-      field = value
-      if (value) {
-        parent?.isModified = true
-      }
-    }
+  val name: String
 
-  abstract val name: String
+  val isDeclared: Boolean
 
-  abstract val isDeclared: Boolean
-
-  open val icon: Icon? get() = null
-
-  override fun toString(): String = name
+  val icon: Icon? get() = null
 }

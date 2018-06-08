@@ -171,7 +171,7 @@ public class PsIssueCollectionTest {
   public void findIssues_withUnknownType() {
     myIssueCollection.add(new PsIssue("a", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
     myIssueCollection.add(new PsIssue("b", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
-    List<PsIssue> issues = myIssueCollection.findIssues(new PsModel() {
+    List<PsIssue> issues = myIssueCollection.findIssues(new PsChildModel() {
       @Nullable
       @Override
       public PsModel getParent() {
