@@ -288,10 +288,13 @@ class CpuCaptureView {
     else {
       orientation = HTreeChart.Orientation.BOTTOM_UP;
     }
-    HTreeChart<CaptureNode> chart = new HTreeChart<>(globalRange, range, orientation);
-    chart.setHRenderer(new CaptureNodeHRenderer(type));
-    chart.setRootVisible(false);
-    chart.setHTree(node);
+
+    HTreeChart<CaptureNode> chart = new HTreeChart.Builder<>(node, range, new CaptureNodeHRenderer(type))
+      .setGlobalXRange(globalRange)
+      .setOrientation(orientation)
+      .setRootVisible(false)
+      .build();
+
     if (node != null) {
       if (node.getData() instanceof AtraceNodeModel && type == CaptureModel.Details.Type.CALL_CHART) {
         chart.addMouseMotionListener(new CpuTraceEventTooltipView(chart, stageView));

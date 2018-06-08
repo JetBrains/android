@@ -24,6 +24,7 @@ import org.junit.Test
 import java.awt.*
 
 import com.google.common.truth.Truth.assertThat
+import java.awt.geom.Rectangle2D
 
 class HTreeChartTest {
   private lateinit var myUi: FakeUi
@@ -45,12 +46,17 @@ class HTreeChartTest {
 
   private fun setUp(orientation: HTreeChart.Orientation) {
     myRange = Range(0.0, 100.0)
-    myChart = HTreeChart(Range(0.0, 100.0), myRange, orientation)
+
+    myChart = HTreeChart.Builder(HNodeTree(0,5,2), myRange, FakeRenderer())
+      .setGlobalXRange(Range(0.0, 100.0))
+      .setOrientation(orientation)
+      .build()
+
     myChart.size = Dimension(100, myViewHeight)
     myUi = FakeUi(myChart)
     myChart.yRange.set(10.0, 10.0)
     // Set a root pointing to a tree with more than one nodes, to perform some meaningful drags.
-    myChart.setHTree(HNodeTree(0,5,2))
+
     assertThat(myChart.maximumHeight).isEqualTo(myTotalHeight)
   }
 
@@ -302,6 +308,12 @@ class HTreeChartTest {
     myUi.mouse.wheel(25, 20, 15)
     assertThat(myRange.min).isWithin(EPSILON).of(0.0)
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
+  }
+
+  class FakeRenderer: DefaultHRenderer<String>() {
+    override fun getFillColor(nodeData: String) = Color.white
+
+    override fun generateFittingText(nodeData: String, rect: Rectangle2D, fontMetrics: FontMetrics) = ""
   }
 
   companion object {

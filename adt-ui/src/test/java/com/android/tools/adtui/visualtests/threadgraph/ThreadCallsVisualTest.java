@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.hchart.JavaMethodHRenderer;
 import com.android.tools.adtui.chart.hchart.Method;
-import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
@@ -71,9 +70,9 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
 
     mTimeSelectionRangeUs = new Range(0, 0);
 
-    mChart = new HTreeChart<>(null, mTimeSelectionRangeUs, HTreeChart.Orientation.BOTTOM_UP);
-    mChart.setHRenderer(new JavaMethodHRenderer());
-
+    mChart = new HTreeChart.Builder<>(null, mTimeSelectionRangeUs, new JavaMethodHRenderer())
+      .setOrientation(HTreeChart.Orientation.BOTTOM_UP)
+      .build();
     SelectionModel model = new SelectionModel(mTimeSelectionRangeUs);
     mSelector = new SelectionComponent(model, mTimeGlobalRangeUs);
   }
