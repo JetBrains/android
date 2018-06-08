@@ -53,7 +53,7 @@ public class CreateBasicKotlinProjectTest {
    *   2. Mainactivity should have .kt as extension and ensure the class has Kotlin code.
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void createBasicKotlinProject() {
     createNewBasicKotlinProject(false, guiTest);
