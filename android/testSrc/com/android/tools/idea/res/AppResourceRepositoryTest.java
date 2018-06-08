@@ -21,6 +21,8 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.usage.ResourceUsageModel;
+import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.stubs.android.ClassFieldStub;
 import com.android.tools.idea.res.aar.AarSourceResourceRepository;
@@ -203,11 +205,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
 
     BiFunction<ResourceNamespace, String, DynamicResourceValueRepository> makeDynamicRepo = (namespace, value) -> {
-      ClassFieldStub field = new ClassFieldStub("string",
-                                                "model_value",
-                                                value,
-                                                "value from model",
-                                                Collections.emptySet());
+      DynamicResourceValue field = new DynamicResourceValue(ResourceType.STRING, value);
       return DynamicResourceValueRepository.createForTest(myFacet, namespace, Collections.singletonMap("model_value", field));
     };
     ResourceNamespace appNamespace = ResourceNamespace.fromPackageName("com.example.app");
