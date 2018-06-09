@@ -16,12 +16,16 @@
 package com.android.tools.idea.sdk;
 
 import com.android.annotations.Nullable;
+import com.android.annotations.VisibleForTesting;
 import com.android.repository.api.Downloader;
 import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.SettingsController;
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.io.HttpRequests;
+import com.intellij.util.io.RequestBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -66,6 +70,17 @@ public class StudioDownloader implements Downloader {
     }
   }
 
+  @NotNull private final SettingsController mySettingsController;
+
+  public StudioDownloader() {
+    this(StudioSettingsController.getInstance());
+  }
+
+  @VisibleForTesting
+  StudioDownloader(@NotNull SettingsController settingsController) {
+    mySettingsController = settingsController;
+  }
+
   @Override
   @Nullable
   public InputStream downloadAndStream(@NotNull URL url, @NotNull ProgressIndicator indicator)
@@ -86,13 +101,20 @@ public class StudioDownloader implements Downloader {
       }
     }
 
-    // We don't use the settings here explicitly, since HttpRequests picks up the network settings from studio directly.
-    indicator.logInfo("Downloading " + url);
+    String preparedUrl = prepareUrl(url);
+    indicator.logInfo("Downloading " + preparedUrl);
     indicator.setText("Downloading...");
-    indicator.setSecondaryText(url.toString());
-    // We can't pick up the existing studio progress indicator since the one passed in here might be a sub-indicator
-    // working over a different range.
-    HttpRequests.request(url.toExternalForm()).productNameAsUserAgent().connect(request -> {
+    indicator.setSecondaryText(preparedUrl);
+    // We can't pick up the existing studio progress indicator since the one passed in here might be a sub-indicator working over a
+    // different range.
+    RequestBuilder rb = HttpRequests.request(preparedUrl).productNameAsUserAgent();
+    if (mySettingsController.getForceHttp()) {
+      // Ensure no default value interferes with the somewhat opposite Studio setting. At the same time, it is not the
+      // exact opposite: we do not want to force https just because http is not forced. So only the 'false' case is
+      // enacted here.
+      rb.forceHttps(false);
+    }
+    rb.connect(request -> {
       long contentLength = request.getConnection().getContentLength();
       return request.saveToFile(target, new DownloadProgressIndicator(indicator, contentLength));
     });
@@ -109,5 +131,17 @@ public class StudioDownloader implements Downloader {
     tempFile.deleteOnExit();
     downloadFully(url, tempFile, null, indicator);
     return tempFile.toPath();
+  }
+
+  @VisibleForTesting
+  @NotNull
+  String prepareUrl(@NotNull URL url) {
+    // HttpRequests picks up the network settings from studio directly, however we need to query settings for the
+    // custom 'Force HTTP' option coming from the integrated SDK manager and persisted in the Studio-wide settings instance.
+    String prepared = url.toExternalForm();
+    if (mySettingsController.getForceHttp() && StringUtil.startsWith(prepared, "https:")) {
+      prepared = "http:" + prepared.substring(6);
+    }
+    return prepared;
   }
 }
