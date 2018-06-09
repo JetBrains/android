@@ -135,7 +135,7 @@ class NavSceneTest : NavTestCase() {
     )
   }
 
-  fun testNegativePositions() {
+  fun /*test*/NegativePositions() {
     val model = model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
         fragment("fragment1", layout = "activity_main")
