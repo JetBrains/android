@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider;
 import com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider;
@@ -90,9 +89,6 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
       "Android TV Module", "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project",
       "Import .JAR/.AAR Package", "Java Library"
     );
-    if (!StudioFlags.NPW_DYNAMIC_APP_MODULE.get()) {
-      expectedEntries.remove("Dynamic Feature Module");
-    }
 
     Assert.assertThat(sortedEntries, equalTo(expectedEntries));
   }
