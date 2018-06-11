@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.profilers.ProfilerColors.DEFAULT_HOVER_COLOR;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 /**
@@ -137,7 +136,7 @@ final class ConnectionsView {
 
     myTableModel = new ConnectionsTableModel(myStage.getHttpDataFetcher());
 
-    myConnectionsTable = new HoverRowTable(myTableModel, DEFAULT_HOVER_COLOR);
+    myConnectionsTable = new HoverRowTable(myTableModel);
     customizeConnectionsTable();
     createTooltip(stageView);
 

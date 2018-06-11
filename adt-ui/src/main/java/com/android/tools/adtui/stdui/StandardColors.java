@@ -43,6 +43,7 @@ public class StandardColors {
   public static final Color TAB_HOVER_COLOR = new JBColor(0xd3d3d3, 0x323232);
   public static final Color TAB_SELECTED_COLOR = new JBColor(0x397FE4, 0x7CAEFE);
   public static final Color TAB_BORDER_COLOR = new JBColor(Gray._201, Gray._40);
+  public static final Color HOVER_COLOR = new JBColor(new Color(0x171650C5, true), new Color(0x0CFFFFFF, true));
 
   public static final Color ERROR_BUBBLE_TEXT_COLOR = TEXT_COLOR;
   public static final Color ERROR_BUBBLE_FILL_COLOR = new JBColor(0xF5E6E7, 0x593D41);

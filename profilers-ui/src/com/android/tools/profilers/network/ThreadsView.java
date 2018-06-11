@@ -35,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
@@ -71,7 +70,7 @@ final class ThreadsView {
 
   ThreadsView(@NotNull NetworkProfilerStageView stageView) {
     ThreadsTableModel model = new ThreadsTableModel(stageView.getStage().getHttpDataFetcher());
-    myThreadsTable = new HoverRowTable(model, ProfilerColors.DEFAULT_HOVER_COLOR);
+    myThreadsTable = new HoverRowTable(model);
     TimelineRenderer timelineRenderer = new TimelineRenderer(myThreadsTable, stageView.getStage());
     myThreadsTable.getColumnModel().getColumn(0).setCellRenderer(new BorderlessTableCellRenderer());
     myThreadsTable.getColumnModel().getColumn(1).setCellRenderer(timelineRenderer);

@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.stdui.StandardColors;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ExpandedItemRendererComponentWrapper;
 import com.intellij.ui.table.JBTable;
@@ -38,9 +39,9 @@ public final class HoverRowTable extends JBTable {
   private int myHoveredRow = -1;
   private final Color myHoverColor;
 
-  public HoverRowTable(@NotNull TableModel model, @NotNull Color hoverColor) {
+  public HoverRowTable(@NotNull TableModel model) {
     super(model);
-    myHoverColor = hoverColor;
+    myHoverColor = StandardColors.HOVER_COLOR;
     MouseAdapter mouseAdapter = new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {

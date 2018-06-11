@@ -67,6 +67,7 @@ public class VisualTests {
       dialog.addTest(new LineChartReducerVisualTest());
       dialog.addTest(new StateChartReducerVisualTest());
       dialog.addTest(new HorizontalSpinnerVisualTest());
+      dialog.addTest(new HoverColumnTreeVisualTest());
       dialog.setTitle("Visual Tests");
       dialog.pack();
       dialog.setVisible(true);

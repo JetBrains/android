@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.visualtests
+package com.android.tools.adtui.visualtests
 
 import com.android.tools.adtui.common.ColumnTreeBuilder
 import com.android.tools.adtui.model.updater.Updatable
-import com.android.tools.adtui.visualtests.VisualTest
-import com.android.tools.profilers.ProfilerColors
+import com.android.tools.adtui.stdui.StandardColors
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.Tree
@@ -43,7 +42,7 @@ class HoverColumnTreeVisualTest : VisualTest() {
     panel.layout = BorderLayout()
     val tree = createTree()
     val builder = ColumnTreeBuilder(tree, DefaultTableColumnModel())
-    builder.setHoverColor(ProfilerColors.DEFAULT_HOVER_COLOR)
+    builder.setHoverColor(StandardColors.HOVER_COLOR)
     builder.addColumn(ColumnTreeBuilder.ColumnBuilder().setName("Class")
         .setRenderer(object : ColoredTreeCellRenderer() {
           override fun customizeCellRenderer(tree: JTree,
