@@ -30,7 +30,7 @@ import org.junit.Test;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
 
 public class ActivityEventDataSeriesTest {
 
@@ -67,11 +67,11 @@ public class ActivityEventDataSeriesTest {
       ));
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
     List<SeriesData<EventAction<StackedEventType>>> dataList = myActivitySeries.getDataForXRange(range);
-    assertEquals(dataList.size(), 1);
+    assertThat(dataList).hasSize(1);
     SeriesData<EventAction<StackedEventType>> event = dataList.get(0);
     verifyActivity(event, 0);
-    assertEquals(event.value.getType(), StackedEventType.ACTIVITY_STARTED);
-    assertEquals(((ActivityAction)event.value).getData(), ACTIVITY_NAME);
+    assertThat(event.value.getType()).isEqualTo(StackedEventType.ACTIVITY_STARTED);
+    assertThat(((ActivityAction)event.value).getData()).isEqualTo(ACTIVITY_NAME);
   }
 
   @Test
@@ -92,13 +92,12 @@ public class ActivityEventDataSeriesTest {
       ));
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
     List<SeriesData<EventAction<StackedEventType>>> dataList = myActivitySeries.getDataForXRange(range);
-    assertEquals(dataList.size(), 1);
+    assertThat(dataList).hasSize(1);
     SeriesData<EventAction<StackedEventType>> event = dataList.get(0);
     verifyActivity(event, TEST_END_TIME_NS);
-    assertEquals(event.value.getType(), StackedEventType.ACTIVITY_COMPLETED);
-    assertEquals(((ActivityAction)event.value).getData(), String.format("%s - %s", ACTIVITY_NAME,
-                                                                        EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString()
-                                                                          .toLowerCase()));
+    assertThat(event.value.getType()).isEqualTo(StackedEventType.ACTIVITY_COMPLETED);
+    assertThat(((ActivityAction)event.value).getData()).isEqualTo(
+      String.format("%s - %s", ACTIVITY_NAME, EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase()));
   }
 
   @Test
@@ -121,15 +120,13 @@ public class ActivityEventDataSeriesTest {
       ));
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
     List<SeriesData<EventAction<StackedEventType>>> dataList = myActivitySeries.getDataForXRange(range);
-    assertEquals(1, dataList.size());
+    assertThat(dataList).hasSize(1);
     SeriesData<EventAction<StackedEventType>> event = dataList.get(0);
     verifyActivity(event, TEST_END_TIME_NS);
-    assertEquals(event.value.getType(), StackedEventType.ACTIVITY_COMPLETED);
-    assertEquals(((ActivityAction)event.value).getData(), String.format("%s - %s - %s", ACTIVITY_NAME,
-                                                                        EventProfiler.ActivityStateData.ActivityState.STOPPED.toString()
-                                                                          .toLowerCase(),
-                                                                        EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString()
-                                                                          .toLowerCase()));
+    assertThat(event.value.getType()).isEqualTo(StackedEventType.ACTIVITY_COMPLETED);
+    assertThat(((ActivityAction)event.value).getData()).isEqualTo(
+      String.format("%s - %s - %s", ACTIVITY_NAME, EventProfiler.ActivityStateData.ActivityState.STOPPED.toString().toLowerCase(),
+                    EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase()));
   }
 
   @Test
@@ -160,21 +157,18 @@ public class ActivityEventDataSeriesTest {
       ));
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
     List<SeriesData<EventAction<StackedEventType>>> dataList = myActivitySeries.getDataForXRange(range);
-    assertEquals(2, dataList.size());
+    assertThat(dataList).hasSize(2);
     SeriesData<EventAction<StackedEventType>> event = dataList.get(0);
     verifyActivity(event, TEST_START_TIME_NS);
-    assertEquals(event.value.getType(), StackedEventType.ACTIVITY_COMPLETED);
-    assertEquals(((ActivityAction)event.value).getData(), String.format("%s - %s - %s", ACTIVITY_NAME,
-                                                                        EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString()
-                                                                          .toLowerCase(),
-                                                                        EventProfiler.ActivityStateData.ActivityState.REMOVED.toString()
-                                                                          .toLowerCase()));
+    assertThat(event.value.getType()).isEqualTo(StackedEventType.ACTIVITY_COMPLETED);
+    assertThat(((ActivityAction)event.value).getData()).isEqualTo(
+      String.format("%s - %s - %s", ACTIVITY_NAME, EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase(),
+                    EventProfiler.ActivityStateData.ActivityState.REMOVED.toString().toLowerCase()));
     event = dataList.get(1);
     verifyActivity(event, TEST_END_TIME_NS);
-    assertEquals(event.value.getType(), StackedEventType.ACTIVITY_COMPLETED);
-    assertEquals(((ActivityAction)event.value).getData(), String.format("%s - %s", ACTIVITY_NAME,
-                                                                        EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString()
-                                                                          .toLowerCase()));
+    assertThat(event.value.getType()).isEqualTo(StackedEventType.ACTIVITY_COMPLETED);
+    assertThat(((ActivityAction)event.value).getData()).isEqualTo(
+      String.format("%s - %s", ACTIVITY_NAME, EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase()));
   }
 
 
@@ -205,17 +199,16 @@ public class ActivityEventDataSeriesTest {
       ));
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
     List<SeriesData<EventAction<StackedEventType>>> dataList = myActivitySeries.getDataForXRange(range);
-    assertEquals(dataList.size(), 2);
+    assertThat(dataList).hasSize(2);
     SeriesData<EventAction<StackedEventType>> event = dataList.get(0);
     verifyActivity(event, 0);
-    assertEquals(event.value.getType(), StackedEventType.ACTIVITY_STARTED);
-    assertEquals(((ActivityAction)event.value).getData(), ACTIVITY_NAME);
+    assertThat(event.value.getType()).isEqualTo(StackedEventType.ACTIVITY_STARTED);
+    assertThat(((ActivityAction)event.value).getData()).isEqualTo(ACTIVITY_NAME);
     event = dataList.get(1);
     verifyActivity(event, TEST_END_TIME_NS);
-    assertEquals(event.value.getType(), StackedEventType.ACTIVITY_COMPLETED);
-    assertEquals(((ActivityAction)event.value).getData(), String.format("%s - %s", ACTIVITY_NAME_2,
-                                                                        EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString()
-                                                                          .toLowerCase()));
+    assertThat(event.value.getType()).isEqualTo(StackedEventType.ACTIVITY_COMPLETED);
+    assertThat(((ActivityAction)event.value).getData()).isEqualTo(
+      String.format("%s - %s", ACTIVITY_NAME_2, EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase()));
   }
 
   @Test
@@ -242,20 +235,20 @@ public class ActivityEventDataSeriesTest {
       ));
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
     List<SeriesData<EventAction<StackedEventType>>> dataList = myFragmentSeries.getDataForXRange(range);
-    assertEquals(dataList.size(), 1);
+    assertThat(dataList).hasSize(1);
     SeriesData<EventAction<StackedEventType>> event = dataList.get(0);
     verifyActivity(event, TEST_END_TIME_NS);
-    assertEquals(event.value.getType(), StackedEventType.ACTIVITY_COMPLETED);
-    assertEquals(FRAGMENT_NAME, ((ActivityAction)event.value).getData());
+    assertThat(event.value.getType()).isEqualTo(StackedEventType.ACTIVITY_COMPLETED);
+    assertThat(((ActivityAction)event.value).getData()).isEqualTo(FRAGMENT_NAME);
   }
 
-  private void verifyActivity(SeriesData<EventAction<StackedEventType>> event, long endTime) {
-    assertEquals(event.x, TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
-    assertEquals(event.value.getStartUs(), TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
-    assertEquals(event.value.getEndUs(), TimeUnit.NANOSECONDS.toMicros(endTime));
+  private static void verifyActivity(SeriesData<EventAction<StackedEventType>> event, long endTime) {
+    assertThat(event.x).isEqualTo(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
+    assertThat(event.value.getStartUs()).isEqualTo(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
+    assertThat(event.value.getEndUs()).isEqualTo(TimeUnit.NANOSECONDS.toMicros(endTime));
   }
 
-  private EventProfiler.ActivityData buildActivityEvent(String name, ActivityStateData[] states, long contextHash) {
+  private static EventProfiler.ActivityData buildActivityEvent(String name, ActivityStateData[] states, long contextHash) {
     EventProfiler.ActivityData.Builder builder = EventProfiler.ActivityData.newBuilder();
     builder.setPid(ProfilersTestData.SESSION_DATA.getPid())
       .setName(name)
