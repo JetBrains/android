@@ -17,19 +17,23 @@ package org.jetbrains.android.refactoring
 
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.repository.GradleVersion
+import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.support.MigrationParserVisitor
 import com.android.support.parseMigrationFile
 import com.android.tools.idea.actions.ExportProjectZip
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.model.AndroidModuleInfo
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
@@ -119,20 +123,34 @@ class MigrateToAndroidxHandler : RefactoringActionHandler {
     }
   }
 
+  /**
+   *  Returns the [AndroidVersion] value for the given receiver [String] or
+   *  null if it's not a valid version.
+   */
+  private fun String.toAndroidVersion(): AndroidVersion? = AndroidTargetHash.getPlatformVersion(this)
+
+  /**
+   * Returns the buildSdk value of a the receiver [Module] or null
+   * if the [Module] buildSdk could not be found.
+   */
+  private fun Pair<Module, GradleBuildModel?>.findBuildSdk(): AndroidVersion? {
+    val modelVersion = second?.android()
+      ?.compileSdkVersion()
+      ?.toString()
+      ?.toAndroidVersion()
+
+    // If we couldn't find the version from the model parser, try to get it
+    // from the AndroidModuleInfo. This could happen if the version is coming
+    // from a variable that the Gradle parser is not handling correctly
+    return modelVersion ?: AndroidModuleInfo.getInstance(first)?.buildSdkVersion
+  }
+
   private fun checkRefactoringPrerequisites(project: Project): Boolean {
-      @Suppress("UselessCallOnCollection")
-      val highestCompileSdkVersion = ModuleManager.getInstance(project).modules
-        .mapNotNull { GradleBuildModel.get(it)?.android() }
-        .mapNotNull { it.compileSdkVersion().toString() }
-        .map { it.removePrefix("android-") }
-        .mapNotNull {
-          try {
-            AndroidVersion(it)
-          }
-          catch (e: AndroidVersion.AndroidVersionException) {
-            null
-          }
-        }
+    val buildModel = ProjectBuildModel.get(project)
+    val moduleModels = ModuleManager.getInstance(project).modules
+      .mapNotNull { it to buildModel.getModuleBuildModel(it) }
+    val highestCompileSdkVersion = moduleModels
+        .mapNotNull { it.findBuildSdk() }
         .sorted()
         .lastOrNull()
       val supportedCompileSdk = if (highestCompileSdkVersion != null) {
@@ -142,8 +160,8 @@ class MigrateToAndroidxHandler : RefactoringActionHandler {
         true // Enable by default when we can not find out the version
       }
 
-      val gradleVersionString = ModuleManager.getInstance(project).modules
-        .mapNotNull { GradleBuildModel.get(it)?.buildscript()?.dependencies() }
+      val gradleVersionString = moduleModels.mapNotNull { it.second }
+        .map { it.buildscript().dependencies() }
         .flatMap { it.artifacts() }
         .filter { it.name().forceString() == "gradle" && it.group().forceString() == "com.android.tools.build" }
         .map { it.version().getValue(GradlePropertyModel.STRING_TYPE) }
