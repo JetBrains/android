@@ -17,9 +17,9 @@ package com.android.tools.profilers.event;
 
 import com.android.tools.profiler.proto.EventProfiler.*;
 import com.android.tools.profiler.proto.EventServiceGrpc;
-import com.intellij.util.containers.HashMap;
 import io.grpc.stub.StreamObserver;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public final class FakeEventService extends EventServiceGrpc.EventServiceImplBase {
