@@ -27,6 +27,7 @@ import org.jetbrains.concurrency.resolvedPromise
 import org.junit.Assert.assertArrayEquals
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -44,7 +45,10 @@ class KeystoreStepTest : IdeaTestCase() {
     `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
+
     assertEquals(false, keystoreStep.exportKeysCheckBox.isVisible)
+    assertEquals(false, keystoreStep.myExportKeyPathLabel.isVisible)
+    assertEquals(false, keystoreStep.myExportKeyPathField.isVisible)
   }
 
   fun testEnableEncryptedKeyExportFlagTrue() {
@@ -52,7 +56,25 @@ class KeystoreStepTest : IdeaTestCase() {
     `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
+
     assertEquals(true, keystoreStep.exportKeysCheckBox.isVisible)
+    assertEquals(true, keystoreStep.myExportKeyPathLabel.isVisible)
+    assertEquals(true, keystoreStep.myExportKeyPathField.isVisible)
+  }
+
+  fun testEnableEncryptedKeyCheckboxButNotSelected_ExportKeyPathFieldsShouldBeHidden() {
+    val wizard = setupWizardHelper()
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+
+    val settings = GenerateSignedApkSettings.getInstance(wizard.project)
+    settings.EXPORT_PRIVATE_KEY = false
+    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
+
+    val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep._init()
+
+    assertEquals(false, keystoreStep.myExportKeyPathLabel.isVisible)
+    assertEquals(false, keystoreStep.myExportKeyPathField.isVisible)
   }
 
   fun testModuelDropDownEnabledByDefault() {
@@ -115,6 +137,8 @@ class KeystoreStepTest : IdeaTestCase() {
     val testKeyAlias = "testkey"
     val testKeyStorePassword = "123456"
     val testKeyPassword = "qwerty"
+    val testExportKeyPath = "test"
+    File(testExportKeyPath).mkdir()
 
     val settings = GenerateSignedApkSettings()
     settings.KEY_STORE_PATH = testKeyStorePath
@@ -131,6 +155,7 @@ class KeystoreStepTest : IdeaTestCase() {
     `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep.myExportKeyPathField.text = testExportKeyPath
     assertEquals(testKeyStorePath, keystoreStep.keyStorePathField.text)
     assertEquals(testKeyAlias, keystoreStep.keyAliasField.text)
     assertEquals(0, keystoreStep.keyStorePasswordField.password.size)
@@ -157,6 +182,8 @@ class KeystoreStepTest : IdeaTestCase() {
     val testKeyPassword = "qwerty"
     val testLegacyKeyPassword = "somestuff"
     val legacyRequestor = KeystoreStep::class.java
+    val testExportKeyPath = "test"
+    File(testExportKeyPath).mkdir()
 
     val settings = GenerateSignedApkSettings()
     settings.KEY_STORE_PATH = testKeyStorePath
@@ -175,6 +202,7 @@ class KeystoreStepTest : IdeaTestCase() {
     `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep.myExportKeyPathField.text = testExportKeyPath
     assertEquals(testKeyStorePath, keystoreStep.keyStorePathField.text)
     assertEquals(testKeyAlias, keystoreStep.keyAliasField.text)
     // Yes, it's weird but before the fix for b/64995008 this was exactly the observed behavior: the keystore password would
