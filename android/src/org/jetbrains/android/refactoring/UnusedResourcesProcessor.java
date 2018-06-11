@@ -186,7 +186,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
                     psiFile instanceof GroovyFile) {
                   ((GroovyFile)psiFile).accept(new GroovyRecursiveElementVisitor() {
                     @Override
-                    public void visitApplicationStatement(GrApplicationStatement applicationStatement) {
+                    public void visitApplicationStatement(@NotNull GrApplicationStatement applicationStatement) {
                       super.visitApplicationStatement(applicationStatement);
                       PsiMethod method = applicationStatement.resolveMethod();
                       if (method != null && method.getName().equals("resValue")) {
