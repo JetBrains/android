@@ -121,7 +121,7 @@ public final class EnergyEventsView {
     // Add a listener on model to update selection before construct table because otherwise it flickers. The table also adds a listener
     // on model that if the selection is set later then there is a clear and re-selection time gap on the view.
     myTableModel.addTableModelListener(e -> updateTableSelection());
-    myEventsTable = new HoverRowTable(myTableModel, ProfilerColors.DEFAULT_HOVER_COLOR);
+    myEventsTable = new HoverRowTable(myTableModel);
     buildEventsTable(stageView);
     myStage.getAspect().addDependency(myAspectObserver).onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateTableSelection)
            .onChange(EnergyProfilerAspect.SELECTED_ORIGIN_FILTER, myTableModel::updateTableByOrigin);
