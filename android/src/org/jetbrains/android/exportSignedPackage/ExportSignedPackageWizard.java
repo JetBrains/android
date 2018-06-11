@@ -99,6 +99,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private String myApkPath;
   private boolean myV1Signature;
   private boolean myV2Signature;
+  private String myExportKeyPath;
   @NotNull private String myTargetType = APK;
 
   // build type, list of flavors and gradle signing info are valid only for Gradle projects
@@ -229,14 +230,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         if (myTargetType.equals(BUNDLE)) {
           File exportedKeyFile = null;
           if (myExportPrivateKey) {
-            try {
-              exportedKeyFile = generatePrivateKeyPath();
-            }
-            catch (AndroidLocation.AndroidLocationException e) {
-              getLog().error("Something went wrong with the encryption tool", e);
-              return;
-            }
-
+            exportedKeyFile = generatePrivateKeyPath();
             try {
               myEncryptionTool.run(myGradleSigningInfo.keyStoreFilePath,
                                    myGradleSigningInfo.keyAlias,
@@ -535,9 +529,8 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   }
 
   @NotNull
-  private File generatePrivateKeyPath() throws AndroidLocation.AndroidLocationException {
-    String androidDir = AndroidLocation.getFolder();
-    return new File(androidDir, ENCRYPTED_PRIVATE_KEY_FILE);
+  private File generatePrivateKeyPath() {
+    return new File(myExportKeyPath, ENCRYPTED_PRIVATE_KEY_FILE);
   }
 
   private void showErrorInDispatchThread(@NotNull final String message) {
@@ -550,5 +543,9 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   public void setExportPrivateKey(boolean exportPrivateKey) {
     myExportPrivateKey = exportPrivateKey;
+  }
+
+  public void setExportKeyPath(@NotNull String exportKeyPath) {
+    myExportKeyPath = exportKeyPath;
   }
 }
