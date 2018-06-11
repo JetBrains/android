@@ -252,6 +252,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
   public void testEmptyLayout() throws XmlPullParserException {
     XmlFile emptyFile = mock(XmlFile.class);
     when(emptyFile.getRootTag()).thenReturn(null);
+    when(emptyFile.getProject()).thenReturn(getProject());
     RenderLogger logger = new RenderLogger("test", myModule);
     assertEmptyParser(LayoutPsiPullParser.create(emptyFile, logger));
 

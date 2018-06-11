@@ -103,6 +103,9 @@ public class AndroidPsiUtils {
    */
   @Nullable
   public static XmlTag getRootTagSafely(@NotNull final XmlFile file) {
+    if (file.getProject().isDisposed()) {
+      return null;
+    }
     if (ApplicationManager.getApplication().isReadAccessAllowed()) {
       return file.getRootTag();
     }

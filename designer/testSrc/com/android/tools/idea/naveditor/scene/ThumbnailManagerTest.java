@@ -36,17 +36,7 @@ public class ThumbnailManagerTest extends NavTestCase {
   @Override
   public void setUp() {
     super.setUp();
-    TestableThumbnailManager.register(myFacet);
-  }
-
-  @Override
-  protected void tearDown() {
-    try {
-      ((TestableThumbnailManager)ThumbnailManager.getInstance(myFacet)).deregister();
-    }
-    finally {
-      super.tearDown();
-    }
+    TestableThumbnailManager.register(myFacet, myRootDisposable);
   }
 
   public void testCaching() throws Exception {
