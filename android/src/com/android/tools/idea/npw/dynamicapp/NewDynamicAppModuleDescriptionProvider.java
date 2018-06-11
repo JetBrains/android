@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.dynamicapp;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
@@ -43,9 +42,6 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
 
   @Override
   public Collection<ModuleGalleryEntry> getDescriptions() {
-    if (!StudioFlags.NPW_DYNAMIC_APP_MODULE.get()) {
-      return Collections.emptyList();
-    }
     return Collections.singletonList(new FeatureTemplateGalleryEntry());
   }
 
