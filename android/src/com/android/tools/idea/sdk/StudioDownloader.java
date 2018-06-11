@@ -34,6 +34,17 @@ import java.nio.file.StandardOpenOption;
  * stream from that file.
  */
 public class StudioDownloader implements Downloader {
+  private static class DownloadProgressIndicator extends StudioProgressIndicatorAdapter {
+    public DownloadProgressIndicator(@NotNull ProgressIndicator wrapped) {
+      super(wrapped, null);
+    }
+
+    @Override
+    public void setFraction(double fraction) {
+      super.setFraction(fraction);
+      setText(String.format("Downloading (%1$2.0f)%% ...", fraction*100));
+    }
+  }
 
   @Override
   @Nullable
@@ -62,7 +73,7 @@ public class StudioDownloader implements Downloader {
     // We can't pick up the existing studio progress indicator since the one passed in here might be a sub-indicator working over a
     // different range.
     HttpRequests.request(url.toExternalForm()).productNameAsUserAgent()
-      .saveToFile(target, new StudioProgressIndicatorAdapter(indicator, null));
+      .saveToFile(target, new DownloadProgressIndicator(indicator));
   }
 
   @Nullable
