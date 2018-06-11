@@ -13,7 +13,6 @@
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jre8" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="sqlite" level="project" />
     <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
   </component>

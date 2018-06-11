@@ -65,7 +65,6 @@ iml_module(
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/idea/.idea/libraries:kotlin-stdlib-jre8[test]",
         "//tools/adt/idea/adt-testutils[module, test]",
     ],
 )
