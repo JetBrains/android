@@ -224,28 +224,6 @@ class CpuProfilerStageViewTest {
     Mockito.verify(mockGraphics, Mockito.times(1)).draw(Mockito.any())
   }
 
-  @Test
-  fun importTraceModeShouldShowInstructionsPanel() {
-    // Enable import trace and sessions view, both of which are required for import-trace-mode.
-    myIdeServices.enableImportTrace(true)
-    myIdeServices.enableSessionsView(true)
-    var cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
-    var panelList = TreeWalker(cpuStageView.component).descendants().filterIsInstance(InstructionsPanel::class.java).toList()
-    // When we are not in import mode we only have one Instruction panel.
-    // This panel is the panel that appears in the L3 view telling users how to do their recording.
-    // "Click [record icon] to start method profiling"
-    assertThat(panelList).hasSize(1)
-    assertThat(panelList[0].getRenderInstructionsForComponent(0)).hasSize(1)
-    myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
-    myStage.enter()
-    // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
-    cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
-    panelList = TreeWalker(cpuStageView.component).descendants().filterIsInstance(InstructionsPanel::class.java).toList()
-    // We cannot get the string due to privacy of InstructionsComponent.
-    // This panel is the panel that appears in the Cpu Usage area indicating we have no cpu usage data.
-    assertThat(panelList).hasSize(1)
-    assertThat(panelList[0].getRenderInstructionsForComponent(0)).hasSize(1)
-  }
 
   @Test
   fun importTraceModeShouldShowSelectedProcessName() {
