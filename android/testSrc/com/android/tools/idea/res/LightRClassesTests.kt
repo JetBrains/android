@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res
 
+import com.android.SdkConstants
 import com.android.builder.model.AndroidProject
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.caret
@@ -259,7 +260,7 @@ sealed class LightRClassesTestBase : AndroidTestCase() {
       )
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
-      assertThat(resolveReferenceUnderCaret()).isInstanceOf(AarPackageRClass::class.java)
+      assertThat(resolveReferenceUnderCaret()).isInstanceOf(NamespacedAarPackageRClass::class.java)
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("R", "BuildConfig")
     }
@@ -288,6 +289,71 @@ sealed class LightRClassesTestBase : AndroidTestCase() {
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(LightElement::class.java)
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("my_aar_string", "class")
+    }
+  }
+
+  class NonNamespacedModuleWithAar : LightRClassesTestBase() {
+
+    override fun setUp() {
+      super.setUp()
+      addAarDependency(myModule, "aarLib", "com.example.mylibrary") { resDir ->
+        resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
+          """
+          int string my_aar_string 0x7f010001
+          int string another_aar_string 0x7f010002
+          """.trimIndent()
+        )
+      }
+    }
+
+    fun testTopLevelClass() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(com.example.mylibrary.${caret}R.string.my_aar_string);
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      assertThat(resolveReferenceUnderCaret()).isInstanceOf(NonNamespacedAarPackageRClass::class.java)
+    }
+
+    fun testResourceNames() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(com.example.mylibrary.R.string.${caret}my_aar_string);
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      assertThat(resolveReferenceUnderCaret()).isInstanceOf(LightElement::class.java)
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsExactly("my_aar_string", "another_aar_string", "class")
     }
   }
 }

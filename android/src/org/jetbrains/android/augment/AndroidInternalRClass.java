@@ -9,6 +9,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import org.jetbrains.android.augment.AndroidLightField.FieldModifier;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NonNls;
@@ -91,8 +92,8 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
     @NotNull
     @Override
     protected PsiField[] doGetFields() {
-      return buildResourceFields(mySystemResourceManager, mySystemResourceManager.getResourceRepository(), ResourceNamespace.ANDROID, false,
-                                 myResourceType, AndroidInternalRClass.this);
+      return buildResourceFields(mySystemResourceManager, mySystemResourceManager.getResourceRepository(), ResourceNamespace.ANDROID,
+                                 FieldModifier.FINAL, myResourceType, AndroidInternalRClass.this);
     }
   }
 
