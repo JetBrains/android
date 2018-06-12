@@ -37,7 +37,7 @@ def testVariable = "com.android.support:exifinterface:27.0.2"
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.constraint:base:2.0.0-alpha1'
     implementation 'androidx.recyclerview:recyclerview:1.0.0-alpha1'
     testImplementation 'junit:junit:4.12'
