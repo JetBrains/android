@@ -393,7 +393,7 @@ public class RenderTask {
     }
     else {
       try {
-        params.setAppLabel(manifestInfo.getApplicationLabel());
+        ResourceValue appLabel = manifestInfo.getApplicationLabel();
         params.setAppIcon(manifestInfo.getApplicationIcon());
         String activity = configuration.getActivity();
         if (activity != null) {
@@ -401,16 +401,16 @@ public class RenderTask {
           ActivityAttributes attributes = manifestInfo.getActivityAttributes(activity);
           if (attributes != null) {
             if (attributes.getLabel() != null) {
-              params.setAppLabel(attributes.getLabel());
+              appLabel = attributes.getLabel();
             }
             if (attributes.getIcon() != null) {
               params.setAppIcon(attributes.getIcon());
             }
           }
         }
+        params.setAppLabel(params.getResources().resolveResValue(appLabel).getValue());
       }
-      catch (Exception e) {
-        // ignore.
+      catch (Exception ignored) {
       }
     }
 
