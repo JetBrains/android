@@ -482,7 +482,7 @@ public class ResourceRepositoryManager implements Disposable {
    */
   @NotNull
   public ResourceNamespace getNamespace() {
-    if (getNamespacing() == AaptOptions.Namespacing.DISABLED) {
+    if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
       return ResourceNamespace.RES_AUTO;
     }
 
