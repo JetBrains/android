@@ -81,12 +81,14 @@ class RunStatsServiceTest {
     var usages = myUsageTracker.usages.filterNotNull()
     Truth.assertThat(usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }).hasSize(2)
 
-    myRunStatsService.notifyStudioSectionFinished(true, false)
+    myRunStatsService.notifyStudioSectionFinished(true, false, false)
     assertNotNull(myRunStatsService.myRun?.studioProcessFinishedTimestamp)
     usages = myUsageTracker.usages.filterNotNull()
     Truth.assertThat(usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }).hasSize(3)
     assertNotNull(
       usages.find { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT && it.studioEvent.studioRunEvent.durationMs > 0 })
+    assertNotNull(
+      usages.find { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT && !it.studioEvent.studioRunEvent.userSelectedTarget })
   }
 
   @Test
