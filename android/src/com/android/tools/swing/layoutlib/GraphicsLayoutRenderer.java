@@ -147,11 +147,11 @@ public class GraphicsLayoutRenderer {
 
     LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
 
-    final Module module = facet.getModule();
+    Module module = facet.getModule();
     // Security token used to disable the security manager. Only objects that have a reference to it are allowed to disable it.
     Object credential = new Object();
     RenderLogger logger = new RenderLogger("theme_editor", module, credential);
-    final ActionBarCallback actionBarCallback = new ActionBarCallback();
+    ActionBarCallback actionBarCallback = new ActionBarCallback();
     // TODO: Remove LayoutlibCallback dependency.
     //noinspection ConstantConditions
     LayoutlibCallbackImpl layoutlibCallback =
@@ -195,13 +195,13 @@ public class GraphicsLayoutRenderer {
     assert resourceResolver != null;
     // Create a resource resolver that will save the lookups on the passed List<>
     ResourceResolver recordingResourceResolver = resourceResolver.createRecorder(resourceLookupChain);
-    final SessionParams params =
-      new SessionParams(parser, renderingMode, module, hardwareConfig, recordingResourceResolver,
-                        layoutlibCallback, moduleInfo.getMinSdkVersion().getApiLevel(), moduleInfo.getTargetSdkVersion().getApiLevel(),
-                        logger, target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0);
+    SessionParams params =
+        new SessionParams(parser, renderingMode, module, hardwareConfig, recordingResourceResolver,
+                          layoutlibCallback, moduleInfo.getMinSdkVersion().getApiLevel(), moduleInfo.getTargetSdkVersion().getApiLevel(),
+                          logger, target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0);
     params.setForceNoDecor();
     params.setAssetRepository(new AssetRepositoryImpl(facet));
-    // The App Label needs to be not null
+    // The App Label needs to be not null.
     params.setAppLabel("");
 
     if (backgroundColor != null) {
@@ -214,6 +214,7 @@ public class GraphicsLayoutRenderer {
 
   /**
    * Creates a new {@link GraphicsLayoutRenderer}.
+   *
    * @param configuration The configuration to use when rendering.
    * @param parser A layout pull-parser.
    * @param backgroundColor If not null, this will be use to set the global Android window background
@@ -309,7 +310,7 @@ public class GraphicsLayoutRenderer {
    * <p/>Please note that this method is not thread safe so, if used from multiple threads, it's the caller's responsibility to synchronize
    * the access to it.
    */
-  public boolean render(@NotNull final Graphics2D graphics) {
+  public boolean render(@NotNull Graphics2D graphics) {
     myRenderSessionLock.readLock().lock();
     try {
       if (myRenderSession == null) {
@@ -334,7 +335,7 @@ public class GraphicsLayoutRenderer {
       Result result = null;
 
       try {
-        final RenderSession renderSession = myRenderSession;
+        RenderSession renderSession = myRenderSession;
         result = RenderService.runRenderAction(() -> {
           if (mySecurityManager != null) {
             mySecurityManager.setActive(true, myCredential);
@@ -383,11 +384,11 @@ public class GraphicsLayoutRenderer {
    * will also do the an initial render of the layout.
    */
   @Nullable
-  private static RenderSession initRenderSession(@NotNull final LayoutLibrary layoutLibrary,
-                                                 @NotNull final SessionParams sessionParams,
-                                                 @Nullable final RenderSecurityManager securityManager,
-                                                 @NotNull final Object credential,
-                                                 @NotNull final Project project) {
+  private static RenderSession initRenderSession(@NotNull LayoutLibrary layoutLibrary,
+                                                 @NotNull SessionParams sessionParams,
+                                                 @Nullable RenderSecurityManager securityManager,
+                                                 @NotNull Object credential,
+                                                 @NotNull Project project) {
     try {
       RenderSession session = RenderService.runRenderAction(() -> {
         if (securityManager != null) {
