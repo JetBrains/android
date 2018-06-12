@@ -43,6 +43,7 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 
 /**
@@ -180,9 +181,44 @@ public class NavNlEditorTest {
                                    .setType("navigation")
                                    .clickOk();
     GuiTests.findAndClickOkButton(frame.waitForDialog("Add Project Dependency"));
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    NlEditorFixture layout = editor.getLayoutEditor(false);
-    layout.waitForRenderToFinish();
+    guiTest
+      .ideFrame()
+      .getEditor()
+      .getLayoutEditor(false)
+      .waitForRenderToFinish()
+      .assertCanInteractWithSurface();
+  }
+
+  @Test
+  public void testCancelAddDependency() throws Exception {
+    IdeFrameFixture frame = guiTest.importSimpleLocalApplication();
+    frame.getProjectView().selectAndroidPane().clickPath("app");
+    frame.invokeMenuPath("File", "New", "Android Resource File");
+    CreateResourceFileDialogFixture.find(guiTest.robot())
+                                   .setFilename("nav")
+                                   .setType("navigation")
+                                   .clickOk();
+    GuiTests.findAndClickCancelButton(frame.waitForDialog("Add Project Dependency"));
+    GuiTests.findAndClickOkButton(frame.waitForDialog("Failed to Add Dependency"));
+    assertFalse(guiTest
+      .ideFrame()
+      .getEditor()
+      .getLayoutEditor(false)
+      .canInteractWithSurface());
+
+    frame
+      .getEditor()
+      .open("app/build.gradle")
+      .moveBetween("", "testImplementation")
+      .enterText("    implementation 'android.arch.navigation:navigation-fragment:+'\n")
+      .getIdeFrame()
+      .requestProjectSync()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("app/src/main/res/navigation/nav.xml")
+      .getLayoutEditor(true)
+      .waitForRenderToFinish()
+      .assertCanInteractWithSurface();
   }
 
   @Test
