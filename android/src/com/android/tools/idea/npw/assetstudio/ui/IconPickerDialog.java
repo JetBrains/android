@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.vectordrawable.VdIcon;
-import com.android.tools.adtui.SearchField;
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Multimap;
@@ -27,6 +26,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
@@ -131,7 +131,7 @@ public final class IconPickerDialog extends DialogWrapper {
   private JPanel myIconsPanel;
   @SuppressWarnings("unused") private JPanel myLicensePanel;
   private HyperlinkLabel myLicenseLabel;
-  private SearchField mySearchField;
+  private SearchTextField mySearchField;
 
   @Nullable private VdIcon mySelectedIcon;
 
@@ -257,7 +257,7 @@ public final class IconPickerDialog extends DialogWrapper {
   }
 
   private void createUIComponents() {
-    mySearchField = new SearchField(false);
+    mySearchField = new SearchTextField(false);
     mySearchField.addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(DocumentEvent e) {

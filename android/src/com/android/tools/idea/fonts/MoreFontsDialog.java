@@ -21,7 +21,6 @@ import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.adtui.SearchField;
 import com.android.tools.adtui.validation.Validator.Result;
 import com.android.tools.adtui.validation.Validator.Severity;
 import com.android.tools.adtui.validation.ValidatorPanel;
@@ -86,7 +85,7 @@ public class MoreFontsDialog extends DialogWrapper {
   private final ResourceResolver myResolver;
   private final StringProperty myNewFontName;
   private final SelectedListValueProperty<FontFamily> mySelectedFontFamily;
-  private SearchField mySearchField;
+  private SearchTextField mySearchField;
   private JBList<FontFamily> myFontList;
   private JComboBox<String> myProvider;
   private JPanel myContentPanel;
@@ -107,7 +106,7 @@ public class MoreFontsDialog extends DialogWrapper {
 
   private void createUIComponents() {
     myContentPanel = new JPanel();
-    mySearchField = new SearchField(false);
+    mySearchField = new SearchTextField(false);
     myValidatorPanel = new ValidatorPanel(myDisposable, new JPanel());
   }
 

@@ -25,7 +25,6 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.adtui.SearchField;
 import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.adtui.treegrid.TreeGridSpeedSearch;
 import com.android.tools.idea.configurations.Configuration;
@@ -182,7 +181,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   @Nullable private ResourcePickerListener myResourcePickerListener;
   @NotNull private ImmutableMap<String, Color> myContrastColorsWithDescription = ImmutableMap.of();
   private boolean myIsBackgroundColor;
-  private final SearchField mySearchField;
+  private final SearchTextField mySearchField;
   private final boolean myHideLeftSideActions;
   private String myResultResourceName;
   private boolean myUseGlobalUndo;
@@ -748,8 +747,8 @@ public class ChooseResourceDialog extends DialogWrapper {
   }
 
   @NotNull
-  private SearchField createSearchField() {
-    SearchField searchField = new SearchField(false) { // no history: interferes with arrow down to jump into the list
+  private SearchTextField createSearchField() {
+    SearchTextField searchField = new SearchTextField(false) { // no history: interferes with arrow down to jump into the list
       @Override
       protected void showPopup() {
         // Turn off search popup; we're overriding the Down key to jump into the list instead
