@@ -9,7 +9,7 @@
     <dependency>
       <groupId>com.android.support</groupId>
       <artifactId>appcompat-v7</artifactId>
-      <version>27.0.2</version>
+      <version>[27.0.2,)</version>
     </dependency>
     <dependency>
       <groupId>com.example.libs</groupId>
