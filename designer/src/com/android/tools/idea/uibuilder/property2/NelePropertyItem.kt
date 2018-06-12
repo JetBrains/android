@@ -127,7 +127,7 @@ open class NelePropertyItem(
     // TODO: Should an error if the value cannot be parsed and resolved...
     val url = ResourceUrl.parse(value) ?: return value
     val defaultNamespace = ResourceRepositoryManager.getOrCreateInstance(model.facet).namespace
-    val resRef = url.resolve(defaultNamespace, namespaceResolver)
+    val resRef = url.resolve(defaultNamespace, namespaceResolver) ?: return value
     val resValue = resolver.getResolvedResource(resRef) ?: return resolveFrameworkValueUsingResolver(value)
     return if (resValue.resourceType == ResourceType.FONT) resValue.name else resValue.value ?: value
   }
@@ -136,7 +136,7 @@ open class NelePropertyItem(
   private fun resolveFrameworkValueUsingResolver(value: String): String {
     val resolver = resolver ?: return value
     val url = ResourceUrl.parse(value) ?: return value
-    val resRef = url.resolve(ResourceNamespace.ANDROID, namespaceResolver)
+    val resRef = url.resolve(ResourceNamespace.ANDROID, namespaceResolver) ?: return value
     val resValue = resolver.getResolvedResource(resRef) ?: return value
     return if (resValue.resourceType == ResourceType.FONT) resValue.name else resValue.value ?: value
   }
