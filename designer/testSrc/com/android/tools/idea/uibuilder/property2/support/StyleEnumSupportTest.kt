@@ -78,6 +78,6 @@ class StyleEnumSupportTest: AndroidTestCase() {
 
   // Temporary dump the styles generated in order to help with fixing b/80518128
   private fun dumpStyles(values: List<EnumValue>) {
-    values.forEach { Logger.getInstance(StyleEnumSupportTest::class.java).warn("enum: $it   header: ${it.header}") }
+    values.forEach { Logger.getInstance(StyleEnumSupportTest::class.java).debug("enum: $it   header: ${it.header}") }
   }
 }
