@@ -25,6 +25,6 @@ android {
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
 
-    // Force the version to be what's in the test_deps repo. This is a dependency of data binding.
-    compile 'android.arch.lifecycle:runtime:+'
+    // depending on the latest allows us to load whatever the testing infra has
+    api "com.android.support:support-v4:+"
 }

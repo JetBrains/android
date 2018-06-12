@@ -34,12 +34,12 @@ class MavenPomsTest : AndroidGradleTestCase() {
     val lib1 = File(sampleRepo, "com/example/libs/lib1/1.0/lib1-1.0.aar")
     assertThat(lib1.exists(), equalTo(true))
     val dependencies1 = MavenPoms.findDependenciesInPomFile(lib1.absoluteFile).map { it.compactNotation()}
-    assertThat(dependencies1, hasItems("com.android.support:appcompat-v7:27.0.2", "com.example.libs:lib2:1.0"))
+    assertThat(dependencies1, hasItems("com.android.support:appcompat-v7:[27.0.2,)", "com.example.libs:lib2:1.0"))
 
     val lib2 = File(sampleRepo, "com/example/libs/lib2/1.0/lib2-1.0.aar")
     assertThat(lib2.exists(), equalTo(true))
     val dependencies2 = MavenPoms.findDependenciesInPomFile(lib2.absoluteFile).map { it.compactNotation()}
-    assertThat(dependencies2, hasItems("com.android.support:appcompat-v7:27.0.2", "com.example.jlib:lib3:1.0"))
+    assertThat(dependencies2, hasItems("com.android.support:appcompat-v7:[27.0.2,)", "com.example.jlib:lib3:1.0"))
 
     val lib3 = File(sampleRepo, "com/example/jlib/lib3/1.0/lib3-1.0.jar")
     assertThat(lib3.exists(), equalTo(true))
