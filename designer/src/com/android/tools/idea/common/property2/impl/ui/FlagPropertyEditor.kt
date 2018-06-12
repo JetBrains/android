@@ -15,30 +15,30 @@
  */
 package com.android.tools.idea.common.property2.impl.ui
 
+import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.impl.model.FlagPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.ui.DocumentAdapter
-import com.intellij.ui.HyperlinkLabel
-import com.intellij.ui.SearchTextField
+import com.intellij.ui.*
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.BorderLayout
-import java.awt.Dimension
+import java.awt.*
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import javax.swing.*
 import javax.swing.event.DocumentEvent
+import kotlin.math.max
+
+private const val MIN_SCROLL_PANE_HEIGHT = 200
+private const val WINDOW_MARGIN = 40
 
 /**
  * Editor for a flags property.
@@ -52,18 +52,23 @@ class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel) : AdtSecondar
 
   init {
     add(button, BorderLayout.CENTER)
-    registerKeyAction({ editorModel.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
-    registerKeyAction({ editorModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
-    registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
-    addFocusListener(EditorFocusListener(editorModel, { "" }))
+    button.registerKeyAction({ editorModel.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
+    button.registerKeyAction({ editorModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
+    button.registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
+    addFocusListener(EditorFocusListener(editorModel, { "" }, updateValueOnFocusLoss = false))
     button.addActionListener({ buttonPressed() })
     editorModel.addListener(ValueChangedListener { handleValueChanged() })
     handleValueChanged()
   }
 
+  override fun requestFocus() {
+    button.requestFocus()
+  }
+
   private fun buttonPressed() {
+    val restoreFocusTo: JComponent = tableParent ?: button
     editorModel.buttonPressed()
-    val panel = FlagPropertyPanel(editorModel)
+    val panel = FlagPropertyPanel(editorModel, restoreFocusTo, windowHeight)
 
     val balloon = JBPopupFactory.getInstance()
       .createBalloonBuilder(panel)
@@ -72,18 +77,30 @@ class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel) : AdtSecondar
       .setBlockClicksThroughBalloon(true)
       .setAnimationCycle(200)
       .setFillColor(secondaryPanelBackground)
-      .createBalloon()
+      .createBalloon() as BalloonImpl
 
     panel.balloon = balloon
     balloon.show(RelativePoint.getCenterOf(button), Balloon.Position.below)
+    balloon.setHideListener { panel.hideBalloonAndRestoreFocusOnEditor() }
+    ApplicationManager.getApplication().invokeLater { panel.searchField.requestFocus() }
   }
+
+  /**
+   * Return the table this [FlagPropertyEditor] is a cell editor for (if any).
+   */
+  @VisibleForTesting
+  val tableParent: JTable?
+    get() = parent?.parent as? JTable
+
+  private val windowHeight: Int
+    get() = SwingUtilities.getWindowAncestor(this).height
 
   private fun handleValueChanged() {
     button.text = editorModel.buttonText
     isVisible = editorModel.visible
     toolTipText = editorModel.tooltip
     if (editorModel.focusRequest && !isFocusOwner) {
-      requestFocusInWindow()
+      button.requestFocusInWindow()
     }
   }
 }
@@ -91,8 +108,11 @@ class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel) : AdtSecondar
 /**
  * A panel to be displayed in a balloon control.
  */
-class FlagPropertyPanel(val editorModel: FlagPropertyEditorModel) : AdtSecondaryPanel(VerticalLayout(JBUI.scale(2))) {
+class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel,
+                        private val restoreFocusTo: JComponent,
+                        windowHeight: Int) : AdtSecondaryPanel(VerticalLayout(JBUI.scale(2))) {
   var balloon: Balloon? = null
+  val searchField = SearchTextField()
   private val innerPanel = AdtSecondaryPanel(VerticalLayout(JBUI.scale(2)))
   private val flagDivider = JSeparator()
 
@@ -100,12 +120,21 @@ class FlagPropertyPanel(val editorModel: FlagPropertyEditorModel) : AdtSecondary
     addLinks()
     addSearchField()
     addAllCheckBoxes()
-    add(createScrollPane(innerPanel))
+    val scrollPane = add(createScrollPane(innerPanel))
     add(JSeparator())
     addApplyButton()
     handleValueChanged()
+    isFocusCycleRoot = true
+    focusTraversalPolicy = CustomFocusTraversalPolicy(searchField.textEditor)
 
     editorModel.addListener(ValueChangedListener { handleValueChanged() })
+
+    // If there are too many controls to fit inside the Application Window, set the preferred height of the scroll pane.
+    if (preferredSize.height + 2 * JBUI.scale(WINDOW_MARGIN) > windowHeight) {
+      val otherControlsHeight = preferredSize.height - innerPanel.preferredSize.height
+      val preferredHeight = windowHeight - 2 * JBUI.scale(WINDOW_MARGIN) - otherControlsHeight
+      scrollPane.preferredSize = Dimension(-1, max(preferredHeight, JBUI.scale(MIN_SCROLL_PANE_HEIGHT)))
+    }
   }
 
   private fun addLinks() {
@@ -126,7 +155,6 @@ class FlagPropertyPanel(val editorModel: FlagPropertyEditorModel) : AdtSecondary
   }
 
   private fun addSearchField() {
-    val searchField = SearchTextField()
     add(searchField)
     searchField.addDocumentListener(
         object : DocumentAdapter() {
@@ -138,8 +166,13 @@ class FlagPropertyPanel(val editorModel: FlagPropertyEditorModel) : AdtSecondary
   }
 
   private fun createScrollPane(component: JComponent): JScrollPane {
-    val scrollPane = JBScrollPane(component)
+    val scrollPane = ScrollPaneFactory.createScrollPane(
+      component,
+      ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
     scrollPane.border = JBUI.Borders.empty()
+    scrollPane.verticalScrollBar.unitIncrement = VERTICAL_SCROLLING_UNIT_INCREMENT
+    scrollPane.verticalScrollBar.blockIncrement = VERTICAL_SCROLLING_BLOCK_INCREMENT
     return scrollPane
   }
 
@@ -153,14 +186,7 @@ class FlagPropertyPanel(val editorModel: FlagPropertyEditorModel) : AdtSecondary
     items.forEach {
       val checkBox = JBCheckBox(it)
       panel.add(checkBox)
-
-      // Add a MouseClick listener instead of an ActionListener such
-      // that disabled controls can be changed:
-      checkBox.addMouseListener(object : MouseAdapter() {
-        override fun mouseClicked(event: MouseEvent) {
-          editorModel.toggle(checkBox.text)
-        }
-      })
+      checkBox.addActionListener { editorModel.toggle(checkBox.text) }
     }
   }
 
@@ -172,7 +198,7 @@ class FlagPropertyPanel(val editorModel: FlagPropertyEditorModel) : AdtSecondary
     apply.preferredSize = Dimension(minSize.width * 2, minSize.height)
     apply.addActionListener {
       editorModel.applyChanges()
-      balloon?.hide()
+      hideBalloonAndRestoreFocusOnEditor()
     }
     val applyPanel = AdtSecondaryPanel()
     applyPanel.add(apply)
@@ -180,13 +206,44 @@ class FlagPropertyPanel(val editorModel: FlagPropertyEditorModel) : AdtSecondary
     add(applyPanel, VerticalLayout.BOTTOM)
   }
 
+  fun hideBalloonAndRestoreFocusOnEditor() {
+    balloon?.hide()
+    val restoreTo = restoreFocusTo
+    if (restoreTo is JTable) {
+      // If this is a table editor, the original editor is gone as soon as the focus is lost to the balloon.
+      // Ideally we want focus to go back to the editor where the balloon was invoked from.
+      // Recreate the editor and request focus on the newly created editor here.
+      restoreTo.editCellAt(restoreTo.selectedRow, restoreTo.selectedColumn)
+      restoreTo.editorComponent.requestFocus()
+    }
+    else {
+      restoreTo.requestFocus()
+    }
+  }
+
   private fun handleValueChanged() {
     for (index in 0 until innerPanel.componentCount) {
       val component = innerPanel.getComponent(index) as? JBCheckBox ?: continue
       component.isSelected = editorModel.isSelected(component.text)
-      component.isEnabled = editorModel.isEnabled(component.text)
+      component.foreground = getForegroundColor(editorModel.isEnabled(component.text))
       component.isVisible = editorModel.isVisible(component.text)
     }
     flagDivider.isVisible = editorModel.flagDividerVisible
+  }
+
+  private fun getForegroundColor(enabled: Boolean): Color? {
+    return if (enabled) UIUtil.getLabelTextForeground() else UIUtil.getLabelDisabledForeground()
+  }
+}
+
+/**
+ * A [DefaultFocusTraversalPolicy] which accept the [searchField] as a possible component.
+ *
+ * The [searchField] has a NullComponentPeer which disables focus transferal
+ * in the [DefaultFocusTraversalPolicy].
+ */
+class CustomFocusTraversalPolicy(private val searchField: JComponent): DefaultFocusTraversalPolicy() {
+  override fun accept(component: Component): Boolean {
+    return searchField == component || super.accept(component)
   }
 }

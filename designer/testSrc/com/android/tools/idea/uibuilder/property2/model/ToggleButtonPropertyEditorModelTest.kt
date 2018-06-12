@@ -56,7 +56,7 @@ class ToggleButtonPropertyEditorModelTest : PropertyTestCase() {
   @Test
   fun testFocusLostDoesNotChangeValue() {
     val model = createModel("left", "left", "")
-    model.focusLost("")
+    model.focusLost("", updateValueOnFocusLoss = false)
     assertThat(model.property.value).isEqualTo("left")
   }
 

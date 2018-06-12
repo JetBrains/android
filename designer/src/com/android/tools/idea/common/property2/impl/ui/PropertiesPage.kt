@@ -32,8 +32,8 @@ import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 
 private const val TITLE_SEPARATOR_HEIGHT = 4
-private const val VERTICAL_SCROLLING_UNIT_INCREMENT = 3
-private const val VERTICAL_SCROLLING_BLOCK_INCREMENT = 25
+const val VERTICAL_SCROLLING_UNIT_INCREMENT = 3
+const val VERTICAL_SCROLLING_BLOCK_INCREMENT = 25
 
 /**
  * Provides a page for a tab defined by a [PropertiesViewTab].
