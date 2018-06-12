@@ -16,6 +16,8 @@
 package com.android.tools.idea.model;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
@@ -187,8 +189,14 @@ public class MergedManifestTest extends AndroidTestCase {
     assertEquals("com.android.unittest", info.getPackage());
 
     assertEquals("Theme", ResourceHelper.styleToTheme(info.getDefaultTheme(null, NORMAL, null)));
-    assertEquals("@drawable/icon", info.getApplicationIcon());
-    assertEquals("@string/app_name", info.getApplicationLabel());
+    ResourceValue appIcon = info.getApplicationIcon();
+    assertNotNull(appIcon);
+    assertEquals(ResourceType.DRAWABLE, appIcon.getResourceType());
+    assertEquals("@drawable/icon", appIcon.getValue());
+    ResourceValue appLabel = info.getApplicationLabel();
+    assertNotNull(appLabel);
+    assertEquals(ResourceType.STRING, appLabel.getResourceType());
+    assertEquals("@string/app_name", appLabel.getValue());
   }
 
   public void testGetApplicationNoLabelOrIcon() throws Exception {
