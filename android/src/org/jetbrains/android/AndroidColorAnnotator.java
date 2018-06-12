@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -25,7 +24,6 @@ import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.LightCalloutPopup;
@@ -39,9 +37,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder;
-import com.android.utils.XmlUtils;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
+import com.android.utils.HashCodes;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
@@ -77,16 +73,13 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlPullParser;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
@@ -99,7 +92,6 @@ import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
  * TODO: Use {@link ResourceItemResolver} when possible!
  */
 public class AndroidColorAnnotator implements Annotator {
-
   private static final String SET_COLOR_COMMAND_NAME = "Change Color";
 
   private static final int ICON_SIZE = 8;
@@ -146,7 +138,7 @@ public class AndroidColorAnnotator implements Annotator {
 
   private static void annotateXml(PsiElement element, AnnotationHolder holder, String value) {
     if (value.startsWith("#")) {
-      final PsiFile file = element.getContainingFile();
+      PsiFile file = element.getContainingFile();
       if (file != null && AndroidResourceUtil.isInResourceSubdirectory(file, null)) {
         if (element instanceof XmlTag) {
           Annotation annotation = holder.createInfoAnnotation(element, null);
@@ -266,8 +258,8 @@ public class AndroidColorAnnotator implements Annotator {
   private static VirtualFile pickBitmapFromXml(@NotNull VirtualFile file,
                                                @NotNull ResourceResolver resourceResolver,
                                                @NotNull Project project,
-                                               @NonNull AndroidFacet facet,
-                                               @NonNull ResourceValue resourceValue) {
+                                               @NotNull AndroidFacet facet,
+                                               @NotNull ResourceValue resourceValue) {
     try {
       XmlPullParser parser = FileResourceOpener.createXmlPullParser(file);
       if (parser == null) {
@@ -372,7 +364,7 @@ public class AndroidColorAnnotator implements Annotator {
   }
 
   @Nullable
-  private static VirtualFile findSmallestDpiVersion(@NonNull VirtualFile bitmap) {
+  private static VirtualFile findSmallestDpiVersion(@NotNull VirtualFile bitmap) {
     VirtualFile parentFile = bitmap.getParent();
     if (parentFile == null) {
       return null;
@@ -394,7 +386,7 @@ public class AndroidColorAnnotator implements Annotator {
     if (density != null && density.isValidValueForDevice()) {
       String fileName = bitmap.getName();
       Density[] densities = Density.values();
-      // Iterate in reverse, since the Density enum is in descending order
+      // Iterate in reverse, since the Density enum is in descending order.
       for (int i = densities.length; --i >= 0;) {
         Density d = densities[i];
         if (d.isValidValueForDevice()) {
@@ -417,90 +409,6 @@ public class AndroidColorAnnotator implements Annotator {
     return null;
   }
 
-  @Deprecated
-  @Nullable
-  private static File pickBitmapFromXml(@NotNull File file,
-                                        @NotNull ResourceResolver resourceResolver,
-                                        @NotNull Project project,
-                                        @NonNull AndroidFacet facet,
-                                        @NonNull ResourceValue resourceValue) {
-    try {
-      String xml = Files.toString(file, Charsets.UTF_8);
-      Document document = XmlUtils.parseDocumentSilently(xml, true);
-      if (document != null && document.getDocumentElement() != null) {
-        Element root = document.getDocumentElement();
-        String tag = root.getTagName();
-        Element target = null;
-        String attribute = null;
-        if ("vector".equals(tag)) {
-          // Take a look and see if we have a bitmap we can fall back to
-          LocalResourceRepository resourceRepository = ResourceRepositoryManager.getAppResources(facet);
-          List<ResourceItem> items = resourceRepository.getResourceItem(resourceValue.getResourceType(), resourceValue.getName());
-          if (items != null) {
-            for (ResourceItem item : items) {
-              FolderConfiguration configuration = item.getConfiguration();
-              DensityQualifier densityQualifier = configuration.getDensityQualifier();
-              if (densityQualifier != null) {
-                Density density = densityQualifier.getValue();
-                if (density != null && density.isValidValueForDevice()) {
-                  PathString itemFile = item.getSource();
-                  if (itemFile != null) {
-                    File bitmap = itemFile.toFile();
-                    if (bitmap != null && bitmap.isFile()) {
-                      return bitmap;
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          // Vectors are handled in the icon cache
-          return file;
-        }
-        else if ("bitmap".equals(tag) || "nine-patch".equals(tag)) {
-          target = root;
-          attribute = ATTR_SRC;
-        }
-        else if ("selector".equals(tag) ||
-                 "level-list".equals(tag) ||
-                 "layer-list".equals(tag) ||
-                 "transition".equals(tag)) {
-          NodeList children = root.getChildNodes();
-          for (int i = children.getLength() - 1; i >= 0; i--) {
-            Node item = children.item(i);
-            if (item.getNodeType() == Node.ELEMENT_NODE && TAG_ITEM.equals(item.getNodeName())) {
-              target = (Element)item;
-              if (target.hasAttributeNS(ANDROID_URI, ATTR_DRAWABLE)) {
-                attribute = ATTR_DRAWABLE;
-                break;
-              }
-            }
-          }
-        }
-        else if ("clip".equals(tag) || "inset".equals(tag) || "scale".equals(tag)) {
-          target = root;
-          attribute = ATTR_DRAWABLE;
-        } else {
-          // <shape> etc - no bitmap to be found
-          return null;
-        }
-        if (attribute != null && target.hasAttributeNS(ANDROID_URI, attribute)) {
-          String src = target.getAttributeNS(ANDROID_URI, attribute);
-          ResourceValue value = resourceResolver.findResValue(src, resourceValue.isFramework());
-          if (value != null) {
-            return ResourceHelper.resolveDrawable(resourceResolver, value, project);
-          }
-        }
-      }
-    } catch (Throwable ignore) {
-      // Not logging for now; afraid to risk unexpected crashes in upcoming preview. TODO: Re-enable.
-      //Logger.getInstance(AndroidColorAnnotator.class).warn(String.format("Could not read/render icon image %1$s", file), e);
-    }
-
-    return null;
-  }
-
   /**
    * @deprecated Use {@link #pickBestBitmap(VirtualFile)}. Still used by the Kotlin plugin.
    */
@@ -510,7 +418,7 @@ public class AndroidColorAnnotator implements Annotator {
     if (bitmap != null && bitmap.exists()) {
       // Pick the smallest resolution, if possible! E.g. if the theme resolver located
       // drawable-hdpi/foo.png, and drawable-mdpi/foo.png pick that one instead (and ditto
-      // for -ldpi etc)
+      // for -ldpi etc).
       File smallest = findSmallestDpiVersion(bitmap);
       if (smallest != null) {
         return smallest;
@@ -530,7 +438,7 @@ public class AndroidColorAnnotator implements Annotator {
 
   @Deprecated
   @Nullable
-  private static File findSmallestDpiVersion(@NonNull File bitmap) {
+  private static File findSmallestDpiVersion(@NotNull File bitmap) {
     File parentFile = bitmap.getParentFile();
     if (parentFile == null) {
       return null;
@@ -552,7 +460,7 @@ public class AndroidColorAnnotator implements Annotator {
     if (density != null && density.isValidValueForDevice()) {
       String fileName = bitmap.getName();
       Density[] densities = Density.values();
-      // Iterate in reverse, since the Density enum is in descending order
+      // Iterate in reverse, since the Density enum is in descending order.
       for (int i = densities.length - 1; i >= 0; i--) {
         Density d = densities[i];
         if (d.isValidValueForDevice()) {
@@ -560,7 +468,7 @@ public class AndroidColorAnnotator implements Annotator {
           bitmap = new File(resFolder, folder + File.separator + fileName);
           if (bitmap.exists()) {
             if (bitmap.length() > MAX_ICON_SIZE) {
-              // No point continuing the loop; the other densities will be too big too
+              // No point continuing the loop; the other densities will be too big too.
               return null;
             }
             return bitmap;
@@ -572,7 +480,7 @@ public class AndroidColorAnnotator implements Annotator {
     return null;
   }
 
-  /** Looks up the resource item of the given type and name for the given configuration, if any */
+  /** Looks up the resource item of the given type and name for the given configuration, if any. */
   @Nullable
   private static ResourceValue findResourceValue(ResourceType type,
                                                  String name,
@@ -613,7 +521,7 @@ public class AndroidColorAnnotator implements Annotator {
     @NotNull
     @Override
     public Icon getIcon() {
-      final Color color = getCurrentColor();
+      Color color = getCurrentColor();
       return color == null ? JBUI.scale(EmptyIcon.create(ICON_SIZE)) : JBUI.scale(new ColorIcon(ICON_SIZE, color));
     }
 
@@ -632,23 +540,23 @@ public class AndroidColorAnnotator implements Annotator {
 
     @Override
     public AnAction getClickAction() {
-      if (myColor != null) { // Cannot set colors that were derived
+      if (myColor != null) { // Cannot set colors that were derived.
         return null;
       }
       return new AnAction() {
         @Override
         public void actionPerformed(AnActionEvent e) {
-          final Editor editor = CommonDataKeys.EDITOR.getData(e.getDataContext());
+          Editor editor = CommonDataKeys.EDITOR.getData(e.getDataContext());
           if (editor != null) {
             // Need ARGB support in platform color chooser; see
             //  https://youtrack.jetbrains.com/issue/IDEA-123498
-            //final Color color =
+            //Color color =
             //  ColorChooser.chooseColor(editor.getComponent(), AndroidBundle.message("android.choose.color"), getCurrentColor());
             if (StudioFlags.NELE_NEW_COLOR_PICKER.get()) {
               openNewColorPicker(getCurrentColor());
             }
             else {
-              final Color color = ColorPicker.showDialog(editor.getComponent(), "Choose Color", getCurrentColor(), true, null, false);
+              Color color = ColorPicker.showDialog(editor.getComponent(), "Choose Color", getCurrentColor(), true, null, false);
               if (color != null) {
                 setColorToAttribute(color);
               }
@@ -687,7 +595,7 @@ public class AndroidColorAnnotator implements Annotator {
     }
 
     private void setColorToAttribute(@NotNull Color color) {
-      // use TransactionGuard to avoid write in unsafe context, and use WriteCommandAction to make the change undoable.
+      // Use TransactionGuard to avoid write in unsafe context, and use WriteCommandAction to make the change undoable.
       TransactionGuard.submitTransaction(myElement.getProject(), () ->
         WriteCommandAction.runWriteCommandAction(myElement.getProject(), SET_COLOR_COMMAND_NAME, null, () -> {
           if (myElement instanceof XmlTag) {
@@ -718,9 +626,7 @@ public class AndroidColorAnnotator implements Annotator {
 
     @Override
     public int hashCode() {
-      int result = myElement.hashCode();
-      result = 31 * result + (myColor != null ? myColor.hashCode() : 0);
-      return result;
+      return HashCodes.mix(myElement.hashCode(), Objects.hashCode(myColor));
     }
   }
 }
