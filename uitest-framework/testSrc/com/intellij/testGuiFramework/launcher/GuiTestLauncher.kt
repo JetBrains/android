@@ -97,8 +97,13 @@ object GuiTestLauncher {
 -Didea.gui.test.port=$port
 -Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}
 -Didea.gui.test.remote.ide.path=${GuiTestOptions.getRemoteIdePath()}
+-Didea.gui.test.running.on.release=true
+-Didea.gui.test.from.standalone.runner=${GuiTestOptions.isStandaloneMode()}
 -Didea.config.path=${GuiTests.getConfigDirPath()}
--Didea.system.path=${GuiTests.getSystemDirPath()}""")
+-Didea.system.path=${GuiTests.getSystemDirPath()}""" + if (GuiTestOptions.isDebug()) """
+-Didea.debug.mode=true
+-Xdebug
+-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=${GuiTestOptions.getDebugPort()}""" else "" )
     }
 
   private fun createArgs(port: Int) =
