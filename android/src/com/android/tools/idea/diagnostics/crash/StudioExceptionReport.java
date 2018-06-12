@@ -35,13 +35,13 @@ public class StudioExceptionReport extends BaseStudioReport {
    * {@link Throwable} classes with messages expected to be useful for debugging and not to contain PII.
    */
   private static final ImmutableSet<Class<? extends Throwable>> THROWABLE_CLASSES_TO_TRACK_MESSAGES =
-    ImmutableSet
-      .of(
-        ArrayIndexOutOfBoundsException.class,
-        ClassCastException.class,
-        ClassNotFoundException.class,
-        IndexOutOfBoundsException.class,
-        NoPiiException.class);
+    ImmutableSet.of(
+      AbstractMethodError.class,
+      ArrayIndexOutOfBoundsException.class,
+      ClassCastException.class,
+      ClassNotFoundException.class,
+      IndexOutOfBoundsException.class,
+      NoPiiException.class);
 
   static final String KEY_EXCEPTION_INFO = "exception_info";
 
