@@ -527,7 +527,7 @@ data class ResourcePackageUsageGroup(val packageName: String) : UsageGroup {
   override fun isValid() = true
   override fun canNavigate() = false
   override fun canNavigateToSource() = false
-  override fun getText(view: UsageView?): String = "Namespace ${choosePrefix(packageName)} to be added for $packageName"
+  override fun getText(view: UsageView?): String = "Namespace '${choosePrefix(packageName)}' to be added for $packageName"
 
   override fun compareTo(other: UsageGroup): Int {
     return if (other is ResourcePackageUsageGroup) {
