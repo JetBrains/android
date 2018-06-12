@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.common.property2.impl.table
 
+import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.ptable2.*
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.common.property2.impl.model.TableLineModel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.awt.Color
 import javax.swing.JComponent
 
 class PTableCellEditorProviderImpl<P : PropertyItem>(private val itemType: Class<P>,
@@ -81,9 +83,7 @@ class PTableCellEditorImpl<in P : PropertyItem>(
 
   fun nowEditing(newTable: PTable, newProperty: P) {
     val (newModel, newEditor) = editorProvider.createEditor(newProperty, asTableCellEditor = true)
-    val panel = AdtSecondaryPanel(BorderLayout())
-    panel.add(newEditor, BorderLayout.CENTER)
-    panel.border = JBUI.Borders.customLine(newTable.gridLineColor, 0, 1, 0, 0)
+    val panel = EditorValuePanel(newEditor, newTable.gridLineColor)
     newModel.onEnter = { startNextEditor() }
 
     property = newProperty
@@ -99,5 +99,18 @@ class PTableCellEditorImpl<in P : PropertyItem>(
       val tableModel = currentTable.context as TableLineModel
       tableModel.gotoNextLine(tableModel)
     }
+  }
+}
+
+@VisibleForTesting
+class EditorValuePanel(val editor: JComponent, gridLineColor: Color): AdtSecondaryPanel(BorderLayout()) {
+
+  init {
+    add(editor, BorderLayout.CENTER)
+    border = JBUI.Borders.customLine(gridLineColor, 0, 1, 0, 0)
+  }
+
+  override fun requestFocus() {
+    editor.requestFocus()
   }
 }

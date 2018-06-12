@@ -116,9 +116,9 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
     hasFocus = true
   }
 
-  open fun focusLost(editedValue: String) {
+  open fun focusLost(editedValue: String, updateValueOnFocusLoss: Boolean = true) {
     hasFocus = false
-    if (editedValue != value) {
+    if (updateValueOnFocusLoss && editedValue != value) {
       value = editedValue
     }
   }
