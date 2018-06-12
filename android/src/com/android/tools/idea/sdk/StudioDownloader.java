@@ -18,6 +18,7 @@ package com.android.tools.idea.sdk;
 import com.android.annotations.Nullable;
 import com.android.repository.api.Downloader;
 import com.android.repository.api.ProgressIndicator;
+import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.io.HttpRequests;
@@ -35,14 +36,33 @@ import java.nio.file.StandardOpenOption;
  */
 public class StudioDownloader implements Downloader {
   private static class DownloadProgressIndicator extends StudioProgressIndicatorAdapter {
-    public DownloadProgressIndicator(@NotNull ProgressIndicator wrapped) {
+    private final long mContentLength;
+    private final String mTotalDisplaySize;
+    private int mCurrentPercentage;
+    private Storage.Unit mReasonableUnit;
+
+    public DownloadProgressIndicator(@NotNull ProgressIndicator wrapped, long contentLength) {
       super(wrapped, null);
+      mContentLength = contentLength;
+      Storage storage = new Storage(mContentLength);
+      mReasonableUnit = storage.getLargestReasonableUnits();
+      mTotalDisplaySize = String.format("%.1f %s", storage.getPreciseSizeAsUnit(mReasonableUnit), mReasonableUnit.toString());
     }
 
     @Override
     public void setFraction(double fraction) {
       super.setFraction(fraction);
-      setText(String.format("Downloading (%1$2.0f)%% ...", fraction*100));
+
+      int percentage = (int)(fraction * 100);
+      if (percentage == mCurrentPercentage) {
+        return; // Do not update too often
+      }
+
+      mCurrentPercentage = percentage;
+      long downloadedSize = (long)(fraction * mContentLength);
+      double downloadedSizeInReasonableUnits = new Storage(downloadedSize).getPreciseSizeAsUnit(mReasonableUnit);
+      setText(String.format("Downloading (%1$d%%): %2$.1f / %3$s ...",
+                            mCurrentPercentage, downloadedSizeInReasonableUnits, mTotalDisplaySize));
     }
   }
 
@@ -70,10 +90,12 @@ public class StudioDownloader implements Downloader {
     indicator.logInfo("Downloading " + url);
     indicator.setText("Downloading...");
     indicator.setSecondaryText(url.toString());
-    // We can't pick up the existing studio progress indicator since the one passed in here might be a sub-indicator working over a
-    // different range.
-    HttpRequests.request(url.toExternalForm()).productNameAsUserAgent()
-      .saveToFile(target, new DownloadProgressIndicator(indicator));
+    // We can't pick up the existing studio progress indicator since the one passed in here might be a sub-indicator
+    // working over a different range.
+    HttpRequests.request(url.toExternalForm()).productNameAsUserAgent().connect(request -> {
+      long contentLength = request.getConnection().getContentLength();
+      return request.saveToFile(target, new DownloadProgressIndicator(indicator, contentLength));
+    });
   }
 
   @Nullable
