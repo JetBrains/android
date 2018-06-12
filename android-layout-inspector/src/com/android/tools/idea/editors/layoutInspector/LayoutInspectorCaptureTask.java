@@ -17,16 +17,17 @@ package com.android.tools.idea.editors.layoutInspector;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
-import com.android.layoutinspector.ProtocolVersion;
-import com.android.layoutinspector.model.ClientWindow;
 import com.android.layoutinspector.LayoutInspectorBridge;
 import com.android.layoutinspector.LayoutInspectorCaptureOptions;
 import com.android.layoutinspector.LayoutInspectorResult;
+import com.android.layoutinspector.ProtocolVersion;
+import com.android.layoutinspector.model.ClientWindow;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LayoutInspectorEvent;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -63,7 +64,8 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
   public void run(@NotNull ProgressIndicator indicator) {
     LayoutInspectorCaptureOptions options = new LayoutInspectorCaptureOptions();
     options.setTitle(myWindow.getDisplayName());
-    options.setVersion(determineProtocolVersion(myClient.getDevice().getVersion().getApiLevel(), StudioFlags.LAYOUT_INSPECTOR_V2_PROTOCOL_ENABLED.get()));
+    options.setVersion(
+      determineProtocolVersion(myClient.getDevice().getVersion().getApiLevel(), StudioFlags.LAYOUT_INSPECTOR_V2_PROTOCOL_ENABLED.get()));
 
     // Capture view hierarchy
     indicator.setText("Capturing View Hierarchy");
@@ -72,13 +74,20 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
     long startTimeMs = System.currentTimeMillis();
     LayoutInspectorResult result = LayoutInspectorBridge.captureView(myWindow, options);
     long captureDurationMs = System.currentTimeMillis() - startTimeMs;
-    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
-             .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(myClient.getDevice()))
-             .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
-                                        .setType(LayoutInspectorEvent.LayoutInspectorEventType.CAPTURE)
-                                        .setDurationInMs(captureDurationMs)
-                                        .setDataSize(result.getError().isEmpty() ? result.getData().length : 0)));
 
+    String projectId = myClient.getClientData().getPackageName();
+    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
+                                       .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(myClient.getDevice()))
+                                       .setRawProjectId(projectId)
+                                       .setProjectId(AnonymizerUtil.anonymizeUtf8(projectId))
+                                       .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
+                                                                                    .setType(
+                                                                                      LayoutInspectorEvent.LayoutInspectorEventType.CAPTURE)
+                                                                                    .setDurationInMs(captureDurationMs)
+                                                                                    .setDataSize(result.getError().isEmpty()
+                                                                                                 ? result.getData().length
+                                                                                                 : 0)));
+    
     if (!result.getError().isEmpty()) {
       myError = result.getError();
       return;
