@@ -277,6 +277,17 @@ class CaptureNodeHRendererTest {
     ))
   }
 
+  @Test
+  fun testFittingTextForMalformedMethod() {
+    // The name "..B1.1" was returned from simpleperf when profiling a library that linked against
+    // libm.so (the c math library)
+    checkFittingText(nodeModel = JavaMethodModel("1", "..B1"), expectedTexts = listOf(
+      "..B1.1",
+      "..B.1",
+      "1"
+    ))
+  }
+
   private fun checkFittingText(nodeModel: CaptureNodeModel, expectedTexts: List<String>) {
     val node = CaptureNode(nodeModel)
     val textFitPredicate = TestTextFitPredicate()
