@@ -16,10 +16,12 @@
 package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants.*
+import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.EnumValueUtil
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth
+import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.android.AndroidTestCase
 
 private const val APPCOMPAT_TEXT_APPEARANCES = """
@@ -82,6 +84,7 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
         "Large",
         "Medium",
         "Small")
+    dumpStyles(values)
     var index = 0
     index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 2, expectedProjectValues, expectedProjectDisplayValues)
     index = EnumValueUtil.checkSection(values, index, APPCOMPAT_HEADER, 9, expectedAppCompatValues, expectedAppCompatDisplayValues)
@@ -122,5 +125,10 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
     index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 2, expectedProjectValues, expectedProjectDisplayValues)
     index = EnumValueUtil.checkSection(values, index, ANDROID_HEADER, 9, expectedAndroidValues, expectedAndroidDisplayValues)
     Truth.assertThat(index).isEqualTo(-1)
+  }
+
+  // Temporary dump the styles generated in order to help with fixing b/80518128
+  private fun dumpStyles(values: List<EnumValue>) {
+    values.forEach { Logger.getInstance(StyleEnumSupportTest::class.java).debug("enum: $it   header: ${it.header}") }
   }
 }
