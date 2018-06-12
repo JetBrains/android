@@ -182,7 +182,15 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
         // Try to reduce by using abbreviations for first |abbreviationCount| classElements.
         StringBuilder textBuilder = new StringBuilder();
         for (int i = 0; i < classElements.length; ++i) {
-          textBuilder.append(i < abbreviationCount ? classElements[i].charAt(0) : classElements[i]).append(separator);
+          // Occasionally, profiling tools can return a class path like "..ABC.X", so we need to be
+          // able to handle empty classElements.
+          if (i < abbreviationCount && !classElements[i].isEmpty()) {
+            textBuilder.append(classElements[i].charAt(0));
+          }
+          else {
+            textBuilder.append(classElements[i]);
+          }
+          textBuilder.append(separator);
         }
         textBuilder.append(model.getName());
         String text = textBuilder.toString();
