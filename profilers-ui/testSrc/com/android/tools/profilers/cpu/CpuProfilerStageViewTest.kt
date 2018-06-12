@@ -96,104 +96,6 @@ class CpuProfilerStageViewTest {
   }
 
   @Test
-  fun contextMenuShouldBeInstalled() {
-    // Enable the export trace flag
-    myIdeServices.enableExportTrace(true)
-    // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
-    myComponents.clearContextMenuItems()
-    // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
-    CpuProfilerStageView(myProfilersView, myStage)
-
-    var items = myComponents.allContextMenuItems
-    assertThat(items).hasSize(12)
-
-    // Check we add CPU specific actions first.
-    assertThat(items[0].text).isEqualTo("Record CPU trace")
-    assertThat(items[1]).isEqualTo(ContextMenuItem.SEPARATOR)
-
-    assertThat(items[2].text).isEqualTo("Export trace...")
-    assertThat(items[3]).isEqualTo(ContextMenuItem.SEPARATOR)
-
-    assertThat(items[4].text).isEqualTo("Next capture")
-    assertThat(items[5].text).isEqualTo("Previous capture")
-    assertThat(items[6]).isEqualTo(ContextMenuItem.SEPARATOR)
-
-    // Check the common menu items are added only after the "export trace" action
-    checkCommonProfilersMenuItems(items, 7)
-
-    // Disable the export trace flag
-    myIdeServices.enableExportTrace(false)
-    myComponents.clearContextMenuItems()
-    CpuProfilerStageView(myProfilersView, myStage)
-
-    items = myComponents.allContextMenuItems
-    assertThat(items).hasSize(10)
-
-    assertThat(items[0].text).isEqualTo("Record CPU trace")
-    assertThat(items[1]).isEqualTo(ContextMenuItem.SEPARATOR)
-
-    assertThat(items[2].text).isEqualTo("Next capture")
-    assertThat(items[3].text).isEqualTo("Previous capture")
-    assertThat(items[4]).isEqualTo(ContextMenuItem.SEPARATOR)
-    // Check the common menu items are added after "Record" action
-    checkCommonProfilersMenuItems(items, 5)
-  }
-
-  @Test
-  fun contextMenuShouldBeDisabledInImportTraceMode() {
-    // Enable the export trace flag because we are going to test if the export menu item is enabled/disabled.
-    myIdeServices.enableExportTrace(true)
-    // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
-    myComponents.clearContextMenuItems()
-    // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
-    CpuProfilerStageView(myProfilersView, myStage)
-    assertThat(myStage.isImportTraceMode).isFalse()
-
-    var items = myComponents.allContextMenuItems
-    assertThat(items).hasSize(12)
-
-    // Check we add CPU specific actions first.
-    assertThat(items[0].text).isEqualTo("Record CPU trace")
-    assertThat(items[0].isEnabled).isTrue()
-
-    assertThat(items[2].text).isEqualTo("Export trace...")
-    assertThat(items[2].isEnabled).isTrue()
-
-    myStage.traceIdsIterator.addTrace(123)  // add a fake trace
-    assertThat(items[4].text).isEqualTo("Next capture")
-    assertThat(items[4].isEnabled).isTrue()
-    assertThat(items[5].text).isEqualTo("Previous capture")
-    assertThat(items[5].isEnabled).isTrue()
-
-    // Enable import trace and sessions view, both of which are required for import-trace-mode.
-    myIdeServices.enableImportTrace(true)
-    myIdeServices.enableSessionsView(true)
-    myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
-    myStage.enter()
-    // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
-    myComponents.clearContextMenuItems()
-    // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
-    CpuProfilerStageView(myProfilersView, myStage)
-    assertThat(myStage.isImportTraceMode).isTrue()
-
-    items = myComponents.allContextMenuItems
-    assertThat(items).hasSize(12)
-
-    // Check we add CPU specific actions first.
-    assertThat(items[0].text).isEqualTo("Record CPU trace")
-    assertThat(items[0].isEnabled).isFalse()
-
-    assertThat(items[2].text).isEqualTo("Export trace...")
-    assertThat(items[2].isEnabled).isFalse()
-
-    myStage.traceIdsIterator.addTrace(123)  // add a fake trace
-    assertThat(items[4].text).isEqualTo("Next capture")
-    assertThat(items[4].isEnabled).isFalse()
-    assertThat(items[5].text).isEqualTo("Previous capture")
-    assertThat(items[5].isEnabled).isFalse()
-  }
-
-  @Test
   fun testCpuCellRendererHasSessionPid() {
     // Create
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
@@ -383,28 +285,6 @@ class CpuProfilerStageViewTest {
   }
 
   @Test
-  fun recordTraceMenuItemOnlyEnabledInLiveSessions() {
-    // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
-    myComponents.clearContextMenuItems()
-    // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
-    CpuProfilerStageView(myProfilersView, myStage)
-
-    var recordTraceEntry = myComponents.allContextMenuItems[0]
-    assertThat(recordTraceEntry.text).isEqualTo("Record CPU trace")
-    // As the current session is alive, the item should be enabled.
-    assertThat(recordTraceEntry.isEnabled).isTrue()
-
-    myStage.studioProfilers.sessionsManager.endCurrentSession()
-    // Clear the components again and create a new instance of CpuProfilerStageView to re-add the components.
-    myComponents.clearContextMenuItems()
-    CpuProfilerStageView(myProfilersView, myStage)
-    recordTraceEntry = myComponents.allContextMenuItems[0]
-    assertThat(recordTraceEntry.text).isEqualTo("Record CPU trace")
-    // As the current session is dead, the item should be disabled.
-    assertThat(recordTraceEntry.isEnabled).isFalse()
-  }
-
-  @Test
   fun recordButtonDisabledInDeadSessions() {
     // Create a valid capture and end the current session afterwards.
     myCpuService.profilerType = CpuProfiler.CpuProfilerType.ART
@@ -438,14 +318,24 @@ class CpuProfilerStageViewTest {
 
   /**
    * Checks that the menu items common to all profilers are installed in the CPU profiler context menu.
-   * They should be at the bottom of the context menu, starting at a given index.
    */
-  private fun checkCommonProfilersMenuItems(items: List<ContextMenuItem>, startIndex: Int) {
-    var index = startIndex
-    assertThat(items[index++].text).isEqualTo(StudioProfilersView.ATTACH_LIVE)
-    assertThat(items[index++].text).isEqualTo(StudioProfilersView.DETACH_LIVE)
-    assertThat(items[index++]).isEqualTo(ContextMenuItem.SEPARATOR)
-    assertThat(items[index++].text).isEqualTo(StudioProfilersView.ZOOM_IN)
-    assertThat(items[index].text).isEqualTo(StudioProfilersView.ZOOM_OUT)
+  @Test
+  fun testCommonProfilersMenuItems() {
+    // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
+    myComponents.clearContextMenuItems()
+    // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
+    CpuProfilerStageView(myProfilersView, myStage)
+
+    val expectedCommonMenus = listOf(StudioProfilersView.ATTACH_LIVE,
+                                     StudioProfilersView.DETACH_LIVE,
+                                     ContextMenuItem.SEPARATOR.text,
+                                     StudioProfilersView.ZOOM_IN,
+                                     StudioProfilersView.ZOOM_OUT)
+    val items = myComponents.allContextMenuItems
+    // CPU specific menus should be added.
+    assertThat(items.size).isGreaterThan(expectedCommonMenus.size)
+
+    val itemsSuffix = items.subList(items.size - expectedCommonMenus.size, items.size)
+    assertThat(itemsSuffix.map { it.text }).containsExactlyElementsIn(expectedCommonMenus).inOrder()
   }
 }

@@ -37,7 +37,6 @@ import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.SystemInfo;
@@ -49,7 +48,6 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
-import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sun.swing.SwingUtilities2;
@@ -65,7 +63,6 @@ import java.util.List;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.profilers.ProfilerColors.CPU_CAPTURE_BACKGROUND;
 import static com.android.tools.profilers.ProfilerLayout.*;
-import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private enum PanelSpacing {
@@ -315,10 +312,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     // Call setPreferredSize to avoid the initialized size being overwritten.
     // TODO: b/80546414 Use common button instead.
     myCaptureButton = new JButton(RECORD_TEXT);
+
     // Make the record button's height same with myProfilingConfigurationView.
     myCaptureButton.setPreferredSize(JBDimension.create(myCaptureButton.getPreferredSize()).withHeight(
       (int)myProfilingConfigurationView.getComponent().getPreferredSize().getHeight()));
-    myCaptureButton.addActionListener(event -> capture());
+    myCaptureButton.addActionListener(event -> myStage.toggleCapturing());
 
     myCaptureStatus = new JLabel("");
     myCaptureStatus.setFont(ProfilerFonts.STANDARD_FONT);
@@ -329,7 +327,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myCaptureViewLoading.setLoadingText("Parsing capture...");
 
     updateCaptureState();
-    installContextMenu();
+
+    CpuProfilerContextMenuInstaller.install(myStage, getIdeComponents(), mySelection, getComponent());
+    // Add the profilers common menu items
+    getProfilersView().installCommonMenuItems(mySelection);
   }
 
   /**
@@ -758,97 +759,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getStage().getStudioProfilers().getTimeline().getSelectionRange().clear();
   }
 
-  /**
-   * Installs a context menu on {@link #mySelection}.
-   */
-  private void installContextMenu() {
-    ContextMenuInstaller contextMenuInstaller = getIdeComponents().createContextMenuInstaller();
-    // Add the item to trigger a recording
-    installRecordMenuItem(contextMenuInstaller);
-
-    // Add the item to export a trace file.
-    if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isExportCpuTraceEnabled()) {
-      installExportTraceMenuItem(contextMenuInstaller);
-    }
-    installCaptureNavigationMenuItems(contextMenuInstaller);
-
-    // Add the profilers common menu items
-    getProfilersView().installCommonMenuItems(mySelection);
-  }
-
-  /**
-   * Installs both {@link ContextMenuItem} corresponding to the CPU capture navigation feature on {@link #mySelection}.
-   */
-  private void installCaptureNavigationMenuItems(ContextMenuInstaller contextMenuInstaller) {
-    int shortcutModifier = AdtUiUtils.getActionMask() | SHIFT_DOWN_MASK;
-
-    ProfilerAction navigateNext =
-      new ProfilerAction.Builder("Next capture")
-        .setContainerComponent(getComponent())
-        .setActionRunnable(() -> myStage.navigateNext())
-        .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode() && myStage.getTraceIdsIterator().hasNext())
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, shortcutModifier)).build();
-
-    ProfilerAction navigatePrevious =
-      new ProfilerAction.Builder("Previous capture")
-        .setContainerComponent(getComponent())
-        .setActionRunnable(() -> myStage.navigatePrevious())
-        .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode() && myStage.getTraceIdsIterator().hasPrevious())
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, shortcutModifier)).build();
-
-    contextMenuInstaller.installGenericContextMenu(mySelection, navigateNext);
-    contextMenuInstaller.installGenericContextMenu(mySelection, navigatePrevious);
-    contextMenuInstaller.installGenericContextMenu(mySelection, ContextMenuItem.SEPARATOR);
-  }
-
-  /**
-   * Installs the {@link ContextMenuItem} corresponding to the "Export Trace" feature on {@link #mySelection}.
-   */
-  private void installExportTraceMenuItem(ContextMenuInstaller contextMenuInstaller) {
-    // Call setEnableBooleanSupplier() on ProfilerAction.Builder to make it easier to test.
-    ProfilerAction exportTrace = new ProfilerAction.Builder("Export trace...").setIcon(StudioIcons.Common.EXPORT)
-                                                                              .setContainerComponent(getComponent())
-                                                                              .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode())
-                                                                              .build();
-    contextMenuInstaller.installGenericContextMenu(
-      mySelection, exportTrace,
-      x -> exportTrace.isEnabled() && getTraceIntersectingWithMouseX(x) != null,
-      x -> getIdeComponents().createExportDialog().open(
-        () -> "Export trace as",
-        () -> CpuProfiler.generateCaptureFileName(getTraceIntersectingWithMouseX(x).getProfilerType()),
-        () -> "trace",
-        file -> getStage().getStudioProfilers().getIdeServices().saveFile(
-          file, (output) -> CpuProfiler.saveCaptureToFile(getTraceIntersectingWithMouseX(x).getTraceInfo(), output), null)));
-    contextMenuInstaller.installGenericContextMenu(mySelection, ContextMenuItem.SEPARATOR);
-  }
-
-  /**
-   * Install the {@link ContextMenuItem} corresponding to the Start/Stop recording action on {@link #mySelection}.
-   */
-  private void installRecordMenuItem(ContextMenuInstaller contextMenuInstaller) {
-    ProfilerAction record = new ProfilerAction.Builder(() -> myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
-                                                             ? "Stop recording" : "Record CPU trace")
-      .setContainerComponent(getComponent())
-      .setEnableBooleanSupplier(() -> shouldEnableCaptureButton() && !myStage.isImportTraceMode()
-                                      && (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
-                                          || myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE))
-      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_R, AdtUiUtils.getActionMask()))
-      .setActionRunnable(() -> capture())
-      .build();
-
-    contextMenuInstaller.installGenericContextMenu(mySelection, record);
-    contextMenuInstaller.installGenericContextMenu(mySelection, ContextMenuItem.SEPARATOR);
-  }
-
-  /**
-   * Returns the trace ID of a capture that intersects with the mouse X coordinate within {@link #mySelection}.
-   */
-  private CpuTraceInfo getTraceIntersectingWithMouseX(int mouseXLocation) {
-    Range range = getTimeline().getViewRange();
-    double pos = mouseXLocation / mySelection.getSize().getWidth() * range.getLength() + range.getMin();
-    return getStage().getIntersectingTraceInfo(new Range(pos, pos));
-  }
-
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
     FontMetrics metrics = SwingUtilities2.getFontMetrics(parent, ProfilerFonts.H2_FONT);
@@ -996,15 +906,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
       long elapsedTimeUs = myStage.getCaptureElapsedTimeUs();
       myCaptureStatus.setText(TimeFormatter.getSemiSimplifiedClockString(elapsedTimeUs));
-    }
-  }
-
-  private void capture() {
-    if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
-      myStage.stopCapturing();
-    }
-    else {
-      myStage.startCapturing();
     }
   }
 

@@ -534,6 +534,15 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return myAspect;
   }
 
+  public void toggleCapturing() {
+    if (myCaptureState == CpuProfilerStage.CaptureState.CAPTURING) {
+      stopCapturing();
+    }
+    else {
+      startCapturing();
+    }
+  }
+
   public void startCapturing() {
     ProfilingConfiguration config = myProfilerConfigModel.getProfilingConfiguration();
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
