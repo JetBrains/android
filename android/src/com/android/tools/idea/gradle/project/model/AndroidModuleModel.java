@@ -24,6 +24,7 @@ import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
@@ -937,5 +938,21 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Override
   public AaptOptions.Namespacing getNamespacing() {
     return myAndroidProject.getAaptOptions().getNamespacing();
+  }
+
+  @Override
+  public Map<String, DynamicResourceValue> getResValues() {
+    Map<String, DynamicResourceValue> result = new HashMap<>();
+    Variant selectedVariant = getSelectedVariant();
+
+    // flavors and default config:
+    result.putAll(GradleModelConverterUtil.classFieldsToDynamicResourceValues(selectedVariant.getMergedFlavor().getResValues()));
+
+    BuildTypeContainer buildType = findBuildType(selectedVariant.getBuildType());
+    if (buildType != null) {
+      result.putAll(GradleModelConverterUtil.classFieldsToDynamicResourceValues(buildType.getBuildType().getResValues()));
+    }
+
+    return result;
   }
 }

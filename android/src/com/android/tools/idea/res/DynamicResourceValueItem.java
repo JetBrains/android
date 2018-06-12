@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.builder.model.ClassField;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -39,9 +38,10 @@ public class DynamicResourceValueItem implements ResourceItem, ResolvableResourc
 
   public DynamicResourceValueItem(@NotNull ResourceNamespace namespace,
                                   @NotNull ResourceType type,
-                                  @NotNull ClassField field) {
+                                  @NotNull String name,
+                                  @NotNull String value) {
     // Dynamic values are always in the "current module", so they don't live in a namespace.
-    myResourceValue = new ResourceValueImpl(namespace, type, field.getName(), field.getValue());
+    myResourceValue = new ResourceValueImpl(namespace, type, name, value);
   }
 
   @Override
