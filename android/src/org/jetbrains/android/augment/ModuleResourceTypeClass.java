@@ -28,11 +28,14 @@ public class ModuleResourceTypeClass extends ResourceTypeClassBase {
                                              @NotNull ResourceType resourceType,
                                              @NotNull PsiClass context) {
     Module circularDepLibWithSamePackage = AndroidCompileUtil.findCircularDependencyOnLibraryWithSamePackage(facet);
-    boolean generateNonFinalFields = facet.getConfiguration().isLibraryProject() || circularDepLibWithSamePackage != null;
+    AndroidLightField.FieldModifier modifier = !facet.getConfiguration().isLibraryProject() && circularDepLibWithSamePackage == null ?
+                                               AndroidLightField.FieldModifier.FINAL :
+                                               AndroidLightField.FieldModifier.NON_FINAL;
+
     LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
     ResourceNamespace namespace = repositoryManager.getNamespace();
-    return buildResourceFields(resourceManager, repositoryManager.getAppResources(true), namespace, generateNonFinalFields,
+    return buildResourceFields(resourceManager, repositoryManager.getAppResources(true), namespace, modifier,
                                resourceType, context);
   }
 

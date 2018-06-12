@@ -28,6 +28,11 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Base class for implementations of light R classes (top-level, which only contain inner classes for every resource type).
+ *
+ * @see org.jetbrains.android.augment.ResourceTypeClassBase
+ */
 public abstract class AndroidPackageRClassBase extends AndroidLightClassBase {
   @NotNull protected final PsiFile myFile;
   @NotNull protected final String myFullyQualifiedName;

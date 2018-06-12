@@ -135,15 +135,16 @@ class ProjectLightResourceClassService(
         val (namespaced, nonNamespaced) = CacheUtils.getAndUnwrap(aarClassesCache, classesJar) {
           AarClasses(
             namespaced = aarLibrary.resApkFile?.toFile()?.takeIf { it.exists() }?.let { resApk ->
-              AarPackageRClass(
+              NamespacedAarPackageRClass(
                 psiManager,
                 packageName,
                 aarResourceRepositoryCache.get(resApk.parentFile, AaptOptions.Namespacing.REQUIRED, aarLibrary.address),
                 ResourceNamespace.fromPackageName(packageName)
               )
             },
-            // TODO(77801019): Write an R class implementation based on R.txt for the non-namespaced case.
-            nonNamespaced = null
+            nonNamespaced = aarLibrary.symbolFile.toFile()?.takeIf { it.exists() }?.let { symbolFile ->
+              NonNamespacedAarPackageRClass(psiManager, packageName, symbolFile)
+            }
           )
         }
 
