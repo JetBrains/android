@@ -16,6 +16,7 @@
 package com.android.tools.profilers.network.details;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.profilers.ContentType;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profilers.network.httpdata.HttpData;
@@ -28,8 +29,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-
 
 /**
  * A view model which wraps a target {@link HttpData} and can create useful, shared UI components
@@ -94,9 +93,10 @@ final class HttpDataViewModel {
     JComponent payloadComponent;
     Payload payload = type.getPayload(myModel, myHttpData);
 
-    File payloadFile = payload.toFile();
-    if (payloadFile.length() > 0) {
-      DataViewer viewer = components.createFileViewer(payloadFile);
+    byte[] payloadContent = payload.getBytes().toByteArray();
+    if (payloadContent.length > 0) {
+      String mimeType = payload.getContentType().getMimeType();
+      DataViewer viewer = components.createDataViewer(payloadContent, ContentType.fromMimeType(mimeType));
       JComponent viewerComponent = viewer.getComponent();
       viewerComponent.setName(ID_PAYLOAD_VIEWER);
       // We force a minimum height to make sure that the component always looks reasonable -
