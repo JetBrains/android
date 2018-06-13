@@ -15,13 +15,20 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.intellij.openapi.components.AbstractProjectComponent
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import java.util.concurrent.atomic.AtomicReference
 
 // open/public for testing was: final/internal
-open class ProjectSystemComponent(val project: Project) : AbstractProjectComponent(project) {
+open class ProjectSystemService(val project: Project) {
   private val cachedProjectSystem = AtomicReference<AndroidProjectSystem?>()
+
+  companion object {
+    @JvmStatic
+    fun getInstance(project: Project): ProjectSystemService {
+      return ServiceManager.getService(project, ProjectSystemService::class.java)!!
+    }
+  }
 
   // open for testing was: final
   open val projectSystem: AndroidProjectSystem
@@ -51,9 +58,5 @@ open class ProjectSystemComponent(val project: Project) : AbstractProjectCompone
         ?: extensions.find { it.id == "" }
         ?: throw IllegalStateException("Default AndroidProjectSystem not found for project " + project.name)
     return provider.projectSystem
-  }
-
-  override fun projectClosed() {
-    super.projectClosed()
   }
 }
