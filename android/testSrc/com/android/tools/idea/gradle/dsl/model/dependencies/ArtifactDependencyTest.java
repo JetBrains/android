@@ -1754,6 +1754,30 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     verifyPropertyModel(artifactModel.completeModel(), STRING_TYPE, "junit:junit:2.3.1", STRING, REGULAR, 1);
   }
 
+  @Test
+  public void testSetThroughMapReference() throws IOException {
+    String text = "ext.version = 1.0\n" +
+                  "ext.dep = ['name': 'awesome', 'group' : 'some', 'version' : \"$version\"]\n" +
+                  "dependencies {\n" +
+                  "  compile dep\n" +
+                  "}\n";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    ArtifactDependencyModel artModel = buildModel.dependencies().artifacts().get(0);
+    verifyMapProperty(artModel.completeModel().getResultModel(), ImmutableMap.of("name", "awesome", "group", "some", "version", "1.0"));
+
+    artModel.name().setValue("boo");
+    artModel.group().setValue("spooky");
+    artModel.version().setValue("2.0");
+
+    applyChangesAndReparse(buildModel);
+
+    artModel = buildModel.dependencies().artifacts().get(0);
+    verifyMapProperty(artModel.completeModel().getResultModel(), ImmutableMap.of("name", "boo", "group", "spooky", "version", "2.0"));
+  }
+
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {
     @NotNull public String configurationName;
 
