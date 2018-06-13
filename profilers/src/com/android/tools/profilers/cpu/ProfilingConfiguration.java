@@ -36,7 +36,7 @@ public class ProfilingConfiguration {
 
   /**
    * Default name used by ART configurations (both sampled and instrumented).
-   * TODO(b/76152657): when getDefaultConfigName supports both mode and profiler type, remove this field.
+   * TODO(b/110105335): when getDefaultConfigName supports both mode and profiler type, remove this field.
    */
   @VisibleForTesting
   static final String ART_ARTIFACT = "Method Trace (Java)";
@@ -45,7 +45,7 @@ public class ProfilingConfiguration {
 
   /**
    * Naming scheme for Simpleperf to match the format of {@link #ART_ARTIFACT}.
-   * TODO(b/76152657): until we can get both mode and profiler type from an ART trace, this string is a compromise to have more consistent
+   * TODO(b/110105335): until we can get both mode and profiler type from an ART trace, this string is a compromise to have more consistent
    * names to display in the Sessions panel.
    */
   @VisibleForTesting
