@@ -1,5 +1,14 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-    <xi:include href="android-lint.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="android-kotlin-lint.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+    <extensionPoints>
+        <extensionPoint qualifiedName="org.jetbrains.kotlin.android.model.androidModuleInfoProvider"
+                        interface="org.jetbrains.kotlin.android.model.AndroidModuleInfoProvider"
+                        area="IDEA_MODULE"/>
+        <extensionPoint qualifiedName="org.jetbrains.kotlin.androidDexer"
+                        interface="org.jetbrains.kotlin.idea.debugger.evaluate.classLoading.AndroidDexer"
+                        area="IDEA_PROJECT"/>
+    </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
         <gotoDeclarationHandler implementation="org.jetbrains.kotlin.android.navigation.KotlinAndroidGotoDeclarationHandler"/>
