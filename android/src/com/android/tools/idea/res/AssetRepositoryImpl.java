@@ -35,6 +35,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -122,7 +123,7 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
     assert myFacet != null;
 
     if (path.startsWith("apk:")) {
-      return FileResourceOpener.open(path);
+      return new ByteArrayInputStream(FileResourceReader.readBytes(path));
     }
 
     String url;
