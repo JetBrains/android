@@ -88,62 +88,7 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
   override fun getAvailableDependency(coordinate: GradleCoordinate, includePreview: Boolean): GradleCoordinate? = null
 
-  override fun getModuleSystem(module: Module): AndroidModuleSystem {
-    return object : AndroidModuleSystem {
-      override fun registerDependency(coordinate: GradleCoordinate) {}
-
-      override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
-
-      override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
-        // TODO(b/79883422): Replace the following code with the correct logic for detecting .aar dependencies.
-        // The following if / else if chain maintains previous support for supportlib and appcompat until
-        // we can determine it's safe to take away.
-        if (SUPPORT_LIB_ARTIFACT == "${coordinate.groupId}:${coordinate.artifactId}") {
-          val entries = ModuleRootManager.getInstance(module).orderEntries
-          for (orderEntry in entries) {
-            if (orderEntry is LibraryOrderEntry) {
-              val classes = orderEntry.getRootFiles(OrderRootType.CLASSES)
-              for (file in classes) {
-                if (file.name == "android-support-v4.jar") {
-                  return GoogleMavenArtifactId.SUPPORT_V4.getCoordinate("+")
-                }
-              }
-            }
-          }
-        }
-        else if (APPCOMPAT_LIB_ARTIFACT == "${coordinate.groupId}:${coordinate.artifactId}") {
-          val entries = ModuleRootManager.getInstance(module).orderEntries
-          for (orderEntry in entries) {
-            if (orderEntry is ModuleOrderEntry) {
-              val moduleForEntry = orderEntry.module
-              if (moduleForEntry == null || moduleForEntry == module) {
-                continue
-              }
-              AndroidFacet.getInstance(moduleForEntry) ?: continue
-              val manifestInfo = MergedManifest.get(moduleForEntry)
-              if ("android.support.v7.appcompat" == manifestInfo.`package`) {
-                return GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
-              }
-            }
-          }
-        }
-
-        return null
-      }
-
-      override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
-        return emptyList()
-      }
-
-      override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
-        return CapabilityNotSupported()
-      }
-
-      override fun getInstantRunSupport(): CapabilityStatus {
-        return CapabilityNotSupported()
-      }
-    }
-  }
+  override fun getModuleSystem(module: Module): AndroidModuleSystem = DefaultModuleSystem(module)
 
   override fun getPsiElementFinders(): List<PsiElementFinder> {
     return if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
