@@ -356,6 +356,13 @@ public final class StudioFlags {
     "Generate R classes fully in memory",
     "If enabled, R classes are generated in memory", false);
 
+  public static final Flag<Boolean> COLLAPSE_ANDROID_NAMESPACE = Flag.create(
+    EDITOR,
+    "collapse.android.namespace",
+    "Collapse the android namespace in XML code completion",
+    "If enabled, XML code completion doesn't include resources from the android namespace. Instead a fake completion item " +
+    "is used to offer just the namespace prefix.", true);
+
   private static final FlagGroup ANALYZER = new FlagGroup(FLAGS, "analyzer", "Apk/Bundle Analyzer");
   public static final Flag<Boolean> ENABLE_APP_SIZE_OPTIMIZER = Flag.create(
     ANALYZER, "enable.app.size.optimizer", "Enable size optimization suggestions in apk analyzer",
