@@ -50,7 +50,7 @@ public class StudioDownloader implements Downloader {
       mContentLength = contentLength;
       Storage storage = new Storage(mContentLength);
       mReasonableUnit = storage.getLargestReasonableUnits();
-      mTotalDisplaySize = String.format("%.1f %s", storage.getPreciseSizeAsUnit(mReasonableUnit), mReasonableUnit.toString());
+      mTotalDisplaySize = storage.toUiString(1);
     }
 
     @Override
