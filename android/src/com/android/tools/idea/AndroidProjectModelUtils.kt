@@ -25,19 +25,12 @@
 package com.android.tools.idea
 
 import com.android.SdkConstants.*
-import com.android.ide.common.util.PathString
 import com.android.projectmodel.AarLibrary
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.FilenameConstants
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.roots.OrderRootType
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VfsUtil.virtualToIoFile
-import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 
 /**
@@ -59,94 +52,11 @@ fun findAllAarsLibraries(project: Project): Map<String, AarLibrary> {
  * Returns information about all [AarLibrary] dependencies of a given module, indexed by [AarLibrary.address] which is unique within
  * a project.
  */
-fun findAarDependenciesInfo(module: Module): Map<String, AarLibrary> {
-  val result = mutableMapOf<String, AarLibrary>()
-  val facet = AndroidFacet.getInstance(module) ?: return result
-  val gradleModel = AndroidModuleModel.get(facet)
-  val resourceRepositoryManager = ResourceRepositoryManager.getOrCreateInstance(module) ?: return result
-
-  when {
-    gradleModel != null -> {
-      // We have the Gradle model, we can get everything from there.
-      for (library in gradleModel.selectedMainCompileLevel2Dependencies.androidLibraries) {
-        result[library.artifactAddress] = AarLibrary(
-          address = library.artifactAddress,
-          location = PathString(library.artifact),
-          manifestFile = PathString(library.manifest),
-          classesJar = PathString(library.jarFile),
-          dependencyJars = library.localJars.map(::PathString),
-          resFolder = PathString(library.resFolder),
-          symbolFile = PathString(library.symbolFile),
-          resApkFile = library.resStaticLibrary?.let(::PathString)
-        )
-      }
-    }
-
-    facet.requiresAndroidModel() && facet.configuration.model != null -> {
-      // It's not Gradle so we'll have to rely on the jars returned from ClassJarProvider.
-      val oldAndroidModel = facet.configuration.model!!
-      for (classesJar in oldAndroidModel.classJarProvider.getModuleExternalLibraries(module)) {
-
-        @Suppress("DEPRECATION") // This is the place were we actually have to go looking for the res folder.
-        val resFolder = findResFolder(classesJar) ?: continue
-
-        // Unfortunately we also need to get the library name from somewhere.
-        val libraryName = resourceRepositoryManager.findRepositoryFor(resFolder.parentFile)?.libraryName ?: continue
-
-        result[libraryName] = AarLibrary(
-          address = libraryName,
-          location = null,
-          manifestFile = PathString(File(resFolder.parentFile, FN_ANDROID_MANIFEST_XML)),
-          classesJar = PathString(classesJar),
-          dependencyJars = emptySet(),
-          resFolder = PathString(resFolder),
-          symbolFile = PathString(File(resFolder.parentFile, FN_RESOURCE_TEXT)),
-          resApkFile = null
-        )
-      }
-    }
-
-    else -> {
-      // We need to get everything from the IntelliJ module structure.
-      ModuleRootManager.getInstance(module)
-        .orderEntries()
-        .librariesOnly()
-        .recursively()
-        .forEachLibrary { library ->
-          val roots = library.getFiles(OrderRootType.CLASSES)
-          val classesJar = roots.firstOrNull { it.name == FN_CLASSES_JAR }?.let(VfsUtil::virtualToIoFile) ?: return@forEachLibrary true
-
-          // For testing purposes we create libraries with a res.apk root (legacy projects don't have those). Recognize them here and
-          // create AarLibrary as necessary.
-          val resFolderRoot = roots.firstOrNull { it.name == FD_RES }
-          val resApkRoot = roots.firstOrNull { it.name == FN_RESOURCE_STATIC_LIBRARY }
-          val (resFolder, resApk) = when {
-            resApkRoot != null -> virtualToIoFile(resApkRoot).let { Pair(it.resolveSibling(FD_RES), it) }
-            resFolderRoot != null -> virtualToIoFile(resFolderRoot).let { Pair(it, it.resolveSibling(FN_RESOURCE_STATIC_LIBRARY)) }
-            else -> {
-              @Suppress("DEPRECATION") // This is the place were we actually have to go looking for the res folder.
-              findResFolder(classesJar)?.let { Pair(it, it.resolveSibling(FN_RESOURCE_STATIC_LIBRARY)) } ?: return@forEachLibrary true
-            }
-          }
-
-          val libraryName = library.name ?: return@forEachLibrary true
-          result[libraryName] = AarLibrary(
-            address = libraryName,
-            location = null,
-            manifestFile = PathString(File(resFolder.parentFile, FN_ANDROID_MANIFEST_XML)),
-            classesJar = PathString(classesJar),
-            dependencyJars = emptySet(),
-            resFolder = PathString(resFolder),
-            symbolFile = PathString(File(resFolder.parentFile, FN_RESOURCE_TEXT)),
-            resApkFile = PathString(resApk)
-          )
-
-          true // continue processing.
-        }
-    }
-  }
-
-  return result
+private fun findAarDependenciesInfo(module: Module): Map<String, AarLibrary> {
+  return module.getModuleSystem()
+    .getDependentLibraries()
+    .filterIsInstance<AarLibrary>()
+    .associateBy { library -> library.address }
 }
 
 /**
@@ -154,7 +64,7 @@ fun findAarDependenciesInfo(module: Module): Map<String, AarLibrary> {
  *
  * TODO: make it private and part of building the model for legacy projects where guessing is the best we can do.
  */
-@Deprecated("Use AndroidProjectModelUtils.findAarDependencies instead of processing jar files and looking for resources.")
+@Deprecated("Use AndroidProjectModelUtils.findAllAarsLibraries instead of processing jar files and looking for resources.")
 fun findResFolder(jarFile: File): File? {
   // We need to figure out the layout of the resources relative to the jar file. This changed over time, so we check for different
   // layouts until we find one we recognize.
