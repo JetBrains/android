@@ -36,6 +36,7 @@ import java.util.function.Function;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.resolveElement;
 
 /**
  * A Gradle artifact dependency. There are two notations supported for declaring a dependency on an external module. One is a string
@@ -58,6 +59,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
                                                                               ArtifactDependencyModel {
   @Nullable private GradleDslClosure myConfigurationElement;
   @NotNull private String myConfigurationName;
+  protected boolean mySetThrough = false;
 
   public ArtifactDependencyModelImpl(@Nullable GradleDslClosure configurationElement, @NotNull String configurationName) {
     myConfigurationElement = configurationElement;
@@ -112,6 +114,16 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
       return null;
     }
     return new DependencyConfigurationModelImpl(myConfigurationElement);
+  }
+
+  @Override
+  public void enableSetThrough() {
+    mySetThrough = true;
+  }
+
+  @Override
+  public void disableSetThrough() {
+    mySetThrough = false;
   }
 
   @Override
@@ -297,8 +309,9 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
                                                 @NotNull Function<ArtifactDependencySpec, String> getFunc,
                                                 @NotNull BiConsumer<ArtifactDependencySpec, String> setFunc,
                                                 boolean canDelete) {
+      GradleDslSimpleExpression element = mySetThrough ? resolveElement(myDslExpression) : myDslExpression;
       FakeElement fakeElement =
-        new FakeArtifactElement(myDslExpression.getParent(), GradleNameElement.fake(name), myDslExpression, getFunc, setFunc, canDelete);
+        new FakeArtifactElement(element.getParent(), GradleNameElement.fake(name), element, getFunc, setFunc, canDelete);
       return GradlePropertyModelBuilder.create(fakeElement).addTransform(new FakeElementTransform()).asMethod(true).buildResolved();
     }
 
