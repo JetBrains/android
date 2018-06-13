@@ -377,5 +377,16 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
     assertFalse(firstModel.isModified)
     assertFalse(secondModel.isModified)
-    assertFalse(listModel.isModified)  }
+    assertFalse(listModel.isModified)
+  }
+
+  @Test
+  fun testAccessingNestedBlockElements() {
+    writeToBuildFile("")
+
+    val buildModel = gradleBuildModel
+    assertNotNull(buildModel.android()?.defaultConfig())
+
+    verifyFileContents(myBuildFile, "")
+  }
 }
