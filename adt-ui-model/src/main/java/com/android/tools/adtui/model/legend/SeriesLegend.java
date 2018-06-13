@@ -67,7 +67,8 @@ public final class SeriesLegend implements Legend {
     double time = myRange.getMax();
     List<SeriesData<Long>> data = mySeries.getDataSeries().getDataForXRange(new Range(time, time));
     if (data.isEmpty()) {
-      return null;
+      // SeriesLegend should always show up, even when data is absent.
+      return "N/A";
     }
     return myFormatter.getFormattedString(mySeries.getYRange().getLength(), getInterpolatedValueAt(time, data), true);
   }

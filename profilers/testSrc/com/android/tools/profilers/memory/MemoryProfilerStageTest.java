@@ -493,7 +493,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     DetailedMemoryUsage usage = myStage.getDetailedMemoryUsage();
     SeriesLegend objectLegend = legends.getObjectsLegend();
     RangedContinuousSeries objectSeries = usage.getObjectsSeries();
-    assertThat(legends.getLegends().stream().filter(legend -> legend == objectLegend).findFirst().get().getValue()).isNull();
+    assertThat(legends.getLegends().stream().filter(legend -> legend == objectLegend).findFirst().get().getValue()).isEqualTo("N/A");
     assertThat(usage.getSeries().stream().anyMatch(series -> series == objectSeries)).isTrue();
     assertThat(objectSeries.getDataSeries().getDataForXRange(new Range(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(1))))
       .isEmpty();
