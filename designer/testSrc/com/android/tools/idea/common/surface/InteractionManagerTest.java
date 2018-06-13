@@ -19,11 +19,11 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -122,6 +122,33 @@ public class InteractionManagerTest extends LayoutTestCase {
     ImmutableList<NlComponent> selections = surface.getSelectionModel().getSelection();
     assertEquals(1, selections.size());
     assertEquals(textView.getNlComponent(), selections.get(0));
+  }
+
+  public void testSelectDraggedComponent() {
+    InteractionManager manager = setupConstraintLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    SelectionModel selectionModel = surface.getSelectionModel();
+    ImmutableList<NlComponent> selections = selectionModel.getSelection();
+    assertEquals(0, selections.size());
+    int startX = Coordinates.getSwingXDip(screenView, textView.getCenterX());
+    int startY = Coordinates.getSwingYDip(screenView, textView.getCenterY());
+
+    pressMouse(manager, MouseEvent.BUTTON1, startX, startY, 0);
+    selections = selectionModel.getSelection();
+    assertEquals(0, selections.size());
+
+    dragMouse(manager, startX, startY, startX + 50, startY + 20, 0);
+    selections = selectionModel.getSelection();
+    assertEquals(1, selections.size());
+    assertEquals(textView.getNlComponent(), selections.get(0));
+
+    releaseMouse(manager, MouseEvent.BUTTON1, startX + 50, startY + 20, 0);
+    selections = selectionModel.getSelection();
+    assertEquals(1, selections.size());
+    assertEquals(textView.getNlComponent(), selections.get(0));
+    manager.stopListening();
   }
 
   public void testMultiSelectComponent() {
