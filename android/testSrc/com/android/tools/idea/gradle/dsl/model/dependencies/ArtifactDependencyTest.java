@@ -1778,6 +1778,33 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     verifyMapProperty(artModel.completeModel().getResultModel(), ImmutableMap.of("name", "boo", "group", "spooky", "version", "2.0"));
   }
 
+  @Test
+  public void testCompactSetThroughReferences() throws IOException {
+    String text = "ext.dep = 'a:b:1.0'\n" +
+                  "dependencies {\n" +
+                  "  compile dep\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    ArtifactDependencyModel artModel = buildModel.dependencies().artifacts().get(0);
+    verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "a:b:1.0", STRING, REGULAR, 1);
+
+    artModel.enableSetThrough();
+    artModel.version().setValue("2.0");
+    artModel.name().setValue("c");
+    artModel.group().setValue("d");
+    artModel.disableSetThrough();
+    artModel.group().setValue("e");
+
+    applyChangesAndReparse(buildModel);
+
+    artModel = buildModel.dependencies().artifacts().get(0);
+    verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "e:c:2.0", STRING, REGULAR, 0);
+    verifyPropertyModel(buildModel.ext().findProperty("dep").resolve(), STRING_TYPE, "d:c:2.0", STRING, REGULAR, 0);
+  }
+
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {
     @NotNull public String configurationName;
 

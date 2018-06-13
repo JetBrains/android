@@ -51,4 +51,16 @@ public interface ArtifactDependencyModel extends DependencyModel {
 
   @Nullable
   DependencyConfigurationModel configuration();
+
+  /**
+   * Makes any change to this model through name/group/version/classifier/extension work on the result property by first resolving any
+   * references. Note: This does not affect completeModel() or compactNotation(), this also has no effect on dependencies declared as maps.
+   * These always set through variables.
+   */
+  void enableSetThrough();
+
+  /**
+   * Makes any change to this model through name/group/version/classifier/extension work on the property even if this overwrites variables.
+   */
+  void disableSetThrough();
 }
