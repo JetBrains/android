@@ -7,6 +7,7 @@ import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
+import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
@@ -74,6 +75,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   private boolean myUseCustomSettings;
   private ComponentStack myApplicationComponentStack;
   private ComponentStack myProjectComponentStack;
+  private IdeComponents myIdeComponents;
 
   @Override
   protected void setUp() throws Exception {
@@ -150,6 +152,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
     myProjectComponentStack = new ComponentStack(getProject());
+    myIdeComponents = new IdeComponents(myFixture);
 
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
   }
@@ -423,6 +426,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   public <T> void registerProjectComponentImplementation(@NotNull Class<T> key, @NotNull T instance) {
     myProjectComponentStack.registerComponentImplementation(key, instance);
+  }
+
+  public <T> void replaceProjectService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
+    myIdeComponents.replaceProjectService(serviceType, newServiceInstance);
   }
 
   protected final static class MyAdditionalModuleData {

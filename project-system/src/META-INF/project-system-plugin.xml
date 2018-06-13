@@ -19,9 +19,7 @@
                     interface="com.android.tools.idea.projectsystem.AndroidProjectSystemProvider"
                     area="IDEA_PROJECT"/>
   </extensionPoints>
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.projectsystem.ProjectSystemComponent</implementation-class>
-    </component>
-  </project-components>
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceImplementation="com.android.tools.idea.projectsystem.ProjectSystemService"/>
+  </extensions>
 </idea-plugin>
