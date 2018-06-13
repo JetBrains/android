@@ -38,8 +38,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Callable;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
@@ -157,7 +160,7 @@ public class AndroidSdkInitializer implements Runnable {
   }
 
   @Nullable
-  private static File findOrGetAndroidSdkPath() {
+  static File findOrGetAndroidSdkPath() {
     String studioHome = PathManager.getHomePath();
     if (isEmpty(studioHome)) {
       LOG.info("Unable to find Studio home directory");
@@ -176,23 +179,38 @@ public class AndroidSdkInitializer implements Runnable {
     }
     LOG.info("Unable to locate SDK within the Android studio installation.");
 
-    String androidHomeValue = System.getenv(SdkConstants.ANDROID_HOME_ENV);
-    String msg = String.format("Checking if ANDROID_HOME is set: '%1$s' is '%2$s'", SdkConstants.ANDROID_HOME_ENV, androidHomeValue);
-    LOG.info(msg);
+    // The order of insertion matters as it defines SDK locations precedence.
+    Map<String, Callable<String>> sdkLocationCandidates = new LinkedHashMap<>();
+    sdkLocationCandidates.put(SdkConstants.ANDROID_HOME_ENV + " environment variable",
+                              () -> System.getenv(SdkConstants.ANDROID_HOME_ENV));
+    sdkLocationCandidates.put(SdkConstants.ANDROID_SDK_ROOT_ENV + " environment variable",
+                              () -> System.getenv(SdkConstants.ANDROID_SDK_ROOT_ENV));
+    sdkLocationCandidates.put("Last SDK used by Android tools",
+                              () -> getLastSdkPathUsedByAndroidTools());
 
-    if (!isEmpty(androidHomeValue) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
-      LOG.info("Using Android SDK specified by the environment variable.");
-      return toSystemDependentPath(androidHomeValue);
+    for (Map.Entry<String, Callable<String>> locationCandidate : sdkLocationCandidates.entrySet()) {
+      try {
+        String pathDescription = locationCandidate.getKey();
+        String sdkPath = locationCandidate.getValue().call();
+        String msg;
+        if (!isEmpty(sdkPath) && AndroidSdkType.getInstance().isValidSdkHome(sdkPath)) {
+          msg = String.format("%1$s: '%2$s'", pathDescription, sdkPath);
+        }
+        else {
+          msg = String.format("Examined and not found a valid Android SDK path: %1$s", pathDescription);
+          sdkPath = null;
+        }
+        LOG.info(msg);
+        if (sdkPath != null) {
+          return toSystemDependentPath(sdkPath);
+        }
+      }
+      catch (Exception e) {
+        LOG.info("Exception during SDK lookup", e);
+      }
     }
 
-    String sdkPath = getLastSdkPathUsedByAndroidTools();
-    if (!isEmpty(sdkPath) && AndroidSdkType.getInstance().isValidSdkHome(sdkPath)) {
-      msg = String.format("Last SDK used by Android tools: '%1$s'", sdkPath);
-    } else {
-      msg = "Unable to locate last SDK used by Android tools";
-    }
-    LOG.info(msg);
-    return sdkPath != null ? toSystemDependentPath(sdkPath) : null;
+    return null;
   }
 
   /**
