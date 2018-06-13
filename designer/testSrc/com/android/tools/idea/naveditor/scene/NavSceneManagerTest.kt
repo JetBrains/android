@@ -15,10 +15,16 @@
  */
 package com.android.tools.idea.naveditor.scene
 
+import com.android.resources.ScreenOrientation
+import com.android.sdklib.devices.Hardware
+import com.android.sdklib.devices.Screen
+import com.android.sdklib.devices.State
+import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
+import org.mockito.Mockito
 
 class NavSceneManagerTest : NavTestCase() {
 
@@ -76,6 +82,59 @@ class NavSceneManagerTest : NavTestCase() {
     }, "navigation-port").build()
     val scene = model.surface.scene!!
     val component = scene.getSceneComponent("fragment1")!!
+    assertEquals(153, component.drawWidth)
+    assertEquals(256, component.drawHeight)
+  }
+
+  fun testConfigurations() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }
+    }
+
+    val configuration = Mockito.mock(Configuration::class.java)
+    model.configuration = configuration
+
+    val state = Mockito.mock(State::class.java)
+    Mockito.`when`(configuration.deviceState).thenReturn(state)
+
+    val hardware = Mockito.mock(Hardware::class.java)
+    Mockito.`when`(state.hardware).thenReturn(hardware)
+
+    val screen = Mockito.mock(Screen::class.java)
+    Mockito.`when`(hardware.screen).thenReturn(screen)
+
+    Mockito.`when`(screen.xDimension).thenReturn(1920)
+    Mockito.`when`(screen.yDimension).thenReturn(1080)
+    Mockito.`when`(state.orientation).thenReturn(ScreenOrientation.PORTRAIT)
+
+    val scene = model.surface.scene!!
+    val sceneManager = scene.sceneManager
+
+    sceneManager.update()
+    var component = scene.getSceneComponent("fragment1")!!
+    assertEquals(144, component.drawWidth)
+    assertEquals(256, component.drawHeight)
+
+    Mockito.`when`(state.orientation).thenReturn(ScreenOrientation.LANDSCAPE)
+
+    sceneManager.update()
+    component = scene.getSceneComponent("fragment1")!!
+    assertEquals(256, component.drawWidth)
+    assertEquals(144, component.drawHeight)
+
+    Mockito.`when`(screen.xDimension).thenReturn(480)
+    Mockito.`when`(screen.yDimension).thenReturn(800)
+
+    sceneManager.update()
+    component = scene.getSceneComponent("fragment1")!!
+    assertEquals(256, component.drawWidth)
+    assertEquals(153, component.drawHeight)
+
+    Mockito.`when`(state.orientation).thenReturn(ScreenOrientation.PORTRAIT)
+    sceneManager.update()
+    component = scene.getSceneComponent("fragment1")!!
     assertEquals(153, component.drawWidth)
     assertEquals(256, component.drawHeight)
   }
