@@ -235,23 +235,27 @@ public class ResourceFolderManager extends AndroidFacetScopedService implements 
   /** Adds in any AAR library resource directories found in the library definitions for the given facet */
   public static void addAarsFromModuleLibraries(@NotNull AndroidFacet facet, @NotNull Map<File, String> dirs) {
     Module module = facet.getModule();
-    OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
-    for (OrderEntry orderEntry : orderEntries) {
+    orderEntries: for (OrderEntry orderEntry : ModuleRootManager.getInstance(module).getOrderEntries()) {
       if (orderEntry instanceof LibraryOrSdkOrderEntry) {
         if (orderEntry.isValid() && isAarDependency(facet, orderEntry)) {
           final LibraryOrSdkOrderEntry entry = (LibraryOrSdkOrderEntry)orderEntry;
-          final VirtualFile[] libClasses = entry.getRootFiles(OrderRootType.CLASSES);
+          final VirtualFile[] roots = entry.getRootFiles(OrderRootType.CLASSES);
           String libraryName = entry.getPresentableName();
           File res = null;
-          for (VirtualFile root : libClasses) {
+          for (VirtualFile root : roots) {
             if (root.getName().equals(FD_RES)) {
               res = VfsUtilCore.virtualToIoFile(root);
               break;
             }
+            // TODO(b/74425399): Use AndroidProjectModelUtils instead of all this code. Temporarily for testing, we use res.apk when found.
+            if (root.getName().equals(FN_RESOURCE_STATIC_LIBRARY)) {
+              dirs.put(VfsUtilCore.virtualToIoFile(root).getParentFile(), libraryName);
+              continue orderEntries;
+            }
           }
 
           if (res == null) {
-            for (VirtualFile root : libClasses) {
+            for (VirtualFile root : roots) {
               // Switch to file IO: The root may be inside a jar file system, where
               // getParent() returns null (and to get the real parent is ugly;
               // e.g. ((PersistentFSImpl.JarRoot)root).getParentLocalFile()).
@@ -265,12 +269,7 @@ public class ResourceFolderManager extends AndroidFacetScopedService implements 
           }
 
           if (res != null) {
-            // TODO(b/74425399): Use AndroidProjectModelUtils instead of all this code. Temporarily for testing, we use res.apk when found.
-            if (new File(res.getParentFile(), FN_RESOURCE_STATIC_LIBRARY).exists()) {
-              dirs.put(res.getParentFile(), libraryName);
-            } else {
-              dirs.put(res, libraryName);
-            }
+            dirs.put(res, libraryName);
           }
         }
       }
@@ -301,7 +300,7 @@ public class ResourceFolderManager extends AndroidFacetScopedService implements 
     VirtualFile[] files = orderEntry.getFiles(OrderRootType.CLASSES);
     if (files.length >= 2) {
       for (VirtualFile file : files) {
-        if (FD_RES.equals(file.getName()) && file.isDirectory()) {
+        if ((FD_RES.equals(file.getName()) && file.isDirectory()) || FN_RESOURCE_STATIC_LIBRARY.equals(file.getName())) {
           return true;
         }
       }

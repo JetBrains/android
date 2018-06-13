@@ -36,6 +36,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtil.virtualToIoFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 
@@ -115,10 +116,18 @@ fun findAarDependenciesInfo(module: Module): Map<String, AarLibrary> {
           val roots = library.getFiles(OrderRootType.CLASSES)
           val classesJar = roots.firstOrNull { it.name == FN_CLASSES_JAR }?.let(VfsUtil::virtualToIoFile) ?: return@forEachLibrary true
 
-          @Suppress("DEPRECATION") // This is the place were we actually have to go looking for the res folder.
-          val resFolder = roots.firstOrNull { it.name == FD_RES }?.let(VfsUtil::virtualToIoFile)
-                          ?: findResFolder(classesJar)
-                          ?: return@forEachLibrary true
+          // For testing purposes we create libraries with a res.apk root (legacy projects don't have those). Recognize them here and
+          // create AarLibrary as necessary.
+          val resFolderRoot = roots.firstOrNull { it.name == FD_RES }
+          val resApkRoot = roots.firstOrNull { it.name == FN_RESOURCE_STATIC_LIBRARY }
+          val (resFolder, resApk) = when {
+            resApkRoot != null -> virtualToIoFile(resApkRoot).let { Pair(it.resolveSibling(FD_RES), it) }
+            resFolderRoot != null -> virtualToIoFile(resFolderRoot).let { Pair(it, it.resolveSibling(FN_RESOURCE_STATIC_LIBRARY)) }
+            else -> {
+              @Suppress("DEPRECATION") // This is the place were we actually have to go looking for the res folder.
+              findResFolder(classesJar)?.let { Pair(it, it.resolveSibling(FN_RESOURCE_STATIC_LIBRARY)) } ?: return@forEachLibrary true
+            }
+          }
 
           val libraryName = library.name ?: return@forEachLibrary true
           result[libraryName] = AarLibrary(
@@ -129,8 +138,7 @@ fun findAarDependenciesInfo(module: Module): Map<String, AarLibrary> {
             dependencyJars = emptySet(),
             resFolder = PathString(resFolder),
             symbolFile = PathString(File(resFolder.parentFile, FN_RESOURCE_TEXT)),
-            // This is for our testing purposes, legacy projects don't have res.apk files.
-            resApkFile = PathString(resFolder.resolveSibling(FN_RESOURCE_STATIC_LIBRARY))
+            resApkFile = PathString(resApk)
           )
 
           true // continue processing.

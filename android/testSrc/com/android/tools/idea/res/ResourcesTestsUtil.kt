@@ -108,6 +108,6 @@ fun addBinaryAarDependency(module: Module) {
     "mylibrary.aar",
     "${AndroidTestBase.getTestDataPath()}/dom/layout/myaar-v2",
     "classes.jar",
-    "res"
+    "res.apk"
   )
 }
