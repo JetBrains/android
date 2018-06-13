@@ -456,6 +456,18 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
+  public void testAndroidPrefixInsertHandler() throws Throwable {
+    String fileName = getTestName(true) + ".xml";
+
+    myFixture.configureFromExistingVirtualFile(copyFileToProject(fileName));
+    myFixture.complete(CompletionType.BASIC);
+    assertEquals("@android:", myFixture.getLookupElementStrings().get(0));
+    myFixture.type('\n');
+    // Assert another completion was started automatically and that all framework resources are present.
+    assertTrue(myFixture.getLookupElements().length > 100);
+  }
+
+
   // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
   public void ignore_testNavigationInPlatformXml1_NavigateFromParentAttr() throws Exception {
     VirtualFile themes_holo =
