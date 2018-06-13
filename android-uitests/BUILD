@@ -468,6 +468,7 @@ java_test(
     ],
     tags = COMMON_TAGS + [
         "no_psq",
+        "qa_sanity",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [
