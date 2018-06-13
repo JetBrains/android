@@ -29,6 +29,7 @@ import com.intellij.psi.impl.light.LightElement
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -37,7 +38,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * @see ProjectSystemPsiElementFinder
  * @see ProjectLightResourceClassService
  */
-sealed class LightRClassesTestBase : AndroidTestCase() {
+sealed class LightClassesTestBase : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
@@ -67,7 +68,7 @@ sealed class LightRClassesTestBase : AndroidTestCase() {
     return resolve
   }
 
-  class SingleModule : LightRClassesTestBase() {
+  class SingleModule : LightClassesTestBase() {
     override fun setUp() {
       super.setUp()
 
@@ -165,12 +166,41 @@ sealed class LightRClassesTestBase : AndroidTestCase() {
 
       assertThat(myFixture.lookupElementStrings).containsExactly("appString", "class")
     }
+
+    fun testManifestClass() {
+      myFixture.configureByText(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(Manifest.permission.${caret}SEND_MESSAGE);
+            }
+        }
+        """.trimIndent()
+      )
+
+      assertThat(resolveReferenceUnderCaret()).isNull()
+
+      runWriteCommandAction(project) {
+        myFacet.manifest!!.addPermission()!!.apply { name.value = "com.example.SEND_MESSAGE" }
+      }
+
+      assertThat(resolveReferenceUnderCaret()).isInstanceOf(AndroidLightField::class.java)
+    }
   }
 
   /**
    * Tests with a module that should not see R class from another module.
    */
-  class UnrelatedModules : LightRClassesTestBase() {
+  class UnrelatedModules : LightClassesTestBase() {
 
     override fun configureAdditionalModules(
       projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
@@ -231,7 +261,7 @@ sealed class LightRClassesTestBase : AndroidTestCase() {
     }
   }
 
-  class NamespacedModuleWithAar : LightRClassesTestBase() {
+  class NamespacedModuleWithAar : LightClassesTestBase() {
 
     override fun setUp() {
       super.setUp()
@@ -292,7 +322,7 @@ sealed class LightRClassesTestBase : AndroidTestCase() {
     }
   }
 
-  class NonNamespacedModuleWithAar : LightRClassesTestBase() {
+  class NonNamespacedModuleWithAar : LightClassesTestBase() {
 
     override fun setUp() {
       super.setUp()

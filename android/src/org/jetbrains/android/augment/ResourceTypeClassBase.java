@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Base class for inner classes of the R class, e.g. {@code R.string}.
+ * Base class for light implementations of inner classes of the R class, e.g. {@code R.string}.
  *
  * <p>Implementations need to implement {@link #doGetFields()}, most likely by calling one of the {@code buildResourceFields} methods.
  */

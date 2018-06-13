@@ -57,20 +57,16 @@ class ProjectLightResourceClassService(
   private val psiManager: PsiManager,
   private val vfsManager: VirtualFileManager,
   private val moduleManager: ModuleManager,
-  private val aarResourceRepositoryCache: AarResourceRepositoryCache
+  private val aarResourceRepositoryCache: AarResourceRepositoryCache,
+  private val androidLightPackagesCache: AndroidLightPackage.InstanceCache
 ) : LightResourceClassService {
 
   companion object {
-    private val MODULE_R_CLASS = Key<PsiClass>(ProjectLightResourceClassService::class.qualifiedName!! + "MODULE_R_CLASS")
+    private val MODULE_R_CLASS = Key<PsiClass>(ProjectLightResourceClassService::class.qualifiedName!! + ".MODULE_R_CLASS")
 
     @JvmStatic
     fun getInstance(project: Project) = ServiceManager.getService(project, ProjectLightResourceClassService::class.java)!!
   }
-
-  /**
-   * Cache of [PsiPackage] instances for a given package name.
-   */
-  private val packageCache: Cache<String, PsiPackage> = CacheBuilder.newBuilder().softValues().build()
 
   /**
    * Cache of created classes for a given `classes.jar` file.
@@ -168,7 +164,7 @@ class ProjectLightResourceClassService(
   override fun findRClassPackage(qualifiedName: String): PsiPackage? {
     return if (getAllAars().containsKey(qualifiedName) ||
                findAllAndroidFacets().any { AndroidManifestUtils.getPackageName(it) == qualifiedName }) {
-      CacheUtils.getAndUnwrap(packageCache, qualifiedName) { AndroidResourcePackage(psiManager, qualifiedName) }
+      androidLightPackagesCache.get(qualifiedName)
     }
     else {
       null
