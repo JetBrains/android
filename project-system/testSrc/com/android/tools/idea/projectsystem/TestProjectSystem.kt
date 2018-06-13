@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.projectmodel.Library
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.google.common.collect.HashMultimap
@@ -74,6 +75,10 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
+      override fun getDependentLibraries(): Collection<Library> {
+        TODO("not implemented")
+      }
+
       override fun registerDependency(coordinate: GradleCoordinate) {
         dependenciesByModule.put(module, coordinate)
       }

@@ -16,16 +16,25 @@
 package com.android.tools.idea.project
 
 import com.android.SdkConstants
+import com.android.SdkConstants.*
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.util.PathString
+import com.android.projectmodel.AarLibrary
+import com.android.projectmodel.JavaLibrary
+import com.android.projectmodel.Library
 import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.projectsystem.*
+import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import java.io.File
 
 class DefaultModuleSystem(val module: Module) : AndroidModuleSystem {
   override fun registerDependency(coordinate: GradleCoordinate) {}
@@ -67,6 +76,61 @@ class DefaultModuleSystem(val module: Module) : AndroidModuleSystem {
     }
 
     return null
+  }
+
+  override fun getDependentLibraries(): Collection<Library> {
+    val libraries = mutableListOf<Library>()
+
+    ModuleRootManager.getInstance(module)
+      .orderEntries()
+      .librariesOnly()
+      .recursively()
+      .forEachLibrary { library ->
+        // Typically, a library xml looks like the following:
+        //     <CLASSES>
+        //      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/appcompat-v7-27.1.1.aar/e2434af65905ee37277d482d7d20865d/res" />
+        //      <root url="jar://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/appcompat-v7-27.1.1.aar/e2434af65905ee37277d482d7d20865d/jars/classes.jar!/" />
+        //    </CLASSES>
+        val roots = library.getFiles(OrderRootType.CLASSES)
+
+        // all libraries are assumed to have a classes.jar & a non-empty name
+        val classesJar = roots.firstOrNull { it.name == SdkConstants.FN_CLASSES_JAR }?.let(VfsUtil::virtualToIoFile)
+                         ?: return@forEachLibrary true
+        val libraryName = library.name ?: return@forEachLibrary true
+        val classJarLocation = PathString(classesJar)
+
+        // For testing purposes we create libraries with a res.apk root (legacy projects don't have those). Recognize them here and
+        // create AarLibrary as necessary.
+        val resFolderRoot = roots.firstOrNull { it.name == FD_RES }
+        val resApkRoot = roots.firstOrNull { it.name == FN_RESOURCE_STATIC_LIBRARY }
+        if (resFolderRoot != null || resApkRoot != null) { // aar
+          val (resFolder, resApk) = when {
+            resApkRoot != null -> virtualToIoFile(resApkRoot).let { Pair(it.resolveSibling(FD_RES), it) }
+            resFolderRoot != null -> virtualToIoFile(resFolderRoot).let { Pair(it, it.resolveSibling(FN_RESOURCE_STATIC_LIBRARY)) }
+            else -> return@forEachLibrary true
+          }
+
+          libraries.add(AarLibrary(
+            address = libraryName,
+            location = null,
+            manifestFile = PathString(File(resFolder.parentFile, FN_ANDROID_MANIFEST_XML)),
+            classesJar = classJarLocation,
+            dependencyJars = emptySet(),
+            resFolder = PathString(resFolder),
+            symbolFile = PathString(File(resFolder.parentFile, FN_RESOURCE_TEXT)),
+            resApkFile = PathString(resApk)
+          ))
+        } else { // jar
+          libraries.add(JavaLibrary(
+            address = libraryName,
+            classesJar = classJarLocation
+          ))
+        }
+
+        true // continue processing.
+      }
+
+    return ImmutableList.copyOf(libraries)
   }
 
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
