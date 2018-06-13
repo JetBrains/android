@@ -21,29 +21,28 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.xmlpull.v1.XmlPullParser;
 
-import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.nio.file.Paths;
 
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
 /**
- * Tests for {@link FileResourceOpener}.
+ * Tests for {@link FileResourceReader}.
  */
-public class FileResourceOpenerTest extends AndroidTestCase {
-  public void testOpen() throws Exception {
+public class FileResourceReaderTest extends AndroidTestCase {
+  public void testReadBytes() throws Exception {
     String resApkPath = Paths.get(myFixture.getTestDataPath(), "design_aar", "res.apk").normalize().toString();
     URI uri = new URI("apk", resApkPath, null);
     String resourcePath = "res/drawable-mdpi-v4/design_ic_visibility.png";
     PathString pathString = new PathString(uri, resourcePath);
 
-    ByteArrayInputStream stream = FileResourceOpener.open(pathString);
-    assertNotNull(stream);
-    assertEquals(309, stream.available());
+    byte[] bytes = FileResourceReader.readBytes(pathString);
+    assertNotNull(bytes);
+    assertEquals(309, bytes.length);
 
-    stream = FileResourceOpener.open(uri.toString() + JAR_SEPARATOR + resourcePath);
-    assertNotNull(stream);
-    assertEquals(309, stream.available());
+    bytes = FileResourceReader.readBytes(uri.toString() + JAR_SEPARATOR + resourcePath);
+    assertNotNull(bytes);
+    assertEquals(309, bytes.length);
   }
 
   public void testCreateXmlPullParser() throws Exception {
@@ -52,11 +51,11 @@ public class FileResourceOpenerTest extends AndroidTestCase {
     String resourcePath = "res/layout/design_bottom_navigation_item.xml";
     PathString pathString = new PathString(uri, resourcePath);
 
-    XmlPullParser parser = FileResourceOpener.createXmlPullParser(pathString);
+    XmlPullParser parser = FileResourceReader.createXmlPullParser(pathString);
     assertTrue(parser instanceof ProtoXmlPullParser);
 
     VirtualFile virtualFile = ResourceHelper.toVirtualFile(pathString);
-    parser = FileResourceOpener.createXmlPullParser(virtualFile);
+    parser = FileResourceReader.createXmlPullParser(virtualFile);
     assertTrue(parser instanceof ProtoXmlPullParser);
   }
 }

@@ -35,31 +35,31 @@ import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 /**
  * Methods for working with Android file resources.
  */
-public class FileResourceOpener {
+public class FileResourceReader {
   /** The first byte of a proto XML file is always 0x0A. */
   public static final byte PROTO_XML_LEAD_BYTE = 0x0A;
 
   /**
-   * Creates an {@link ByteArrayInputStream} for reading the contents of a resource. There is no
-   * need to close the returned stream. The resource path can point either to a file on disk, or
-   * to a ZIP file entry. In the latter case the URI of the resource path contains a path pointing
-   * to the ZIP file and has "apk" scheme. The path part of the resource path corresponds to
-   * the path of the ZIP entry.
+   * Reads and returns the contents of a resource. The resource path can point either to a file on
+   * disk, or to a ZIP file entry. In the latter case the URI of the resource path contains a path
+   * pointing to the ZIP file and has "apk" scheme. The path part of the resource path corresponds
+   * to the path of the ZIP entry.
    *
    * @param resourcePath the path to a file or a zip entry
-   * @return the stream for reading contents of the file resource
+   * @return the contents of the file resource
+   * @throws FileNotFoundException if the resource doesn't exist
    * @throws IOException in case of an I/O error
    */
   @NotNull
-  public static ByteArrayInputStream open(@NotNull PathString resourcePath) throws IOException {
+  public static byte[] readBytes(@NotNull PathString resourcePath) throws IOException {
     URI uri = resourcePath.getFilesystemUri();
     String scheme = uri.getScheme();
     switch (scheme) {
       case "file":
-        return openFile(resourcePath.getRawPath());
+        return readFileBytes(resourcePath.getRawPath());
 
       case "apk": {
-        return openZipEntry(uri.getPath(), resourcePath.getPortablePath());
+        return readZipEntryBytes(uri.getPath(), resourcePath.getPortablePath());
       }
 
       default:
@@ -68,25 +68,25 @@ public class FileResourceOpener {
   }
 
   /**
-   * Creates an {@link ByteArrayInputStream} for reading the contents of a resource. There is no
-   * need to close the returned stream. The resource path can point either to a file on disk, or
-   * to a ZIP file entry. In the latter case the resource path has the following format:
+   * Reads and returns the contents of a resource. The resource path can point either to a file on
+   * disk, or to a ZIP file entry. In the latter case the resource path has the following format:
    * "apk:<i>path_to_zip_file</i>!/<i>path_to_zip_entry</i>.
    *
    * @param resourcePath the path to a file or a zip entry
-   * @return the stream for reading contents of the file resource
+   * @return the contents of the file resource
+   * @throws FileNotFoundException if the resource doesn't exist
    * @throws IOException in case of an I/O error
    */
   @NotNull
-  public static ByteArrayInputStream open(@NotNull String resourcePath) throws IOException {
+  public static byte[] readBytes(@NotNull String resourcePath) throws IOException {
     if (resourcePath.startsWith("apk:")) {
       int prefixLength = "apk:".length();
       int separatorPos = resourcePath.lastIndexOf(JAR_SEPARATOR);
       if (separatorPos < prefixLength) {
         throw new IllegalArgumentException("Invalid resource path \"" + resourcePath + "\"");
       }
-      return openZipEntry(resourcePath.substring(prefixLength, separatorPos),
-                          resourcePath.substring(separatorPos + JAR_SEPARATOR.length()));
+      return readZipEntryBytes(resourcePath.substring(prefixLength, separatorPos),
+                               resourcePath.substring(separatorPos + JAR_SEPARATOR.length()));
     }
 
     if (resourcePath.startsWith("file:")) {
@@ -96,21 +96,20 @@ public class FileResourceOpener {
       }
       resourcePath = resourcePath.substring(prefixLength);
     }
-    return openFile(resourcePath);
+    return readFileBytes(resourcePath);
   }
 
   @NotNull
-  private static ByteArrayInputStream openFile(String filePath) throws IOException {
+  private static byte[] readFileBytes(String filePath) throws IOException {
     try (FileInputStream fileStream = new FileInputStream(filePath)) {
-      // Read data fully to memory to be able to close the file stream.
       ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
       ByteStreams.copy(fileStream, byteOutputStream);
-      return new ByteArrayInputStream(byteOutputStream.toByteArray());
+      return byteOutputStream.toByteArray();
     }
   }
 
   @NotNull
-  private static ByteArrayInputStream openZipEntry(String zipPath, String zipEntryPath) throws IOException {
+  private static byte[] readZipEntryBytes(String zipPath, String zipEntryPath) throws IOException {
     try (ZipFile zipFile = new ZipFile(zipPath)) {
       ZipEntry entry = zipFile.getEntry(zipEntryPath);
       if (entry == null) {
@@ -125,7 +124,7 @@ public class FileResourceOpener {
       if (stream.read(bytes) != size) {
         throw new IOException("Incomplete read from " + zipPath + ':' + zipEntryPath);
       }
-      return new ByteArrayInputStream(bytes);
+      return bytes;
     }
   }
 
@@ -134,26 +133,16 @@ public class FileResourceOpener {
    * either regular or proto XML.
    *
    * @param resourcePath the path to a file or a zip entry
-   * @return the parser for the resource, or null if the resource does not exist.
+   * @return the parser for the resource, or null if the resource does not exist
+   * @throws IOException in case of an I/O error
    */
   @Nullable
-  public static XmlPullParser createXmlPullParser(@NotNull PathString resourcePath) {
+  public static XmlPullParser createXmlPullParser(@NotNull PathString resourcePath) throws IOException {
     try {
-      ByteArrayInputStream stream = open(resourcePath);
-      // Instantiate an XML pull parser based on the contents of the stream.
-      XmlPullParser parser;
-      int c = stream.read();
-      stream.reset();
-      if (c == PROTO_XML_LEAD_BYTE) {
-        parser = new ProtoXmlPullParser(); // Parser for proto XML used in AARs.
-      } else {
-        parser = new KXmlParser(); // Parser for regular text XML.
-        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-      }
-      parser.setInput(stream, null);
-      return parser;
+      byte[] contents = readBytes(resourcePath);
+      return createXmlPullParser(contents);
     }
-    catch (IOException | XmlPullParserException e) {
+    catch (FileNotFoundException e) {
       return null;
     }
   }
@@ -163,28 +152,46 @@ public class FileResourceOpener {
    * either regular or proto XML.
    *
    * @param resourceFile the resource file
-   * @return the parser for the resource, or null if the resource does not exist.
+   * @return the parser for the resource, or null if the resource does not exist
+   * @throws IOException in case of an I/O error
    */
   @Nullable
-  public static XmlPullParser createXmlPullParser(@NotNull VirtualFile resourceFile) {
+  public static XmlPullParser createXmlPullParser(@NotNull VirtualFile resourceFile) throws IOException {
     try {
       byte[] contents = resourceFile.contentsToByteArray();
+      return createXmlPullParser(contents);
+    }
+    catch (FileNotFoundException e) {
+      return null;
+    }
+  }
+
+  /**
+   * Creates a {@link XmlPullParser} for the contents of an XML file resource. The contains
+   * may contain either regular or proto XML.
+   *
+   * @param contents the contents of a file resource
+   * @return the parser for the resource
+   */
+  @NotNull
+  public static XmlPullParser createXmlPullParser(@NotNull byte[] contents) {
+    try {
       // Instantiate an XML pull parser based on the contents of the file.
       XmlPullParser parser;
       if (contents.length != 0 && contents[0] == PROTO_XML_LEAD_BYTE) {
         parser = new ProtoXmlPullParser(); // Parser for proto XML used in AARs.
-      } else {
+      }
+      else {
         parser = new KXmlParser(); // Parser for regular text XML.
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
       }
       parser.setInput(new ByteArrayInputStream(contents), null);
       return parser;
-    }
-    catch (IOException | XmlPullParserException e) {
-      return null;
+    } catch (XmlPullParserException e) {
+      throw new Error("Internal error", e); // Should not happen unless there is a bug.
     }
   }
 
   /** Do not instantiate - all methods are static. */
-  private FileResourceOpener() {}
+  private FileResourceReader() {}
 }

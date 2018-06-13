@@ -37,13 +37,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.res.FileResourceOpener.PROTO_XML_LEAD_BYTE;
+import static com.android.tools.idea.res.FileResourceReader.PROTO_XML_LEAD_BYTE;
 
 /**
  * Methods for working with Android manifests.
  */
 public class AndroidManifestUtils {
-
   /**
    * Reads package name from the AndroidManifest.xml of an AAR. Both, AARv1 and AARv2, formats are supported.
    *
@@ -69,7 +68,7 @@ public class AndroidManifestUtils {
    * Reads package name from the AndroidManifest.xml file in the given directory. The the AndroidManifest.xml
    * file can be in either text or proto format.
    *
-   * @param aarDir the directory containing the AndroidManifest.xml file
+   * @param manifestFile the AndroidManifest.xml file
    * @return the package name from the manifest
    */
   @Nullable

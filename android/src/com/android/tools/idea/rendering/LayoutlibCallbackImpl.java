@@ -69,7 +69,7 @@ import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.*;
-import static com.android.tools.idea.res.FileResourceOpener.PROTO_XML_LEAD_BYTE;
+import static com.android.tools.idea.res.FileResourceReader.PROTO_XML_LEAD_BYTE;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
@@ -342,7 +342,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable
   public XmlPullParser createXmlParserForFile(@NotNull String fileName) {
     try {
-      ByteArrayInputStream stream = FileResourceOpener.open(fileName);
+      ByteArrayInputStream stream = new ByteArrayInputStream(FileResourceReader.readBytes(fileName));
       // Instantiate an XML pull parser based on the contents of the stream.
       XmlPullParser parser;
       int c = stream.read();
