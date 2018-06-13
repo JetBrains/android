@@ -57,7 +57,7 @@ public class ViewLoaderTest extends AndroidTestCase {
     Module module = myFacet.getModule();
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     assertNotNull(platform);
-    myLayoutLib = RenderService.getLayoutLibrary(module, ConfigurationManager.create(module).getHighestApiTarget());
+    myLayoutLib = RenderService.getLayoutLibrary(module, new ConfigurationManager(module).getHighestApiTarget());
     assertNotNull(myLayoutLib);
   }
 
