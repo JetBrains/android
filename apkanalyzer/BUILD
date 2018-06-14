@@ -5,9 +5,9 @@ iml_module(
     name = "apkanalyzer",
     srcs = ["src"],
     iml_files = ["apkanalyzer.iml"],
+    test_resources = ["testSrc/resources"],
     test_runtime_deps = ["//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl"],
     test_srcs = ["testSrc/java"],
-    test_resources = ["testSrc/resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
