@@ -127,4 +127,9 @@ public final class BuildModelContext {
   public void putBuildFile(@NotNull String name, @NotNull GradleDslFile buildFile) {
     myFileCache.putBuildFile(name, buildFile);
   }
+
+  @NotNull
+  public List<GradleDslFile> getAllRequestedFiles() {
+    return myFileCache.getAllFiles();
+  }
 }

@@ -22,15 +22,17 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 
 public class GradleDslFileCache {
-  @NotNull Project myProject;
-  @NotNull Map<String, GradleDslFile> myParsedBuildFiles = new HashMap<>();
+  @NotNull private Project myProject;
+  @NotNull private Map<String, GradleDslFile> myParsedBuildFiles = new HashMap<>();
 
   public GradleDslFileCache(@NotNull Project project) {
     myProject = project;
@@ -87,5 +89,10 @@ public class GradleDslFileCache {
       throw new IllegalStateException("Found wrong type for settings file in cache!");
     }
     return (GradleSettingsFile)dslFile;
+  }
+
+  @NotNull
+  public List<GradleDslFile> getAllFiles() {
+    return new ArrayList<>(myParsedBuildFiles.values());
   }
 }
