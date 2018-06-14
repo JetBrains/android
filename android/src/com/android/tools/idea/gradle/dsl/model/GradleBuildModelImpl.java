@@ -186,7 +186,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     return buildDslFile;
   }
 
-  private static void populateWithParentModuleSubProjectsProperties(@NotNull GradleBuildFile buildDslFile,
+  public static void populateWithParentModuleSubProjectsProperties(@NotNull GradleBuildFile buildDslFile,
                                                                     @NotNull BuildModelContext context) {
     GradleSettingsFile settingsFile = context.getOrCreateSettingsFile(buildDslFile.getProject());
     if (settingsFile == null) {
@@ -217,11 +217,12 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
 
     buildDslFile.setParsedElement(subProjectsDslElement);
     for (Map.Entry<String, GradleDslElement> entry : subProjectsDslElement.getPropertyElements().entrySet()) {
+      // TODO: This should be applied.
       buildDslFile.setParsedElement(entry.getValue());
     }
   }
 
-  private static void populateSiblingDslFileWithGradlePropertiesFile(@NotNull GradleBuildFile buildDslFile,
+  public static void populateSiblingDslFileWithGradlePropertiesFile(@NotNull GradleBuildFile buildDslFile,
                                                                      @NotNull BuildModelContext context) {
     File propertiesFilePath = new File(buildDslFile.getDirectoryPath(), FN_GRADLE_PROPERTIES);
     VirtualFile propertiesFile = findFileByIoFile(propertiesFilePath, true);

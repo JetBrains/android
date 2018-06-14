@@ -723,7 +723,11 @@ public class GroovyDslParser implements GradleDslParser {
         if ("rootProject".equals(nestedElementName)) {
           // Note: This behaviour is NOT completely consistent with Gradle, if a projects uses a mixture of
           // different projects Ext blocks then we may say certain variables are in scope when in fact they aren't.
-          resultElement = myDslFile;
+          resultElement = myDslFile.getContext().getRootProjectFile();
+          if (resultElement == null) {
+            // Default to current file.
+            resultElement = myDslFile;
+          }
           continue;
         }
         // Ext element is supported for any Gradle domain object that implements ExtensionAware.

@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -34,6 +35,8 @@ import java.util.Deque;
 import java.util.function.Consumer;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl.populateSiblingDslFileWithGradlePropertiesFile;
+import static com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl.populateWithParentModuleSubProjectsProperties;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 public class ProjectBuildModelImpl implements ProjectBuildModel {
@@ -56,7 +59,16 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
     myProject = project;
 
     // First parse the main project build file.
-    myProjectBuildFile = file != null ? myBuildModelContext.getOrCreateBuildFile(file, project.getName()) : null;
+    myProjectBuildFile = file != null ?   new GradleBuildFile(file, myProject, project.getName(), myBuildModelContext) : null;
+    if (myProjectBuildFile != null) {
+      myBuildModelContext.setRootProjectFile(myProjectBuildFile);
+      ApplicationManager.getApplication().runReadAction(() -> {
+        populateWithParentModuleSubProjectsProperties(myProjectBuildFile, myBuildModelContext);
+        populateSiblingDslFileWithGradlePropertiesFile(myProjectBuildFile, myBuildModelContext);
+        myProjectBuildFile.parse();
+      });
+      myBuildModelContext.putBuildFile(file.getUrl(), myProjectBuildFile);
+    }
   }
 
 
