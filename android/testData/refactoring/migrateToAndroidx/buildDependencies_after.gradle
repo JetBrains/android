@@ -33,19 +33,19 @@ android {
     }
 }
 
-def testVariable = "com.android.support:exifinterface:27.0.2"
+def testVariable = 'androidx.exifinterface:exifinterface:1.0.0-alpha1'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.constraint:base:2.0.0-alpha1'
-    implementation 'androidx.recyclerview:recyclerview:1.0.0-alpha1'
+    implementation "androidx.recyclerview:recyclerview:1.0.0-alpha1"
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.0-alpha1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-alpha1'
-    implementation group: 'androidx.appcompat', name:'base', version:'1.0.0-alpha1'
-    implementation 'androidx.exifinterface:exifinterface:1.0.0-alpha1'
-    implementation "androidx.core:core-ktx:1.0.0-alpha1"
+    implementation group: 'androidx.appcompat', name: 'base', version: '1.0.0-alpha1'
+    implementation testVariable
+    implementation 'androidx.core:core-ktx:1.0.0-alpha1'
     implementation 'androidx.core:newer-core-ktx:2.0.0-alpha1'
-    implementation "androidx.core:variable-ktx:$variable"
+    implementation "androidx.core:variable-ktx:1.0.0-alpha1"
 }
