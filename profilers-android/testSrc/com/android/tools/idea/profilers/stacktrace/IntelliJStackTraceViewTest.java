@@ -166,6 +166,7 @@ public class IntelliJStackTraceViewTest {
     assertThat(invocationCount[0]).isEqualTo(1);
   }
 
+  @Ignore("b/110185274")
   @Test
   public void rightClickingStackTraceView() {
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
@@ -185,6 +186,7 @@ public class IntelliJStackTraceViewTest {
     assertThat(list.getSelectedValue()).isInstanceOf(FakeCodeElement.class);
   }
 
+  @Ignore("b/110185274")
   @Test
   public void pressingEnterOnStackViewNavigatesToSelectedElement() throws Exception {
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
