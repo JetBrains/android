@@ -22,7 +22,6 @@ import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.uibuilder.handlers.relative.DependencyGraph;
 import com.android.tools.idea.uibuilder.model.AttributesHelperKt;
 import com.android.tools.idea.uibuilder.model.QualifiedName;
 import com.android.tools.idea.util.ListenerCollection;
@@ -77,7 +76,6 @@ public class NlComponent implements NlAttributesHolder {
   private final HashMap<Object, Object> myClientProperties = new HashMap<>();
   private final ListenerCollection<ChangeListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private final ChangeEvent myChangeEvent = new ChangeEvent(this);
-  private DependencyGraph myCachedDependencyGraph;
   private NlComponentDelegate myDelegate;
 
   /**
@@ -266,19 +264,6 @@ public class NlComponent implements NlAttributesHolder {
     return Stream.concat(
       Stream.of(this),
       getChildren().stream().flatMap(NlComponent::flatten));
-  }
-
-  /**
-   * Returns the {@link DependencyGraph} for the given relative layout widget
-   *
-   * @return a {@link DependencyGraph} for the layout
-   */
-  @NotNull
-  public DependencyGraph getDependencyGraph() {
-    if (myCachedDependencyGraph == null || myCachedDependencyGraph.isStale(this)) {
-      myCachedDependencyGraph = new DependencyGraph(this);
-    }
-    return myCachedDependencyGraph;
   }
 
   @Nullable
