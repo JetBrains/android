@@ -17,10 +17,7 @@ package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.scene.LerpValue;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.scene.ScenePicker;
+import com.android.tools.idea.common.scene.*;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCircle;
 import com.android.tools.idea.common.scene.draw.DrawFilledCircle;
@@ -98,11 +95,13 @@ public class ActionHandleTarget extends NavBaseTarget {
 
   @Override
   public void mouseDown(@NavCoordinate int x, @NavCoordinate int y) {
-    myComponent.getScene().getDesignSurface().getSelectionModel().setSelection(ImmutableList.of(getComponent().getNlComponent()));
+    Scene scene = myComponent.getScene();
+    scene.getDesignSurface().getSelectionModel().setSelection(ImmutableList.of(getComponent().getNlComponent()));
     myIsDragging = true;
-    myComponent.getScene().needsRebuildList();
+    scene.needsRebuildList();
     myComponent.getParent().getNlComponent().putClientProperty(DRAG_CREATE_IN_PROGRESS, true);
     getComponent().setDragging(true);
+    scene.repaint();
   }
 
   @Override
