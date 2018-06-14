@@ -16,6 +16,9 @@
 package com.android.tools.idea.lang.roomSql.parser
 
 import com.android.tools.idea.lang.roomSql.ROOM_SQL_FILE_TYPE
+import com.android.tools.idea.lang.roomSql.RoomPairedBraceMatcher
+import com.android.tools.idea.lang.roomSql.RoomSqlLanguage
+import com.intellij.lang.LanguageBraceMatching
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.TokenType
@@ -23,6 +26,17 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.ParsingTestCase
 
 abstract class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_TYPE.defaultExtension, RoomSqlParserDefinition()) {
+  override fun setUp() {
+    super.setUp()
+    // b/110189571: ParsingTestCase puts in place a new root area and registers just a few extension points in it. Our parser implementation
+    // ends up using LanguageBraceMatching which is not registered by ParsingTestCase and so LanguageBraceMatching.myCache ends up empty
+    // (because there was no registered extension point with the right name to get instances for) and the empty cache is not flushed at
+    // the end of the test (because only registered extension points get notified that the root area got replaced back to the default one).
+    // With the line below we register the right object for the duration of this test and also mak sure its cache gets cleared before
+    // EditingTest runs.
+    addExplicitExtension(LanguageBraceMatching.INSTANCE, RoomSqlLanguage.INSTANCE, RoomPairedBraceMatcher())
+  }
+
   /**
    * Checks that the given text parses correctly.
    *
