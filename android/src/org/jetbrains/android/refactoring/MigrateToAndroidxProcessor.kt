@@ -88,8 +88,8 @@ private fun getLibraryRevision(newGroupName: String, newArtifactName: String, de
 }
 
 open class MigrateToAndroidxProcessor(val project: Project,
-                                 private val migrationMap: List<AppCompatMigrationEntry>,
-                                 versionProvider: ((String, String, String) -> String)? = null) : BaseRefactoringProcessor(project) {
+                                      private val migrationMap: List<AppCompatMigrationEntry>,
+                                      versionProvider: ((String, String, String) -> String)? = null) : BaseRefactoringProcessor(project) {
   private val elements: MutableList<PsiElement> = ArrayList()
   private val refsToShorten: MutableList<SmartPsiElementPointer<PsiElement>> = ArrayList()
   private val versionProvider = versionProvider ?: ::getLibraryRevision
@@ -249,16 +249,16 @@ open class MigrateToAndroidxProcessor(val project: Project,
 
   override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
     val filtered = refUsages.get().filter {
-        when (it) {
-          is ClassMigrationUsageInfo -> {
-            return@filter it.mapEntry.myOldName != it.mapEntry.myNewName
-          }
-          is PackageMigrationUsageInfo -> {
-            return@filter it.mapEntry.myOldName != it.mapEntry.myNewName
-          }
-          else -> true
+      when (it) {
+        is ClassMigrationUsageInfo -> {
+          return@filter it.mapEntry.myOldName != it.mapEntry.myNewName
         }
-      }.toTypedArray()
+        is PackageMigrationUsageInfo -> {
+          return@filter it.mapEntry.myOldName != it.mapEntry.myNewName
+        }
+        else -> true
+      }
+    }.toTypedArray()
 
     if (filtered.isEmpty()) {
       if (!ApplicationManager.getApplication().isUnitTestMode) {
@@ -353,11 +353,12 @@ open class MigrateToAndroidxProcessor(val project: Project,
       for (dep in dependencies.all()) {
         if (dep is ArtifactDependencyModel) {
           val compactDependencyNotation = dep.compactNotation()
-          val psiElement = dep.psiElement ?: continue
+          val psiElement = dep.completeModel().resultModel.expressionPsiElement ?: continue
           val gc = GradleCoordinate.parseCoordinateString(compactDependencyNotation) ?: continue
           val key: Pair<String, String> = Pair.create(gc.groupId, gc.artifactId)
           val entry = gradleDependencyEntries[key] ?: continue
-          gradleUsages.add(MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo(psiElement, entry, versionProvider))
+          gradleUsages.add(
+            MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo(psiElement, projectBuildModel, dep, entry, versionProvider))
         }
       }
 

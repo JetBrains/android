@@ -19,6 +19,9 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.internal.util.function.TriFunction;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
@@ -26,10 +29,7 @@ import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassRe
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.*;
 import com.intellij.usageView.UsageInfo;
-import org.jetbrains.android.refactoring.AppCompatMigrationEntry.AttributeMigrationEntry;
-import org.jetbrains.android.refactoring.AppCompatMigrationEntry.AttributeValueMigrationEntry;
-import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleDependencyMigrationEntry;
-import org.jetbrains.android.refactoring.AppCompatMigrationEntry.ReplaceMethodCallMigrationEntry;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,8 +41,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrRefere
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
 import org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil;
-
-import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.*;
 
 abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
 
@@ -450,6 +448,10 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
     @NotNull
     private final TriFunction<String, String, String, String> myGetLibraryRevisionFunction;
     private final GradleMigrationEntry mapEntry;
+    @Nullable
+    private final ArtifactDependencyModel myModel;
+    @Nullable
+    private final ProjectBuildModel myBuildModel;
 
     public GradleDependencyUsageInfo(@NotNull PsiElement element,
                                      @NonNull GradleMigrationEntry entry,
@@ -457,6 +459,20 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       super(element);
       mapEntry = entry;
       myGetLibraryRevisionFunction = versionProvider;
+      myModel = null;
+      myBuildModel = null;
+    }
+
+    public GradleDependencyUsageInfo(@NotNull PsiElement element,
+                                     @NotNull ProjectBuildModel buildModel,
+                                     @NotNull ArtifactDependencyModel model,
+                                     @NonNull GradleMigrationEntry entry,
+                                     @NotNull TriFunction<String, String, String, String> versionProvider) {
+      super(element);
+      mapEntry = entry;
+      myGetLibraryRevisionFunction = versionProvider;
+      myModel = model;
+      myBuildModel = buildModel;
     }
 
     @Nullable
@@ -466,6 +482,43 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       if (element == null || !element.isValid() || !element.isWritable()) {
         return null;
       }
+
+      // See if we can use the model to update the dependency.
+      if (myModel != null && myBuildModel != null) {
+        PsiElement modelPsi =  myModel.getPsiElement();
+        if (modelPsi != null && modelPsi.isValid()) {
+          // Follow references
+          myModel.enableSetThrough();
+          if (mapEntry instanceof GradleDependencyMigrationEntry) {
+            GradleDependencyMigrationEntry depEntry = (GradleDependencyMigrationEntry)mapEntry;
+            String group = myModel.group().toString();
+            String name = myModel.name().toString();
+            if (group != null && group.equals(depEntry.getOldGroupName())) {
+              myModel.group().getResultModel().setValue(depEntry.getNewGroupName());
+            }
+            if (name != null && name.equals(depEntry.getOldArtifactName())) {
+              myModel.name().getResultModel().setValue(depEntry.getNewArtifactName());
+            }
+          }
+          String version = myModel.version().toString();
+          String newVersion;
+          if (mapEntry instanceof UpdateGradleDepedencyVersionMigrationEntry) {
+            // For version upgrades get the highest of the existing one and the old one
+            newVersion = getHighestVersion(version, mapEntry.getNewBaseVersion());
+          }
+          else {
+            newVersion = mapEntry.getNewBaseVersion();
+          }
+          if (newVersion != null) {
+            myModel.version().getResultModel().setValue(newVersion);
+          }
+        }
+
+        ApplicationManager.getApplication().runReadAction(myBuildModel::applyChanges);
+        return null;
+      }
+      // Otherwise fallback to editing the Psi elements directly.
+
       // This handles the case where the dependency was declared using the map notation
       // e.g: implementation group: 'com.android.support', name:'appcompat-v7', version: '27.0.2'
       if (element instanceof GrArgumentList) {
