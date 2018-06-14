@@ -17,6 +17,7 @@ package com.android.tools.idea.common.property2.impl.model
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.*
+import kotlin.properties.Delegates
 
 /**
  * A base implementation of a [PropertyEditorModel].
@@ -27,8 +28,10 @@ import com.android.tools.idea.common.property2.api.*
  * @property visible Controls the visibility of the editor
  * @property hasFocus Shows if an editor has focus. Setting this to true will cause focus to be requested to the editor.
  */
-abstract class BasePropertyEditorModel(override val property: PropertyItem) : PropertyEditorModel {
+abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : PropertyEditorModel {
   private val valueChangeListeners = mutableListOf<ValueChangedListener>()
+
+  override var property: PropertyItem by Delegates.observable(initialProperty, { _, _, _ -> fireValueChanged()})
 
   override var value: String
     get() = property.value.orEmpty()
@@ -43,6 +46,8 @@ abstract class BasePropertyEditorModel(override val property: PropertyItem) : Pr
       field = value
       fireValueChanged()
     }
+
+  override var onEnter = { gotoNextLine() }
 
   final override var hasFocus = false
     private set
@@ -65,15 +70,20 @@ abstract class BasePropertyEditorModel(override val property: PropertyItem) : Pr
     }
   }
 
+  /**
+   * Toggle to a known value.
+   *
+   * A noop for most editors. Boolean editors should override this method.
+   */
+  override fun toggleValue() {
+  }
+
   val tooltip: String
     get() = property.tooltipForValue
 
   override var lineModel: InspectorLineModel? = null
 
-  open fun enterKeyPressed() {
-    val line = lineModel ?: return
-    line.gotoNextLine(line)
-  }
+  open fun enterKeyPressed() = onEnter()
 
   open fun f1KeyPressed() {
     (property as? HelpSupport)?.help()
@@ -81,6 +91,10 @@ abstract class BasePropertyEditorModel(override val property: PropertyItem) : Pr
 
   open fun shiftF1KeyPressed() {
     (property as? HelpSupport)?.secondaryHelp()
+  }
+
+  override fun cancelEditing() {
+    refresh()
   }
 
   override fun refresh() {
@@ -127,5 +141,10 @@ abstract class BasePropertyEditorModel(override val property: PropertyItem) : Pr
     if (!blockUpdates) {
       valueChangeListeners.forEach { it.valueChanged() }
     }
+  }
+
+  private fun gotoNextLine() {
+    val line = lineModel ?: return
+    line.gotoNextLine(line)
   }
 }

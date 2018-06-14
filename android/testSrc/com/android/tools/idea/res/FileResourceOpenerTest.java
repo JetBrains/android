@@ -25,6 +25,8 @@ import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.nio.file.Paths;
 
+import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
+
 /**
  * Tests for {@link FileResourceOpener}.
  */
@@ -39,7 +41,7 @@ public class FileResourceOpenerTest extends AndroidTestCase {
     assertNotNull(stream);
     assertEquals(309, stream.available());
 
-    stream = FileResourceOpener.open(uri.toString() + ':' + resourcePath);
+    stream = FileResourceOpener.open(uri.toString() + JAR_SEPARATOR + resourcePath);
     assertNotNull(stream);
     assertEquals(309, stream.available());
   }

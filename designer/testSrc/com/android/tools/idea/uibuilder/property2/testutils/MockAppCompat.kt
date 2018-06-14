@@ -20,7 +20,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
-import com.android.tools.idea.projectsystem.ProjectSystemComponent
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
@@ -161,10 +161,10 @@ object MockAppCompat {
         MOST_RECENT_API_LEVEL
     ))
     val appCompatCoordinate = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate(gradleVersion.toString())
-    val projectSystem = mock<ProjectSystemComponent>(ProjectSystemComponent::class.java)
+    val projectSystemService = mock<ProjectSystemService>(ProjectSystemService::class.java)
     val androidProjectSystem = mock<AndroidProjectSystem>(AndroidProjectSystem::class.java)
     val androidModuleSystem = mock<AndroidModuleSystem>(AndroidModuleSystem::class.java)
-    `when`<AndroidProjectSystem>(projectSystem.projectSystem).thenReturn(androidProjectSystem)
+    `when`<AndroidProjectSystem>(projectSystemService.projectSystem).thenReturn(androidProjectSystem)
     `when`<AndroidModuleSystem>(androidProjectSystem.getModuleSystem(facet.module)).thenReturn(androidModuleSystem)
     val matcher: ArgumentMatcher<GradleCoordinate> = ArgumentMatcher { it != null && it.isSameArtifact(appCompatCoordinate) }
     // The "argThat_NonNull" is a required work around due to Mockito's argThat function explicitly returning null into
@@ -172,8 +172,7 @@ object MockAppCompat {
     fun <T> argThat_NonNull(matcher: ArgumentMatcher<T>): T = Mockito.argThat<T>(matcher) as T
     `when`<GradleCoordinate>(androidModuleSystem.getResolvedDependency(argThat_NonNull(matcher))).thenReturn(appCompatCoordinate)
 
-
-    test.registerProjectComponentImplementation<ProjectSystemComponent>(ProjectSystemComponent::class.java, projectSystem)
+    test.replaceProjectService(ProjectSystemService::class.java, projectSystemService)
     fixture.addFileToProject("src/android/support/v7/app/AppCompatImageView.java", APPCOMPAT_ACTIVITY)
     fixture.addFileToProject("src/android/support/v7/widget/AppCompatImageView.java", APPCOMPAT_IMAGE_VIEW_SOURCE)
     fixture.addFileToProject("src/android/support/v7/widget/AppCompatTextView.java", APPCOMPAT_TEXT_VIEW_SOURCE)

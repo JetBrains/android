@@ -82,7 +82,7 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
   }
 
   private void openWhatsNewAssistant(@NotNull Project project) {
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
                                                      .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
                                                      .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder().setType(
                                                        WhatsNewAssistantEvent.WhatsNewAssistantEventType.AUTO_OPEN)));

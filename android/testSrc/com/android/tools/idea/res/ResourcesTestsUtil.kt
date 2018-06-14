@@ -27,6 +27,7 @@ import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
@@ -94,4 +95,19 @@ fun addAarDependency(module: Module, libraryName: String): File {
   )
 
   return resDir
+}
+
+/**
+ * Adds an AARv2 library dependency to the given module. The library uses the checked-in example res.apk file which uses
+ * `com.example.mylibrary` package name and contains a single resource, `@string/my_aar_string`.
+ */
+fun addBinaryAarDependency(module: Module) {
+  // See org.jetbrains.android.facet.ResourceFolderManager#isAarDependency
+  PsiTestUtil.addLibrary(
+    module,
+    "mylibrary.aar",
+    "${AndroidTestBase.getTestDataPath()}/dom/layout/myaar-v2",
+    "classes.jar",
+    "res.apk"
+  )
 }

@@ -38,6 +38,7 @@ import java.util.*
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.function.Consumer
 
 class PsLibraryUpdateCheckerDaemon(context: PsContext) : PsDaemon(context) {
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Update Checker", null)
@@ -47,7 +48,7 @@ class PsLibraryUpdateCheckerDaemon(context: PsContext) : PsDaemon(context) {
 
   private val eventDispatcher = EventDispatcher.create(AvailableUpdatesListener::class.java)
 
-  fun getAvailableUpdates(): AvailableLibraryUpdates = AvailableLibraryUpdateStorage.getInstance(context.project.resolvedModel).getState()
+  fun getAvailableUpdates(): AvailableLibraryUpdates = AvailableLibraryUpdateStorage.getInstance(context.project.ideProject).getState()
 
   fun queueAutomaticUpdateCheck() {
     val searchTimeMillis = getAvailableUpdates().lastSearchTimeMillis
@@ -136,7 +137,7 @@ class PsLibraryUpdateCheckerDaemon(context: PsContext) : PsDaemon(context) {
       val repositories = mutableSetOf<ArtifactRepository>()
       val ids = mutableSetOf<LibraryUpdateId>()
       UIUtil.invokeAndWaitIfNeeded(Runnable {
-        context.project.forEachModule { module ->
+        context.project.forEachModule(Consumer { module ->
           repositories.addAll(module.getArtifactRepositories())
           if (module is PsAndroidModule) {
             module.dependencies.forEach { dependency ->
@@ -152,7 +153,7 @@ class PsLibraryUpdateCheckerDaemon(context: PsContext) : PsDaemon(context) {
               }
             }
           }
-        }
+        })
       })
       if (!repositories.isEmpty() && !ids.isEmpty()) {
         search(repositories, ids)

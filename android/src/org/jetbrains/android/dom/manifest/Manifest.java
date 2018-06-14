@@ -37,6 +37,7 @@ public interface Manifest extends ManifestElement {
   List<Instrumentation> getInstrumentations();
 
   List<Permission> getPermissions();
+  Permission addPermission();
 
   List<PermissionGroup> getPermissionGroups();
 

@@ -58,7 +58,7 @@ interface ArtifactSourceProvider {
       .addAllGeneratedResourceFolders(generatedResourceFolders.map { converter.fileToProto(it) })
 
     variantSourceSet?.let { minimalProto.setVariantSourceSet(variantSourceSet!!.toProto(converter)) }
-    multiFlavorSourceSet?.let { minimalProto.setMultiFlavorSourceSet(multiFlavorSourceSet!!.toProto(converter))}
+    multiFlavorSourceSet?.let { minimalProto.setMultiFlavorSourceSet(multiFlavorSourceSet!!.toProto(converter)) }
 
     return minimalProto.build()!!
   }

@@ -20,14 +20,14 @@ import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.Library
 /** Represents a dependency on another module.*/
 interface ModuleDependency : Library {
   val buildId: String
+  /** The gradle path. */
   val projectPath: String
   val variant: String
 
-  fun toProto(): LibraryProto.ModuleDependency = LibraryProto.ModuleDependency.newBuilder()
-      .setLibrary(LibraryProto.Library.newBuilder().setArtifactAddress(artifactAddress))
-      .setBuildId(buildId)
-      .setProjectPath(projectPath)
-      .setVariant(variant)
-      .build()!!
+  fun toProto() = LibraryProto.ModuleDependency.newBuilder()
+    .setLibrary(LibraryProto.Library.newBuilder().setArtifactAddress(artifactAddress))
+    .setBuildId(buildId)
+    .setProjectPath(projectPath)
+    .setVariant(variant)
+    .build()!!
 }
-

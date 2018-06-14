@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.model
 
 import com.android.SdkConstants.CLASS_APP_COMPAT_ACTIVITY
 import com.android.resources.Density
+import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
@@ -70,7 +71,7 @@ fun NlModel.overrideConfigurationScreenSize(@AndroidCoordinate xDimension: Int, 
     val diagonalLength = Math.sqrt(width * width + height * height)
 
     screen.diagonalLength = diagonalLength
-    screen.size = AvdScreenData.getScreenSize(diagonalLength)
+    screen.size = ScreenSize.getScreenSize(diagonalLength)
 
     screen.ratio = AvdScreenData.getScreenRatio(xDimension, yDimension)
 

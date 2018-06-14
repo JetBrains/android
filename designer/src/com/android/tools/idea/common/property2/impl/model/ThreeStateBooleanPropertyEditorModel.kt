@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.property2.impl.model
 
+import com.android.SdkConstants.VALUE_TRUE
+import com.android.SdkConstants.VALUE_FALSE
 import com.android.tools.idea.common.property2.api.PropertyItem
 
 /**
@@ -25,4 +27,12 @@ class ThreeStateBooleanPropertyEditorModel(property: PropertyItem) : BasePropert
   override var value: String
     get() = property.resolvedValue.orEmpty()
     set(value) { super.value = value }
+
+  override fun toggleValue() {
+    value = when (value) {
+      VALUE_TRUE -> VALUE_FALSE
+      VALUE_FALSE -> ""
+      else -> VALUE_TRUE
+    }
+  }
 }

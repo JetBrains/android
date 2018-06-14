@@ -38,7 +38,7 @@ class RasterAssetRenderer : DesignAssetRenderer {
     return JdkFutureAdapters.listenInPoolThread(
       ApplicationManager.getApplication().executeOnPooledThread(
         Callable<Image?> {
-          val image = ImageIO.read(URL(file.url))
+          val image = ImageIO.read(file.inputStream)
           val width = image.getWidth(null).toDouble()
           val height = image.getHeight(null).toDouble()
           val scale = if (width < height) dimension.width / width else dimension.height / height

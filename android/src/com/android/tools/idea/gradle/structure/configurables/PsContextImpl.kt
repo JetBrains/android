@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.structure.FastGradleSync
+import com.android.tools.idea.gradle.structure.GradleResolver
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon
 import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaemon
@@ -32,12 +32,13 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.EventDispatcher
 import com.intellij.util.ExceptionUtil
+import java.util.function.Consumer
 import javax.annotation.concurrent.GuardedBy
 
 class PsContextImpl constructor (override val project: PsProject, parentDisposable: Disposable) : PsContext, Disposable {
   private val lock = Any()
   override val analyzerDaemon: PsAnalyzerDaemon
-  private val gradleSync: FastGradleSync = FastGradleSync()
+  private val gradleSync: GradleResolver = GradleResolver()
   override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon
 
   private val changeEventDispatcher = EventDispatcher.create(PsContext.ChangeListener::class.java)
@@ -50,10 +51,10 @@ class PsContextImpl constructor (override val project: PsProject, parentDisposab
   private val artifactRepositorySearchServices = mutableMapOf<PsModule, ArtifactRepositorySearchService>()
 
   override val uiSettings: PsUISettings
-    get() = PsUISettings.getInstance(project.resolvedModel)
+    get() = PsUISettings.getInstance(project.ideProject)
 
   override val mainConfigurable: ProjectStructureConfigurable
-    get() = ProjectStructureConfigurable.getInstance(project.resolvedModel)
+    get() = ProjectStructureConfigurable.getInstance(project.ideProject)
 
   init {
     mainConfigurable.add(
@@ -65,15 +66,15 @@ class PsContextImpl constructor (override val project: PsProject, parentDisposab
 
     analyzerDaemon = PsAnalyzerDaemon(this, libraryUpdateCheckerDaemon)
     analyzerDaemon.reset()
-    project.forEachModule { analyzerDaemon.queueCheck(it) }
+    project.forEachModule(Consumer { analyzerDaemon.queueCheck(it) })
 
     Disposer.register(parentDisposable, this)
   }
 
   private fun requestGradleSync() {
-    val project = this.project.resolvedModel
+    val project = this.project.ideProject
     gradleSyncEventDispatcher.multicaster.syncStarted(project, false, false)
-    val callback = gradleSync.requestProjectSync(project)
+    val callback = gradleSync.requestProjectResolved(project)
     callback.doWhenDone { gradleSyncEventDispatcher.multicaster.syncSucceeded(project) }
     callback.doWhenRejected { _ ->
       val failure = callback.failure!!

@@ -121,11 +121,13 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
       double idleTimeWidth = ratio * fullDrawingArea.getWidth();
       // The Idle time is drawn at the end of our total time, as such we start at our width minus our idle time.
       double startPosition = fullDrawingArea.getX() + fullDrawingArea.getWidth() - idleTimeWidth;
+      // Need to remove the clampped start from our width when normalizing our width else we end up with the wrong width.
+      double clamppedStart = Math.min(drawingArea.getWidth() + drawingArea.getX(), Math.max(0, startPosition));
       // The minimum of our clamped areas ending position and our idle time ending position.
       double clampedWidth =
-        Math.max(0, Math.min(drawingArea.getX() + drawingArea.getWidth(), startPosition + idleTimeWidth) - startPosition);
+        Math.max(0, (drawingArea.getX() + drawingArea.getWidth()) - clamppedStart);
       g.setPaint(idleColor);
-      g.fill(new Rectangle2D.Double(Math.min(drawingArea.getWidth() + drawingArea.getX(), Math.max(0, startPosition)),
+      g.fill(new Rectangle2D.Double(clamppedStart,
                                     fullDrawingArea.getY(),
                                     clampedWidth,
                                     fullDrawingArea.getHeight()));
@@ -180,7 +182,15 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
         // Try to reduce by using abbreviations for first |abbreviationCount| classElements.
         StringBuilder textBuilder = new StringBuilder();
         for (int i = 0; i < classElements.length; ++i) {
-          textBuilder.append(i < abbreviationCount ? classElements[i].charAt(0) : classElements[i]).append(separator);
+          // Occasionally, profiling tools can return a class path like "..ABC.X", so we need to be
+          // able to handle empty classElements.
+          if (i < abbreviationCount && !classElements[i].isEmpty()) {
+            textBuilder.append(classElements[i].charAt(0));
+          }
+          else {
+            textBuilder.append(classElements[i]);
+          }
+          textBuilder.append(separator);
         }
         textBuilder.append(model.getName());
         String text = textBuilder.toString();

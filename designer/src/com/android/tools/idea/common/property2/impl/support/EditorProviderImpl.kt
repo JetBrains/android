@@ -34,20 +34,19 @@ class EditorProviderImpl<in P : PropertyItem>(
   private val controlTypeProvider: ControlTypeProvider<P>
 ) : EditorProvider<P> {
 
-  override fun invoke(property: P): Pair<PropertyEditorModel, JComponent> {
-    val enumSupport = enumSupportProvider(property)
-    val controlType = controlTypeProvider(property, enumSupport)
+  override fun createEditor(property: P, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
+    val controlType = controlTypeProvider(property)
 
     when (controlType) {
       ControlType.COMBO_BOX ->
-        return createComboBoxEditor(property, true, enumSupport!!)
+        return createComboBoxEditor(property, true, enumSupportProvider(property)!!, asTableCellEditor)
 
       ControlType.DROPDOWN ->
-        return createComboBoxEditor(property, false, enumSupport!!)
+        return createComboBoxEditor(property, false, enumSupportProvider(property)!!, asTableCellEditor)
 
       ControlType.TEXT_EDITOR -> {
         val model = TextFieldPropertyEditorModel(property, true)
-        val editor = PropertyTextField(model)
+        val editor = PropertyTextField(model, asTableCellEditor)
         return Pair(model, addActionButtonBinding(model, editor))
       }
 
@@ -62,12 +61,21 @@ class EditorProviderImpl<in P : PropertyItem>(
         val editor = FlagPropertyEditor(model)
         return Pair(model, editor)
       }
+
+      ControlType.BOOLEAN -> {
+        val model = BooleanPropertyEditorModel(property)
+        val editor = PropertyCheckBox(model)
+        return Pair(model, editor)
+      }
     }
   }
 
-  private fun createComboBoxEditor(property: P, editable: Boolean, enumSupport: EnumSupport): Pair<PropertyEditorModel, JComponent> {
+  private fun createComboBoxEditor(property: P,
+                                   editable: Boolean,
+                                   enumSupport: EnumSupport,
+                                   asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val model = ComboBoxPropertyEditorModel(property, enumSupport, editable)
-    val comboBox = PropertyComboBox(model)
+    val comboBox = PropertyComboBox(model, asTableCellEditor)
     comboBox.renderer = enumSupport.renderer
     return Pair(model, addActionButtonBinding(model, comboBox))
   }

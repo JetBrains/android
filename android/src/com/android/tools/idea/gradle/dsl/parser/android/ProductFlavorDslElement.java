@@ -22,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
+
 public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement {
 
   public ProductFlavorDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
@@ -39,10 +41,8 @@ public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement 
     if (property.equals("testInstrumentationRunnerArguments")) {
       // This deals with references to maps.
       GradleDslElement oldElement = element;
-      while (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
-        GradleReferenceInjection injection = ((GradleDslLiteral)element).getReferenceInjection();
-        assert injection != null;
-        element = injection.getToBeInjected();
+      if (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
+        element = followElement((GradleDslLiteral) element);
       }
       if (!(element instanceof GradleDslExpressionMap)) {
         return;

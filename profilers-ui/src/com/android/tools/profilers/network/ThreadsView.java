@@ -15,10 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.TableUtils;
-import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.TooltipComponent;
+import com.android.tools.adtui.*;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
@@ -35,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
@@ -71,7 +67,7 @@ final class ThreadsView {
 
   ThreadsView(@NotNull NetworkProfilerStageView stageView) {
     ThreadsTableModel model = new ThreadsTableModel(stageView.getStage().getHttpDataFetcher());
-    myThreadsTable = new HoverRowTable(model, ProfilerColors.DEFAULT_HOVER_COLOR);
+    myThreadsTable = new HoverRowTable(model);
     TimelineRenderer timelineRenderer = new TimelineRenderer(myThreadsTable, stageView.getStage());
     myThreadsTable.getColumnModel().getColumn(0).setCellRenderer(new BorderlessTableCellRenderer());
     myThreadsTable.getColumnModel().getColumn(1).setCellRenderer(timelineRenderer);

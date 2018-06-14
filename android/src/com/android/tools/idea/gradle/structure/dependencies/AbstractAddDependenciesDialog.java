@@ -43,7 +43,7 @@ public abstract class AbstractAddDependenciesDialog extends DialogWrapper {
   private AbstractDependencyScopesPanel myScopesPanel;
 
   protected AbstractAddDependenciesDialog(@NotNull PsModule module) {
-    super(module.getParent().getResolvedModel());
+    super(module.getParent().getIdeProject());
     myModule = module;
     init();
     getContentPanel().setBorder(createEmptyBorder());

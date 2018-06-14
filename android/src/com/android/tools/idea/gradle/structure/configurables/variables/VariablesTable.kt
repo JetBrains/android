@@ -24,6 +24,7 @@ import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.util.ui.AbstractTableCellEditor
@@ -37,6 +38,7 @@ import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.MouseEvent
 import java.util.*
+import java.util.function.Consumer
 import javax.swing.*
 import javax.swing.border.EmptyBorder
 import javax.swing.plaf.basic.BasicTreeUI
@@ -60,7 +62,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
 
   init {
     setRowHeight(iconSize + editorInsets.top + editorInsets.bottom)
-    setTreeCellRenderer(object: NodeRenderer() {
+    setTreeCellRenderer(object : NodeRenderer() {
       override fun customizeCellRenderer(tree: JTree,
                                          value: Any?,
                                          selected: Boolean,
@@ -69,6 +71,9 @@ class VariablesTable(private val project: Project, private val context: PsContex
                                          row: Int,
                                          hasFocus: Boolean) {
         super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
+        if (value is EmptyMapItemNode) {
+          append("Insert new key", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+        }
         val userObject = (value as DefaultMutableTreeNode).userObject
         if (userObject is NodeDescription) {
           icon = userObject.icon
@@ -90,7 +95,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
 
     val moduleNodes = mutableListOf<ModuleNode>()
-    context.project.forEachModule { module -> module.variables.let { variables -> moduleNodes.add(createRoot(variables)) } }
+    context.project.forEachModule(Consumer { module -> module.variables.let { variables -> moduleNodes.add(createRoot(variables)) } })
     moduleNodes.sortBy { it.variables.name }
     moduleNodes.add(0, createRoot(context.project.variables))
 
@@ -131,25 +136,36 @@ class VariablesTable(private val project: Project, private val context: PsContex
     last.add(emptyNode)
     (tableModel as DefaultTreeModel).nodesWereInserted(last, IntArray(1) { last.getIndex(emptyNode) })
     tree.expandPath(TreePath(last.path))
-    editCellAt(tree.getRowForPath(TreePath(emptyNode.path)), 0)
+    editCellAt(tree.getRowForPath(TreePath(emptyNode.path)), 0, NewVariableEvent(emptyNode))
   }
 
   override fun getCellRenderer(row: Int, column: Int): TableCellRenderer {
     val defaultRenderer = super.getCellRenderer(row, column)
     return TableCellRenderer { table, value, isSelected, hasFocus, rowIndex, columnIndex ->
-      val component = defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex)
-      component.background =
-          if (isSelected) {
-            table.selectionBackground
-          } else {
-            val nodeRendered = tree.getPathForRow(rowIndex).lastPathComponent as DefaultMutableTreeNode
-            val parent = nodeRendered.parent
-            if (parent is VariableNode && parent.getIndex(nodeRendered) % 2 == 0) {
-              JBColor.LIGHT_GRAY
-            } else {
-              table.background
-            }
+      val nodeRendered = tree.getPathForRow(rowIndex).lastPathComponent as DefaultMutableTreeNode
+      val component =
+        if (nodeRendered is EmptyListItemNode && column == UNRESOLVED_VALUE) {
+          JLabel("Insert new value").apply {
+            foreground = UIUtil.getInactiveTextColor()
+            isOpaque = true
           }
+        }
+        else {
+          defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex)
+        }
+      component.background =
+        if (isSelected) {
+          table.selectionBackground
+        }
+        else {
+          val parent = nodeRendered.parent
+          if (parent is VariableNode && parent.getIndex(nodeRendered) % 2 == 0) {
+            JBColor.LIGHT_GRAY
+          }
+          else {
+            table.background
+          }
+        }
       (component as JComponent).border = null
       component
     }
@@ -187,6 +203,9 @@ class VariablesTable(private val project: Project, private val context: PsContex
       if (e is MouseEvent && e.x < bounds.x) {
         return false
       }
+      if (e is NewVariableEvent) {
+        textBox.setPlaceholder("Variable name")
+      }
       return super.isCellEditable(e)
     }
 
@@ -201,10 +220,12 @@ class VariablesTable(private val project: Project, private val context: PsContex
         val iconLabel = JLabel(icon)
         val extraHeight = bounds.height - icon.iconHeight
         iconLabel.border = EmptyBorder(Math.ceil(extraHeight / 2.0).toInt(), 0, Math.floor(extraHeight / 2.0).toInt(), 0)
-        panel.add(Box.createHorizontalStrut(bounds.x - (tree.ui as BasicTreeUI).rightChildIndent + 1 - Math.ceil(icon.iconWidth / 2.0).toInt()))
+        panel.add(
+          Box.createHorizontalStrut(bounds.x - (tree.ui as BasicTreeUI).rightChildIndent + 1 - Math.ceil(icon.iconWidth / 2.0).toInt()))
         panel.add(iconLabel)
         panel.add(Box.createHorizontalStrut((tree.ui as BasicTreeUI).rightChildIndent - 1 - Math.floor(icon.iconWidth / 2.0).toInt()))
-      } else {
+      }
+      else {
         panel.add(Box.createHorizontalStrut(bounds.x))
       }
       val userObject = nodeBeingEdited.userObject
@@ -298,7 +319,8 @@ class VariablesTable(private val project: Project, private val context: PsContex
           if (node is VariableNode) {
             val type = node.variable.valueType
             type != ValueType.MAP && type != ValueType.LIST
-          } else {
+          }
+          else {
             node is BaseVariableNode || node is EmptyListItemNode
           }
         }
@@ -351,7 +373,8 @@ class VariablesTable(private val project: Project, private val context: PsContex
       if (column == NAME) {
         node.setName(aValue)
         nodeChanged(node)
-      } else if (column == UNRESOLVED_VALUE) {
+      }
+      else if (column == UNRESOLVED_VALUE) {
         node.setValue(aValue)
         nodeChanged(node)
       }
@@ -362,7 +385,8 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
   }
 
-  class ModuleNode(val variables: PsVariablesScope) : DefaultMutableTreeNode(NodeDescription(variables.name, StudioIcons.Shell.Filetree.GRADLE_FILE))
+  class ModuleNode(val variables: PsVariablesScope) : DefaultMutableTreeNode(
+    NodeDescription(variables.name, StudioIcons.Shell.Filetree.GRADLE_FILE))
 
   abstract class BaseVariableNode(val variable: PsVariable) : DefaultMutableTreeNode() {
     abstract fun getUnresolvedValue(expanded: Boolean): String
@@ -527,3 +551,5 @@ class VariablesTable(private val project: Project, private val context: PsContex
 class NodeDescription(var name: String, val icon: Icon) {
   override fun toString() = name
 }
+
+class NewVariableEvent(source: Any) : EventObject(source)

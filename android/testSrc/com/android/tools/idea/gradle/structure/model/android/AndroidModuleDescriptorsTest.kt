@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.helpers.matchHashStrings
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -31,7 +32,7 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject)
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())

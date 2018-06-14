@@ -40,8 +40,7 @@ class FavoritesInspectorBuilder(
       // TODO: Handle other namespaces
       val property = properties.getOrNull(SdkConstants.ANDROID_URI, propertyName)
       if (property != null) {
-        val line = inspector.addEditor(editorProvider(property))
-        titleModel.addChild(line)
+        inspector.addEditor(editorProvider.createEditor(property), titleModel)
       }
     }
   }

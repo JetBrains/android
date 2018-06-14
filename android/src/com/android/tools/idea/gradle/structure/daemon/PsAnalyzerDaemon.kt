@@ -35,6 +35,7 @@ import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.function.Consumer
 
 private val LOG = Logger.getInstance(PsAnalyzerDaemon::class.java)
 
@@ -61,7 +62,7 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
   private fun addApplicableUpdatesAsIssues() {
     val context = context
     UIUtil.invokeAndWaitIfNeeded(Runnable {
-      context.project.forEachModule { module ->
+      context.project.forEachModule (Consumer { module ->
         var updatesFound = false
         if (module is PsAndroidModule) {
           module.dependencies.forEach { dependency ->
@@ -87,7 +88,7 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
         if (updatesFound) {
           resultsUpdaterQueue.queue(IssuesComputed(module))
         }
-      }
+      })
     })
   }
 

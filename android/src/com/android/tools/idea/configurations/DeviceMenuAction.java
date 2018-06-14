@@ -66,7 +66,7 @@ public class DeviceMenuAction extends DropDownAction {
     if (visible) {
       Device device = configuration.getDevice();
       String label = getDeviceLabel(device, true);
-      presentation.setText(label);
+      presentation.setText(label, false);
     }
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
@@ -173,7 +173,8 @@ public class DeviceMenuAction extends DropDownAction {
     if (!deviceList.isEmpty()) {
       Map<String, List<Device>> manufacturers = new TreeMap<>();
       for (Device device : deviceList) {
-        if (Configuration.CUSTOM_DEVICE_ID.equals(device.getId())) {
+        String deviceId = device.getId();
+        if (Configuration.CUSTOM_DEVICE_ID.equals(deviceId) || isAvd(device)) {
           continue;
         }
         List<Device> devices;
@@ -219,15 +220,13 @@ public class DeviceMenuAction extends DropDownAction {
       AvdManager avdManager = AvdManagerUtils.getAvdManagerSilently(facet);
       if (avdManager != null) {
         boolean separatorNeeded = false;
-        boolean first = true;
         for (AvdInfo avd : avdManager.getValidAvds()) {
           Device device = configurationManager.createDeviceForAvd(avd);
           if (device != null) {
-            String avdName = "AVD: " + avd.getName();
-            boolean selected = current != null && (current.getDisplayName().equals(avdName) || current.getId().equals(avdName));
-            Icon icon = first ? getDeviceClassIcon(device) : null;
-            add(new SetDeviceAction(myRenderContext, avdName, device, icon, selected));
-            first = false;
+            String avdDisplayName = "AVD: " + avd.getName();
+            boolean selected = current != null && current.getDisplayName().equals(avdDisplayName);
+            Icon icon = selected ? AllIcons.Actions.Checked : getDeviceClassIcon(device);
+            add(new SetAvdAction(myRenderContext, device, avdDisplayName, icon));
             separatorNeeded = true;
           }
         }
@@ -299,6 +298,9 @@ public class DeviceMenuAction extends DropDownAction {
     }
     boolean first = true;
     for (final Device device : generic) {
+      if (isAvd(device)) {
+        continue;
+      }
       String label = getLabel(device, isNexus(device));
       Icon icon = first ? getDeviceClassIcon(device) : null;
       group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
@@ -317,6 +319,10 @@ public class DeviceMenuAction extends DropDownAction {
     }
 
     return isNexus ? getNexusMenuLabel(device) : getGenericLabel(device);
+  }
+
+  private static boolean isAvd(@NotNull Device device) {
+    return device.getId().startsWith(Configuration.AVD_ID_PREFIX);
   }
 
   private class SetDeviceAction extends ConfigurationAction {
@@ -404,6 +410,32 @@ public class DeviceMenuAction extends DropDownAction {
       Device custom = customBuilder.build();
       configuration.getConfigurationManager().getDevices().add(custom);
       configuration.setEffectiveDevice(custom, myDevice.getDefaultState());
+    }
+  }
+
+  private class SetAvdAction extends ConfigurationAction {
+    @NotNull private final Device myAvdDevice;
+
+    public SetAvdAction(@NotNull ConfigurationHolder renderContext,
+                        @NotNull Device avdDevice,
+                        @NotNull String displayName,
+                        @Nullable Icon icon) {
+      super(renderContext, displayName, icon);
+      myAvdDevice = avdDevice;
+    }
+
+    @Override
+    protected void updatePresentation(@NotNull Presentation presentation) {
+      DeviceMenuAction.this.updatePresentation(presentation);
+    }
+
+    @Override
+    protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
+      List<Device> devices = configuration.getConfigurationManager().getDevices();
+      if (devices.stream().noneMatch(d -> d.getId().equals(myAvdDevice.getId()))) {
+        devices.add(myAvdDevice);
+      }
+      configuration.setEffectiveDevice(myAvdDevice, myAvdDevice.getDefaultState());
     }
   }
 }

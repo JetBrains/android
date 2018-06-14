@@ -118,11 +118,6 @@ public class AvdWizardUtils {
 
   public static final String HAS_HARDWARE_KEYBOARD_KEY = HardwareProperties.HW_KEYBOARD;
 
-  // Defaults
-  public static final AvdNetworkSpeed DEFAULT_NETWORK_SPEED = AvdNetworkSpeed.FULL;
-  public static final AvdNetworkLatency DEFAULT_NETWORK_LATENCY = AvdNetworkLatency.NONE;
-  public static final Storage DEFAULT_INTERNAL_STORAGE = new Storage(800, Unit.MiB);
-
   // Fonts
   public static final Font STANDARD_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 12));
   public static final Font FIGURE_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 10));

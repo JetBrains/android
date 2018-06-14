@@ -18,17 +18,16 @@ package com.android.tools.adtui.ptable2.impl
 import com.android.tools.adtui.ptable2.*
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.IdeFocusManager
-import com.intellij.openapi.wm.ex.IdeFocusTraversalPolicy
 import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TableUtil
 import com.intellij.ui.table.JBTable
+import com.intellij.util.IJSwingUtilities
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.Component
-import java.awt.Container
-import java.awt.Dimension
+import java.awt.*
 import java.awt.event.*
 import javax.swing.*
+import javax.swing.event.ChangeEvent
 import javax.swing.table.TableCellEditor
 import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableModel
@@ -36,13 +35,30 @@ import javax.swing.table.TableRowSorter
 import javax.swing.text.JTextComponent
 import kotlin.properties.Delegates
 
+/**
+ * Implementation of a [PTable].
+ *
+ * The intention is to hide implementation details in this class, and only
+ * expose a minimal API in [PTable].
+ */
 open class PTableImpl(tableModel: PTableModel,
-                      private val cellRendererProvider: PTableCellRendererProvider,
-                      private val editorProvider: PTableCellEditorProvider?)
+                      override val context: Any?,
+                      private val rendererProvider: PTableCellRendererProvider,
+                      private val editorProvider: PTableCellEditorProvider)
   : JBTable(PTableModelImpl(tableModel)), PTable {
 
   private val nameRowSorter = TableRowSorter<TableModel>()
   private val nameRowFilter = NameRowFilter()
+  private val tableCellRenderer = PTableCellRendererWrapper()
+  private val tableCellEditor = PTableCellEditorWrapper()
+  override val backgroundColor: Color
+    get() = super.getBackground()
+  override val foregroundColor: Color
+    get() = super.getForeground()
+  override val activeFont: Font
+    get() = super.getFont()
+  override val gridLineColor: Color
+    get() = gridColor
 
   init {
     // The row heights should be identical, save time by only looking at the first rows
@@ -67,6 +83,10 @@ open class PTableImpl(tableModel: PTableModel,
     super.resetDefaultFocusTraversalKeys()
     super.setFocusTraversalPolicyProvider(true)
     super.setFocusTraversalPolicy(PTableFocusTraversalPolicy())
+
+    // We want expansion for the property names but not of the editors. This disables expansion for both columns.
+    // TODO: Provide expansion of the left column only.
+    super.setExpandableItemsEnabled(false)
   }
 
   override val component: JComponent
@@ -79,6 +99,28 @@ open class PTableImpl(tableModel: PTableModel,
 
   override fun item(row: Int): PTableItem {
     return super.getValueAt(row, 0) as PTableItem
+  }
+
+  override fun isExpanded(item: PTableGroupItem): Boolean {
+    return model.isExpanded(item)
+  }
+
+  override fun startNextEditor(): Boolean {
+    var row = -1
+    if (isEditing) {
+      row = getEditingRow()
+      removeEditor()
+    }
+    row++
+    val tableModel = model.tableModel
+    while (row < itemCount && !tableModel.isCellEditable(item(row), PTableColumn.VALUE)) {
+      row++
+    }
+    if (row == itemCount) {
+      return false
+    }
+    startEditing(row, {})
+    return true
   }
 
   override fun getModel(): PTableModelImpl {
@@ -109,11 +151,13 @@ open class PTableImpl(tableModel: PTableModel,
   }
 
   override fun getCellRenderer(row: Int, column: Int): TableCellRenderer {
-    return cellRendererProvider(item(row), PTableColumn.fromColumn(column))
+    tableCellRenderer.renderer = rendererProvider(this, item(row), PTableColumn.fromColumn(column))
+    return tableCellRenderer
   }
 
-  override fun getCellEditor(row: Int, column: Int): PTableCellEditor? {
-    return editorProvider?.invoke(item(row), PTableColumn.fromColumn(column))
+  override fun getCellEditor(row: Int, column: Int): PTableCellEditorWrapper {
+    tableCellEditor.editor = editorProvider(this, item(row), PTableColumn.fromColumn(column))
+    return tableCellEditor
   }
 
   private fun filterChanged(oldValue: String, newValue: String) {
@@ -169,6 +213,9 @@ open class PTableImpl(tableModel: PTableModel,
     actionMap.put("home", MyHomeAction())
     focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0), "end")
     actionMap.put("end", MyEndAction())
+
+    // Disable auto start editing from JTable
+    putClientProperty("JTable.autoStartsEdit", java.lang.Boolean.FALSE)
   }
 
   private fun toggleTreeNode(row: Int) {
@@ -187,38 +234,51 @@ open class PTableImpl(tableModel: PTableModel,
   }
 
   private fun quickEdit(row: Int) {
-    val editor = getCellEditor(row, 0) ?: return
+    val editor = getCellEditor(row, 0)
 
     // only perform edit if we know the editor is capable of a quick toggle action.
     // We know that boolean editors switch their state and finish editing right away
     if (editor.isBooleanEditor) {
-      startEditing(row, null)
+      startEditing(row, { editor.toggleValue() })
     }
   }
 
-  private fun startEditing(row: Int, afterActivation: Runnable?) {
-    val editor = getCellEditor(row, 0) ?: return
+  private fun startEditing(row: Int, afterActivation: () -> Unit) {
+    val editor = getCellEditor(row, 0)
     if (!editCellAt(row, 1)) {
       return
     }
 
-    val preferredComponent = getComponentToFocus(editor) ?: return
-
     IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
-      preferredComponent.requestFocusInWindow()
-      editor.activate()
-      afterActivation?.run()
+      editor.requestFocus()
+      afterActivation()
     }
   }
 
-  private fun getComponentToFocus(editor: PTableCellEditor): JComponent? {
-    var preferredComponent = editor.preferredFocusComponent
-    if (preferredComponent == null) {
-      preferredComponent = IdeFocusTraversalPolicy.getPreferredFocusedComponent(editorComp as JComponent)
-    }
-    return preferredComponent
+  override fun editingCanceled(event: ChangeEvent?) {
+    // This method is called from the IDEEventQueue.EditingCanceller
+    // an event preprocessing utility. For a ComboBox with an open
+    // popup we simply want to close the popup.
+    // Therefore: give the editor a change to handle this event
+    // before stopping the cell editor.
+    //
+    // Do not remove the editor i.e. do not call the super method.
+    tableCellEditor.editor.cancelEditing()
   }
 
+  override fun removeEditor() {
+    // b/37132037 Move focus back to table before hiding the editor
+    val editor = editorComponent
+    if (editor != null && IJSwingUtilities.hasFocus(editor)) {
+      requestFocus()
+    }
+
+    // Now remove the editor
+    super.removeEditor()
+
+    // Give the cell editor a change to reset it's state
+    tableCellEditor.editor.close(this)
+  }
 
   // ========== Keyboard Actions ===============================================
 
@@ -239,7 +299,7 @@ open class PTableImpl(tableModel: PTableModel,
       when {
         model.isGroupItem(item) -> toggleAndSelect(row)
         toggleOnly -> quickEdit(row)
-        else -> startEditing(row, null)
+        else -> startEditing(row, {})
       }
     }
   }
@@ -366,10 +426,10 @@ open class PTableImpl(tableModel: PTableModel,
     override fun keyTyped(event: KeyEvent) {
       val table = this@PTableImpl
       val row = table.selectedRow
-      if (table.isEditing || row == -1 || event.keyChar == '\t') {
+      if (table.isEditing || row == -1 || event.keyChar == '\t' || event.keyCode == KeyEvent.VK_ESCAPE) {
         return
       }
-      table.startEditing(row, Runnable {
+      table.startEditing(row, {
         ApplicationManager.getApplication().invokeLater {
           IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
             val textEditor = IdeFocusManager.findInstance().focusOwner
@@ -427,7 +487,7 @@ open class PTableImpl(tableModel: PTableModel,
         }
         if (table.isCellEditable(row, col)) {
           table.setRowSelectionInterval(row, row)
-          table.startEditing(row, null)
+          table.startEditing(row, {})
           return table.editorComponent
         }
       }
@@ -474,4 +534,3 @@ private class NameRowFilter : RowFilter<TableModel, Int>() {
     return comparator.matchingFragments(pattern, text) != null
   }
 }
-

@@ -25,7 +25,15 @@ import javax.swing.JComponent
  * implementation by calling [EditorProvider.create].
  * @param P a client defined property class
  */
-interface EditorProvider<in P : PropertyItem> : (P) -> Pair<PropertyEditorModel, JComponent> {
+interface EditorProvider<in P : PropertyItem> {
+
+  /**
+   * Create an editor for a [property] optionally [asTableCellEditor].
+   *
+   * The editor created may be different if it is supposed to be used as a cell editor in a table.
+   * We may choose to either hide or make the border different inside a table.
+   */
+  fun createEditor(property: P, asTableCellEditor: Boolean = false): Pair<PropertyEditorModel, JComponent>
 
   companion object {
     /**
@@ -63,4 +71,4 @@ interface EnumSupportProvider<in P : PropertyItem> : (P) -> EnumSupport?
  *
  * @param P a client defined property class that must implement the interface: [PropertyItem]
  */
-interface ControlTypeProvider<in P : PropertyItem> : (P, EnumSupport?) -> ControlType
+interface ControlTypeProvider<in P : PropertyItem> : (P) -> ControlType

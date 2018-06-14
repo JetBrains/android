@@ -16,6 +16,7 @@
 package com.android.tools.idea.res
 
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
@@ -24,7 +25,22 @@ import com.intellij.psi.search.GlobalSearchScope
 
 class ProjectSystemPsiElementFinder(private val project: Project) : PsiElementFinder() {
 
-  private val finders get() = project.getProjectSystem().getPsiElementFinders()
+  companion object {
+    @JvmField val LOG = logger<ProjectSystemPsiElementFinder>()
+  }
+
+  private val finders: Collection<PsiElementFinder>
+    get() {
+      val projectSystem = project.getProjectSystem()
+      return try {
+        projectSystem.getPsiElementFinders()
+      }
+      catch (e: Throwable) {
+        // Sometimes we get AbstractMethodError here, see b/109945376.
+        LOG.error("Failed to get providers from ${projectSystem::class.qualifiedName}.", e)
+        emptyList()
+      }
+    }
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
     for (delegate in finders) {

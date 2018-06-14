@@ -42,8 +42,7 @@ public class LayoutInspectorEditorPanel extends WorkBench<LayoutInspectorContext
 
     init(new LayoutInspectorPanel(context), context, tools);
 
-    UsageTracker.getInstance()
-      .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
+    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
              .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
                                         .setType(LayoutInspectorEvent.LayoutInspectorEventType.OPEN)
              ));

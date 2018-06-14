@@ -33,6 +33,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.testutils.TestUtils.getKotlinVersionForTests;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.google.common.io.Files.write;
@@ -43,29 +44,37 @@ public class AndroidGradleTests {
   private static final Pattern GOOGLE_REPOSITORY_PATTERN = Pattern.compile("google\\(\\)");
   private static final Pattern JCENTER_REPOSITORY_PATTERN = Pattern.compile("jcenter\\(\\)");
 
-  public static void updateGradleVersions(@NotNull File folderRootPath, @NotNull String gradlePluginVersion) throws IOException {
-    doUpdateGradleVersions(folderRootPath, getLocalRepositories(), gradlePluginVersion);
+  public static void updateGradleVersions(@NotNull File folderRootPath, @NotNull String gradlePluginVersion)
+    throws IOException {
+    doUpdateGradleVersionsAndRepositories(folderRootPath, null, gradlePluginVersion);
   }
 
   public static void updateGradleVersions(@NotNull File folderRootPath) throws IOException {
-    doUpdateGradleVersions(folderRootPath, getLocalRepositories(), null);
+    doUpdateGradleVersionsAndRepositories(folderRootPath, null, null);
   }
 
-  public static void updateGradleVersions(@NotNull File path, @NotNull String repositories, @Nullable String gradlePluginVersion)
+  public static void updateGradleVersionsAndRepositories(@NotNull File path,
+                                                         @NotNull String repositories,
+                                                         @Nullable String gradlePluginVersion)
     throws IOException {
-    doUpdateGradleVersions(path, repositories, gradlePluginVersion);
+    doUpdateGradleVersionsAndRepositories(path, repositories, gradlePluginVersion);
   }
 
-  private static void doUpdateGradleVersions(@NotNull File path, @NotNull String localRepositories, @Nullable String gradlePluginVersion)
+  private static void doUpdateGradleVersionsAndRepositories(@NotNull File path,
+                                                            @Nullable String localRepositories,
+                                                            @Nullable String gradlePluginVersion)
     throws IOException {
     if (path.isDirectory()) {
       for (File child : notNullize(path.listFiles())) {
-        doUpdateGradleVersions(child, localRepositories, gradlePluginVersion);
+        doUpdateGradleVersionsAndRepositories(child, localRepositories, gradlePluginVersion);
       }
     }
     else if (path.getPath().endsWith(DOT_GRADLE) && path.isFile()) {
       String contentsOrig = Files.toString(path, Charsets.UTF_8);
       String contents = contentsOrig;
+      if (localRepositories == null) {
+        localRepositories = getLocalRepositoriesForGroovy();
+      }
 
       BuildEnvironment buildEnvironment = BuildEnvironment.getInstance();
 
@@ -80,6 +89,28 @@ public class AndroidGradleTests {
       contents = updateBuildToolsVersion(contents);
       contents = updateCompileSdkVersion(contents);
       contents = updateTargetSdkVersion(contents);
+      contents = updateLocalRepositories(contents, localRepositories);
+
+      if (!contents.equals(contentsOrig)) {
+        write(contents, path, Charsets.UTF_8);
+      }
+    }
+    else if (path.getPath().endsWith(EXT_GRADLE_KTS) && path.isFile()) {
+      String contentsOrig = Files.toString(path, Charsets.UTF_8);
+      String contents = contentsOrig;
+      if (localRepositories == null) {
+        localRepositories = getLocalRepositoriesForKotlin();
+      }
+
+      BuildEnvironment buildEnvironment = BuildEnvironment.getInstance();
+
+      String pluginVersion = gradlePluginVersion != null ? gradlePluginVersion : buildEnvironment.getGradlePluginVersion();
+      contents = replaceRegexGroup(contents, "\\(\"com.android.application\"\\) version \"(.+)\"", pluginVersion);
+      contents = replaceRegexGroup(contents, "\\(\"com.android.library\"\\) version \"(.+)\"", pluginVersion);
+      contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", buildEnvironment.getBuildToolsVersion());
+      contents = replaceRegexGroup(contents, "compileSdkVersion\\((.+)\\)", buildEnvironment.getCompileSdkVersion());
+      contents = replaceRegexGroup(contents, "targetSdkVersion\\((.+)\\)", buildEnvironment.getTargetSdkVersion());
+
       contents = updateLocalRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
@@ -112,10 +143,15 @@ public class AndroidGradleTests {
   }
 
   @NotNull
-  public static String getLocalRepositories() {
-    Collection<File> repositories = getLocalRepositoryDirectories();
-    return StringUtil.join(repositories,
+  public static String getLocalRepositoriesForGroovy() {
+    return StringUtil.join(getLocalRepositoryDirectories(),
                            file -> "maven {url \"" + file.toURI().toString() + "\"}", "\n");
+  }
+
+  @NotNull
+  public static String getLocalRepositoriesForKotlin() {
+    return StringUtil.join(getLocalRepositoryDirectories(),
+                           file -> "maven {setUrl(\"" + file.toURI().toString() + "\")}", "\n");
   }
 
   @NotNull
@@ -128,7 +164,8 @@ public class AndroidGradleTests {
       File tmp = new File(PathManager.getHomePath()).getParentFile().getParentFile();
       repositories.add(new File(tmp, prebuiltsRepo));
       // publish local should already be available inside prebuilts
-    } else if (System.getProperty("idea.gui.test.running.on.release") != null) {
+    }
+    else if (System.getProperty("idea.gui.test.running.on.release") != null) {
       repositories.add(new File(PathManager.getHomePath(), "gradle"));
     }
     else {
@@ -142,17 +179,17 @@ public class AndroidGradleTests {
   /**
    * Take a regex pattern with a single group in it and replace the contents of that group with a
    * new value.
-   *
+   * <p>
    * For example, the pattern "Version: (.+)" with value "Test" would take the input string
    * "Version: Production" and change it to "Version: Test"
-   *
+   * <p>
    * The reason such a special-case pattern substitution utility method exists is this class is
    * responsible for loading read-only gradle test files and copying them over into a mutable
    * version for tests to load. When doing so, it updates obsolete values (like old android
    * platforms) to more current versions. This lets tests continue to run whenever we update our
    * tools to the latest versions, without having to go back and change a bunch of broken tests
    * each time.
-   *
+   * <p>
    * If a regex is passed in with more than one group, later groups will be ignored; and if no
    * groups are present, this will throw an exception. It is up to the caller to ensure that the
    * regex is well formed and only includes a single group.

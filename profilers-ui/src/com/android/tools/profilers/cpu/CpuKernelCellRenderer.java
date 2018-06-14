@@ -91,7 +91,7 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
     myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);
     myLabel.setForeground(ProfilerColors.THREAD_LABEL_TEXT);
     // Offset the label to match the threads component.
-    myLabel.setBorder(JBUI.Borders.emptyLeft(StudioIcons.Menu.MENU.getIconWidth() + myLabel.getIconTextGap()));
+    myLabel.setBorder(JBUI.Borders.emptyLeft(StudioIcons.LayoutEditor.Menu.MENU.getIconWidth() + myLabel.getIconTextGap()));
 
     // Instead of using just one statechart for the cell renderer and set its model here, we cache the statecharts
     // corresponding to each cpu. StateChart#setModel is currently expensive and will make StateChart#render

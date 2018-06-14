@@ -23,7 +23,13 @@ import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.Library
  * It should never be implemented, use more specific types such as [AndroidLibrary] instead.
  */
 interface Library {
-  val artifactAddress: String
+  /**
+   * The artifact address in a unique way.
+   *
+   * This is either a module path for sub-modules (with optional variant name), or a maven coordinate for external dependencies.
+   * TODO make it not null when NativeDependencies will be supported
+   */
+  val artifactAddress: String?
 }
 
 // Outside because of inheritance.

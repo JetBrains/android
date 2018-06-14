@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.stats.AnonymizerUtil;
+import com.android.utils.NullLogger;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.module.Module;
@@ -71,7 +73,7 @@ class LegacyAndroidProjects {
   }
 
   void trackProject() {
-    if (!UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn()) {
+    if (!AnalyticsSettings.getInstance(new NullLogger()).hasOptedIn()) {
       return;
     }
 
@@ -102,7 +104,7 @@ class LegacyAndroidProjects {
             .setKind(LEGACY_IDEA_ANDROID_PROJECT)
             .setProjectId(AnonymizerUtil.anonymizeUtf8(packageName))
             .setRawProjectId(packageName);
-          UsageTracker.getInstance().log(event);
+          UsageTracker.log(event);
         }
       }
     });

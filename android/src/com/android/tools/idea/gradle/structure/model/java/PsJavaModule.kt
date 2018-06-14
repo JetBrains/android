@@ -17,31 +17,32 @@ package com.android.tools.idea.gradle.structure.model.java
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
-import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
-import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.*
 import com.intellij.icons.AllIcons
 import java.io.File
 import javax.swing.Icon
 
 class PsJavaModule(
   parent: PsProject,
-  name: String,
-  gradlePath: String,
-  val gradleModel: JavaModuleModel?,
-  parsedModel: GradleBuildModel?
-) : PsModule(parent, name, gradlePath, parsedModel) {
-
+  gradlePath: String
+  ) : PsModule(parent, gradlePath) {
+  var resolvedModel: JavaModuleModel? = null ; private set
+  override var rootDir: File? = null ; private set
+  override val projectType: PsModuleType = PsModuleType.JAVA
+  override val icon: Icon? = AllIcons.Nodes.PpJdk
   private var myDependencyCollection: PsJavaDependencyCollection? = null
 
-  override val rootDir: File? get() = gradleModel?.contentRoots?.firstOrNull()?.rootDirPath
-  override val icon: Icon? = AllIcons.Nodes.PpJdk
+  fun init(name: String, resolvedModel: JavaModuleModel?, parsedModel: GradleBuildModel?) {
+    super.init(name, parsedModel)
+    this.resolvedModel = resolvedModel
+    rootDir = resolvedModel?.contentRoots?.firstOrNull()?.rootDirPath
+    myDependencyCollection = null
+  }
 
   private val orCreateDependencyCollection: PsJavaDependencyCollection
     get() = myDependencyCollection ?: PsJavaDependencyCollection(this).also { myDependencyCollection = it }
 
-  override fun getConfigurations(): List<String> = gradleModel?.configurations.orEmpty()
+  override fun getConfigurations(): List<String> = resolvedModel?.configurations.orEmpty()
 
   // Java libraries can depend on any type of modules, including Android apps (when a Java library is actually a 'test'
   // module for the Android app.)

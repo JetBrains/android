@@ -15,7 +15,4 @@ This directory contains unpacked contents of an AAR file produced by the followi
 </resources>
 6. In the application directory run:
 gw :mylibrary:assembleRelease
-7. From mylibrary/build/outputs/aar/mylibrary-release.aar extract classes.jar and res.apk.
-Put classes.jar in this directory and res.apk in res subdirectory. Please keep in mind that
-this directory layout is temporary. It will be changed by moving res.apk to the same directory
-as classes.jar. This change will happen when the AARv2 support is added to the model.
+7. Unzip mylibrary/build/outputs/aar/mylibrary-release.aar

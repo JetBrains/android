@@ -17,6 +17,7 @@ package com.android.tools.idea.common.analytics;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.devices.State;
+import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
@@ -28,6 +29,7 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.utils.NullLogger;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.wireless.android.sdk.stats.*;
@@ -103,7 +105,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
    */
   @NotNull
   public static NlUsageTracker getInstance(@Nullable DesignSurface surface) {
-    return UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn() ? getInstanceInner(surface) : NOP_TRACKER;
+    return AnalyticsSettings.getInstance(new NullLogger()).hasOptedIn() ? getInstanceInner(surface) : NOP_TRACKER;
   }
 
   /**
@@ -233,7 +235,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
           .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
           .setLayoutEditorEvent(builder.build());
 
-        UsageTracker.getInstance().log(studioEvent);
+        UsageTracker.log(studioEvent);
       });
     }
     catch (RejectedExecutionException e) {

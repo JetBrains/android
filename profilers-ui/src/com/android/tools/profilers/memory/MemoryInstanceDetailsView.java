@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
+import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
@@ -336,7 +337,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       root.sort(comparator);
       treeModel.nodeStructureChanged(root);
     });
-    builder.setHoverColor(ProfilerColors.DEFAULT_HOVER_COLOR);
+    builder.setHoverColor(StandardColors.HOVER_COLOR);
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     builder.setBorder(DEFAULT_TOP_BORDER);
     builder.setShowVerticalLines(true);

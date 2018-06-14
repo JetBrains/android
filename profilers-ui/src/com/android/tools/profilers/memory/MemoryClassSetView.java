@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
+import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
@@ -372,7 +373,7 @@ final class MemoryClassSetView extends AspectObserver {
         }
       }
     });
-    builder.setHoverColor(ProfilerColors.DEFAULT_HOVER_COLOR);
+    builder.setHoverColor(StandardColors.HOVER_COLOR);
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     builder.setBorder(DEFAULT_TOP_BORDER);
     builder.setShowVerticalLines(true);

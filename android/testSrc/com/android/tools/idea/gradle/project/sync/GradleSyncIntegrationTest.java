@@ -518,4 +518,15 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     List<SyncMessage> messages = syncMessages.getReportedMessages();
     assertThat(messages).isEmpty();
   }
+
+  public void testSyncWithKotlinDsl() throws Exception {
+    loadProject(KOTLIN_GRADLE_DSL);
+
+    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
+    assertSize(3, modules);
+    for (Module module : modules) {
+      ContentEntry[] entries = ModuleRootManager.getInstance(module).getContentEntries();
+      assertThat(entries).named(module.getName() + " should have content entries").isNotEmpty();
+    }
+  }
 }

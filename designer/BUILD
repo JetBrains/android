@@ -46,7 +46,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/project-system[module]",
         "//tools/adt/idea/project-system-gradle[module]",
-        "//tools/idea/.idea/libraries:kotlin-stdlib-jre8",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
@@ -107,6 +106,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/idea/.idea/libraries:KotlinTest[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
@@ -123,6 +123,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module]",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding[module, test]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
         "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module, test]",

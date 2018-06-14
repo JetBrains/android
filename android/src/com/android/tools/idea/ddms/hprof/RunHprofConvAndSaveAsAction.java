@@ -84,7 +84,7 @@ public class RunHprofConvAndSaveAsAction extends DumbAwareAction {
 
       Capture[] captures = CapturesToolWindow.CAPTURE_ARRAY.getData(e.getDataContext());
       if (isValidCaptureSelection(captures)) {
-        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+        UsageTracker.log(AndroidStudioEvent.newBuilder()
                                        .setCategory(AndroidStudioEvent.EventCategory.PROFILING)
                                        .setKind(AndroidStudioEvent.EventKind.PROFILING_CONVERT_HPROF));
         new RunHprofConvAndSaveTask(e.getProject(), captures[0].getFile(), dialog.getHprofFile()).queue();

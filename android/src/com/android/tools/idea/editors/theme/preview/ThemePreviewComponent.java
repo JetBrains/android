@@ -19,7 +19,6 @@ import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
-import com.android.tools.adtui.SearchField;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -27,6 +26,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.SearchTextField;
 import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +46,7 @@ public class ThemePreviewComponent extends JPanel implements Disposable {
   private final AndroidThemePreviewPanel myPreviewPanel;
   private final ThemeEditorContext myThemeEditorContext;
   private final ScheduledExecutorService mySearchUpdateScheduler;
-  private final SearchField myTextField;
+  private final SearchTextField myTextField;
   private final JPanel myToolbar;
   private final JComponent myActionToolbarComponent;
   private ScheduledFuture<?> myScheduledSearch;
@@ -81,7 +81,7 @@ public class ThemePreviewComponent extends JPanel implements Disposable {
     myActionToolbarComponent = actionToolbar.getComponent();
     myToolbar.add(myActionToolbarComponent);
 
-    myTextField = new SearchField(true);
+    myTextField = new SearchTextField(true);
     // Avoid search box stretching more than 1 line.
     myTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, myTextField.getPreferredSize().height));
 

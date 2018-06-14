@@ -188,7 +188,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable
     String appId = getApplicationId(myProject);
     if (appId != null) {
 
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
                                                        .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
                                                        .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_OPEN)
                                                        .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
@@ -270,7 +270,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable
   public void apply() throws ConfigurationException {
     String appId = getApplicationId(myProject);
     if (appId != null) {
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
                                                        .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
                                                        .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
                                                        .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
@@ -286,7 +286,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable
     for (Configurable configurable : myConfigurables) {
       if (configurable.isModified()) {
         if (appId != null) {
-          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+          UsageTracker.log(AndroidStudioEvent.newBuilder()
                                                            .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
                                                            .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_SAVE)
                                                            .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
@@ -448,7 +448,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable
   private void selectConfigurable(@NotNull Configurable configurable) {
     String appId = getApplicationId(myProject);
     if (appId != null) {
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
                                                        .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
                                                        .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
                                                        .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))

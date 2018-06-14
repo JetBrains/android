@@ -47,7 +47,8 @@ import org.mockito.Mockito.mock
  * Tests for the nav editor Scene.
  */
 class NavSceneTest : NavTestCase() {
-
+  fun testDummy() {}
+  /* b/109861864
   fun testDisplayList() {
     val model = model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
@@ -1344,5 +1345,5 @@ class NavSceneTest : NavTestCase() {
     dragTarget.mouseDrag(x, y, listOf())
     // the release position isn't used
     dragTarget.mouseRelease(x, y, listOf())
-  }
+  }*/
 }

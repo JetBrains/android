@@ -247,10 +247,10 @@ public class Template {
                             KotlinSupport.newBuilder()
                                          .setIncludeKotlinSupport(kotlinSupport instanceof Boolean ? (Boolean)kotlinSupport : false)
                                          .setKotlinSupportVersion(kotlinVersion instanceof String ? (String)kotlinVersion : "unknown"));
-      UsageTracker.getInstance().log(aseBuilder);
+      UsageTracker.log(aseBuilder);
       if (paramMap.get(ATTR_HAS_INSTANT_APP_WRAPPER) instanceof Boolean && (Boolean) paramMap.get(ATTR_HAS_INSTANT_APP_WRAPPER)) {
         aseBuilder.setTemplateRenderer(TemplateRenderer.ANDROID_INSTANT_APP_PROJECT);
-        UsageTracker.getInstance().log(aseBuilder);
+        UsageTracker.log(aseBuilder);
       }
     }
 

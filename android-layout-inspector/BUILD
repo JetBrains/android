@@ -77,6 +77,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:KotlinTest[test]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/idea/images:intellij.platform.images[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",

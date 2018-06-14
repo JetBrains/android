@@ -23,7 +23,7 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import kotlin.streams.toList
 import org.jetbrains.android.formatter.AttributeComparator
 
-class AdvancedInspectorBuilder : InspectorBuilder<NelePropertyItem> {
+class AdvancedInspectorBuilder(private val tableUIProvider: TableUIProvider) : InspectorBuilder<NelePropertyItem> {
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
     val declared = properties.values.stream().filter { it.rawValue != null }.toList()
@@ -36,8 +36,7 @@ class AdvancedInspectorBuilder : InspectorBuilder<NelePropertyItem> {
   private fun addTable(inspector: InspectorPanel, title: String, properties: List<NelePropertyItem>, searchable: Boolean) {
     val titleModel = inspector.addExpandableTitle(title, true)
     val tableModel = NeleTableModel(properties)
-    val lineModel = inspector.addTable(tableModel, searchable)
-    titleModel.addChild(lineModel)
+    inspector.addTable(tableModel, searchable, tableUIProvider, titleModel)
   }
 }
 
@@ -51,6 +50,6 @@ private class NeleTableModel(override val items: List<NelePropertyItem>) : PTabl
   }
 
   override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {
-    return false
+    return column == PTableColumn.VALUE
   }
 }

@@ -41,6 +41,6 @@ public final class CastButtonHandler extends MenuHandler {
   @NotNull
   @Override
   public Icon getIcon(@NotNull NlComponent component) {
-    return StudioIcons.Menu.CAST;
+    return StudioIcons.LayoutEditor.Menu.CAST;
   }
 }

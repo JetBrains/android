@@ -336,9 +336,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   protected File prepareProjectForImport(@NotNull File srcRoot, @NotNull File projectRoot) throws IOException {
     assertTrue(srcRoot.getPath(), srcRoot.exists());
 
-    File build = new File(srcRoot, FN_BUILD_GRADLE);
     File settings = new File(srcRoot, FN_SETTINGS_GRADLE);
-    assertTrue("Couldn't find build.gradle or settings.gradle in " + srcRoot.getPath(), build.exists() || settings.exists());
+    File build = new File(srcRoot, FN_BUILD_GRADLE);
+    File ktsSettings = new File(srcRoot, FN_SETTINGS_GRADLE_KTS);
+    File ktsBuild = new File(srcRoot, FN_BUILD_GRADLE_KTS);
+    assertTrue("Couldn't find build.gradle(.kts) or settings.gradle(.kts) in " + srcRoot.getPath(),
+               settings.exists() || build.exists() || ktsSettings.exists() || ktsBuild.exists());
 
 
     copyDir(srcRoot, projectRoot);

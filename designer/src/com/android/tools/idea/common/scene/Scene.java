@@ -693,6 +693,12 @@ public class Scene implements SelectionListener, Disposable {
 
       myHitListener.skipTarget(myHitTarget);
       myHitListener.find(transform, myRoot, x, y);
+      SceneComponent targetComponent = myHitTarget.getComponent();
+      if (targetComponent != null && !inCurrentSelection(targetComponent)) {
+        myNewSelectedComponentsOnRelease.clear();
+        myNewSelectedComponentsOnRelease.add(targetComponent);
+        select(myNewSelectedComponentsOnRelease);
+      }
       myHitTarget.mouseDrag(x, y, myHitListener.myHitTargets);
       if (myHitTarget instanceof MultiComponentTarget) {
         delegateMouseDragToSelection(x, y, myHitListener.getClosestTarget(), myHitTarget.getComponent());

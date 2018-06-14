@@ -18,12 +18,14 @@ package com.android.tools.idea.gradle.structure.configurables.variables
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.configurables.PsContextImpl
 import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.ui.JBColor
 import org.hamcrest.CoreMatchers.*
 import org.junit.Assert.assertThat
 import java.awt.Color
+import java.util.function.Consumer
 import javax.swing.JPanel
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
@@ -32,12 +34,12 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testModuleNodeDisplay() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProjectImpl(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
     val rootNode = tableModel.root as DefaultMutableTreeNode
-    assertThat(rootNode.childCount, equalTo(3))
+    assertThat(rootNode.childCount, equalTo(4))
 
     val projectNode = rootNode.getChildAt(0) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(projectNode, 0) as String, equalTo("testModuleNodeDisplay"))
@@ -49,7 +51,12 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.getValueAt(appNode, 1) as String, equalTo(""))
     assertThat(appNode.childCount, not(0))
 
-    val libNode = rootNode.getChildAt(2) as DefaultMutableTreeNode
+    val javNode = rootNode.getChildAt(2) as DefaultMutableTreeNode
+    assertThat(tableModel.getValueAt(javNode, 0) as String, equalTo("jav"))
+    assertThat(tableModel.getValueAt(javNode, 1) as String, equalTo(""))
+    assertThat(javNode.childCount, equalTo(0))
+
+    val libNode = rootNode.getChildAt(3) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(libNode, 0) as String, equalTo("lib"))
     assertThat(tableModel.getValueAt(libNode, 1) as String, equalTo(""))
     assertThat(libNode.childCount, equalTo(0))
@@ -64,7 +71,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testStringVariableNodeDisplay() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProjectImpl(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -88,7 +95,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testBooleanVariableNodeDisplay() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProjectImpl(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -105,7 +112,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testVariableVariableNodeDisplay() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProjectImpl(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -124,7 +131,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testListNodeDisplay() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProjectImpl(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -172,7 +179,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testMapNodeDisplay() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProjectImpl(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -220,7 +227,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testModuleNodeRename() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProjectImpl(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -230,7 +237,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testVariableNodeRename() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
@@ -255,7 +262,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testListNodeRename() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
@@ -274,7 +281,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testMapNodeRename() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
@@ -306,7 +313,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testModuleNodeSetValue() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
@@ -317,7 +324,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testVariableNodeSetValue() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
@@ -345,7 +352,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testListNodeSetValue() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
@@ -380,7 +387,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testMapNodeSetValue() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
@@ -415,7 +422,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testAddSimpleVariable() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
@@ -444,7 +451,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testAddList() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
@@ -484,7 +491,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testAddMap() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
@@ -525,7 +532,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testVariableNodeDelete() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
@@ -551,7 +558,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testListNodeDelete() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
@@ -591,7 +598,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testMapNodeDelete() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psProject = PsProject(project)
+    val psProject = PsProjectImpl(project)
     val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
@@ -636,9 +643,9 @@ private fun PsProject.applyAllChanges() {
   if (isModified) {
     applyChanges()
   }
-  forEachModule { module ->
+  forEachModule(Consumer { module ->
     if (module.isModified) {
       module.applyChanges()
     }
-  }
+  })
 }

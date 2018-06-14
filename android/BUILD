@@ -198,6 +198,7 @@ iml_module(
     deps = [
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/idea/.idea/libraries:KotlinTest[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/idea/spellchecker:intellij.spellchecker[module, test]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module, test]",
@@ -264,6 +265,7 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android/src/com/android/tools/idea/gradle/project/sync/ng/nosyncbuilder/proto:nosyncbuilder-jarjar-lib[test]",
+        "//tools/idea/.idea/libraries:jimfs[test]",
     ],
 )
 
@@ -489,6 +491,8 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-gradle-plugin/1.2.41:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-reflect/1.2.41:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-script-runtime/1.2.41:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.2.41:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.2.41:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jre7/1.2.41:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jre8/1.2.41:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.2.41:jar",

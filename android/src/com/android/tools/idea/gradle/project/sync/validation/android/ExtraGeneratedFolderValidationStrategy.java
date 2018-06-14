@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.gradle.util.GeneratedSourceFolders;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -34,15 +36,26 @@ import static com.android.tools.idea.project.messages.MessageType.WARNING;
 
 class ExtraGeneratedFolderValidationStrategy extends AndroidProjectValidationStrategy {
   @NotNull private final List<File> myExtraGeneratedSourceFolderPaths = new ArrayList<>();
+  @NotNull private final GeneratedSourceFolders myGeneratedSourceFolders;
 
   ExtraGeneratedFolderValidationStrategy(@NotNull Project project) {
+    this(project, new GeneratedSourceFolders());
+  }
+
+  ExtraGeneratedFolderValidationStrategy(@NotNull Project project, @NotNull GeneratedSourceFolders generatedSourceFolders) {
     super(project);
+    myGeneratedSourceFolders = generatedSourceFolders;
   }
 
   @Override
   void validate(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
+    IdeAndroidProject androidProject = androidModel.getAndroidProject();
     File[] sourceFolderPaths = androidModel.getExtraGeneratedSourceFolderPaths();
-    Collections.addAll(myExtraGeneratedSourceFolderPaths, sourceFolderPaths);
+    for (File path : sourceFolderPaths) {
+      if (!myGeneratedSourceFolders.isFolderGeneratedInCorrectLocation(path, androidProject)) {
+        myExtraGeneratedSourceFolderPaths.add(path);
+      }
+    }
   }
 
   @Override

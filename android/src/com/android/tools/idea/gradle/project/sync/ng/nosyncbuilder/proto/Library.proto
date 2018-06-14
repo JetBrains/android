@@ -25,9 +25,9 @@ message JavaLibrary {
 
 message ModuleDependency {
     optional Library library = 1; // inheritance emulation -> required
-    optional string build_id = 2;
-    optional string project_path = 3;
-    optional string variant = 4;
+    optional string build_id = 2; // required
+    optional string project_path = 3; // required
+    optional string variant = 4; // required
 }
 
 message NativeLibrary {
@@ -43,6 +43,6 @@ message NativeLibrary {
 message GlobalLibraryMap {
     map<string, AndroidLibrary> android_libraries = 1;
     map<string, JavaLibrary> java_libraries = 2;
-    map<string, ModuleDependency> module_dependencies = 3;
-    map<string, NativeLibrary> native_libraries = 4;
+    map<string, NativeLibrary> native_libraries = 3;
+    map<string, ModuleDependency> module_dependencies = 4;
 }

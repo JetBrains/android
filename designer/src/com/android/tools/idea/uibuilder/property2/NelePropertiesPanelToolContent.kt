@@ -19,6 +19,7 @@ import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.common.property2.api.EditorProvider
 import com.android.tools.idea.common.property2.api.PropertiesPanel
 import com.android.tools.idea.common.property2.api.PropertiesView
+import com.android.tools.idea.common.property2.api.TableUIProvider
 import com.android.tools.idea.common.property2.impl.ui.registerKeyAction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel
@@ -34,6 +35,7 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.JPanel
 
+private const val VIEW_NAME = "LayoutEditor"
 private const val BASIC_PAGE = "Basic"
 private const val ADVANCED_PAGE = "Advanced"
 
@@ -42,13 +44,14 @@ private const val ADVANCED_PAGE = "Advanced"
  */
 class NelePropertiesPanelToolContent(facet: AndroidFacet) : JPanel(BorderLayout()), ToolContent<DesignSurface> {
   private val componentModel = NelePropertiesModel(this, facet)
-  private val componentView = PropertiesView(componentModel)
+  private val componentView = PropertiesView(VIEW_NAME, componentModel)
   private val motionModel = MotionLayoutAttributesModel(this)
   private val motionEditorView = MotionLayoutAttributesView.createMotionView(motionModel)
   private val properties = PropertiesPanel(componentModel)
-  private val controlTypeProvider = NeleControlTypeProvider()
   private val enumSupportProvider = NeleEnumSupportProvider()
+  private val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
+  private val tableUIProvider = TableUIProvider.create(NelePropertyItem::class.java, controlTypeProvider, editorProvider)
   private val filterKeyListener = createFilterKeyListener()
   private val showResolvedValueAction = ToggleShowResolvedValueAction(componentModel)
 
@@ -65,7 +68,7 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet) : JPanel(BorderLayout(
     basic.builders.add(ProgressBarInspectorBuilder(editorProvider))
     basic.builders.add(FavoritesInspectorBuilder(editorProvider))
     val advanced = componentView.addTab(ADVANCED_PAGE)
-    advanced.builders.add(AdvancedInspectorBuilder())
+    advanced.builders.add(AdvancedInspectorBuilder(tableUIProvider))
     registerKeyAction(showResolvedValueAction, ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke, "toggleResolvedValues",
                       WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }

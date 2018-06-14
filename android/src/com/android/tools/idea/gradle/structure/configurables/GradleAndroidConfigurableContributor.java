@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables;
 
 import com.android.tools.idea.gradle.structure.configurables.suggestions.SuggestionsPerspectiveConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.variables.VariablesConfigurable;
-import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl;
 import com.android.tools.idea.structure.dialog.AndroidConfigurableContributor;
 import com.android.tools.idea.structure.dialog.ProjectStructureItemGroup;
 import com.google.common.collect.Lists;
@@ -34,7 +34,7 @@ public class GradleAndroidConfigurableContributor extends AndroidConfigurableCon
   @Override
   @NotNull
   public List<Configurable> getMainConfigurables(@NotNull Project project, @NotNull Disposable parentDisposable) {
-    myContext = new PsContextImpl(new PsProject(project), parentDisposable);
+    myContext = new PsContextImpl(new PsProjectImpl(project), parentDisposable);
 
     List<Configurable> configurables = Lists.newArrayList();
     configurables.add(new VariablesConfigurable(project, myContext));

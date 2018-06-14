@@ -77,7 +77,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.*;
 import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
-import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAND_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.google.common.base.Strings.nullToEmpty;
@@ -215,10 +214,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       try {
         AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
         List<String> commandLineArguments = Lists.newArrayList(buildConfiguration.getCommandLineOptions());
-
-        if (buildConfiguration.USE_CONFIGURATION_ON_DEMAND && !commandLineArguments.contains(CONFIGURE_ON_DEMAND_OPTION)) {
-          commandLineArguments.add(CONFIGURE_ON_DEMAND_OPTION);
-        }
 
         if (!commandLineArguments.contains(PARALLEL_BUILD_OPTION) &&
             CompilerWorkspaceConfiguration.getInstance(project).PARALLEL_COMPILATION) {
@@ -389,7 +384,17 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       }
     }
 
-    myHelper.execute(myRequest.getBuildFilePath().getPath(), executionSettings, executeTasksFunction);
+    try {
+      myHelper.execute(myRequest.getBuildFilePath().getPath(), executionSettings, executeTasksFunction);
+    }
+    catch (ExternalSystemException e) {
+      if (e.getOriginalReason().startsWith("com.intellij.openapi.progress.ProcessCanceledException: java.lang.Throwable")) {
+        getLogger().info("Gradle execution cancelled.", e);
+      }
+      else{
+        throw e;
+      }
+    }
   }
 
   private static boolean wasBuildCanceled(@NotNull Throwable buildError) {

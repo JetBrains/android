@@ -16,12 +16,10 @@
 package com.android.tools.profilers.energy
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profiler.protobuf3jarjar.ByteString
-import com.android.tools.profilers.FakeGrpcChannel
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.*
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -224,5 +222,45 @@ class EnergyProfilerStageTest {
     assertThat(myStage.selectedDuration).isEqualTo(durationList[0])
     myStage.selectedDuration = null
     assertThat(myStage.getSelectedDuration()).isNull()
+  }
+
+  @Test
+  fun setSelectedDurationTracksEnergyEventMetadata() {
+    val featureTracker = myStage.studioProfilers.ideServices.featureTracker as FakeFeatureTracker
+    assertThat(featureTracker.lastEnergyEventMetadata).isNull()
+
+    val energyDuration = EnergyDuration.groupById(fakeData)[0]!!
+    myStage.selectedDuration = energyDuration
+
+    val energyEventMetadata = featureTracker.lastEnergyEventMetadata!!
+    assertThat(energyDuration.eventList).isNotEmpty()
+    for ((i, event) in energyDuration.eventList.withIndex()) {
+      assertThat(energyEventMetadata.subevents[i]).isEqualTo(event)
+    }
+
+    myStage.selectedDuration = null
+    // Setting the selected duration shouldn't track anything, so we shouldn't change the last EnergyEventMetadata tracked.
+    assertThat(featureTracker.lastEnergyEventMetadata).isEqualTo(energyEventMetadata)
+  }
+
+  @Test
+  fun eventsIntersectingWithCreatedSelectionRangeShouldBeTracked() {
+    val featureTracker = myStage.studioProfilers.ideServices.featureTracker as FakeFeatureTracker
+    assertThat(featureTracker.lastEnergyRangeMetadata).isNull()
+    myStage.selectionModel.setSelectionEnabled(true)
+
+    // Setting a range that doesn't contain any events shouldn't track anything.
+    myStage.selectionModel.set(50000.0, 100000.0)
+    assertThat(featureTracker.lastEnergyRangeMetadata).isNull()
+
+    // Clear the range to make sure selectionCreated() will be called next time we set the range.
+    myStage.selectionModel.clear()
+    // Set the range [500ns, 1500ns], which should return a single EnergyEvent (wake lock) from fakeData that happened at 1000ns
+    myStage.selectionModel.set(0.5, 1.5)
+    val energyRangeMetadata = featureTracker.lastEnergyRangeMetadata!!
+    assertThat(energyRangeMetadata.eventCounts).hasSize(1)
+    val eventCount = energyRangeMetadata.eventCounts[0]
+    assertThat(eventCount.kind).isEqualTo(EnergyDuration.Kind.WAKE_LOCK)
+    assertThat(eventCount.count).isEqualTo(1)
   }
 }

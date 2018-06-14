@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
-import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
@@ -176,13 +173,13 @@ class MenuPreviewRenderer {
     }
 
     MergedManifest manifestInfo = MergedManifest.get(myModule);
-    String applicationIcon = manifestInfo.getApplicationIcon();
-    if (applicationIcon != null) {
+    ResourceValue applicationIcon = myResolver.resolveResValue(manifestInfo.getApplicationIcon());
+    if (applicationIcon != null && applicationIcon.getValue() != null) {
       Element imageView = myDocument.createElement(IMAGE_VIEW);
       layout.appendChild(imageView);
       setAndroidAttr(imageView, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
       setAndroidAttr(imageView, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
-      setAndroidAttr(imageView, ATTR_SRC, applicationIcon);
+      setAndroidAttr(imageView, ATTR_SRC, applicationIcon.getValue());
       setAndroidAttr(imageView, "scaleX", "0.9"); // HACK; find out what the real action bar does to the app icon
       setAndroidAttr(imageView, "scaleY", "0.9");
 

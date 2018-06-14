@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <MotionScene>
-  <KeyFrameSet>
-    <KeyCycle>
-      <<caret>
-    </KeyCycle>
-  </KeyFrameSet>
+  <Transition>
+    <KeyFrameSet>
+      <KeyCycle>
+        <<caret>
+      </KeyCycle>
+    </KeyFrameSet>
+  </Transition>
 </MotionScene>

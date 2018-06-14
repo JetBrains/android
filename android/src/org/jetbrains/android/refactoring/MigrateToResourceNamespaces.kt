@@ -30,6 +30,7 @@ import com.google.common.collect.Maps
 import com.google.common.collect.Table
 import com.google.common.collect.Tables
 import com.intellij.lang.Language
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.application.ApplicationManager
@@ -41,6 +42,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Ref
+import com.intellij.openapi.vcs.FileStatus
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.*
 import com.intellij.psi.impl.migration.PsiMigrationManager
@@ -57,6 +59,9 @@ import com.intellij.refactoring.actions.BaseRefactoringAction
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
+import com.intellij.usages.*
+import com.intellij.usages.rules.SingleParentUsageGroupingRule
+import com.intellij.usages.rules.UsageGroupingRuleProvider
 import com.intellij.util.text.nullize
 import com.intellij.util.xml.DomManager
 import com.intellij.util.xml.DomUtil
@@ -72,6 +77,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.android.util.AndroidUtils
+import javax.swing.Icon
 
 private val DataContext.module: Module? get() = LangDataKeys.MODULE.getData(this)
 
@@ -121,6 +127,8 @@ private sealed class ResourceUsageInfo(element: PsiElement, startOffset: Int, en
 
   abstract val resourceType: ResourceType
   abstract val name: String
+
+  var inferredPackage: String? = null
 }
 
 private class DomValueUsageInfo(
@@ -167,9 +175,6 @@ class MigrateToResourceNamespacesProcessor(
 
   private val allFacets = AndroidUtils.getAllAndroidDependencies(invokingFacet.module, true) + invokingFacet
 
-  private val inferredNamespaces: Table<ResourceType, String, String> =
-    Tables.newCustomTable(Maps.newEnumMap(ResourceType::class.java), { mutableMapOf<String, String>() })
-
   private val elementFactory = XmlElementFactory.getInstance(myProject)
 
   override fun findUsages(): Array<out UsageInfo> {
@@ -191,12 +196,16 @@ class MigrateToResourceNamespacesProcessor(
     val leafRepos = mutableListOf<AbstractResourceRepository>()
     ResourceRepositoryManager.getAppResources(invokingFacet).getLeafResourceRepositories(leafRepos)
 
+    val inferredNamespaces: Table<ResourceType, String, String> =
+      Tables.newCustomTable(Maps.newEnumMap(ResourceType::class.java), { mutableMapOf<String, String>() })
+
     val total = result.size.toDouble()
+
     // TODO(b/78765120): try doing this in parallel using a thread pool.
     result.forEachIndexed { index, resourceUsageInfo ->
       ProgressManager.checkCanceled()
 
-      inferredNamespaces.row(resourceUsageInfo.resourceType).computeIfAbsent(resourceUsageInfo.name) {
+      resourceUsageInfo.inferredPackage = inferredNamespaces.row(resourceUsageInfo.resourceType).computeIfAbsent(resourceUsageInfo.name) {
         for (repo in leafRepos) {
           if (repo.hasResourceItem(ResourceNamespace.RES_AUTO, resourceUsageInfo.resourceType, resourceUsageInfo.name)) {
             // TODO(b/78765120): check other repos and build a list of unresolved or conflicting references, to display in a UI later.
@@ -379,7 +388,7 @@ class MigrateToResourceNamespacesProcessor(
     usages.forEachIndexed { index, usageInfo ->
       if (usageInfo !is ResourceUsageInfo) error("Don't know how to handle ${usageInfo.javaClass.name}.")
 
-      val inferredPackage = inferredNamespaces[usageInfo.resourceType, usageInfo.name] ?: return@forEachIndexed
+      val inferredPackage = usageInfo.inferredPackage ?: return@forEachIndexed
       when (usageInfo) {
         is DomValueUsageInfo -> {
           val oldResourceValue = usageInfo.domValue.value ?: return@forEachIndexed
@@ -397,7 +406,7 @@ class MigrateToResourceNamespacesProcessor(
           val element = usageInfo.element as? XmlAttribute ?: return@forEachIndexed
           val prefix = findOrCreateNamespacePrefix(element.parent, inferredPackage)
           element.references
-            .find {it is SchemaPrefixReference}
+            .find { it is SchemaPrefixReference }
             ?.handleElementRename(prefix)
         }
         is StyleItemUsageInfo -> {
@@ -462,14 +471,6 @@ class MigrateToResourceNamespacesProcessor(
     }
   }
 
-  /**
-   * Picks the short namespace prefix for the given resource package name.
-   *
-   * TODO(b/80284538): Decide how to pick a short name for a library. For now we're using the last component of the package name, but we
-   *                   discussed storing the suggested short prefix in an AAR's metadata, so that library authors can provide a suggestion.
-   */
-  private fun choosePrefix(packageName: String): String = packageName.substringAfterLast('.')
-
   private fun addXmlnsDeclaration(tag: XmlTag, prefix: String, uri: String) {
     tag.addBefore(
       elementFactory.createAttribute("xmlns:$prefix", uri, tag),
@@ -491,5 +492,49 @@ class MigrateToResourceNamespacesProcessor(
   override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor = object : UsageViewDescriptorAdapter() {
     override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
     override fun getProcessedElementsHeader() = "Resource references to migrate"
+  }
+}
+
+/**
+ * Picks the short namespace prefix for the given resource package name.
+ *
+ * TODO(b/80284538): Decide how to pick a short name for a library. For now we're using the last component of the package name, but we
+ *                   discussed storing the suggested short prefix in an AAR's metadata, so that library authors can provide a suggestion.
+ */
+private fun choosePrefix(packageName: String): String = packageName.substringAfterLast('.')
+
+
+class ResourcePackageGroupingRuleProvider : UsageGroupingRuleProvider {
+  override fun createGroupingActions(view: UsageView): Array<AnAction> = AnAction.EMPTY_ARRAY
+  override fun getActiveRules(project: Project) = arrayOf(ResourcePackageGroupingRule())
+}
+
+class ResourcePackageGroupingRule : SingleParentUsageGroupingRule() {
+  override fun getParentGroupFor(usage: Usage, targets: Array<UsageTarget>): UsageGroup? {
+    val packageName = (usage as? UsageInfo2UsageAdapter)?.usageInfo?.let { it as? ResourceUsageInfo }?.inferredPackage ?: return null
+    return ResourcePackageUsageGroup(packageName)
+  }
+
+  override fun getRank(): Int = -1
+}
+
+data class ResourcePackageUsageGroup(val packageName: String) : UsageGroup {
+  override fun navigate(requestFocus: Boolean) {}
+  override fun update() {}
+
+  override fun getIcon(isOpen: Boolean): Icon? = null
+  override fun getFileStatus(): FileStatus? = null
+  override fun isValid() = true
+  override fun canNavigate() = false
+  override fun canNavigateToSource() = false
+  override fun getText(view: UsageView?): String = "Namespace '${choosePrefix(packageName)}' to be added for $packageName"
+
+  override fun compareTo(other: UsageGroup): Int {
+    return if (other is ResourcePackageUsageGroup) {
+      packageName.compareTo(other.packageName)
+    }
+    else {
+      -1
+    }
   }
 }

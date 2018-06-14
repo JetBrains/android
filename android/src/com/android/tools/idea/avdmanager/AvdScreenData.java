@@ -48,43 +48,6 @@ public final class AvdScreenData {
   }
 
   /**
-   * Get the resource bucket value that corresponds to the given size in inches.
-   *
-   * @param diagonalSize Diagonal Screen size in inches.
-   *                     If null, a default diagonal size is used
-   */
-  @NotNull
-  public static ScreenSize getScreenSize(@Nullable Double diagonalSize) {
-    if (diagonalSize == null) {
-      return ScreenSize.NORMAL;
-    }
-
-    /**
-     * Density-independent pixel (dp) : The density-independent pixel is
-     * equivalent to one physical pixel on a 160 dpi screen,
-     * which is the baseline density assumed by the system for a
-     * "medium" density screen.
-     *
-     * Taken from http://developer.android.com/guide/practices/screens_support.html
-     */
-    double diagonalDp = 160.0 * diagonalSize;
-
-    // Set the Screen Size
-    if (diagonalDp >= 1200) {
-      return ScreenSize.XLARGE;
-    }
-    else if (diagonalDp >= 800) {
-      return ScreenSize.LARGE;
-    }
-    else if (diagonalDp >= 568) {
-      return ScreenSize.NORMAL;
-    }
-    else {
-      return ScreenSize.SMALL;
-    }
-  }
-
-  /**
    * Calculate the screen ratio. Beyond a 5:3 ratio is considered "long"
    */
   @NotNull
@@ -176,7 +139,7 @@ public final class AvdScreenData {
     }
 
     screen.setDiagonalLength(screenDiagonal);
-    screen.setSize(getScreenSize(effectiveDiagonal));
+    screen.setSize(ScreenSize.getScreenSize(effectiveDiagonal));
     screen.setXDimension(screenWidth);
     screen.setYDimension(screenHeight);
 

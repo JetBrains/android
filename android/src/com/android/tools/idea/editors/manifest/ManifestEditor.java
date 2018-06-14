@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.manifest;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -151,7 +152,7 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
     }
 
     PsiManager.getInstance(project).addPsiTreeChangeListener(myPsiChangeListener);
-    BuildVariantView.getInstance(project).addListener(buildVariantListener);
+    BuildVariantUpdater.getInstance(project).addSelectionChangeListener(buildVariantListener);
     reload();
   }
 
@@ -160,7 +161,7 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
     mySelected = false;
     final Project thisProject = myFacet.getModule().getProject();
     PsiManager.getInstance(thisProject).removePsiTreeChangeListener(myPsiChangeListener);
-    BuildVariantView.getInstance(thisProject).removeListener(buildVariantListener);
+    BuildVariantUpdater.getInstance(thisProject).removeSelectionChangeListener(buildVariantListener);
   }
 
   @Override

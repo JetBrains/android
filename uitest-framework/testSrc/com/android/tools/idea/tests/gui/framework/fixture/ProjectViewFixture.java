@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode;
 import com.android.tools.idea.navigator.nodes.apk.ndk.LibFolderNode;
 import com.android.tools.idea.navigator.nodes.apk.ndk.LibraryNode;
@@ -27,7 +26,6 @@ import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
-import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.ide.projectView.impl.ProjectViewTree;
 import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
@@ -43,9 +41,7 @@ import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.ui.tree.AsyncTreeModel;
-import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
@@ -55,12 +51,9 @@ import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-import javax.swing.JMenuItem;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 import javax.swing.tree.TreeModel;
-import java.awt.Component;
-import java.awt.Container;
+import java.awt.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -78,12 +71,12 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
   @NotNull
   public PaneFixture selectProjectPane() {
-    return selectPane(ProjectViewPane.ID, "Project");
+    return selectPane("Project");
   }
 
   @NotNull
   public PaneFixture selectAndroidPane() {
-    return selectPane(AndroidProjectViewPane.ID, "Android");
+    return selectPane("Android");
   }
 
   @NotNull
@@ -115,6 +108,9 @@ public class ProjectViewFixture extends ToolWindowFixture {
     myRobot.pressAndReleaseKey(firstKeyStroke.getKeyCode(), firstKeyStroke.getModifiers());
 
     GuiTests.clickPopupMenuItem("Content name=" + paneName, projectDropDown, myRobot);
+
+    final ProjectView projectView = ProjectView.getInstance(myProject);
+    Wait.seconds(5).expecting("pane title to be " + paneName).until(() -> paneName.equals(projectView.getCurrentProjectViewPane().getTitle()));
   }
 
   @NotNull
@@ -122,14 +118,10 @@ public class ProjectViewFixture extends ToolWindowFixture {
     return ProjectView.getInstance(myProject).getCurrentViewId();
   }
 
-  @NotNull public PaneFixture selectPane(String viewId, String name) {
+  @NotNull public PaneFixture selectPane(String name) {
     activate();
+    changePane(name);
     final ProjectView projectView = ProjectView.getInstance(myProject);
-
-    if (!viewId.equals(projectView.getCurrentViewId())) {
-      changePane(name);
-    }
-
     return new PaneFixture(ideFrameFixture, projectView.getCurrentProjectViewPane(), myRobot).waitForTreeToFinishLoading();
   }
 

@@ -20,6 +20,9 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.State;
+import com.android.testutils.VirtualTimeScheduler;
+import com.android.tools.analytics.AnalyticsSettings;
+import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlLayoutType;
@@ -32,6 +35,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.utils.NullLogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -68,24 +72,21 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
   private static final Executor SYNC_EXECUTOR = Runnable::run;
   private static final String ATTR_CUSTOM_NAME = "MyCustomPropertyName";
 
-  private LinkedList<AndroidStudioEvent> myLogCalls;
   private NlModel myModel;
   private AttributeDefinition myCollapseParallaxMultiplierDefinition;
   private AttributeDefinition myElevationDefinition;
   private AttributeDefinition myTextDefinition;
   private AttributeDefinition myCustomDefinition;
+  private final VirtualTimeScheduler myVirtualTimeScheduler = new VirtualTimeScheduler();
+  private TestUsageTracker usageTracker;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
 
-    UsageTracker usageTracker = mock(UsageTracker.class);
-    myLogCalls = new LinkedList<>();
-    doAnswer(invocation -> {
-      myLogCalls.add(((AndroidStudioEvent.Builder)invocation.getArguments()[0]).build());
-      return null;
-    }).when(usageTracker).log(any());
-
+    AnalyticsSettings settings = new AnalyticsSettings();
+    AnalyticsSettings.setInstanceForTest(settings);
+    usageTracker = new TestUsageTracker(settings, myVirtualTimeScheduler);
     UsageTracker.setInstanceForTest(usageTracker);
   }
 
@@ -113,8 +114,8 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     NlUsageTracker tracker = getUsageTracker();
 
     tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE);
-    assertEquals(1, myLogCalls.size());
-    AndroidStudioEvent studioEvent = myLogCalls.getFirst();
+    assertEquals(1, usageTracker.getUsages().size());
+    AndroidStudioEvent studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
     assertEquals(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR, studioEvent.getCategory());
     assertEquals(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT, studioEvent.getKind());
     assertEquals(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE,
@@ -126,11 +127,11 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     assertEquals(SystemInfo.isMac && UIUtil.isRetina() ? 100 : 50, state.getConfigZoomLevel());
     assertEquals("mock", state.getConfigApiLevel());
     assertEquals(LayoutEditorState.Orientation.PORTRAIT, state.getConfigOrientation());
-    myLogCalls.clear();
+    usageTracker.getUsages().clear();
 
     tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL);
-    assertEquals(1, myLogCalls.size());
-    studioEvent = myLogCalls.getFirst();
+    assertEquals(1, usageTracker.getUsages().size());
+    studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
     assertEquals(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL,
                  studioEvent.getLayoutEditorEvent().getType());
   }
@@ -154,8 +155,8 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     when(result.getModule()).thenReturn(new MockModule(getProject(), getTestRootDisposable()));
 
     tracker.logRenderResult(LayoutEditorRenderResult.Trigger.EDIT, result, 230);
-    assertEquals(1, myLogCalls.size());
-    AndroidStudioEvent studioEvent = myLogCalls.getFirst();
+    assertEquals(1, usageTracker.getUsages().size());
+    AndroidStudioEvent studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
     LayoutEditorRenderResult loggedResult = studioEvent.getLayoutEditorEvent().getRenderResult();
     assertEquals(Result.Status.SUCCESS.ordinal(), loggedResult.getResultCode());
     assertEquals(230, loggedResult.getTotalRenderTimeMs());
@@ -169,8 +170,8 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     NlUsageTracker tracker = getUsageTracker();
 
     tracker.logDropFromPalette(CONSTRAINT_LAYOUT.defaultName(), "<" + CONSTRAINT_LAYOUT.defaultName() + "/>", "All", -1);
-    assertEquals(1, myLogCalls.size());
-    AndroidStudioEvent studioEvent = myLogCalls.getFirst();
+    assertEquals(1, usageTracker.getUsages().size());
+    AndroidStudioEvent studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
     LayoutPaletteEvent logged = studioEvent.getLayoutEditorEvent().getPaletteEvent();
     assertThat(logged.getView().getTagName()).isEqualTo("ConstraintLayout");
     assertThat(logged.getViewOption()).isEqualTo(LayoutPaletteEvent.ViewOption.NORMAL);
@@ -190,8 +191,8 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
                             "            />\n";
 
     tracker.logDropFromPalette(EDIT_TEXT, representation, "All", -1);
-    assertEquals(1, myLogCalls.size());
-    AndroidStudioEvent studioEvent = myLogCalls.getFirst();
+    assertEquals(1, usageTracker.getUsages().size());
+    AndroidStudioEvent studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
     LayoutPaletteEvent logged = studioEvent.getLayoutEditorEvent().getPaletteEvent();
     assertThat(logged.getView().getTagName()).isEqualTo(EDIT_TEXT);
     assertThat(logged.getViewOption()).isEqualTo(LayoutPaletteEvent.ViewOption.EMAIL);
@@ -204,8 +205,8 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     NlUsageTracker tracker = getUsageTracker();
 
     tracker.logDropFromPalette(tag, "<" + tag + "/>", "Advanced", 1);
-    assertEquals(1, myLogCalls.size());
-    AndroidStudioEvent studioEvent = myLogCalls.getFirst();
+    assertEquals(1, usageTracker.getUsages().size());
+    AndroidStudioEvent studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
     LayoutPaletteEvent logged = studioEvent.getLayoutEditorEvent().getPaletteEvent();
     assertThat(logged.getView().getTagName()).isEqualTo(CUSTOM_NAME);
     assertThat(logged.getViewOption()).isEqualTo(LayoutPaletteEvent.ViewOption.NORMAL);
@@ -225,8 +226,8 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     when(property.getDefinition()).thenReturn(myElevationDefinition);
 
     tracker.logPropertyChange(property, PropertiesViewMode.INSPECTOR, -1);
-    assertEquals(1, myLogCalls.size());
-    AndroidStudioEvent studioEvent = myLogCalls.getFirst();
+    assertEquals(1, usageTracker.getUsages().size());
+    AndroidStudioEvent studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
     LayoutAttributeChangeEvent logged = studioEvent.getLayoutEditorEvent().getAttributeChangeEvent();
     assertThat(logged.getAttribute().getAttributeNamespace()).isEqualTo(AndroidAttribute.AttributeNamespace.ANDROID);
     assertThat(logged.getAttribute().getAttributeName()).isEqualTo(ATTR_ELEVATION);
@@ -248,8 +249,8 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     when(property.getDefinition()).thenReturn(myElevationDefinition);
 
     tracker.logPropertyChange(property, PropertiesViewMode.TABLE, 3);
-    assertEquals(1, myLogCalls.size());
-    AndroidStudioEvent studioEvent = myLogCalls.getFirst();
+    assertEquals(1, usageTracker.getUsages().size());
+    AndroidStudioEvent studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
     LayoutAttributeChangeEvent logged = studioEvent.getLayoutEditorEvent().getAttributeChangeEvent();
     assertThat(logged.getAttribute().getAttributeNamespace()).isEqualTo(AndroidAttribute.AttributeNamespace.TOOLS);
     assertThat(logged.getAttribute().getAttributeName()).isEqualTo(ATTR_ELEVATION);
@@ -271,8 +272,8 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     when(property.getDefinition()).thenReturn(myCollapseParallaxMultiplierDefinition);
 
     tracker.logPropertyChange(property, PropertiesViewMode.TABLE, 3);
-    assertEquals(1, myLogCalls.size());
-    AndroidStudioEvent studioEvent = myLogCalls.getFirst();
+    assertEquals(1, usageTracker.getUsages().size());
+    AndroidStudioEvent studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
     LayoutAttributeChangeEvent logged = studioEvent.getLayoutEditorEvent().getAttributeChangeEvent();
     assertThat(logged.getAttribute().getAttributeNamespace()).isEqualTo(AndroidAttribute.AttributeNamespace.APPLICATION);
     assertThat(logged.getAttribute().getAttributeName()).isEqualTo(ATTR_COLLAPSE_PARALLAX_MULTIPLIER);
@@ -294,8 +295,8 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     when(property.getDefinition()).thenReturn(myCollapseParallaxMultiplierDefinition);
 
     tracker.logPropertyChange(property, PropertiesViewMode.TABLE, 3);
-    assertEquals(1, myLogCalls.size());
-    AndroidStudioEvent studioEvent = myLogCalls.getFirst();
+    assertEquals(1, usageTracker.getUsages().size());
+    AndroidStudioEvent studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
     LayoutAttributeChangeEvent logged = studioEvent.getLayoutEditorEvent().getAttributeChangeEvent();
     assertThat(logged.getAttribute().getAttributeNamespace()).isEqualTo(AndroidAttribute.AttributeNamespace.TOOLS);
     assertThat(logged.getAttribute().getAttributeName()).isEqualTo(ATTR_COLLAPSE_PARALLAX_MULTIPLIER);
@@ -317,8 +318,8 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     when(property.getDefinition()).thenReturn(myCustomDefinition);
 
     tracker.logPropertyChange(property, PropertiesViewMode.TABLE, 1);
-    assertEquals(1, myLogCalls.size());
-    AndroidStudioEvent studioEvent = myLogCalls.getFirst();
+    assertEquals(1, usageTracker.getUsages().size());
+    AndroidStudioEvent studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
     LayoutAttributeChangeEvent logged = studioEvent.getLayoutEditorEvent().getAttributeChangeEvent();
     assertThat(logged.getAttribute().getAttributeNamespace()).isEqualTo(AndroidAttribute.AttributeNamespace.APPLICATION);
     assertThat(logged.getAttribute().getAttributeName()).isEqualTo(CUSTOM_NAME);
@@ -343,8 +344,8 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     when(property.getDefinition()).thenReturn(myTextDefinition);
 
     tracker.logPropertyChange(property, PropertiesViewMode.TABLE, 1);
-    assertEquals(1, myLogCalls.size());
-    AndroidStudioEvent studioEvent = myLogCalls.getFirst();
+    assertEquals(1, usageTracker.getUsages().size());
+    AndroidStudioEvent studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
     LayoutAttributeChangeEvent logged = studioEvent.getLayoutEditorEvent().getAttributeChangeEvent();
     assertThat(logged.getAttribute().getAttributeNamespace()).isEqualTo(AndroidAttribute.AttributeNamespace.ANDROID);
     assertThat(logged.getAttribute().getAttributeName()).isEqualTo(ATTR_TEXT);
@@ -361,8 +362,8 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     NlUsageTracker tracker = getUsageTracker();
 
     tracker.logFavoritesChange(ATTR_TEXT, "", ImmutableList.of(ATTR_COLLAPSE_PARALLAX_MULTIPLIER, ATTR_TEXT), myFacet);
-    assertEquals(1, myLogCalls.size());
-    AndroidStudioEvent studioEvent = myLogCalls.getFirst();
+    assertEquals(1, usageTracker.getUsages().size());
+    AndroidStudioEvent studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
     LayoutFavoriteAttributeChangeEvent logged = studioEvent.getLayoutEditorEvent().getFavoriteChangeEvent();
     assertThat(logged.getAdded().getAttributeNamespace()).isEqualTo(AndroidAttribute.AttributeNamespace.ANDROID);
     assertThat(logged.getAdded().getAttributeName()).isEqualTo(ATTR_TEXT);
@@ -380,8 +381,8 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
 
     tracker.logFavoritesChange(TOOLS_NS_NAME_PREFIX + ATTR_CUSTOM_NAME, "",
                                ImmutableList.of(ATTR_CUSTOM_NAME, TOOLS_NS_NAME_PREFIX + ATTR_COLLAPSE_PARALLAX_MULTIPLIER), myFacet);
-    assertEquals(1, myLogCalls.size());
-    AndroidStudioEvent studioEvent = myLogCalls.getFirst();
+    assertEquals(1, usageTracker.getUsages().size());
+    AndroidStudioEvent studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
     LayoutFavoriteAttributeChangeEvent logged = studioEvent.getLayoutEditorEvent().getFavoriteChangeEvent();
     assertThat(logged.getAdded().getAttributeNamespace()).isEqualTo(AndroidAttribute.AttributeNamespace.TOOLS);
     assertThat(logged.getAdded().getAttributeName()).isEqualTo(CUSTOM_NAME);
@@ -398,8 +399,8 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     NlUsageTracker tracker = getUsageTracker();
 
     tracker.logFavoritesChange("", TOOLS_NS_NAME_PREFIX + ATTR_TEXT, ImmutableList.of(ATTR_ELEVATION), myFacet);
-    assertEquals(1, myLogCalls.size());
-    AndroidStudioEvent studioEvent = myLogCalls.getFirst();
+    assertEquals(1, usageTracker.getUsages().size());
+    AndroidStudioEvent studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
     LayoutFavoriteAttributeChangeEvent logged = studioEvent.getLayoutEditorEvent().getFavoriteChangeEvent();
     assertThat(logged.getRemoved().getAttributeNamespace()).isEqualTo(AndroidAttribute.AttributeNamespace.TOOLS);
     assertThat(logged.getRemoved().getAttributeName()).isEqualTo(ATTR_TEXT);

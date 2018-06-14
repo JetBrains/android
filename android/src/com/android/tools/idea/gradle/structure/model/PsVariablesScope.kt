@@ -66,9 +66,9 @@ interface PsVariablesScope {
 
     override val title: String = ""
 
-    override val model: PsModel = throw UnsupportedOperationException()
+    override val model: PsModel get() = throw UnsupportedOperationException()
 
-    override val container: ExtModel = throw UnsupportedOperationException()
+    override val container: ExtModel get() = throw UnsupportedOperationException()
 
     override fun <ValueT : Any> getAvailableVariablesFor(
       property: ModelPropertyContext<ValueT>): List<Annotated<ParsedValue.Set.Parsed<ValueT>>> = listOf()

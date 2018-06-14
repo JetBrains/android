@@ -27,4 +27,16 @@ class TableLineModel(val tableModel: PTableModel, override val isSearchable: Boo
       field = value
       fireValueChanged()
     }
+
+  override val focusable: Boolean
+    get() = true
+
+  var startEditing = false
+    private set
+
+  override fun requestFocus() {
+    startEditing = true
+    fireValueChanged()
+    startEditing = false
+  }
 }

@@ -48,32 +48,39 @@ interface InspectorPanel {
    * Add an editor component with the property name for the label to the inspector.
    *
    * Add [editor] with model [editorModel] to the inspector, and return the new [InspectorLineModel].
+   * The editor is optionally placed as a child of expandable [parent] line.
    */
-  fun addEditor(editorModel: PropertyEditorModel, editor: JComponent): InspectorLineModel
+  fun addCustomEditor(editorModel: PropertyEditorModel, editor: JComponent, parent: InspectorLineModel? = null): InspectorLineModel
 
   /**
    * Add an editor component with the property name for the label to the inspector.
    *
-   * Same as [addEditor], but takes the model and editor as a pair.
+   * Same as [addCustomEditor], but takes the model and editor as a pair.
    * Add an editor with a model as a [modelEditorPair] to the inspector, and return the new [InspectorLineModel].
+   * The editor is optionally placed as a child of expandable [parent] line.
    */
-  fun addEditor(modelEditorPair: Pair<PropertyEditorModel, JComponent>): InspectorLineModel {
-    return addEditor(modelEditorPair.first, modelEditorPair.second)
+  fun addEditor(modelEditorPair: Pair<PropertyEditorModel, JComponent>, parent: InspectorLineModel? = null): InspectorLineModel {
+    return addCustomEditor(modelEditorPair.first, modelEditorPair.second, parent)
   }
 
   /**
    * Add a table of properties to the inspector.
    *
-   * Embed a table with the items in [tableModel].
-   * Specify if the table should be [searchable] i.e. the user can search for items
-   * in the table using the the general search for the properties panel.
+   * Add a table with the items specified in [tableModel].
+   * Specify if the table should be [searchable] i.e. the user can search for the items in the table.
+   * Cell renderer and cell editors must be specified in [tableUI].
+   * The table is optionally placed as a child of expandable [parent] line.
    */
-  fun addTable(tableModel: PTableModel, searchable: Boolean): InspectorLineModel
+  fun addTable(tableModel: PTableModel,
+               searchable: Boolean,
+               tableUI: TableUIProvider,
+               parent: InspectorLineModel? = null): InspectorLineModel
 
   /**
    * Adds a custom panel that spans the entire width.
    *
    * Add a [component] (usually a JPanel) to the inspector, and return the new [InspectorLineModel].
+   * The component is optionally placed as a child of expandable [parent] line.
    */
-  fun addComponent(component: JComponent): InspectorLineModel
+  fun addComponent(component: JComponent, parent: InspectorLineModel? = null): InspectorLineModel
 }

@@ -34,6 +34,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 import static com.android.tools.idea.res.FileResourceOpener.PROTO_XML_LEAD_BYTE;
 
 /**
@@ -47,10 +48,14 @@ public class AndroidManifestUtils {
    *
    * @param aarDir the directory containing unpacked contents of an AAR, or unpacked contents of res.apk
    * @return the package name from the manifest
+   * @deprecated this method assumes a certain layout of the unzipped AAR folder, when possible use other methods directly on the file you
+   *             want to read.
    */
+  @Nullable
+  @Deprecated
   public static String getAarPackageName(@NotNull File aarDir) throws IOException {
     try {
-      return getPackageNameFromManifestFile(aarDir);
+      return getPackageNameFromManifestFile(new File(aarDir, FN_ANDROID_MANIFEST_XML));
     } catch (FileNotFoundException e) {
       File resApkFile = new File(aarDir, RES_APK);
       try (ZipFile zipFile = new ZipFile(resApkFile)) {
@@ -67,8 +72,7 @@ public class AndroidManifestUtils {
    * @return the package name from the manifest
    */
   @Nullable
-  public static String getPackageNameFromManifestFile(@NotNull File aarDir) throws IOException {
-    File manifestFile = new File(aarDir, ANDROID_MANIFEST_XML);
+  public static String getPackageNameFromManifestFile(@NotNull File manifestFile) throws IOException {
     try (InputStream stream = new BufferedInputStream(new FileInputStream(manifestFile))) {
       return getPackageName(stream);
     } catch (XmlPullParserException e) {

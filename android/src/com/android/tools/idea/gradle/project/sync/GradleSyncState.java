@@ -224,7 +224,7 @@ public class GradleSyncState {
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject, syncSkipped, request.generateSourcesOnSuccess));
 
     AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_STARTED);
-    UsageTracker.getInstance().log(event);
+    UsageTracker.log(event);
 
     return true;
   }
@@ -267,7 +267,7 @@ public class GradleSyncState {
     enableNotifications();
 
     AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_SKIPPED);
-    UsageTracker.getInstance().log(event);
+    UsageTracker.log(event);
   }
 
   public void invalidateLastSync(@NotNull String error) {
@@ -299,7 +299,7 @@ public class GradleSyncState {
     LOG.info(msg);
 
     AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_FAILURE);
-    UsageTracker.getInstance().log(event);
+    UsageTracker.log(event);
 
     syncFinished(syncEndTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message));
@@ -332,7 +332,7 @@ public class GradleSyncState {
     AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_ENDED)
       .setGradleVersion(gradleVersionString)
       .setKotlinSupport(generateKotlinSupportProto());
-    UsageTracker.getInstance().log(event);
+    UsageTracker.log(event);
 
     syncFinished(syncEndTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject));
@@ -454,7 +454,7 @@ public class GradleSyncState {
     LOG.info(String.format("Started setup of project '%1$s'.", myProject.getName()));
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).setupStarted(myProject));
     AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_SETUP_STARTED);
-    UsageTracker.getInstance().log(event);
+    UsageTracker.log(event);
   }
 
   public void setExternalSystemTaskId(@Nullable ExternalSystemTaskId externalSystemTaskId) {

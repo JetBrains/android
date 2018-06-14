@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.common.property2.impl.ui
 
+import com.android.SdkConstants
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
 import com.intellij.util.ui.ThreeStateCheckBox
+import icons.StudioIcons
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.KeyStroke
@@ -30,6 +32,8 @@ class PropertyThreeStateCheckBox(private val propertyModel: ThreeStateBooleanPro
   private var stateChangeFromModel = false
 
   init {
+    icon = StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_CENTER
+    state = toThreeStateValue(propertyModel.value)
     registerKeyAction({ propertyModel.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
     registerKeyAction({ propertyModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
     registerKeyAction({ propertyModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
@@ -64,14 +68,14 @@ class PropertyThreeStateCheckBox(private val propertyModel: ThreeStateBooleanPro
   private fun toThreeStateValue(value: String?) =
     when (value) {
       "", null -> ThreeStateCheckBox.State.DONT_CARE
-      "true" -> ThreeStateCheckBox.State.SELECTED
+      SdkConstants.VALUE_TRUE -> ThreeStateCheckBox.State.SELECTED
       else -> ThreeStateCheckBox.State.NOT_SELECTED
     }
 
   private fun fromThreeStateValue(value: Any?) =
     when (value) {
-      ThreeStateCheckBox.State.SELECTED -> "true"
-      ThreeStateCheckBox.State.NOT_SELECTED -> "false"
+      ThreeStateCheckBox.State.SELECTED -> SdkConstants.VALUE_TRUE
+      ThreeStateCheckBox.State.NOT_SELECTED -> SdkConstants.VALUE_FALSE
       else -> ""
     }
 }

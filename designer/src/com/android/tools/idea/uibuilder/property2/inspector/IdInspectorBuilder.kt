@@ -31,7 +31,7 @@ class IdInspectorBuilder(private val editorProvider: EditorProvider<NeleProperty
     val property = properties.getOrNull(ANDROID_URI, ATTR_ID) ?: return
     if (!isApplicable(property)) return
 
-    inspector.addEditor(editorProvider(property))
+    inspector.addEditor(editorProvider.createEditor(property))
   }
 
   private fun isApplicable(property: NelePropertyItem): Boolean {

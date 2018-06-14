@@ -30,8 +30,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class ApkParser {
@@ -90,8 +92,8 @@ public class ApkParser {
   }
 
   @NotNull
-  public synchronized ListenableFuture<AndroidApplicationInfo> getApplicationInfo(Path pathToAapt, @Nullable Archive archive) {
-    return ourExecutorService.submit(() -> getAppInfo(pathToAapt, archive));
+  public synchronized ListenableFuture<AndroidApplicationInfo> getApplicationInfo(Path pathToAapt, @Nullable ArchiveEntry entry) {
+    return ourExecutorService.submit(() -> getAppInfo(pathToAapt, entry));
   }
 
   @NotNull
@@ -123,13 +125,28 @@ public class ApkParser {
     if (archive == null){
       return AndroidApplicationInfo.UNKNOWN;
     }
+    Path path = archive.getContentRoot().resolve(SdkConstants.FN_ANDROID_MANIFEST_XML);
+    return getAppInfo(pathToAapt, new ArchiveEntry(archive, path, path.toString()));
+  }
+
+  @NotNull
+  public static AndroidApplicationInfo getAppInfo(@NonNull Path pathToAapt, @Nullable ArchiveEntry archiveEntry) {
+    if (archiveEntry == null){
+      return AndroidApplicationInfo.UNKNOWN;
+    }
     try {
       AaptInvoker invoker = new AaptInvoker(pathToAapt, new LogWrapper(ApkParser.class));
 
-      List<String> xmlTree = invoker.getXmlTree(archive.getPath().toFile(), SdkConstants.FN_ANDROID_MANIFEST_XML);
+      File archiveFile = archiveEntry.getArchive().getPath().toFile();
+      // Note: aapt paths don't start with a "/"
+      String entryPath = archiveEntry.getPath().toString();
+      if (entryPath.startsWith("/")) {
+        entryPath = entryPath.substring(1);
+      }
+      List<String> xmlTree = invoker.getXmlTree(archiveFile, entryPath);
       return AndroidApplicationInfo.parse(xmlTree);
     }
-    catch (ProcessException e) {
+    catch (Throwable e) {
       Logger.getInstance(ApkViewPanel.class).warn("Unable to run aapt", e);
       return AndroidApplicationInfo.UNKNOWN;
     }

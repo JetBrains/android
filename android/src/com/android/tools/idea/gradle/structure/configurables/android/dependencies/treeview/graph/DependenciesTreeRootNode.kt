@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency
 import com.android.tools.idea.gradle.structure.model.toLibraryKey
+import java.util.function.Consumer
 
 class DependenciesTreeRootNode(model: PsProject, uiSettings: PsUISettings) : AbstractPsResettableNode<PsProject>(model, uiSettings) {
   private val dependencyNodeComparator: DependencyNodeComparator = DependencyNodeComparator(
@@ -37,7 +38,7 @@ class DependenciesTreeRootNode(model: PsProject, uiSettings: PsUISettings) : Abs
 
   override fun createChildren(): List<AbstractDependencyNode<out PsAndroidDependency>> {
     val collector = DependencyCollector()
-    firstModel.forEachModule { module -> collectDependencies(module, collector) }
+    firstModel.forEachModule(Consumer { module -> collectDependencies(module, collector) })
 
     val libraryNodes =
       collector.libraryDependenciesBySpec

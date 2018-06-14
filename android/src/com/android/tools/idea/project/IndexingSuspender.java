@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.npw.model.MultiTemplateRenderer;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.impl.stores.BatchUpdateListener;
 import com.intellij.openapi.diagnostic.Logger;
@@ -334,12 +335,14 @@ public class IndexingSuspender {
    */
   private void startBatchUpdate() {
     LOG.info("Starting batch update for project: " + myProject.toString());
-    executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
-      @Override
-      public void execute() {
+    TransactionGuard.submitTransaction(
+      myProject,
+      () -> executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
+        @Override
+        public void execute() {
         myProject.getMessageBus().syncPublisher(BatchUpdateListener.TOPIC).onBatchUpdateStarted();
       }
-    });
+    }));
   }
 
   /**
@@ -347,12 +350,14 @@ public class IndexingSuspender {
    */
   private void finishBatchUpdate() {
     LOG.info("Finishing batch update for project: " + myProject.toString());
-    executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
-      @Override
-      public void execute() {
+    TransactionGuard.submitTransaction(
+      myProject,
+      () -> executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
+        @Override
+        public void execute() {
         myProject.getMessageBus().syncPublisher(BatchUpdateListener.TOPIC).onBatchUpdateFinished();
       }
-    });
+    }));
   }
 
   /**

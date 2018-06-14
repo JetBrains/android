@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.flamegraph.SampledMethodUsage;
@@ -83,8 +82,9 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
     SelectionModel selection = new SelectionModel(mTimeSelectionRangeUs);
     this.mSelector = new SelectionComponent(selection, mTimeGlobalRangeUs);
 
-    this.mChart = new HTreeChart<DefaultHNode<SampledMethodUsage>>(null, mTimeSelectionRangeUs, HTreeChart.Orientation.BOTTOM_UP);
-    this.mChart.setHRenderer(new SampledMethodUsageHRenderer());
+    mChart = new HTreeChart.Builder<>(null, mTimeSelectionRangeUs, new SampledMethodUsageHRenderer())
+      .setOrientation(HTreeChart.Orientation.BOTTOM_UP)
+      .build();
   }
 
   @Override

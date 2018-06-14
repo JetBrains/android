@@ -17,12 +17,10 @@ package com.android.tools.idea.uibuilder.property2.testutils
 
 import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.idea.common.property2.api.*
-import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.FlagPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
+import com.android.tools.idea.common.property2.impl.model.*
 import com.android.tools.idea.common.property2.impl.support.PropertiesTableImpl
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.property2.NelePropertiesProvider
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
@@ -31,15 +29,15 @@ import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.attrs.AttributeFormat
-import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.JComponent
 import javax.swing.JPanel
 
 class InspectorTestUtil(projectRule: AndroidProjectRule, tag: String, parentTag: String = "")
-  : SupportTestUtil(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, tag, parentTag) {
+  : SupportTestUtil(projectRule, tag, parentTag) {
   private val _properties: Table<String, String, NelePropertyItem> = HashBasedTable.create()
 
-  val properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
+  var properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
+    private set
 
   val editorProvider = FakeEditorProviderImpl()
 
@@ -57,6 +55,13 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, tag: String, parentTag:
 
   fun removeProperty(namespace: String, name: String) {
     _properties.remove(namespace, name)
+  }
+
+  fun loadProperties() {
+    val provider = NelePropertiesProvider(model)
+    for (propertyItem in provider.getProperties(components).values) {
+      _properties.put(propertyItem.namespace, propertyItem.name, propertyItem)
+    }
   }
 }
 
@@ -96,10 +101,6 @@ class FakeInspectorLine(val type: LineType) : InspectorLineModel {
     expandable = true
     expanded = initiallyExpanded
   }
-
-  override fun addChild(child: InspectorLineModel) {
-    children.add(child)
-  }
 }
 
 class FakeInspectorPanel : InspectorPanel {
@@ -112,39 +113,47 @@ class FakeInspectorPanel : InspectorPanel {
     return line
   }
 
-  override fun addEditor(editorModel: PropertyEditorModel, editor: JComponent): InspectorLineModel {
+  override fun addCustomEditor(editorModel: PropertyEditorModel, editor: JComponent, parent: InspectorLineModel?): InspectorLineModel {
     val line = FakeInspectorLine(LineType.PROPERTY)
     editorModel.lineModel = line
     line.editorModel = editorModel
     lines.add(line)
+    addAsChild(line, parent)
     return line
   }
 
-  override fun addEditor(modelEditorPair: Pair<PropertyEditorModel, JComponent>): InspectorLineModel {
-    return addEditor(modelEditorPair.first, modelEditorPair.second)
-  }
-
-  override fun addTable(tableModel: PTableModel, searchable: Boolean): InspectorLineModel {
+  override fun addTable(tableModel: PTableModel,
+                        searchable: Boolean,
+                        tableUI: TableUIProvider,
+                        parent: InspectorLineModel?): InspectorLineModel {
     val line = FakeInspectorLine(LineType.TABLE)
     line.tableModel = tableModel
     lines.add(line)
+    addAsChild(line, parent)
     return line
   }
 
-  override fun addComponent(component: JComponent): InspectorLineModel {
+  override fun addComponent(component: JComponent, parent: InspectorLineModel?): InspectorLineModel {
     val line = FakeInspectorLine(LineType.PANEL)
     lines.add(line)
+    addAsChild(line, parent)
     return line
+  }
+
+  private fun addAsChild(child: FakeInspectorLine, parent: InspectorLineModel?) {
+    val group = parent as? FakeInspectorLine ?: return
+    group.children.add(child)
+    child.parent = group
   }
 }
 
 class FakeEditorProviderImpl: EditorProvider<NelePropertyItem> {
   private val enumSupportProvider = NeleEnumSupportProvider()
-  private val controlTypeProvider = NeleControlTypeProvider()
+  private val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
 
-  override fun invoke(property: NelePropertyItem): Pair<PropertyEditorModel, JComponent> {
+  override fun createEditor(property: NelePropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val enumSupport = enumSupportProvider(property)
-    val controlType = controlTypeProvider(property, enumSupport)
+    val controlType = controlTypeProvider(property)
 
     when (controlType) {
       ControlType.COMBO_BOX ->
@@ -161,6 +170,9 @@ class FakeEditorProviderImpl: EditorProvider<NelePropertyItem> {
 
       ControlType.FLAG_EDITOR ->
         return Pair(FlagPropertyEditorModel(property as FlagsPropertyItem<*>), JPanel())
+
+      ControlType.BOOLEAN ->
+        return Pair(BooleanPropertyEditorModel(property), JPanel())
     }
   }
 }

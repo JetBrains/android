@@ -241,7 +241,7 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
       override fun createEditorComponent(): JTextField {
         val editor = object : CommonTextField<CommonTextFieldModel>(model) {
           override fun processKeyEvent(event: KeyEvent) {
-            if (comboBox.isPopupVisible || willOpenPopup(event)) {
+            if (willOpenPopup(event)) {
               comboBox.processKeyEvent(event)
             }
             else {

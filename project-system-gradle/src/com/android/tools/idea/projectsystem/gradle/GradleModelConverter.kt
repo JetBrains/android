@@ -22,8 +22,8 @@ import com.android.ide.common.util.PathString
 import com.android.projectmodel.*
 import com.android.projectmodel.AndroidProject
 import com.android.projectmodel.Variant
-import com.android.resources.ResourceType
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.gradle.project.model.classFieldsToDynamicResourceValues
 import java.io.File
 
 // This file contains utilities for converting Gradle model types (from builder-model) into project model types.
@@ -287,7 +287,7 @@ class GradleModelConverter(
                 manifestValues = mergedConfig.manifestValues.copy(
                     applicationId = applicationId
                 ),
-                resValues = mergedConfig.resValues + getResValues(resValues)
+                resValues = mergedConfig.resValues + classFieldsToDynamicResourceValues(resValues)
             )
           }
 
@@ -427,29 +427,18 @@ class GradleModelConverter(
     return builder.build()
   }
 
-  private fun getResValues(classFields: Map<String, ClassField>): Map<String, ResValue> {
-    val result = HashMap<String, ResValue>()
-    for (field in classFields.values) {
-      val resourceType = ResourceType.getEnum(field.type)
-      if (resourceType != null) {
-        result.put(field.name, ResValue(resourceType, field.value))
-      }
-    }
-    return result
-  }
-
   private fun getBaseConfig(config: BaseConfig): Config {
     with(config) {
       val sources = HashMap<AndroidPathType, List<PathString>>()
-      sources.put(AndroidPathType.PROGUARD_FILE, filesToPathStrings(proguardFiles))
-      sources.put(AndroidPathType.CONSUMER_PROGUARD_FILE, filesToPathStrings(consumerProguardFiles))
+      sources[AndroidPathType.PROGUARD_FILE] = filesToPathStrings(proguardFiles)
+      sources[AndroidPathType.CONSUMER_PROGUARD_FILE] = filesToPathStrings(consumerProguardFiles)
 
       return Config(
           applicationIdSuffix = applicationIdSuffix,
           versionNameSuffix = versionNameSuffix,
           manifestPlaceholderValues = manifestPlaceholders,
           sources = SourceSet(sources),
-          resValues = getResValues(resValues)
+          resValues = classFieldsToDynamicResourceValues(resValues)
       )
     }
   }

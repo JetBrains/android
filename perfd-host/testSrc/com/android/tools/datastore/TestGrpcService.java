@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore;
 
+import com.android.testutils.TestUtils;
 import io.grpc.*;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
@@ -77,7 +78,8 @@ public final class TestGrpcService extends ExternalResource {
     myServer = builder.build();
     myServer.start();
     // TODO: Update to work on windows. PathUtil.getTempPath() fails with bazel
-    myTestFile = new File("/tmp/datastoredb");
+    myTestFile = new File(TestUtils.createTempDirDeletedOnExit(), "datastoredb");
+    myTestFile.deleteOnExit();
     myDatabase = new DataStoreDatabase(myTestFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE, new FakeLogService());
     myDataStoreService.getBackingNamespaces()
                       .forEach(namespace -> myDataStoreService.setBackingStore(namespace, myDatabase.getConnection()));
@@ -87,7 +89,6 @@ public final class TestGrpcService extends ExternalResource {
   protected void after() {
     myServer.shutdownNow();
     myDatabase.disconnect();
-    myTestFile.delete();
     try {
       // Validate the gRPC call execution order in its entirety makes it easier to view diffs.
       myRpcFile.closeAndValidate();

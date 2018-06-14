@@ -90,7 +90,7 @@ public class ModuleResourceManagers {
 
   @NotNull
   public LocalResourceManager getLocalResourceManager() {
-    if (myLocalResourceManager == null) {
+    if (myLocalResourceManager == null || myLocalResourceManager.getFacet().isDisposed()) {
       myLocalResourceManager = new LocalResourceManager(getFacet());
     }
     return myLocalResourceManager;

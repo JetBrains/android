@@ -66,3 +66,10 @@ open class GenericInspectorLineModel : InspectorLineModel {
     listeners.forEach { it.valueChanged() }
   }
 }
+
+/**
+ * This class exists for the benefit of unit testing only.
+ *
+ * The model is used for generated separators around title elements in the properties panel.
+ */
+class SeparatorLineModel: GenericInspectorLineModel()

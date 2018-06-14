@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property2.testutils
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.MockNlComponent
 import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
@@ -31,9 +32,12 @@ import org.mockito.Mockito
 
 open class SupportTestUtil(private val facet: AndroidFacet, private val fixture: CodeInsightTestFixture,
                            tag: String, parentTag: String = "", activityName: String = "") {
-  private val model = NelePropertiesModel(fixture.testRootDisposable, facet)
-  private val components = listOf(createComponent(tag, parentTag, activityName))
+  val model = NelePropertiesModel(fixture.testRootDisposable, facet)
+  val components = listOf(createComponent(tag, parentTag, activityName))
   val nlModel = components[0].model
+
+  constructor(projectRule: AndroidProjectRule, tag: String, parentTag: String = ""):
+    this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, tag, parentTag)
 
   fun makeProperty(namespace: String, name: String, type: NelePropertyType): NelePropertyItem {
     return NelePropertyItem(namespace, name, type, null, "", model, components)

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
@@ -22,49 +25,79 @@ import com.android.tools.idea.gradle.structure.model.android.PsCollectionBase
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.util.GradleUtil.getGradlePath
 import com.intellij.openapi.module.ModuleManager
+import org.jetbrains.android.facet.AndroidFacet
+import java.io.File
 
 enum class ModuleKind { ANDROID, JAVA }
-data class ModuleKey(val kind: ModuleKind, val name: String)
+data class ModuleKey(val kind: ModuleKind, val gradlePath: String)
 
 class PsModuleCollection(parent: PsProject) : PsCollectionBase<PsModule, ModuleKey, PsProject>(parent) {
   override fun getKeys(from: PsProject): Set<ModuleKey> {
     val result = mutableSetOf<ModuleKey>()
     val projectParsedModel = from.parsedModel
-    for (resolvedModel in ModuleManager.getInstance(from.resolvedModel).modules) {
+    val parsedModules = parent.parsedModel.modules.toMutableSet()
+    for (resolvedModel in ModuleManager.getInstance(from.ideProject).modules) {
       val gradlePath = getGradlePath(resolvedModel)
       val moduleParsedModel = projectParsedModel.getModuleBuildModel(resolvedModel)
       if (gradlePath != null && moduleParsedModel != null) {
-        val gradleModel = AndroidModuleModel.get(resolvedModel)
+        val gradleModel = AndroidFacet.getInstance(resolvedModel)
         if (gradleModel != null) {
-          result.add(ModuleKey(ModuleKind.ANDROID, resolvedModel.name))
+          result.add(ModuleKey(ModuleKind.ANDROID, gradlePath))
+          parsedModules.remove(gradlePath)
         }
         else {
           val javaModuleModel = JavaModuleModel.get(resolvedModel)
           if (javaModuleModel != null && javaModuleModel.isBuildable) {
-            result.add(ModuleKey(ModuleKind.JAVA, resolvedModel.name))
+            result.add(ModuleKey(ModuleKind.JAVA, gradlePath))
+            parsedModules.remove(gradlePath)
           }
         }
-
       }
+    }
+    parent.parsedModel.modules.forEach{ path ->
+      val buildModel = projectParsedModel.getModuleByGradlePath(path)
+      val moduleType = buildModel?.parsedModelModuleType()
+      val moduleKey = when (moduleType) {
+        PsModuleType.JAVA -> ModuleKey(ModuleKind.JAVA, path)
+        PsModuleType.ANDROID_APP,
+        PsModuleType.ANDROID_DYNAMIC_FEATURE,
+        PsModuleType.ANDROID_FEATURE,
+        PsModuleType.ANDROID_INSTANTAPP,
+        PsModuleType.ANDROID_LIBRARY,
+        PsModuleType.ANDROID_TEST -> ModuleKey(ModuleKind.ANDROID, path)
+        null,
+        PsModuleType.UNKNOWN -> null
+      }
+      moduleKey?.let { result.add(it) }
     }
     return result
   }
 
-  override fun create(key: ModuleKey): PsModule {
-    val projectParsedModel = parent.parsedModel
-    val moduleManager = ModuleManager.getInstance(parent.resolvedModel)
-    val module = moduleManager.findModuleByName(key.name)!!
-    val gradlePath = getGradlePath(module)!!
-    val moduleParsedModel = projectParsedModel.getModuleBuildModel(module)
-    return when (key.kind) {
-      ModuleKind.ANDROID -> {
-        val moduleModel = AndroidModuleModel.get(module)
-        PsAndroidModule(parent, key.name, moduleModel, gradlePath, moduleParsedModel)
-      }
-      ModuleKind.JAVA -> PsJavaModule(parent, module.name, gradlePath, JavaModuleModel.get(module), moduleParsedModel)
-    }
+  override fun create(key: ModuleKey): PsModule = when (key.kind) {
+    ModuleKind.ANDROID -> PsAndroidModule(parent, key.gradlePath)
+    ModuleKind.JAVA -> PsJavaModule(parent, key.gradlePath)
   }
 
-  // TODO(solodkyy): Support module refreshing.
-  override fun update(key: ModuleKey, model: PsModule) = Unit
+  override fun update(key: ModuleKey, model: PsModule) {
+    val projectParsedModel = parent.parsedModel
+    val moduleManager = ModuleManager.getInstance(parent.ideProject)
+    val module = moduleManager.modules.firstOrNull { GradleFacet.getInstance(it)?.gradleModuleModel?.gradlePath == key.gradlePath }
+    val moduleName = module?.name ?: key.gradlePath.substring(1).replace(':', '-')
+    val moduleParsedModel = module?.let { projectParsedModel.getModuleBuildModel(module) }
+                            ?: projectParsedModel.getModuleByGradlePath(key.gradlePath)
+    return when (key.kind) {
+      // Module type cannot be changed within the PSD.
+      ModuleKind.ANDROID -> (model as PsAndroidModule).init(moduleName, module?.let { AndroidModuleModel.get(module) }, moduleParsedModel)
+      // Module type cannot be changed within the PSD.
+      ModuleKind.JAVA -> (model as PsJavaModule).init(moduleName, module?.let { JavaModuleModel.get(module) }, moduleParsedModel)
+    }
+  }
 }
+
+private fun ProjectBuildModel.getModuleByGradlePath(gradlePath: String): GradleBuildModel? =
+  projectBuildModel?.virtualFile?.parent
+    ?.findFileByRelativePath(
+      gradlePath.trimStart(':').replace(':', '/'))?.path?.let { getModuleBuildModel(File(it)) }
+
+private val ProjectBuildModel.modules: Set<String>
+  get() = projectSettingsModel?.modulePaths()?.toSet().orEmpty()

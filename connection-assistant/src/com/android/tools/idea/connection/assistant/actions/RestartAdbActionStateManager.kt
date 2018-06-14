@@ -80,8 +80,7 @@ class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBri
         val adb = AndroidDebugBridge.getBridge()
 
         val deviceCount = adb?.devices?.size ?: -1
-        UsageTracker.getInstance()
-          .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
+        UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
                  .setConnectionAssistantEvent(ConnectionAssistantEvent.newBuilder()
                                                 .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.ADB_DEVICES_DETECTED)
                                                 .setAdbDevicesDetected(deviceCount)))

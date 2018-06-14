@@ -28,8 +28,11 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.intellij.debugger.NoDataException;
+import com.intellij.debugger.SourcePosition;
 import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.PositionManagerImpl;
+import com.intellij.debugger.requests.ClassPrepareRequestor;
 import com.intellij.debugger.settings.DebuggerSettings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -45,19 +48,25 @@ import com.sun.jdi.Field;
 import com.sun.jdi.Location;
 import com.sun.jdi.ReferenceType;
 import com.sun.jdi.Value;
+import com.sun.jdi.request.ClassPrepareRequest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+
 
 public class InstantRunPositionManager extends PositionManagerImpl {
   private static Logger LOG = Logger.getInstance(InstantRunPositionManager.class);
 
   private Map<AndroidVersion, VirtualFile> mySourceFoldersByApiLevel;
+  private final DebugProcessImpl myDebugProcess;
 
   public InstantRunPositionManager(DebugProcessImpl debugProcess) {
     super(debugProcess);
+    this.myDebugProcess = debugProcess;
   }
 
   @Override
@@ -73,6 +82,23 @@ public class InstantRunPositionManager extends PositionManagerImpl {
       }
     }
     return ret;
+  }
+
+  @NotNull
+  @Override
+  public List<ReferenceType> getAllClasses(@NotNull SourcePosition position) throws NoDataException {
+    List<ReferenceType> referenceTypes = super.getAllClasses(position);
+    // For desugaring, we also need to add the extra synthesized classes that may contain the source position.
+    return DesugarUtils.addExtraClassesIfNeeded(myDebugProcess, position, referenceTypes, this);
+  }
+
+  @NotNull
+  @Override
+  public List<ClassPrepareRequest> createPrepareRequests(@NotNull ClassPrepareRequestor requestor,
+                                                         @NotNull SourcePosition position) throws NoDataException {
+    final List<ClassPrepareRequest> requests = new ArrayList<>(super.createPrepareRequests(requestor, position));
+    // For desugaring, we also need to add prepare requests for the extra synthesized classes that may contain the source position.
+    return DesugarUtils.addExtraPrepareRequestsIfNeeded(myDebugProcess, requestor, position, requests);
   }
 
   /**

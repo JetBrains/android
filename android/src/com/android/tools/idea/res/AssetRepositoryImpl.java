@@ -113,7 +113,7 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
    *
    * @param cookie ignored
    * @param path the path pointing to a file on disk, or to a ZIP file entry. In the latter case the path
-   *     has the following format: "apk:<i>path_to_zip_file</i>:<i>path_to_zip_entry</i>
+   *     has the following format: "apk:<i>path_to_zip_file</i>!/<i>path_to_zip_entry</i>
    * @param mode ignored
    */
   @Override

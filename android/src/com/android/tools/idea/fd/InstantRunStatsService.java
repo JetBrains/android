@@ -137,7 +137,7 @@ public class InstantRunStatsService {
     } else {
       studioEvent.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfoApilLevelOnly(device));
     }
-    UsageTracker.getInstance().log(studioEvent);
+    UsageTracker.log(studioEvent);
   }
 
   @NotNull

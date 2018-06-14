@@ -74,7 +74,7 @@ public class GradleTasksTest {
     runTask(
       taskName, runContent -> {
         for (int i = 0; i < 7; i++) {
-          runContent.waitForOutput(new PatternTextMatcher(Pattern.compile(".*output entry " + i + ".*", DOTALL)), 2);
+          runContent.waitForOutput(new PatternTextMatcher(Pattern.compile(".*output entry " + i + ".*", DOTALL)), 10);
           assertTrue(runContent.isExecutionInProgress());
         }
         Wait.seconds(10).expecting("task execution to finish").until(() -> !runContent.isExecutionInProgress());

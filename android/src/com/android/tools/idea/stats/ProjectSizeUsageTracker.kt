@@ -92,7 +92,7 @@ open class ProjectSizeUsageTracker(project: Project) : AbstractProjectComponent(
                   .setType(stats.fileType.statsFileType())
                   .setCount(stats.count))
             }
-            UsageTracker.getInstance().log(builder)
+            UsageTracker.log(builder)
           }
         }
       })

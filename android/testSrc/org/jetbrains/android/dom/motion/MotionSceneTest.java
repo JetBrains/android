@@ -29,7 +29,11 @@ public class MotionSceneTest extends AndroidDomTestCase {
   }
 
   public void testMotionSceneSubTags() throws Throwable {
-    doTestCompletionVariants(getTestName(true) + ".xml", "ConstraintSet", "OnSwipe", "Transition", "KeyFrameSet", "StateSet");
+    doTestCompletionVariants(getTestName(true) + ".xml", "ConstraintSet", "Transition", "StateSet");
+  }
+
+  public void testTransitionSubTags() throws Throwable {
+    doTestCompletionVariants(getTestName(true) + ".xml", "OnSwipe", "KeyFrameSet");
   }
 
   public void testConstraintSetSubTags() throws Throwable {

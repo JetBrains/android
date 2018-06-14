@@ -34,7 +34,7 @@ abstract class BaseStudioReport extends CrashReport {
 
   @Override
   protected void serializeTo(@NonNull MultipartEntityBuilder builder) {
-    AndroidStudioEvent.IdeBrand ideBrand = UsageTracker.getInstance().getIdeBrand();
+    AndroidStudioEvent.IdeBrand ideBrand = UsageTracker.getIdeBrand();
     builder.addTextBody("ideBrand", ideBrand.getValueDescriptor().getName());
   }
 }

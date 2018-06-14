@@ -145,7 +145,7 @@ public class NewActivityTest {
       .open("app/build.gradle")
       .moveBetween("apply plugin: 'kotlin-android'", "")
       .moveBetween("apply plugin: 'kotlin-android-extensions'", "")
-      .moveBetween("implementation \"org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_", "version")
+      .moveBetween("implementation \"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_", "version")
       .enterText("my_")
       .open("build.gradle")
       .moveBetween("ext.kotlin_", "version")
@@ -295,7 +295,7 @@ public class NewActivityTest {
 
   private void verifyNewActivityProjectPane(@NotNull String viewId, @NotNull String name, boolean finish) {
     // Change to viewId
-    guiTest.ideFrame().getProjectView().selectPane(viewId, name);
+    guiTest.ideFrame().getProjectView().selectPane(name);
     myEditor = guiTest.ideFrame().getEditor();
     myEditor.open(PROVIDED_ACTIVITY);
 

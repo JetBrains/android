@@ -97,7 +97,7 @@ public final class DeveloperService {
 
   private void trackEvent(AndroidStudioEvent.EventKind eventKind) {
 
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
       .setCategory(AndroidStudioEvent.EventCategory.DEVELOPER_SERVICES)
                                    .setKind(eventKind)
                                    .setDeveloperServiceKind(serviceIdToServiceKind(getMetadata().getId())));

@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.AndroidProject.*
+import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
-import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
-import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon
@@ -34,19 +30,42 @@ import javax.swing.Icon
 
 class PsAndroidModule(
   parent: PsProject,
-  name: String,
-  val resolvedModel: AndroidModuleModel?,
-  gradlePath: String,
-  parsedModel: GradleBuildModel?
-) : PsModule(parent, name, gradlePath, parsedModel) {
+  gradlePath: String
+) : PsModule(parent, gradlePath) {
+  var resolvedModel: AndroidModuleModel? = null; private set
+  override var projectType: PsModuleType = PsModuleType.UNKNOWN; private set
+  var isLibrary: Boolean = false; private set
+  override var rootDir: File? = null; private set
+  override var icon: Icon? = null; private set
+
   private var buildTypeCollection: PsBuildTypeCollection? = null
   private var productFlavorCollection: PsProductFlavorCollection? = null
   private var variantCollection: PsVariantCollection? = null
   private var dependencyCollection: PsAndroidModuleDependencyCollection? = null
   private var signingConfigCollection: PsSigningConfigCollection? = null
 
-  val projectType: Int? get() = resolvedModel?.androidProject?.projectType ?: parsedModel?.parsedModelModuleType()
-  val isLibrary: Boolean get() = projectType != PROJECT_TYPE_APP
+  fun init(
+    name: String,
+    resolvedModel: AndroidModuleModel?,
+    parsedModel: GradleBuildModel?
+  ) {
+    super.init(name, parsedModel)
+    this.resolvedModel = resolvedModel
+
+    projectType =
+      moduleTypeFromAndroidModuleType(resolvedModel?.androidProject?.projectType).takeUnless { it == PsModuleType.UNKNOWN }
+      ?: parsedModel?.parsedModelModuleType() ?: PsModuleType.UNKNOWN
+    isLibrary = projectType.androidModuleType != PROJECT_TYPE_APP
+    rootDir = resolvedModel?.rootDirPath ?: parsedModel?.virtualFile?.path?.let { File(it).parentFile }
+    icon = projectType.androidModuleType?.let { getAndroidModuleIcon(it) }
+
+    // TODO(solodkyy): Support collection refreshes.
+    buildTypeCollection = null
+    productFlavorCollection = null
+    variantCollection = null
+    dependencyCollection = null
+    signingConfigCollection = null
+  }
 
   val buildTypes: List<PsBuildType> get() = getOrCreateBuildTypeCollection().items()
   val productFlavors: List<PsProductFlavor> get() = getOrCreateProductFlavorCollection().items()
@@ -76,11 +95,6 @@ class PsAndroidModule(
   override fun canDependOn(module: PsModule): Boolean =
     // 'module' is either a Java library or an AAR module.
     (module as? PsAndroidModule)?.isLibrary == true
-
-  override val rootDir: File?
-    get() = resolvedModel?.rootDirPath ?: parsedModel?.virtualFile?.path?.let { File(it).parentFile }
-
-  override val icon: Icon? get() = projectType?.let { getAndroidModuleIcon(it) }
 
   override fun populateRepositories(repositories: MutableList<ArtifactRepository>) {
     super.populateRepositories(repositories)
@@ -250,17 +264,4 @@ class PsAndroidModule(
   private fun resetDeclaredDependencies() {
     dependencyCollection = null
   }
-}
-
-private fun GradleBuildModel.parsedModelModuleType(): Int? =
-  plugins().mapNotNull { moduleProjectTypeFromPlugin(it.name().asString().orEmpty()) }.firstOrNull()
-
-private fun moduleProjectTypeFromPlugin(plugin: String): Int? = when (plugin) {
-  "com.android.application", "android" -> PROJECT_TYPE_APP
-  "com.android.library", "android-library" -> PROJECT_TYPE_LIBRARY
-  "com.android.instantapp" -> PROJECT_TYPE_INSTANTAPP
-  "com.android.feature" -> PROJECT_TYPE_FEATURE
-  "com.android.dynamic-feature" -> PROJECT_TYPE_DYNAMIC_FEATURE
-  "com.android.test" -> PROJECT_TYPE_TEST
-  else -> null
 }

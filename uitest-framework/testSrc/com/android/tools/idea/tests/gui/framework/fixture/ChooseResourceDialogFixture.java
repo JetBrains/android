@@ -18,12 +18,12 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.EditReferenceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.StateListPickerFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.adtui.SearchField;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.tools.idea.ui.resourcechooser.StateListPicker;
 import com.google.common.collect.Iterables;
 import com.intellij.icons.AllIcons;
+import com.intellij.ui.SearchTextField;
 import com.intellij.util.ui.JBUI;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -64,8 +64,8 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
   }
 
   public JTextComponentFixture getSearchField() {
-    Component component = robot().finder().find(target(), new TypeMatcher(SearchField.class));
-    return new JTextComponentFixture(robot(), ((SearchField)component).getTextEditor());
+    Component component = robot().finder().find(target(), new TypeMatcher(SearchTextField.class));
+    return new JTextComponentFixture(robot(), ((SearchTextField)component).getTextEditor());
   }
 
   public JTabbedPaneFixture getTabs() {

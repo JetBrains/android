@@ -15,10 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.TableUtils;
-import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.TooltipComponent;
+import com.android.tools.adtui.*;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
@@ -46,7 +43,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.profilers.ProfilerColors.DEFAULT_HOVER_COLOR;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 /**
@@ -137,7 +133,7 @@ final class ConnectionsView {
 
     myTableModel = new ConnectionsTableModel(myStage.getHttpDataFetcher());
 
-    myConnectionsTable = new HoverRowTable(myTableModel, DEFAULT_HOVER_COLOR);
+    myConnectionsTable = new HoverRowTable(myTableModel);
     customizeConnectionsTable();
     createTooltip(stageView);
 

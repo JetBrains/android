@@ -24,10 +24,11 @@ package com.android.tools.idea.common.property2.api
  *  - One view for displaying component properties in Nele
  *  - Another view for displaying key frame properties in Motion Editor
  *
+ * The [id] of this view, (used for storing preferences).
  * Use [addTab] to create a named tab [PropertiesViewTab].
  * Each tab will be shown on a separate tab in the properties panel.
  */
-class PropertiesView<P: PropertyItem>(val model: PropertiesModel<P>) {
+class PropertiesView<P: PropertyItem>(val id: String, val model: PropertiesModel<P>) {
   val tabs = mutableListOf<PropertiesViewTab<P>>()
 
   fun addTab(name: String): PropertiesViewTab<P> {

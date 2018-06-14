@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.dynamicfeature
 
-import com.android.flags.junit.RestoreFlagRule
-import com.android.tools.idea.flags.StudioFlags.NPW_DYNAMIC_APP_MODULE
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -25,27 +23,16 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardF
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-@RunIn(TestGroup.UNRELIABLE) // b/79945618  @RunIn(TestGroup.PROJECT_WIZARD)
+@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner::class)
 class AddDynamicFeatureTest {
   @Rule
   @JvmField
   val guiTest = GuiTestRule()
-
-  @Rule
-  @JvmField
-  val myRestoreFlagRule = RestoreFlagRule(NPW_DYNAMIC_APP_MODULE)
-
-  @Before
-  fun setUp() {
-    NPW_DYNAMIC_APP_MODULE.override(true)
-  }
 
   /**
    * Verifies that user is able to add a Dynamic Feature Module through the
@@ -76,7 +63,7 @@ class AddDynamicFeatureTest {
       .open("dynamic_feature/src/main/AndroidManifest.xml")
       .currentFileContents.run {
       assertThat(this).contains("""dist:onDemand="true"""")
-      assertThat(this).contains("""<dist:fusing include="true" />""")
+      assertThat(this).contains("""<dist:fusing dist:include="true" />""")
     }
 
     ideFrame.editor
@@ -131,7 +118,7 @@ class AddDynamicFeatureTest {
       .open("MyDynamicFeature/src/main/AndroidManifest.xml")
       .currentFileContents.run {
       assertThat(this).contains("""dist:onDemand="false"""")
-      assertThat(this).contains("""<dist:fusing include="false" />""")
+      assertThat(this).contains("""<dist:fusing dist:include="false" />""")
     }
 
     ideFrame.editor

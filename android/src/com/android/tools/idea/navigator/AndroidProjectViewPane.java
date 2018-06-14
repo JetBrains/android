@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.navigator;
 
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
-import com.android.tools.idea.Projects;
+import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectViewSelectInTarget;
 import com.intellij.ide.projectView.BaseProjectTreeBuilder;
+import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPSIPane;
 import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase;
@@ -60,6 +62,7 @@ import javax.swing.tree.TreePath;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.*;
@@ -132,6 +135,15 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   @Override
   protected ProjectAbstractTreeStructureBase createStructure() {
     return new ProjectTreeStructure(myProject, ID) {
+      @Override
+      public List<TreeStructureProvider> getProviders() {
+        List<TreeStructureProvider> providers = super.getProviders();
+        if (providers == null) {
+          return null;
+        }
+        return providers.stream().map(provider ->  new BuildScriptTreeStructureProvider(provider)).collect(Collectors.toList());
+      }
+
       @Override
       protected AbstractTreeNode createRoot(Project project, ViewSettings settings) {
         return new AndroidViewProjectNode(project, settings, AndroidProjectViewPane.this);

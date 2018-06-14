@@ -65,9 +65,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
   }
 
   private fun addEditor(inspector: InspectorPanel, property: NelePropertyItem, group: InspectorLineModel): InspectorLineModel {
-    val line = inspector.addEditor(editorProvider(property))
-    group.addChild(line)
-    return line
+    return inspector.addEditor(editorProvider.createEditor(property), group)
   }
 
   private fun addTextStyle(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, group: InspectorLineModel) {
@@ -77,24 +75,22 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
     val italic = textStyle.flag(TextStyle.VALUE_ITALIC)
     val model = HorizontalEditorPanelModel(textStyle)
     val panel = HorizontalEditorPanel(model)
-    val line = inspector.addEditor(model, panel)
+    val line = inspector.addCustomEditor(model, panel, group)
     panel.add(createIconEditor(line, bold, "Bold", TEXT_STYLE_BOLD, "true", "false"))
     panel.add(createIconEditor(line, italic, "Italics", TEXT_STYLE_ITALIC, "true", "false"))
     panel.add(createIconEditor(line, allCaps, "All Caps", TEXT_STYLE_UPPERCASE, "true", "false"))
-    group.addChild(line)
   }
 
   private fun addAlignment(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, group: InspectorLineModel) {
     val alignment = properties.getOrNull(ANDROID_URI, ATTR_TEXT_ALIGNMENT) ?: return
     val model = HorizontalEditorPanelModel(alignment)
     val panel = HorizontalEditorPanel(model)
-    val line = inspector.addEditor(model, panel)
+    val line = inspector.addCustomEditor(model, panel, group)
     panel.add(createIconEditor(line, alignment, "Align Start of View", TEXT_ALIGN_LAYOUT_LEFT, TextAlignment.VIEW_START))
     panel.add(createIconEditor(line, alignment, "Align Start of Text", TEXT_ALIGN_LEFT, TextAlignment.TEXT_START))
     panel.add(createIconEditor(line, alignment, "Align Center", TEXT_ALIGN_CENTER, TextAlignment.CENTER))
     panel.add(createIconEditor(line, alignment, "Align End of Text", TEXT_ALIGN_RIGHT, TextAlignment.TEXT_END))
     panel.add(createIconEditor(line, alignment, "Align End of View", TEXT_ALIGN_LAYOUT_RIGHT, TextAlignment.VIEW_END))
-    group.addChild(line)
   }
 
   private fun createIconEditor(

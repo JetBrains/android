@@ -296,7 +296,8 @@ public final class TabularLayout implements LayoutManager2 {
   @Override
   public void addLayoutComponent(Component comp, Object constraint) {
     if (!(constraint instanceof Constraint)) {
-      throw new IllegalArgumentException("Children of ProportionalLayouts must be added with a property constraint");
+      throw new IllegalArgumentException(
+        String.format("Children of containers using %s must be added with a constraint", getClass().getSimpleName()));
     }
 
     Constraint typedConstraint = (Constraint)constraint;

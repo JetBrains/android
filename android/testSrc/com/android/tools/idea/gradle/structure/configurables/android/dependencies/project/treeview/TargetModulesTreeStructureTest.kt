@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.testStructure
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
 import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
@@ -26,6 +27,7 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.project.Project
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
+import java.util.function.Consumer
 
 class TargetModulesTreeStructureTest: DependencyTestCase() {
   private lateinit var resolvedProject: Project
@@ -39,7 +41,7 @@ class TargetModulesTreeStructureTest: DependencyTestCase() {
 
   private fun reparse() {
     resolvedProject = myFixture.project
-    project = PsProject(resolvedProject)
+    project = PsProjectImpl(resolvedProject)
   }
 
   fun testTreeStructure() {
@@ -221,7 +223,7 @@ class TargetModulesTreeStructureTest: DependencyTestCase() {
     val nodeModels = mutableListOf<PsAndroidDependency>()
 
     // Simulate all-modules dependencies view single node selection.
-    project.forEachModule { module ->
+    project.forEachModule(Consumer { module ->
       if (module is PsAndroidModule) {
         nodeModels.addAll(module.dependencies.findLibraryDependencies(groupId, name))
         module.variants.forEach { variant ->
@@ -230,7 +232,7 @@ class TargetModulesTreeStructureTest: DependencyTestCase() {
           }
         }
       }
-    }
+    })
     return listOf(nodeModels)
   }
 }

@@ -23,7 +23,7 @@ class BottomNavigationViewHandler : FrameLayoutHandler() {
   override fun getInspectorProperties(): List<String> {
     return listOf(
       ATTR_STYLE,
-      ATTR_ITEM_HORIZONTAL_TRANSLATION,
+      ATTR_ITEM_HORIZONTAL_TRANSLATION_ENABLED,
       ATTR_LABEL_VISIBILITY_MODE,
       ATTR_ITEM_ICON_TINT,
       ATTR_MENU,

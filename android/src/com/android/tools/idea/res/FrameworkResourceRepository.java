@@ -44,6 +44,7 @@ import org.xmlpull.v1.XmlPullParser;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -681,6 +682,8 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
     try {
       Files.move(tempFile.toPath(), cacheFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+    } catch (NoSuchFileException e) {
+      // Ignore. This may happen in tests if the "caches" directory was cleaned up by a test tear down.
     } catch (IOException e) {
       LOG.error("Unable to create cache file " + cacheFile.getAbsolutePath(), e);
       //noinspection ResultOfMethodCallIgnored

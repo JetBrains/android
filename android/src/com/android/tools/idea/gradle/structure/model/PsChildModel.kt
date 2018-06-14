@@ -15,4 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-abstract class PsChildModel protected constructor() : PsModel()
+abstract class PsChildModel protected constructor() : PsModel {
+  override var isModified: Boolean = false
+    set(value) {
+      field = value
+      if (value) {
+        parent?.isModified = true
+      }
+    }
+
+  override fun toString(): String = name
+}

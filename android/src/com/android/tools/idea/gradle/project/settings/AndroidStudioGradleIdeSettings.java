@@ -27,7 +27,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  */
 @State(
   name="AndroidStudioGradleSettings",
-  storages = @Storage(file = StoragePathMacros.APP_CONFIG + "/android.gradle.studio.xml")
+  storages = @Storage(file = "android.gradle.studio.xml")
 )
 public class AndroidStudioGradleIdeSettings implements PersistentStateComponent<AndroidStudioGradleIdeSettings> {
   public boolean ENABLE_EMBEDDED_MAVEN_REPO;

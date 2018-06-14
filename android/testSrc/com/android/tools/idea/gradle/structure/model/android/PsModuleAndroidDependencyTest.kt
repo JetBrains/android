@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
 import com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.project.Project
 import org.hamcrest.CoreMatchers.*
@@ -37,7 +38,7 @@ class PsModuleAndroidDependencyTest : DependencyTestCase() {
 
   private fun reparse() {
     resolvedProject = myFixture.project
-    project = PsProject(resolvedProject)
+    project = PsProjectImpl(resolvedProject)
   }
 
   fun testModuleDependenciesAreResolved() {

@@ -16,16 +16,15 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ClassField;
-import com.android.builder.model.Variant;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
@@ -79,7 +78,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     });
 
     Disposer.register(parent, this);
-    BuildVariantView.getInstance(myFacet.getModule().getProject()).addListener(this);
+    BuildVariantUpdater.getInstance(myFacet.getModule().getProject()).addSelectionChangeListener(this);
   }
 
   @Override
@@ -88,7 +87,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
 
     Project project = myFacet.getModule().getProject();
     if (!project.isDisposed()) {
-      BuildVariantView.getInstance(project).removeListener(this);
+      BuildVariantUpdater.getInstance(project).removeSelectionChangeListener(this);
     }
   }
 
@@ -107,7 +106,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
   @VisibleForTesting
   public static DynamicResourceValueRepository createForTest(@NotNull AndroidFacet facet,
                                                              @NotNull ResourceNamespace namespace,
-                                                             @NotNull Map<String, ClassField> values) {
+                                                             @NotNull Map<String, DynamicResourceValue> values) {
     DynamicResourceValueRepository repository = new DynamicResourceValueRepository(facet, namespace);
     repository.addValues(values);
 
@@ -118,21 +117,12 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
   @NonNull
   protected ResourceTable getFullTable() {
     if (myFullTable.isEmpty()) {
-      // TODO: b/23032391
-      AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
+      AndroidModel androidModel = AndroidModel.get(myFacet.getModule());
       if (androidModel == null) {
         return myFullTable;
       }
 
-      Variant selectedVariant = androidModel.getSelectedVariant();
-
-      // Reverse overlay order because when processing lower order ones, we ignore keys already processed
-      BuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());
-      if (buildType != null) {
-        addValues(buildType.getBuildType().getResValues());
-      }
-      // flavors and default config:
-      addValues(selectedVariant.getMergedFlavor().getResValues());
+      addValues(androidModel.getResValues());
     }
 
     return myFullTable;
@@ -143,13 +133,12 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     super.invalidateParentCaches();
   }
 
-  private void addValues(Map<String, ClassField> resValues) {
-    for (Map.Entry<String, ClassField> entry : resValues.entrySet()) {
-      ClassField field = entry.getValue();
-      String name = field.getName();
-      assert entry.getKey().equals(name) : entry.getKey() + " vs " + name;
+  private void addValues(Map<String, DynamicResourceValue> resValues) {
+    for (Map.Entry<String, DynamicResourceValue> entry : resValues.entrySet()) {
+      DynamicResourceValue field = entry.getValue();
+      String name = entry.getKey();
 
-      ResourceType type = ResourceType.getEnum(field.getType());
+      ResourceType type = field.getType();
       if (type == null) {
         LOG.warn("Ignoring field " + name + "(" + field + "): unknown type " + field.getType());
         continue;
@@ -163,7 +152,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
         // Masked by higher priority source provider
         continue;
       }
-      ResourceItem item = new DynamicResourceValueItem(myNamespace, type, field);
+      ResourceItem item = new DynamicResourceValueItem(myNamespace, type, name, field.getValue());
       map.put(name, item);
     }
   }

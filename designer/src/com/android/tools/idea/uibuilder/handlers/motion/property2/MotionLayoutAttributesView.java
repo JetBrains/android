@@ -33,21 +33,26 @@ import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.*;
 
 public class MotionLayoutAttributesView {
+  private static final String MOTION_VIEW_NAME = "Motion";
 
   public static PropertiesView<MotionPropertyItem> createMotionView(@NotNull MotionLayoutAttributesModel model) {
-    PropertiesView<MotionPropertyItem> view = new PropertiesView<>(model);
+    PropertiesView<MotionPropertyItem> view = new PropertiesView<>(MOTION_VIEW_NAME, model);
     PropertiesViewTab<MotionPropertyItem> tab = view.addTab("");
+    MotionControlTypeProvider controlTypeProvider = new MotionControlTypeProvider();
     EditorProvider<MotionPropertyItem> editorProvider =
-      EditorProvider.Companion.create(new MotionEnumSupportProvider(), new MotionControlTypeProvider());
-    tab.getBuilders().add(new KeyFrameInspectorBuilder(editorProvider));
+      EditorProvider.Companion.create(new MotionEnumSupportProvider(), controlTypeProvider);
+    TableUIProvider tableUIProvider = TableUIProvider.Companion.create(MotionPropertyItem.class, controlTypeProvider, editorProvider);
+    tab.getBuilders().add(new KeyFrameInspectorBuilder(editorProvider, tableUIProvider));
     return view;
   }
 
   private static class KeyFrameInspectorBuilder implements InspectorBuilder<MotionPropertyItem> {
     private final EditorProvider<MotionPropertyItem> myEditorProvider;
+    private final TableUIProvider myTableUIProvider;
 
-    private KeyFrameInspectorBuilder(EditorProvider<MotionPropertyItem> editorProvider) {
+    private KeyFrameInspectorBuilder(@NotNull EditorProvider<MotionPropertyItem> editorProvider, @NotNull TableUIProvider tableUIProvider) {
       myEditorProvider = editorProvider;
+      myTableUIProvider = tableUIProvider;
     }
 
     @Override
@@ -57,7 +62,7 @@ public class MotionLayoutAttributesView {
       if (target == null || position == null) {
         return;
       }
-      inspector.addEditor(myEditorProvider.invoke(position));
+      inspector.addEditor(myEditorProvider.createEditor(position, false), null);
 
       Set<String> excluded = ImmutableSet.of(Key_frameTarget, Key_framePosition);
       MotionSceneModel.BaseTag tag = position.getTag();
@@ -66,7 +71,7 @@ public class MotionLayoutAttributesView {
       List<MotionPropertyItem> attributes = properties.getValues().stream()
                                                       .filter(item -> !excluded.contains(item.getName()))
                                                       .collect(Collectors.toList());
-      title.addChild(inspector.addTable(new MotionTableModel(attributes), true));
+      inspector.addTable(new MotionTableModel(attributes), true, myTableUIProvider, title);
     }
 
     @Override

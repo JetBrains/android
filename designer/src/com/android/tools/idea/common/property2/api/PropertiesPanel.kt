@@ -16,31 +16,20 @@
 package com.android.tools.idea.common.property2.api
 
 import com.android.annotations.VisibleForTesting
-import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.adtui.stdui.CommonTabbedPane
-import com.android.tools.idea.common.property2.impl.model.CollapsibleLabelModel
-import com.android.tools.idea.common.property2.impl.model.GenericInspectorLineModel
-import com.android.tools.idea.common.property2.impl.model.InspectorPanelModel
-import com.android.tools.idea.common.property2.impl.model.TableLineModel
-import com.android.tools.idea.common.property2.impl.ui.*
+import com.android.tools.idea.common.property2.impl.ui.PropertiesPage
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.JBColor
-import com.intellij.ui.ScrollPaneFactory
-import com.intellij.util.ui.JBDimension
-import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
+import com.intellij.openapi.util.text.StringUtil.escapeProperty
 import java.awt.BorderLayout
-import java.awt.Font
 import java.util.*
-import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.ScrollPaneConstants
 import kotlin.properties.Delegates
 
-private const val VERTICAL_SCROLLING_UNIT_INCREMENT = 3
-private const val VERTICAL_SCROLLING_BLOCK_INCREMENT = 25
+private const val RECENT_TAB_PREFIX = "android.last.property.tab."
+private const val PROPERTY_TAB_NAME = "tab.name"
 
 /**
  * The top level class for creating UI classes and model classes for a properties panel.
@@ -58,6 +47,7 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
   private val views = IdentityHashMap<PropertiesModel<*>, PropertiesView<*>>()
   private val tabbedPanel = CommonTabbedPane()
   private val hidden = JPanel()
+  private var updatingPageVisibility = false
 
   @VisibleForTesting
   val pages = mutableListOf<PropertiesPage>()
@@ -68,6 +58,7 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
   init {
     hidden.isVisible = false
     Disposer.register(parentDisposable, this)
+    tabbedPanel.addChangeListener({ saveMostRecentTabPage() })
   }
 
   fun addView(view: PropertiesView<*>) {
@@ -106,9 +97,30 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
       val tab = view.tabs[index]
       val page = lookupPage(index)
       tab.attachToInspector(page)
+      page.component.putClientProperty(PROPERTY_TAB_NAME, tab.name)
     }
     pages.subList(view.tabs.size, pages.size).clear()
-    updatePageVisibility()
+    val preferredTab = PropertiesComponent.getInstance().getValue(RECENT_TAB_PREFIX + escapeProperty(view.id, true))
+    updatePageVisibility(preferredTab)
+  }
+
+  private fun saveMostRecentTabPage() {
+    if (updatingPageVisibility) {
+      return
+    }
+    val tabName = selectedTab()
+    val view = activeView ?: return
+    PropertiesComponent.getInstance().setValue(RECENT_TAB_PREFIX + escapeProperty(view.id, true), tabName)
+  }
+
+  @VisibleForTesting
+  fun selectedTab(): String? {
+    val layout = component.layout as? BorderLayout ?: return null
+    var component = layout.getLayoutComponent(BorderLayout.CENTER) ?: return null
+    if (component == tabbedPanel) {
+      component = tabbedPanel.selectedComponent
+    }
+    return (component as? JComponent)?.getClientProperty(PROPERTY_TAB_NAME) as? String
   }
 
   /**
@@ -123,32 +135,47 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
    *  swing component tree such that LookAndFeel changes are applied while they are hidden.
    *  The [hidden] panel is always hidden, and serves as the keeper of other hidden pages.
    */
-  private fun updatePageVisibility() {
+  private fun updatePageVisibility(preferredTabName: String? = null) {
     val view = activeView ?: return
     val visibleTabCount = findVisibleTabCount()
+    var preferredTabIndex = -1
     assert(view.tabs.size == pages.size)
-    component.removeAll()
-    tabbedPanel.removeAll()
-    for (index in view.tabs.indices) {
-      val tab = view.tabs[index]
-      val page = pages[index]
-      val tabVisible = filter.isEmpty() || tab.searchable
-      page.component.isVisible = tabVisible
-      when {
-        !tabVisible -> hidden.add(page.component)
-        visibleTabCount == 1 -> component.add(page.component, BorderLayout.CENTER)
-        else -> tabbedPanel.add(page.component, tab.name)
+    updatingPageVisibility = true
+    try {
+      component.removeAll()
+      tabbedPanel.removeAll()
+      for (index in view.tabs.indices) {
+        val tab = view.tabs[index]
+        val page = pages[index]
+        val tabVisible = filter.isEmpty() || tab.searchable
+        page.component.isVisible = tabVisible
+        when {
+          !tabVisible -> hidden.add(page.component)
+          visibleTabCount == 1 -> component.add(page.component, BorderLayout.CENTER)
+          else -> {
+            tabbedPanel.add(page.component, tab.name)
+            if (tab.name == preferredTabName) {
+              preferredTabIndex = tabbedPanel.componentCount - 1
+            }
+          }
+        }
       }
+      if (visibleTabCount < 2) {
+        hidden.add(tabbedPanel)
+      }
+      else {
+        component.add(tabbedPanel, BorderLayout.CENTER)
+        if (preferredTabIndex >= 0) {
+          tabbedPanel.selectedIndex = preferredTabIndex
+        }
+      }
+      component.add(hidden, BorderLayout.SOUTH)
+      component.revalidate()
+      component.repaint()
     }
-    if (visibleTabCount < 2) {
-      hidden.add(tabbedPanel)
+    finally {
+      updatingPageVisibility = false
     }
-    else {
-      component.add(tabbedPanel, BorderLayout.CENTER)
-    }
-    component.add(hidden, BorderLayout.SOUTH)
-    component.revalidate()
-    component.repaint()
   }
 
   private fun findVisibleTabCount(): Int {
@@ -178,117 +205,5 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
   override fun dispose() {
     views.keys.forEach { it.removeListener(this) }
     pages.forEach { it.clear() }
-  }
-}
-
-private const val TITLE_SEPARATOR_HEIGHT = 4
-
-class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
-  private val inspectorModel = InspectorPanelModel()
-  private val inspector = InspectorPanelImpl(inspectorModel, parentDisposable)
-  private val gotoNextLine: (InspectorLineModel) -> Unit = { inspectorModel.moveToNextLineEditor(it) }
-  private val boldFont = UIUtil.getLabelFont().deriveFont(Font.BOLD)
-  private var lastAddedNonTitleLine: InspectorLineModel? = null
-
-  val component = createScrollPane(inspector)
-
-  var filter
-    get() = inspectorModel.filter
-    set(value) { inspectorModel.filter = value }
-
-  fun enterInFilter():Boolean {
-    return inspectorModel.enterInFilter()
-  }
-
-  fun clear() {
-    inspectorModel.clear()
-    inspector.removeAll()
-    lastAddedNonTitleLine = null
-  }
-
-  fun propertyValuesChanged() {
-    inspectorModel.propertyValuesChanged()
-  }
-
-  fun repaint() {
-    inspector.revalidate()
-    inspector.repaint()
-  }
-
-  private fun createScrollPane(component: JComponent): JComponent {
-    val scrollPane = ScrollPaneFactory.createScrollPane(
-      component,
-      ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
-    scrollPane.border = BorderFactory.createEmptyBorder()
-    scrollPane.verticalScrollBar.unitIncrement = VERTICAL_SCROLLING_UNIT_INCREMENT
-    scrollPane.verticalScrollBar.blockIncrement = VERTICAL_SCROLLING_BLOCK_INCREMENT
-    return scrollPane
-  }
-
-  override fun addTitle(title: String): InspectorLineModel {
-    addSeparatorBeforeTitle()
-    val model = CollapsibleLabelModel(title)
-    val label = CollapsibleLabel(model)
-    inspectorModel.add(model)
-    inspector.addLineElement(label)
-    label.font = boldFont
-    label.isOpaque = true
-    label.border = JBUI.Borders.merge(
-      JBUI.Borders.empty(TITLE_SEPARATOR_HEIGHT, LEFT_HORIZONTAL_CONTENT_BORDER_SIZE, TITLE_SEPARATOR_HEIGHT, 0),
-      JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0), true)
-    label.background = UIUtil.getPanelBackground()
-    model.gotoNextLine = gotoNextLine
-    model.separatorAfterTitle = addSeparator(bottomDivider = false)
-    return model
-  }
-
-  override fun addEditor(editorModel: PropertyEditorModel, editor: JComponent): InspectorLineModel {
-    val model = CollapsibleLabelModel(editorModel.property.name, editorModel)
-    val label = CollapsibleLabel(model)
-    label.border = JBUI.Borders.emptyLeft(LEFT_HORIZONTAL_CONTENT_BORDER_SIZE)
-    editorModel.lineModel = model
-    inspectorModel.add(model)
-    inspector.addLineElement(label, editor)
-    model.gotoNextLine = gotoNextLine
-    lastAddedNonTitleLine = model
-    return model
-  }
-
-  override fun addTable(tableModel: PTableModel, searchable: Boolean): InspectorLineModel {
-    val model = TableLineModel(tableModel, searchable)
-    val editor = TableEditor(model, TableCellRendererProvider.create(null), null)
-    inspectorModel.add(model)
-    inspector.addLineElement(editor.component)
-    model.gotoNextLine = gotoNextLine
-    lastAddedNonTitleLine = model
-    return model
-  }
-
-  override fun addComponent(component: JComponent): InspectorLineModel {
-    val model = GenericInspectorLineModel()
-    val wrapper = GenericLinePanel(component, model)
-    inspectorModel.add(model)
-    inspector.addLineElement(wrapper)
-    model.gotoNextLine = gotoNextLine
-    lastAddedNonTitleLine = model
-    return model
-  }
-
-  private fun addSeparatorBeforeTitle() {
-    val lastLine = lastAddedNonTitleLine ?: return
-    val separator = addSeparator(bottomDivider = true)
-    lastLine.parent?.addChild(separator)
-  }
-
-  private fun addSeparator(bottomDivider: Boolean): InspectorLineModel {
-    val component = JPanel()
-    val bottom = if (bottomDivider) 1 else 0
-    component.preferredSize = JBDimension(0, TITLE_SEPARATOR_HEIGHT)
-    component.background = inspector.background
-    component.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, bottom, 0)
-    val line = addComponent(component)
-    lastAddedNonTitleLine = null
-    return line
   }
 }

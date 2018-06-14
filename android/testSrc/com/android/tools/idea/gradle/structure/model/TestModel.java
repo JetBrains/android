@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TestModel extends PsModel {
+public class TestModel extends PsChildModel {
   @NotNull private final String myName;
   @Nullable private final PsModel myParent;
 

@@ -36,8 +36,7 @@ class ListUsbDevicesAction : AssistActionHandler {
   override fun handleAction(actionData: ActionData, project: Project) {
     ListUsbDevicesActionStateManager.getInstance().refresh()
 
-    UsageTracker.getInstance()
-        .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
+    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
             .setConnectionAssistantEvent(ConnectionAssistantEvent.newBuilder()
                 .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.SCAN_USB_DEVICES_CLICKED)))
   }
