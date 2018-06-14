@@ -53,6 +53,10 @@ public class GradleDslFileCache {
     return (GradleBuildFile)dslFile;
   }
 
+  public void putBuildFile(@NotNull String name, @NotNull GradleDslFile buildFile) {
+    myParsedBuildFiles.put(name, buildFile);
+  }
+
   @Nullable
   public GradleSettingsFile getSettingsFile(@NotNull Project project) {
     VirtualFile file = getGradleSettingsFile(getBaseDirPath(project));
