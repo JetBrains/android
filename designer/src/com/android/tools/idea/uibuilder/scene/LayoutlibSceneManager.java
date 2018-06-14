@@ -236,6 +236,8 @@ public class LayoutlibSceneManager extends SceneManager {
     }
     myRenderListeners.clear();
 
+    stopProgressIndicator();
+
     super.dispose();
     // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
     myRenderTaskDisposerExecutor.execute(() -> {
@@ -260,6 +262,15 @@ public class LayoutlibSceneManager extends SceneManager {
         myRenderResultLock.writeLock().unlock();
       }
     });
+  }
+
+  private void stopProgressIndicator() {
+    synchronized (myProgressLock) {
+      if (myCurrentIndicator != null) {
+        myCurrentIndicator.stop();
+        myCurrentIndicator = null;
+      }
+    }
   }
 
 
@@ -575,12 +586,7 @@ public class LayoutlibSceneManager extends SceneManager {
             }
           }
 
-          synchronized (myProgressLock) {
-            if (myCurrentIndicator != null) {
-              myCurrentIndicator.stop();
-              myCurrentIndicator = null;
-            }
-          }
+          stopProgressIndicator();
         });
       }
 
