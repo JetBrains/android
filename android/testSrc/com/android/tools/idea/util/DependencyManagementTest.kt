@@ -32,13 +32,7 @@ class DependencyManagementTest : IdeaTestCase() {
 
   override fun setUp() {
     super.setUp()
-    projectSystem = TestProjectSystem(myProject, allowedFutureDependencies = listOf(
-      GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"),
-      GoogleMavenArtifactId.DESIGN.getCoordinate("+"),
-      GoogleMavenArtifactId.ESPRESSO_CORE.getCoordinate("+"),
-      GoogleMavenArtifactId.LEANBACK_V17.getCoordinate("+"),
-      GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    ))
+    projectSystem = TestProjectSystem(myProject, availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
     PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME,
         projectSystem, testRootDisposable)
   }

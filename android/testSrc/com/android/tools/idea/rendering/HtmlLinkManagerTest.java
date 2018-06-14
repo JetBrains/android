@@ -18,6 +18,8 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
+import com.android.tools.idea.projectsystem.TestRepositories;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -25,7 +27,6 @@ import com.intellij.testFramework.PlatformTestUtil;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -59,13 +60,12 @@ public class HtmlLinkManagerTest extends IdeaTestCase {
   }
 
   public void testHandleAddDependency() {
-    List<GradleCoordinate> expectedAvailableDependencies =
-      Stream
-        .of("com.android.support:palette-v7:+", "com.google.android.gms:play-services:+",
-            "com.android.support.constraint:constraint-layout:+")
-        .map(coordinateString -> GradleCoordinate.parseCoordinateString(coordinateString))
-        .collect(Collectors.toList());
-    TestProjectSystem testProjectSystem = new TestProjectSystem(getProject(), expectedAvailableDependencies);
+    List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
+      .addAll(TestRepositories.GOOGLE_PLAY_SERVICES)
+      .addAll(TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
+      .addAll(TestRepositories.PLATFORM_SUPPORT_LIBS)
+      .build();
+    TestProjectSystem testProjectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
     PlatformTestUtil
       .registerExtension(Extensions.getArea(getProject()), ProjectSystemUtil.getEP_NAME(), testProjectSystem,
                          getTestRootDisposable());
