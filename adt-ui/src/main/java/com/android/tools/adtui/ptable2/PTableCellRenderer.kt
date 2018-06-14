@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.ptable2
 
-import com.intellij.ui.JBColor
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -52,7 +51,7 @@ class DefaultPTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
     }
     else {
       append(item.value.orEmpty())
-      border = JBUI.Borders.customLine(JBColor.border(), 0, 1, 0, 0)
+      border = JBUI.Borders.customLine(table.gridLineColor, 0, 1, 0, 0)
     }
     return this
   }
