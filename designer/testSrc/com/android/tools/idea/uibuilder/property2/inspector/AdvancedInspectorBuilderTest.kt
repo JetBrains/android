@@ -37,7 +37,7 @@ class AdvancedInspectorBuilderTest {
     runInEdtAndWait {
       val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
       addProperties(util)
-      val builder = AdvancedInspectorBuilder(TestTableUIProvider())
+      val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
       builder.attachToInspector(util.inspector, util.properties)
       assertThat(util.inspector.lines).hasSize(4)
       assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
@@ -50,9 +50,13 @@ class AdvancedInspectorBuilderTest {
       assertThat(util.inspector.lines[2].title).isEqualTo("All Attributes")
       assertThat(util.inspector.lines[2].expandable).isTrue()
 
-      // Check the 3 declared attributes:
+      // Check the 4 declared attributes including a new property place holder
       assertThat(util.inspector.lines[1].tableModel?.items?.map { it.name })
-        .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT).inOrder()
+        .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT, "").inOrder()
+
+      // Also check the values of the 4 declared attributes including a new property place holder (which value is blank)
+      assertThat(util.inspector.lines[1].tableModel?.items?.map { it.value })
+        .containsExactly(VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT, "Testing", null).inOrder()
 
       // Check all 6 attributes:
       assertThat(util.inspector.lines[3].tableModel?.items?.map { it.name })

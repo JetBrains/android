@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.property2.api
 
 import com.android.tools.idea.common.property2.impl.support.EditorProviderImpl
+import com.android.tools.idea.common.property2.impl.support.NameEditorProviderImpl
 import javax.swing.JComponent
 
 /**
@@ -37,7 +38,7 @@ interface EditorProvider<in P : PropertyItem> {
 
   companion object {
     /**
-     * Create a default [EditorProvider].
+     * Create a default [EditorProvider] for editing property values.
      *
      * @param enumSupportProvider must be specified for creating [EnumSupport] for a given property [P].
      * @param controlTypeProvider must be specified for determining the [ControlType] for the given property [P].
@@ -47,6 +48,13 @@ interface EditorProvider<in P : PropertyItem> {
       controlTypeProvider: ControlTypeProvider<P>
     ): EditorProvider<P> {
       return EditorProviderImpl(enumSupportProvider, controlTypeProvider)
+    }
+
+    /**
+     * Create a default [EditorProvider] for editing property names.
+     */
+    fun <P : NewPropertyItem> createForNames(): EditorProvider<P> {
+      return NameEditorProviderImpl()
     }
   }
 }

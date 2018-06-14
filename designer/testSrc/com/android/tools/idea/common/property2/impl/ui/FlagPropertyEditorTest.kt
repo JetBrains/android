@@ -23,7 +23,8 @@ import com.android.tools.adtui.ptable2.impl.PTableImpl
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.common.property2.impl.model.TableLineModel
 import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil.makeFlagsProperty
-import com.android.tools.idea.common.property2.impl.table.EditorValuePanel
+import com.android.tools.idea.common.property2.impl.support.SimpleControlTypeProvider
+import com.android.tools.idea.common.property2.impl.table.EditorPanel
 import com.android.tools.idea.common.property2.impl.table.PTableCellEditorProviderImpl
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -83,13 +84,12 @@ class FlagPropertyEditorTest {
         return null
       }
     }
-    val controlTypeProvider = object : ControlTypeProvider<PropertyItem> {
-      override fun invoke(property: PropertyItem): ControlType {
-        return ControlType.FLAG_EDITOR
-      }
-    }
+    val controlTypeProvider = SimpleControlTypeProvider<PropertyItem>(ControlType.FLAG_EDITOR)
+    val nameControlTypeProvider = SimpleControlTypeProvider<NewPropertyItem>(ControlType.TEXT_EDITOR)
     val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
-    val cellEditorProvider = PTableCellEditorProviderImpl(FlagsPropertyItem::class.java, controlTypeProvider, editorProvider)
+    val cellEditorProvider = PTableCellEditorProviderImpl(
+      NewPropertyItem::class.java, nameControlTypeProvider, EditorProvider.createForNames(),
+      FlagsPropertyItem::class.java, controlTypeProvider, editorProvider)
     return TableEditor(lineModel, DefaultPTableCellRendererProvider(), cellEditorProvider)
   }
 
@@ -98,7 +98,7 @@ class FlagPropertyEditorTest {
     while (swingTable.editingRow < row) {
       assertThat(swingTable.startNextEditor()).isTrue()
     }
-    val editorPanel = swingTable.editorComponent as EditorValuePanel
+    val editorPanel = swingTable.editorComponent as EditorPanel
     return editorPanel.editor as FlagPropertyEditor
   }
 }

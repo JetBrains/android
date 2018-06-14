@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property2.testutils
 
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -63,14 +65,14 @@ open class SupportTestUtil(private val facet: AndroidFacet, private val fixture:
 
   private fun createSingleComponent(tag: String, activityName: String): Pair<PsiFile, NlComponent> {
     val activityAttrs = formatActivityAttributes(activityName)
-    val text = "<$tag xmlns:android=\"http://schemas.android.com/apk/res/android\" $activityAttrs/>"
+    val text = "<$tag xmlns:android=\"$ANDROID_URI\" xmlns:app=\"$AUTO_URI\" $activityAttrs/>"
     val file = fixture.addFileToProject("res/layout/${tag.toLowerCase()}.xml", text) as XmlFile
     return Pair(file, MockNlComponent.create(file.rootTag!!))
   }
 
   private fun createParentedComponent(tag: String, parentTag: String, activityName: String): Pair<PsiFile, NlComponent> {
     val activityAttrs = formatActivityAttributes(activityName)
-    val text = "<$parentTag xmlns:android=\"http://schemas.android.com/apk/res/android\" $activityAttrs><$tag/></$parentTag>"
+    val text = "<$parentTag xmlns:android=\"$ANDROID_URI\" xmlns:app=\"$AUTO_URI\" $activityAttrs><$tag/></$parentTag>"
     val file = fixture.addFileToProject("res/layout/${tag.toLowerCase()}.xml", text) as XmlFile
     val parent = MockNlComponent.create(file.rootTag!!)
     val child = MockNlComponent.create(file.rootTag!!.findFirstSubTag(tag)!!)
