@@ -31,9 +31,11 @@ public class AttributeDefinition implements Cloneable {
   private final List<String> myParentStyleables;
   private final Set<AttributeFormat> myFormats;
   private LinkedList<String> myValues;
+  /** Keys are names of styleables, values are doc strings for this attr in the context of the styleable. */
   private final Map<String, String> myStyleable2DocValue;
+  /** Keys are attr values, values are the corresponding doc strings. */
   private HashMap<String, String> myValueDoc;
-  /** Mapping of flag/enum names to their int value */
+  /** Mapping of flag/enum names to their int value. */
   private HashMap<String, Integer> myValueMappings;
   private String myGlobalDocValue;
   private String myAttrGroup;
