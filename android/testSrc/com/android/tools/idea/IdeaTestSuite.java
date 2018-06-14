@@ -57,6 +57,7 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
         "tools/adt/idea/android/testData",
         "tools/adt/idea/android/lib",
         "tools/base/templates",
+        "tools/idea/build.txt",
         "tools/idea/java",
         "prebuilts/studio/jdk",
         "prebuilts/studio/layoutlib",

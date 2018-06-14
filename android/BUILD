@@ -172,6 +172,7 @@ iml_module(
         "//tools/base/templates",
         "//tools/data-binding:data_binding_runtime.zip",
         "//tools/external/gradle:gradle-distrib-2.4",
+        "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
@@ -266,6 +267,9 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android/src/com/android/tools/idea/gradle/project/sync/ng/nosyncbuilder/proto:nosyncbuilder-jarjar[test]",
         "//tools/idea/.idea/libraries:jimfs[test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
     ],
 )
 

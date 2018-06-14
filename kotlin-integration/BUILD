@@ -69,6 +69,9 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
     ],
 )
 

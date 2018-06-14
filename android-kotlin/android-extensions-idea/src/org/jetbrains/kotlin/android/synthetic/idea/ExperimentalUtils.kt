@@ -67,7 +67,8 @@ internal val ModuleInfo.androidExtensionsIsExperimental: Boolean
 
 internal val Module.androidExtensionsIsExperimental: Boolean
     get() {
-        if (isTestMode(this)) return true
+        // Android Studio: running in tests should not enable experimental features that aren't enabled in production.
+        // if (isTestMode(this)) return true
         return getOptionValueInFacet(EXPERIMENTAL_OPTION) == "true"
     }
 
