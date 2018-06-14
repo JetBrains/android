@@ -41,10 +41,10 @@ import kotlin.properties.Delegates
  * The intention is to hide implementation details in this class, and only
  * expose a minimal API in [PTable].
  */
-open class PTableImpl(tableModel: PTableModel,
-                      override val context: Any?,
-                      private val rendererProvider: PTableCellRendererProvider,
-                      private val editorProvider: PTableCellEditorProvider)
+class PTableImpl(override val tableModel: PTableModel,
+                 override val context: Any?,
+                 private val rendererProvider: PTableCellRendererProvider,
+                 private val editorProvider: PTableCellEditorProvider)
   : JBTable(PTableModelImpl(tableModel)), PTable {
 
   private val nameRowSorter = TableRowSorter<TableModel>()
@@ -106,22 +106,23 @@ open class PTableImpl(tableModel: PTableModel,
   }
 
   override fun startNextEditor(): Boolean {
-    var row = -1
+    val pos = TablePosition(0, 0, itemCount)
     if (isEditing) {
-      row = getEditingRow()
+      pos.row = editingRow
+      pos.column = editingColumn
       removeEditor()
+      pos.next(true)
     }
-    row++
-    val tableModel = model.tableModel
-    while (row < itemCount && !tableModel.isCellEditable(item(row), PTableColumn.VALUE)) {
-      row++
+    while (pos.wrapped == 0 && !tableModel.isCellEditable(item(pos.row), pos.tableColumn)) {
+      pos.next(true)
     }
-    if (row == itemCount) {
+    if (pos.wrapped > 0) {
+      // User navigated to the next editor after the last row of this table:
       return false
     }
-    selectRow(row)
-    selectColumn(1)
-    startEditing(row, {})
+    selectRow(pos.row)
+    selectColumn(pos.column)
+    startEditing(pos.row, pos.column, {})
     return true
   }
 
@@ -146,7 +147,7 @@ open class PTableImpl(tableModel: PTableModel,
   // Return the same value but do NOT call component.setNextFocusableComponent.
   // This allows us to TAB from the last editor to the first editor in the table.
   // Without this a TAB from the last editor would cause the table to get the focus.
-  override fun prepareEditor(editor: TableCellEditor, row: Int, column: Int): Component {
+  override fun prepareEditor(editor: TableCellEditor, row: Int, column: Int): Component? {
     val value = getValueAt(row, column)
     val isSelected = isCellSelected(row, column)
     return editor.getTableCellEditorComponent(this, value, isSelected, row, column)
@@ -239,19 +240,19 @@ open class PTableImpl(tableModel: PTableModel,
     selectRow(row)
   }
 
-  private fun quickEdit(row: Int) {
-    val editor = getCellEditor(row, 0)
+  private fun quickEdit(row: Int, column: Int) {
+    val editor = getCellEditor(row, column)
 
     // only perform edit if we know the editor is capable of a quick toggle action.
     // We know that boolean editors switch their state and finish editing right away
     if (editor.isBooleanEditor) {
-      startEditing(row, { editor.toggleValue() })
+      startEditing(row, column, { editor.toggleValue() })
     }
   }
 
-  private fun startEditing(row: Int, afterActivation: () -> Unit) {
+  private fun startEditing(row: Int, column: Int, afterActivation: () -> Unit) {
     val editor = getCellEditor(row, 0)
-    if (!editCellAt(row, 1)) {
+    if (!editCellAt(row, column)) {
       return
     }
 
@@ -297,6 +298,7 @@ open class PTableImpl(tableModel: PTableModel,
 
     override fun actionPerformed(event: ActionEvent) {
       val row = selectedRow
+      val column = selectedColumn
       if (isEditing || row == -1) {
         return
       }
@@ -304,8 +306,8 @@ open class PTableImpl(tableModel: PTableModel,
       val item = item(row)
       when {
         model.isGroupItem(item) -> toggleAndSelect(row)
-        toggleOnly -> quickEdit(row)
-        else -> startEditing(row, {})
+        toggleOnly -> quickEdit(row, column)
+        else -> startEditing(row, column, {})
       }
     }
   }
@@ -417,7 +419,7 @@ open class PTableImpl(tableModel: PTableModel,
 
       val rectLeftColumn = getCellRect(row, convertColumnIndexToView(0), false)
       if (rectLeftColumn.contains(event.x, event.y)) {
-          toggleTreeNode(row)
+        toggleTreeNode(row)
       }
     }
   }
@@ -432,10 +434,11 @@ open class PTableImpl(tableModel: PTableModel,
     override fun keyTyped(event: KeyEvent) {
       val table = this@PTableImpl
       val row = table.selectedRow
+      val column = table.selectedColumn
       if (table.isEditing || row == -1 || event.keyChar == '\t' || event.keyCode == KeyEvent.VK_ESCAPE) {
         return
       }
-      table.startEditing(row, {
+      table.startEditing(row, column, {
         ApplicationManager.getApplication().invokeLater {
           IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
             val textEditor = IdeFocusManager.findInstance().focusOwner
@@ -478,22 +481,14 @@ open class PTableImpl(tableModel: PTableModel,
     private fun editNextEditableCell(forwards: Boolean): Component? {
       val table = this@PTableImpl
       val rows = table.rowCount
-      var row = table.editingRow
-      var col = table.editingColumn
-      val next = if (forwards) 1 else -1
-      val wrapped = if (forwards) 0 else 1
+      val pos = TablePosition(table.editingRow, table.editingColumn, rows)
 
       // Make sure we don't loop forever
-      var rowIterations = 0
-      while (rowIterations < rows) {
-        col = Math.floorMod(col + next, 2)
-        if (col == wrapped) {
-          row = Math.floorMod(row + next, rows)
-          rowIterations++
-        }
-        if (table.isCellEditable(row, col)) {
-          table.setRowSelectionInterval(row, row)
-          table.startEditing(row, {})
+      while (pos.rowIterations < rows) {
+        pos.next(forwards)
+        if (table.isCellEditable(pos.row, pos.column)) {
+          table.setRowSelectionInterval(pos.row, pos.row)
+          table.startEditing(pos.row, pos.column, {})
           return table.editorComponent
         }
       }
@@ -538,5 +533,61 @@ private class NameRowFilter : RowFilter<TableModel, Int>() {
 
   private fun isMatch(text: String): Boolean {
     return comparator.matchingFragments(pattern, text) != null
+  }
+}
+
+private class TablePosition(var row: Int, var column: Int, val rows: Int) {
+
+  val tableColumn: PTableColumn
+    get() = PTableColumn.fromColumn(column)
+
+  var rowIterations: Int = 0
+    private set
+
+  // Use [wrapped] to count how many times we wrapped from end to start or vice versa
+  var wrapped: Int = 0
+    private set
+
+  fun next(forward: Boolean) {
+    if (forward) {
+      forwards()
+    }
+    else {
+      backwards()
+    }
+  }
+
+  private fun forwards() {
+    when (column) {
+      0 -> { column = 1 }
+      1 -> { column = 0; nextRow() }
+    }
+  }
+
+  private fun backwards() {
+    when (column) {
+      0 -> { column = 1; previousRow() }
+      1 -> { column = 0 }
+    }
+  }
+
+  private fun nextRow() {
+    row++
+    rowIterations++
+    column = 0
+    if (row >= rows) {
+      row = 0
+      wrapped++
+    }
+  }
+
+  private fun previousRow() {
+    row--
+    rowIterations++
+    column = 1
+    if (row < 0) {
+      wrapped++
+      row = rows - 1
+    }
   }
 }
