@@ -16,7 +16,7 @@
 package com.android.tools.idea.lang.roomSql
 
 class EditingTest : RoomLightTestCase() {
-  fun ignore_testParens() { // TODO(b/110189571): fix.
+  fun testParens() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
