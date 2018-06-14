@@ -43,7 +43,9 @@ class Group(override val name: String, vararg childItems: PTableItem) : PTableGr
 private class PTableTestModel(vararg items: PTableItem) : PTableModel {
   override val items: List<PTableItem> = listOf(*items)
 
-  override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {
-    return column == PTableColumn.VALUE && item.name != "readonly"
-  }
+  override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean =
+    when (column) {
+      PTableColumn.NAME -> item.name == "new"
+      PTableColumn.VALUE -> item.name != "readonly"
+    }
 }

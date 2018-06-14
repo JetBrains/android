@@ -31,6 +31,9 @@ interface PTable {
   /** The table component */
   val component: JComponent
 
+  /** The table model */
+  val tableModel: PTableModel
+
   /** A context where the consumer can store a reference to a model that otherwise would be hard to identify */
   val context: Any?
 
