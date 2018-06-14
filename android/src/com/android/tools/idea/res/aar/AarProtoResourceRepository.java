@@ -45,6 +45,8 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import static com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY;
+
 /**
  * Repository of resources defined in an AAR file where resources are stored in protocol buffer format.
  * See https://developer.android.com/studio/projects/android-library.html.
@@ -52,7 +54,6 @@ import java.util.zip.ZipFile;
  */
 public class AarProtoResourceRepository extends AarSourceResourceRepository {
   private static final Logger LOG = Logger.getInstance(AarProtoResourceRepository.class);
-  private static final String RES_APK = "res.apk";
   /** The name of the res.apk ZIP entry containing value resources. */
   private static final String RESOURCE_TABLE_ENTRY = "resources.pb";
 
@@ -125,7 +126,7 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
     loadResourceTable(loader.resourceTableMsg);
     if (loader.loadedFromResApk) {
       try {
-        File resApkFile = new File(myAarDirectory, RES_APK);
+        File resApkFile = new File(myAarDirectory, FN_RESOURCE_STATIC_LIBRARY);
         myResApkUri = new URI("apk", resApkFile.getAbsolutePath().replace('\\', '/'), null);
       } catch (URISyntaxException e) {
         throw new Error("Internal error", e);
@@ -648,7 +649,7 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
         resourceTableMsg = readResourceTableFromResourcesPbFile(aarDir);
         packageName = AndroidManifestUtils.getPackageNameFromManifestFile(new File(aarDir, SdkConstants.FN_ANDROID_MANIFEST_XML));
       } catch (FileNotFoundException e) {
-        File resApkFile = new File(aarDir, RES_APK);
+        File resApkFile = new File(aarDir, FN_RESOURCE_STATIC_LIBRARY);
         try (ZipFile zipFile = new ZipFile(resApkFile)) {
           resourceTableMsg = readResourceTableFromResApk(zipFile);
           packageName = AndroidManifestUtils.getPackageNameFromResApk(zipFile);

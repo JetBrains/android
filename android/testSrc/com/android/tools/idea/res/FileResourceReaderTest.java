@@ -24,6 +24,7 @@ import org.xmlpull.v1.XmlPullParser;
 import java.net.URI;
 import java.nio.file.Paths;
 
+import static com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
 /**
@@ -31,7 +32,7 @@ import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
  */
 public class FileResourceReaderTest extends AndroidTestCase {
   public void testReadBytes() throws Exception {
-    String resApkPath = Paths.get(myFixture.getTestDataPath(), "design_aar", "res.apk").normalize().toString();
+    String resApkPath = Paths.get(myFixture.getTestDataPath(), "design_aar", FN_RESOURCE_STATIC_LIBRARY).normalize().toString();
     URI uri = new URI("apk", resApkPath, null);
     String resourcePath = "res/drawable-mdpi-v4/design_ic_visibility.png";
     PathString pathString = new PathString(uri, resourcePath);
@@ -46,7 +47,7 @@ public class FileResourceReaderTest extends AndroidTestCase {
   }
 
   public void testCreateXmlPullParser() throws Exception {
-    String resApkPath = Paths.get(myFixture.getTestDataPath(), "design_aar", "res.apk").normalize().toString();
+    String resApkPath = Paths.get(myFixture.getTestDataPath(), "design_aar", FN_RESOURCE_STATIC_LIBRARY).normalize().toString();
     URI uri = new URI("apk", resApkPath, null);
     String resourcePath = "res/layout/design_bottom_navigation_item.xml";
     PathString pathString = new PathString(uri, resourcePath);
