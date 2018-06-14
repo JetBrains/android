@@ -248,8 +248,8 @@ public class LintIdeGradleDetector extends GradleDetector {
     TextRange textRange = element.getTextRange();
     int start = textRange.getStartOffset();
     int end = textRange.getEndOffset();
-    location = Location.create(context.file, new DefaultPosition(-1, -1, start), new DefaultPosition(-1, -1, end));
-    location.setSource(element);
+    location = Location.create(context.file, new DefaultPosition(-1, -1, start), new DefaultPosition(-1, -1, end))
+                       .withSource(element);
     return location;
   }
 }
