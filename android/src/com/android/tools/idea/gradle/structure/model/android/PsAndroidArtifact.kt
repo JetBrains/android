@@ -42,6 +42,7 @@ class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: String
 
   fun init(resolvedModel: IdeBaseArtifact?) {
     this.resolvedModel = resolvedModel
+    myDependencies = null
   }
 
   init {

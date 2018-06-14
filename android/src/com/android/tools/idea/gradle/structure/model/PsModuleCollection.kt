@@ -54,7 +54,7 @@ class PsModuleCollection(parent: PsProject) : PsCollectionBase<PsModule, ModuleK
         }
       }
     }
-    parent.parsedModel.modules.forEach{ path ->
+    parent.parsedModel.modules.forEach { path ->
       val buildModel = projectParsedModel.getModuleByGradlePath(path)
       val moduleType = buildModel?.parsedModelModuleType()
       val moduleKey = when (moduleType) {
@@ -80,16 +80,29 @@ class PsModuleCollection(parent: PsProject) : PsCollectionBase<PsModule, ModuleK
 
   override fun update(key: ModuleKey, model: PsModule) {
     val projectParsedModel = parent.parsedModel
-    val moduleManager = ModuleManager.getInstance(parent.ideProject)
-    val module = moduleManager.modules.firstOrNull { GradleFacet.getInstance(it)?.gradleModuleModel?.gradlePath == key.gradlePath }
-    val moduleName = module?.name ?: key.gradlePath.substring(1).replace(':', '-')
+    val moduleName =
+      ModuleManager
+        .getInstance(parent.ideProject)  // Use ideProject to find the name of the module.
+        .modules
+        .firstOrNull { GradleFacet.getInstance(it)?.gradleModuleModel?.gradlePath == key.gradlePath }
+        ?.name
+      ?: key.gradlePath.substring(1).replace(':', '-')
+
+    val module =
+      parent
+        .resolvedModel  // Use resolvedModel to retrieve resolved models.
+        ?.let { ModuleManager.getInstance(it) }
+        ?.modules
+        ?.firstOrNull { GradleFacet.getInstance(it)?.gradleModuleModel?.gradlePath == key.gradlePath }
+
     val moduleParsedModel = module?.let { projectParsedModel.getModuleBuildModel(module) }
                             ?: projectParsedModel.getModuleByGradlePath(key.gradlePath)
+
     return when (key.kind) {
-      // Module type cannot be changed within the PSD.
-      ModuleKind.ANDROID -> (model as PsAndroidModule).init(moduleName, module?.let { AndroidModuleModel.get(module) }, moduleParsedModel)
-      // Module type cannot be changed within the PSD.
-      ModuleKind.JAVA -> (model as PsJavaModule).init(moduleName, module?.let { JavaModuleModel.get(module) }, moduleParsedModel)
+    // Module type cannot be changed within the PSD.
+      ModuleKind.ANDROID -> (model as PsAndroidModule).init(moduleName, module?.let { AndroidModuleModel.get(it) }, moduleParsedModel)
+    // Module type cannot be changed within the PSD.
+      ModuleKind.JAVA -> (model as PsJavaModule).init(moduleName, module?.let { JavaModuleModel.get(it) }, moduleParsedModel)
     }
   }
 }

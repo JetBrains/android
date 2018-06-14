@@ -27,8 +27,10 @@ import javax.swing.Icon
 
 class PsProjectImpl(override val ideProject: Project) : PsChildModel(), PsProject {
   override var resolvedModel: Project? = ideProject ; private set
-  override val parsedModel: ProjectBuildModel = GradleModelProvider.get().getProjectModel(ideProject)
-  override val variables: PsVariables
+  override var parsedModel: ProjectBuildModel = GradleModelProvider.get().getProjectModel(ideProject); private set
+  @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
+  final override var variables: PsVariables
+    private set
   override val pomDependencyCache: PsPomDependencyCache = PsPomDependencies()
   private val moduleCollection: PsModuleCollection
 
@@ -65,6 +67,11 @@ class PsProjectImpl(override val ideProject: Project) : PsChildModel(), PsProjec
           isModified = false
         }
       }.execute()
+      resolvedModel = null
+      parsedModel = GradleModelProvider.get().getProjectModel(ideProject)
+      variables = PsVariables(
+        this, "Project: $name", Objects.requireNonNull<GradleBuildModel>(parsedModel.projectBuildModel).ext(), null)
+      moduleCollection.refresh()
     }
   }
 }

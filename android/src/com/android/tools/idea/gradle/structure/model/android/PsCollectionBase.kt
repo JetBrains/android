@@ -24,23 +24,26 @@ abstract class PsCollectionBase<TModel : PsModel, TKey, TParent: PsModel>(val pa
   abstract fun create(key: TKey): TModel
   abstract fun update(key: TKey, model: TModel)
 
-  protected val container: MutableMap<TKey, TModel> = mutableMapOf()
-  val entries: Map<TKey, TModel> get() = container
+  var entries: Map<TKey, TModel> ; protected set
 
   init {
     @Suppress("LeakingThis")
-    getKeys(parent)
+    entries = getKeys(parent)
       .map{ key -> key to create(key).also { update(key, it) }}
-      .toMap(container)
+      .toMap()
   }
 
-  override fun forEach(consumer: Consumer<TModel>) = container.values.forEach(consumer)
+  override fun forEach(consumer: Consumer<TModel>) = entries.values.forEach(consumer)
 
-  override fun forEach(consumer: (TModel) -> Unit) = container.values.forEach(consumer)
+  override fun forEach(consumer: (TModel) -> Unit) = entries.values.forEach(consumer)
 
-  override fun items(): List<TModel> = container.values.toList()
+  override fun items(): List<TModel> = entries.values.toList()
 
-  fun findElement(key: TKey): TModel? = container[key]
+  fun findElement(key: TKey): TModel? = entries[key]
+
+  fun refresh() {
+    entries = getKeys(parent).map { key -> key to (entries[key] ?: create(key)).also { update(key, it) } }.toMap()
+  }
 }
 
 abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel>(parent: TParent)
@@ -50,18 +53,18 @@ abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel
   abstract fun removeExisting(key: TKey)
 
   fun addNew(key: TKey): TModel {
-    if (container.containsKey(key)) throw IllegalArgumentException("Duplicate key: $key")
+    if (entries.containsKey(key)) throw IllegalArgumentException("Duplicate key: $key")
     instantiateNew(key)
     val model = create(key).also { update(key, it) }
-    container[key] = model
+    entries += (key to model)
     parent.isModified = true
     return model
   }
 
   fun remove(key: TKey) {
-    if (!container.containsKey(key)) throw IllegalArgumentException("Key not found: $key")
+    if (!entries.containsKey(key)) throw IllegalArgumentException("Key not found: $key")
     removeExisting(key)
-    container.remove(key)
+    entries -= key
     parent.isModified = true
   }
 
