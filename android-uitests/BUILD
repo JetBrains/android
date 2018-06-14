@@ -338,7 +338,10 @@ java_test(
         "testData/MinSdk24App/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.java8.CompileWithJava8Test"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",  # b/110178024
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -363,7 +366,10 @@ java_test(
         "testData/SimpleLocalApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateDefaultActivityTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",  # b/110178024
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -375,7 +381,10 @@ java_test(
         "testData/SimpleLocalApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.GenerateApkWithReleaseVariantTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",  # b/110178024
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -387,7 +396,10 @@ java_test(
         "testData/SimpleLocalApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.ModifyMinSdkAndSyncTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",  # b/110178024
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -399,7 +411,10 @@ java_test(
         "testData/SimpleLocalApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.CreateNewAppModuleWithDefaultsTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",  # b/110178024
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -411,7 +426,10 @@ java_test(
         "testData/SimpleLocalApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.CreateNewLibraryModuleWithDefaultsTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",  # b/110178024
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -423,7 +441,10 @@ java_test(
         "testData/SimpleLocalApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddNewBuildTypeTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",  # b/110178024
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -497,7 +518,10 @@ java_test(
         "testData/LayoutLocalTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.SideConstraintHandlingTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",  # b/110178024
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -514,7 +538,10 @@ java_test(
         "testData/LayoutLocalTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BaselineConstraintHandlingTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",  # b/110178024
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -653,7 +680,10 @@ java_test(
         "testData/SimpleLocalApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BasicLayoutEditTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",  # b/110178024
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -720,7 +750,10 @@ java_test(
         "testData/SimpleLocalApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.CreateNewFlavorsTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",  # b/110178024
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
