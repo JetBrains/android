@@ -59,12 +59,11 @@ class PsAndroidModule(
     rootDir = resolvedModel?.rootDirPath ?: parsedModel?.virtualFile?.path?.let { File(it).parentFile }
     icon = projectType.androidModuleType?.let { getAndroidModuleIcon(it) }
 
-    // TODO(solodkyy): Support collection refreshes.
-    buildTypeCollection = null
-    productFlavorCollection = null
-    variantCollection = null
+    buildTypeCollection?.refresh()
+    productFlavorCollection?.refresh()
+    variantCollection?.refresh()
     dependencyCollection = null
-    signingConfigCollection = null
+    signingConfigCollection?.refresh()
   }
 
   val buildTypes: List<PsBuildType> get() = getOrCreateBuildTypeCollection().items()

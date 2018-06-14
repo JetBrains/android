@@ -468,6 +468,32 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(signingConfigs.map { it.name }).containsExactly("debug")
   }
 
+  fun testApplyChangesDropsResolvedValues() {
+    loadProject(BASIC)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+
+    val appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
+    assertNotNull(appModule); appModule!!
+
+    appModule.buildTypes[0].jniDebuggable = true.asParsed()
+    project.applyChanges()
+
+    assertThat(appModule.resolvedModel).isNull()
+    appModule.buildTypes.forEach { buildType ->
+      assertThat(buildType.resolvedModel).isNull()
+    }
+    appModule.productFlavors.forEach { productFlavor ->
+      assertThat(productFlavor.resolvedModel).isNull()
+    }
+    appModule.signingConfigs.forEach { signingConfig ->
+      assertThat(signingConfig.resolvedModel).isNull()
+    }
+    // TODO(b/110194207): Populate variant collection when unsynced.
+    assertThat(appModule.variants).isEmpty()
+  }
+
   fun testConfigurations() {
     loadProject(PSD_SAMPLE)
 

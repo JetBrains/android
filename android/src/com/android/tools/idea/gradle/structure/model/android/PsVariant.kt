@@ -34,7 +34,8 @@ open class PsVariant(override val parent: PsAndroidModule,
     myBuildType = buildType
     myProductFlavors = productFlavors
     this.resolvedModel = resolvedModel
-    myArtifactCollection = null
+
+    myArtifactCollection?.refresh()
   }
 
   open val buildType: PsBuildType get() = parent.findBuildType(myBuildType)!!

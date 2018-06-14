@@ -64,6 +64,9 @@ abstract class PsModule protected constructor(
     this.name = name
     this.parsedModel = parsedModel
 
+    myParsedDependencies?.let {
+      fireDependenciesReloadedEvent()
+    }
     myParsedDependencies = null
     myVariables = null
   }
@@ -148,6 +151,10 @@ abstract class PsModule protected constructor(
     dependenciesChangeEventDispatcher.multicaster.dependencyChanged(ModuleDependencyAddedEvent(modulePath))
   }
 
+  private fun fireDependenciesReloadedEvent() {
+    dependenciesChangeEventDispatcher.multicaster.dependencyChanged(DependenciesReloadedEvent())
+  }
+
   protected open fun populateRepositories(repositories: MutableList<ArtifactRepository>) {
     repositories.addAll(
       parsedModel?.repositories()?.repositories().orEmpty().mapNotNull { repositoryModel ->
@@ -187,6 +194,8 @@ abstract class PsModule protected constructor(
   class DependencyModifiedEvent internal constructor(val dependency: PsDeclaredDependency) : DependencyChangedEvent
 
   class DependencyRemovedEvent internal constructor(val dependency: PsDeclaredDependency) : DependencyChangedEvent
+
+  class DependenciesReloadedEvent internal constructor() : DependencyChangedEvent
 }
 
 private fun createVariablesScopeFor(
