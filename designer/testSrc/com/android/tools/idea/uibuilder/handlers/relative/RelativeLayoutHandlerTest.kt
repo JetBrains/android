@@ -23,7 +23,7 @@ import com.android.tools.idea.uibuilder.LayoutTestUtilities.mockViewWithBaseline
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 
-class RelativeLayoutHandlerKtTest : SceneTest() {
+class RelativeLayoutHandlerTest : SceneTest() {
 
   fun testResizeFromTopLeft() {
     myInteraction.select("checkbox", true)

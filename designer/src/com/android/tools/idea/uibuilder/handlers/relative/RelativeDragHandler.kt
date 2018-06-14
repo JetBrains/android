@@ -34,11 +34,11 @@ private const val ERROR_UNDEFINED = "undefined"
 /**
  * [DragHandler] handles the dragging from Palette and ComponentTree to RelativeLayout
  */
-internal class RelativeDragHandlerKt(editor: ViewEditor,
-                                     handler: RelativeLayoutHandlerKt,
-                                     layout: SceneComponent,
-                                     components: List<NlComponent>,
-                                     type: DragType
+internal class RelativeDragHandler(editor: ViewEditor,
+                                   handler: RelativeLayoutHandler,
+                                   layout: SceneComponent,
+                                   components: List<NlComponent>,
+                                   type: DragType
 ) : DragHandler(editor, handler, layout, components, type) {
 
   private val component: SceneComponent?

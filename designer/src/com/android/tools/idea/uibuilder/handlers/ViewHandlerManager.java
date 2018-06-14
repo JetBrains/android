@@ -36,7 +36,6 @@ import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.*;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
-import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandlerKt;
 import com.android.tools.idea.uibuilder.menu.GroupHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.menu.MenuViewHandlerManager;
@@ -253,7 +252,7 @@ public class ViewHandlerManager implements ProjectComponent {
       case DIALER_FILTER:
       case FQCN_RELATIVE_LAYOUT:
       case RELATIVE_LAYOUT:
-        return StudioFlags.NELE_TARGET_RELATIVE.get() ? new RelativeLayoutHandlerKt() : new RelativeLayoutHandler();
+        return new RelativeLayoutHandler();
       case EDIT_TEXT:
         return new EditTextHandler();
       case EXPANDABLE_LIST_VIEW:

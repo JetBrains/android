@@ -15,15 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,16 +30,6 @@ public class RelativeLayoutTest {
 
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
-
-  @Before
-  public void setUp() {
-    StudioFlags.NELE_TARGET_RELATIVE.override(true);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NELE_TARGET_RELATIVE.clearOverride();
-  }
 
   @Test
   public void testDragFragmentFromPalette() throws Exception {
