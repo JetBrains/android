@@ -63,10 +63,6 @@ open class NelePropertyItem(
   val components: List<NlComponent>
 ) : PropertyItem, ActionButtonSupport {
 
-  init {
-    assert(components.isNotEmpty())
-  }
-
   override var value: String?
     get() {
       val rawValue = rawValue
@@ -193,7 +189,7 @@ open class NelePropertyItem(
 
   private fun setCommonComponentValue(newValue: String?) {
     assert(ApplicationManager.getApplication().isDispatchThread)
-    if (model.facet.module.project.isDisposed) {
+    if (model.facet.module.project.isDisposed || components.isEmpty()) {
       return
     }
     val componentName = if (components.size == 1) components[0].tagName else "Multiple"
@@ -256,7 +252,7 @@ open class NelePropertyItem(
     }
   }
 
-  override fun getAction(): AnAction {
+  override fun getAction(): AnAction? {
     return OpenResourceManagerAction(this)
   }
 

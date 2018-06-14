@@ -21,7 +21,7 @@ import com.android.tools.idea.common.property2.api.PropertyItem
 /**
  * Model for properties that use a Text Editor.
  */
-class TextFieldPropertyEditorModel(property: PropertyItem, override val editable: Boolean) :
+open class TextFieldPropertyEditorModel(property: PropertyItem, override val editable: Boolean) :
   BasePropertyEditorModel(property), CommonTextFieldModel {
 
   override var text: String = ""

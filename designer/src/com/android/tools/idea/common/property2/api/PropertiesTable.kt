@@ -64,6 +64,11 @@ interface PropertiesTable<out P : PropertyItem> {
   val values: Collection<P>
 
   /**
+   * Return all namespaces in the table
+   */
+  val namespaces: Collection<String>
+
+  /**
    * Default implementation of a [PropertiesTable].
    *
    * Which is using a [Table] as a backing store.

@@ -23,15 +23,15 @@ import java.awt.Insets
 import javax.swing.JComponent
 import kotlin.math.max
 
-private const val LEFT_ICON_AREA = 20
+const val LEFT_STANDARD_INDENT = 20
 private const val ICON_CENTER_X_POS = 12
 private const val MIN_SPACING = 2
 
 /**
  * Table cell renderer for the name of a [PTableItem].
  */
-class NameTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
-  private val leftIconArea = JBUI.scale(LEFT_ICON_AREA)
+class DefaultNameTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
+  private val leftIconArea = JBUI.scale(LEFT_STANDARD_INDENT)
   private val iconCenterXPos = JBUI.scale(ICON_CENTER_X_POS)
   private val minSpacing = JBUI.scale(MIN_SPACING)
 
@@ -41,6 +41,7 @@ class NameTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
     append(item.name)
     setPaintFocusBorder(false)
     setFocusBorderAroundIcon(true)
+    myBorder = JBUI.Borders.empty()
     var indent = leftIconArea
     if (item is PTableGroupItem) {
       icon = UIUtil.getTreeNodeIcon(table.isExpanded(item), isSelected, hasFocus)

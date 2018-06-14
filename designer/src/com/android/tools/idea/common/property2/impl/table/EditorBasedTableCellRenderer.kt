@@ -23,6 +23,7 @@ import java.awt.BorderLayout
 import java.awt.Color
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.border.Border
 
 /**
  * A simple text cell renderer for displaying the value of a [PTableItem].
@@ -31,35 +32,41 @@ import javax.swing.JComponent
  * used to edit the value. Cache these controls and their editor model for
  * each [ControlType].
  */
-class ValueTableCellRenderer<in P : PropertyItem>(private val itemClass: Class<P>,
-                                                  private val controlTypeProvider: ControlTypeProvider<P>,
-                                                  private val editorProvider: EditorProvider<P>) : PTableCellRenderer {
-  private val defaultRenderer = DefaultPTableCellRenderer()
+class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: Class<P>,
+                                                        private val controlTypeProvider: ControlTypeProvider<P>,
+                                                        private val editorProvider: EditorProvider<P>,
+                                                        private val defaultRenderer: PTableCellRenderer) : PTableCellRenderer {
   private val componentCache = mutableMapOf<ControlKey, Pair<PropertyEditorModel, JComponent>>()
 
   override fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn,
                                   isSelected: Boolean, hasFocus: Boolean): JComponent? {
-    if (!itemClass.isInstance(item)) {
+    if (!itemClass.isInstance(item) || !table.tableModel.isCellEditable(item, column)) {
       return defaultRenderer.getEditorComponent(table, item, column, isSelected, hasFocus)
     }
     val property = itemClass.cast(item)
     val controlType = controlTypeProvider(property)
     val icon = findActionIcon(property)
     val key = ControlKey(controlType, icon)
-    val (model, editor) = componentCache[key] ?: createEditor(key, property, table.gridLineColor)
+    val (model, editor) = componentCache[key] ?: createEditor(key, property, column, table.gridLineColor)
     model.property = property
     return editor
   }
 
-  private fun createEditor(key: ControlKey, property: P, gridLineColor: Color): Pair<PropertyEditorModel, JComponent> {
+  private fun createEditor(key: ControlKey, property: P, column: PTableColumn, gridLineColor: Color): Pair<PropertyEditorModel, JComponent> {
     val (model, editor) = editorProvider.createEditor(property, asTableCellEditor = true)
     val panel = AdtSecondaryPanel(BorderLayout())
     panel.add(editor, BorderLayout.CENTER)
-    panel.border = JBUI.Borders.customLine(gridLineColor, 0, 1, 0, 0)
+    panel.border = createBorder(column, editor, gridLineColor)
     val result = Pair(model, panel)
     componentCache[key] = result
     return result
   }
+
+  private fun createBorder(column: PTableColumn, editor: JComponent, gridLineColor: Color): Border =
+    when (column) {
+      PTableColumn.NAME -> JBUI.Borders.empty(0, LEFT_STANDARD_INDENT - editor.insets.left, 0, 0)
+      PTableColumn.VALUE -> JBUI.Borders.customLine(gridLineColor, 0, 1, 0, 0)
+    }
 
   private fun findActionIcon(property: P): Icon? {
     val actionSupport = property as? ActionButtonSupport ?: return null
