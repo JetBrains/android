@@ -127,17 +127,6 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   }
 
   private void runOverProjectTree(@NotNull Consumer<GradleDslFile> func) {
-    // This tree structure should NEVER contain any cycles. As such we assume none exist.
-    Deque<GradleDslFile> currentFiles = new ArrayDeque<>();
-    currentFiles.add(myProjectBuildFile);
-    GradleSettingsFile settingsFile = myBuildModelContext.getSettingsFile(myProjectBuildFile.getProject());
-    if (settingsFile != null) {
-      currentFiles.add(settingsFile);
-    }
-    while (!currentFiles.isEmpty()) {
-      GradleDslFile file = currentFiles.pollLast();
-      func.accept(file);
-      currentFiles.addAll(file.getChildModuleDslFiles());
-    }
+    myBuildModelContext.getAllRequestedFiles().forEach(func);
   }
 }
