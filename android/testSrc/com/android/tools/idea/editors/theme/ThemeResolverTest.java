@@ -27,6 +27,7 @@ import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyl
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
+import com.android.tools.idea.projectsystem.TestRepositories;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
@@ -159,8 +160,7 @@ public class ThemeResolverTest extends AndroidTestCase {
   }
 
   private void doTestRecommendedThemesAppcompat() {
-    TestProjectSystem projectSystem =
-        new TestProjectSystem(getProject(), ImmutableList.of(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7.getCoordinate("+")));
+    TestProjectSystem projectSystem = new TestProjectSystem(getProject(), TestRepositories.PLATFORM_SUPPORT_LIBS);
     ExtensionPointName<AndroidProjectSystemProvider> epName = new ExtensionPointName<>("com.android.project.projectsystem");
     PlatformTestUtil.registerExtension(Extensions.getArea(getProject()), epName, projectSystem, getTestRootDisposable());
     projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myModule, new GradleVersion(1337, 600613));

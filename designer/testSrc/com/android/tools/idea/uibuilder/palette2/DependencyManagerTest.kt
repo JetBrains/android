@@ -23,7 +23,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.AndroidTestCase
 
-import javax.swing.*
 import javax.xml.ws.Holder
 
 import com.android.SdkConstants.*
@@ -49,11 +48,9 @@ class DependencyManagerTest : AndroidTestCase() {
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
-
-    val allowedDependencies = listOf(GoogleMavenArtifactId.DESIGN.getCoordinate("+"),
-                                     GoogleMavenArtifactId.CARDVIEW_V7.getCoordinate("+"))
-    PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME,
-        TestProjectSystem(project, allowedDependencies), testRootDisposable)
+    val testProjectSystem = TestProjectSystem(project, availableDependencies = PLATFORM_SUPPORT_LIBS)
+    PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME, testProjectSystem,
+                                                                     testRootDisposable)
 
     myPanel = mock(PalettePanel::class.java)
     myDisposable = mock(Disposable::class.java)
