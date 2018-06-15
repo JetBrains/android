@@ -66,7 +66,7 @@ class EnergyEventsViewTest {
   @Test
   fun testUnknownColumnValues() {
     val duration = EnergyDuration(Arrays.asList(EnergyProfiler.EnergyEvent.newBuilder().build()))
-    assertThat(EnergyEventsView.Column.EVENT.getValueFrom(duration)).isEqualTo("n/a")
-    assertThat(EnergyEventsView.Column.DESCRIPTION.getValueFrom(duration)).isEqualTo("n/a")
+    assertThat(EnergyEventsView.Column.EVENT.getValueFrom(duration)).isEqualTo("N/A")
+    assertThat(EnergyEventsView.Column.DESCRIPTION.getValueFrom(duration)).isEqualTo("N/A")
   }
 }

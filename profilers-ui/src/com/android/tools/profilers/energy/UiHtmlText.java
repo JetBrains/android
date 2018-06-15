@@ -121,8 +121,8 @@ final class UiHtmlText {
       case RESULT_FAILURE:
         return "FAILURE";
       default:
-        // Job result is a required field, so returns n/a.
-        return "n/a";
+        // Job result is a required field, so returns N/A.
+        return "N/A";
     }
   }
 
@@ -267,8 +267,8 @@ final class UiHtmlText {
       case HIGH_ACCURACY:
         return "High Accuracy";
       default:
-        // Priority is a required field, so returns n/a.
-        return "n/a";
+        // Priority is a required field, so returns N/A.
+        return "N/A";
     }
   }
 }
