@@ -768,7 +768,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
                """.trimIndent()
     val appliedText = """
                       rootProject.ext.greetings = "goodbye"
-                      rootProject.ext.dep = "good:dep:${'$'}{version}" // We can't detect this :(
+                      rootProject.ext.dep = "good:dep:${'$'}{version}"
                       """.trimIndent()
     val childText = """
                     ext.hello = greetings
@@ -787,6 +787,6 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val artModel = childBuildModel.dependencies().artifacts()[0]!!
 
     verifyPropertyModel(childBuildModel.ext().findProperty("hello").resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1)
-    verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "good:dep:${'$'}{version}", STRING, REGULAR, 1)
+    verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "good:dep:1.0", STRING, REGULAR, 1)
   }
 }
