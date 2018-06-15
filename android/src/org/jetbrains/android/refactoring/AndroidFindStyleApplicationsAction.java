@@ -99,7 +99,8 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
     final ErrorReporter errorReporter = new ProjectBasedErrorReporter(tag.getProject());
     final Style style = styleData.getStyle();
     final Map<AndroidAttributeInfo, String> attrMap =
-      AndroidRefactoringUtil.computeAttributeMap(style, new ProjectBasedErrorReporter(tag.getProject()),
+      AndroidRefactoringUtil.computeAttributeMap(style,
+                                                 new ProjectBasedErrorReporter(tag.getProject()),
                                                  AndroidBundle.message("android.find.style.applications.title"));
 
     if (attrMap == null || attrMap.isEmpty()) {

@@ -105,8 +105,8 @@ open class MigrateToAndroidxProcessor(val project: Project,
     val migration = PsiMigrationManager.getInstance(project).startMigration()
     for (entry in migrationMap) {
       when (entry) {
-        is PackageMigrationEntry -> AndroidRefactoringUtil.findOrCreatePackage(project, migration, entry.myOldName)
-        is ClassMigrationEntry -> AndroidRefactoringUtil.findOrCreateClass(project, migration, entry.myOldName)
+        is PackageMigrationEntry -> findOrCreatePackage(project, migration, entry.myOldName)
+        is ClassMigrationEntry -> findOrCreateClass(project, migration, entry.myOldName)
       }
     }
     return migration
