@@ -32,35 +32,28 @@ import javax.swing.event.ChangeListener
  */
 class SetOverlayAlphaAction(private val myPreview: ViewNodeActiveDisplay) :
     AnAction("Overlay Alpha", "Set Overlay Alpha", null), CustomComponentAction, ChangeListener {
-  private var myPanel: JPanel? = null
-  private var alpahSlider: JSlider? = null
 
   override fun update(e: AnActionEvent?) {
     super.update(e)
     if (e == null) return
-    myPanel?.isVisible = myPreview.hasOverlay()
+    e.presentation.isEnabledAndVisible = myPreview.hasOverlay()
   }
 
-  override fun createCustomComponent(presentation: Presentation?): JComponent? {
-    myPanel = JPanel()
-    myPanel?.layout = BoxLayout(myPanel, BoxLayout.LINE_AXIS)
+  override fun createCustomComponent(presentation: Presentation): JComponent {
+    val alphaSlider = JSlider(JSlider.HORIZONTAL, 0, 100, (myPreview.overlayAlpha * 100).toInt())
+    alphaSlider.addChangeListener(this)
 
-    alpahSlider = JSlider(JSlider.HORIZONTAL,
-        0, 100, (myPreview.overlayAlpha * 100).toInt())
-    alpahSlider?.addChangeListener(this)
-
-    val alphaLabel = JBLabel("Alpha:")
-    alphaLabel.let {
-      it.border = EmptyBorder(0, 5, 0, 0)
-      it.labelFor = alpahSlider
+    val alphaLabel = JBLabel("Alpha:").apply {
+      border = EmptyBorder(0, 5, 0, 0)
+      labelFor = alphaSlider
     }
 
-    myPanel?.let {
-      it.add(JSeparator(SwingConstants.VERTICAL))
-      it.add(alphaLabel)
-      it.add(this.alpahSlider)
+    return JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.LINE_AXIS)
+      add(JSeparator(SwingConstants.VERTICAL))
+      add(alphaLabel)
+      add(alphaLabel)
     }
-    return myPanel
   }
 
   override fun actionPerformed(e: AnActionEvent?) {
