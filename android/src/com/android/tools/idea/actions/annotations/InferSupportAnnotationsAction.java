@@ -248,7 +248,10 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(configurationName)) {
           String notation = dependency.compactNotation();
           if (notation.startsWith(SdkConstants.APPCOMPAT_LIB_ARTIFACT) ||
+              notation.startsWith(SdkConstants.ANDROIDX_APPCOMPAT_LIB_ARTIFACT) ||
               notation.startsWith(SdkConstants.SUPPORT_LIB_ARTIFACT) ||
+              notation.startsWith(SdkConstants.ANDROIDX_SUPPORT_LIB_ARTIFACT) ||
+              notation.startsWith(SdkConstants.ANDROIDX_ANNOTATIONS_ARTIFACT) ||
               notation.startsWith(SdkConstants.ANNOTATIONS_LIB_ARTIFACT)) {
             dependencyFound = true;
             break;

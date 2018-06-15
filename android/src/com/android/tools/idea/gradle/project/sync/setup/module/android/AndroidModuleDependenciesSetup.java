@@ -94,8 +94,8 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
 
       // Add external annotations.
       // TODO: Add this to the model instead!
-      for (File binaryPath : binaryPaths) {
-        String pathName = binaryPath.getName();
+      for (File binaryPath: binaryPaths) {
+        String pathName = binaryPath.getPath();
         if (pathName.endsWith(FD_RES) && pathName.length() > FD_RES.length() &&
             pathName.charAt(pathName.length() - FD_RES.length() - 1) == separatorChar) {
           File annotations = new File(pathName.substring(0, pathName.length() - FD_RES.length()), FN_ANNOTATIONS_ZIP);
@@ -103,7 +103,9 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
             updateLibraryRootTypePaths(library, AnnotationOrderRootType.getInstance(), modelsProvider, annotations);
           }
         }
-        else if (libraryName.startsWith(prefix + "support-annotations-") && pathName.endsWith(DOT_JAR)) {
+        else if ((libraryName.startsWith(ANDROIDX_ANNOTATIONS_ARTIFACT, prefix.length()) ||
+                  libraryName.startsWith(ANNOTATIONS_LIB_ARTIFACT, prefix.length())) &&
+                 pathName.endsWith(DOT_JAR)) {
           // The support annotations is a Java library, not an Android library, so it's not distributed as an AAR
           // with its own external annotations. However, there are a few that we want to make available in the
           // IDE (for example, code completion on @VisibleForTesting(otherwise = |), so we bundle these in the
