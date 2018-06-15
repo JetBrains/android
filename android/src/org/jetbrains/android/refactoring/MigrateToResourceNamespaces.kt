@@ -49,10 +49,7 @@ import com.intellij.psi.impl.migration.PsiMigrationManager
 import com.intellij.psi.impl.source.xml.SchemaPrefixReference
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.parentOfType
-import com.intellij.psi.xml.XmlAttribute
-import com.intellij.psi.xml.XmlDocument
-import com.intellij.psi.xml.XmlFile
-import com.intellij.psi.xml.XmlTag
+import com.intellij.psi.xml.*
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.actions.BaseRefactoringAction
@@ -133,12 +130,31 @@ private sealed class ResourceUsageInfo(element: PsiElement, startOffset: Int, en
 
 private class DomValueUsageInfo(
   ref: PsiReference,
-  val domValue: GenericDomValue<ResourceValue>
+
+  /**
+   * [XmlElement] whose [GenericDomValue] needs to be changed.
+   *
+   * We cannot store the DOM objects, as they may become invalid when modifying underlying XML.
+   */
+  private val xmlElement: XmlElement
 ) : ResourceUsageInfo( // We don't use the UsageInfo(PsiReference) constructor to avoid resolving the reference.
   ref.element,
   ref.rangeInElement.startOffset,
   ref.rangeInElement.endOffset
 ) {
+
+  @Suppress("UNCHECKED_CAST") // We know xmlElement is either a tag or attribute that can be converted to ResourceValue.
+  val domValue: GenericDomValue<ResourceValue> get() {
+    val domManager = DomManager.getDomManager(xmlElement.project)
+    val domValue = if (xmlElement is XmlTag) {
+      domManager.getDomElement(xmlElement)
+    }
+    else {
+      domManager.getDomElement(xmlElement as XmlAttribute)
+    }
+    return domValue as GenericDomValue<ResourceValue>
+  }
+
   override val resourceType: ResourceType
     get() = domValue.value!!.type!!
   override val name: String
@@ -197,7 +213,7 @@ class MigrateToResourceNamespacesProcessor(
     ResourceRepositoryManager.getAppResources(invokingFacet).getLeafResourceRepositories(leafRepos)
 
     val inferredNamespaces: Table<ResourceType, String, String> =
-      Tables.newCustomTable(Maps.newEnumMap(ResourceType::class.java), { mutableMapOf<String, String>() })
+      Tables.newCustomTable(Maps.newEnumMap(ResourceType::class.java)) { mutableMapOf<String, String>() }
 
     val total = result.size.toDouble()
 
@@ -287,18 +303,18 @@ class MigrateToResourceNamespacesProcessor(
               }
             }
           }
-          is GenericDomValue<*> -> handleGenericDomValue(domElement)
+          is GenericDomValue<*> -> handleGenericDomValue(domElement, tag)
         }
 
         super.visitXmlTag(tag)
       }
 
       override fun visitXmlAttribute(attribute: XmlAttribute) {
-        handleGenericDomValue(domManager.getDomElement(attribute) as? GenericDomValue<*> ?: return)
+        handleGenericDomValue(domManager.getDomElement(attribute) as? GenericDomValue<*> ?: return, attribute)
         super.visitXmlAttribute(attribute)
       }
 
-      private fun handleGenericDomValue(domValue: GenericDomValue<*>) {
+      private fun handleGenericDomValue(domValue: GenericDomValue<*>, sourceXmlElement: XmlElement) {
         val converter = WrappingConverter.getDeepestConverter(domValue.converter, domValue)
         val psiElement = DomUtil.getValueElement(domValue) ?: return
         when (converter) {
@@ -319,9 +335,7 @@ class MigrateToResourceNamespacesProcessor(
                   val name = resourceValue.resourceName.nullize(nullizeSpaces = true) ?: continue@references
                   val resourceType = resourceValue.type ?: continue@references
                   if (referenceNeedsRewriting(resourceType, name)) {
-                    // We know this GenericDomValue used ResourceReferenceConverter, which is for ResourceValue.
-                    @Suppress("UNCHECKED_CAST")
-                    result += DomValueUsageInfo(reference, domValue as GenericDomValue<ResourceValue>)
+                    result += DomValueUsageInfo(reference, sourceXmlElement)
                   }
                 }
               }
