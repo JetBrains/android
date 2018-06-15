@@ -54,6 +54,7 @@ iml_module(
         "//tools/adt/idea/designer:lib/org.eclipse.elk.graph-0.3.0",
         "//tools/adt/idea/designer:lib/org.eclipse.emf.common-2.12.0",
         "//tools/adt/idea/designer:lib/org.eclipse.emf.ecore-2.12.0",
+        "//tools/idea/platform/annotations/common:intellij.platform.annotations.common[module]",
     ],
 )
 
