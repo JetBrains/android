@@ -28,6 +28,7 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.*;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.MouseEventHandler;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
 
@@ -42,36 +43,31 @@ import static com.android.tools.profilers.ProfilerLayout.*;
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING;
 
 class CpuUsageView extends JBPanel {
-
   @NotNull private final CpuProfilerStage myStage;
   @NotNull private final SelectionComponent mySelectionComponent;
-  @NotNull private final RangeTooltipComponent myTooltipComponent;
-  private boolean myMouseOver;
 
-  // TODO(b/110192612): |tooltipComponent| should not be passed, but managed in CpuProfilerStageView.
-  // It is a temporarily hack due to http://b/110192612.
-  CpuUsageView(@NotNull CpuProfilerStage stage, @NotNull RangeTooltipComponent tooltipComponent) {
+  CpuUsageView(@NotNull CpuProfilerStage stage) {
     super(new TabularLayout("*", "*"));
-
-    myTooltipComponent = tooltipComponent;
     myStage = stage;
     // We only show the sparkline if we are over the cpu usage chart. The cpu usage
     // chart is under the overlay component so using the events captured from the overlay
     // component tell us if we are over the right area.
     mySelectionComponent = new SelectionComponent(myStage.getSelectionModel(), myStage.getStudioProfilers().getTimeline().getViewRange());
     mySelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
-    final OverlayComponent overlay = new OverlayComponent(mySelectionComponent);
-    overlay.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseEntered(MouseEvent e) {
-        myMouseOver = true;
-      }
 
+    final OverlayComponent overlay = new OverlayComponent(mySelectionComponent);
+
+    MouseEventHandler handler = new MouseEventHandler() {
       @Override
-      public void mouseExited(MouseEvent e) {
-        myMouseOver = false;
+      protected void handle(MouseEvent event) {
+        // |CpuUsageView| does not receive any mouse events, because all mouse events are consumed by |OverlayComponent|
+        // We're dispatching them manually, so that |CpuProfilerStageView| could register CPU context menus or other mouse events
+        // directly into |CpuUsageView| instead of |OverlayComponent|.
+        dispatchEvent(SwingUtilities.convertMouseEvent(overlay, event, CpuUsageView.this));
       }
-    });
+    };
+    overlay.addMouseListener(handler);
+    overlay.addMouseMotionListener(handler);
 
     setBorder(MONITOR_BORDER);
     setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
@@ -114,6 +110,14 @@ class CpuUsageView extends JBPanel {
       add(mySelectionComponent, new TabularLayout.Constraint(0, 0));
       add(lineChartPanel, new TabularLayout.Constraint(0, 0));
     }
+  }
+
+  /**
+   * @return true if the blue seek component from {@link RangeTooltipComponent} should be visible when mouse is over {@link CpuUsageView}.
+   * @see {@link RangeTooltipComponent#myShowSeekComponent}
+   */
+  boolean showTooltipSeekComponent() {
+    return mySelectionComponent.getMode() != SelectionComponent.Mode.MOVE;
   }
 
   @SuppressWarnings("UseJBColor")
@@ -195,9 +199,6 @@ class CpuUsageView extends JBPanel {
     };
     overlay.addMouseListener(doubleClick);
     overlayPanel.addMouseListener(doubleClick);
-
-    myTooltipComponent.registerListenersOn(overlay);
-    myTooltipComponent.registerListenersOn(overlayPanel);
   }
 
   private void configureLineChart(@NotNull JPanel lineChartPanel, @NotNull OverlayComponent overlay) {
@@ -277,21 +278,5 @@ class CpuUsageView extends JBPanel {
     long min = (long)(info.getRange().getMin() - range.getMin());
     long max = (long)(info.getRange().getMax() - range.getMin());
     return String.format("%s - %s", TimeFormatter.getFullClockString(min), TimeFormatter.getFullClockString(max));
-  }
-
-  @NotNull
-  SelectionComponent getSelectionComponent() {
-    // TODO(b/110192612): we expose |mySelectionComponent| to install context menus into it,
-    // We could install context menus directly to |CpuUsageView|, however all mouse events are consumed
-    // by |OverlayComponent| (and |SelectionComponent|), so |CpuUsageView| doesn't receive any mouse events.
-    // This needs to be fixed.
-    return mySelectionComponent;
-  }
-
-  boolean isMouseOver() {
-    // TODO(http://b/110192612): All mouse events are consumed by |OverlayComponent| (and |SelectionComponent|),
-    // so |CpuUsageView| doesn't receive any mouse events. Thus, we're overcoming the issue by exposing the event.
-    // This needs to be fixed.
-    return myMouseOver;
   }
 }
