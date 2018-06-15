@@ -55,11 +55,6 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
       XmlUnusedNamespaceInspection::class.java
     )
 
-    runUndoTransparentWriteAction {
-      myFacet.manifest!!.`package`.value = "com.example.app"
-      AndroidFacet.getInstance(getAdditionalModuleByName("lib")!!)!!.manifest!!.`package`.value = "com.example.lib"
-    }
-
     libXml = myFixture.addFileToProject(
       "${getAdditionalModulePath("lib")}/res/values/lib.xml",
       // language=xml
@@ -67,6 +62,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
         <resources>
           <string name="libString">Hello from lib</string>
           <attr name="libAttr" format="string" />
+          <attr name="anotherLibAttr" format="string" />
 
           <style name="LibTheme">
           </style>
@@ -83,6 +79,12 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
         public class R {}
       """.trimIndent()
       )
+
+    // This may trigger creation of resource repositories, so let's do last to make local runs less flaky.
+    runUndoTransparentWriteAction {
+      myFacet.manifest!!.`package`.value = "com.example.app"
+      AndroidFacet.getInstance(getAdditionalModuleByName("lib")!!)!!.manifest!!.`package`.value = "com.example.lib"
+    }
   }
 
   fun testResourceValues() {
@@ -373,6 +375,83 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
                 namespaced true
             }
         }
+      """.trimIndent(),
+      true
+    )
+  }
+
+  /**
+   * Repro case for b/109802379.
+   */
+  fun testMultipleAttrsInNestedView() {
+    myFixture.addFileToProject(
+      "/res/layout/layout.xml",
+      // language=xml
+      """
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <TextView
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/libAttr"
+            android:background="?attr/anotherLibAttr"
+            app:libAttr="@style/LibStyle" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end" />
+
+</LinearLayout>
+      """.trimIndent()
+    )
+
+    refactorAndSync()
+
+    myFixture.checkResult(
+      "/res/layout/layout.xml",
+      // language=xml
+      """
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:lib="http://schemas.android.com/apk/res/com.example.lib"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <TextView
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?lib:attr/libAttr"
+            android:background="?lib:attr/anotherLibAttr"
+            lib:libAttr="@style/LibStyle" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end" />
+
+</LinearLayout>
       """.trimIndent(),
       true
     )
