@@ -18,7 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerMode;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.collect.Iterables;
@@ -144,7 +144,7 @@ public class CpuProfilerConfigModel {
         // Otherwise we select ART sampled.
         myProfilingConfiguration =
           Iterables.find(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfilerType.ART
-                                                 && pref.getMode() == CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+                                                 && pref.getMode() == CpuProfilerMode.SAMPLED);
       }
     }
   }

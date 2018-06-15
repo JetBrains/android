@@ -593,6 +593,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     CpuProfilingAppStopRequest request = CpuProfilingAppStopRequest.newBuilder()
                                                                    .setProfilerType(
                                                                      myProfilerConfigModel.getProfilingConfiguration().getProfilerType())
+                                                                   .setProfilerMode(
+                                                                     myProfilerConfigModel.getProfilingConfiguration().getMode()
+                                                                   )
                                                                    .setSession(mySession)
                                                                    .build();
     // Setting duration of the in progress trace series, so it's temporarily displayed in the chart while the trace is being parsed.
@@ -722,7 +725,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
         // Save trace info if not already saved
         if (!myTraceIdsIterator.contains(CpuCaptureParser.IMPORTED_TRACE_ID)) {
-          saveTraceInfo(CpuCaptureParser.IMPORTED_TRACE_ID, parsedCapture);
+          saveTraceInfo(CpuCaptureParser.IMPORTED_TRACE_ID, parsedCapture,
+                        // We don't know the CpuProfilerMode used to generate the trace.
+                        CpuProfilerMode.UNSPECIFIED_MODE);
           myTraceIdsIterator.addTrace(CpuCaptureParser.IMPORTED_TRACE_ID);
         }
         // Track import trace success
@@ -777,7 +782,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         setCaptureState(CaptureState.IDLE);
         setAndSelectCapture(parsedCapture);
         setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
-        saveTraceInfo(traceId, parsedCapture);
+        saveTraceInfo(traceId, parsedCapture, myProfilerConfigModel.getProfilingConfiguration().getMode());
 
         // Update capture metadata
         captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.SUCCESS);
@@ -829,7 +834,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return TimeUnit.MICROSECONDS.toMillis((long)maxDataRange.getLength());
   }
 
-  private void saveTraceInfo(int traceId, @NotNull CpuCapture capture) {
+  private void saveTraceInfo(int traceId, @NotNull CpuCapture capture, CpuProfilerMode mode) {
     long captureFrom = TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin());
     long captureTo = TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax());
 
@@ -846,6 +851,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
                                    .setFromTimestamp(captureFrom)
                                    .setToTimestamp(captureTo)
                                    .setProfilerType(capture.getType())
+                                   .setProfilerMode(mode)
                                    .setTraceFilePath(myCaptureParser.getTraceFilePath(traceId))
                                    .addAllThreads(threads).build();
 

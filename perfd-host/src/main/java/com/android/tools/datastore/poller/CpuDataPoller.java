@@ -111,7 +111,8 @@ public class CpuDataPoller extends PollRunner {
         CpuProfiler.GetTraceRequest.Builder traceRequest =
           CpuProfiler.GetTraceRequest.newBuilder().setSession(mySession).setTraceId(traceInfo.getTraceId());
         CpuProfiler.GetTraceResponse traceResponse = myPollingService.getTrace(traceRequest.build());
-        myCpuTable.insertTrace(mySession, traceInfo.getTraceId(), traceResponse.getProfilerType(), traceResponse.getData());
+        myCpuTable.insertTrace(
+          mySession, traceInfo.getTraceId(), traceResponse.getProfilerType(), traceResponse.getProfilerMode(), traceResponse.getData());
         // TODO(b/74358723): Revisit the logic to insert data into datastore.
         // Note the traceInfo returned by perfd is preliminary. For example, the start and end timestamps
         // are set when those events are perceived by perfd including the time spent by perfa waiting for the trace to

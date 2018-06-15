@@ -33,6 +33,15 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class FakeIdeProfilerServices implements IdeProfilerServices {
+
+  public static final String FAKE_ART_SAMPLED_NAME = "Sampled";
+
+  public static final String FAKE_ART_INSTRUMENTED_NAME = "Instrumented";
+
+  public static final String FAKE_SIMPLEPERF_NAME = "Simpleperf";
+
+  public static final String FAKE_ATRACE_NAME = "Atrace";
+
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
   private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator(myFakeFeatureTracker);
 
@@ -361,7 +370,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void addCustomProfilingConfiguration(String name, CpuProfiler.CpuProfilerType type) {
     ProfilingConfiguration config =
-      new ProfilingConfiguration(name, type, CpuProfiler.CpuProfilerConfiguration.Mode.UNSTATED);
+      new ProfilingConfiguration(name, type, CpuProfiler.CpuProfilerMode.UNSPECIFIED_MODE);
     myCustomProfilingConfigurations.add(config);
   }
 
@@ -372,18 +381,18 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @Override
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs() {
-    ProfilingConfiguration artSampled = new ProfilingConfiguration(ProfilingConfiguration.ART_SAMPLED,
+    ProfilingConfiguration artSampled = new ProfilingConfiguration(FAKE_ART_SAMPLED_NAME,
                                                                    CpuProfiler.CpuProfilerType.ART,
-                                                                   CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
-    ProfilingConfiguration artInstrumented = new ProfilingConfiguration(ProfilingConfiguration.ART_INSTRUMENTED,
+                                                                   CpuProfiler.CpuProfilerMode.SAMPLED);
+    ProfilingConfiguration artInstrumented = new ProfilingConfiguration(FAKE_ART_INSTRUMENTED_NAME,
                                                                         CpuProfiler.CpuProfilerType.ART,
-                                                                        CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED);
-    ProfilingConfiguration simpleperf = new ProfilingConfiguration(ProfilingConfiguration.SIMPLEPERF,
+                                                                        CpuProfiler.CpuProfilerMode.INSTRUMENTED);
+    ProfilingConfiguration simpleperf = new ProfilingConfiguration(FAKE_SIMPLEPERF_NAME,
                                                                    CpuProfiler.CpuProfilerType.SIMPLEPERF,
-                                                                   CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
-    ProfilingConfiguration atrace = new ProfilingConfiguration(ProfilingConfiguration.ATRACE,
+                                                                   CpuProfiler.CpuProfilerMode.SAMPLED);
+    ProfilingConfiguration atrace = new ProfilingConfiguration(FAKE_ATRACE_NAME,
                                                                CpuProfiler.CpuProfilerType.ATRACE,
-                                                               CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+                                                               CpuProfiler.CpuProfilerMode.SAMPLED);
     return ImmutableList.of(artSampled, artInstrumented, simpleperf, atrace);
   }
 

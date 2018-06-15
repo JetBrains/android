@@ -33,32 +33,31 @@ class CpuProfilerConfigsStateTest {
   @Test
   fun testDefaultConfigs() {
     val configs = CpuProfilerConfigsState.getDefaultConfigs()
-    assertThat(configs).hasSize(4)
     assertThat(configs.map { it.name }).containsExactly(
-        "Sampled (Java)",
-        "Instrumented (Java)",
-        "Sampled (Native)",
-        "System Trace"
+        CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(),
+        CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName(),
+        CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName(),
+        CpuProfilerConfig.Technology.ATRACE.getName()
     ).inOrder()
   }
 
   @Test
   fun getConfigByNameFromDefaultConfigs() {
-    assertThat(myConfigsState.getConfigByName("Sampled (Java)")?.technology)
+    assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.SAMPLED_JAVA.getName())?.technology)
       .isEqualTo(CpuProfilerConfig.Technology.SAMPLED_JAVA)
-    assertThat(myConfigsState.getConfigByName("Sampled (Native)")?.technology)
+    assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName())?.technology)
       .isEqualTo(CpuProfilerConfig.Technology.SAMPLED_NATIVE)
-    assertThat(myConfigsState.getConfigByName("Instrumented (Java)")?.technology)
+    assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName())?.technology)
       .isEqualTo(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA)
-    assertThat(myConfigsState.getConfigByName("System Trace")?.technology)
+    assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.ATRACE.getName())?.technology)
       .isEqualTo(CpuProfilerConfig.Technology.ATRACE)
   }
 
   @Test
   fun atraceConfigHas32MbBuffer() {
-    assertThat(myConfigsState.getConfigByName("System Trace")?.technology)
+    assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.ATRACE.getName())?.technology)
       .isEqualTo(CpuProfilerConfig.Technology.ATRACE)
-    assertThat(myConfigsState.getConfigByName("System Trace")?.bufferSizeMb)
+    assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.ATRACE.getName())?.bufferSizeMb)
       .isEqualTo(CpuProfilerConfig.DEFAULT_ATRACE_BUFFER_SIZE_MB)
   }
 

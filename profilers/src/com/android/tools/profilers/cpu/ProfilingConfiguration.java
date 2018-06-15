@@ -15,9 +15,9 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerMode;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -30,28 +30,7 @@ public class ProfilingConfiguration {
 
   public static final int DEFAULT_SAMPLING_INTERVAL_US = 1000;
 
-  public static final String ART_SAMPLED = "Sampled (Java)";
-
-  public static final String ART_INSTRUMENTED = "Instrumented (Java)";
-
-  /**
-   * Default name used by ART configurations (both sampled and instrumented).
-   * TODO(b/110105335): when getDefaultConfigName supports both mode and profiler type, remove this field.
-   */
-  @VisibleForTesting
-  static final String ART_ARTIFACT = "Method Trace (Java)";
-
-  public static final String SIMPLEPERF = "Sampled (Native)";
-
-  /**
-   * Naming scheme for Simpleperf to match the format of {@link #ART_ARTIFACT}.
-   * TODO(b/110105335): until we can get both mode and profiler type from an ART trace, this string is a compromise to have more consistent
-   * names to display in the Sessions panel.
-   */
-  @VisibleForTesting
-  public static final String SIMPLEPERF_ARTIFACT = "Method Trace (Native)";
-
-  public static final String ATRACE = "System Trace";
+  public static final String ATRACE = "Trace System Calls";
 
   /**
    * Name to identify the profiling preference. It should be displayed in the preferences list.
@@ -66,7 +45,7 @@ public class ProfilingConfiguration {
   /**
    * Profiling mode (Sampled or Instrumented).
    */
-  private CpuProfiler.CpuProfilerConfiguration.Mode myMode;
+  private CpuProfilerMode myMode;
 
   private int myProfilingBufferSizeInMb = DEFAULT_BUFFER_SIZE_MB;
 
@@ -81,17 +60,17 @@ public class ProfilingConfiguration {
 
   public ProfilingConfiguration(String name,
                                 CpuProfilerType profilerType,
-                                CpuProfiler.CpuProfilerConfiguration.Mode mode) {
+                                CpuProfilerMode mode) {
     myName = name;
     myProfilerType = profilerType;
     myMode = mode;
   }
 
-  public CpuProfiler.CpuProfilerConfiguration.Mode getMode() {
+  public CpuProfilerMode getMode() {
     return myMode;
   }
 
-  public void setMode(CpuProfiler.CpuProfilerConfiguration.Mode mode) {
+  public void setMode(CpuProfilerMode mode) {
     myMode = mode;
   }
 
@@ -123,24 +102,6 @@ public class ProfilingConfiguration {
     return myProfilingSamplingIntervalUs;
   }
 
-  /**
-   * Returns the default configuration name corresponding to the given {@link CpuProfilerType}.
-   * TODO(b/76152657): support profiler Mode to differentiate Sampled and Instrumented captures. In order to do that, we should probably
-   *                   change our API to add a CpuProfilerConfiguration.Mode field to TraceInfo.
-   */
-  public static String getDefaultConfigName(CpuProfilerType profilerType) {
-    switch (profilerType) {
-      case ART:
-        return ART_ARTIFACT;
-      case SIMPLEPERF:
-        return SIMPLEPERF_ARTIFACT;
-      case ATRACE:
-        return ATRACE;
-      default:
-        return "Unknown Configuration";
-    }
-  }
-
   public int getRequiredDeviceLevel() {
     switch (myProfilerType) {
       // Atrace is supported from Android 4.1 (J) minimum, however the trace events changed in Android 7.0 (M).
@@ -168,7 +129,7 @@ public class ProfilingConfiguration {
    */
   @NotNull
   public static ProfilingConfiguration fromProto(@NotNull CpuProfiler.CpuProfilerConfiguration proto) {
-    ProfilingConfiguration configuration = new ProfilingConfiguration(proto.getName(), proto.getProfilerType(), proto.getMode());
+    ProfilingConfiguration configuration = new ProfilingConfiguration(proto.getName(), proto.getProfilerType(), proto.getProfilerMode());
     configuration.setProfilingSamplingIntervalUs(proto.getSamplingIntervalUs());
     configuration.setProfilingBufferSizeInMb(proto.getBufferSizeInMb());
     return configuration;
@@ -182,7 +143,7 @@ public class ProfilingConfiguration {
     return CpuProfiler.CpuProfilerConfiguration.newBuilder()
       .setName(getName())
       .setProfilerType(getProfilerType())
-      .setMode(getMode())
+      .setProfilerMode(getMode())
       .setSamplingIntervalUs(getProfilingSamplingIntervalUs())
       .setBufferSizeInMb(getProfilingBufferSizeInMb()).build();
   }

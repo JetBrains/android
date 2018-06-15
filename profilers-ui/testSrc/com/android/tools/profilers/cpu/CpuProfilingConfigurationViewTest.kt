@@ -68,8 +68,7 @@ class CpuProfilingConfigurationViewTest {
   @Test
   fun apiInitiatedCaptureShouldShowSpecialConfig() {
     assertThat(cpuService.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.ART)
-    val config = ProfilingConfiguration("My Config", CpuProfiler.CpuProfilerType.SIMPLEPERF,
-                                        CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED)
+    val config = ProfilingConfiguration("My Config", CpuProfiler.CpuProfilerType.SIMPLEPERF, CpuProfiler.CpuProfilerMode.SAMPLED)
     stage.profilerConfigModel.profilingConfiguration = config
 
     // Verify non-API-initiated config before the API tracing starts.
@@ -103,22 +102,23 @@ class CpuProfilingConfigurationViewTest {
     assertThat(configurationView.profilingConfiguration).isNotNull()
     // ART Sampled should be the default configuration when starting the stage,
     // as it's the first configuration on the list.
-    assertThat(configurationView.profilingConfiguration.name).isEqualTo(ProfilingConfiguration.ART_SAMPLED)
+    assertThat(configurationView.profilingConfiguration.name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_SAMPLED_NAME)
 
     // Set a new configuration and check it's actually set as stage's profiling configuration
-    val instrumented = ProfilingConfiguration(ProfilingConfiguration.ART_INSTRUMENTED,
+    val instrumented = ProfilingConfiguration(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME,
                                               CpuProfiler.CpuProfilerType.ART,
-                                              CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED)
+                                              CpuProfiler.CpuProfilerMode.INSTRUMENTED)
     configurationView.profilingConfiguration = instrumented
-    assertThat(configurationView.profilingConfiguration.name).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED)
+    assertThat(configurationView.profilingConfiguration.name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
 
     // Set CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY as profiling configuration
     // and check it doesn't actually replace the current configuration
     configurationView.profilingConfiguration = CpuProfilingConfigurationView.EDIT_CONFIGURATIONS_ENTRY
-    assertThat(configurationView.profilingConfiguration.name).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED)
+    assertThat(configurationView.profilingConfiguration.name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
 
     // Just sanity check "Instrumented" is not the name of CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY
-    assertThat(CpuProfilingConfigurationView.EDIT_CONFIGURATIONS_ENTRY.name).isNotEqualTo(ProfilingConfiguration.ART_INSTRUMENTED)
+    assertThat(
+      CpuProfilingConfigurationView.EDIT_CONFIGURATIONS_ENTRY.name).isNotEqualTo(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
   }
 
   @Test
