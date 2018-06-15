@@ -74,7 +74,7 @@ public class HotSwapTest {
    *   2. Make sure the instant run hot swap is applied in Run tool window.
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/77635374
   @Test
   public void hotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
