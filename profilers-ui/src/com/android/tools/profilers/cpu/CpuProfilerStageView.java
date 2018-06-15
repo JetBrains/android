@@ -152,8 +152,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @NotNull private final JLabel myImportedSelectedProcessLabel;
 
-  @NotNull private CpuUsageView myUsageView;
-
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     super(profilersView, stage);
     myStage = stage;
@@ -172,14 +170,30 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
     getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+
+    final CpuUsageView usageView = new CpuUsageView(myStage);
+    final boolean[] isMouseOverUsageView = new boolean[]{false};
+    usageView.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        isMouseOverUsageView[0] = true;
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        isMouseOverUsageView[0] = false;
+      }
+    });
+
     myTooltipComponent = new RangeTooltipComponent(timeline.getTooltipRange(),
                                                    timeline.getViewRange(),
                                                    timeline.getDataRange(),
                                                    getTooltipPanel(),
                                                    getProfilersView().getComponent(),
-                                                   () -> myUsageView.isMouseOver() &&
-                                                         myUsageView.getSelectionComponent().getMode() != SelectionComponent.Mode.MOVE);
-    myUsageView = new CpuUsageView(myStage, myTooltipComponent);
+                                                   () -> isMouseOverUsageView[0] && usageView.showTooltipSeekComponent());
+    if (!myStage.isImportTraceMode()) {
+      myTooltipComponent.registerListenersOn(usageView);
+    }
 
     myThreads = new DragAndDropList<>(myStage.getThreadStates());
     myCpus = new JBList<>(myStage.getCpuKernelModel());
@@ -216,7 +230,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     configureKernelPanel(detailsPanel);
     configureThreadsPanel(detailsPanel, detailsLayout);
 
-    mainPanel.add(myUsageView, new TabularLayout.Constraint(MONITOR_PANEL_ROW, 0));
+    mainPanel.add(usageView, new TabularLayout.Constraint(MONITOR_PANEL_ROW, 0));
     mainPanel.add(detailsPanel, new TabularLayout.Constraint(DETAILS_PANEL_ROW, 0));
 
     // Panel that represents all of L2
@@ -256,12 +270,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     updateCaptureState();
 
-    CpuProfilerContextMenuInstaller.install(myStage, getIdeComponents(), myUsageView.getSelectionComponent(), getComponent());
+    CpuProfilerContextMenuInstaller.install(myStage, getIdeComponents(), usageView, getComponent());
     // Add the profilers common menu items
-    getProfilersView().installCommonMenuItems(myUsageView.getSelectionComponent());
+    getProfilersView().installCommonMenuItems(usageView);
 
     if (!getStage().hasUserUsedCpuCapture() && !getStage().isImportTraceMode()) {
-      installProfilingInstructions(myUsageView);
+      installProfilingInstructions(usageView);
     }
   }
 

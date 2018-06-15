@@ -59,7 +59,7 @@ class CpuUsageViewTest {
 
   @Test
   fun shouldNotShowInstructionsPanel() {
-    val usageView = CpuUsageView(stage, RangeTooltipComponent(Range(), Range(), Range(), JPanel()))
+    val usageView = CpuUsageView(stage)
     assertThat(TreeWalker(usageView).descendants().filterIsInstance(InstructionsPanel::class.java)).hasSize(0)
   }
 
@@ -72,7 +72,7 @@ class CpuUsageViewTest {
     newStage.studioProfilers.stage = newStage
     newStage.enter()
 
-    val usageView = CpuUsageView(newStage, RangeTooltipComponent(Range(), Range(), Range(), JPanel()))
+    val usageView = CpuUsageView(newStage)
 
     val panelList = TreeWalker(usageView).descendants().filterIsInstance(InstructionsPanel::class.java)
     // We cannot get the string due to privacy of InstructionsComponent.
@@ -83,7 +83,7 @@ class CpuUsageViewTest {
 
   @Test
   fun showsUsageChart() {
-    val usageView = CpuUsageView(stage, RangeTooltipComponent(Range(), Range(), Range(), JPanel()))
+    val usageView = CpuUsageView(stage)
     assertThat(TreeWalker(usageView).descendants().filterIsInstance(LineChart::class.java)).hasSize(1)
   }
 
@@ -96,7 +96,7 @@ class CpuUsageViewTest {
     newStage.studioProfilers.stage = newStage
     newStage.enter()
 
-    val usageView = CpuUsageView(newStage, RangeTooltipComponent(Range(), Range(), Range(), JPanel()))
+    val usageView = CpuUsageView(newStage)
     assertThat(TreeWalker(usageView).descendants().filterIsInstance(LineChart::class.java)).hasSize(1)
   }
 
@@ -109,7 +109,7 @@ class CpuUsageViewTest {
     newStage.studioProfilers.stage = newStage
     newStage.enter()
 
-    val usageView = CpuUsageView(newStage, RangeTooltipComponent(Range(), Range(), Range(), JPanel()))
+    val usageView = CpuUsageView(newStage)
     assertThat(TreeWalker(usageView).descendants().filterIsInstance(LegendComponent::class.java)).hasSize(0)
   }
 
@@ -117,7 +117,7 @@ class CpuUsageViewTest {
   @Test
   fun doubleClickShouldClearTheSelection() {
     val timeline = stage.studioProfilers.timeline
-    val usageView = CpuUsageView(stage, RangeTooltipComponent(timeline.tooltipRange, timeline.viewRange, timeline.dataRange, JPanel()))
+    val usageView = CpuUsageView(stage)
 
     usageView.setSize(100, 100)
 
