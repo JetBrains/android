@@ -1,13 +1,15 @@
 package org.jetbrains.android.database;
 
 import com.intellij.database.DatabaseMessages;
-import com.intellij.database.dataSource.DataSourceTemplate;
 import com.intellij.database.dialects.DatabaseDialectEx;
 import com.intellij.database.dialects.SqliteDialect;
 import com.intellij.database.model.DatabaseSystem;
 import com.intellij.database.psi.BasicDbPsiManager;
+import com.intellij.database.psi.DbPsiManager;
 import com.intellij.database.util.DbSqlUtil;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.GlobalUndoableAction;
@@ -15,26 +17,24 @@ import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.command.undo.UndoableAction;
 import com.intellij.openapi.command.undo.UnexpectedUndoException;
 import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.sql.dialects.SqlLanguageDialect;
+import com.intellij.util.PairConsumer;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
  */
 public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
   public static final String NOTIFICATION_GROUP_ID = "Android Data Source Manager";
-  static final DataSourceTemplate DEFAULT_TEMPLATE = new AndroidDataSourceTemplate();
 
   public AndroidDbManager(@NotNull Project project) {
     super(project, AndroidDataSourceStorage.getInstance(project).getDataSources());
@@ -61,7 +61,7 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
   }
 
   @Override
-  public void removeDataSource(DatabaseSystem element) {
+  public void removeDataSource(@NotNull DatabaseSystem element) {
     if (!(element instanceof AndroidDataSource)) throw new UnsupportedOperationException();
     final AndroidDataSource dataSource = (AndroidDataSource)element;
     processAddOrRemove(dataSource, false);
@@ -69,27 +69,33 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
 
   @NotNull
   @Override
-  public Configurable createDataSourceEditor(DatabaseSystem template) {
+  public Configurable createDataSourceEditor(@NotNull DatabaseSystem template) {
     if (!(template instanceof AndroidDataSource)) throw new UnsupportedOperationException();
     AndroidDataSource dataSource = (AndroidDataSource)template;
     return new AndroidDataSourceConfigurable(this, myProject, dataSource);
   }
 
-  @NotNull
   @Override
-  public List<DataSourceTemplate> getDataSourceTemplates() {
-    if (ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)) {
-      return Collections.singletonList(DEFAULT_TEMPLATE);
-    }
-    else {
-      return Collections.emptyList();
-    }
+  public AnAction getCreateDataSourceAction(@NotNull PairConsumer<DbPsiManager, DatabaseSystem> consumer) {
+    if (!ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)) return null;
+    return new DumbAwareAction("Android SQLite", null, AndroidIcons.Android) {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        AndroidDataSource result = new AndroidDataSource();
+        result.setName(getTemplatePresentation().getText());
+        result.resolveDriver();
+        consumer.consume(AndroidDbManager.this, result);
+      }
+    };
   }
 
-  @Nullable
+  @NotNull
   @Override
-  public DataSourceTemplate getDataSourceTemplate(DatabaseSystem element) {
-    return DEFAULT_TEMPLATE;
+  public DatabaseSystem copyDataSource(@NotNull String newName, @NotNull DatabaseSystem copyFrom) {
+    AndroidDataSource result = ((AndroidDataSource)copyFrom).copy();
+    result.setName(newName);
+    result.resolveDriver();
+    return result;
   }
 
   public void processAddOrRemove(final AndroidDataSource dataSource, final boolean add) {
@@ -139,58 +145,18 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
   }
 
   @Override
-  public boolean canCreateDataSourceByFiles(Collection<VirtualFile> files) {
+  public boolean canCreateDataSourceByFiles(@NotNull Collection<VirtualFile> files) {
     return false;
   }
 
   @NotNull
   @Override
-  public Collection<AndroidDataSource> createDataSourceByFiles(Collection<VirtualFile> files) {
+  public Collection<AndroidDataSource> createDataSourceByFiles(@NotNull Collection<VirtualFile> files) {
     return Collections.emptyList();
   }
 
   @Override
   public void addDataSource(@NotNull AndroidDataSource dataSource) {
     processAddOrRemove(dataSource, true);
-  }
-
-  private static class AndroidDataSourceTemplate implements DataSourceTemplate {
-    @NotNull
-    @Override
-    public String getName() {
-      return "Android SQLite";
-    }
-
-    @NotNull
-    @Override
-    public String getFullName() {
-      return getName();
-    }
-
-    @NotNull
-    @Override
-    public List<DataSourceTemplate> getSubConfigurations() {
-      return Collections.emptyList();
-    }
-
-    @NotNull
-    @Override
-    public DatabaseSystem createDataSource(@NotNull Project project, @Nullable DatabaseSystem copyFrom, @Nullable String newName) {
-      AndroidDataSource result;
-      if (copyFrom instanceof AndroidDataSource) {
-        result = ((AndroidDataSource)copyFrom).copy();
-      }
-      else {
-        result = new AndroidDataSource();
-      }
-      result.setName(StringUtil.notNullize(newName, getName()));
-      result.resolveDriver();
-      return result;
-    }
-
-    @Override
-    public Icon getIcon(@IconFlags int flags) {
-      return AndroidIcons.Android;
-    }
   }
 }
