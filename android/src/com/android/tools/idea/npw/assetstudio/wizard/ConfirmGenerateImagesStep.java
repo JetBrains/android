@@ -27,13 +27,14 @@ import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
-import com.android.tools.idea.ui.FileTreeCellRenderer;
-import com.android.tools.idea.ui.FileTreeModel;
+import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeCellRenderer;
+import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -92,7 +93,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   private JTextField myFileTypeTextField;
   private JTextField mySizePxTextField;
   private JSplitPane mySplitPane;
-  private Map<FileTreeModel.Node, GeneratedIcon> myNodeToPreviewImage = new HashMap<>();
+  private Map<File, GeneratedIcon> myPathToPreviewImage;
 
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer
   private JPanel myLeftPanel;
@@ -144,7 +145,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
 
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);
     myOutputPreviewTree.setModel(emptyModel);
-    myOutputPreviewTree.setCellRenderer(new FileTreeCellRenderer());
+    myOutputPreviewTree.setCellRenderer(new ProposedFileTreeCellRenderer());
     myOutputPreviewTree.setBorder(BorderFactory.createLineBorder(UIUtil.getBoundsColor()));
     // Tell the tree to ask the TreeCellRenderer for an individual height for each cell.
     myOutputPreviewTree.setRowHeight(-1);
@@ -176,10 +177,10 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   }
 
   private void showSelectedNodeDetails(TreePath newPath) {
-    if (newPath != null && newPath.getLastPathComponent() instanceof FileTreeModel.Node) {
-      FileTreeModel.Node node = (FileTreeModel.Node)newPath.getLastPathComponent();
+    if (newPath != null && newPath.getLastPathComponent() instanceof ProposedFileTreeModel.Node) {
+      ProposedFileTreeModel.Node node = (ProposedFileTreeModel.Node)newPath.getLastPathComponent();
 
-      GeneratedIcon generatedIcon = myNodeToPreviewImage.get(node);
+      GeneratedIcon generatedIcon = myPathToPreviewImage.get(node.getFile());
       if (generatedIcon instanceof GeneratedImageIcon) {
         GeneratedImageIcon generatedImageIcon = (GeneratedImageIcon)generatedIcon;
         BufferedImage image = generatedImageIcon.getImage();
@@ -188,7 +189,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         myPreviewIcon.setVisible(true);
 
         //noinspection StringToUpperCaseOrToLowerCaseWithoutLocale  // file names are not locale sensitive
-        String extension = FileUtilRt.getExtension(node.name).toUpperCase();
+        String extension = FileUtilRt.getExtension(node.getFile().getName()).toUpperCase();
         if (StringUtil.isEmpty(extension)) {
           myFileTypeTextField.setText("N/A");
         }
@@ -390,28 +391,14 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         return;
       }
 
-      myNodeToPreviewImage.clear();
-      Map<File, GeneratedIcon> pathIconMap = iconGenerator.generateIntoIconMap(template.getPaths());
+
       myFilesAlreadyExist.set(false);
-
-      // Create a FileTreeModel containing all generated files.
-      FileTreeModel treeModel = new FileTreeModel(resDir.getParentFile(), true);
-      for (Map.Entry<File, GeneratedIcon> entry : pathIconMap.entrySet()) {
-        File path = entry.getKey();
-        GeneratedIcon icon = entry.getValue();
-
-        if (path.exists()) {
-          myFilesAlreadyExist.set(true);
-        }
-
-        FileTreeModel.Node newNode = treeModel.forceAddFile(path, null);
-        myNodeToPreviewImage.put(newNode, icon);
-      }
+      myPathToPreviewImage = iconGenerator.generateIntoIconMap(template.getPaths());
 
       // Collect all directory names from all generated file names for sorting purposes.
       // We use this map instead of looking at the file system when sorting, since
       // not all files/directories exist on disk at this point.
-      Set<File> outputDirectories = pathIconMap.keySet()
+      Set<File> outputDirectories = myPathToPreviewImage.keySet()
         .stream()
         .flatMap(x -> {
           File root = resDir.getParentFile();
@@ -425,9 +412,14 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         })
         .collect(Collectors.toSet());
 
-      // Sort the FileTreeModel so that the preview tree entries are sorted.
-      treeModel.sort(new DensityAwareFileComparator(outputDirectories));
+      // Create a tree model containing all generated files.
+      Set<File> proposedFiles = ImmutableSortedSet
+        .orderedBy(new DensityAwareFileComparator(outputDirectories))
+        .addAll(myPathToPreviewImage.keySet())
+        .build();
+      ProposedFileTreeModel treeModel = new ProposedFileTreeModel(resDir.getParentFile(), proposedFiles);
 
+      myFilesAlreadyExist.set(treeModel.hasConflicts());
       myOutputPreviewTree.setModel(treeModel);
 
       // The tree should be totally expanded by default
