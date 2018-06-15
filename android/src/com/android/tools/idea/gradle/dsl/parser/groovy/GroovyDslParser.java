@@ -731,8 +731,20 @@ public class GroovyDslParser implements GradleDslParser {
           continue;
         }
         // Ext element is supported for any Gradle domain object that implements ExtensionAware.
-        if (!(resultElement instanceof BuildScriptDslElement) && EXT_BLOCK_NAME.equals(nestedElementName)) {
-          newElement = new ExtDslElement(resultElement);
+        if (EXT_BLOCK_NAME.equals(nestedElementName)) {
+          if (!(resultElement instanceof BuildScriptDslElement)) {
+            newElement = new ExtDslElement(resultElement);
+          }
+          else {
+            ExtDslElement extDslElement = parentElement.getDslFile().getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
+            if (extDslElement == null) {
+              newElement = new ExtDslElement(parentElement.getDslFile());
+            }
+            else {
+              resultElement = extDslElement;
+              continue;
+            }
+          }
         }
         else if (APPLY_BLOCK_NAME.equals(nestedElementName)) {
           newElement = new ApplyDslElement(resultElement);

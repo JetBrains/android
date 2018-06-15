@@ -574,7 +574,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     assertSize(1, buildScriptDeps.artifacts());
     ArtifactDependencyModel dependencyModel = buildScriptDeps.artifacts().get(0);
-    verifyPropertyModel(dependencyModel.version(), STRING_TYPE, "hello", REFERENCE, FAKE, 0);
+    verifyPropertyModel(dependencyModel.version(), STRING_TYPE, "boo", STRING, FAKE, 1);
   }
 
   @Test
