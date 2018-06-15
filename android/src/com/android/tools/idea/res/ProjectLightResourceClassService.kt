@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.projectmodel.AarLibrary
 import com.android.tools.idea.findAllAarsLibraries
 import com.android.tools.idea.res.aar.AarResourceRepositoryCache
+import com.android.tools.idea.util.toLibraryRootVirtualFile
 import com.android.utils.concurrency.CacheUtils
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
@@ -33,7 +34,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
@@ -121,7 +121,7 @@ class ProjectLightResourceClassService(
       // is not smart enough to recognize equivalent jar:// and file:// roots.
       val classesJar = aarLibrary.classesJar.toFile()?.takeIf { it.exists() } ?: return@flatMap emptySequence<PsiClass>()
 
-      if (vfsManager.findFileByUrl(VfsUtil.getUrlForLibraryRoot(classesJar))?.let { scope.contains(it) } != true) {
+      if (classesJar.toLibraryRootVirtualFile()?.let { scope.contains(it) } != true) {
         // The AAR is not in scope.
         emptySequence<PsiClass>()
       }

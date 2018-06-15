@@ -21,6 +21,7 @@ import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.projectsystem.FilenameConstants
 import com.android.tools.idea.res.aar.AarSourceResourceRepository
+import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.roots.LibraryOrderEntry
@@ -119,7 +120,7 @@ fun addAarDependency(
   )
 
   createResources(resDir)
-  VfsUtil.markDirtyAndRefresh(false, true, true, VfsUtil.findFileByIoFile(aarDir, true))
+  VfsUtil.markDirtyAndRefresh(false, true, true, aarDir.toVirtualFile(refresh = true))
 }
 
 /**

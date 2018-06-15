@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.res.aar.ProtoXmlPullParser;
+import com.android.tools.idea.util.FileExtensions;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.xmlpull.v1.XmlPullParser;
@@ -33,7 +34,7 @@ import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 public class FileResourceReaderTest extends AndroidTestCase {
   public void testReadBytes() throws Exception {
     String resApkPath = Paths.get(myFixture.getTestDataPath(), "design_aar", FN_RESOURCE_STATIC_LIBRARY).normalize().toString();
-    URI uri = new URI("apk", resApkPath, null);
+    URI uri = new URI("apk", "", resApkPath, null);
     String resourcePath = "res/drawable-mdpi-v4/design_ic_visibility.png";
     PathString pathString = new PathString(uri, resourcePath);
 
@@ -55,7 +56,7 @@ public class FileResourceReaderTest extends AndroidTestCase {
     XmlPullParser parser = FileResourceReader.createXmlPullParser(pathString);
     assertTrue(parser instanceof ProtoXmlPullParser);
 
-    VirtualFile virtualFile = ResourceHelper.toVirtualFile(pathString);
+    VirtualFile virtualFile = FileExtensions.toVirtualFile(pathString);
     parser = FileResourceReader.createXmlPullParser(virtualFile);
     assertTrue(parser instanceof ProtoXmlPullParser);
   }

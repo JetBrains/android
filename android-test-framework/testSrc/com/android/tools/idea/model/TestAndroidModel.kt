@@ -19,8 +19,8 @@ import com.android.builder.model.AaptOptions
 import com.android.builder.model.SourceProvider
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.databinding.DataBindingMode
+import com.android.tools.idea.util.toIoFile
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.LegacySourceProvider
@@ -69,7 +69,7 @@ open class TestAndroidModel @JvmOverloads constructor(
   override fun getNamespacing(): AaptOptions.Namespacing = namespacing
 
   override fun getRootDir(): VirtualFile = rootDir ?: error("rootDir not set")
-  override fun getRootDirPath(): File = VfsUtil.virtualToIoFile(getRootDir())
+  override fun getRootDirPath(): File = getRootDir().toIoFile()
 
   override fun isGenerated(file: VirtualFile): Boolean = TODO("not implemented")
   override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean = TODO("not implemented")

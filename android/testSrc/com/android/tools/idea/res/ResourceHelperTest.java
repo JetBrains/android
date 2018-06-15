@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
@@ -26,6 +25,7 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.TestAndroidModel;
+import com.android.tools.idea.util.FileExtensions;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
@@ -348,7 +348,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     String resourcePath = "res/drawable/navigation_empty_icon.xml";
     PathString pathString = new PathString(uri, resourcePath);
 
-    VirtualFile file = ResourceHelper.toVirtualFile(pathString);
+    VirtualFile file = FileExtensions.toVirtualFile(pathString);
     assertThat(file).isNotNull();
     assertThat(file.getUrl()).isEqualTo("apk://" + resApkPath + "!/" + resourcePath);
   }

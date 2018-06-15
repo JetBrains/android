@@ -21,6 +21,7 @@ import com.android.tools.analytics.Anonymizer
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.util.toIoFile
 import com.android.tools.lint.checks.BuiltinIssueRegistry
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
@@ -30,7 +31,6 @@ import com.google.wireless.android.sdk.stats.*
 import com.google.wireless.android.sdk.stats.LintIssueId.LintSeverity
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.android.inspections.lint.ProblemData
 import java.io.File
 import java.io.IOException
@@ -227,10 +227,7 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
     return null
   }
 
-  private fun computeProjectId(project: com.intellij.openapi.project.Project): String? {
-    val projectDir = VfsUtilCore.virtualToIoFile(project.baseDir)
-    return computeProjectId(projectDir)
-  }
+  private fun computeProjectId(project: com.intellij.openapi.project.Project): String? = computeProjectId(project.baseDir.toIoFile())
 
   private fun computeProjectId(projectPath: File?): String? {
     projectPath ?: return null
