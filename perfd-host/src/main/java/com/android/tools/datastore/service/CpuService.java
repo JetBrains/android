@@ -178,7 +178,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
       response = client.stopProfilingApp(request);
       // Only add successfully captured traces to the database
       if (response.getStatus() == CpuProfilingAppStopResponse.Status.SUCCESS) {
-        myCpuTable.insertTrace(request.getSession(), response.getTraceId(), request.getProfilerType(), response.getTrace());
+        myCpuTable.insertTrace(
+          request.getSession(), response.getTraceId(), request.getProfilerType(), request.getProfilerMode(), response.getTrace());
       }
     }
     observer.onNext(response);
@@ -227,7 +228,10 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
       builder.setStatus(GetTraceResponse.Status.FAILURE);
     }
     else {
-      builder.setStatus(GetTraceResponse.Status.SUCCESS).setData(data.getTraceBytes()).setProfilerType(data.getProfilerType());
+      builder.setStatus(GetTraceResponse.Status.SUCCESS)
+             .setData(data.getTraceBytes())
+             .setProfilerType(data.getProfilerType())
+             .setProfilerMode(data.getProfilerMode());
     }
 
     observer.onNext(builder.build());

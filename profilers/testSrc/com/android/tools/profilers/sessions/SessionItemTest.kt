@@ -18,11 +18,9 @@ package com.android.tools.profilers.sessions
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.MemoryProfiler
 import com.android.tools.profilers.*
 import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.cpu.ProfilingConfiguration
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MemoryProfilerStage
@@ -35,14 +33,13 @@ import java.util.concurrent.TimeUnit
 class SessionItemTest {
   private val myProfilerService = FakeProfilerService(false)
   private val myMemoryService = FakeMemoryService()
-  private val myCpuService = FakeCpuService()
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel(
       "SessionItemTestChannel",
       myProfilerService,
       myMemoryService,
-      myCpuService,
+      FakeCpuService(),
       FakeEventService(),
       FakeNetworkService.newBuilder().build()
   )
@@ -106,34 +103,6 @@ class SessionItemTest {
     myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
     sessionsManager.update()
     Truth.assertThat(sessionItem.subtitle).isEqualTo("Heap Dump")
-  }
-
-  @Test
-  fun testImportedCpuCaptureSessionName() {
-    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), FakeTimer())
-    val sessionsManager = profilers.sessionsManager
-    sessionsManager.createImportedSession("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0)
-    sessionsManager.update()
-    Truth.assertThat(sessionsManager.sessionArtifacts.size).isEqualTo(1)
-    val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
-    Truth.assertThat(sessionItem.subtitle).isEqualTo(SessionItem.SESSION_LOADING)
-
-    val simpleperfTraceInfo = CpuProfiler.TraceInfo.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF).build()
-    myCpuService.addTraceInfo(simpleperfTraceInfo)
-    sessionsManager.update()
-    Truth.assertThat(sessionItem.subtitle).isEqualTo(ProfilingConfiguration.getDefaultConfigName(simpleperfTraceInfo.profilerType))
-
-    val artTraceInfo = CpuProfiler.TraceInfo.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build()
-    myCpuService.clearTraceInfo()
-    myCpuService.addTraceInfo(artTraceInfo)
-    sessionsManager.update()
-    Truth.assertThat(sessionItem.subtitle).isEqualTo(ProfilingConfiguration.getDefaultConfigName(artTraceInfo.profilerType))
-
-    val atraceInfo = CpuProfiler.TraceInfo.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ATRACE).build()
-    myCpuService.clearTraceInfo()
-    myCpuService.addTraceInfo(atraceInfo)
-    sessionsManager.update()
-    Truth.assertThat(sessionItem.subtitle).isEqualTo(ProfilingConfiguration.getDefaultConfigName(atraceInfo.profilerType))
   }
 
   @Test

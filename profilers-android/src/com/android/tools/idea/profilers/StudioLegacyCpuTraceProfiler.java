@@ -94,7 +94,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
         if (request.getConfiguration().getProfilerType() == CpuProfilerType.ATRACE) {
           responseBuilder.mergeFrom(myServiceStub.startProfilingApp(request));
         }
-        else if (request.getConfiguration().getMode() == CpuProfilerConfiguration.Mode.SAMPLED) {
+        else if (request.getConfiguration().getProfilerMode() == CpuProfilerMode.SAMPLED) {
           assert request.getConfiguration().getProfilerType() == CpuProfilerType.ART;
           client.startSamplingProfiler(request.getConfiguration().getSamplingIntervalUs(), TimeUnit.MICROSECONDS);
         }
@@ -150,7 +150,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
           responseBuilder.mergeFrom(response);
           record.myStopLatch.countDown();
         }
-        else if (record.myStartRequest.getConfiguration().getMode() == CpuProfilerConfiguration.Mode.SAMPLED) {
+        else if (record.myStartRequest.getConfiguration().getProfilerMode() == CpuProfilerMode.SAMPLED) {
           assert record.myStartRequest.getConfiguration().getProfilerType() == CpuProfilerType.ART;
           client.stopSamplingProfiler();
         }

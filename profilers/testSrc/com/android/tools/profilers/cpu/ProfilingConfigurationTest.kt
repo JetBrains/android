@@ -24,7 +24,7 @@ class ProfilingConfigurationTest {
   fun fromProto() {
     val proto = CpuProfiler.CpuProfilerConfiguration.newBuilder()
       .setName("MyConfiguration")
-      .setMode(CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED)
+      .setProfilerMode(CpuProfiler.CpuProfilerMode.INSTRUMENTED)
       .setProfilerType(CpuProfiler.CpuProfilerType.ART)
       .setSamplingIntervalUs(123)
       .setBufferSizeInMb(12)
@@ -32,7 +32,7 @@ class ProfilingConfigurationTest {
     val config = ProfilingConfiguration.fromProto(proto)
 
     assertThat(config.name).isEqualTo("MyConfiguration")
-    assertThat(config.mode).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED)
+    assertThat(config.mode).isEqualTo(CpuProfiler.CpuProfilerMode.INSTRUMENTED)
     assertThat(config.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.ART)
     assertThat(config.profilingSamplingIntervalUs).isEqualTo(123)
     assertThat(config.profilingBufferSizeInMb).isEqualTo(12)
@@ -41,31 +41,16 @@ class ProfilingConfigurationTest {
   @Test
   fun toProto() {
     val configuration = ProfilingConfiguration("MyConfiguration", CpuProfiler.CpuProfilerType.SIMPLEPERF,
-        CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED).apply {
+                                               CpuProfiler.CpuProfilerMode.SAMPLED).apply {
       profilingBufferSizeInMb = 12
       profilingSamplingIntervalUs = 1234
     }
     val proto = configuration.toProto()
 
     assertThat(proto.name).isEqualTo("MyConfiguration")
-    assertThat(proto.mode).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED)
+    assertThat(proto.profilerMode).isEqualTo(CpuProfiler.CpuProfilerMode.SAMPLED)
     assertThat(proto.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF)
     assertThat(proto.samplingIntervalUs).isEqualTo(1234)
     assertThat(proto.bufferSizeInMb).isEqualTo(12)
-  }
-
-  @Test
-  fun defaultConfigName() {
-    var profilerType = CpuProfiler.CpuProfilerType.ART
-    assertThat(ProfilingConfiguration.getDefaultConfigName(profilerType)).isEqualTo(ProfilingConfiguration.ART_ARTIFACT)
-
-    profilerType = CpuProfiler.CpuProfilerType.SIMPLEPERF
-    assertThat(ProfilingConfiguration.getDefaultConfigName(profilerType)).isEqualTo(ProfilingConfiguration.SIMPLEPERF_ARTIFACT)
-
-    profilerType = CpuProfiler.CpuProfilerType.ATRACE
-    assertThat(ProfilingConfiguration.getDefaultConfigName(profilerType)).isEqualTo(ProfilingConfiguration.ATRACE)
-
-    profilerType = CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER
-    assertThat(ProfilingConfiguration.getDefaultConfigName(profilerType)).isEqualTo("Unknown Configuration")
   }
 }

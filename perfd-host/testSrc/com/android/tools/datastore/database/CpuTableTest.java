@@ -94,12 +94,13 @@ public class CpuTableTest {
 
     for (int i = 0; i < TEST_DATA; i++) {
       CpuProfiler.TraceInfo trace = CpuProfiler.TraceInfo
-        .newBuilder().setTraceId(SESSION_ONE_OFFSET + i).setProfilerType(CpuProfiler.CpuProfilerType.ART)
+        .newBuilder().setTraceId(SESSION_ONE_OFFSET + i)
+        .setProfilerType(CpuProfiler.CpuProfilerType.ART).setProfilerMode(CpuProfiler.CpuProfilerMode.SAMPLED)
         .setFromTimestamp(SESSION_ONE_OFFSET + i).setToTimestamp(SESSION_ONE_OFFSET + 1 + i)
         .build();
 
-      myTable
-        .insertTrace(SESSION_HUNDREDS, trace.getTraceId(), trace.getProfilerType(), ByteString.copyFromUtf8("100s club: " + i));
+      myTable.insertTrace(SESSION_HUNDREDS, trace.getTraceId(), trace.getProfilerType(), trace.getProfilerMode(),
+                          ByteString.copyFromUtf8("100s club: " + i));
       myTable.insertTraceInfo(SESSION_HUNDREDS, trace);
     }
   }
