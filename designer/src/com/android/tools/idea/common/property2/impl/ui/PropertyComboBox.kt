@@ -16,11 +16,10 @@
 package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.stdui.CommonComboBox
+import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
-import com.intellij.util.ui.JBUI
-import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.EventQueue
@@ -67,7 +66,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     registerKeyAction({ model.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
     registerKeyAction({ model.escapeKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "escape")
     if (asTableCellEditor) {
-      border = JBUI.Borders.empty()
+      putClientProperty("JComboBox.isTableCellEditor", true)
     }
 
     val editor = editor.editorComponent as JTextField
