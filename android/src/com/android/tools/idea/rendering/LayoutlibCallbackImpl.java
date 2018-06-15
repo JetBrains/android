@@ -34,6 +34,7 @@ import com.android.tools.idea.rendering.parsers.*;
 import com.android.tools.idea.res.*;
 import com.android.tools.idea.res.aar.ProtoXmlPullParser;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -62,7 +63,10 @@ import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -461,7 +465,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       if (parentName != null
           && !path.contains(FilenameConstants.EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB) && !path.contains(BUILD_CACHE)
           && (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU))) {
-        VirtualFile file = ResourceHelper.toVirtualFile(xml);
+        VirtualFile file = FileExtensions.toVirtualFile(xml);
         if (file != null) {
           PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), file);
           if (psiFile instanceof XmlFile) {

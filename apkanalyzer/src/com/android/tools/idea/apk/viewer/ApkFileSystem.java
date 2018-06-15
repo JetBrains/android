@@ -95,9 +95,7 @@ public class ApkFileSystem extends ArchiveFileSystem {
   @Override
   @NotNull
   public String getRelativePath(@NotNull VirtualFile file) {
-    String path = file.getPath();
-    String relativePath = path.substring(extractRootPath(path).length());
-    return StringUtil.startsWithChar(relativePath, '/') ? relativePath.substring(1) : relativePath;
+    return super.getRelativePath(file);
   }
 
   @NotNull

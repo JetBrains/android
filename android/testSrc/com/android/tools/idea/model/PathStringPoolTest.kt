@@ -14,6 +14,8 @@
 package com.android.tools.idea.model
 
 import com.android.ide.common.util.PathString
+import com.android.tools.idea.util.toPathString
+import com.android.tools.idea.util.toVirtualFile
 import com.google.common.jimfs.Configuration
 import com.google.common.jimfs.Jimfs
 import com.google.common.truth.Truth.assertThat
