@@ -75,11 +75,15 @@ public class NlUsageTrackerManager implements NlUsageTracker {
 
   private final Executor myExecutor;
   private final WeakReference<DesignSurface> myDesignSurfaceRef;
+  private final Consumer<AndroidStudioEvent.Builder> myEventLogger;
 
   @VisibleForTesting
-  NlUsageTrackerManager(@NotNull Executor executor, @Nullable DesignSurface surface) {
+  NlUsageTrackerManager(@NotNull Executor executor,
+                        @Nullable DesignSurface surface,
+                        @NotNull Consumer<AndroidStudioEvent.Builder> eventLogger) {
     myExecutor = executor;
     myDesignSurfaceRef = new WeakReference<>(surface);
+    myEventLogger = eventLogger;
   }
 
   /**
@@ -94,7 +98,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
 
     NlUsageTracker cachedTracker = sTrackersCache.getIfPresent(surface);
     if (cachedTracker == null && createIfNotExists) {
-      cachedTracker = new NlUsageTrackerManager(ourExecutorService, surface);
+      cachedTracker = new NlUsageTrackerManager(ourExecutorService, surface, UsageTracker::log);
       sTrackersCache.put(surface, cachedTracker);
       return cachedTracker;
     }
@@ -242,7 +246,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
           .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
           .setLayoutEditorEvent(builder.build());
 
-        UsageTracker.log(studioEvent);
+        myEventLogger.accept(studioEvent);
       });
     }
     catch (RejectedExecutionException e) {
