@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.emulator.DeleteAvdsRule;
 import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProcessChooserDialogFixture;
@@ -29,6 +30,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture;
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils;
 import com.android.tools.idea.tests.util.ddmlib.DeviceQueries;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -76,7 +78,7 @@ public class LayoutInspectorTest {
 
     ideFrame.runApp(appConfigName).selectDevice(avdName).clickOk();
     // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
-    guiTest.waitForBackgroundTasks();
+    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(240));
 
     // The following includes a wait for the run tool window to appear.
     // Also show the run tool window in case of failure so we have more information.
