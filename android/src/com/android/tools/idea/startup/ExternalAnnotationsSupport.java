@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.startup;
 
+import com.android.repository.Revision;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.intellij.codeInsight.ExternalAnnotationsManager;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
@@ -24,8 +30,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -35,9 +40,16 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiUtilCore;
 import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.List;
+
+import static com.android.SdkConstants.FD_DATA;
+import static com.android.SdkConstants.FD_PLATFORMS;
+import static com.android.SdkConstants.FN_ANNOTATIONS_ZIP;
+import static java.io.File.separator;
 
 /**
  * Helper code for attaching the external annotations .jar file
@@ -124,23 +136,60 @@ public class ExternalAnnotationsSupport {
 
   // Based on similar code in JavaSdkImpl
   public static void attachJdkAnnotations(@NotNull SdkModificator modificator) {
-    String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
     VirtualFileManager fileManager = VirtualFileManager.getInstance();
+    VirtualFile root = null;
 
-    // release build?
-    String releaseLocation = homePath + "/plugins/android/lib/androidAnnotations.jar";
-    VirtualFile root = fileManager.findFileByUrl("jar://" + releaseLocation + "!/");
-
-    for (String relativePath : DEVELOPMENT_ANNOTATIONS_PATHS) {
-      if (root != null) break;
-      String developmentLocation = homePath + relativePath;
-      root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(developmentLocation));
+    // If using Android 28 or higher (technically, revision as of revision 5 of the P SDK),
+    // the annotations bundled with the SDK is better. Try to look up the SDK version
+    // and use it if >= 28r5.
+    if (modificator.getSdkAdditionalData() instanceof AndroidSdkAdditionalData) {
+      AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)modificator.getSdkAdditionalData();
+      String platformHash = additionalData.getBuildTargetHashString();
+      if (platformHash != null) {
+        String sdkRootPath = modificator.getHomePath();
+        if (sdkRootPath != null) {
+          File sdkRoot = new File(sdkRootPath);
+          if (sdkRoot.isDirectory()) {
+            ProgressIndicator progress = new StudioLoggerProgressIndicator(ExternalAnnotationsSupport.class);
+            AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(sdkRoot);
+            LocalPackage info = sdkHandler.getLocalPackage(FD_PLATFORMS + ";" + platformHash, progress);
+            if (info != null) {
+              Revision revision = info.getVersion();
+              if (info.getTypeDetails() instanceof DetailsTypes.PlatformDetailsType) {
+                DetailsTypes.PlatformDetailsType details = (DetailsTypes.PlatformDetailsType)info.getTypeDetails();
+                if (details.getApiLevel() > 29 || details.getApiLevel() == 28 && revision.getMajor() >= 5) {
+                  // Yes, you're using Android P, DP5 or later: The best annotations are bundled with the SDK
+                  String releaseLocation = info.getLocation().getPath() + separator + FD_DATA + separator + FN_ANNOTATIONS_ZIP;
+                  root = fileManager.findFileByUrl("jar://" + FileUtil.toSystemIndependentName(releaseLocation) + "!/");
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     if (root == null) {
-      // error message tailored for release build file layout
-      LOG.error("jdk annotations not found in: " + releaseLocation);
-      return;
+      String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
+
+      // release build? If so the jar file is bundled under android/lib..
+      String releaseLocation = homePath + "/plugins/android/lib/androidAnnotations.jar";
+      root = fileManager.findFileByUrl("jar://" + releaseLocation + "!/");
+
+      if (root == null) {
+        // Otherwise, in development tree. Look both in Studio and IJ source tree locations.
+        for (String relativePath : DEVELOPMENT_ANNOTATIONS_PATHS) {
+          if (root != null) break;
+          String developmentLocation = homePath + relativePath;
+          root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(developmentLocation));
+        }
+      }
+
+      if (root == null) {
+        // error message tailored for release build file layout
+        LOG.error("jdk annotations not found in: " + releaseLocation);
+        return;
+      }
     }
 
     OrderRootType annoType = AnnotationOrderRootType.getInstance();
