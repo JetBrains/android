@@ -23,7 +23,6 @@ import com.android.sdklib.devices.State;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.TestUsageTracker;
-import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
@@ -35,20 +34,17 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
-import com.android.utils.NullLogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.*;
 import com.intellij.mock.MockModule;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 import com.intellij.util.ui.UIUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
@@ -56,7 +52,6 @@ import org.jetbrains.annotations.NotNull;
 import org.picocontainer.MutablePicoContainer;
 
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -65,8 +60,8 @@ import static com.android.resources.ScreenOrientation.PORTRAIT;
 import static com.android.tools.idea.common.analytics.UsageTrackerUtil.CUSTOM_NAME;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class NlUsageTrackerManagerTest extends AndroidTestCase {
   private static final Executor SYNC_EXECUTOR = Runnable::run;
@@ -84,19 +79,7 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
-    AnalyticsSettings settings = new AnalyticsSettings();
-    AnalyticsSettings.setInstanceForTest(settings);
-    usageTracker = new TestUsageTracker(settings, myVirtualTimeScheduler);
-    UsageTracker.setInstanceForTest(usageTracker);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      UsageTracker.cleanAfterTesting();
-    } finally {
-      super.tearDown();
-    }
+    usageTracker = new TestUsageTracker(new AnalyticsSettings(), myVirtualTimeScheduler);
   }
 
   public void testGetInstance() {
@@ -411,7 +394,7 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     assertThat(logged.getActive(0).getAttributeName()).isEqualTo(ATTR_ELEVATION);
   }
 
-  private NlUsageTrackerManager getUsageTracker() {
+  private NlUsageTracker getUsageTracker() {
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
     when(surface.getSceneMode()).thenReturn(SceneMode.BOTH);
@@ -419,7 +402,7 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     Configuration configuration = getConfigurationMock();
     when(surface.getConfiguration()).thenReturn(configuration);
 
-    return new NlUsageTrackerManager(SYNC_EXECUTOR, surface) {
+    return new NlUsageTrackerManager(SYNC_EXECUTOR, surface, usageTracker::logNow) {
       @Override
       boolean shouldLog(int percent) {
         // Log everything in tests
