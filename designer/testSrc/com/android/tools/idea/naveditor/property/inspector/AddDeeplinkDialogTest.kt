@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import org.mockito.Mockito.mock
 
 class AddDeeplinkDialogTest : NavTestCase() {
 
@@ -26,7 +28,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
         fragment("fragment1")
       }
     }
-    val dialog = AddDeeplinkDialog(model.find("fragment1"))
+    val dialog = AddDeeplinkDialog(null, model.find("fragment1")!!)
     dialog.myUriField.text = "http://example.com/foo"
     assertNull(dialog.doValidate())
 
@@ -39,5 +41,27 @@ class AddDeeplinkDialogTest : NavTestCase() {
     dialog.myUriField.text = "http://example.com/{blah"
     assertNotNull(dialog.doValidate())
     dialog.close(0)
+  }
+
+  fun testInitWithExisting() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1") {
+          deeplink("http://example.com", autoVerify = true)
+        }
+      }
+    }
+    val fragment1 = model.find("fragment1")!!
+    val dialog = AddDeeplinkDialog(fragment1.getChild(0), fragment1)
+    assertEquals("http://example.com", dialog.uri)
+    assertTrue(dialog.autoVerify)
+    dialog.close(0)
+  }
+
+  fun testInitWithDefaults() {
+    val dialog = AddDeeplinkDialog(null, mock(NlComponent::class.java))
+    assertEquals("", dialog.uri)
+    assertFalse(dialog.autoVerify)
+    dialog.close(0);
   }
 }

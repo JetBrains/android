@@ -82,7 +82,8 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
                                  surface: NavDesignSurface?) =
       addItem(null, parents, surface)
 
-  private fun addItem(existing: NlComponent?, parents: List<NlComponent>, surface: DesignSurface?) {
+  @VisibleForTesting
+  fun addItem(existing: NlComponent?, parents: List<NlComponent>, surface: DesignSurface?) {
     doAddItem(existing, parents, surface)
     inspector.refresh()
   }
