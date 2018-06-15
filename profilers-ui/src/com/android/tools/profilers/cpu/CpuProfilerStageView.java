@@ -171,7 +171,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
-    final CpuUsageView usageView = new CpuUsageView(myStage);
+    final CpuUsageView usageView;
+    if (myStage.isImportTraceMode()) {
+      usageView = new CpuUsageView.ImportModeView(myStage);
+    } else {
+      usageView = new CpuUsageView.NormalModeView(myStage);
+    }
+
     final boolean[] isMouseOverUsageView = new boolean[]{false};
     usageView.addMouseListener(new MouseAdapter() {
       @Override
