@@ -126,35 +126,7 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
   }
 
   private void saveAllRelatedFiles() {
-    Set<PsiElement> relatedPsiElements = new HashSet<>();
-    relatedPsiElements.add(myGradleDslFile.getPsiElement());
-    // Add all applied dsl files.
-    relatedPsiElements.addAll(getAllInvolvedFiles().stream().map(GradleDslFile::getPsiElement).collect(Collectors.toList()));
-
-    // Now relatedPsiElements should contain psi elements for the whole GradleDslFile tree.
-    // TODO: Only save the files that were actually modified by the build model.
-    for (PsiElement psiElement : relatedPsiElements) {
-      // Properties files to not have PsiElements.
-      if (psiElement == null) {
-        continue;
-      }
-
-      // Check for any postponed psi operations and complete them to unblock the underlying document for further modifications.
-      assert psiElement instanceof PsiFile;
-
-      PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(getProject());
-      Document document = psiDocumentManager.getDocument((PsiFile)psiElement);
-      if (document == null) {
-        return;
-      }
-
-      if (psiDocumentManager.isDocumentBlockedByPsi(document)) {
-        psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
-      }
-
-      // Save the file to disk to ensure the changes exist when it is read.
-      FileDocumentManager.getInstance().saveDocument(document);
-    }
+    getAllInvolvedFiles().forEach(GradleDslFile::saveAllChanges);
   }
 
   @Override
