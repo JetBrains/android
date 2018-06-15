@@ -98,7 +98,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   }
 
   private static DropDownActionButton getActionButton(@NotNull AnActionEvent eve) {
-    return (DropDownActionButton)eve.getPresentation().getClientProperty(CustomComponentAction.CUSTOM_COMPONENT_PROPERTY);
+    return (DropDownActionButton)eve.getPresentation().getClientProperty(CustomComponentAction.COMPONENT_KEY);
   }
 
   @Override
