@@ -112,7 +112,11 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
 
   @Override
   public void applyChanges() {
-    runOverProjectTree(GradleDslFile::applyChanges);
+    runOverProjectTree(file -> {
+      file.applyChanges();
+      file.saveAllChanges();
+    });
+
   }
 
   @Override

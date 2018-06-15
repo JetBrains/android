@@ -16,10 +16,8 @@
 package com.android.tools.idea.gradle.dsl.model
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import org.gradle.internal.impldep.org.hamcrest.CoreMatchers.hasItems
 import org.gradle.internal.impldep.org.hamcrest.MatcherAssert.assertThat
@@ -85,6 +83,35 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       verifyPropertyModel(parentProperty.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "property")
       verifyPropertyModel(childProperty.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "dodgy")
     }
+  }
+
+  @Test
+  fun testApplyNoRootBuildFile() {
+    val text = """
+               ext.prop = 1
+               """.trimIndent()
+    writeToSubModuleBuildFile(text)
+    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+
+    // Delete the main build file
+    myBuildFile.delete()
+
+    val pbm = ProjectBuildModel.get(myProject)
+    assertNull(pbm.projectBuildModel)
+
+    val buildModel = pbm.getModuleBuildModel(mySubModule)!!
+    verifyPropertyModel(buildModel.ext().findProperty("prop"), INTEGER_TYPE, 1, INTEGER, REGULAR, 0)
+
+    // Make a change
+    buildModel.ext().findProperty("prop").setValue(5)
+
+    // Make sure that applying the changes still affects the submodule build file
+    applyChangesAndReparse(pbm)
+
+    val expected = """
+                   ext.prop = 5
+                   """.trimIndent()
+    verifyFileContents(mySubModuleBuildFile, expected)
   }
 
   @Test
@@ -202,5 +229,46 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       val paths = settingsModel.modulePaths()
       assertThat(paths, hasItems(":", ":${SUB_MODULE_NAME}", ":lib"))
     }
+  }
+
+  @Test
+  fun testProjectModelSavesFiles() {
+    val childText = """android {
+                         defaultConfig {
+                           externalNativeBuild {
+                             cmake {
+                               cppFlags ""
+                             }
+                           }
+                         }
+                       }""".trimIndent()
+    val text = ""
+    writeToSubModuleBuildFile(childText)
+    writeToSettingsFile("")
+    writeToBuildFile(text)
+    writeToSettingsFile("include ':" + GradleFileModelTestCase.SUB_MODULE_NAME + "'")
+    var pbm = ProjectBuildModel.get(myProject)
+    var buildModel = pbm.getModuleBuildModel(mySubModule)
+    var optionsModel = buildModel!!.android()!!.defaultConfig().externalNativeBuild().cmake()
+    optionsModel.arguments().setValue("-DCMAKE_MAKE_PROGRAM=////")
+
+    applyChangesAndReparse(pbm)
+
+    pbm = ProjectBuildModel.get(myProject)
+    buildModel = pbm.getModuleBuildModel(mySubModule)
+    optionsModel = buildModel!!.android()!!.defaultConfig().externalNativeBuild().cmake()
+    verifyListProperty(optionsModel.arguments(), listOf("-DCMAKE_MAKE_PROGRAM=////"))
+
+    val expected = """android {
+                         defaultConfig {
+                           externalNativeBuild {
+                             cmake {
+                               cppFlags ""
+                               arguments '-DCMAKE_MAKE_PROGRAM=////'
+                             }
+                           }
+                         }
+                       }""".trimIndent()
+    verifyFileContents(mySubModuleBuildFile, expected)
   }
 }

@@ -28,9 +28,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
@@ -203,5 +207,29 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull
   public List<BuildModelNotification> getPublicNotifications() {
     return myBuildModelContext.getPublicNotifications();
+  }
+
+  public void saveAllChanges() {
+    PsiElement element = getPsiElement();
+    // Properties files to not have PsiElements.
+    if (element == null) {
+      return;
+    }
+
+    // Check for any postponed psi operations and complete them to unblock the underlying document for further modifications.
+    assert element instanceof PsiFile;
+
+    PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(getProject());
+    Document document = psiDocumentManager.getDocument((PsiFile)element);
+    if (document == null) {
+      return;
+    }
+
+    if (psiDocumentManager.isDocumentBlockedByPsi(document)) {
+      psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
+    }
+
+    // Save the file to disk to ensure the changes exist when it is read.
+    FileDocumentManager.getInstance().saveDocument(document);
   }
 }
