@@ -33,7 +33,6 @@ import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.module.Module
@@ -431,7 +430,7 @@ class MigrateToResourceNamespacesProcessor(
         }
         is CodeUsageInfo -> {
           usageInfo.classReference.bindToElement(
-            AndroidRefactoringUtil.findOrCreateClass(
+            findOrCreateClass(
               myProject,
               psiMigration,
               AndroidResourceUtil.packageToRClass(inferredPackage)
@@ -456,11 +455,6 @@ class MigrateToResourceNamespacesProcessor(
       moduleBuildModel.android()?.aaptOptions()?.namespaced()?.setValue(true)
       moduleBuildModel.applyChanges()
       progressIndicator.fraction = (index + 1) / totalFacets
-    }
-
-    val application = ApplicationManager.getApplication()
-    if (!application.isUnitTestMode) {
-      application.invokeLater { AndroidRefactoringUtil.offerToSync(myProject, commandName) }
     }
   }
 
