@@ -43,7 +43,7 @@ import static com.android.testutils.truth.FileSubject.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class AbiSplitApksTest extends DebuggerTestBase {
 
-  private static final int GRADLE_SYNC_TIMEOUT_SECONDS = 60;
+  private static final int GRADLE_SYNC_TIMEOUT_SECONDS = 90;
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
 
