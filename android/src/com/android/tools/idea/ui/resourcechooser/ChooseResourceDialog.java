@@ -252,8 +252,8 @@ public class ChooseResourceDialog extends DialogWrapper {
       return this;
     }
 
-    public Builder setTypes(@NotNull EnumSet<ResourceType> types) {
-      myTypes = types;
+    public Builder setTypes(@NotNull Set<ResourceType> types) {
+      myTypes = EnumSet.copyOf(types);
       return this;
     }
 

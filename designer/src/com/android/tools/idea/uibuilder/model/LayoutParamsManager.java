@@ -30,7 +30,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,29 +71,29 @@ public class LayoutParamsManager {
       switch (attributeName) {
         case "width":
         case "height":
-          return new MappedField(attributeName, AttributeFormat.Dimension);
+          return new MappedField(attributeName, AttributeFormat.DIMENSION);
         case "gravity":
-          return new MappedField(attributeName, AttributeFormat.Flags);
+          return new MappedField(attributeName, AttributeFormat.FLAGS);
       }
 
       return null;
     });
     registerFieldMapper(LinearLayout.LayoutParams.class.getName(),
-                        (attributeName) -> "gravity".equals(attributeName) ? new MappedField(attributeName, AttributeFormat.Flags) : null);
+                        (attributeName) -> "gravity".equals(attributeName) ? new MappedField(attributeName, AttributeFormat.FLAGS) : null);
     registerFieldMapper(ViewGroup.MarginLayoutParams.class.getName(), (attributeName) -> {
       switch (attributeName) {
         case "marginBottom":
-          return new MappedField("bottomMargin", AttributeFormat.Dimension);
+          return new MappedField("bottomMargin", AttributeFormat.DIMENSION);
         case "marginTop":
-          return new MappedField("topMargin", AttributeFormat.Dimension);
+          return new MappedField("topMargin", AttributeFormat.DIMENSION);
         case "marginLeft":
-          return new MappedField("leftMargin", AttributeFormat.Dimension);
+          return new MappedField("leftMargin", AttributeFormat.DIMENSION);
         case "marginRight":
-          return new MappedField("rightMargin", AttributeFormat.Dimension);
+          return new MappedField("rightMargin", AttributeFormat.DIMENSION);
         case "marginStart":
-          return new MappedField(attributeName, AttributeFormat.Dimension);
+          return new MappedField(attributeName, AttributeFormat.DIMENSION);
         case "marginEnd":
-          return new MappedField(attributeName, AttributeFormat.Dimension);
+          return new MappedField(attributeName, AttributeFormat.DIMENSION);
       }
 
       return null;
@@ -124,7 +124,7 @@ public class LayoutParamsManager {
     });
     registerFieldMapper("android.support.design.widget.CoordinatorLayout$LayoutParams", (attributeName) -> {
       if ("anchor".equals(attributeName)) {
-        return new MappedField("anchorId", AttributeFormat.Integer);
+        return new MappedField("anchorId", AttributeFormat.INTEGER);
       }
 
       return null;
@@ -137,13 +137,13 @@ public class LayoutParamsManager {
   @NotNull
   private static EnumSet<AttributeFormat> attributeFormatFromType(@NotNull Class type) {
     if (type == Integer.class || type == int.class) {
-      return EnumSet.of(AttributeFormat.Integer);
+      return EnumSet.of(AttributeFormat.INTEGER);
     }
     else if (type == Float.class || type == float.class) {
-      return EnumSet.of(AttributeFormat.Float);
+      return EnumSet.of(AttributeFormat.FLOAT);
     }
     else if (type == String.class) {
-      return EnumSet.of(AttributeFormat.String);
+      return EnumSet.of(AttributeFormat.STRING);
     }
 
     return EnumSet.noneOf(AttributeFormat.class); // unknown
@@ -245,7 +245,7 @@ public class LayoutParamsManager {
   private static EnumSet<AttributeFormat> inferTypeFromValue(@Nullable String value) {
     if (value != null) {
       if (value.endsWith(SdkConstants.UNIT_DP) || value.endsWith(SdkConstants.UNIT_DIP) || value.endsWith(SdkConstants.UNIT_PX)) {
-        return EnumSet.of(AttributeFormat.Dimension);
+        return EnumSet.of(AttributeFormat.DIMENSION);
       }
     }
 
@@ -385,10 +385,10 @@ public class LayoutParamsManager {
           case INTEGER:
           case ID:
           case DIMEN:
-            inferredTypes.add(AttributeFormat.Integer);
+            inferredTypes.add(AttributeFormat.INTEGER);
             break;
           case FRACTION:
-            inferredTypes.add(AttributeFormat.Float);
+            inferredTypes.add(AttributeFormat.FLOAT);
             break;
         }
 
@@ -437,10 +437,10 @@ public class LayoutParamsManager {
 
       for (AttributeFormat type : inferredTypes) {
         switch (type) {
-          case Dimension:
+          case DIMENSION:
             fieldSet = setField(layoutParams, mappedField, getDimensionValue(value, model.getConfiguration()));
             break;
-          case Integer:
+          case INTEGER:
             try {
               fieldSet = setField(layoutParams, mappedField, Integer.parseInt(value));
             }
@@ -448,13 +448,13 @@ public class LayoutParamsManager {
               fieldSet = false;
             }
             break;
-          case String:
+          case STRING:
             fieldSet = setField(layoutParams, mappedField, value);
             break;
-          case Boolean:
+          case BOOLEAN:
             fieldSet = setField(layoutParams, mappedField, Boolean.parseBoolean(value));
             break;
-          case Float:
+          case FLOAT:
             try {
               fieldSet = setField(layoutParams, mappedField, Float.parseFloat(value));
             }
@@ -462,14 +462,14 @@ public class LayoutParamsManager {
               fieldSet = false;
             }
             break;
-          case Enum: {
+          case ENUM: {
             Integer intValue = attributeDefinition != null ? attributeDefinition.getValueMapping(value) : null;
             if (intValue != null) {
               fieldSet = setField(layoutParams, mappedField, intValue);
             }
           }
           break;
-          case Flags: {
+          case FLAGS: {
             if (attributeDefinition == null) {
               continue;
             }

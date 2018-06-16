@@ -18,7 +18,7 @@ package org.jetbrains.android.dom;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.reflect.DomExtender;
 import com.intellij.util.xml.reflect.DomExtensionsRegistrar;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -36,11 +36,11 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   private static Class getValueClass(@Nullable AttributeFormat format) {
     if (format == null) return String.class;
     switch (format) {
-      case Boolean:
+      case BOOLEAN:
         return boolean.class;
-      case Reference:
-      case Dimension:
-      case Color:
+      case REFERENCE:
+      case DIMENSION:
+      case COLOR:
         return ResourceValue.class;
       default:
         return String.class;

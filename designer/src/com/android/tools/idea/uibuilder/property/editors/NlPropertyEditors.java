@@ -24,7 +24,7 @@ import com.android.tools.idea.common.property.editors.PropertyEditors;
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupportFactory;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -102,24 +102,24 @@ public class NlPropertyEditors extends PropertyEditors implements PTableCellEdit
     Boolean isBoolean = null;
     for (AttributeFormat format : formats) {
       switch (format) {
-        case Boolean:
+        case BOOLEAN:
           if (isBoolean == null) {
             isBoolean = Boolean.TRUE;
           }
           break;
-        case String:
-        case Color:
-        case Dimension:
-        case Integer:
-        case Float:
-        case Fraction:
+        case STRING:
+        case COLOR:
+        case DIMENSION:
+        case INTEGER:
+        case FLOAT:
+        case FRACTION:
           if (isBoolean == null) {
             isBoolean = Boolean.FALSE;
           }
           break;
-        case Enum:
+        case ENUM:
           return EditorType.COMBO;
-        case Flags:
+        case FLAGS:
           return EditorType.FLAG;
         default:
           break;

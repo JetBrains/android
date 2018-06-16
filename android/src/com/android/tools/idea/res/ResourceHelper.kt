@@ -762,7 +762,7 @@ fun clamp(i: Int, min: Int, max: Int): Int {
  */
 @JvmOverloads
 fun getCompletionFromTypes(
-  facet: AndroidFacet, completionTypes: EnumSet<ResourceType>,
+  facet: AndroidFacet, completionTypes: Set<ResourceType>,
   sort: Boolean = true
 ): List<String> {
   val types = Sets.newEnumSet(completionTypes, ResourceType::class.java)

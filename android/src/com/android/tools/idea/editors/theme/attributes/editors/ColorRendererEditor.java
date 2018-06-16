@@ -30,7 +30,7 @@ import com.android.tools.idea.ui.resourcechooser.ResourceSwatchComponent;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -82,10 +82,10 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
     AttributeDefinition attrDefinition = ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), myItem.getSelectedValue());
 
     String attributeName = myItem.getAttrName().toLowerCase(Locale.ENGLISH);
-    if (attributeName.contains("color") || !ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Reference)) {
+    if (attributeName.contains("color") || !ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.REFERENCE)) {
       return COLORS_ONLY;
     }
-    else if (attributeName.contains("drawable") || !ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color)) {
+    else if (attributeName.contains("drawable") || !ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.COLOR)) {
       return DRAWABLES_ONLY;
     }
     else {

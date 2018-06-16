@@ -24,7 +24,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,7 +74,7 @@ public class EnumSupportFactory {
         }
         AttributeDefinition definition = property.getDefinition();
         Set<AttributeFormat> formats = definition != null ? definition.getFormats() : Collections.emptySet();
-        return formats.contains(AttributeFormat.Enum);
+        return formats.contains(AttributeFormat.ENUM);
     }
   }
 

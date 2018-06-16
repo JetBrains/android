@@ -34,7 +34,7 @@ import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
 import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
@@ -113,18 +113,18 @@ public class AndroidDomUtil {
   @Nullable
   public static ResourceType getResourceType(@NotNull AttributeFormat format) {
     switch (format) {
-      case Color:
+      case COLOR:
         return ResourceType.COLOR;
-      case Dimension:
+      case DIMENSION:
         return ResourceType.DIMEN;
-      case String:
+      case STRING:
         return ResourceType.STRING;
-      case Float:
-      case Integer:
+      case FLOAT:
+      case INTEGER:
         return ResourceType.INTEGER;
-      case Fraction:
+      case FRACTION:
         return ResourceType.FRACTION;
-      case Boolean:
+      case BOOLEAN:
         return ResourceType.BOOL;
       default:
         return null;
@@ -134,13 +134,13 @@ public class AndroidDomUtil {
   @Nullable
   public static ResolvingConverter<String> getStringConverter(@NotNull AttributeFormat format, @NotNull String[] values) {
     switch (format) {
-      case Enum:
+      case ENUM:
         return new StaticEnumConverter(values);
-      case Boolean:
+      case BOOLEAN:
         return BOOLEAN_CONVERTER;
-      case Integer:
+      case INTEGER:
         return IntegerConverter.INSTANCE;
-      case Dimension:
+      case DIMENSION:
         return DimensionConverter.INSTANCE;
       default:
         return null;
@@ -154,7 +154,7 @@ public class AndroidDomUtil {
     Set<ResourceType> resourceTypes = EnumSet.noneOf(ResourceType.class);
     Set<AttributeFormat> formats = attr.getFormats();
     for (AttributeFormat format : formats) {
-      if (format == AttributeFormat.Reference) {
+      if (format == AttributeFormat.REFERENCE) {
         containsReference = true;
       }
       else {
@@ -248,12 +248,12 @@ public class AndroidDomUtil {
         containsUnsupportedFormats = true;
       }
     }
-    if (formats.contains(AttributeFormat.Flags)) {
+    if (formats.contains(AttributeFormat.FLAGS)) {
       return new FlagConverter(compositeBuilder.build(), values);
     }
 
     ResourceReferenceConverter resConverter = getResourceReferenceConverter(attr);
-    if (resConverter == null && formats.contains(AttributeFormat.Enum)) {
+    if (resConverter == null && formats.contains(AttributeFormat.ENUM)) {
       resConverter = new ResourceReferenceConverter(EnumSet.of(ResourceType.INTEGER), attr);
       resConverter.setQuiet(true);
     }

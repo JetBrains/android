@@ -36,7 +36,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.AndroidColorAnnotator;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.common.property.NlProperty;
@@ -25,7 +24,7 @@ import com.android.tools.idea.uibuilder.property.fixtures.NlReferenceEditorFixtu
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -268,7 +267,7 @@ public class NlReferenceEditorTest extends PropertyTestCase {
   private NlProperty createCollapseParallaxProperty(@NotNull NlComponent component) {
     XmlName name = new XmlName(ATTR_COLLAPSE_PARALLAX_MULTIPLIER, AUTO_URI);
     AttributeDefinition definition = new AttributeDefinition(
-      name.getLocalName(), DESIGN_LIB_ARTIFACT, null, ImmutableList.of(AttributeFormat.Dimension, AttributeFormat.Fraction));
+      name.getLocalName(), DESIGN_LIB_ARTIFACT, null, ImmutableList.of(AttributeFormat.DIMENSION, AttributeFormat.FRACTION));
     return NlPropertyItem.create(name, definition, Collections.singletonList(component), myPropertiesManager);
   }
 }
