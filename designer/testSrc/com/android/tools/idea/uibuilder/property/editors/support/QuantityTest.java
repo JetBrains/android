@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.tools.idea.common.property.NlProperty;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
@@ -29,9 +29,9 @@ import java.util.Collections;
 
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
-import static org.jetbrains.android.dom.attrs.AttributeFormat.*;
-import static org.jetbrains.android.dom.attrs.AttributeFormat.Integer;
-import static org.jetbrains.android.dom.attrs.AttributeFormat.String;
+import static com.android.ide.common.rendering.api.AttributeFormat.*;
+import static com.android.ide.common.rendering.api.AttributeFormat.INTEGER;
+import static com.android.ide.common.rendering.api.AttributeFormat.STRING;
 
 @RunWith(JUnit4.class)
 public class QuantityTest {
@@ -48,13 +48,13 @@ public class QuantityTest {
 
   @Test
   public void testAddUnit() {
-    assertThat(Quantity.addUnit(mockProperty(ATTR_TEXT_SIZE, Dimension), "13")).isEqualTo("13sp");
-    assertThat(Quantity.addUnit(mockProperty(ATTR_LINE_SPACING_EXTRA, Dimension), "10")).isEqualTo("10sp");
-    assertThat(Quantity.addUnit(mockProperty(ATTR_LAYOUT_WIDTH, Dimension), "53")).isEqualTo("53dp");
-    assertThat(Quantity.addUnit(mockProperty(ATTR_LAYOUT_WIDTH, Dimension), "53px")).isEqualTo("53px");
-    assertThat(Quantity.addUnit(mockProperty(ATTR_LAYOUT_WIDTH, Dimension), "wrap_content")).isEqualTo("wrap_content");
-    assertThat(Quantity.addUnit(mockProperty(ATTR_TEXT, String), "13")).isEqualTo("13");
-    assertThat(Quantity.addUnit(mockProperty(ATTR_MIN_SDK_VERSION, Integer), "22")).isEqualTo("22");
+    assertThat(Quantity.addUnit(mockProperty(ATTR_TEXT_SIZE, DIMENSION), "13")).isEqualTo("13sp");
+    assertThat(Quantity.addUnit(mockProperty(ATTR_LINE_SPACING_EXTRA, DIMENSION), "10")).isEqualTo("10sp");
+    assertThat(Quantity.addUnit(mockProperty(ATTR_LAYOUT_WIDTH, DIMENSION), "53")).isEqualTo("53dp");
+    assertThat(Quantity.addUnit(mockProperty(ATTR_LAYOUT_WIDTH, DIMENSION), "53px")).isEqualTo("53px");
+    assertThat(Quantity.addUnit(mockProperty(ATTR_LAYOUT_WIDTH, DIMENSION), "wrap_content")).isEqualTo("wrap_content");
+    assertThat(Quantity.addUnit(mockProperty(ATTR_TEXT, STRING), "13")).isEqualTo("13");
+    assertThat(Quantity.addUnit(mockProperty(ATTR_MIN_SDK_VERSION, INTEGER), "22")).isEqualTo("22");
   }
 
   @SuppressWarnings("ConstantConditions")  // Possible NullPointerException from Quantity.parse

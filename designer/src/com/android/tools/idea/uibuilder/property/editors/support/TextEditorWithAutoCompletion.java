@@ -133,7 +133,7 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
   }
 
   public static List<String> loadCompletions(@NotNull AndroidFacet facet,
-                                             @NotNull EnumSet<ResourceType> types,
+                                             @NotNull Set<ResourceType> types,
                                              @Nullable NlProperty property) {
     List<String> items = new ArrayList<>();
 
@@ -144,7 +144,7 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
       }
 
       if (types.contains(ResourceType.ID)) {
-        types = types.clone();
+        types = EnumSet.copyOf(types);
         types.remove(ResourceType.ID);
 
         Set<String> ids = ApplicationManager.getApplication().runReadAction(
@@ -162,7 +162,7 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
 
       // We include mipmap directly in the drawable maps
       if (types.contains(ResourceType.MIPMAP)) {
-        types = types.clone();
+        types = EnumSet.copyOf(types);
         types.remove(ResourceType.MIPMAP);
         types.add(ResourceType.DRAWABLE);
       }

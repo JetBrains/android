@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.property.NlProperty;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +50,7 @@ public class Quantity implements Comparable<Quantity> {
   @NotNull
   public static String addUnit(@NotNull NlProperty property, @NotNull String value) {
     AttributeDefinition definition = property.getDefinition();
-    boolean isDimension = definition != null && definition.getFormats().contains(AttributeFormat.Dimension);
+    boolean isDimension = definition != null && definition.getFormats().contains(AttributeFormat.DIMENSION);
     if (!isDimension) {
       return value;
     }

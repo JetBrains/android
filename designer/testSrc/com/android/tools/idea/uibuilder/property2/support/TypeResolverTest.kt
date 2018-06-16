@@ -19,20 +19,20 @@ import com.android.SdkConstants.*
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.dom.attrs.AttributeDefinition
-import org.jetbrains.android.dom.attrs.AttributeFormat
+import com.android.ide.common.rendering.api.AttributeFormat
 import org.junit.Test
 
 class TypeResolverTest {
 
   @Test
   fun testFromAttributeDefinition() {
-    assertThat(resolve(ATTR_TEXT_ALL_CAPS, AttributeFormat.Boolean)).isEqualTo(NelePropertyType.THREE_STATE_BOOLEAN)
-    assertThat(resolve(ATTR_TEXT_COLOR, AttributeFormat.Color)).isEqualTo(NelePropertyType.COLOR_OR_DRAWABLE)
-    assertThat(resolve(ATTR_ELEVATION, AttributeFormat.Dimension)).isEqualTo(NelePropertyType.DIMENSION)
-    assertThat(resolve(ATTR_MAXIMUM, AttributeFormat.Float)).isEqualTo(NelePropertyType.FLOAT)
-    assertThat(resolve(ATTR_TEXT_ALL_CAPS, AttributeFormat.Fraction)).isEqualTo(NelePropertyType.FRACTION)
-    assertThat(resolve(ATTR_ELEVATION, AttributeFormat.Integer)).isEqualTo(NelePropertyType.INTEGER)
-    assertThat(resolve(ATTR_TEXT, AttributeFormat.String)).isEqualTo(NelePropertyType.STRING)
+    assertThat(resolve(ATTR_TEXT_ALL_CAPS, AttributeFormat.BOOLEAN)).isEqualTo(NelePropertyType.THREE_STATE_BOOLEAN)
+    assertThat(resolve(ATTR_TEXT_COLOR, AttributeFormat.COLOR)).isEqualTo(NelePropertyType.COLOR_OR_DRAWABLE)
+    assertThat(resolve(ATTR_ELEVATION, AttributeFormat.DIMENSION)).isEqualTo(NelePropertyType.DIMENSION)
+    assertThat(resolve(ATTR_MAXIMUM, AttributeFormat.FLOAT)).isEqualTo(NelePropertyType.FLOAT)
+    assertThat(resolve(ATTR_TEXT_ALL_CAPS, AttributeFormat.FRACTION)).isEqualTo(NelePropertyType.FRACTION)
+    assertThat(resolve(ATTR_ELEVATION, AttributeFormat.INTEGER)).isEqualTo(NelePropertyType.INTEGER)
+    assertThat(resolve(ATTR_TEXT, AttributeFormat.STRING)).isEqualTo(NelePropertyType.STRING)
   }
 
   @Test

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.annotations.NonNull;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.ptable.PTable;
@@ -36,7 +37,7 @@ import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -183,7 +184,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
 
   private static ChooseResourceDialog showResourceChooser(@NotNull NlProperty property) {
     Module module = property.getModel().getModule();
-    EnumSet<ResourceType> types = getResourceTypes(property);
+    Set<ResourceType> types = getResourceTypes(property);
     boolean onlyLayoutType = types.size() == 1 && types.contains(ResourceType.LAYOUT);
     String propertyName = property.getName();
     ResourceType defaultResourceType = getDefaultResourceType(propertyName);
@@ -249,7 +250,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
   }
 
   @NotNull
-  public static EnumSet<ResourceType> getResourceTypes(@NotNull NlProperty property) {
+  public static Set<ResourceType> getResourceTypes(@NotNull NlProperty property) {
     String propertyName = property.getName();
     if (propertyName.equals(ATTR_ID)) {
       // Don't encourage the use of android IDs
@@ -259,7 +260,59 @@ public class BrowsePanel extends AdtSecondaryPanel {
     Set<AttributeFormat> formats = definition != null ? definition.getFormats() : EnumSet.allOf(AttributeFormat.class);
     // for some special known properties, we can narrow down the possible types (rather than the all encompassing reference type)
     Collection<ResourceType> types = AndroidDomUtil.getSpecialResourceTypes(propertyName);
-    return types.isEmpty() ? AttributeFormat.convertTypes(formats) : EnumSet.copyOf(types);
+    return types.isEmpty() ? matchingTypes(formats) : EnumSet.copyOf(types);
+  }
+
+  /**
+   * Returns the set of resource types that match the given set of attribute formats.
+   */
+  @NonNull
+  private static Set<ResourceType> matchingTypes(@NonNull Set<AttributeFormat> formats) {
+    EnumSet<ResourceType> types = EnumSet.noneOf(ResourceType.class);
+    for (AttributeFormat format : formats) {
+      switch (format) {
+        case BOOLEAN:
+          types.add(ResourceType.BOOL);
+          break;
+
+        case COLOR:
+          types.add(ResourceType.COLOR);
+          types.add(ResourceType.DRAWABLE);
+          types.add(ResourceType.MIPMAP);
+          break;
+
+        case DIMENSION:
+          types.add(ResourceType.DIMEN);
+          break;
+
+        case FRACTION:
+          types.add(ResourceType.FRACTION);
+          break;
+
+        case INTEGER:
+          types.add(ResourceType.INTEGER);
+          break;
+
+        case REFERENCE:
+          types.add(ResourceType.COLOR);
+          types.add(ResourceType.DRAWABLE);
+          types.add(ResourceType.MIPMAP);
+          types.add(ResourceType.STRING);
+          types.add(ResourceType.ID);
+          types.add(ResourceType.STYLE);
+          types.add(ResourceType.ARRAY);
+          break;
+
+        case STRING:
+          types.add(ResourceType.STRING);
+          break;
+
+        default:
+          break;
+      }
+    }
+
+    return types;
   }
 
   /**
@@ -279,8 +332,8 @@ public class BrowsePanel extends AdtSecondaryPanel {
       return ResourceType.COLOR;
     }
     else if (lowerCaseProperty.contains("drawable")
-      || propertyName.equals(ATTR_SRC)
-      || propertyName.equals(ATTR_SRC_COMPAT)) {
+        || propertyName.equals(ATTR_SRC)
+        || propertyName.equals(ATTR_SRC_COMPAT)) {
       return ResourceType.DRAWABLE;
     }
     return null;

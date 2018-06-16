@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.attrs;
 
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -58,36 +59,36 @@ public class ToolsAttributeUtil {
   /** List of all the tools namespace attributes and its attribute format */
   private static final ImmutableMap<String, List<AttributeFormat>> ATTRIBUTES = ImmutableMap.<String, List<AttributeFormat>>builder()
     // Layout files attributes
-    .put(ATTR_ACTION_BAR_NAV_MODE, singletonList(AttributeFormat.Flags))
-    .put(ATTR_CONTEXT, ImmutableList.of(AttributeFormat.Reference, AttributeFormat.String))
+    .put(ATTR_ACTION_BAR_NAV_MODE, singletonList(AttributeFormat.FLAGS))
+    .put(ATTR_CONTEXT, ImmutableList.of(AttributeFormat.REFERENCE, AttributeFormat.STRING))
     .put(ATTR_IGNORE, NO_FORMATS)
-    .put(ATTR_LISTFOOTER,  singletonList(AttributeFormat.Reference))
-    .put(ATTR_LISTHEADER, singletonList(AttributeFormat.Reference))
-    .put(ATTR_LISTITEM, singletonList(AttributeFormat.Reference))
-    .put(ATTR_LAYOUT, singletonList(AttributeFormat.Reference))
+    .put(ATTR_LISTFOOTER,  singletonList(AttributeFormat.REFERENCE))
+    .put(ATTR_LISTHEADER, singletonList(AttributeFormat.REFERENCE))
+    .put(ATTR_LISTITEM, singletonList(AttributeFormat.REFERENCE))
+    .put(ATTR_LAYOUT, singletonList(AttributeFormat.REFERENCE))
     .put(ATTR_LOCALE, NO_FORMATS)
     .put(ATTR_MENU, NO_FORMATS)
-    .put(ATTR_MOCKUP, singletonList(AttributeFormat.String))
-    .put(ATTR_MOCKUP_OPACITY, singletonList(AttributeFormat.Float))
-    .put(ATTR_MOCKUP_CROP, singletonList(AttributeFormat.String))
-    .put(ATTR_OPEN_DRAWER, singletonList(AttributeFormat.Enum))
-    .put(ATTR_PARENT_TAG, singletonList(AttributeFormat.String))
-    .put(ATTR_SHOW_IN, singletonList(AttributeFormat.Reference))
+    .put(ATTR_MOCKUP, singletonList(AttributeFormat.STRING))
+    .put(ATTR_MOCKUP_OPACITY, singletonList(AttributeFormat.FLOAT))
+    .put(ATTR_MOCKUP_CROP, singletonList(AttributeFormat.STRING))
+    .put(ATTR_OPEN_DRAWER, singletonList(AttributeFormat.ENUM))
+    .put(ATTR_PARENT_TAG, singletonList(AttributeFormat.STRING))
+    .put(ATTR_SHOW_IN, singletonList(AttributeFormat.REFERENCE))
     .put(ATTR_TARGET_API, NO_FORMATS)
     // Manifest merger attributes
-    .put(ATTR_NODE, singletonList(AttributeFormat.Enum))
+    .put(ATTR_NODE, singletonList(AttributeFormat.ENUM))
     .put(ATTR_STRICT, NO_FORMATS)
     .put(ATTR_REMOVE, NO_FORMATS)
     .put(ATTR_REPLACE, NO_FORMATS)
     .put(ATTR_OVERRIDE_LIBRARY, NO_FORMATS)
     // Raw files attributes
-    .put(ATTR_SHRINK_MODE, singletonList(AttributeFormat.Enum))
+    .put(ATTR_SHRINK_MODE, singletonList(AttributeFormat.ENUM))
     .put(ATTR_KEEP, NO_FORMATS)
     .put(ATTR_DISCARD, NO_FORMATS)
-    .put(ATTR_USE_HANDLER, singletonList(AttributeFormat.Reference))
+    .put(ATTR_USE_HANDLER, singletonList(AttributeFormat.REFERENCE))
     // AppCompatImageView srcCompat attribute
     // TODO: Remove this definition and make sure the app namespace attributes are handled by AndroidDomUtil#getAttributeDefinition
-    .put(ATTR_SRC_COMPAT, singletonList(AttributeFormat.Reference))
+    .put(ATTR_SRC_COMPAT, singletonList(AttributeFormat.REFERENCE))
     .build();
   /** List of converters to be applied to some of the attributes */
   private static final ImmutableMap<String, ResolvingConverter> CONVERTERS = ImmutableMap.<String, ResolvingConverter>builder()

@@ -34,7 +34,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import com.sun.java.swing.plaf.windows.WindowsComboBoxUI;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -266,7 +266,7 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
 
   private int findBestInsertionPoint(@NotNull ValueWithDisplayString newValue) {
     AttributeDefinition definition = myProperty.getDefinition();
-    boolean isDimension = definition != null && definition.getFormats().contains(AttributeFormat.Dimension);
+    boolean isDimension = definition != null && definition.getFormats().contains(AttributeFormat.DIMENSION);
     int startIndex = 1;
     if (!isDimension) {
       return startIndex;

@@ -22,7 +22,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 
 import java.util.EnumSet;
 import java.util.Map;
@@ -88,27 +88,27 @@ public class LayoutParamsManagerTest extends AndroidTestCase {
   public void testMapField() {
     // Check default mappings
     LinearLayoutParams layoutParams = new LinearLayoutParams();
-    assertThat(LayoutParamsManager.mapField(layoutParams, "width").type).containsExactly(AttributeFormat.Dimension);
-    assertThat(LayoutParamsManager.mapField(layoutParams, "height").type).containsExactly(AttributeFormat.Dimension);
-    assertThat(LayoutParamsManager.mapField(layoutParams, "gravity").type).containsExactly(AttributeFormat.Flags);
+    assertThat(LayoutParamsManager.mapField(layoutParams, "width").type).containsExactly(AttributeFormat.DIMENSION);
+    assertThat(LayoutParamsManager.mapField(layoutParams, "height").type).containsExactly(AttributeFormat.DIMENSION);
+    assertThat(LayoutParamsManager.mapField(layoutParams, "gravity").type).containsExactly(AttributeFormat.FLAGS);
     for (String m : new String[]{"marginTop", "marginStart", "marginBottom", "marginEnd", "marginEnd", "marginLeft", "marginRight"}) {
-      assertThat(LayoutParamsManager.mapField(layoutParams, m).type).containsExactly(AttributeFormat.Dimension);
+      assertThat(LayoutParamsManager.mapField(layoutParams, m).type).containsExactly(AttributeFormat.DIMENSION);
     }
 
     assertThat(LayoutParamsManager.mapField(layoutParams, "customRegisteredAttribute").type).isEmpty();
 
     LayoutParamsManager.registerFieldMapper(LinearLayoutParams.class.getName(), (name) -> {
       if ("customRegisteredAttribute".equals(name)) {
-        return new LayoutParamsManager.MappedField("intAttribute", AttributeFormat.Integer);
+        return new LayoutParamsManager.MappedField("intAttribute", AttributeFormat.INTEGER);
       }
       else if ("notExistingMapping".equals(name)) {
         // The resulting MappedField uses an attribute name that does not exist in the class. mapField will ignore this mapping.
-        return new LayoutParamsManager.MappedField("missingIntAttribute", AttributeFormat.Integer);
+        return new LayoutParamsManager.MappedField("missingIntAttribute", AttributeFormat.INTEGER);
       }
 
       return null;
     });
-    assertThat(LayoutParamsManager.mapField(layoutParams, "customRegisteredAttribute").type).containsExactly(AttributeFormat.Integer);
+    assertThat(LayoutParamsManager.mapField(layoutParams, "customRegisteredAttribute").type).containsExactly(AttributeFormat.INTEGER);
     // Check that the mapping was ignored
     assertThat(LayoutParamsManager.mapField(layoutParams, "notExistingMapping").type).isEmpty();
   }
@@ -150,7 +150,7 @@ public class LayoutParamsManagerTest extends AndroidTestCase {
 
     // Test flag attribute
     AttributeDefinition flagDefinition = new AttributeDefinition("flagAttribute", null, null, EnumSet.of(
-      AttributeFormat.Flags
+      AttributeFormat.FLAGS
     ));
     flagDefinition.addValueMapping("value1", 0b001);
     flagDefinition.addValueMapping("value2", 0b010);

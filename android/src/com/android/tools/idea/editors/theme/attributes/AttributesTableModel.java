@@ -24,7 +24,7 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
 import org.jetbrains.annotations.NotNull;
@@ -317,12 +317,12 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       String attributeName = item.getAttrName().toLowerCase(Locale.US);
 
       if (urlType == ResourceType.COLOR ||
-          ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color) ||
+          ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.COLOR) ||
           attributeName.contains("color")) {
         return Color.class;
       }
 
-      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Reference) &&
+      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.REFERENCE) &&
           attributeName.contains("background") &&
           !attributeName.contains("style")) {
         return DrawableDomElement.class;
@@ -332,22 +332,22 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return ConfiguredThemeEditorStyle.class;
       }
 
-      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Flags)) {
+      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.FLAGS)) {
         return Flag.class;
       }
 
-      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Enum)) {
+      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.ENUM)) {
         return Enum.class;
       }
 
-      if (urlType == ResourceType.INTEGER || ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Integer)) {
+      if (urlType == ResourceType.INTEGER || ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.INTEGER)) {
         return Integer.class;
       }
 
       String value = resourceValue.getValue();
       if (urlType == ResourceType.BOOL
           || (("true".equals(value) || "false".equals(value))
-              && ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Boolean))) {
+              && ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.BOOLEAN))) {
         return Boolean.class;
       }
 
