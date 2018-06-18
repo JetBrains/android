@@ -194,6 +194,12 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
       quickFixes.add(new ShowSyncIssuesDetailsHyperlink(text, extraInfo));
     }
 
+    // Add quickfix to disable offline mode if it is enabled (b/65188424)
+    Project project = module.getProject();
+    if (isOfflineBuildModeEnabled(project)) {
+      quickFixes.add(0, new DisableOfflineModeHyperlink());
+    }
+
     message.add(quickFixes);
     getSyncMessages(module).report(message);
   }
@@ -203,7 +209,7 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
    *
    * @param module Module that has a dependency on the repository.
    * @param buildFile Build file where the dependency is.
-   * @param fixes List of hyperlinks in which the quickfix will be added if the reposirory is not already used.
+   * @param fixes List of hyperlinks in which the quickfix will be added if the repository is not already used.
    */
   private static void addGoogleMavenRepositoryHyperlink(@NotNull Module module,
                                                         @Nullable VirtualFile buildFile,
