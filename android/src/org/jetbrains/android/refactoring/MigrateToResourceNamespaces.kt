@@ -111,9 +111,11 @@ class MigrateToResourceNamespacesHandler : RefactoringActionHandler {
   }
 
   private fun invoke(module: Module) {
-    MigrateToResourceNamespacesProcessor(AndroidFacet.getInstance(module)!!).run {
-      setPreviewUsages(true)
-      run()
+    val processor = MigrateToResourceNamespacesProcessor(AndroidFacet.getInstance(module)!!)
+    processor.setPreviewUsages(true)
+
+    offerToCreateBackupAndRun(module.project, processor.commandName) {
+      processor.run()
     }
   }
 }
@@ -186,7 +188,7 @@ class MigrateToResourceNamespacesProcessor(
   private val invokingFacet: AndroidFacet
 ) : BaseRefactoringProcessor(invokingFacet.module.project) {
 
-  override fun getCommandName() = "Migrate to resource namespaces"
+  public override fun getCommandName() = "Migrate to resource namespaces"
 
   private val allFacets = AndroidUtils.getAllAndroidDependencies(invokingFacet.module, true) + invokingFacet
 
@@ -456,6 +458,8 @@ class MigrateToResourceNamespacesProcessor(
       moduleBuildModel.applyChanges()
       progressIndicator.fraction = (index + 1) / totalFacets
     }
+
+    syncBeforeFinishingRefactoring(myProject)
   }
 
   /**
