@@ -82,9 +82,6 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
   override val tooltipForValue: String
     get() = delegate?.tooltipForValue ?: ""
 
-  override fun validate(editedValue: String): String =
-    delegate?.validate(editedValue) ?: ""
-
   override val showActionButton: Boolean
     get() = delegate?.showActionButton == true
 

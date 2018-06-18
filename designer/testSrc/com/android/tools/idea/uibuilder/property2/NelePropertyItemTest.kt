@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
@@ -64,7 +65,7 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(property.isReference).isTrue()
     assertThat(property.resolvedValue).isEqualTo("Demo String")
     assertThat(property.tooltipForName).isEqualTo("android:text: Text to display.")
-    assertThat(property.validate("Some")).isEmpty()
+    assertThat(property.editingSupport.validation("Some")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(property.libraryName).isEmpty()
     assertThat(property.components).hasSize(1)
     assertThat(property.components[0].tagName).isEqualTo(TEXT_VIEW)
@@ -98,7 +99,7 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(design.isReference).isTrue()
     assertThat(design.resolvedValue).isEqualTo("Design Demo")
     assertThat(design.tooltipForName).isEqualTo("tools:text: Text to display.")
-    assertThat(design.validate("Some")).isEmpty()
+    assertThat(property.editingSupport.validation("Some")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(design.libraryName).isEmpty()
     assertThat(design.components).hasSize(1)
     assertThat(design.components[0].tagName).isEqualTo(TEXT_VIEW)

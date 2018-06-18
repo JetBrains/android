@@ -84,9 +84,10 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
     // otherwise set the property on this text field.
     val component = parent as? JComboBox<*> ?: this as JComponent
     val current = component.getClientProperty(OUTLINE_PROPERTY)
-    val wanted = if (!editorModel.validate(editorModel.text).isEmpty()) ERROR_VALUE else null
-    if (current != wanted) {
-      component.putClientProperty(OUTLINE_PROPERTY, wanted)
+    val (code, _) = editorModel.editingSupport.validation(editorModel.text)
+    val newOutline = code.outline
+    if (current != newOutline) {
+      component.putClientProperty(OUTLINE_PROPERTY, newOutline)
       component.repaint()
     }
   }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.property2.impl.model
 
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
+import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.property2.api.PropertyItem
 
 /**
@@ -26,7 +27,8 @@ open class TextFieldPropertyEditorModel(property: PropertyItem, override val edi
 
   override var text: String = ""
 
-  override fun validate(editedValue: String) = property.validate(editedValue)
+  override val editingSupport: EditingSupport
+    get() = property.editingSupport
 
   fun enter(editedValue: String) {
     if (editedValue != value) {

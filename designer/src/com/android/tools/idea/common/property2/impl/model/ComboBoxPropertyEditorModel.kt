@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.property2.impl.model
 
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
+import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.common.property2.impl.support.ActionEnumValue
 import javax.swing.event.ListDataEvent
@@ -50,9 +51,8 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
 
   override var text: String = ""
 
-  override fun validate(editedValue: String): String {
-    return property.validate(editedValue)
-  }
+  override val editingSupport: EditingSupport
+    get() = property.editingSupport
 
   fun enterKeyPressed(editedValue: String) {
     blockUpdates = true

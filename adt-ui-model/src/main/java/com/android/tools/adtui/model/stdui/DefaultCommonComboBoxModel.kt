@@ -17,7 +17,7 @@ package com.android.tools.adtui.model.stdui
 
 import javax.swing.DefaultComboBoxModel
 
-class DefaultCommonComboBoxModel<Item>(initialValue: String) : DefaultComboBoxModel<Item>(), CommonComboBoxModel<Item> {
+open class DefaultCommonComboBoxModel<Item>(initialValue: String) : DefaultComboBoxModel<Item>(), CommonComboBoxModel<Item> {
   private val listeners = mutableListOf<ValueChangedListener>()
 
   constructor(initialValue: String, elements: List<Item>) : this(initialValue) {
@@ -51,9 +51,8 @@ class DefaultCommonComboBoxModel<Item>(initialValue: String) : DefaultComboBoxMo
 
   override var text: String = ""
 
-  override fun validate(editedValue: String): String {
-    return if (editedValue == "Error") "Error is not a valid value" else ""
-  }
+  override val editingSupport: EditingSupport
+    get() = EditingSupport.INSTANCE
 
   override fun addListener(listener: ValueChangedListener) {
     listeners.add(listener)
