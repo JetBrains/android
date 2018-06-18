@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.projectmodel.AarLibrary
 import com.android.tools.idea.findAllAarsLibraries
 import com.android.tools.idea.res.aar.AarResourceRepositoryCache
+import com.android.tools.idea.util.toLibraryRootVirtualFile
 import com.android.utils.concurrency.CacheUtils
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
@@ -33,7 +34,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
@@ -57,20 +57,16 @@ class ProjectLightResourceClassService(
   private val psiManager: PsiManager,
   private val vfsManager: VirtualFileManager,
   private val moduleManager: ModuleManager,
-  private val aarResourceRepositoryCache: AarResourceRepositoryCache
+  private val aarResourceRepositoryCache: AarResourceRepositoryCache,
+  private val androidLightPackagesCache: AndroidLightPackage.InstanceCache
 ) : LightResourceClassService {
 
   companion object {
-    private val MODULE_R_CLASS = Key<PsiClass>(ProjectLightResourceClassService::class.qualifiedName!! + "MODULE_R_CLASS")
+    private val MODULE_R_CLASS = Key<PsiClass>(ProjectLightResourceClassService::class.qualifiedName!! + ".MODULE_R_CLASS")
 
     @JvmStatic
     fun getInstance(project: Project) = ServiceManager.getService(project, ProjectLightResourceClassService::class.java)!!
   }
-
-  /**
-   * Cache of [PsiPackage] instances for a given package name.
-   */
-  private val packageCache: Cache<String, PsiPackage> = CacheBuilder.newBuilder().softValues().build()
 
   /**
    * Cache of created classes for a given `classes.jar` file.
@@ -125,7 +121,7 @@ class ProjectLightResourceClassService(
       // is not smart enough to recognize equivalent jar:// and file:// roots.
       val classesJar = aarLibrary.classesJar.toFile()?.takeIf { it.exists() } ?: return@flatMap emptySequence<PsiClass>()
 
-      if (vfsManager.findFileByUrl(VfsUtil.getUrlForLibraryRoot(classesJar))?.let { scope.contains(it) } != true) {
+      if (classesJar.toLibraryRootVirtualFile()?.let { scope.contains(it) } != true) {
         // The AAR is not in scope.
         emptySequence<PsiClass>()
       }
@@ -135,15 +131,16 @@ class ProjectLightResourceClassService(
         val (namespaced, nonNamespaced) = CacheUtils.getAndUnwrap(aarClassesCache, classesJar) {
           AarClasses(
             namespaced = aarLibrary.resApkFile?.toFile()?.takeIf { it.exists() }?.let { resApk ->
-              AarPackageRClass(
+              NamespacedAarPackageRClass(
                 psiManager,
                 packageName,
                 aarResourceRepositoryCache.get(resApk.parentFile, AaptOptions.Namespacing.REQUIRED, aarLibrary.address),
                 ResourceNamespace.fromPackageName(packageName)
               )
             },
-            // TODO(77801019): Write an R class implementation based on R.txt for the non-namespaced case.
-            nonNamespaced = null
+            nonNamespaced = aarLibrary.symbolFile.toFile()?.takeIf { it.exists() }?.let { symbolFile ->
+              NonNamespacedAarPackageRClass(psiManager, packageName, symbolFile)
+            }
           )
         }
 
@@ -167,7 +164,7 @@ class ProjectLightResourceClassService(
   override fun findRClassPackage(qualifiedName: String): PsiPackage? {
     return if (getAllAars().containsKey(qualifiedName) ||
                findAllAndroidFacets().any { AndroidManifestUtils.getPackageName(it) == qualifiedName }) {
-      CacheUtils.getAndUnwrap(packageCache, qualifiedName) { AndroidResourcePackage(psiManager, qualifiedName) }
+      androidLightPackagesCache.get(qualifiedName)
     }
     else {
       null

@@ -31,7 +31,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.res.FileResourceOpener;
+import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -261,7 +261,7 @@ public class AndroidColorAnnotator implements Annotator {
                                                @NotNull AndroidFacet facet,
                                                @NotNull ResourceValue resourceValue) {
     try {
-      XmlPullParser parser = FileResourceOpener.createXmlPullParser(file);
+      XmlPullParser parser = FileResourceReader.createXmlPullParser(file);
       if (parser == null) {
         return null;
       }

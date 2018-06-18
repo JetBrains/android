@@ -23,8 +23,11 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.*;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.codeInsight.completion.CodeCompletionHandlerBase;
+import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
@@ -189,9 +192,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
           namespace = ResourceNamespace.fromPackageName(namespacePrefix);
         }
       }
-      else {
+      else if (StudioFlags.COLLAPSE_ANDROID_NAMESPACE.get()) {
         // We don't offer framework resources in completion, unless the string already starts with the framework namespace. But we do offer
-        // the right prefix, which will cause the framework resources to show up as follow-up completion.
+        // the right prefix, which will cause the framework resources to show up as follow-up completion. These variants are later handled
+        // in createLookupElement below.
         ResourceNamespace.Resolver resolver = ResourceHelper.getNamespaceResolver(element);
         String frameworkPrefix = firstNonNull(resolver.uriToPrefix(ResourceNamespace.ANDROID.getXmlNamespaceUri()),
                                               ResourceNamespace.ANDROID.getPackageName());
@@ -366,27 +370,26 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
     else {
       ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+      LocalResourceRepository appResources = repoManager.getAppResources(true);
       ResourceVisibilityLookup visibilityLookup = repoManager.getResourceVisibility();
-      if (onlyNamespace == ResourceNamespace.ANDROID) {
+
+      if (onlyNamespace == ResourceNamespace.ANDROID || (onlyNamespace == null && !StudioFlags.COLLAPSE_ANDROID_NAMESPACE.get())) {
         AbstractResourceRepository frameworkResources = repoManager.getFrameworkResources(false);
-        if (frameworkResources == null) {
-          return;
+        if (frameworkResources != null) {
+          addResourceReferenceValuesFromRepo(frameworkResources, repoManager, visibilityLookup, element, prefix, type,
+                                             ResourceNamespace.ANDROID, result, explicitResourceType);
         }
-        addResourceReferenceValuesFromRepo(frameworkResources, repoManager, visibilityLookup, element, prefix, type, onlyNamespace, result,
-                                           explicitResourceType);
+      }
+
+      if (onlyNamespace == null) {
+        for (ResourceNamespace namespace : appResources.getNamespaces()) {
+          addResourceReferenceValuesFromRepo(appResources, repoManager, visibilityLookup, element, prefix, type, namespace, result,
+                                             explicitResourceType);
+        }
       }
       else {
-        LocalResourceRepository appResources = repoManager.getAppResources(true);
-
-        if (onlyNamespace != null) {
-          addResourceReferenceValuesFromRepo(appResources, repoManager, visibilityLookup, element, prefix, type, onlyNamespace, result,
-                                             explicitResourceType);
-        } else {
-          for (ResourceNamespace namespace : appResources.getNamespaces()) {
-            addResourceReferenceValuesFromRepo(appResources, repoManager, visibilityLookup, element, prefix, type, namespace, result,
-                                               explicitResourceType);
-          }
-        }
+        addResourceReferenceValuesFromRepo(appResources, repoManager, visibilityLookup, element, prefix, type, onlyNamespace, result,
+                                           explicitResourceType);
       }
     }
   }
@@ -509,6 +512,15 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     if (resourceName != null) {
       builder = builder.withLookupString(resourceName);
     }
+    else {
+      if (isNamespaceLiteral(resourceValue.getValue())) {
+        // This is a "fake" ResourceValue to offer just a namespace prefix as completion.
+        builder = builder.withInsertHandler((context, item) -> context.setLaterRunnable(() -> {
+          // This is similar to JavaClassNameInsertHandler#handleInsert.
+          new CodeCompletionHandlerBase(CompletionType.BASIC).invokeCompletion(context.getProject(), context.getEditor());
+        }));
+      }
+    }
 
     final int priority;
     if (deprecated) {
@@ -523,6 +535,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
 
     return PrioritizedLookupElement.withPriority(builder, priority);
+  }
+
+  public boolean isNamespaceLiteral(@Nullable String value) {
+    return value != null && value.charAt(value.length() - 1) == ':' && value.indexOf('/') == -1;
   }
 
   @Override

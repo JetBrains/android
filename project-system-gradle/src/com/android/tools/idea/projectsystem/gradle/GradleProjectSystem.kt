@@ -26,6 +26,7 @@ import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
 import com.android.tools.idea.res.ResourceTypeClassFinder
@@ -49,6 +50,7 @@ class GradleProjectSystem(val project: Project, @TestOnly private val mavenRepos
     if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
       listOf(
         ResourceTypeClassFinder.INSTANCE,
+        AndroidManifestClassPsiElementFinder.getInstance(project),
         AndroidResourceClassPsiElementFinder(ProjectLightResourceClassService.getInstance(project))
       )
     } else {

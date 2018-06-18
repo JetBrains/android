@@ -317,6 +317,9 @@ public class RenderTask {
     if (psiFile == null) {
       throw new IllegalStateException("createRenderSession shouldn't be called on RenderTask without PsiFile");
     }
+    if (isDisposed.get()) {
+      return null;
+    }
 
     ResourceResolver resolver = ResourceResolver.copy(getContext().getConfiguration().getResourceResolver());
     if (resolver == null) {
@@ -561,16 +564,22 @@ public class RenderTask {
     if (xmlFile == null) {
       throw new IllegalStateException("inflate shouldn't be called on RenderTask without PsiFile");
     }
+    if (xmlFile.getProject().isDisposed()) {
+      return null;
+    }
 
     try {
-      return RenderService.runRenderAction(() -> createRenderSession((width, height) -> {
+      return runAsyncRenderAction(() -> createRenderSession((width, height) -> {
+        if (xmlFile.getProject().isDisposed()) {
+          return null;
+        }
         if (myImageFactoryDelegate != null) {
           return myImageFactoryDelegate.getImage(width, height);
         }
 
         //noinspection UndesirableClassUsage
         return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-      }));
+      })).get();
     }
     catch (Exception e) {
       String message = e.getMessage();

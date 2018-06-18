@@ -13,7 +13,7 @@
 // limitations under the License.
 package com.android.tools.idea.projectsystem
 
-import com.android.tools.idea.projectsystem.gradle.toProjectModel
+import com.android.ide.common.gradle.model.toProjectModel
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_MODEL_MULTIFLAVOR
 import com.google.common.truth.Truth.assertThat

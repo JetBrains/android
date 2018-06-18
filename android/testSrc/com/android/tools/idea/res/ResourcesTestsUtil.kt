@@ -21,8 +21,10 @@ import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.projectsystem.FilenameConstants
 import com.android.tools.idea.res.aar.AarSourceResourceRepository
+import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.DependencyScope
+import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
@@ -32,6 +34,8 @@ import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.nio.file.Paths
+import java.util.jar.JarEntry
+import java.util.jar.JarOutputStream
 
 const val AAR_LIBRARY_NAME = "com.test:test-library:1.0.0"
 const val AAR_PACKAGE_NAME = "com.test.testlibrary"
@@ -64,37 +68,59 @@ fun createTestModuleRepository(
 }
 
 /**
- * Adds a library dependency to the given module and returns the resources directory which should be filled with content.
+ * Adds a library dependency to the given module and runs the given function to add resources to it.
  *
  * [ResourceRepositoryManager] will find the newly added library and create a separate repository for it when
  * [ResourceRepositoryManager.getAppResources] is called.
+ *
+ * @param module module to add the dependency to.
+ * @param libraryName name of the newly created [LibraryOrderEntry].
+ * @param packageName package name to be put in the library manifest.
+ * @param createResources code that will be invoked on the library resources folder, to add desired resources. VFS will be refreshed after
+ *                        the function is done.
  */
-fun addAarDependency(module: Module, libraryName: String): File {
+fun addAarDependency(
+  module: Module,
+  libraryName: String,
+  packageName: String,
+  createResources: (File) -> Unit
+) {
   val aarDir = FileUtil.createTempDirectory(libraryName, "_exploded")
 
   // Create a manifest file in the right place, so that files inside aarDir are considered resource files.
   // See AndroidResourceUtil#isResourceDirectory which is called from ResourcesDomFileDescription#isResourcesFile.
-  File(aarDir, SdkConstants.FN_ANDROID_MANIFEST_XML).createNewFile()
+  aarDir.resolve(SdkConstants.FN_ANDROID_MANIFEST_XML).writeText(
+    // language=xml
+    """
+      <manifest package="$packageName">
+      </manifest>
+    """.trimIndent()
+  )
 
-  val resDir = File(aarDir, SdkConstants.FD_RES)
+  val resDir = aarDir.resolve(SdkConstants.FD_RES)
   resDir.mkdir()
 
-  val classesDir = File(aarDir, "classes")
-  classesDir.mkdir()
+  resDir.resolve(SdkConstants.FD_RES_VALUES).mkdir()
 
-  // See AndroidMavenUtil.isMavenAarDependency for what this library must look like to be considered an AAR.
+  val classesJar = aarDir.resolve(SdkConstants.FN_CLASSES_JAR)
+  JarOutputStream(classesJar.outputStream()).use {
+    it.putNextEntry(JarEntry("META-INF/empty"))
+  }
+
+  // See ResourceFolderManager.isAarDependency for what this library must look like to be considered an AAR.
   ModuleRootModificationUtil.addModuleLibrary(
     module,
     "$libraryName.aar",
     listOf(
       VfsUtil.getUrlForLibraryRoot(resDir),
-      VfsUtil.getUrlForLibraryRoot(classesDir)
+      VfsUtil.getUrlForLibraryRoot(classesJar)
     ),
     emptyList<String>(),
     DependencyScope.COMPILE
   )
 
-  return resDir
+  createResources(resDir)
+  VfsUtil.markDirtyAndRefresh(false, true, true, aarDir.toVirtualFile(refresh = true))
 }
 
 /**

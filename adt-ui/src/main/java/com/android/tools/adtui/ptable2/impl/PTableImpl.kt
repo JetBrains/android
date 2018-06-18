@@ -119,6 +119,8 @@ open class PTableImpl(tableModel: PTableModel,
     if (row == itemCount) {
       return false
     }
+    selectRow(row)
+    selectColumn(1)
     startEditing(row, {})
     return true
   }
@@ -226,6 +228,10 @@ open class PTableImpl(tableModel: PTableModel,
   private fun selectRow(row: Int) {
     getSelectionModel().setSelectionInterval(row, row)
     TableUtil.scrollSelectionToVisible(this)
+  }
+
+  private fun selectColumn(column: Int) {
+    getColumnModel().selectionModel.setSelectionInterval(column, column)
   }
 
   private fun toggleAndSelect(row: Int) {

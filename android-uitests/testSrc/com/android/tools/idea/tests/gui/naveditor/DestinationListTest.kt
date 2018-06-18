@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.naveditor
 
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiManager
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import com.intellij.util.ui.UIUtil
 import org.junit.Rule

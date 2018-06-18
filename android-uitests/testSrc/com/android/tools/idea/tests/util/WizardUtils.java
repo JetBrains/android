@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.util;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import org.jetbrains.annotations.NotNull;
@@ -32,17 +33,32 @@ public final class WizardUtils {
   /** @deprecated Avoid until b/66680171 is otherwise addressed. */
   @Deprecated
   public static void createNewProject(@NotNull GuiTestRule guiTest, @NotNull String activity) {
-    NewProjectWizardFixture wizard = guiTest.welcomeFrame().createNewProject();
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      guiTest
+        .welcomeFrame()
+        .createNewProject()
+        .getChooseAndroidProjectStep()
+        .chooseActivity(activity)
+        .wizard()
+        .clickNext()
+        .getConfigureNewAndroidProjectStep()
+        .enterPackageName("com.google.myapplication")
+        .wizard()
+        .clickFinish();
+    }
+    else {
+      NewProjectWizardFixture wizard = guiTest.welcomeFrame().createNewProject();
 
-    wizard.getConfigureAndroidProjectStep().enterCompanyDomain("google.com");
-    wizard.clickNext();
+      wizard.getConfigureAndroidProjectStep().enterCompanyDomain("google.com");
+      wizard.clickNext();
 
-    wizard.clickNext();
+      wizard.clickNext();
 
-    wizard.chooseActivity(activity);
-    wizard.clickNext();
+      wizard.chooseActivity(activity);
+      wizard.clickNext();
 
-    wizard.clickFinish();
+      wizard.clickFinish();
+    }
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
   }
 }

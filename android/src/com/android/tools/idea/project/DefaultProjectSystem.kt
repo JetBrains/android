@@ -25,6 +25,7 @@ import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
 import com.android.tools.idea.res.ResourceTypeClassFinder
@@ -94,6 +95,7 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     return if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
       listOf(
         ResourceTypeClassFinder.INSTANCE,
+        AndroidManifestClassPsiElementFinder.getInstance(project),
         AndroidResourceClassPsiElementFinder(ProjectLightResourceClassService.getInstance(project))
       )
     } else {

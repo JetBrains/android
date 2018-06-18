@@ -87,6 +87,7 @@ import org.jetbrains.uast.UCallExpression;
 import org.jetbrains.uast.UExpression;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xmlpull.v1.XmlPullParser;
 
 import java.io.File;
 import java.io.IOException;
@@ -424,27 +425,29 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Override
   @NonNull
-  public String readFile(@NonNull final File file) {
-    final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+  public String readFile(@NonNull File file) {
+    VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
     if (vFile == null) {
       LOG.debug("Cannot find file " + file.getPath() + " in the VFS");
       return "";
     }
 
-    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-      @Nullable
-      @Override
-      public String compute() {
-        final PsiFile psiFile = PsiManager.getInstance(myProject).findFile(vFile);
-        if (psiFile == null) {
-          LOG.info("Cannot find file " + file.getPath() + " in the PSI");
-          return null;
-        }
-        else {
-          return psiFile.getText();
-        }
+    return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
+      PsiFile psiFile = PsiManager.getInstance(myProject).findFile(vFile);
+      if (psiFile == null) {
+        LOG.info("Cannot find file " + file.getPath() + " in the PSI");
+        return null;
+      }
+      else {
+        return psiFile.getText();
       }
     });
+  }
+
+  @Override
+  @NotNull
+  public byte[] readBytes(@NotNull PathString resourcePath) throws IOException {
+    return FileResourceReader.readBytes(resourcePath);
   }
 
   @Override
@@ -1040,6 +1043,12 @@ public class LintIdeClient extends LintClient implements Disposable {
       }
     }
     return super.getResourceVisibilityProvider();
+  }
+
+  @Override
+  @Nullable
+  public XmlPullParser createXmlPullParser(@NotNull PathString resourcePath) throws IOException {
+    return FileResourceReader.createXmlPullParser(resourcePath);
   }
 
   private static class LocationHandle implements Location.Handle, Computable<Location> {

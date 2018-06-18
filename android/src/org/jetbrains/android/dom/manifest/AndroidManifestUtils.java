@@ -30,19 +30,19 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.*;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
-import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
-import static com.android.tools.idea.res.FileResourceOpener.PROTO_XML_LEAD_BYTE;
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.res.FileResourceReader.PROTO_XML_LEAD_BYTE;
 
 /**
  * Methods for working with Android manifests.
  */
 public class AndroidManifestUtils {
-  private static final String RES_APK = "res.apk";
-
   /**
    * Reads package name from the AndroidManifest.xml of an AAR. Both, AARv1 and AARv2, formats are supported.
    *
@@ -57,7 +57,7 @@ public class AndroidManifestUtils {
     try {
       return getPackageNameFromManifestFile(new File(aarDir, FN_ANDROID_MANIFEST_XML));
     } catch (FileNotFoundException e) {
-      File resApkFile = new File(aarDir, RES_APK);
+      File resApkFile = new File(aarDir, FN_RESOURCE_STATIC_LIBRARY);
       try (ZipFile zipFile = new ZipFile(resApkFile)) {
         return getPackageNameFromResApk(zipFile);
       }
@@ -68,7 +68,7 @@ public class AndroidManifestUtils {
    * Reads package name from the AndroidManifest.xml file in the given directory. The the AndroidManifest.xml
    * file can be in either text or proto format.
    *
-   * @param aarDir the directory containing the AndroidManifest.xml file
+   * @param manifestFile the AndroidManifest.xml file
    * @return the package name from the manifest
    */
   @Nullable
@@ -122,7 +122,7 @@ public class AndroidManifestUtils {
   @Nullable
   public static String getPackageName(@NotNull AndroidFacet androidFacet) {
     return CachedValuesManager.getManager(androidFacet.getModule().getProject()).getCachedValue(androidFacet, () -> {
-      // TODO(namespaces): read the merged manifest.
+      // TODO(b/110188226): read the merged manifest
       Manifest manifest = androidFacet.getManifest();
       if (manifest != null) {
         String packageName = manifest.getPackage().getValue();
@@ -140,6 +140,37 @@ public class AndroidManifestUtils {
       return "screenSize".equals(localName) || "screenDensity".equals(localName);
     }
     return false;
+  }
+
+  @Nullable
+  public static Collection<String> getCustomPermissions(@NotNull AndroidFacet androidFacet) {
+    // TODO(b/110188226): read the merged manifest
+    Manifest manifest = androidFacet.getManifest();
+    if (manifest == null) {
+      return null;
+    }
+
+    return manifest.getPermissions()
+                   .stream()
+                   .map(permission -> permission.getName().getValue())
+                   .filter(Objects::nonNull)
+                   .collect(Collectors.toList());
+  }
+
+  @Nullable
+  public static Collection<String> getCustomPermissionGroups(@NotNull AndroidFacet androidFacet) {
+    // TODO(b/110188226): read the merged manifest
+    Manifest manifest = androidFacet.getManifest();
+    if (manifest == null) {
+      return null;
+    }
+
+    return manifest.getPermissionGroups()
+                   .stream()
+                   .map(group -> group.getName())
+                   .map(name -> name.getValue())
+                   .filter(Objects::nonNull)
+                   .collect(Collectors.toList());
   }
 
   private AndroidManifestUtils() {}

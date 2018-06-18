@@ -36,6 +36,7 @@ import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
+import java.time.Duration
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -61,8 +62,8 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   lateinit private var objectInputStream: ObjectInputStream
   lateinit private var objectOutputStream: ObjectOutputStream
 
-  private val IDE_STARTUP_TIMEOUT = 40000   // ms
-  private val MESSAGE_INTERVAL_TIMEOUT = if (GuiTestOptions.isDebug()) Long.MAX_VALUE else 15L // seconds
+  private val IDE_STARTUP_TIMEOUT = Duration.ofSeconds(40)
+  private val MESSAGE_INTERVAL_TIMEOUT = Duration.ofSeconds(15)
 
   private val port: Int
 
@@ -71,7 +72,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   init {
     port = serverSocket.localPort
     LOG.info("Server running on port $port")
-    serverSocket.soTimeout = IDE_STARTUP_TIMEOUT
+    serverSocket.soTimeout = if (GuiTestOptions.isDebug()) 0 else IDE_STARTUP_TIMEOUT.toMillis().toInt()  // 0 means infinite
     notifier.addListener(object : RunListener() {
       var testFailed = false
 
@@ -125,12 +126,16 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   }
 
   override fun receive(): MessageFromClient {
-    val message = receivingMessages.poll(MESSAGE_INTERVAL_TIMEOUT, TimeUnit.SECONDS)
+    val message = if (GuiTestOptions.isDebug()) {
+      receivingMessages.take()
+    } else {
+      receivingMessages.poll(MESSAGE_INTERVAL_TIMEOUT.seconds, TimeUnit.SECONDS)
+    }
     if (message != null) {
       return message
     } else {
       closeIdeAndStop()
-      throw SocketException("Server hasn't received a message in $MESSAGE_INTERVAL_TIMEOUT seconds.")
+      throw SocketException("Server hasn't received a message in ${MESSAGE_INTERVAL_TIMEOUT.seconds} seconds.")
     }
   }
 

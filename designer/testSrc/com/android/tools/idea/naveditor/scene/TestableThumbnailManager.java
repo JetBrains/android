@@ -16,9 +16,10 @@
 package com.android.tools.idea.naveditor.scene;
 
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -36,13 +37,16 @@ public class TestableThumbnailManager extends ThumbnailManager {
     myPreviousManager = previousManager;
   }
 
-  public static void register(@NotNull AndroidFacet facet) {
+  public static void register(@NotNull AndroidFacet facet, @NotNull Disposable parentDisposable) {
     ThumbnailManager newInstance = new TestableThumbnailManager(facet, ThumbnailManager.getInstance(facet));
     ThumbnailManager.setInstance(facet, newInstance);
+    Disposer.register(parentDisposable, newInstance);
   }
 
-  public void deregister() {
+  @Override
+  protected void onDispose() {
     ThumbnailManager.setInstance(getFacet(), myPreviousManager);
+    super.onDispose();
   }
 
   @Nullable

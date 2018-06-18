@@ -20,7 +20,6 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager
-import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC
 import com.google.common.base.Preconditions
 import com.intellij.openapi.Disposable
@@ -31,7 +30,6 @@ import com.intellij.testFramework.PsiTestUtil
 import com.intellij.util.io.ZipUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.io.File
 
 abstract class NavTestCase : AndroidTestCase() {
@@ -69,15 +67,13 @@ abstract class NavTestCase : AndroidTestCase() {
       myFixture.testDataPath = testDataPath
     }
 
-    TestableThumbnailManager.register(myFacet)
+    TestableThumbnailManager.register(myFacet, myRootDisposable)
     StudioFlags.ENABLE_NAV_EDITOR.override(true)
   }
 
   override fun tearDown() {
     try {
       Disposer.dispose(myRootDisposable)
-      val thumbnailManager = ThumbnailManager.getInstance(myFacet)
-      (thumbnailManager as? TestableThumbnailManager)?.deregister()
       deleteManifest()
       StudioFlags.ENABLE_NAV_EDITOR.clearOverride()
     }

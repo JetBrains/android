@@ -26,7 +26,16 @@ import java.util.Set;
 /**
  * @author Eugene.Kudelevsky
  */
-class AndroidLightField extends LightElement implements PsiField, PsiVariableEx, NavigationItem {
+public class AndroidLightField extends LightElement implements PsiField, PsiVariableEx, NavigationItem {
+
+  /**
+   * Possible modifiers for the generated fields. R classes for non-namespaced apps use final fields, all other R classes don't.
+   */
+  public enum FieldModifier {
+    FINAL,
+    NON_FINAL,
+  }
+
   private final PsiClass myContext;
   private final PsiType myType;
   private final Object myConstantValue;
@@ -38,7 +47,7 @@ class AndroidLightField extends LightElement implements PsiField, PsiVariableEx,
   public AndroidLightField(@NotNull String name,
                            @NotNull PsiClass context,
                            @NotNull PsiType type,
-                           boolean isFinal,
+                           @NotNull FieldModifier fieldModifier,
                            @Nullable Object constantValue) {
     super(context.getManager(), JavaLanguage.INSTANCE);
     myName = name;
@@ -46,11 +55,11 @@ class AndroidLightField extends LightElement implements PsiField, PsiVariableEx,
     myContext = context;
     myConstantValue = constantValue;
 
-    final List<String> modifiers = new ArrayList<String>();
+    final List<String> modifiers = new ArrayList<>();
     modifiers.add(PsiModifier.PUBLIC);
     modifiers.add(PsiModifier.STATIC);
 
-    if (isFinal) {
+    if (fieldModifier == FieldModifier.FINAL) {
       modifiers.add(PsiModifier.FINAL);
     }
     myModifierList = new LightModifierList(getManager(), getLanguage(), ArrayUtil.toStringArray(modifiers));

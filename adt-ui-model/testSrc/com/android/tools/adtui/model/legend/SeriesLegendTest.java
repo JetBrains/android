@@ -25,7 +25,6 @@ import org.junit.Test;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 public class SeriesLegendTest {
 
@@ -37,10 +36,10 @@ public class SeriesLegendTest {
   }
 
   @Test
-  public void legendValueIsNullGivenNoData() {
+  public void legendValueIsNaGivenNoData() {
     RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), new LongDataSeries());
     SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(0, 100));
-    assertNull(legend.getValue());
+    assertEquals("N/A", legend.getValue());
   }
 
   @Test

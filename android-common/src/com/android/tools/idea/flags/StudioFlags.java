@@ -61,7 +61,7 @@ public final class StudioFlags {
     "Show new version of the Welcome Wizard when Studio starts",
     false);
 
-  public static final Flag<Boolean> NPW_DYNAMIC_APPS = Flag.create(
+  public static final Flag<Boolean> NPW_DYNAMIC_APPS = Flag.create( // TODO: Remove in b/109788793
     NPW, "dynamic.apps", "New Dynamic App Project flow",
     "Use new Dynamic App flow when creating a New Mobile Project",
     false);
@@ -238,11 +238,6 @@ public final class StudioFlags {
     "If enabled, the \"What's New\" assistant will be displayed the first time user opens a new version of Android Studio.",
     true);
 
-  public static final Flag<Boolean> NELE_TARGET_RELATIVE = Flag.create(
-    NELE, "target.relative", "Enable the target architecture in relative layout",
-    "Enable the new Target architecture in relative layout",
-    true);
-
   public static final Flag<Boolean> NELE_NEW_PROPERTY_PANEL = Flag.create(
     NELE, "new.property", "Enable the new Property Panel",
     "Enable the new Property Panel",
@@ -360,6 +355,13 @@ public final class StudioFlags {
     "in.memory.r.classes",
     "Generate R classes fully in memory",
     "If enabled, R classes are generated in memory", false);
+
+  public static final Flag<Boolean> COLLAPSE_ANDROID_NAMESPACE = Flag.create(
+    EDITOR,
+    "collapse.android.namespace",
+    "Collapse the android namespace in XML code completion",
+    "If enabled, XML code completion doesn't include resources from the android namespace. Instead a fake completion item " +
+    "is used to offer just the namespace prefix.", true);
 
   private static final FlagGroup ANALYZER = new FlagGroup(FLAGS, "analyzer", "Apk/Bundle Analyzer");
   public static final Flag<Boolean> ENABLE_APP_SIZE_OPTIMIZER = Flag.create(

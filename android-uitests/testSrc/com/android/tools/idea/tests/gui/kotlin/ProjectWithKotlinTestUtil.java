@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -114,15 +115,26 @@ public class ProjectWithKotlinTestUtil {
   protected static void createNewBasicKotlinProject(boolean hasCppSupport, GuiTestRule guiTest) {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
                                                       .createNewProject();
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      newProjectWizard
+        .getChooseAndroidProjectStep()
+        .chooseActivity(hasCppSupport ? "Native C++" : "Empty Activity")
+        .wizard()
+        .clickNext()
+        .getConfigureNewAndroidProjectStep()
+        .enterPackageName("android.com")
+        .setSourceLanguage("Kotlin");
+    }
+    else {
+      newProjectWizard.getConfigureAndroidProjectStep()
+                      .enterPackageName("android.com")
+                      .setCppSupport(hasCppSupport)
+                      .setKotlinSupport(true); // Default "App name", "company domain" and "package name"
 
-    newProjectWizard.getConfigureAndroidProjectStep()
-                    .enterPackageName("android.com")
-                    .setCppSupport(hasCppSupport)
-                    .setKotlinSupport(true); // Default "App name", "company domain" and "package name"
-
-    newProjectWizard.clickNext();
-    newProjectWizard.clickNext(); // Skip "Select minimum SDK Api" step
-    newProjectWizard.clickNext(); // Skip "Add Activity" step
+      newProjectWizard.clickNext();
+      newProjectWizard.clickNext(); // Skip "Select minimum SDK Api" step
+      newProjectWizard.clickNext(); // Skip "Add Activity" step
+    }
 
     if (hasCppSupport) {
       newProjectWizard.clickNext();

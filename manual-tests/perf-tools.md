@@ -71,7 +71,7 @@ effects.**
 5. **Each thread should run for 2 seconds (green), sleep for 4 seconds (grey),
    and then close**.
 
-![CPU - Periodic Usage][cpu1]
+![CPU - Periodic Usage][cpu-periodic]
 
 ### File Writing
 
@@ -83,7 +83,7 @@ effects.**
 1. Wait 2 seconds after all writing threads stop running.
 1. You should see **four threads reading the file.**
 
-![CPU - File Writing][cpu2]
+![CPU - File Writing][cpu-file-write]
 
 ## Memory
 
@@ -95,7 +95,7 @@ effects.**
 1. You should see **java** memory **increase every 2 seconds 5 times before
    falling back to baseline**
 
-![Memory - Java Memory Allocation][memory1]
+![Memory - Java Memory Allocation][memory-alloc-java]
 ### Native Memory Allocaion
 
 1. In the "Android Profiler" Toolbar, make sure you are on the memory profiler.
@@ -104,7 +104,7 @@ effects.**
 1. You should see **native** memory **increase every 2 seconds 5 times before
    falling back to baseline**
 
-![Memory - Native Memory Allocation][memory2]
+![Memory - Native Memory Allocation][memory-alloc-native]
 
 ### Object Allocation
 
@@ -114,7 +114,7 @@ effects.**
 1. You should see **the number of objects increases every 2 seconds 5 times
    before failing back to baseline**
 
-![Memory - Object Allocation][memory3]
+![Memory - Object Allocation][memory-alloc-object]
 
 ### JNI References Allocation
 
@@ -132,8 +132,8 @@ effects.**
 1. In the *Allocation Call Stack* section below you should see lines *newRef3*, *newRef2*, *newRef3*
    and *native_memory.cpp* next to them.
 
-![Memory - Object Allocation][memory4]
-![Memory - Object Allocation][memory5]
+![Memory - Object Allocation][memory-jni-app]
+![Memory - Object Allocation][memory-jni-studio]
 
 
 ## Network
@@ -147,7 +147,7 @@ effects.**
    approximately twice as big as previous one**
 1. You can also find that **there is only one more connection**
 
-![Network - Http Request][network1]
+![Network - Http Request][network-httpurl]
 
 ### OkHttp Request
 
@@ -159,7 +159,7 @@ effects.**
 1. You can also find that **number of connections is increased by one every
    time a new download task starts**
 
-![Network - OkHttp Request][network2]
+![Network - OkHttp Request][network-okhttp]
 
 ## Events
 
@@ -177,7 +177,7 @@ of whichever profiler you have selected.
 1. Press volume up and you **should see a "volume down" icon**
 1. Rotate the screen and you **should see a "rotation" icon**
 
-![Events - Basic][event]
+![Events - Basic][events-basic]
 
 ### Type Words
 
@@ -190,7 +190,7 @@ of whichever profiler you have selected.
 1. Tap the autocompleted word "love" and you can see **the final "love" icon**
 1. Tap the "back" button to hide keyboard
 
-![Events - Type Words][type]
+![Events - Type Words][events-typing]
 
 ### Switch Activities
 
@@ -201,27 +201,27 @@ of whichever profiler you have selected.
    event.EmptyActivity starts**. You can also see a **purple dot** since we
    tapped the screen.
 
-![Events - Enter Activty][event1]
+![Events - Enter Activty][events-activity-enter]
 
 1. Hit "back" button to return back to the main activity
 1. On tge event profiler, **event.EmptyActivity becomes "stopped and destroyed"
    and MainActivity starts**. You can also see a **back icon** since we pressed
    the "back" button
 
-![Events - Exit Activity][event2]
+![Events - Exit Activity][events-activity-exit]
 
 [toolbar]: res/perf-tools/toolbar.png
 [app]: res/perf-tools/app.png
-[cpu1]: res/perf-tools/cpu1.png
-[cpu2]: res/perf-tools/cpu2.png
-[memory1]: res/perf-tools/memory1.png
-[memory2]: res/perf-tools/memory2.png
-[memory3]: res/perf-tools/memory3.png
-[memory4]: res/perf-tools/jni-tracking-app.png
-[memory5]: res/perf-tools/jni-tracking.png
-[network1]: res/perf-tools/network1.png
-[network2]: res/perf-tools/network2.png
-[event]: res/perf-tools/event.png
-[event1]: res/perf-tools/event1.png
-[type]: res/perf-tools/type.png
-[event2]: res/perf-tools/event2.png
+[cpu-periodic]: res/perf-tools/cpu-periodic.png
+[cpu-file-write]: res/perf-tools/cpu-file-write.png
+[memory-alloc-java]: res/perf-tools/memory-alloc-java.png
+[memory-alloc-native]: res/perf-tools/memory-alloc-native.png
+[memory-alloc-object]: res/perf-tools/memory-alloc-object.png
+[memory-jni-app]: res/perf-tools/memory-jni-app.png
+[memory-jni-studio]: res/perf-tools/memory-jni-studio.png
+[network-httpurl]: res/perf-tools/network-httpurl.png
+[network-okhttp]: res/perf-tools/network-okhttp.png
+[events-basic]: res/perf-tools/events-basic.png
+[events-typing]: res/perf-tools/events-typing.png
+[events-activity-enter]: res/perf-tools/events-activity-enter.png
+[events-activity-exit]: res/perf-tools/events-activity-exit.png

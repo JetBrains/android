@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
@@ -54,14 +55,26 @@ public class NewCppProjectTestUtil {
   protected static void createCppProject(boolean hasExceptionSupport, boolean hasRuntimeInformation, GuiTestRule guiTest) {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
                                                       .createNewProject();
-
-    newProjectWizard.getConfigureAndroidProjectStep()
-                    .enterPackageName("com.example.myapplication")
-                    .setCppSupport(true); // Default "App name", "company domain" and "package name"
-    newProjectWizard.clickNext();
-    newProjectWizard.clickNext(); // Skip "Select minimum SDK Api" step
-    newProjectWizard.clickNext(); // Skip "Add Activity" step
-    newProjectWizard.clickNext(); // Use default activity names
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      newProjectWizard
+        .getChooseAndroidProjectStep()
+        .chooseActivity("Native C++")
+        .wizard()
+        .clickNext()
+        .getConfigureNewAndroidProjectStep()
+        .enterPackageName("com.example.myapplication")
+        .wizard()
+        .clickNext();
+    }
+    else {
+      newProjectWizard.getConfigureAndroidProjectStep()
+                      .enterPackageName("com.example.myapplication")
+                      .setCppSupport(true); // Default "App name", "company domain" and "package name"
+      newProjectWizard.clickNext();
+      newProjectWizard.clickNext(); // Skip "Select minimum SDK Api" step
+      newProjectWizard.clickNext(); // Skip "Add Activity" step
+      newProjectWizard.clickNext(); // Use default activity names
+    }
 
     newProjectWizard.getConfigureCppStepFixture()
                     .setExceptionsSupport(hasExceptionSupport)

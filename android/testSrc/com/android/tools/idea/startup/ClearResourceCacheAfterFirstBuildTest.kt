@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.startup
 
-import com.android.tools.idea.projectsystem.EP_NAME
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.project.Project
 import org.junit.*
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Mockito.`when`
 
 @RunWith(JUnit4::class)
-@Ignore // TODO(b/80590520): figure out why it's flaky.
 class ClearResourceCacheAfterFirstBuildTest {
   @JvmField @Rule val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 
@@ -53,9 +52,11 @@ class ClearResourceCacheAfterFirstBuildTest {
   @Before
   fun setUp() {
     project = projectRule.project
-
     projectSystem = TestProjectSystem(project, lastSyncResult = SyncResult.UNKNOWN)
-    Extensions.getArea(project).getExtensionPoint(EP_NAME).registerExtension(projectSystem)
+
+    // Mock ProjectSystemService to ensure a fresh test project system for each test case.
+    val mockProjectSystemService = projectRule.mockProjectService(ProjectSystemService::class.java)
+    `when`(mockProjectSystemService.projectSystem).thenReturn(projectSystem)
 
     // AndroidProjectRule uses a shared project instance, so we use and reset the same instance
     // of the ClearResourceCacheAfterFirstBuild project component for each test case.
@@ -77,7 +78,6 @@ class ClearResourceCacheAfterFirstBuildTest {
 
   @After
   fun tearDown() {
-    Extensions.getArea(project).getExtensionPoint(EP_NAME).unregisterExtension(projectSystem)
     clearResourceCacheAfterFirstBuild.reset()
   }
 

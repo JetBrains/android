@@ -22,7 +22,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ValueXmlHelper
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.rendering.LayoutMetadata
-import com.android.tools.idea.res.FileResourceOpener
+import com.android.tools.idea.res.FileResourceReader
 import org.xmlpull.v1.XmlPullParser
 
 import com.android.SdkConstants.*
@@ -31,7 +31,7 @@ import com.android.SdkConstants.*
  * Creates a new [ILayoutPullParser] for the given XML file.
  */
 fun create(xml: PathString, namespace: ResourceNamespace): ILayoutPullParser? {
-  val parser = FileResourceOpener.createXmlPullParser(xml) ?: return null
+  val parser = FileResourceReader.createXmlPullParser(xml) ?: return null
   return LayoutPullParserImpl(parser, namespace)
 }
 

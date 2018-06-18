@@ -15,84 +15,19 @@
  */
 package com.android.tools.idea.res;
 
-import com.google.common.base.MoreObjects;
+import com.android.SdkConstants;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.ide.highlighter.JavaFileType;
-import com.intellij.psi.*;
-import com.intellij.psi.util.CachedValue;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiModificationTracker;
-import org.jetbrains.android.augment.AndroidLightClassBase;
-import org.jetbrains.annotations.NonNls;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiModifier;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public abstract class AndroidPackageRClassBase extends AndroidLightClassBase {
-  @NotNull protected final PsiFile myFile;
-  @NotNull protected final String myFullyQualifiedName;
-  private CachedValue<PsiClass[]> myClassCache;
-
+/**
+ * Base class for implementations of light R classes (top-level, which only contain inner classes for every resource type).
+ *
+ * @see org.jetbrains.android.augment.ResourceTypeClassBase
+ */
+public abstract class AndroidPackageRClassBase extends AndroidClassWithOnlyInnerClassesBase {
   public AndroidPackageRClassBase(@NotNull PsiManager psiManager, @NotNull String packageName) {
-    super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
-    myFile =
-        PsiFileFactory.getInstance(myManager.getProject())
-                      .createFileFromText("R.java", JavaFileType.INSTANCE, "package " + packageName + ";");
-    myFullyQualifiedName = packageName + ".R";
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).addValue(getQualifiedName()).toString();
-  }
-
-  @Nullable
-  @Override
-  public String getQualifiedName() {
-    return myFullyQualifiedName;
-  }
-
-  @Override
-  public String getName() {
-    return "R";
-  }
-
-  @Nullable
-  @Override
-  public PsiClass getContainingClass() {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public PsiFile getContainingFile() {
-    return myFile;
-  }
-
-  @NotNull
-  @Override
-  public PsiClass[] getInnerClasses() {
-    if (myClassCache == null) {
-      myClassCache =
-          CachedValuesManager.getManager(getProject())
-                             .createCachedValue(
-                  () ->
-                      CachedValueProvider.Result.create(
-                        doGetInnerClasses(),
-                        PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT));
-    }
-    return myClassCache.getValue();
-  }
-
-  protected abstract PsiClass[] doGetInnerClasses();
-
-  @Override
-  public PsiClass findInnerClassByName(@NonNls String name, boolean checkBases) {
-    for (PsiClass aClass : getInnerClasses()) {
-      if (name.equals(aClass.getName())) {
-        return aClass;
-      }
-    }
-    return null;
+    super(SdkConstants.R_CLASS, packageName, psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
   }
 }

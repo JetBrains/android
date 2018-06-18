@@ -36,13 +36,13 @@ import com.google.common.collect.ImmutableList
  * TODO:
  * - Don't allow selecting multiple widgets.
  */
-class RelativeLayoutHandlerKt : ViewGroupHandler() {
+class RelativeLayoutHandler : ViewGroupHandler() {
 
   override fun createDragHandler(editor: ViewEditor, layout: SceneComponent, components: List<NlComponent>, type: DragType): DragHandler? {
     if (layout.drawWidth == 0 || layout.drawHeight == 0) {
       return null
     }
-    return RelativeDragHandlerKt(editor, this, layout, components, type)
+    return RelativeDragHandler(editor, this, layout, components, type)
   }
 
   override fun handlesPainting(): Boolean = true

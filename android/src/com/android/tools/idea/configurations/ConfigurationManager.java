@@ -117,13 +117,13 @@ public class ConfigurationManager implements Disposable {
 
     ConfigurationManager configurationManager = module.getUserData(KEY);
     if (configurationManager == null && createIfNecessary) {
-      configurationManager = create(module);
+      configurationManager = new ConfigurationManager(module);
       module.putUserData(KEY, configurationManager);
     }
     return configurationManager;
   }
 
-  private ConfigurationManager(@NotNull Module module) {
+  public ConfigurationManager(@NotNull Module module) {
     myModule = module;
 
     myUserDeviceManager = new UserDeviceManager() {
@@ -217,19 +217,6 @@ public class ConfigurationManager implements Disposable {
   /** Returns the associated persistence manager */
   public ConfigurationStateManager getStateManager() {
     return ConfigurationStateManager.get(getModule().getProject());
-  }
-
-  /**
-   * Creates a new {@link ConfigurationManager} for the given module
-   *
-   * @param module the associated module
-   * @return a new {@link ConfigurationManager}
-   */
-  @NotNull
-  public static ConfigurationManager create(@NotNull Module module) {
-    ConfigurationManager configurationManager = new ConfigurationManager(module);
-    Disposer.register(module, configurationManager);
-    return configurationManager;
   }
 
   /** Returns the list of available devices for the current platform, if any */

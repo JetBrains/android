@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("GradleModelConverterUtil")
-package com.android.tools.idea.gradle.project.model
+package com.android.tools.idea.lint;
 
-import com.android.builder.model.ClassField
-import com.android.projectmodel.DynamicResourceValue
-import com.android.resources.ResourceType
+import com.android.tools.lint.checks.StringCasingDetector;
+import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
+import org.jetbrains.android.util.AndroidBundle;
 
-fun classFieldsToDynamicResourceValues(classFields: Map<String, ClassField>): Map<String, DynamicResourceValue> {
-  val result = HashMap<String, DynamicResourceValue>()
-  for (field in classFields.values) {
-    val resourceType = ResourceType.getEnum(field.type)
-    if (resourceType != null) {
-      result[field.name] = DynamicResourceValue(resourceType, field.value)
-    }
+public class AndroidLintDuplicateStringsInspection extends AndroidLintInspectionBase {
+  public AndroidLintDuplicateStringsInspection() {
+    super(AndroidBundle.message("android.lint.inspections.duplicate.strings"), StringCasingDetector.DUPLICATE_STRINGS);
   }
-  return result
 }

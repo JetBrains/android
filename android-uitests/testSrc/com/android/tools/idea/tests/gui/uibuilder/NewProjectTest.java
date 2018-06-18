@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.builder.model.ApiVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -255,6 +256,10 @@ public class NewProjectTest {
 
   @Test // http://b.android.com/227918
   public void scrollingActivityFollowedByBasicActivity() throws Exception {
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      return; // On the new NPW design, the reported bug no longer applies.
+    }
+
     guiTest.welcomeFrame()
       .createNewProject()
       .getConfigureAndroidProjectStep()

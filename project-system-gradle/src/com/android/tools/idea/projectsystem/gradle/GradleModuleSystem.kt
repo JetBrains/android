@@ -18,6 +18,10 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.util.PathString
+import com.android.projectmodel.AarLibrary
+import com.android.projectmodel.JavaLibrary
+import com.android.projectmodel.Library
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
@@ -26,6 +30,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.templates.IdeGoogleMavenRepository
+import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.TestOnly
@@ -54,6 +59,32 @@ class GradleModuleSystem(val module: Module, @TestOnly private val mavenReposito
         .mapNotNull { GradleCoordinate.parseCoordinateString("${it.group()}:${it.name().forceString()}:${it.version()}") }
         .find { it.matches(coordinate) }
     }
+  }
+
+  override fun getDependentLibraries(): Collection<Library> {
+    val gradleModel = AndroidModuleModel.get(module) ?: return emptySet()
+
+    val javaLibraries = gradleModel.selectedMainCompileLevel2Dependencies.javaLibraries.map { library ->
+        JavaLibrary(
+          address = library.artifactAddress,
+          classesJar = PathString(library.artifact)
+        )
+      }
+
+    val androidLibraries = gradleModel.selectedMainCompileLevel2Dependencies.androidLibraries.map { library ->
+        AarLibrary(
+          address = library.artifactAddress,
+          location = PathString(library.artifact),
+          manifestFile = PathString(library.manifest),
+          classesJar = PathString(library.jarFile),
+          dependencyJars = library.localJars.map(::PathString),
+          resFolder = PathString(library.resFolder),
+          symbolFile = PathString(library.symbolFile),
+          resApkFile = library.resStaticLibrary?.let(::PathString)
+        )
+      }
+
+    return javaLibraries + androidLibraries
   }
 
   override fun registerDependency(coordinate: GradleCoordinate) {

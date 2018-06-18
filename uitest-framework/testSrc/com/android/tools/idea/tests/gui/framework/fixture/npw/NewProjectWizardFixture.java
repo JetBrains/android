@@ -45,6 +45,18 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   }
 
   @NotNull
+  public ConfigureNewAndroidProjectStepFixture<NewProjectWizardFixture> getConfigureNewAndroidProjectStep() {
+    JRootPane rootPane = findStepWithTitle("Configure your project");
+    return new ConfigureNewAndroidProjectStepFixture<>(this, rootPane);
+  }
+
+  @NotNull
+  public ChooseAndroidProjectStepFixture<NewProjectWizardFixture> getChooseAndroidProjectStep() {
+    JRootPane rootPane = findStepWithTitle("Choose your project");
+    return new ChooseAndroidProjectStepFixture<>(this, rootPane);
+  }
+
+  @NotNull
   public ConfigureFormFactorStepFixture<NewProjectWizardFixture> getConfigureFormFactorStep() {
     JRootPane rootPane = findStepWithTitle("Target Android Devices", 30);
     return new ConfigureFormFactorStepFixture<>(this, rootPane);

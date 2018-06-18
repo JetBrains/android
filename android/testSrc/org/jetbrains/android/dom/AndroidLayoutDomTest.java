@@ -943,7 +943,8 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
-  public void testOnClickHighlighting6() throws Throwable {
+  // b/78423832
+  public void ignore_testOnClickHighlighting6() throws Throwable {
     // Like testOnClickHighlighting5, but instead of having the activity be found
     // due to a setContentView call, it's declared explicitly with a tools:context
     // attribute instead

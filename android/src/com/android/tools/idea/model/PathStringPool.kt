@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("PathStrings")
 package com.android.tools.idea.model
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.util.PathString
+import com.android.tools.idea.util.inputStream
+import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import java.io.Closeable
 import java.io.File
-import java.io.FileNotFoundException
-import java.io.InputStream
-import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
-import java.nio.file.StandardOpenOption
 
 /**
  * Utility class which can toFile [PathString] instances to read-only [File] instances. Any paths that can't
@@ -72,7 +68,7 @@ class PathStringPool : Closeable {
 
     val fileName = path.fileName.let { if (it.length >= 3) it else "PathStringPool" + it }
     val tempFile = File.createTempFile(fileName, ".tmp")
-    path.newInputStream().use { stream ->
+    path.inputStream().use { stream ->
       Files.copy(stream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
     }
 
@@ -93,51 +89,4 @@ class PathStringPool : Closeable {
       it.delete()
     }
   }
-}
-
-/**
- * Returns a [VirtualFile] for this [PathString] or null if the path can't be converted directly.
- */
-fun PathString.toVirtualFile(): VirtualFile? {
-  return VirtualFileManager.getInstance().getFileSystem(this.filesystemUri.scheme)?.findFileByPath(portablePath)
-}
-
-/**
- * Returns a new input stream for reading this file. Throws an [IOException] if unable to open the file
- * or the file does not exist.
- */
-fun PathString.newInputStream(): InputStream {
-  toVirtualFile()?.let {
-    return it.inputStream
-  }
-
-  toPath()?.let {
-    return Files.newInputStream(it, StandardOpenOption.READ)
-  }
-
-  throw FileNotFoundException(toString())
-}
-
-/**
- * Returns a [PathString] that describes the given [VirtualFile].
- */
-fun VirtualFile.toPathString(): PathString {
-  if (fileSystem.protocol == LocalFileSystem.PROTOCOL) {
-    return PathString(path)
-  }
-
-  val fileSystemUri = URI(fileSystem.protocol, "/", "")
-  return PathString(fileSystemUri, path)
-}
-
-/**
- * Searches for the file specified by given [PathString].
- */
-fun findFileByPath(pathToFind: PathString, refreshNeeded: Boolean): VirtualFile? {
-  val virtualFile = pathToFind.toVirtualFile() ?: return null
-
-  return if (refreshNeeded) {
-    virtualFile.fileSystem.refreshAndFindFileByPath(virtualFile.path)
-  }
-  else virtualFile
 }

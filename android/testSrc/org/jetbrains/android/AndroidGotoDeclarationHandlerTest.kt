@@ -22,11 +22,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.testing.caret
-import com.android.utils.FileUtils
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiUtilCore
@@ -287,17 +285,18 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
   }
 
   protected open fun addAarDependency() {
-    val aarDir = addAarDependency(myModule, "aarLib")
-    val stylesXml = FileUtils.join(aarDir, "values", "styles.xml")
-    FileUtils.createFile(stylesXml,
-                         "<resources>\n" +
-                         "<style name=\"LibStyle\"></style>\n" +
-                         "<declare-styleable name=\"LibStyleable\">\n" +
-                         "  <attr name=\"libAttr\" format=\"string\" />\n" +
-                         "</declare-styleable>\n" +
-                         "</resources>\n")
-    // For whatever reason, calling this makes VFS correctly see the contents of the file.
-    VfsUtil.findFileByIoFile(stylesXml, true)
+    addAarDependency(myModule, "aarLib", "com.example.aarLib") { resDir ->
+      resDir.resolve("values/styles.xml").writeText(
+        """
+        <resources>
+          <style name="LibStyle"></style>
+          <declare-styleable name="LibStyleable">
+            <attr name="libAttr" format="string" />
+          </declare-styleable>
+        </resources>
+        """.trimIndent()
+      )
+    }
 
     // Sanity check.
     val appResources = ResourceRepositoryManager.getAppResources(myFacet)
@@ -504,7 +503,7 @@ class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandle
   }
 
   override fun testGotoAarResourceFromCode_libRClass() {
-    // TODO(b/77801019): start generating R classes for AARs in memory, so that this test passes.
+    // TODO(b/110082720): implement support for source attachments.
   }
 
   override fun testGotoPermission() {

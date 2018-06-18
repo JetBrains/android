@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 public final class EnergyDuration implements Comparable<EnergyDuration> {
 
   public enum Kind {
-    UNKNOWN ("n/a"),
+    UNKNOWN ("N/A"),
     WAKE_LOCK ("Wake Lock"),
     ALARM("Alarm"),
     JOB("Job"),
@@ -138,7 +138,7 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
    *   <ul>WAKE_LOCK returns its tag, that could be empty string.</ul>
    *   <ul>ALARM returns either the creator package from PendingIntent, or the listener tag.</ul>
    *   <ul>JOB returns the job id and job service name.</ul>
-   *   <ul>Others returns "n/a".</ul>
+   *   <ul>Others returns "N/A".</ul>
    * </li>
    */
   @NotNull
@@ -165,7 +165,7 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
       default:
         break;
     }
-    return "n/a";
+    return "N/A";
   }
 
   @NotNull
@@ -219,7 +219,7 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
       case PROXIMITY_SCREEN_OFF_WAKE_LOCK:
         return "Proximity Screen Off";
       default:
-        return "n/a";
+        return "N/A";
     }
   }
 
@@ -235,7 +235,7 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
       case ELAPSED_REALTIME_WAKEUP:
         return "Elapsed Realtime Wakeup";
       default:
-        return "n/a";
+        return "N/A";
     }
   }
 

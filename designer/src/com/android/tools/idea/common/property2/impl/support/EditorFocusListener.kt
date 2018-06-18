@@ -25,12 +25,14 @@ import java.awt.event.FocusListener
  * When focus is lost make sure to supply the last value edited, such that
  * the model can update its property value. (May be ignored in certain models).
  */
-class EditorFocusListener(private val model: BasePropertyEditorModel, private val lastValue: () -> String): FocusListener {
+class EditorFocusListener(private val model: BasePropertyEditorModel,
+                          private val lastValue: () -> String,
+                          private val updateValueOnFocusLoss: Boolean = true): FocusListener {
   override fun focusGained(event: FocusEvent) {
     model.focusGained()
   }
 
   override fun focusLost(event: FocusEvent) {
-    model.focusLost(lastValue())
+    model.focusLost(lastValue(), updateValueOnFocusLoss)
   }
 }

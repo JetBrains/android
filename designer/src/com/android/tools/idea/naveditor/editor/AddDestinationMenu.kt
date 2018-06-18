@@ -29,12 +29,12 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
-import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.util.PsiUtil
@@ -74,9 +74,10 @@ import javax.swing.event.DocumentEvent
 open class AddDestinationMenu(surface: NavDesignSurface) :
     NavToolbarMenu(surface, "New Destination", StudioIcons.NavEditor.Toolbar.ADD_DESTINATION) {
 
-  private lateinit var myButton: JComponent
+  private lateinit var button: JComponent
   private var creatingInProgress = false
   private val createdFiles: MutableList<File> = mutableListOf()
+  private var buttonPresentation: Presentation? = null
 
   @VisibleForTesting
   val destinations: List<Destination>
@@ -201,11 +202,11 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
     val result = object: AdtSecondaryPanel(VerticalLayout(5)), DataProvider {
       override fun getData(dataId: String?): Any? {
-        if (NewAndroidComponentAction.CREATED_FILES.`is`(dataId)) {
-          return createdFiles
+        return if (NewAndroidComponentAction.CREATED_FILES.`is`(dataId)) {
+          createdFiles
         }
         else {
-          return surface.getData(dataId)
+          surface.getData(dataId)
         }
       }
     }
@@ -272,6 +273,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   }
 
   private fun createBlankDestination(e: AnActionEvent?) {
+    balloon?.hide()
     val action = NewAndroidComponentAction("Fragment", "Fragment (Blank)", 7)
     action.setShouldOpenFiles(false)
     createBlankDestination(e, action)
@@ -279,30 +281,36 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
   @VisibleForTesting
   fun createBlankDestination(e: AnActionEvent?, action: AnAction) {
+    createdFiles.clear()
     action.actionPerformed(e)
     val project = e?.project ?: return
     val sceneManager = surface.sceneManager ?: return
     val schema = sceneManager.schema
-    var layoutFile: XmlFile? = null
-    var psiClass: PsiClass? = null
     val model = surface.model ?: return
     val resourceManager = LocalResourceManager.getInstance(model.module) ?: return
 
-    for (file in createdFiles) {
-      val virtualFile = VfsUtil.findFileByIoFile(file, true) ?: continue
-      val psiFile = PsiUtil.getPsiFile(project, virtualFile)
-      if (psiFile is XmlFile && resourceManager.getFileResourceFolderType(psiFile) == ResourceFolderType.LAYOUT) {
-        layoutFile = psiFile
+    DumbService.getInstance(project).runWhenSmart {
+      var layoutFile: XmlFile? = null
+      var psiClass: PsiClass? = null
+
+      for (file in createdFiles) {
+        val virtualFile = VfsUtil.findFileByIoFile(file, true) ?: continue
+        val psiFile = PsiUtil.getPsiFile(project, virtualFile)
+        if (psiFile is XmlFile && resourceManager.getFileResourceFolderType(psiFile) == ResourceFolderType.LAYOUT) {
+          layoutFile = psiFile
+        }
+        if (psiFile is PsiClassOwner) {
+          psiClass = psiFile.classes[0]
+        }
       }
-      if (psiFile is PsiClassOwner) {
-        psiClass = psiFile.classes[0]
+      if (psiClass != null) {
+        val tag = schema.findTagForComponent(psiClass) ?: return@runWhenSmart
+        val destination =
+          Destination.RegularDestination(surface.currentNavigation, tag, null, psiClass.name, psiClass.qualifiedName,
+                                         layoutFile = layoutFile)
+        addDestination(destination)
       }
-    }
-    if (psiClass != null) {
-      val tag = schema.findTagForComponent(psiClass) ?: return
-      val destination =
-        Destination.RegularDestination(surface.currentNavigation, tag, null, psiClass.name, psiClass.qualifiedName, layoutFile = layoutFile)
-      addDestination(destination)
+      createdFiles.clear()
     }
   }
 
@@ -321,13 +329,18 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   }
 
   override fun createCustomComponent(presentation: Presentation): JComponent {
-    myButton = super.createCustomComponent(presentation)
-    return myButton
+    button = super.createCustomComponent(presentation)
+    buttonPresentation = presentation
+    return button
   }
 
   // open for testing only
   open fun show() {
-    show(myButton)
+    show(button)
+  }
+
+  override fun update(e: AnActionEvent?) {
+    e?.project?.let { buttonPresentation?.isEnabled = !DumbService.isDumb(it) }
   }
 
   companion object {

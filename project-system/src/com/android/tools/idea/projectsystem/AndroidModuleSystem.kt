@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.projectmodel.Library
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -69,6 +70,11 @@ interface AndroidModuleSystem {
    * until the next sync. To ensure the dependency is resolved and available for use, sync the project after calling this function.
    */
   fun registerDependency(coordinate: GradleCoordinate)
+
+  /**
+   * Returns the libraries that this module depends on.
+   */
+  fun getDependentLibraries(): Collection<Library>
 
   /**
    * Determines whether or not the underlying build system is capable of generating a PNG

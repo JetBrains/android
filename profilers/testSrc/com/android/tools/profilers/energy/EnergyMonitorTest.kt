@@ -143,7 +143,7 @@ class EnergyMonitorTest {
     timer.tick(1)
     assertThat(usageUpdated).isTrue() // LineChartModel always updates on first update.
     assertThat(legendUpdated).isTrue()
-    assertThat(tooltipLegendUpated).isFalse() // Mouse did not enter, so this should not update.
+    assertThat(tooltipLegendUpated).isTrue() // Tooltip legend changed from null to "N/A"
     assertThat(axisUpdated).isTrue() // This would change since it's first update.
     usageUpdated = false
 

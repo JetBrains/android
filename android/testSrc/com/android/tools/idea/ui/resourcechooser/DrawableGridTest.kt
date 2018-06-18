@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcechooser
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRenderer
@@ -60,7 +61,7 @@ class DrawableGridTest {
 
   @Test
   fun canTSelectNullElement() {
-    val resourceValue = ResourceValue(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "resourceValue", "")
+    val resourceValue = ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "resourceValue", "")
     val grid = DrawableGrid(rule.fixture.module,
                             DefaultListModel<ResourceValue>().apply {
                               addElement(resourceValue)
@@ -91,7 +92,7 @@ class DrawableGridTest {
     val renderer = StubRenderer()
     renderer.registerAsExtension(rule.fixture.project)
     val childFile = createFakeFile("file")
-    val resourceValue = ResourceValue(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "resourceValue", childFile.path)
+    val resourceValue = ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "resourceValue", childFile.path)
     val grid = DrawableGrid(rule.fixture.module,
                             DefaultListModel<ResourceValue>().apply {
                               addElement(resourceValue)

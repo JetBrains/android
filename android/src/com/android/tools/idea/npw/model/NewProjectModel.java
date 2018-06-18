@@ -67,11 +67,13 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class NewProjectModel extends WizardModel {
   private static final String PROPERTIES_DOMAIN_KEY = "SAVED_COMPANY_DOMAIN";
+  private static final String PROPERTIES_ANDROID_PACKAGE_KEY = "SAVED_ANDROID_PACKAGE";
   private static final String PROPERTIES_CPP_SUPPORT_KEY = "SAVED_PROJECT_CPP_SUPPORT";
   private static final String PROPERTIES_KOTLIN_SUPPORT_KEY = "SAVED_PROJECT_KOTLIN_SUPPORT";
   private static final String EXAMPLE_DOMAIN = "example.com";
@@ -99,6 +101,18 @@ public class NewProjectModel extends WizardModel {
       String domain = myCompanyDomain.get();
       if (AndroidUtils.isValidAndroidPackageName(domain)) {
         PropertiesComponent.getInstance().setValue(PROPERTIES_DOMAIN_KEY, domain);
+      }
+    });
+
+    // Save entered android package
+    myPackageName.addListener(sender -> {
+      String androidPackage = myPackageName.get();
+      int lastDotIdx = androidPackage.lastIndexOf('.');
+      if (lastDotIdx >= 0) {
+        androidPackage = androidPackage.substring(0, lastDotIdx);
+      }
+      if (AndroidUtils.isValidAndroidPackageName(androidPackage)) {
+        PropertiesComponent.getInstance().setValue(PROPERTIES_ANDROID_PACKAGE_KEY, androidPackage);
       }
     });
 
@@ -167,6 +181,11 @@ public class NewProjectModel extends WizardModel {
    */
   @NotNull
   public static String getInitialDomain(boolean includeUserName) {
+    String androidPackage = PropertiesComponent.getInstance().getValue(PROPERTIES_ANDROID_PACKAGE_KEY);
+    if (androidPackage != null) {
+      return new DomainToPackageExpression(new StringValueProperty(androidPackage), new StringValueProperty("")).get();
+    }
+
     String domain = PropertiesComponent.getInstance().getValue(PROPERTIES_DOMAIN_KEY);
     if (domain != null) {
       return domain;
@@ -317,15 +336,20 @@ public class NewProjectModel extends WizardModel {
       myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
       myTemplateValues.put(ATTR_KOTLIN_SUPPORT, myEnableKotlinSupport.get());
 
-
+      int maxBuildApi = 0;
       Map<String, Object> params = Maps.newHashMap(myTemplateValues);
       for (NewModuleModel newModuleModel : getNewModuleModels()) {
         params.putAll(newModuleModel.getTemplateValues());
 
         // Set global parameters
-        newModuleModel.getRenderTemplateValues().getValue().putAll(myTemplateValues);
+        Map<String, Object> renderTemplateValues = newModuleModel.getRenderTemplateValues().getValue();
+        renderTemplateValues.putAll(myTemplateValues);
         newModuleModel.getTemplateValues().putAll(myTemplateValues);
+
+        maxBuildApi = Math.max(maxBuildApi, (int) renderTemplateValues.getOrDefault(ATTR_BUILD_API, 0));
       }
+
+      myTemplateValues.put(ATTR_ANDROIDX_SUPPORT, NELE_USE_ANDROIDX_DEFAULT.get() && maxBuildApi >= 28);
 
       Template projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
       // @formatter:off

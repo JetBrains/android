@@ -22,18 +22,19 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Base class for inner classes of the R class, e.g. {@code R.string}.
+ * Base class for light implementations of inner classes of the R class, e.g. {@code R.string}.
  *
- * <p>Implementations need to implement {@link #doGetFields()}, most likely by calling
- * {@link #buildResourceFields(ResourceManager, AbstractResourceRepository, ResourceNamespace, boolean, ResourceType, PsiClass)} with the right
- * arguments.
+ * <p>Implementations need to implement {@link #doGetFields()}, most likely by calling one of the {@code buildResourceFields} methods.
  */
 public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
+
   @NotNull
   protected final ResourceType myResourceType;
 
   @Nullable
   private CachedValue<PsiField[]> myFieldsCache;
+
+  protected static PsiType INT_ARRAY = PsiType.INT.createArrayType();
 
   public ResourceTypeClassBase(@NotNull PsiClass context, @NotNull ResourceType resourceType) {
     super(context, resourceType.getName());
@@ -41,18 +42,18 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
   }
 
   @NotNull
-  static PsiField[] buildResourceFields(@Nullable ResourceManager manager,
-                                        @NotNull AbstractResourceRepository repository,
-                                        @NotNull ResourceNamespace namespace,
-                                        boolean nonFinal,
-                                        @NotNull ResourceType resourceType,
-                                        @NotNull PsiClass context) {
+  protected static PsiField[] buildResourceFields(@Nullable ResourceManager manager,
+                                                  @NotNull AbstractResourceRepository repository,
+                                                  @NotNull ResourceNamespace namespace,
+                                                  @NotNull AndroidLightField.FieldModifier fieldModifier,
+                                                  @NotNull ResourceType resourceType,
+                                                  @NotNull PsiClass context) {
     if (resourceType == ResourceType.STYLEABLE) {
       // TODO(b/74325205): remove the need for this.
       resourceType = ResourceType.DECLARE_STYLEABLE;
     }
     Map<String, PsiType> fieldNames = new HashMap<>();
-    PsiType basicType = ResourceType.DECLARE_STYLEABLE == resourceType ? PsiType.INT.createArrayType() : PsiType.INT;
+    PsiType basicType = ResourceType.DECLARE_STYLEABLE == resourceType ? INT_ARRAY : PsiType.INT;
 
     for (String resName : repository.getItemsOfType(namespace, resourceType)) {
       fieldNames.put(resName, basicType);
@@ -70,7 +71,8 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
               String packageName = attrNamespace.getPackageName();
               if (attrNamespace.equals(namespace) || StringUtil.isEmpty(packageName)) {
                 fieldNames.put(item.getName() + '_' + attr.getName(), PsiType.INT);
-              } else {
+              }
+              else {
                 fieldNames.put(item.getName() + '_' + packageName.replace('.', '_') + '_' + attr.getName(), PsiType.INT);
               }
             }
@@ -79,6 +81,14 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
       }
     }
 
+    return buildResourceFields(fieldNames, resourceType, context, fieldModifier);
+  }
+
+  @NotNull
+  protected static PsiField[] buildResourceFields(@NotNull Map<String, PsiType> fieldNames,
+                                                  @NotNull ResourceType resourceType,
+                                                  @NotNull PsiClass context,
+                                                  @NotNull AndroidLightField.FieldModifier fieldModifier) {
     PsiField[] result = new PsiField[fieldNames.size()];
     PsiElementFactory factory = JavaPsiFacade.getElementFactory(context.getProject());
 
@@ -89,7 +99,11 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
       String fieldName = AndroidResourceUtil.getFieldNameByResourceName(entry.getKey());
       PsiType type = entry.getValue();
       int id = -(idIterator++);
-      AndroidLightField field = new AndroidLightField(fieldName, context, type, !nonFinal, nonFinal ? null : id);
+      AndroidLightField field = new AndroidLightField(fieldName,
+                                                      context,
+                                                      type,
+                                                      fieldModifier,
+                                                      fieldModifier == AndroidLightField.FieldModifier.FINAL ? id : null);
       field.setInitializer(factory.createExpressionFromText(Integer.toString(id), field));
       result[i++] = field;
     }
@@ -108,4 +122,9 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
 
   @NotNull
   protected abstract PsiField[] doGetFields();
+
+  @NotNull
+  public ResourceType getResourceType() {
+    return myResourceType;
+  }
 }

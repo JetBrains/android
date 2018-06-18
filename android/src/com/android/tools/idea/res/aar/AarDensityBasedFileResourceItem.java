@@ -111,6 +111,7 @@ class AarDensityBasedFileResourceItem extends DensityBasedResourceValueImpl impl
   }
 
   @Override
+  @NotNull
   public String toString() {
     return MoreObjects.toStringHelper(this)
                       .add("name", getName())

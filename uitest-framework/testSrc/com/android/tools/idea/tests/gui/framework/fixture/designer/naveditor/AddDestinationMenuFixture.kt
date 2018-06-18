@@ -16,12 +16,16 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor
 import com.android.tools.idea.naveditor.editor.AddDestinationMenu
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture
+import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureTemplateParametersWizardFixture
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Computable
+import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
+import org.fest.swing.finder.WindowFinder
 import org.fest.swing.fixture.JListFixture
+import javax.swing.JDialog
 import javax.swing.JPanel
 
 class AddDestinationMenuFixture(private val robot: Robot, private val menu: AddDestinationMenu) :
@@ -40,7 +44,13 @@ class AddDestinationMenuFixture(private val robot: Robot, private val menu: AddD
     return menu.destinationsList.itemsCount
   }
 
-  fun clickCreateBlank() {
+  fun clickCreateBlank(): ConfigureTemplateParametersWizardFixture {
     ActionButtonFixture(robot, menu.blankDestinationButton).click()
+
+    val dialog = WindowFinder.findDialog(object : GenericTypeMatcher<JDialog>(JDialog::class.java) {
+      override fun isMatching(dialog: JDialog) = dialog.title == "New Android Component" && dialog.isShowing
+    }).withTimeout(500).using(robot)
+
+    return ConfigureTemplateParametersWizardFixture(robot, dialog.target() as JDialog)
   }
 }

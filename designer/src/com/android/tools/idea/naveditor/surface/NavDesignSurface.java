@@ -28,6 +28,7 @@ import com.android.tools.idea.common.scene.*;
 import com.android.tools.idea.common.surface.*;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.configurations.ConfigurationStateManager;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
@@ -540,7 +541,13 @@ public class NavDesignSurface extends DesignSurface {
       result = ref.get();
     }
     if (result == null) {
-      result = ConfigurationManager.create(facet.getModule());
+      result = new ConfigurationManager(facet.getModule()) {
+        @Override
+        public ConfigurationStateManager getStateManager() {
+          // Nav editor doesn't want persistent configuration state
+          return new ConfigurationStateManager();
+        }
+      };
       ourConfigurationManagers.put(facet, new SoftReference<>(result));
     }
     return result;

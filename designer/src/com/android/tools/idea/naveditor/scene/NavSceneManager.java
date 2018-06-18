@@ -175,7 +175,7 @@ public class NavSceneManager extends SceneManager {
             x *= 0.5;
             y *= 0.5;
           }
-          if (state.getOrientation() == ScreenOrientation.LANDSCAPE) {
+          if ((state.getOrientation() == ScreenOrientation.LANDSCAPE) == (ratio < 1)) {
             int tmp = x;
             //noinspection SuspiciousNameCombination
             x = y;

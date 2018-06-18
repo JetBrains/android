@@ -276,7 +276,7 @@ public class NetworkProfilerStageTest {
     assertThat(trafficAxisUpdated[0]).isTrue();
     assertThat(connectionAxisUpdated[0]).isTrue();
     assertThat(legendsUpdated[0]).isTrue();
-    assertThat(tooltipLegendsUpdated[0]).isFalse(); // Mouse did not enter, so this should not update.
+    assertThat(tooltipLegendsUpdated[0]).isTrue(); // Tooltip legend changed from null to "N/A"
 
     myStudioProfilers.getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(2));
     assertThat(networkUsageUpdated[0]).isTrue();

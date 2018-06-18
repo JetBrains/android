@@ -34,10 +34,10 @@ import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathString
 import com.android.resources.*
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.res.aar.AarProtoResourceRepository
+import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
 import com.android.tools.lint.detector.api.computeResourcePrefix
 import com.android.tools.lint.detector.api.getBaseName
@@ -53,9 +53,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
 import com.intellij.psi.search.GlobalSearchScope
@@ -241,22 +239,6 @@ fun getResourceVariations(file: VirtualFile?, includeSelf: Boolean): List<Virtua
  * if the source of the resource item is unknown or there is no VirtualFile for it.
  */
 fun ResourceItem.getSourceAsVirtualFile(): VirtualFile? = if (this is PsiResourceItem) psiFile?.virtualFile else source?.toVirtualFile()
-
-/**
- * Returns the [VirtualFile] representing the file resource given its path, or null
- * if there is no VirtualFile for the resource.
- */
-fun PathString.toVirtualFile(): VirtualFile? {
-  return when (filesystemUri.scheme) {
-    "apk" -> {
-      val apkFileSystem = ApkFileSystem.getInstance()
-      val root = apkFileSystem.findFileByPath(filesystemUri.path + JarFileSystem.JAR_SEPARATOR)
-      root?.findFileByRelativePath(rawPath)
-    }
-    "file" -> StandardFileSystems.local().findFileByPath(nativePath)
-    else -> null
-  }
-}
 
 /**
  * Returns true if views with the given fully qualified class name need to include

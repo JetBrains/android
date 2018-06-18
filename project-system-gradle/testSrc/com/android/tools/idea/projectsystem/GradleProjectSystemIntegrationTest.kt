@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.SdkConstants
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.testutils.truth.FileSubject.assertThat
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.templates.IdeGoogleMavenRepository
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -25,7 +27,6 @@ import com.google.common.truth.Truth.assertThat
  * Integration tests for [GradleProjectSystem]; contains tests that require a working gradle project.
  */
 class GradleProjectSystemIntegrationTest : AndroidGradleTestCase() {
-
   @Throws(Exception::class)
   fun testGetAvailableDependency() {
     loadSimpleApplication()
@@ -44,6 +45,10 @@ class GradleProjectSystemIntegrationTest : AndroidGradleTestCase() {
     )).isTrue()
   }
 
+  private fun isSameArtifact(first: GradleCoordinate?, second: GradleCoordinate?) : Boolean {
+    return GradleCoordinate.COMPARE_PLUS_LOWER.compare(first, second) == 0
+  }
+
   @Throws(Exception::class)
   fun testGetAvailableDependencyWhenUnavailable() {
     loadSimpleApplication()
@@ -53,6 +58,28 @@ class GradleProjectSystemIntegrationTest : AndroidGradleTestCase() {
     assertThat(projectSystem.getAvailableDependency(GradleCoordinate("nonexistent", "dependency123", "+"))).isNull()
   }
 
-  private fun isSameArtifact(first: GradleCoordinate?, second: GradleCoordinate?) =
-    GradleCoordinate.COMPARE_PLUS_LOWER.compare(first, second) == 0
+  @Throws(Exception::class)
+  fun testGetDependentLibraries() {
+    loadSimpleApplication()
+    val moduleSystem = project
+      .getProjectSystem()
+      .getModuleSystem(getModule("app"))
+    val libraries = moduleSystem.getDependentLibraries()
+
+    // There are many aars and jars in the loaded application. Here we just confirm that a few known ones are present
+    val guava = libraries
+      .filterIsInstance<com.android.projectmodel.JavaLibrary>()
+      .filter { library -> library.address.startsWith("com.google.guava") }
+      .first()
+    assertThat(guava.classesJar.fileName).matches("guava-[\\.\\d]+.jar")
+
+    val appcompat = libraries
+      .filterIsInstance<com.android.projectmodel.AarLibrary>()
+      .filter { library -> library.address.startsWith("com.android.support:support-compat") }
+      .first()
+
+    assertThat(appcompat.address).matches("com.android.support:support-compat:[\\.\\d]+@aar")
+    assertThat(appcompat.manifestFile.fileName).isEqualTo(SdkConstants.FN_ANDROID_MANIFEST_XML)
+    assertThat(appcompat.resFolder.toFile()!!).isDirectory()
+  }
 }

@@ -23,7 +23,6 @@ import com.intellij.psi.xml.XmlComment;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.HashMap;
 import com.intellij.xml.util.XmlUtil;
 import com.intellij.xml.util.documentation.XmlDocumentationProvider;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +35,7 @@ import static com.android.SdkConstants.*;
 public class AttributeDefinitionsImpl implements AttributeDefinitions {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl");
 
-  //Used for parsing group of attributes, used heuristically to skip long comments before <eat-comment/>
+  // Used for parsing group of attributes, used heuristically to skip long comments before <eat-comment/>
   private static final int ATTR_GROUP_MAX_CHARACTERS = 40;
 
   private final Map<String, AttributeDefinition> myAttrs = new HashMap<>();
@@ -85,7 +84,6 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
         }
       }
       else if (TAG_EAT_COMMENT.equals(tagName)) {
-
         // The framework attribute file follows a special convention where related attributes are grouped together,
         // and there is always a set of comments that indicate these sections which look like this:
         //     <!-- =========== -->
@@ -335,6 +333,9 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     return myAttrs.get(name).getAttrGroup();
   }
 
+  /**
+   * The keys of the returned map are attr names. The values are maps defining numerical values of the corresponding attr.
+   */
   @NotNull
   public Map<String, Map<String, Integer>> getEnumMap() {
     return myEnumMap;

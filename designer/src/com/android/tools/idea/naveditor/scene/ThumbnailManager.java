@@ -36,9 +36,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.awt.image.BufferedImage;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Creates and caches preview images of screens in the nav editor.
@@ -51,7 +55,13 @@ public class ThumbnailManager extends AndroidFacetScopedService {
   private final Table<VirtualFile, Configuration, Long> myRenderModStamps = HashBasedTable.create();
   private final LocalResourceRepository myResourceRepository;
 
-  private static final Object LOCK = new Object();
+  @GuardedBy("DISPOSAL_LOCK")
+  private final Set<CompletableFuture<?>> myPendingFutures = new HashSet<>();
+
+  @GuardedBy("DISPOSAL_LOCK")
+  private boolean myDisposed;
+
+  private final Object DISPOSAL_LOCK = new Object();
 
   @NotNull
   public static ThumbnailManager getInstance(@NotNull AndroidFacet facet) {
@@ -73,6 +83,22 @@ public class ThumbnailManager extends AndroidFacetScopedService {
     myResourceRepository = ResourceRepositoryManager.getAppResources(facet);
   }
 
+  @Override
+  protected void onDispose() {
+    CompletableFuture[] futures;
+    synchronized (DISPOSAL_LOCK) {
+      myDisposed = true;
+      futures = myPendingFutures.toArray(new CompletableFuture[0]);
+    }
+    try {
+      CompletableFuture.allOf(futures).get(5, TimeUnit.SECONDS);
+    }
+    catch (Exception e) {
+      // We do not care about these exceptions since we are disposing anyway
+    }
+    super.onDispose();
+  }
+
   @Nullable
   public CompletableFuture<BufferedImage> getThumbnail(@NotNull XmlFile xmlFile, @NotNull Configuration configuration) {
     VirtualFile file = xmlFile.getVirtualFile();
@@ -86,44 +112,59 @@ public class ThumbnailManager extends AndroidFacetScopedService {
       return CompletableFuture.completedFuture(cached);
     }
     CompletableFuture<BufferedImage> result = new CompletableFuture<>();
+
     // TODO we run in a separate thread because task.render() currently isn't asynchronous
     // if inflate() (which is itself synchronous) hasn't already been called.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      ListenableFuture<RenderResult> renderResult = null;
-      // TODO: this shouldn't be required, since RenderService should supposedly provide this functionality.
-      synchronized (LOCK) {
-        // We might have been disposed while waiting
-        if (isDisposed()) {
+      try {
+        ListenableFuture<RenderResult> renderResult = null;
+        synchronized (DISPOSAL_LOCK) {
+          // We might have been disposed while waiting
+          if (myDisposed) {
+            result.complete(null);
+            return;
+          }
+          RenderService renderService = RenderService.getInstance(getModule().getProject());
+          RenderTask task = createTask(getFacet(), xmlFile, configuration, renderService);
+          if (task != null) {
+            renderResult = task.render();
+          }
+          myPendingFutures.add(result);
+        }
+        ListenableFuture<RenderResult> actualRenderResult = renderResult;
+        if (actualRenderResult != null) {
+          actualRenderResult.addListener(() -> {
+            try {
+              BufferedImage image = actualRenderResult.get().getRenderedImage().getCopy();
+              myImages.put(file, configuration, new SoftReference<>(image));
+              myRenderVersions.put(file, configuration, version);
+              myRenderModStamps.put(file, configuration, modStamp);
+              result.complete(image);
+            }
+            catch (InterruptedException | ExecutionException e) {
+              result.completeExceptionally(e);
+            }
+            finally {
+              synchronized (DISPOSAL_LOCK) {
+                myPendingFutures.remove(result);
+              }
+            }
+          }, PooledThreadExecutor.INSTANCE);
+        }
+        else {
           result.complete(null);
-          return;
-        }
-        RenderService renderService = RenderService.getInstance(getModule().getProject());
-        RenderTask task = createTask(getFacet(), xmlFile, configuration, renderService);
-        if (task != null) {
-          renderResult = task.render();
         }
       }
-      ListenableFuture<RenderResult> actualRenderResult = renderResult;
-      if (actualRenderResult != null) {
-        actualRenderResult.addListener(() -> {
-          try {
-            BufferedImage image = actualRenderResult.get().getRenderedImage().getCopy();
-            myImages.put(file, configuration, new SoftReference<>(image));
-            myRenderVersions.put(file, configuration, version);
-            myRenderModStamps.put(file, configuration, modStamp);
-            result.complete(image);
-          }
-          catch (InterruptedException | ExecutionException e) {
-            result.completeExceptionally(e);
-          }
-        }, PooledThreadExecutor.INSTANCE);
-      }
-      else {
-        result.complete(null);
+      catch (Throwable t) {
+        result.completeExceptionally(t);
+        synchronized (DISPOSAL_LOCK) {
+          myPendingFutures.remove(result);
+        }
       }
     });
     return result;
   }
+
   @Nullable
   protected RenderTask createTask(@NotNull AndroidFacet facet,
                                   @NotNull XmlFile file,

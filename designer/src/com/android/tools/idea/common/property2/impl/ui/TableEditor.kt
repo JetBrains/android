@@ -24,7 +24,7 @@ import com.android.tools.idea.common.property2.impl.model.TableLineModel
 /**
  * A standard table control for editing multiple properties in a tabular form.
  */
-class TableEditor(private val lineModel: TableLineModel,
+class TableEditor(val lineModel: TableLineModel,
                   rendererProvider: PTableCellRendererProvider,
                   editorProvider: PTableCellEditorProvider) {
 

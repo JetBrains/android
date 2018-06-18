@@ -107,6 +107,14 @@ public class EditorFixture {
     myFrame = frame;
   }
 
+  /**
+   * Returns the {@link IdeFrameFixture} containing this editor.
+   */
+  @NotNull
+  public IdeFrameFixture frame() {
+    return myFrame;
+  }
+
   /** Returns the selected file with most recent focused editor, or {@code null} if there are no selected files. */
   @Nullable
   public VirtualFile getCurrentFile() {

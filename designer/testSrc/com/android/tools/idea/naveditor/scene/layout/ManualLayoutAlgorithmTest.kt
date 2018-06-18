@@ -25,10 +25,9 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.DocumentsEditor
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import java.nio.charset.StandardCharsets.UTF_8
 import java.util.stream.Collectors
 
 /**
@@ -120,7 +119,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     PlatformTestUtil.saveProject(project)
 
     // Tests always use file-based storage, not directory-based
-    assertTrue(FileUtil.loadFile(VfsUtilCore.virtualToIoFile(project.projectFile!!)).contains("fragment1"))
+    assertTrue(project.projectFile!!.contentsToByteArray().toString(UTF_8).contains("fragment1"))
 
     // Now create everything anew and verify the old position is restored
     model = model("nav.xml") {

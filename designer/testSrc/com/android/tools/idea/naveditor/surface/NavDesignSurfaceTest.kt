@@ -16,7 +16,6 @@
 package com.android.tools.idea.naveditor.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
@@ -34,7 +33,9 @@ import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.android.sdk.AndroidSdkData
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.*
@@ -42,6 +43,7 @@ import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
+import java.io.File
 import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JComponent
@@ -328,7 +330,24 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testConfiguration() {
-    assertNotEquals(ConfigurationManager.getOrCreateInstance(myFacet), NavDesignSurface (project, project).getConfigurationManager(myFacet))
+    val defaultConfigurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val navConfigurationManager = NavDesignSurface(project, project).getConfigurationManager(myFacet)
+    assertNotEquals(defaultConfigurationManager, navConfigurationManager)
+
+    val navFile = VfsUtil.findFileByIoFile(File(project.basePath, "../unitTest/res/navigation/navigation.xml"), true)!!
+    val defaultConfiguration = defaultConfigurationManager.getConfiguration(navFile)
+    val navConfiguration = navConfigurationManager.getConfiguration(navFile)
+    val navDevice = navConfiguration.device
+    val pixelC = AndroidSdkData.getSdkData(myFacet)!!.deviceManager.getDevice("pixel_c", "Google")!!
+    // in order to unset the cached derived device in the configuration you have to set it to something else first
+    navConfiguration.setDevice(pixelC, false)
+    navConfiguration.setDevice(null, false)
+
+    // Select a device in the default (layout) ConfigurationManager. It shouldn't affect the nav editor device.
+    defaultConfigurationManager.selectDevice(pixelC)
+
+    assertEquals(navDevice, navConfiguration.device)
+    assertEquals(pixelC, defaultConfiguration.device)
   }
 
   private fun dragSelect(manager: InteractionManager, sceneView: SceneView, @NavCoordinate rect: Rectangle) {

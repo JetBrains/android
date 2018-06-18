@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.startup;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
@@ -55,26 +54,20 @@ import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkEvent;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.*;
-import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
@@ -84,11 +77,6 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform
 public class GradleSpecificInitializer implements Runnable {
 
   private static final Logger LOG = Logger.getInstance(GradleSpecificInitializer.class);
-
-  // Paths relative to the IDE installation folder where the Android SDK may be present.
-  @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
-  private static final String[] ANDROID_SDK_RELATIVE_PATHS =
-    {ANDROID_SDK_FOLDER_NAME, File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME};
 
   // Id for TemplateProjectSettingsGroup
   @NotNull public static final String TEMPLATE_PROJECT_SETTINGS_GROUP_ID = "TemplateProjectSettingsGroup";
@@ -374,67 +362,7 @@ public class GradleSpecificInitializer implements Runnable {
 
   @Nullable
   private static File getAndroidSdkPath() {
-    String studioHome = PathManager.getHomePath();
-    if (isEmpty(studioHome)) {
-      LOG.info("Unable to find Studio home directory");
-    }
-    else {
-      LOG.info(String.format("Found Studio home directory at: '%1$s'", studioHome));
-      for (String path : ANDROID_SDK_RELATIVE_PATHS) {
-        File dir = new File(studioHome, path);
-        String absolutePath = toCanonicalPath(dir.getAbsolutePath());
-        LOG.info(String.format("Looking for Android SDK at '%1$s'", absolutePath));
-        if (AndroidSdkType.getInstance().isValidSdkHome(absolutePath)) {
-          LOG.info(String.format("Found Android SDK at '%1$s'", absolutePath));
-          return new File(absolutePath);
-        }
-      }
-    }
-    LOG.info("Unable to locate SDK within the Android studio installation.");
-
-    String androidHomeValue = System.getenv(SdkConstants.ANDROID_HOME_ENV);
-    String msg = String.format("Checking if ANDROID_HOME is set: '%1$s' is '%2$s'", SdkConstants.ANDROID_HOME_ENV, androidHomeValue);
-    LOG.info(msg);
-
-    if (!isEmpty(androidHomeValue) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
-      LOG.info("Using Android SDK specified by the environment variable.");
-      return toSystemDependentPath(androidHomeValue);
-    }
-
-    String toolsPreferencePath = AndroidLocation.getFolderWithoutWrites();
-    String sdkPath = getLastSdkPathUsedByAndroidTools(toolsPreferencePath);
-    if (!isEmpty(sdkPath) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
-      msg = String.format("Last SDK used by Android tools: '%1$s'", sdkPath);
-    }
-    else {
-      msg = "Unable to locate last SDK used by Android tools";
-    }
-    LOG.info(msg);
-    return toSystemDependentPath(sdkPath);
-  }
-
-  /**
-   * Returns the value for property 'lastSdkPath' as stored in the properties file at $HOME/.android/ddms.cfg, or {@code null} if the file
-   * or property doesn't exist.
-   *
-   * This is only useful in a scenario where existing users of ADT/Eclipse get Studio, but without the bundle.
-   */
-  @Nullable
-  private static String getLastSdkPathUsedByAndroidTools(@Nullable String path) {
-    if (path == null) {
-      return null;
-    }
-    File file = new File(path, "ddms.cfg");
-    if (!file.exists()) {
-      return null;
-    }
-    try {
-      Properties properties = getProperties(file);
-      return properties.getProperty("lastSdkPath");
-    }
-    catch (IOException e) {
-      return null;
-    }
+    return AndroidSdkInitializer.findOrGetAndroidSdkPath();
   }
 
   @VisibleForTesting

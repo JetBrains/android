@@ -47,7 +47,7 @@ class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) : J
     button.registerKeyAction({ model.enterKeyPressed() }, getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
     button.registerKeyAction({ model.f1KeyPressed() }, getKeyStroke(KeyEvent.VK_F1, 0), "help")
     button.registerKeyAction({ model.shiftF1KeyPressed() }, getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
-    button.addFocusListener(EditorFocusListener(model, { "" }))
+    button.addFocusListener(EditorFocusListener(model, { "" }, updateValueOnFocusLoss = false))
 
     model.addListener(ValueChangedListener {
       // This will update the selected state of the ActionButton:
