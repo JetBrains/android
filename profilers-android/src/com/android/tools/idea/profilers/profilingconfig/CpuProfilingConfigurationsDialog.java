@@ -64,7 +64,6 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     myOnCloseCallback = onCloseCallback;
     myDeviceLevel = deviceLevel;
     setHorizontalStretch(1.3F);
-    // TODO: add help button on the bottom-left corner when we have the URL for it.
   }
 
   @Nullable
