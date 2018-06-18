@@ -22,7 +22,6 @@ import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.google.common.collect.Range
@@ -34,9 +33,6 @@ import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.project.DumbModeTask
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.GeneratedSourcesFilter
 import com.intellij.openapi.ui.Messages
@@ -220,15 +216,8 @@ open class MigrateToAndroidxProcessor(val project: Project,
     }
 
     if (usages.any { it is MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo }) {
-      // If we modified gradle entries, request sync
-      DumbService.getInstance(project).queueTask(object: DumbModeTask() {
-        override fun performInDumbMode(indicator: ProgressIndicator) {
-          val syncRequest = GradleSyncInvoker.Request.projectModified()
-          syncRequest.generateSourcesOnSuccess = true
-          syncRequest.runInBackground = false
-          GradleSyncInvoker.getInstance().requestProjectSync(project, syncRequest)
-        }
-      })
+      // If we modified gradle entries, request sync.
+      syncBeforeFinishingRefactoring(myProject)
     }
   }
 
