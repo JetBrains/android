@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.property2.impl.model
 
+import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.property2.api.NewPropertyItem
 
 /**
@@ -29,4 +30,7 @@ class PropertyNameEditorModel(private val newProperty: NewPropertyItem) :
       newProperty.name = value
       refresh()
     }
+
+  override val editingSupport: EditingSupport
+    get() = newProperty.nameEditingSupport
 }

@@ -56,11 +56,12 @@ interface CommonTextFieldModel {
   var text: String
 
   /**
-   * Validate the specified string.
+   * Editing support.
    *
-   * Return an error message or the empty string if there is no error.
+   * Support for validating a value in an editor.
    */
-  fun validate(editedValue: String): String = ""
+  val editingSupport: EditingSupport
+    get() = EditingSupport.INSTANCE
 
   /**
    * Add a listener for updates to the model.

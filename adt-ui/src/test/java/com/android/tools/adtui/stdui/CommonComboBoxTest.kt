@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.stdui
 
-import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,7 +24,7 @@ import javax.swing.plaf.basic.BasicComboBoxUI
 
 @RunWith(JUnit4::class)
 class CommonComboBoxTest {
-  private val model = DefaultCommonComboBoxModel("t", listOf("one", "two", "three", "four", "five", "six", "t"))
+  private val model = TestCommonComboBoxModel("t", listOf("one", "two", "three", "four", "five", "six", "t"))
   private val comboBox = CommonComboBox(model)
 
   @Test

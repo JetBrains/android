@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.model.stdui
 
-class DefaultCommonTextFieldModel(initialValue: String) : CommonTextFieldModel {
+open class DefaultCommonTextFieldModel(initialValue: String) : CommonTextFieldModel {
   private val listeners = mutableListOf<ValueChangedListener>()
 
   override var value = initialValue
@@ -39,9 +39,8 @@ class DefaultCommonTextFieldModel(initialValue: String) : CommonTextFieldModel {
 
   override var text: String = initialValue
 
-  override fun validate(editedValue: String): String {
-    return if (editedValue == "Error") "Error is not a valid value" else ""
-  }
+  override val editingSupport: EditingSupport
+    get() = EditingSupport.INSTANCE
 
   override fun addListener(listener: ValueChangedListener) {
     listeners.add(listener)

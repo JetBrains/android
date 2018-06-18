@@ -31,26 +31,4 @@ interface CommonBorderModel {
    * When a placeholder is shown, the border should be a little faint.
    */
   val hasPlaceHolder: Boolean
-
-  companion object {
-
-    /**
-     * Create a [CommonBorderModel] from a [CommonTextFieldModel].
-     *
-     * Errors and placeholder state is determined from the current
-     * value in the text editor. Use this method if a TextField
-     * is placed into a more complex container where the border
-     * should be placed on the top level container.
-     */
-    fun wrap(model: CommonTextFieldModel): CommonBorderModel {
-      return object: CommonBorderModel {
-
-        override val hasError: Boolean
-          get() = model.validate(model.text).isNotEmpty()
-
-        override val hasPlaceHolder: Boolean
-          get() = model.text.isEmpty() && model.placeHolderValue.isNotEmpty()
-      }
-    }
-  }
 }

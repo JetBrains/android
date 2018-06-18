@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.stdui
 
-import com.android.tools.adtui.model.stdui.DefaultCommonTextFieldModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -23,7 +22,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class CommonTextFieldTest {
-  private val model = DefaultCommonTextFieldModel("")
+  private val model = TestCommonTextFieldModel("")
   private val field = CommonTextField(model)
 
   @Test

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.property2.api
 
+import com.android.tools.adtui.model.stdui.EditingSupport
 
 /**
  * Defines basic information about a property which name can be edited in a table.
@@ -25,4 +26,10 @@ interface NewPropertyItem: PropertyItem {
    * The property name can be overridden.
    */
   override var name: String
+
+  /**
+   * Editing support while editing this properties name.
+   */
+  val nameEditingSupport: EditingSupport
+    get() = EditingSupport.INSTANCE
 }
