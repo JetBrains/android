@@ -139,6 +139,9 @@ public class AdbDeviceFileSystemTest {
     TestDevices.addNexus7Api23Commands(myMockDevice.getShellCommands());
 
     // Act/Assert
+    myMockDevice.setState(null);
+    assertThat(myFileSystem.getDeviceState()).isEqualTo(DeviceState.DISCONNECTED);
+
     myMockDevice.setState(IDevice.DeviceState.BOOTLOADER);
     assertThat(myFileSystem.getDeviceState()).isEqualTo(DeviceState.BOOTLOADER);
 
