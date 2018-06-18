@@ -18,6 +18,7 @@ COMMON_DATA = [
     "//tools/base/build-system:studio_repo.zip",
     "//tools/base/build-system:gradle-distrib",
     "//tools/base/templates",
+    "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     "//tools/idea/java/jdkAnnotations",
     "//tools/idea:config",
     "//tools/idea:platform-build-info",

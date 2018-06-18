@@ -55,5 +55,6 @@ public class DesignerTestSuite extends IdeaTestSuiteBase {
 
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip", "prebuilts/tools/common/m2/repository");
   }
 }
