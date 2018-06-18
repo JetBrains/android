@@ -80,13 +80,16 @@ class NeleNewPropertyItemTest {
     val model = properties.first!!.model
     val property = NeleNewPropertyItem(model, properties)
     property.name = ATTR_TEXT
+    val delegate = property.delegate!!
+
     property.value = "Hello"
-    assertThat(property.value).isEqualTo("Hello")
-    assertThat(property.delegate!!.value).isEqualTo("Hello")
-    assertThat(property.resolvedValue).isEqualTo("Hello")
-    assertThat(property.isReference).isFalse()
-    assertThat(property.tooltipForName).isEqualTo("android:text")
-    assertThat(property.tooltipForValue).isEqualTo("")
+    assertThat(property.name).isEmpty()
+    assertThat(property.delegate).isNull()
+    assertThat(delegate.value).isEqualTo("Hello")
+    assertThat(delegate.resolvedValue).isEqualTo("Hello")
+    assertThat(delegate.isReference).isFalse()
+    assertThat(delegate.tooltipForName).isEqualTo("android:text")
+    assertThat(delegate.tooltipForValue).isEqualTo("")
   }
 
   private fun createTable(): PropertiesTable<NelePropertyItem> {

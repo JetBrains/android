@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2;
 import com.android.tools.adtui.ptable2.PTableItem;
 import com.android.tools.adtui.ptable2.PTableModel;
 import com.android.tools.adtui.ptable2.PTableColumn;
+import com.android.tools.adtui.ptable2.PTableModelUpdateListener;
 import com.android.tools.idea.common.property2.api.*;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.google.common.collect.ImmutableSet;
@@ -96,6 +97,16 @@ public class MotionLayoutAttributesView {
     @Override
     public boolean isCellEditable(@NotNull PTableItem item, @NotNull PTableColumn column) {
       return false;
+    }
+
+    @Override
+    public boolean acceptMoveToNextEditor(@NotNull PTableItem item, @NotNull PTableColumn column) {
+      return true;
+    }
+
+    @Override
+    public void addListener(@NotNull PTableModelUpdateListener listener) {
+      // items are not updated in this model
     }
   }
 }

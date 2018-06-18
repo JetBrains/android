@@ -37,12 +37,15 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, tag: String, parentTag:
   : SupportTestUtil(projectRule, tag, parentTag) {
   private val _properties: Table<String, String, NelePropertyItem> = HashBasedTable.create()
 
-  var properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
-    private set
+  val properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
 
   val editorProvider = FakeEditorProviderImpl()
 
   val inspector = FakeInspectorPanel()
+
+  init {
+    model.setPropertiesInTest(properties)
+  }
 
   fun addProperty(namespace: String, name: String, type: NelePropertyType) {
     _properties.put(namespace, name, makeProperty(namespace, name, type))
