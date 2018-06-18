@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion;
 
-import com.android.tools.idea.uibuilder.handlers.motion.property2.TimelineListener;
-import com.android.tools.idea.uibuilder.handlers.motion.property2.TimelineOwner;
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
@@ -29,6 +26,8 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.handlers.motion.property2.TimelineListener;
+import com.android.tools.idea.uibuilder.handlers.motion.property2.TimelineOwner;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.Gantt;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttCommands;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttEventListener;
@@ -276,9 +275,8 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     // let's open the file
     Project project = component.getModel().getProject();
     AndroidFacet facet = component.getModel().getFacet();
-    ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(ResourceType.XML);
 
-    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(folderType, facet.getAllResourceDirectories());
+    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, facet.getAllResourceDirectories());
     if (resourcesXML.isEmpty()) {
       return;
     }
@@ -545,8 +543,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     }
     Project project = component.getModel().getProject();
     AndroidFacet facet = component.getModel().getFacet();
-    ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(ResourceType.XML);
-    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(folderType, facet.getAllResourceDirectories());
+    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, facet.getAllResourceDirectories());
     if (resourcesXML.isEmpty()) {
       return null;
     }

@@ -1006,28 +1006,26 @@ fun AbstractResourceRepository.getResourceItems(
   minVisibility: ResourceVisibility
 ): Collection<String> {
   Preconditions.checkArgument(minVisibility != ResourceVisibility.UNDEFINED)
-  // TODO(b/74325205): remove the need for this.
-  val adjustedType = if (type == ResourceType.STYLEABLE) ResourceType.DECLARE_STYLEABLE else type
 
   // TODO(namespaces): Only AarProtoResourceRepository properly supports resource visibility. We need to make all repositories support it.
   return when {
     this is FrameworkResourceRepository -> when {
       namespace != ResourceNamespace.ANDROID -> emptySet()
-      minVisibility != ResourceVisibility.PUBLIC -> getItemsOfType(ResourceNamespace.ANDROID, adjustedType)
+      minVisibility != ResourceVisibility.PUBLIC -> getItemsOfType(ResourceNamespace.ANDROID, type)
       else -> {
-        val public = getPublicResourcesOfType(adjustedType)
+        val public = getPublicResourcesOfType(type)
         public.mapTo(HashSet(public.size), ResourceItem::getName)
       }
     }
     this is AarProtoResourceRepository -> {
       // Resources in AarProtoResourceRepository know their visibility.
-      val items = getResourceItems(namespace, adjustedType) { item ->
+      val items = getResourceItems(namespace, type) { item ->
         (item as ResourceItemWithVisibility).visibility >= minVisibility
       }
       items.mapTo(HashSet(items.size), ResourceItem::getName)
     }
     else -> {
-      val items = getResourceItems(namespace, adjustedType) { item ->
+      val items = getResourceItems(namespace, type) { item ->
         when {
           minVisibility == ResourceVisibility.values()[0] -> true
           item is ResourceItemWithVisibility -> item.visibility >= minVisibility
@@ -1036,7 +1034,7 @@ fun AbstractResourceRepository.getResourceItems(
             // TODO(namespaces)
             // This is not the same as calling isPublic, see ResourceVisibilityLookup docs. If we don't know, we assume things are accessible,
             // which is probably a better UX and the only way to make our tests pass (for now).
-            minVisibility != ResourceVisibility.PUBLIC || !visibilityLookup.isPrivate(adjustedType, item.name)
+            minVisibility != ResourceVisibility.PUBLIC || !visibilityLookup.isPrivate(type, item.name)
         }
       }
       items.mapTo(HashSet(items.size), ResourceItem::getName)

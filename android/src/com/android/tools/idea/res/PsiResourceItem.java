@@ -300,7 +300,7 @@ public class PsiResourceItem implements ResourceItem {
         String parent = getAttributeValue(tag, ATTR_PARENT);
         value = parseStyleValue(tag, new StyleResourceValueImpl(myNamespace, myType, myName, parent, null));
         break;
-      case DECLARE_STYLEABLE:
+      case STYLEABLE:
         value = parseDeclareStyleable(tag, new DeclareStyleableResourceValueImpl(myNamespace, myType, myName, null, null));
         break;
       case ATTR:

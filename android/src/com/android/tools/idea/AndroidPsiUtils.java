@@ -343,7 +343,7 @@ public class AndroidPsiUtils {
       return null;
     }
 
-    return ResourceType.getEnum(((PsiClass)elemParent).getName());
+    return ResourceType.fromClassName(((PsiClass)elemParent).getName());
   }
 
   /**

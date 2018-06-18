@@ -245,7 +245,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     // so to identify these we just look for <eat-comment>, and then we look for the comment within the block that isn't ASCII art.
 
     // To find the XML document corresponding to attrs.xml file we use the "Theme" <declare-styleable> defined in the same file.
-    List<ResourceItem> items = getResourceItems(ANDROID_NAMESPACE, ResourceType.DECLARE_STYLEABLE, "Theme");
+    List<ResourceItem> items = getResourceItems(ANDROID_NAMESPACE, ResourceType.STYLEABLE, "Theme");
     if (items.size() != 1) {
       return;
     }
@@ -365,7 +365,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
               type = lastType;
             }
             else {
-              type = ResourceType.getEnum(typeName);
+              type = ResourceType.fromXmlValue(typeName);
               lastType = type;
               lastTypeName = typeName;
             }

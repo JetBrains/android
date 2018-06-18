@@ -132,8 +132,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.completeBasic()
 
-      // TODO(b/80425291): remove "sample"
-      assertThat(myFixture.lookupElementStrings).containsExactly("class", "string", "sample")
+      assertThat(myFixture.lookupElementStrings).containsExactly("class", "string")
     }
 
     fun testResourceNamesCompletion() {

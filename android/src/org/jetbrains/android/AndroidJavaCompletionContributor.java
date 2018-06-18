@@ -5,13 +5,11 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
-import com.intellij.codeInsight.completion.CompletionResult;
 import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiReferenceExpression;
-import com.intellij.util.Consumer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.annotations.NotNull;
@@ -35,20 +33,17 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
     }
 
     if (AndroidMavenUtil.isMavenizedModule(facet.getModule())) {
-      resultSet.runRemainingContributors(parameters, new Consumer<CompletionResult>() {
-        @Override
-        public void consume(CompletionResult result) {
-          final Object obj = result.getLookupElement().getObject();
+      resultSet.runRemainingContributors(parameters, result -> {
+        final Object obj = result.getLookupElement().getObject();
 
-          if (obj instanceof PsiClass) {
-            final String qName = ((PsiClass)obj).getQualifiedName();
+        if (obj instanceof PsiClass) {
+          final String qName = ((PsiClass)obj).getQualifiedName();
 
-            if (qName != null && !isAllowedInAndroid(qName)) {
-              return;
-            }
+          if (qName != null && !isAllowedInAndroid(qName)) {
+            return;
           }
-          resultSet.passResult(result);
         }
+        resultSet.passResult(result);
       });
     }
 
@@ -83,8 +78,8 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
         PsiClass containingClass = field.getContainingClass();
         if (containingClass != null) {
           PsiClass rClass = containingClass.getContainingClass();
-          if (rClass != null && rClass.getName().equals(R_CLASS)) {
-            ResourceType type = ResourceType.getEnum(containingClass.getName());
+          if (rClass != null && R_CLASS.equals(rClass.getName())) {
+            ResourceType type = ResourceType.fromClassName(containingClass.getName());
             if (type != null && lookup.isPrivate(type, field.getName())) {
               return;
             }

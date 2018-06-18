@@ -342,7 +342,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       getContainingInheritorOf(element, CLASS_V4_FRAGMENT.newName()) != null;
 
     final String rJavaFieldName = AndroidResourceUtil.getRJavaFieldName(resName);
-    final String field = aPackage + ".R." + resType + '.' + rJavaFieldName;
+    final String field = aPackage + ".R." + resType.getName() + '.' + rJavaFieldName;
     final String methodName = getGetterNameForResourceType(resType, element);
     assert methodName != null;
     final TemplateImpl template;
@@ -422,7 +422,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     if (resourceType == ResourceType.DIMEN) {
       // Choose between getDimensionPixelSize and getDimension based on whether we're needing an int or a float
       PsiType targetType = computeTargetType(element);
-      if (targetType != null && PsiType.INT.equals(targetType)) {
+      if (PsiType.INT.equals(targetType)) {
         return "getDimensionPixelSize";
       }
       return "getDimension";
@@ -441,7 +441,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
           PsiMethod resolved = call.resolveMethod();
           if (resolved != null) {
             PsiParameterList parameterList = resolved.getParameterList();
-            if (index >= 0 && index < parameterList.getParametersCount()) {
+            if (index < parameterList.getParametersCount()) {
               PsiParameter psiParameter = parameterList.getParameters()[index];
               return psiParameter.getType();
             }
@@ -482,7 +482,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       if (vars == null || vars.length == 0) {
         return null;
       }
-      final Set<LookupElement> set = new LinkedHashSet<LookupElement>();
+      final Set<LookupElement> set = new LinkedHashSet<>();
       for (PsiElement var : vars) {
         JavaTemplateUtil.addElementLookupItem(set, var);
       }
