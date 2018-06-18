@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
@@ -29,7 +28,6 @@ class NewProjectDescriptor {
   private String myMinSdk = "15";
   private String myName = "TestProject";
   private String myDomain = "com.android";
-  private boolean myWaitForSync = true;
 
   protected NewProjectDescriptor(@NotNull String name) {
     withName(name);
@@ -84,14 +82,6 @@ class NewProjectDescriptor {
   }
 
   /**
-   * Turns off the automatic wait-for-sync that normally happens on {@link #create}
-   */
-  NewProjectDescriptor withoutSync() {
-    myWaitForSync = false;
-    return this;
-  }
-
-  /**
    * Creates a project fixture for this description
    */
   @NotNull
@@ -109,30 +99,28 @@ class NewProjectDescriptor {
         .clickFinish();
     }
     else {
-      NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
-                                                        .createNewProject();
-
-      newProjectWizard.getConfigureAndroidProjectStep()
-                      .setCppSupport(false)  // The setting is saved and restored by NewProjectModel, so can't be presumed disabled.
-                      .enterApplicationName(myName)
-                      .enterCompanyDomain(myDomain)
-                      .enterPackageName(myPkg);
-      newProjectWizard.clickNext();
-
-      newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, myMinSdk);
-      newProjectWizard.clickNext();
-
-      // Skip "Add Activity" step
-      newProjectWizard.clickNext();
-
-      newProjectWizard.getChooseOptionsForNewFileStep().enterActivityName(myActivity);
-
-      newProjectWizard.clickFinish();
+        guiTest
+          .welcomeFrame()
+          .createNewProject()
+          .getConfigureAndroidProjectStep()
+          .setCppSupport(false)  // The setting is saved and restored by NewProjectModel, so can't be presumed disabled.
+          .enterApplicationName(myName)
+          .enterCompanyDomain(myDomain)
+          .enterPackageName(myPkg)
+          .wizard()
+          .clickNext()
+          .getConfigureFormFactorStep()
+          .selectMinimumSdkApi(MOBILE, myMinSdk)
+          .wizard()
+          .clickNext()
+          .clickNext() // Skip "Add Activity" step
+          .getChooseOptionsForNewFileStep()
+          .enterActivityName(myActivity)
+          .wizard()
+          .clickFinish();
     }
 
-    if (myWaitForSync) {
-      guiTest.ideFrame().waitForGradleProjectSyncToFinish();
-    }
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     return guiTest.ideFrame();
   }
 }
