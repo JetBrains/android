@@ -152,6 +152,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @NotNull private final JLabel myImportedSelectedProcessLabel;
 
+  @NotNull private final CpuUsageView myUsageView;
+
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     super(profilersView, stage);
     myStage = stage;
@@ -171,39 +173,26 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
-    final CpuUsageView usageView;
     if (myStage.isImportTraceMode()) {
-      usageView = new CpuUsageView.ImportModeView(myStage);
+      myUsageView = new CpuUsageView.ImportModeView(myStage);
     } else {
-      usageView = new CpuUsageView.NormalModeView(myStage);
+      myUsageView = new CpuUsageView.NormalModeView(myStage);
     }
-
-    final boolean[] isMouseOverUsageView = new boolean[]{false};
-    usageView.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseEntered(MouseEvent e) {
-        isMouseOverUsageView[0] = true;
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-        isMouseOverUsageView[0] = false;
-      }
-    });
 
     myTooltipComponent = new RangeTooltipComponent(timeline.getTooltipRange(),
                                                    timeline.getViewRange(),
                                                    timeline.getDataRange(),
                                                    getTooltipPanel(),
                                                    getProfilersView().getComponent(),
-                                                   () -> isMouseOverUsageView[0] && usageView.showTooltipSeekComponent());
+                                                   this::showTooltipSeekComponent);
     if (!myStage.isImportTraceMode()) {
-      myTooltipComponent.registerListenersOn(usageView);
+      myTooltipComponent.registerListenersOn(myUsageView);
+      MouseListener listener = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuUsageTooltip(myStage));
+      myUsageView.addMouseListener(listener);
     }
 
     myThreads = new DragAndDropList<>(myStage.getThreadStates());
     myCpus = new JBList<>(myStage.getCpuKernelModel());
-
 
     // "Fit" for the event profiler, "*" for everything else.
     final JPanel details = new JPanel(new TabularLayout("*", "Fit-,*"));
@@ -236,7 +225,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     configureKernelPanel(detailsPanel);
     configureThreadsPanel(detailsPanel, detailsLayout);
 
-    mainPanel.add(usageView, new TabularLayout.Constraint(MONITOR_PANEL_ROW, 0));
+    mainPanel.add(myUsageView, new TabularLayout.Constraint(MONITOR_PANEL_ROW, 0));
     mainPanel.add(detailsPanel, new TabularLayout.Constraint(DETAILS_PANEL_ROW, 0));
 
     // Panel that represents all of L2
@@ -276,12 +265,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     updateCaptureState();
 
-    CpuProfilerContextMenuInstaller.install(myStage, getIdeComponents(), usageView, getComponent());
+    CpuProfilerContextMenuInstaller.install(myStage, getIdeComponents(), myUsageView, getComponent());
     // Add the profilers common menu items
-    getProfilersView().installCommonMenuItems(usageView);
+    getProfilersView().installCommonMenuItems(myUsageView);
 
     if (!getStage().hasUserUsedCpuCapture() && !getStage().isImportTraceMode()) {
-      installProfilingInstructions(usageView);
+      installProfilingInstructions(myUsageView);
     }
   }
 
@@ -707,5 +696,14 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     if (myCaptureView != null) {
       myCaptureView.updateView();
     }
+  }
+
+  /**
+   * @return true if the blue seek component from {@link RangeTooltipComponent} should be visible.
+   * @see {@link RangeTooltipComponent#myShowSeekComponent}
+   */
+  @VisibleForTesting
+  boolean showTooltipSeekComponent() {
+    return myStage.getTooltip() instanceof CpuUsageTooltip && myUsageView.showTooltipSeekComponent();
   }
 }

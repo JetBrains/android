@@ -94,10 +94,19 @@ abstract class CpuUsageView extends JBPanel {
     NormalModeView(@NotNull CpuProfilerStage stage) {
       super(stage);
 
+      myOverlayComponent.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          if (e.getClickCount() == 2 && !e.isConsumed()) {
+            myStage.getStudioProfilers().getTimeline().getSelectionRange().clear();
+          }
+        }
+      });
+
       // Order is important
       add(createAxisPanel(), new TabularLayout.Constraint(0, 0));
       add(createLegendPanel(), new TabularLayout.Constraint(0, 0));
-      add(createOverlayPanel(), new TabularLayout.Constraint(0, 0));
+      add(myOverlayComponent, new TabularLayout.Constraint(0, 0));
       add(mySelectionComponent, new TabularLayout.Constraint(0, 0));
       add(createLineChartPanel(), new TabularLayout.Constraint(0, 0));
     }
@@ -125,30 +134,6 @@ abstract class CpuUsageView extends JBPanel {
       axisPanel.add(rightAxis, BorderLayout.EAST);
 
       return axisPanel;
-    }
-
-    @NotNull
-    private JComponent createOverlayPanel() {
-      final JPanel overlayPanel = new JBPanel(new BorderLayout());
-      MouseListener usageListener = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuUsageTooltip(myStage));
-      myOverlayComponent.addMouseListener(usageListener);
-      overlayPanel.addMouseListener(usageListener);
-      overlayPanel.setOpaque(false);
-      overlayPanel.add(myOverlayComponent, BorderLayout.CENTER);
-
-      // Double-clicking the chart should remove a capture selection if one exists.
-      MouseAdapter doubleClick = new MouseAdapter() {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-          if (e.getClickCount() == 2 && !e.isConsumed()) {
-            myStage.getStudioProfilers().getTimeline().getSelectionRange().clear();
-          }
-        }
-      };
-      myOverlayComponent.addMouseListener(doubleClick);
-      overlayPanel.addMouseListener(doubleClick);
-
-      return overlayPanel;
     }
 
     @NotNull
