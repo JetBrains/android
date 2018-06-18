@@ -14,7 +14,6 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,8 +74,8 @@ public final class ValueResourceInfoImpl implements ValueResourceInfo {
     }
 
     String resType = domElement instanceof Item
-                           ? ((Item)domElement).getType().getStringValue()
-                           : AndroidCommonUtils.getResourceTypeByTagName(tag.getName());
+                     ? ((Item)domElement).getType().getStringValue()
+                     : ResourceType.fromXmlTagName(tag.getName()).getName();
     if (!getType().getName().equals(resType)) {
       return null;
     }

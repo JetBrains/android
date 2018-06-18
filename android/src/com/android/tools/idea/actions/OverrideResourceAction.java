@@ -119,7 +119,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
         // In value files, you can invoke this action if the caret is on or inside an element (other than the
         // root <resources> tag). Only accept the element if it has a known type with a known name.
         if (tag != null && tag.getAttributeValue(ATTR_NAME) != null) {
-          return AndroidResourceUtil.getResourceForResourceTag(tag) != null;
+          return AndroidResourceUtil.getResourceTypeForResourceTag(tag) != null;
         }
       }
     }
@@ -181,7 +181,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       return; // shouldn't happen; we checked in isAvailable
     }
     String name = tag.getAttributeValue(ATTR_NAME);
-    ResourceType type = AndroidResourceUtil.getResourceForResourceTag(tag);
+    ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
     if (name == null || type == null) {
       return; // shouldn't happen; we checked in isAvailable
     }

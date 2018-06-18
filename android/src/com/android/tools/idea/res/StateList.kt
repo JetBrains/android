@@ -39,7 +39,7 @@ class StateList(val fileName: String, val dirName: String) {
   /**
    * @return the type of state list, can be [ResourceType.COLOR] or [ResourceType.DRAWABLE]
    */
-  val type: ResourceType get() = ResourceType.getEnum(folderType.getName())!!
+  val type: ResourceType get() = ResourceType.fromFolderName(folderType.getName())!!
 
 
   /**
@@ -145,7 +145,7 @@ class StateListState(var value: String?, val attributes: Map<String, Boolean>, v
     for ((key, value1) in attributes) {
       var description = key.substring(STATE_NAME_PREFIX.length)
       if (!value1) {
-        description = "not " + description
+        description = "not $description"
       }
       attributeDescriptions.add(if (capitalize) StringUtil.capitalize(description) else description)
     }

@@ -137,7 +137,7 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
     try  {
       for (Resources.Package packageMsg : resourceTableMsg.getPackageList()) {
         for (Resources.Type typeMsg : packageMsg.getTypeList()) {
-          ResourceType resourceType = ResourceType.getEnum(typeMsg.getName());
+          ResourceType resourceType = ResourceType.fromClassName(typeMsg.getName());
           if (resourceType == null) {
             LOG.warn("Unexpected resource type: " + typeMsg.getName());
             continue;
@@ -359,7 +359,7 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
   @NotNull
   private ResourceValue createStyleableValue(@NotNull Resources.Styleable styleableMsg, @NotNull String resourceName) {
     DeclareStyleableResourceValueImpl styleableValue =
-        new DeclareStyleableResourceValueImpl(getNamespace(), ResourceType.DECLARE_STYLEABLE, resourceName, null, getLibraryName());
+        new DeclareStyleableResourceValueImpl(getNamespace(), ResourceType.STYLEABLE, resourceName, null, getLibraryName());
     for (Resources.Styleable.Entry entryMsg : styleableMsg.getEntryList()) {
       String url = entryMsg.getAttr().getName();
       myUrlParser.parseResourceUrl(url);

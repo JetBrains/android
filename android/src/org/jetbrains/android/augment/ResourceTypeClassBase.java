@@ -48,19 +48,15 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
                                                   @NotNull AndroidLightField.FieldModifier fieldModifier,
                                                   @NotNull ResourceType resourceType,
                                                   @NotNull PsiClass context) {
-    if (resourceType == ResourceType.STYLEABLE) {
-      // TODO(b/74325205): remove the need for this.
-      resourceType = ResourceType.DECLARE_STYLEABLE;
-    }
     Map<String, PsiType> fieldNames = new HashMap<>();
-    PsiType basicType = ResourceType.DECLARE_STYLEABLE == resourceType ? INT_ARRAY : PsiType.INT;
+    PsiType basicType = ResourceType.STYLEABLE == resourceType ? INT_ARRAY : PsiType.INT;
 
     for (String resName : repository.getItemsOfType(namespace, resourceType)) {
       fieldNames.put(resName, basicType);
     }
 
-    if (ResourceType.DECLARE_STYLEABLE == resourceType) {
-      List<ResourceItem> items = repository.getResourceItems(namespace, ResourceType.DECLARE_STYLEABLE);
+    if (ResourceType.STYLEABLE == resourceType) {
+      List<ResourceItem> items = repository.getResourceItems(namespace, ResourceType.STYLEABLE);
       for (ResourceItem item : items) {
         DeclareStyleableResourceValue value = (DeclareStyleableResourceValue)item.getResourceValue();
         if (value != null) {

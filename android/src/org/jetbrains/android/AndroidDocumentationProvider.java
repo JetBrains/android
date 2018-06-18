@@ -119,7 +119,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
           PsiField field = (PsiField)element;
           PsiClass containingClass = field.getContainingClass();
           assert containingClass != null; // because isFrameworkFieldDeclaration returned true
-          ResourceType type = ResourceType.getEnum(containingClass.getName());
+          ResourceType type = ResourceType.fromClassName(containingClass.getName());
           if (module != null && type != null && field.getName() != null) {
             String name = field.getName();
             String render = AndroidJavaDocRenderer.render(module, type, name, true);

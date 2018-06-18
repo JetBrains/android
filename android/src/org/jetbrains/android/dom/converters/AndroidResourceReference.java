@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.SdkConstants;
+import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.psi.PsiElement;
@@ -82,7 +83,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
 
       final String newResName;
       // Does renamed resource point to a file?
-      ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(resType);
+      ResourceFolderType folderType = FolderTypeRelationship.getNonValuesRelatedFolder(resType);
       if (folderType != null && newElementName.contains(".")) {
         // If it does, we need to chop off its extension when inserting the new value.
         newResName = AndroidCommonUtils.getResourceName(resType.getName(), newElementName);

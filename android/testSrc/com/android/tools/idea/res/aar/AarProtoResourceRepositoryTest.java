@@ -524,7 +524,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
 
   private void updateEnumMap(@NotNull AarSourceResourceRepository repository) {
     ResourceNamespace namespace = repository.getNamespace();
-    List<ResourceItem> items = repository.getResourceItems(namespace, ResourceType.DECLARE_STYLEABLE);
+    List<ResourceItem> items = repository.getResourceItems(namespace, ResourceType.STYLEABLE);
     for (ResourceItem item : items) {
       ResourceValue value = item.getResourceValue();
       if (value instanceof DeclareStyleableResourceValue) {
@@ -552,7 +552,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
   }
 
   private static void checkVisibility(@NotNull AarProtoResourceRepository repository) {
-    List<ResourceItem> items = repository.getResourceItems(repository.getNamespace(), ResourceType.DECLARE_STYLEABLE);
+    List<ResourceItem> items = repository.getResourceItems(repository.getNamespace(), ResourceType.STYLEABLE);
     assertFalse(items.isEmpty());
     for (ResourceItem item : items) {
       assertEquals(ResourceVisibility.PUBLIC, ((ResourceItemWithVisibility)item).getVisibility());

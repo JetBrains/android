@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
@@ -900,7 +901,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         List<String> dirNames = getLocationSettings().getDirNames();
         ResourceFolderType resourceFolderType = ResourceFolderType.getFolderType(dirNames.get(0));
         assert resourceFolderType != null;
-        ResourceType resourceType = ResourceType.getEnum(resourceFolderType.getName());
+        ResourceType resourceType = FolderTypeRelationship.getNonIdRelatedResourceType(resourceFolderType);
 
         Project project = module.getProject();
         List<VirtualFile> files = null;
@@ -1019,7 +1020,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     ResourcePanel panel = getSelectedPanel();
     ResourceType resourceType = panel.getType();
 
-    ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(resourceType);
+    ResourceFolderType folderType = FolderTypeRelationship.getNonValuesRelatedFolder(resourceType);
     if (folderType != null) {
       AnAction newFileAction = createNewResourceFileAction();
       newFileAction.getTemplatePresentation().setText("New " + folderType.getName() + " File...");

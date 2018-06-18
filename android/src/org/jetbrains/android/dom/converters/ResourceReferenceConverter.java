@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
@@ -209,11 +210,14 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         addVariantsForIdDeclaration(context, facet, prefix, value, result);
       }
 
-      if (recommendedTypes.size() >= 1 && myExpandedCompletionSuggestion) {
+      if (myExpandedCompletionSuggestion) {
         // We will add the resource type (e.g. @style/) if the current value starts like a reference using @
         final boolean explicitResourceType = startsWithRefChar || myWithExplicitResourceType;
         for (final ResourceType type : recommendedTypes) {
-          addResourceReferenceValues(facet, element, prefix, type, namespace, result, explicitResourceType);
+          // If getResourceTypes decided SAMPLE_DATA belongs here, then this is one of the few exceptions where it can be referenced.
+          if (type.getCanBeReferenced() || type == ResourceType.SAMPLE_DATA) {
+            addResourceReferenceValues(facet, element, prefix, type, namespace, result, explicitResourceType);
+          }
         }
       }
       else {
@@ -222,6 +226,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                                                    : getResourceTypesInCurrentModule(facet);
 
         for (ResourceType resourceType : ResourceType.values()) {
+          if (!resourceType.getCanBeReferenced()) {
+            continue;
+          }
+
           String typePrefix = getTypePrefix(namespacePrefix, resourceType);
           if (value.startsWith(typePrefix)) {
             addResourceReferenceValues(facet, element, prefix, resourceType, namespace, result, true);
@@ -297,7 +305,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     LocalResourceRepository resourceRepository = ResourceRepositoryManager.getAppResources(facet);
     for (ResourceType type : ResourceType.values()) {
       if (resourceRepository.hasResourcesOfType(type)) {
-        if (type == ResourceType.DECLARE_STYLEABLE) {
+        if (type == ResourceType.STYLEABLE) {
           // The ResourceRepository maps tend to hold DECLARE_STYLEABLE, but not STYLEABLE. However, these types are
           // used for R inner classes, and declare-styleable isn't a valid inner class name, so convert to styleable.
           result.add(ResourceType.STYLEABLE);
@@ -333,11 +341,9 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     Set<ResourceType> types = EnumSet.copyOf(myResourceTypes);
     if (resourceType != null) {
       String s = resourceType.value();
-      if (s != null) {
-        ResourceType t = ResourceType.getEnum(s);
-        if (t != null) {
-          types.add(t);
-        }
+      ResourceType t = ResourceType.fromClassName(s);
+      if (t != null) {
+        types.add(t);
       }
     }
     if (types.isEmpty()) {
@@ -614,11 +620,9 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     if (additionalConverterAnnotation != null) {
       final Class<? extends ResolvingConverter> converterClass = additionalConverterAnnotation.value();
 
-      if (converterClass != null) {
-        final ConverterManager converterManager = ServiceManager.getService(ConverterManager.class);
-        //noinspection unchecked
-        return (ResolvingConverter<String>)converterManager.getConverterInstance(converterClass);
-      }
+      final ConverterManager converterManager = ServiceManager.getService(ConverterManager.class);
+      //noinspection unchecked
+      return (ResolvingConverter<String>)converterManager.getConverterInstance(converterClass);
     }
     return null;
   }
@@ -663,7 +667,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                 AndroidResourceUtil.isCorrectAndroidResourceName(resourceName)) {
               final List<LocalQuickFix> fixes = new ArrayList<>();
 
-              ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(resType);
+              ResourceFolderType folderType = FolderTypeRelationship.getNonValuesRelatedFolder(resType);
               if (folderType != null) {
                 fixes.add(new CreateFileResourceQuickFix(facet, folderType, resourceName, context.getFile(), false));
               }

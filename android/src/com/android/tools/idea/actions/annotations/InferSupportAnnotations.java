@@ -259,7 +259,7 @@ public class InferSupportAnnotations {
           else {
             if (type == ResourceType.MIPMAP) {
               type = ResourceType.DRAWABLE;
-            } else if (type == ResourceType.DECLARE_STYLEABLE) {
+            } else if (type == ResourceType.STYLEABLE) {
               continue;
             }
             oldAnnotation.append(SUPPORT_ANNOTATIONS_PREFIX.oldName());
@@ -617,11 +617,11 @@ public class InferSupportAnnotations {
       ResourceType type = null;
       if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX.oldName()) && qualifiedName.endsWith(RES_SUFFIX)) {
         String name = qualifiedName.substring(SUPPORT_ANNOTATIONS_PREFIX.oldName().length(), qualifiedName.length() - RES_SUFFIX.length());
-        type = ResourceType.getEnum(name.toLowerCase(Locale.US));
+        type = ResourceType.fromClassName(name.toLowerCase(Locale.US));
       }
       else if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX.newName()) && qualifiedName.endsWith(RES_SUFFIX)) {
         String name = qualifiedName.substring(SUPPORT_ANNOTATIONS_PREFIX.newName().length(), qualifiedName.length() - RES_SUFFIX.length());
-        type = ResourceType.getEnum(name.toLowerCase(Locale.US));
+        type = ResourceType.fromClassName(name.toLowerCase(Locale.US));
       }
       else if (COLOR_INT_ANNOTATION.isEquals(qualifiedName)) {
         type = COLOR_INT_MARKER_TYPE;

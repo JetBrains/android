@@ -16,7 +16,8 @@
 
 package org.jetbrains.kotlin.android.folding
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_PKG
+import com.android.SdkConstants.R_CLASS
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.resources.ResourceType
@@ -46,7 +47,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
     companion object {
         // See lint's StringFormatDetector
         private val FORMAT = Pattern.compile("%(\\d+\\$)?([-+#, 0(<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])")
-        private val FOLD_MAX_LENGTH = 60
+        private const val FOLD_MAX_LENGTH = 60
         private val UNIT_TEST_MODE: Boolean = ApplicationManager.getApplication().isUnitTestMode
         private val RESOURCE_TYPES = listOf(ResourceType.STRING,
                                             ResourceType.DIMEN,
@@ -126,7 +127,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
         val elementPackage = elementType.parent as? PsiClass ?: return null
         if (R_CLASS != elementPackage.name) return null
         if (elementPackage.qualifiedName != "$ANDROID_PKG.$R_CLASS") {
-            return ResourceType.getEnum(elementType.name)
+            return elementType.name?.let(ResourceType::fromClassName)
         }
 
         return null
@@ -146,7 +147,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
             // Don't just inline empty or one-character replacements: they can't be expanded by a mouse click
             // so are hard to use without knowing about the folding keyboard shortcut to toggle folding.
             // This is similar to how IntelliJ 14 handles call parameters
-            return key + ": " + text
+            return "$key: $text"
         }
 
         return StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH, 0)
@@ -162,7 +163,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
         }
 
         val (referencedTypeName, referencedName) = value.substring(1).split('/').takeIf { it.size == 2 } ?: return value
-        val referencedType = ResourceType.getEnum(referencedTypeName) ?: return value
+        val referencedType = ResourceType.fromXmlValue(referencedTypeName) ?: return value
         return getResourceValue(referencedType, referencedName, referenceConfig)
     }
 
@@ -228,7 +229,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
                         value = args[number].asSourceString()
                     }
 
-                    for (i in start..matchStart - 1) {
+                    for (i in start until matchStart) {
                         sb.append(formatString[i])
                     }
 

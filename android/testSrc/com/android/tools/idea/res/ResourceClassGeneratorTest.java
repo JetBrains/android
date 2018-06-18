@@ -236,7 +236,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     //    2 styles declared in both
     //------------------------------------------
     //    4 total styles
-    assertEquals(4, appResources.getItemsOfType(RES_AUTO, ResourceType.DECLARE_STYLEABLE).size());
+    assertEquals(4, appResources.getItemsOfType(RES_AUTO, ResourceType.STYLEABLE).size());
 
     ResourceClassGenerator generator = buildGenerator(appResources);
     assertNotNull(generator);
@@ -298,7 +298,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     LocalResourceRepository resources = new LocalResourceRepositoryDelegate("resources", repository);
     AppResourceRepository appResources = new AppResourceRepository(myFacet, ImmutableList.of(resources), Collections.emptyList());
 
-    assertEquals(1, appResources.getItemsOfType(RES_AUTO, ResourceType.DECLARE_STYLEABLE).size());
+    assertEquals(1, appResources.getItemsOfType(RES_AUTO, ResourceType.STYLEABLE).size());
 
     ResourceClassGenerator generator = buildGenerator(appResources);
     assertNotNull(generator);

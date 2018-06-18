@@ -239,7 +239,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     for (ResourceItem item : items.values()) {
       String name = item.getName();
       String qualifiers = item.getConfiguration().getQualifierString();
-      if (!result.containsKey(name) || type == ResourceType.DECLARE_STYLEABLE || type == ResourceType.ID || !seenQualifiers.containsEntry(name, qualifiers)) {
+      if (!result.containsKey(name) || type == ResourceType.STYLEABLE || type == ResourceType.ID || !seenQualifiers.containsEntry(name, qualifiers)) {
         // We only add a duplicate item if there isn't an item with the same qualifiers (and it's
         // not an id; id's are allowed to be defined in multiple places even with the same
         // qualifiers)
@@ -340,7 +340,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
         for (XmlTag tag : subTags) {
           if (tag.isValid()
               && resourceName.equals(tag.getAttributeValue(ATTR_NAME))
-              && item.getType() == AndroidResourceUtil.getType(tag)) {
+              && item.getType() == AndroidResourceUtil.getResourceTypeForResourceTag(tag)) {
             return tag;
           }
         }

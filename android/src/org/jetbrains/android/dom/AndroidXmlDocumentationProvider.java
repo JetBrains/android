@@ -37,6 +37,7 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -195,11 +196,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
 
         if (TAG_RESOURCES.equals(parentTag.getName())) {
           // Handle ID definitions, http://developer.android.com/guide/topics/resources/more-resources.html#Id
-          String typeName = tag.getName();
-          if (TAG_ITEM.equals(typeName)) {
-            typeName = tag.getAttributeValue(ATTR_TYPE);
-          }
-          ResourceType type = ResourceType.getEnum(typeName);
+          ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
           if (type != null) {
             return generateDoc(element, type, value, false);
           }

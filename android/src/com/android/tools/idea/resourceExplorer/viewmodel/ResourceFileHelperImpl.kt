@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
@@ -62,7 +63,7 @@ interface ResourceFileHelper {
       if (resourceDirs.isEmpty()) {
         throw IOException("No resource directory found in this module (${facet.module.name})")
       }
-      val folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.getOrDefault(asset.type, ResourceFolderType.RAW)
+      val folderType = FolderTypeRelationship.getRelatedFolders(asset.type).firstOrNull() ?: ResourceFolderType.RAW
       val resourceSubdirs = AndroidResourceUtil.getResourceSubdirs(folderType, resourceDirs)
       val folderName = getFolderConfiguration(asset).getFolderName(folderType)
       return findOrCreateResourceFolder(resourceSubdirs, folderName, facet)
