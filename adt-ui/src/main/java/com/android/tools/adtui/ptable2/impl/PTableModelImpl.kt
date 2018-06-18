@@ -15,10 +15,7 @@
  */
 package com.android.tools.adtui.ptable2.impl
 
-import com.android.tools.adtui.ptable2.PTableColumn
-import com.android.tools.adtui.ptable2.PTableGroupItem
-import com.android.tools.adtui.ptable2.PTableItem
-import com.android.tools.adtui.ptable2.PTableModel
+import com.android.tools.adtui.ptable2.*
 import javax.swing.table.AbstractTableModel
 
 /**
@@ -27,9 +24,22 @@ import javax.swing.table.AbstractTableModel
 class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   private val items = mutableListOf<PTableItem>()
   private val expandedItems = mutableSetOf<PTableGroupItem>()
+  var table: PTableImpl? = null
 
   init {
     items.addAll(tableModel.items)
+    tableModel.addListener(object : PTableModelUpdateListener {
+      override fun itemsUpdated() {
+        val editing = stopTableEditing()
+        items.clear()
+        items.addAll(tableModel.items)
+        expandedItems.forEach { restoreExpanded(it) }
+        fireTableDataChanged()
+        if (editing != null) {
+          restoreEditing(editing)
+        }
+      }
+    })
   }
 
   override fun getRowCount() = items.count()
@@ -74,8 +84,14 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     if (index < 0 || index >= items.size) {
       return null
     }
-
     return items[index] as? PTableGroupItem
+  }
+
+  private fun restoreExpanded(item: PTableGroupItem) {
+    val index = items.indexOf(item)
+    if (index >= 0) {
+      items.addAll(index + 1, item.children)
+    }
   }
 
   private fun expand(item: PTableGroupItem, index: Int) {
@@ -90,5 +106,36 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
       items.subList(row + 1, row + 1 + item.children.size).clear()
       fireTableDataChanged()
     }
+  }
+
+  private fun stopTableEditing(): PTableItem? {
+    val actualTable = table ?: return null
+    val row = actualTable.editingRow
+    if (row < 0) {
+      return null
+    }
+    actualTable.removeEditor()
+    return actualTable.item(row)
+  }
+
+  private fun restoreEditing(item: PTableItem) {
+    val actualTable = table ?: return
+    val index = items.indexOf(item)
+    if (index < 0) {
+      return
+    }
+    val row = actualTable.convertRowIndexToView(index)
+    val column = columnToEdit(item) ?: return
+    actualTable.startEditing(row, column.ordinal)
+  }
+
+  private fun columnToEdit(item: PTableItem): PTableColumn? {
+    if (tableModel.isCellEditable(item, PTableColumn.VALUE)) {
+      return PTableColumn.VALUE
+    }
+    if (tableModel.isCellEditable(item, PTableColumn.NAME)) {
+      return PTableColumn.NAME
+    }
+    return null
   }
 }

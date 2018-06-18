@@ -58,10 +58,20 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
     get() = delegate?.value
     set(value) {
       delegate?.value = value
+      if (value?.isNotEmpty() == true) {
+        // An attribute value was specified.
+        // The change was committed which eventually will cause the table to update
+        // with the new value in the main part of the table.
+        // Make this new property item ready for adding another attribute.
+        name = ""
+      }
     }
 
   override val resolvedValue: String?
     get() = delegate?.resolvedValue
+
+  override val rawValue: String?
+    get() = delegate?.rawValue
 
   override val isReference: Boolean
     get() = delegate?.isReference == true

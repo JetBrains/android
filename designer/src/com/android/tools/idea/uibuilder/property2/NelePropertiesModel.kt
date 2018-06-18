@@ -34,6 +34,7 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.Future
 
 private const val UPDATE_QUEUE_NAME = "android.layout.propertysheet"
@@ -95,6 +96,11 @@ class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet)
 
   override var properties: PropertiesTable<NelePropertyItem> = PropertiesTable.emptyTable()
     private set
+
+  @TestOnly
+  fun setPropertiesInTest(testProperties: PropertiesTable<NelePropertyItem>) {
+    properties = testProperties
+  }
 
   fun propertyValueChanged(property: NelePropertyItem) {
     NlUsageTrackerManager.getInstance(activeSurface).logPropertyChange(property, -1)

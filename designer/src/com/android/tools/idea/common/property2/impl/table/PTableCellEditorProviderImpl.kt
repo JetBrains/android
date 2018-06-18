@@ -57,7 +57,7 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
         val controlType = nameControlTypeProvider(newProperty)
         val (newModel, newEditor) = nameEditorProvider.createEditor(newProperty, asTableCellEditor = true)
         val border = JBUI.Borders.empty(0, LEFT_STANDARD_INDENT - newEditor.insets.left, 0, 0)
-        editor.nowEditing(table, controlType, newModel, EditorPanel(newEditor, border))
+        editor.nowEditing(table, property, column, controlType, newModel, EditorPanel(newEditor, border))
       }
 
       PTableColumn.VALUE -> {
@@ -68,7 +68,7 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
         val controlType = valueControlTypeProvider(valueProperty)
         val (newModel, newEditor) = valueEditorProvider.createEditor(valueProperty, asTableCellEditor = true)
         val border = JBUI.Borders.customLine(table.gridLineColor, 0, 1, 0, 0)
-        editor.nowEditing(table, controlType, newModel, EditorPanel(newEditor, border))
+        editor.nowEditing(table, property, column, controlType, newModel, EditorPanel(newEditor, border))
       }
     }
     return editor
@@ -80,6 +80,8 @@ class PTableCellEditorImpl : PTableCellEditor {
   private var table: PTable? = null
   private var model: PropertyEditorModel? = null
   private var controlType: ControlType? = null
+  private var item: PTableItem? = null
+  private var column: PTableColumn? = null
 
   override var editorComponent: JComponent? = null
     private set
@@ -105,16 +107,21 @@ class PTableCellEditorImpl : PTableCellEditor {
   override fun close(oldTable: PTable) {
     if (table == oldTable) {
       table = null
+      item = null
+      column = null
       model = null
       controlType = null
       editorComponent = null
     }
   }
 
-  fun nowEditing(newTable: PTable, newControlType: ControlType, newModel: PropertyEditorModel, newEditor: JComponent) {
+  fun nowEditing(newTable: PTable, newItem: PTableItem, newColumn: PTableColumn,
+                 newControlType: ControlType, newModel: PropertyEditorModel, newEditor: JComponent) {
     newModel.onEnter = { startNextEditor() }
 
     table = newTable
+    item = newItem
+    column = newColumn
     model = newModel
     controlType = newControlType
     editorComponent = newEditor
@@ -122,9 +129,13 @@ class PTableCellEditorImpl : PTableCellEditor {
 
   private fun startNextEditor() {
     val currentTable = table ?: return
-    if (!currentTable.startNextEditor()) {
-      val tableModel = currentTable.context as TableLineModel
-      tableModel.gotoNextLine(tableModel)
+    val currentItem = item ?: return
+    val currentColumn = column ?: return
+    val model = currentTable.context as TableLineModel
+    if (model.tableModel.acceptMoveToNextEditor(currentItem, currentColumn)) {
+      if (!currentTable.startNextEditor()) {
+        model.gotoNextLine(model)
+      }
     }
   }
 }

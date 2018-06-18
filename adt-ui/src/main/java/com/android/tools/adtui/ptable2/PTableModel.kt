@@ -15,9 +15,42 @@
  */
 package com.android.tools.adtui.ptable2
 
+/**
+ * A model for a [PTable].
+ */
 interface PTableModel {
 
+  /**
+   * The items in the table.
+   */
   val items: List<PTableItem>
 
-  fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean
+  /**
+   * Returns true if an item [PTableColumn.NAME] or an item [PTableColumn.VALUE] is editable.
+   */
+  fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean = false
+
+  /**
+   * Returns true if it is acceptable to use the default implementation for
+   * moving to the next editor after being done editing the [column] of the specified [item].
+   * A return value of false will leave no active editors unless this is handled by other means.
+   */
+  fun acceptMoveToNextEditor(item: PTableItem, column: PTableColumn): Boolean = true
+
+  /**
+   * Add an update listener.
+   *
+   * A model should notify all its listeners if the [items] have been changed.
+   */
+  fun addListener(listener: PTableModelUpdateListener) {}
+}
+
+/**
+ * Listener interface for model changes.
+ */
+interface PTableModelUpdateListener {
+  /**
+   * Notifies a listener that the items in the model were changed.
+   */
+  fun itemsUpdated()
 }

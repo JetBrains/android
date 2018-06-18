@@ -18,8 +18,11 @@ package com.android.tools.idea.uibuilder.property2.inspector
 import com.android.SdkConstants.*
 import com.android.tools.adtui.ptable2.DefaultPTableCellEditorProvider
 import com.android.tools.adtui.ptable2.DefaultPTableCellRendererProvider
+import com.android.tools.adtui.ptable2.PTableColumn
+import com.android.tools.adtui.ptable2.PTableModelUpdateListener
 import com.android.tools.idea.common.property2.api.TableUIProvider
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
 import com.android.tools.idea.uibuilder.property2.testutils.LineType
@@ -27,6 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.*
 
 class AdvancedInspectorBuilderTest {
   @JvmField @Rule
@@ -62,6 +66,88 @@ class AdvancedInspectorBuilderTest {
       assertThat(util.inspector.lines[3].tableModel?.items?.map { it.name })
         .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_CONTENT_DESCRIPTION,
                          ATTR_TEXT, ATTR_TEXT_COLOR, ATTR_TEXT_SIZE).inOrder()
+    }
+  }
+
+  @Test
+  fun testAcceptMoveToNextEditorWithEmptyNewPropertyValue() {
+    runInEdtAndWait {
+      val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+      addProperties(util)
+      val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+      builder.attachToInspector(util.inspector, util.properties)
+
+      val declared = util.inspector.lines[1].tableModel!!
+      assertThat(declared.acceptMoveToNextEditor(declared.items[0], PTableColumn.NAME)).isTrue()
+      assertThat(declared.acceptMoveToNextEditor(declared.items[0], PTableColumn.VALUE)).isTrue()
+      assertThat(declared.acceptMoveToNextEditor(declared.items[1], PTableColumn.NAME)).isTrue()
+      assertThat(declared.acceptMoveToNextEditor(declared.items[1], PTableColumn.VALUE)).isTrue()
+      assertThat(declared.acceptMoveToNextEditor(declared.items[2], PTableColumn.NAME)).isTrue()
+      assertThat(declared.acceptMoveToNextEditor(declared.items[2], PTableColumn.VALUE)).isTrue()
+      assertThat(declared.acceptMoveToNextEditor(declared.items[3], PTableColumn.NAME)).isTrue()
+      assertThat(declared.acceptMoveToNextEditor(declared.items[3], PTableColumn.VALUE)).isTrue()
+    }
+  }
+
+  @Test
+  fun testAcceptMoveToNextEditorWithSpecifiedNewPropertyValue() {
+    runInEdtAndWait {
+      val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+      addProperties(util)
+      val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+      builder.attachToInspector(util.inspector, util.properties)
+
+      val declared = util.inspector.lines[1].tableModel!!
+      val newProperty = declared.items.last() as NeleNewPropertyItem
+      newProperty.name = ATTR_TEXT_SIZE
+      newProperty.delegate?.value = "10sp"
+
+      assertThat(declared.acceptMoveToNextEditor(declared.items[0], PTableColumn.NAME)).isTrue()
+      assertThat(declared.acceptMoveToNextEditor(declared.items[0], PTableColumn.VALUE)).isTrue()
+      assertThat(declared.acceptMoveToNextEditor(declared.items[1], PTableColumn.NAME)).isTrue()
+      assertThat(declared.acceptMoveToNextEditor(declared.items[1], PTableColumn.VALUE)).isTrue()
+      assertThat(declared.acceptMoveToNextEditor(declared.items[2], PTableColumn.NAME)).isTrue()
+      assertThat(declared.acceptMoveToNextEditor(declared.items[2], PTableColumn.VALUE)).isTrue()
+      assertThat(declared.acceptMoveToNextEditor(declared.items[3], PTableColumn.NAME)).isTrue()
+      assertThat(declared.acceptMoveToNextEditor(declared.items[3], PTableColumn.VALUE)).isFalse()
+    }
+  }
+
+  @Test
+  fun testUpdateItemsWhenNoChanges() {
+    runInEdtAndWait {
+      val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+      addProperties(util)
+      val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+      builder.attachToInspector(util.inspector, util.properties)
+
+      val declared = util.inspector.lines[1].tableModel!!
+      val listener = mock(PTableModelUpdateListener::class.java)
+      declared.addListener(listener)
+
+      // Trigger a model value update:
+      util.model.showResolvedValues = false
+      verifyZeroInteractions(listener)
+    }
+  }
+
+  @Test
+  fun testUpdateItemsWhenPropertyAdded() {
+    runInEdtAndWait {
+      val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+      addProperties(util)
+      val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+      builder.attachToInspector(util.inspector, util.properties)
+
+      val declared = util.inspector.lines[1].tableModel!!
+      val listener = mock(PTableModelUpdateListener::class.java)
+      declared.addListener(listener)
+
+      util.properties[ANDROID_URI, ATTR_TEXT_SIZE].value = "12sp"
+
+      // Trigger a model value update:
+      util.model.showResolvedValues = false
+      verify(listener).itemsUpdated()
     }
   }
 

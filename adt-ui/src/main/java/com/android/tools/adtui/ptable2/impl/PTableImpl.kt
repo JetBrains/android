@@ -87,6 +87,8 @@ class PTableImpl(override val tableModel: PTableModel,
     // We want expansion for the property names but not of the editors. This disables expansion for both columns.
     // TODO: Provide expansion of the left column only.
     super.setExpandableItemsEnabled(false)
+
+    model.table = this
   }
 
   override val component: JComponent
@@ -120,10 +122,14 @@ class PTableImpl(override val tableModel: PTableModel,
       // User navigated to the next editor after the last row of this table:
       return false
     }
-    selectRow(pos.row)
-    selectColumn(pos.column)
-    startEditing(pos.row, pos.column, {})
+    startEditing(pos.row, pos.column)
     return true
+  }
+
+  fun startEditing(row: Int, column: Int) {
+    selectRow(row)
+    selectColumn(column)
+    startEditing(row, column, {})
   }
 
   override fun getModel(): PTableModelImpl {

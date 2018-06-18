@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.common.property2.impl.model
 
-import com.android.tools.adtui.ptable2.*
+import com.android.tools.adtui.ptable2.PTable
+import com.android.tools.adtui.ptable2.PTableGroupItem
+import com.android.tools.adtui.ptable2.PTableItem
+import com.android.tools.adtui.ptable2.PTableModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -81,8 +84,6 @@ class TableLineModelTest {
     private fun makeTableModel(expanded: Boolean, values: Map<String, String>, groups: List<PTableGroupItem>): PTableModel {
       return object : PTableModel {
         override val items = mutableListOf<PTableItem>()
-
-        override fun isCellEditable(item: PTableItem, column: PTableColumn) = false
 
         init {
           items.addAll(values.map { (name, value) -> TableItem(name, value) })
