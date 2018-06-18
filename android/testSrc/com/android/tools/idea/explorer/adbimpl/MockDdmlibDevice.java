@@ -16,8 +16,8 @@
 package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.ddmlib.*;
+import com.android.ddmlib.SyncService.ISyncProgressMonitor;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -38,7 +39,6 @@ public class MockDdmlibDevice {
   @NotNull private final IDevice myDevice;
   @NotNull private final MockSyncService myMockSyncService;
   @NotNull private String myName = "[GenericMockDevice]";
-  @NotNull private String mySerialNumber = "1234";
   @Nullable private IDevice.DeviceState myState = IDevice.DeviceState.ONLINE;
   @NotNull private TestShellCommands myShellCommands = new TestShellCommands();
   @NotNull private Map<String, Long> myRemoteFiles = new HashMap<>();
@@ -80,13 +80,7 @@ public class MockDdmlibDevice {
 
   @NotNull
   public String getSerialNumber() {
-    return mySerialNumber;
-  }
-
-  @NotNull
-  public MockDdmlibDevice setSerialNumber(@NotNull String serialNumber) {
-    mySerialNumber = serialNumber;
-    return this;
+    return "1234";
   }
 
   @NotNull
@@ -111,14 +105,12 @@ public class MockDdmlibDevice {
     return this;
   }
 
-  public MockDdmlibDevice addRemoteFile(@NotNull String path, long size) {
+  void addRemoteFile(@NotNull String path, long size) {
     myRemoteFiles.put(path, size);
-    return this;
   }
 
-  public MockDdmlibDevice addRemoteRestrictedAccessFile(@NotNull String path, long size) {
+  void addRemoteRestrictedAccessFile(@NotNull String path, long size) {
     myRemoteRestrictedAccessFiles.put(path, size);
-    return this;
   }
 
   public class MockSyncService {
@@ -130,7 +122,7 @@ public class MockDdmlibDevice {
       doAnswer(invocation -> {
         String local = invocation.getArgument(0);
         String remote = invocation.getArgument(1);
-        SyncService.ISyncProgressMonitor monitor = invocation.getArgument(2);
+        ISyncProgressMonitor monitor = invocation.getArgument(2);
         pushFile(local, remote, monitor);
         return null;
       }).when(mySyncService).pushFile(anyString(), anyString(), any());
@@ -138,7 +130,7 @@ public class MockDdmlibDevice {
       doAnswer(invocation -> {
         String remote = invocation.getArgument(0);
         String local = invocation.getArgument(1);
-        SyncService.ISyncProgressMonitor monitor = invocation.getArgument(2);
+        ISyncProgressMonitor monitor = invocation.getArgument(2);
         pullFile(remote, local, monitor);
         return null;
       }).when(mySyncService).pullFile(anyString(), anyString(), any());
@@ -146,14 +138,13 @@ public class MockDdmlibDevice {
       doAnswer(invocation -> {
         FileListingService.FileEntry remote = invocation.getArgument(0);
         String local = invocation.getArgument(1);
-        SyncService.ISyncProgressMonitor monitor = invocation.getArgument(2);
+        ISyncProgressMonitor monitor = invocation.getArgument(2);
         pullFile(remote.getFullPath(), local, monitor);
         return null;
       }).when(mySyncService).pullFile(any(FileListingService.FileEntry.class), anyString(), any());
     }
 
-    private void pushFile(String local, String remote, SyncService.ISyncProgressMonitor monitor)
-      throws SyncException, IOException, TimeoutException {
+    private void pushFile(@NotNull String local, @NotNull String remote, @NotNull ISyncProgressMonitor monitor) throws SyncException {
       LOGGER.info(String.format("pushFile: \"%s\" -> \"%s\"", local, remote));
       // Pushing to system protected files is not allowed
       if (myRemoteRestrictedAccessFiles.containsKey(remote)) {
@@ -169,14 +160,14 @@ public class MockDdmlibDevice {
       addRemoteFile(remote, size);
     }
 
-    private void pullFile(String remote, String local, SyncService.ISyncProgressMonitor monitor)
-      throws TimeoutException, IOException, SyncException {
+    private void pullFile(@NotNull String remote, @NotNull String local, @NotNull ISyncProgressMonitor monitor)
+      throws IOException, SyncException {
       LOGGER.info(String.format("pullFile: \"%s\" -> \"%s\"", remote, local));
       // Pulling system protected files returns a specific error
       if (myRemoteRestrictedAccessFiles.containsKey(remote)) {
         throw new SyncException(SyncException.SyncError.TRANSFER_PROTOCOL_ERROR);
       }
-      if(!myRemoteFiles.containsKey(remote)) {
+      if (!myRemoteFiles.containsKey(remote)) {
         throw new SyncException(SyncException.SyncError.NO_REMOTE_OBJECT);
       }
       long size = myRemoteFiles.get(remote);
