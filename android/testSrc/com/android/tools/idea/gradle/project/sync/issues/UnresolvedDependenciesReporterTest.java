@@ -16,11 +16,14 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
+import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.mockito.Mock;
 
 import java.util.Arrays;
@@ -35,9 +38,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
   @Mock private SyncIssue mySyncIssue;
+  @Mock private GradleSettings myGradleSettings;
 
   private GradleSyncMessagesStub mySyncMessages;
-
   private UnresolvedDependenciesReporter myReporter;
 
   @Override
@@ -45,6 +48,7 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    new IdeComponents(getProject()).replaceProjectService(GradleSettings.class, myGradleSettings);
     myReporter = new UnresolvedDependenciesReporter();
   }
 
@@ -69,5 +73,42 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
     ShowSyncIssuesDetailsHyperlink showDetailsQuickFix = (ShowSyncIssuesDetailsHyperlink)quickFix;
     assertEquals(text, showDetailsQuickFix.getMessage());
     assertEquals(extraInfo, showDetailsQuickFix.getDetails());
+  }
+
+  /**
+   * Disable offline mode quickfix should be offered when missing dependencies on offline mode
+   */
+  public void testReportOfflineMode() {
+    String text = "Hello!";
+    when(mySyncIssue.getMessage()).thenReturn(text);
+    when(mySyncIssue.getMultiLineMessage()).thenReturn(null);
+    when(myGradleSettings.isOfflineWork()).thenReturn(true);
+    myReporter.report(mySyncIssue, getModule(), null);
+
+    SyncMessage message = mySyncMessages.getFirstReportedMessage();
+    assertEquals(text, message.getText()[0]);
+
+    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
+    assertThat(quickFixes).hasSize(1);
+
+    NotificationHyperlink quickFix = quickFixes.get(0);
+    assertThat(quickFix).isInstanceOf(DisableOfflineModeHyperlink.class);
+  }
+
+  /**
+   * Disable offline mode quickfix should *NOT* be offered when offline mode is not enabled
+   */
+  public void testReportNoOfflineMode() {
+    String text = "Hello!";
+    when(mySyncIssue.getMessage()).thenReturn(text);
+    when(mySyncIssue.getMultiLineMessage()).thenReturn(null);
+    when(myGradleSettings.isOfflineWork()).thenReturn(false);
+    myReporter.report(mySyncIssue, getModule(), null);
+
+    SyncMessage message = mySyncMessages.getFirstReportedMessage();
+    assertEquals(text, message.getText()[0]);
+
+    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
+    assertThat(quickFixes).hasSize(0);
   }
 }
