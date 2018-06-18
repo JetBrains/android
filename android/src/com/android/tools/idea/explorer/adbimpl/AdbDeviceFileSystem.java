@@ -92,7 +92,13 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   @NotNull
   @Override
   public DeviceState getDeviceState() {
-    switch (myDevice.getState()) {
+    IDevice.DeviceState state = myDevice.getState();
+
+    if (state == null) {
+      return DeviceState.DISCONNECTED;
+    }
+
+    switch (state) {
       case ONLINE:
         return DeviceState.ONLINE;
       case OFFLINE:

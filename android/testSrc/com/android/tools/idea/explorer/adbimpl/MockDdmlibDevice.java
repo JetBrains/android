@@ -19,6 +19,7 @@ import com.android.ddmlib.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class MockDdmlibDevice {
   @NotNull private final MockSyncService myMockSyncService;
   @NotNull private String myName = "[GenericMockDevice]";
   @NotNull private String mySerialNumber = "1234";
-  @NotNull private IDevice.DeviceState myState = IDevice.DeviceState.ONLINE;
+  @Nullable private IDevice.DeviceState myState = IDevice.DeviceState.ONLINE;
   @NotNull private TestShellCommands myShellCommands = new TestShellCommands();
   @NotNull private Map<String, Long> myRemoteFiles = new HashMap<>();
   @NotNull private Map<String, Long> myRemoteRestrictedAccessFiles = new HashMap<>();
@@ -99,13 +100,13 @@ public class MockDdmlibDevice {
     return this;
   }
 
-  @NotNull
+  @Nullable
   public IDevice.DeviceState getState() {
     return myState;
   }
 
   @NotNull
-  public MockDdmlibDevice setState(@NotNull IDevice.DeviceState state) {
+  MockDdmlibDevice setState(@Nullable IDevice.DeviceState state) {
     myState = state;
     return this;
   }
