@@ -100,14 +100,15 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
   }
 
   public void testGetInstance() {
-    assertEquals(NlUsageTrackerManager.NOP_TRACKER, NlUsageTrackerManager.getInstanceInner(null));
+    // Because we are testing the actual getInstanceInner instantiation, we tell the method
+    assertEquals(NlUsageTrackerManager.NOP_TRACKER, NlUsageTrackerManager.getInstanceInner(null, true));
 
     NlDesignSurface surface1 = mock(NlDesignSurface.class);
     NlDesignSurface surface2 = mock(NlDesignSurface.class);
-    NlUsageTracker nlUsageTracker = NlUsageTrackerManager.getInstanceInner(surface1);
+    NlUsageTracker nlUsageTracker = NlUsageTrackerManager.getInstanceInner(surface1, true);
     assertNotEquals(NlUsageTrackerManager.NOP_TRACKER, surface1);
-    assertEquals(nlUsageTracker, NlUsageTrackerManager.getInstanceInner(surface1));
-    assertNotEquals(nlUsageTracker, NlUsageTrackerManager.getInstanceInner(surface2));
+    assertEquals(nlUsageTracker, NlUsageTrackerManager.getInstanceInner(surface1, true));
+    assertNotEquals(nlUsageTracker, NlUsageTrackerManager.getInstanceInner(surface2, true));
   }
 
   public void testBasicLogging() {
