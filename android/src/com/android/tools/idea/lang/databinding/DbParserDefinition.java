@@ -18,7 +18,6 @@ package com.android.tools.idea.lang.databinding;
 import com.android.tools.idea.lang.databinding.parser.DbParser;
 import com.android.tools.idea.lang.databinding.psi.DbTokenTypes;
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.Language;
 import com.intellij.lang.ParserDefinition;
 import com.intellij.lang.PsiParser;
 import com.intellij.lexer.FlexAdapter;
@@ -85,7 +84,7 @@ public class DbParserDefinition implements ParserDefinition {
   }
 
   @Override
-  public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
+  public SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
     return SpaceRequirements.MAY;
   }
 }
