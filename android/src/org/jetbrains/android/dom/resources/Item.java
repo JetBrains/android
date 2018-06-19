@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.android.dom.resources;
 
 import com.intellij.util.xml.Convert;
@@ -26,11 +25,13 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 
 import java.util.List;
 
+import static com.android.resources.ResourceType.REFERENCEABLE_TYPES;
+
 @Convert(QuietResourceReferenceConverter.class)
 public interface Item extends ResourceElement {
   class TypeConverter extends StaticEnumConverter {
     public TypeConverter() {
-      super(AndroidResourceUtil.getNamesArray(AndroidResourceUtil.REFERRABLE_RESOURCE_TYPES));
+      super(AndroidResourceUtil.getNamesArray(REFERENCEABLE_TYPES));
     }
   }
 

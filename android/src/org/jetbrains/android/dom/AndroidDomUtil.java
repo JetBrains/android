@@ -174,7 +174,7 @@ public class AndroidDomUtil {
         resourceTypes.add(ResourceType.MIPMAP);
       }
       if (resourceTypes.isEmpty()) {
-        resourceTypes.addAll(AndroidResourceUtil.REFERRABLE_RESOURCE_TYPES);
+        resourceTypes.addAll(ResourceType.REFERENCEABLE_TYPES);
       }
     }
     if (!resourceTypes.isEmpty()) {
