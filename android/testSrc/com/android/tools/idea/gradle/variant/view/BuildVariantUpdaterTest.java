@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -51,6 +52,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
   @Mock private AndroidModuleSetupStep mySetupStepToInvoke;
   @Mock private AndroidModuleSetupStep mySetupStepToIgnore;
   @Mock private AndroidModuleModel myAndroidModel;
+  @Mock private IdeAndroidProject myAndroidProject;
   @Mock private IdeDependencies myIdeDependencies;
   @Mock private IdeVariant myDebugVariant;
   @Mock private PostSyncProjectSetup myPostSyncProjectSetup;
@@ -77,6 +79,8 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     when(myDebugVariant.getName()).thenReturn("debug");
 
     when(myAndroidModel.getSelectedMainCompileLevel2Dependencies()).thenReturn(myIdeDependencies);
+    when(myAndroidModel.getAndroidProject()).thenReturn(myAndroidProject);
+    when(myAndroidProject.getDynamicFeatures()).thenReturn(Collections.emptyList());
     when(myIdeDependencies.getModuleDependencies()).thenReturn(Collections.emptyList());
 
     new IdeComponents(project).replaceProjectService(PostSyncProjectSetup.class, myPostSyncProjectSetup);
