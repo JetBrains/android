@@ -39,7 +39,7 @@ class RDotTxtParser {
     try {
       SymbolTable symbolTable = SymbolIo.readFromAapt(rFile, null);
       return symbolTable.getSymbols().row(ResourceType.ID).values().stream()
-                        .collect(Collectors.toMap(Symbol::getName, e -> ((Symbol.NormalSymbol)e).getIntValue()));
+                        .collect(Collectors.toMap(Symbol::getCanonicalName, e -> ((Symbol.NormalSymbol)e).getIntValue()));
     }
     catch (IOException e) {
       getLog().warn("Unable to read file: " + rFile.getPath(), e);
