@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.AndroidProject
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.DslText
@@ -469,13 +468,12 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testApplyChangesDropsResolvedValues() {
-    // TODO(b/77457871): Revert back to BASIC when fixed.
-    loadProject(PSD_SAMPLE)
+    loadProject(BASIC)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
 
-    val appModule = project.findModuleByGradlePath(":app") as PsAndroidModule?
+    val appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
 
     appModule.buildTypes[0].jniDebuggable = true.asParsed()
@@ -493,6 +491,22 @@ class PsAndroidModuleTest : DependencyTestCase() {
     }
     // TODO(b/110194207): Populate variant collection when unsynced.
     assertThat(appModule.variants).isEmpty()
+  }
+
+  fun testLoadingRootlessProject() {
+    loadProject(BASIC)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+
+    val module = project.findModuleByGradlePath(":") as PsAndroidModule?
+    assertNotNull(module); module!!
+
+    assertThat(module.buildTypes.map { it.name }).containsExactly("debug", "release")
+    assertThat(module.productFlavors.map { it.name }).isEmpty()
+    assertThat(module.signingConfigs.map { it.name }).containsExactly("myConfig", "debug")
+    assertThat(module.dependencies.items().map { "${it.joinedConfigurationNames} ${it.name}" })
+      .containsExactly("debugApi support-v13", "api support-v4")
   }
 
   fun testConfigurations() {

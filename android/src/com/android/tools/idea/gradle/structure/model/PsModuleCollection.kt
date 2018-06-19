@@ -99,4 +99,4 @@ private fun ProjectBuildModel.getModuleByGradlePath(gradlePath: String): GradleB
       gradlePath.trimStart(':').replace(':', '/'))?.path?.let { getModuleBuildModel(File(it)) }
 
 private val ProjectBuildModel.modules: Set<String>
-  get() = projectSettingsModel?.modulePaths()?.toSet().orEmpty()
+  get() = projectSettingsModel.let { it?.modulePaths()?.toSet() ?: setOf(":") }
