@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon
 import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaemon
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearch
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchResults
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
@@ -35,7 +35,7 @@ import com.intellij.util.ExceptionUtil
 import java.util.function.Consumer
 import javax.annotation.concurrent.GuardedBy
 
-class PsContextImpl constructor (override val project: PsProject, parentDisposable: Disposable) : PsContext, Disposable {
+class PsContextImpl constructor (override val project: PsProjectImpl, parentDisposable: Disposable) : PsContext, Disposable {
   private val lock = Any()
   override val analyzerDaemon: PsAnalyzerDaemon
   private val gradleSync: GradleResolver = GradleResolver()

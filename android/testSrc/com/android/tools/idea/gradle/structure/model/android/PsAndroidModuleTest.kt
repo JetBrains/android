@@ -469,12 +469,13 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testApplyChangesDropsResolvedValues() {
-    loadProject(BASIC)
+    // TODO(b/77457871): Revert back to BASIC when fixed.
+    loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
 
-    val appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
+    val appModule = project.findModuleByGradlePath(":app") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
 
     appModule.buildTypes[0].jniDebuggable = true.asParsed()
