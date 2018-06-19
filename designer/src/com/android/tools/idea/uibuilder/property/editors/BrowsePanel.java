@@ -270,45 +270,17 @@ public class BrowsePanel extends AdtSecondaryPanel {
   private static Set<ResourceType> matchingTypes(@NonNull Set<AttributeFormat> formats) {
     EnumSet<ResourceType> types = EnumSet.noneOf(ResourceType.class);
     for (AttributeFormat format : formats) {
-      switch (format) {
-        case BOOLEAN:
-          types.add(ResourceType.BOOL);
-          break;
-
-        case COLOR:
-          types.add(ResourceType.COLOR);
-          types.add(ResourceType.DRAWABLE);
-          types.add(ResourceType.MIPMAP);
-          break;
-
-        case DIMENSION:
-          types.add(ResourceType.DIMEN);
-          break;
-
-        case FRACTION:
-          types.add(ResourceType.FRACTION);
-          break;
-
-        case INTEGER:
-          types.add(ResourceType.INTEGER);
-          break;
-
-        case REFERENCE:
-          types.add(ResourceType.COLOR);
-          types.add(ResourceType.DRAWABLE);
-          types.add(ResourceType.MIPMAP);
-          types.add(ResourceType.STRING);
-          types.add(ResourceType.ID);
-          types.add(ResourceType.STYLE);
-          types.add(ResourceType.ARRAY);
-          break;
-
-        case STRING:
-          types.add(ResourceType.STRING);
-          break;
-
-        default:
-          break;
+      if (format == AttributeFormat.REFERENCE) {
+        // TODO: Not sure is this reduced list of referenceable resource types in on purpose or not.
+        types.add(ResourceType.COLOR);
+        types.add(ResourceType.DRAWABLE);
+        types.add(ResourceType.MIPMAP);
+        types.add(ResourceType.STRING);
+        types.add(ResourceType.ID);
+        types.add(ResourceType.STYLE);
+        types.add(ResourceType.ARRAY);
+      } else {
+        types.addAll(format.getMatchingTypes());
       }
     }
 
