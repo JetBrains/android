@@ -50,6 +50,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.idea.profilers.AndroidProfilerToolWindow.LAST_RUN_APP_INFO;
+
 /**
  * A {@link AndroidLaunchTaskContributor} specific to profiler. For example, this contributor provides "--attach-agent $agentArgs"
  * extra option to "am start ..." command.
@@ -300,8 +302,11 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     @Override
     public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-      // We only profile the process that is launched and detected by the profilers after the current device time.
-      // This is to avoid profiling the previous application instance in case it is still running.
+      // There are two scenarios here:
+      // 1. If the profiler window is opened, we only profile the process that is launched and detected by the profilers after the current
+      // device time. This is to avoid profiling the previous application instance in case it is still running.
+      // 2. If the profiler window is closed, we cache the device+module info so the profilers can auto-start if the user opens the window
+      // manually at a later time.
       long currentDeviceTimeNs = getCurrentDeviceTime(device);
       ApplicationManager.getApplication().invokeLater(
         () -> {
@@ -309,12 +314,21 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
           ToolWindow window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
           if (window != null) {
             window.setShowStripeButton(true);
+
+            // Caching the device+process info in case auto-profiling should kick in at a later time.
+            String deviceName = AndroidProfilerToolWindow.getDeviceDisplayName(device);
+            String processName = AndroidProfilerToolWindow.getModuleName(myModule);
+            AndroidProfilerToolWindow.PreferredProcessInfo preferredProcessInfo =
+              new AndroidProfilerToolWindow.PreferredProcessInfo(deviceName, processName,
+                                                                 p -> p.getStartTimestampNs() >= currentDeviceTimeNs);
+            project.putUserData(LAST_RUN_APP_INFO, preferredProcessInfo);
+
             // If the window is currently not shown, either if the users click on Run/Debug or if they manually collapse/hide the window,
             // then we shouldn't start profiling the launched app.
             if (window.isVisible()) {
               AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project);
               if (profilerToolWindow != null) {
-                profilerToolWindow.profileModule(myModule, device, p -> p.getStartTimestampNs() >= currentDeviceTimeNs);
+                profilerToolWindow.profile(preferredProcessInfo);
               }
             }
           }
