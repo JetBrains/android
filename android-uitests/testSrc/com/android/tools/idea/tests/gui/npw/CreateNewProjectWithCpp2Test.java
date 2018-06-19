@@ -92,7 +92,7 @@ public class CreateNewProjectWithCpp2Test {
    *   On (4) verify that  android.defaultConfig.cmake.cppFlags has "-fexceptions"
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void createNewProjectWithCpp2() throws Exception {
     createNewProjectWithCpp(true, false, guiTest);
