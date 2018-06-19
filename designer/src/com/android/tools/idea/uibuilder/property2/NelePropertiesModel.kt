@@ -45,7 +45,7 @@ private const val UPDATE_DELAY_MSECS = 250
  */
 class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet) : PropertiesModel<NelePropertyItem>, Disposable {
   private val provider = NelePropertiesProvider(this)
-  private val listeners = mutableListOf<PropertiesModelListener>()
+  private val listeners = mutableListOf<PropertiesModelListener<NelePropertyItem>>()
   private val designSurfaceListener = PropertiesDesignSurfaceListener()
   private val renderListener = RenderListener { renderCompleted() }
   private var activeSurface: DesignSurface? = null
@@ -85,11 +85,11 @@ class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet)
     properties = PropertiesTable.emptyTable()
   }
 
-  override fun addListener(listener: PropertiesModelListener) {
+  override fun addListener(listener: PropertiesModelListener<NelePropertyItem>) {
     listeners.add(listener)
   }
 
-  override fun removeListener(listener: PropertiesModelListener) {
+  override fun removeListener(listener: PropertiesModelListener<NelePropertyItem>) {
     listeners.remove(listener)
   }
 

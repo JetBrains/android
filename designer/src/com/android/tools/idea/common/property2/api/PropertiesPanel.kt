@@ -40,7 +40,7 @@ private const val PROPERTY_TAB_NAME = "tab.name"
  * The content of the inspector is controlled by a list of [PropertiesView]s which
  * must be added to this class using [addView].
  */
-class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesModelListener {
+class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesModelListener<PropertyItem> {
 
   private var activeModel: PropertiesModel<*>? = null
   private var activeView: PropertiesView<*>? = null
