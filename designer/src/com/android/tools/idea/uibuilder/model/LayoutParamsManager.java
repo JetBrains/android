@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.model;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
@@ -30,7 +31,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +39,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceType.ID;
 import static java.util.Arrays.stream;
 
@@ -57,6 +57,38 @@ public class LayoutParamsManager {
     .softValues()
     .build();
   private static final Map<String, Function<String, MappedField>> FIELD_MAPPERS = new HashMap<>();
+
+  private static final Function<String, MappedField> CONSTRAINT_LAYOUT_MAPPER = (attributeName) -> {
+    /*
+     This field mapper converts the given ConstraintLayout$LayoutParams attribute name into the field name that
+     stores its value.
+     All ConstraintLayout attributes are in the form of layout_constraint* so we do the following processing:
+     - Remove the "constraint" part (the layout_ prefix is already removed before the call to this mapper
+     - Remove "Of" at the end (if it is present). While some fields have "Of" at the end, the corresponding fields
+       do not.
+     - Convert the case from the lower underscores format to camel case.
+
+     For an attribute like "layout_constraintTop_toTopOf", the resulting field would be "topToTop"
+     */
+
+    attributeName = StringUtil.trimStart(attributeName, "constraint");
+    attributeName = StringUtil.trimEnd(attributeName, "Of");
+
+    StringBuilder fieldName = new StringBuilder();
+    boolean first = true;
+    for (String component : Splitter.on('_').split(attributeName)) {
+      fieldName.append(first ? StringUtil.decapitalize(component) : StringUtil.capitalize(component));
+      first = false;
+    }
+    return new MappedField(fieldName.toString(), null);
+  };
+  private static final Function<String, MappedField> COORDINATOR_LAYOUT_MAPPER = (attributeName) -> {
+    if ("anchor".equals(attributeName)) {
+      return new MappedField("anchorId", AttributeFormat.INTEGER);
+    }
+
+    return null;
+  };
 
   /**
    * Registers the given field mapper to resolve attributes for the given LayoutParams class. The field mapper will return the field name
@@ -98,37 +130,10 @@ public class LayoutParamsManager {
 
       return null;
     });
-    registerFieldMapper("android.support.constraint.ConstraintLayout$LayoutParams", (attributeName) -> {
-      /*
-       This field mapper converts the given ConstraintLayout$LayoutParams attribute name into the field name that
-       stores its value.
-       All ConstraintLayout attributes are in the form of layout_constraint* so we do the following processing:
-       - Remove the "constraint" part (the layout_ prefix is already removed before the call to this mapper
-       - Remove "Of" at the end (if it is present). While some fields have "Of" at the end, the corresponding fields
-         do not.
-       - Convert the case from the lower underscores format to camel case.
-
-       For an attribute like "layout_constraintTop_toTopOf", the resulting field would be "topToTop"
-       */
-
-      attributeName = StringUtil.trimStart(attributeName, "constraint");
-      attributeName = StringUtil.trimEnd(attributeName, "Of");
-
-      StringBuilder fieldName = new StringBuilder();
-      boolean first = true;
-      for (String component : Splitter.on('_').split(attributeName)) {
-        fieldName.append(first ? StringUtil.decapitalize(component) : StringUtil.capitalize(component));
-        first = false;
-      }
-      return new MappedField(fieldName.toString(), null);
-    });
-    registerFieldMapper("android.support.design.widget.CoordinatorLayout$LayoutParams", (attributeName) -> {
-      if ("anchor".equals(attributeName)) {
-        return new MappedField("anchorId", AttributeFormat.INTEGER);
-      }
-
-      return null;
-    });
+    registerFieldMapper(CLASS_CONSTRAINT_LAYOUT_PARAMS.oldName(), CONSTRAINT_LAYOUT_MAPPER);
+    registerFieldMapper(CLASS_CONSTRAINT_LAYOUT_PARAMS.newName(), CONSTRAINT_LAYOUT_MAPPER);
+    registerFieldMapper(CLASS_COORDINATOR_LAYOUT.oldName() + "$LayoutParams", COORDINATOR_LAYOUT_MAPPER);
+    registerFieldMapper(CLASS_COORDINATOR_LAYOUT.newName() + "$LayoutParams", COORDINATOR_LAYOUT_MAPPER);
   }
 
   /**
