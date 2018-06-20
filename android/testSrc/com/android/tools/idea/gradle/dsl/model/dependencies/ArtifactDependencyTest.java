@@ -1778,6 +1778,24 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     verifyMapProperty(artModel.completeModel().getResultModel(), ImmutableMap.of("name", "boo", "group", "spooky", "version", "2.0"));
   }
 
+  public void testMalformedFakeArtifactElement() throws IOException {
+    String text = "dependencies {\n" +
+                  "  compile \"[]#$a\"\n" +
+                  "}\n";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    ArtifactDependencyModel artModel = buildModel.dependencies().artifacts().get(0);
+    assertNotNull(artModel);
+
+    assertEquals("[]#$a", artModel.name().forceString());
+    assertNull(artModel.extension().toString());
+    assertNull(artModel.group().toString());
+    assertNull(artModel.version().toString());
+    assertNull(artModel.classifier().toString());
+  }
+
   @Test
   public void testCompactSetThroughReferences() throws IOException {
     String text = "ext.dep = 'a:b:1.0'\n" +
@@ -1803,6 +1821,21 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     artModel = buildModel.dependencies().artifacts().get(0);
     verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "e:c:2.0", STRING, REGULAR, 0);
     verifyPropertyModel(buildModel.ext().findProperty("dep").resolve(), STRING_TYPE, "d:c:2.0", STRING, REGULAR, 0);
+  }
+
+  @Test
+  public void testEmptyFakeArtifactElement() throws IOException {
+    String text = "dependencies {\n" +
+                  "  compile \"\"\n" +
+                  "  compile \" \"\n" +
+                  "  compile \"\n\"\n" +
+                  "  compile \"\t\t\n\"\n" +
+                  "}\n";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    assertSize(0, buildModel.dependencies().all());
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {

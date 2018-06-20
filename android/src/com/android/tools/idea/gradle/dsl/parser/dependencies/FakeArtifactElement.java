@@ -69,6 +69,9 @@ public class FakeArtifactElement extends FakeElement {
   public Object extractValue() {
     GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
     ArtifactDependencySpec spec = getSpec(resolved);
+    if (spec == null) {
+      return null;
+    }
 
     if (resolved.getDslFile().getParser().shouldInterpolate(resolved)) {
       String result = myGetter.apply(spec);
@@ -152,6 +155,9 @@ public class FakeArtifactElement extends FakeElement {
   public boolean isReference() {
     GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
     ArtifactDependencySpec spec = getSpec(resolved);
+    if (spec == null) {
+      return false;
+    }
     String result = myGetter.apply(spec);
     if (result != null && (WRAPPED_VARIABLE_FORM.matcher(result).matches() || UNWRAPPED_VARIABLE_FORM.matcher(result).matches())) {
       return true;
@@ -165,6 +171,9 @@ public class FakeArtifactElement extends FakeElement {
   public String getReferenceText() {
     GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
     ArtifactDependencySpec spec = getSpec(resolved);
+    if (spec == null) {
+      return null;
+    }
     String result = myGetter.apply(spec);
     if (result == null) {
       return null;
