@@ -183,6 +183,7 @@ public class NavNlEditorTest {
     GuiTests.findAndClickOkButton(frame.waitForDialog("Add Project Dependency"));
     guiTest
       .ideFrame()
+      .waitForGradleProjectSyncToFinish()
       .getEditor()
       .getLayoutEditor(false)
       .waitForRenderToFinish()
