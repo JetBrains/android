@@ -23,7 +23,9 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import java.awt.AWTEvent
 import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
 import javax.swing.JPanel
 import javax.swing.event.ChangeEvent
 
@@ -91,7 +93,6 @@ class PTableTest {
   fun testHomeNavigation() {
     table!!.model.expand(3)
     table!!.setRowSelectionInterval(4, 4)
-    table!!.setColumnSelectionInterval(1, 1)
     dispatchAction("home")
     assertThat(table!!.selectedRow).isEqualTo(0)
   }
@@ -107,7 +108,6 @@ class PTableTest {
   @Test
   fun testExpandAction() {
     table!!.setRowSelectionInterval(4, 4)
-    table!!.setColumnSelectionInterval(1, 1)
     dispatchAction("expandCurrentRight")
     assertThat(table!!.rowCount).isEqualTo(8)
   }
@@ -123,7 +123,6 @@ class PTableTest {
   @Test
   fun enterExpandsClosedGroup() {
     table!!.setRowSelectionInterval(4, 4)
-    table!!.setColumnSelectionInterval(1, 1)
     dispatchAction("toggleEditor")
     assertThat(table!!.rowCount).isEqualTo(8)
   }
@@ -139,7 +138,6 @@ class PTableTest {
   @Test
   fun toggleBooleanValue() {
     table!!.setRowSelectionInterval(3, 3)
-    table!!.setColumnSelectionInterval(1, 1)
     dispatchAction("toggleEditor")
     assertThat(editorProvider!!.editor.toggleCount).isEqualTo(1)
     assertThat(table!!.editingRow).isEqualTo(3)
@@ -149,16 +147,22 @@ class PTableTest {
   @Test
   fun toggleNonBooleanValueIsNoop() {
     table!!.setRowSelectionInterval(0, 0)
-    table!!.setColumnSelectionInterval(1, 1)
     dispatchAction("toggleEditor")
     assertThat(table!!.editingRow).isEqualTo(-1)
     assertThat(table!!.editingColumn).isEqualTo(-1)
   }
 
   @Test
-  fun smartEnterStartsEditing() {
+  fun smartEnterStartsEditingNameColumnFirst() {
+    table!!.setRowSelectionInterval(5, 5)
+    dispatchAction("smartEnter")
+    assertThat(table!!.editingRow).isEqualTo(5)
+    assertThat(table!!.editingColumn).isEqualTo(0)
+  }
+
+  @Test
+  fun smartEnterStartsEditingValueIfNameIsNotEditable() {
     table!!.setRowSelectionInterval(0, 0)
-    table!!.setColumnSelectionInterval(1, 1)
     dispatchAction("smartEnter")
     assertThat(table!!.editingRow).isEqualTo(0)
     assertThat(table!!.editingColumn).isEqualTo(1)
@@ -167,7 +171,6 @@ class PTableTest {
   @Test
   fun smartEnterDoesNotToggleBooleanValue() {
     table!!.setRowSelectionInterval(3, 3)
-    table!!.setColumnSelectionInterval(1, 1)
     dispatchAction("smartEnter")
     assertThat(editorProvider!!.editor.toggleCount).isEqualTo(0)
     assertThat(table!!.editingRow).isEqualTo(3)
@@ -177,9 +180,9 @@ class PTableTest {
   @Test
   fun startNextEditor() {
     table!!.setRowSelectionInterval(0, 0)
-    table!!.setColumnSelectionInterval(1, 1)
     dispatchAction("smartEnter")
     assertThat(table!!.editingRow).isEqualTo(0)
+    assertThat(table!!.editingColumn).isEqualTo(1)
     assertThat(table!!.startNextEditor()).isTrue()
     assertThat(table!!.editingRow).isEqualTo(1)
     assertThat(table!!.editingColumn).isEqualTo(1)
@@ -188,7 +191,6 @@ class PTableTest {
   @Test
   fun startNextEditorSkipsNonEditableRows() {
     table!!.setRowSelectionInterval(1, 1)
-    table!!.setColumnSelectionInterval(1, 1)
     dispatchAction("smartEnter")
     assertThat(table!!.editingRow).isEqualTo(1)
     assertThat(table!!.startNextEditor()).isTrue()
@@ -200,9 +202,12 @@ class PTableTest {
   fun startNextEditorWhenAtEndOfTable() {
     table!!.model.expand(4)
     table!!.setRowSelectionInterval(7, 7)
-    table!!.setColumnSelectionInterval(1, 1)
     dispatchAction("smartEnter")
     assertThat(table!!.editingRow).isEqualTo(7)
+    assertThat(table!!.editingColumn).isEqualTo(0)
+    assertThat(table!!.startNextEditor()).isTrue()
+    assertThat(table!!.editingRow).isEqualTo(7)
+    assertThat(table!!.editingColumn).isEqualTo(1)
     assertThat(table!!.startNextEditor()).isFalse()
     assertThat(table!!.editingRow).isEqualTo(-1)
     assertThat(table!!.editingColumn).isEqualTo(-1)
@@ -212,7 +217,6 @@ class PTableTest {
   fun startNextEditorWhenNextRowAllowsNameEditing() {
     table!!.model.expand(4)
     table!!.setRowSelectionInterval(6, 6)
-    table!!.setColumnSelectionInterval(1, 1)
     dispatchAction("smartEnter")
     assertThat(table!!.editingRow).isEqualTo(6)
     assertThat(table!!.startNextEditor()).isTrue()
@@ -224,7 +228,6 @@ class PTableTest {
   fun startNextEditorWhenCurrentRowAllowsNameEditing() {
     table!!.model.expand(4)
     table!!.setRowSelectionInterval(7, 7)
-    table!!.setColumnSelectionInterval(0, 0)
     dispatchAction("smartEnter")
     assertThat(table!!.editingRow).isEqualTo(7)
     assertThat(table!!.startNextEditor()).isTrue()
@@ -233,23 +236,67 @@ class PTableTest {
   }
 
   @Test
-  fun editingCanceledShouldNotCancelCellEditing() {
-    // editingCancelled should give the editor a change to
-    // decide the proper action. The table should not stop
-    // cell editing as the default JTable does.
-    table!!.model.expand(4)
-    table!!.setRowSelectionInterval(6, 6)
-    table!!.setColumnSelectionInterval(1, 1)
+  fun editingCanceled() {
+    table!!.setRowSelectionInterval(0, 0)
     dispatchAction("smartEnter")
-    assertThat(table!!.editingRow).isEqualTo(6)
+    assertThat(table!!.editingRow).isEqualTo(0)
     table!!.editingCanceled(ChangeEvent(table!!))
-    assertThat(table!!.editingRow).isEqualTo(6)
+    assertThat(table!!.editingRow).isEqualTo(-1)
+    assertThat(editorProvider!!.editor.cancelCount).isEqualTo(1)
+  }
+
+  @Test
+  fun editingCanceledShouldNotCancelCellEditingWhenEditorDeclines() {
+    // editingCancelled should give the editor a change to
+    // decide the proper action. The editor for "size" is
+    // setup to decline cell editing cancellation.
+    // Check that this works.
+    table!!.setRowSelectionInterval(1, 1)
+    dispatchAction("smartEnter")
+    assertThat(table!!.editingRow).isEqualTo(1)
+    table!!.editingCanceled(ChangeEvent(table!!))
+    assertThat(table!!.editingRow).isEqualTo(1)
     assertThat(table!!.editingColumn).isEqualTo(1)
     assertThat(editorProvider!!.editor.cancelCount).isEqualTo(1)
   }
 
+  @Test
+  fun typingStartsEditingNameIfNameIsEditable() {
+    table!!.setRowSelectionInterval(5, 5)
+    val event = KeyEvent(table, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
+    imitateFocusManagerIsDispatching(event)
+    table!!.dispatchEvent(event)
+    assertThat(table!!.editingRow).isEqualTo(5)
+    assertThat(table!!.editingColumn).isEqualTo(0)
+  }
+
+  @Test
+  fun typingIsNoopIfNeitherNameNorValueIsEditable() {
+    table!!.setRowSelectionInterval(2, 2)
+    val event = KeyEvent(table, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
+    imitateFocusManagerIsDispatching(event)
+    table!!.dispatchEvent(event)
+    assertThat(table!!.editingRow).isEqualTo(-1)
+  }
+
+  @Test
+  fun typingStartsEditingValue() {
+    table!!.setRowSelectionInterval(0, 0)
+    val event = KeyEvent(table, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
+    imitateFocusManagerIsDispatching(event)
+    table!!.dispatchEvent(event)
+    assertThat(table!!.editingRow).isEqualTo(0)
+    assertThat(table!!.editingColumn).isEqualTo(1)
+  }
+
   private fun dispatchAction(action: String) {
     table!!.actionMap[action].actionPerformed(ActionEvent(table, 0, action))
+  }
+
+  private fun imitateFocusManagerIsDispatching(event: KeyEvent) {
+    val field = AWTEvent::class.java.getDeclaredField("focusManagerIsDispatching")
+    field.isAccessible = true
+    field.set(event, true)
   }
 }
 
@@ -273,8 +320,9 @@ private class SimplePTableCellEditor : PTableCellEditor {
 
   override fun requestFocus() {}
 
-  override fun cancelEditing() {
+  override fun cancelEditing(): Boolean {
     cancelCount++
+    return property?.name != "size"
   }
 
   override fun close(oldTable: PTable) {}

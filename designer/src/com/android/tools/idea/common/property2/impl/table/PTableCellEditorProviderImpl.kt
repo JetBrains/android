@@ -16,10 +16,10 @@
 package com.android.tools.idea.common.property2.impl.table
 
 import com.android.annotations.VisibleForTesting
-import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.ptable2.*
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.common.property2.impl.model.TableLineModel
+import com.android.tools.idea.common.property2.impl.ui.CellPanel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JComponent
@@ -100,8 +100,8 @@ class PTableCellEditorImpl : PTableCellEditor {
     model?.requestFocus()
   }
 
-  override fun cancelEditing() {
-    model?.cancelEditing()
+  override fun cancelEditing(): Boolean {
+    return model?.cancelEditing() ?: true
   }
 
   override fun close(oldTable: PTable) {
@@ -141,7 +141,7 @@ class PTableCellEditorImpl : PTableCellEditor {
 }
 
 @VisibleForTesting
-class EditorPanel(val editor: JComponent, withBorder: Border): AdtSecondaryPanel(BorderLayout()) {
+class EditorPanel(val editor: JComponent, withBorder: Border): CellPanel() {
 
   init {
     add(editor, BorderLayout.CENTER)
