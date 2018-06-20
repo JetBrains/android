@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.strings.table;
 
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
@@ -72,6 +71,16 @@ final class SubTableModel implements TableModel {
     return myDelegate;
   }
 
+  @NotNull
+  IntSupplier getStartColumnSupplier() {
+    return myStartColumnSupplier;
+  }
+
+  @NotNull
+  IntSupplier getEndColumnSupplier() {
+    return myEndColumnSupplier;
+  }
+
   @Override
   public int getRowCount() {
     return myDelegate.getRowCount();
@@ -120,54 +129,12 @@ final class SubTableModel implements TableModel {
     for (Object object : ((AbstractTableModel)myDelegate).getTableModelListeners()) {
       SubTableModelListener subTableModelListener = (SubTableModelListener)object;
 
-      if (!(subTableModelListener.myDelegate.equals(listener))) {
+      if (!subTableModelListener.delegate().equals(listener)) {
         continue;
       }
 
       myDelegate.removeTableModelListener(subTableModelListener);
       break;
-    }
-  }
-
-  /**
-   * The delegate fires events using delegate indices. SubTableModel listeners expect model indices. This listener converts delegate indices
-   * to model ones.
-   */
-  private static final class SubTableModelListener implements TableModelListener {
-    private final SubTableModel myModel;
-    private final TableModelListener myDelegate;
-
-    private SubTableModelListener(@NotNull SubTableModel model, @NotNull TableModelListener delegate) {
-      myModel = model;
-      myDelegate = delegate;
-    }
-
-    @Override
-    public void tableChanged(@NotNull TableModelEvent event) {
-      int delegateColumnIndex = event.getColumn();
-
-      if (delegateColumnIndex == TableModelEvent.ALL_COLUMNS) {
-        myDelegate.tableChanged(new TableModelEvent(
-          myModel,
-          event.getLastRow(),
-          event.getLastRow(),
-          TableModelEvent.ALL_COLUMNS,
-          event.getType()));
-
-        return;
-      }
-
-      if (!(myModel.myStartColumnSupplier.getAsInt() <= delegateColumnIndex &&
-            delegateColumnIndex < myModel.myEndColumnSupplier.getAsInt())) {
-        return;
-      }
-
-      myDelegate.tableChanged(new TableModelEvent(
-        myModel,
-        event.getFirstRow(),
-        event.getLastRow(),
-        myModel.convertColumnIndexToModel(delegateColumnIndex),
-        event.getType()));
     }
   }
 }
