@@ -1,0 +1,13 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 27
+}
+
+configurations {
+}
+
+dependencies {
+}
+
+
