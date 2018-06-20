@@ -19,6 +19,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
@@ -27,6 +28,10 @@ import com.intellij.ide.actions.ShowStructureSettingsAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.ui.MessageType;
+import com.intellij.openapi.wm.IdeFrame;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.openapi.wm.ex.StatusBarEx;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -65,6 +70,14 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
 
   private static void showAndroidProjectStructure(@NotNull Project project) {
     if (StudioFlags.NEW_PSD_ENABLED.get()) {
+      if (GradleSyncState.getInstance(project).isSyncInProgress()) {
+        final IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(project);
+        if (ideFrame != null) {
+          StatusBarEx statusBar = (StatusBarEx)ideFrame.getStatusBar();
+          statusBar.notifyProgressByBalloon(MessageType.WARNING, "Project Structure is unavailable while sync is in progress.", null, null);
+        }
+        return;
+      }
       ProjectStructureConfigurable projectStructure = ProjectStructureConfigurable.getInstance(project);
       AtomicBoolean needsSync = new AtomicBoolean();
       ProjectStructureChangeListener changeListener = () -> needsSync.set(true);
