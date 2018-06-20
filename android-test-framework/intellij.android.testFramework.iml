@@ -20,5 +20,6 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.junit" />
     <orderEntry type="module" module-name="intellij.java.execution.impl" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
   </component>
 </module>

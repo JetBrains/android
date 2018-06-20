@@ -33,5 +33,6 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/plugins/junit:intellij.junit[module]",
         "//tools/idea/java/execution/impl:intellij.java.execution.impl[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )

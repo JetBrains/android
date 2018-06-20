@@ -31,7 +31,7 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
   }
 
   public void testActivityToLayout() throws Exception {

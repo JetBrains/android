@@ -1,6 +1,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -45,6 +46,12 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
     addModuleWithAndroidFacet(projectBuilder, modules, "lib", PROJECT_TYPE_LIBRARY, true);
   }
 
+  public void setUpLibraryRClass() {
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.copyFileToProject(BASE_PATH + "LibR.java", "additionalModules/lib/src/p1/p2/lib/R.java");
+    }
+  }
+
   public void testHighlighting() {
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestManifest(), "res/layout/" + getTestManifest());
     myFixture.configureFromExistingVirtualFile(file);
@@ -69,7 +76,7 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
   }
 
   public void testJavaHighlighting() {
-    myFixture.copyFileToProject(BASE_PATH + "LibR.java", "additionalModules/lib/src/p1/p2/lib/R.java");
+    setUpLibraryRClass();
     String to = "additionalModules/lib/src/p1/p2/lib" + getTestName(true) + ".java";
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", to);
     myFixture.configureFromExistingVirtualFile(file);
@@ -100,7 +107,7 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
   }
 
   public void testJavaNavigation() {
-    myFixture.copyFileToProject("R.java", "src/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", "src/p1/p2/Java.java");
     myFixture.configureFromExistingVirtualFile(file);
 
@@ -147,8 +154,8 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "FindUsagesClass1.java", "additionalModules/lib/src/p1/p2/lib/Class.java");
     myFixture.copyFileToProject(BASE_PATH + "FindUsagesStyles.xml", "res/values/styles.xml");
     myFixture.copyFileToProject(BASE_PATH + "picture1.png", "additionalModules/lib/res/drawable/picture1.png");
-    myFixture.copyFileToProject("R.java", "src/p1/p2/R.java");
-    myFixture.copyFileToProject(BASE_PATH + "LibR.java", "additionalModules/lib/src/p1/p2/lib/R.java");
+    copyRJavaToGeneratedSources();
+    setUpLibraryRClass();
 
     VirtualFileManager.getInstance().syncRefresh();
 
