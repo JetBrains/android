@@ -453,7 +453,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
           continue;
         }
         AndroidModel base = buildModel.android();
-        String version = base == null ? null : base.compileSdkVersion().toString();
+        String version = base.compileSdkVersion().toString();
         JavaProjectModelModificationService.getInstance(myProject)
           .addDependency(module, new AppCompatLibraryDescriptor(version));
       }
@@ -607,7 +607,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     for (Module module : modules) {
       dependsOnAndroidX |= DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
       GradleBuildModel build = GradleBuildModel.get(module);
-      if (build != null && build.android() != null) {
+      if (build != null) {
         //noinspection ConstantConditions
         String version = build.android().compileSdkVersion().toString();
         if (version != null) {

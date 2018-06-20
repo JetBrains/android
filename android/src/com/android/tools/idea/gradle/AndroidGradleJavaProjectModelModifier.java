@@ -196,9 +196,6 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
     if (getAndroidModel(module) != null) {
       AndroidModel android = buildModel.android();
-      if (android == null) {
-        return null;
-      }
       CompileOptionsModel compileOptions = android.compileOptions();
       compileOptions.sourceCompatibility().setLanguageLevel(level);
       compileOptions.targetCompatibility().setLanguageLevel(level);

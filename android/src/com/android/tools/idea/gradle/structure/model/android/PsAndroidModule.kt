@@ -211,14 +211,14 @@ class PsAndroidModule(
 
   fun addNewFlavorDimension(newName: String) {
     assert(parsedModel != null)
-    val androidModel = parsedModel!!.android()!!
+    val androidModel = parsedModel!!.android()
     androidModel.flavorDimensions().addListValue().setValue(newName)
     isModified = true
   }
 
   fun removeFlavorDimension(flavorDimension: String) {
     assert(parsedModel != null)
-    val androidModel = parsedModel!!.android()!!
+    val androidModel = parsedModel!!.android()
 
     val model = androidModel.flavorDimensions().getListValue(flavorDimension)
     if (model != null) {
