@@ -316,4 +316,15 @@ class CpuProfilerStageViewTest {
     val itemsSuffix = items.subList(items.size - expectedCommonMenus.size, items.size)
     assertThat(itemsSuffix.map { it.text }).containsExactlyElementsIn(expectedCommonMenus).inOrder()
   }
+
+  @Test
+  fun instructionsPanelIsTheFirstComponentOfUsageView() {
+    val usageView = getUsageView(CpuProfilerStageView(myProfilersView, myStage))
+    assertThat(usageView.getComponent(0)).isInstanceOf(InstructionsPanel::class.java)
+  }
+
+  private fun getUsageView(stageView: CpuProfilerStageView) = TreeWalker(stageView.component)
+    .descendants()
+    .filterIsInstance<CpuUsageView>()
+    .first()
 }
