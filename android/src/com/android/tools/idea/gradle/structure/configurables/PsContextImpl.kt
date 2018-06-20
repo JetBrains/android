@@ -37,7 +37,11 @@ import com.intellij.util.ExceptionUtil
 import java.util.function.Consumer
 import javax.annotation.concurrent.GuardedBy
 
-class PsContextImpl constructor (override val project: PsProjectImpl, parentDisposable: Disposable) : PsContext, Disposable {
+class PsContextImpl constructor(
+  override val project: PsProjectImpl,
+  parentDisposable: Disposable,
+  disableAnalysis: Boolean = false
+) : PsContext, Disposable {
   private val lock = Any()
   override val analyzerDaemon: PsAnalyzerDaemon
   private val gradleSync: GradleResolver = GradleResolver()
@@ -63,12 +67,16 @@ class PsContextImpl constructor (override val project: PsProjectImpl, parentDisp
       ProjectStructureConfigurable.ProjectStructureChangeListener { this.requestGradleSync() }, this)
 
     libraryUpdateCheckerDaemon = PsLibraryUpdateCheckerDaemon(this)
-    libraryUpdateCheckerDaemon.reset()
-    libraryUpdateCheckerDaemon.queueAutomaticUpdateCheck()
+    if (!disableAnalysis) {
+      libraryUpdateCheckerDaemon.reset()
+      libraryUpdateCheckerDaemon.queueAutomaticUpdateCheck()
+    }
 
     analyzerDaemon = PsAnalyzerDaemon(this, libraryUpdateCheckerDaemon)
-    analyzerDaemon.reset()
-    project.forEachModule(Consumer { analyzerDaemon.queueCheck(it) })
+    if (!disableAnalysis) {
+      analyzerDaemon.reset()
+      project.forEachModule(Consumer { analyzerDaemon.queueCheck(it) })
+    }
 
     Disposer.register(parentDisposable, this)
   }
@@ -82,6 +90,7 @@ class PsContextImpl constructor (override val project: PsProjectImpl, parentDisp
         gradleSyncEventDispatcher.multicaster.syncFailed(project, it?.let { ExceptionUtil.getRootCause(it).message }.orEmpty())
       }
       .continueOnEdt {
+        this.project.refreshFrom(it)
         gradleSyncEventDispatcher.multicaster.syncSucceeded(project)
       }
   }

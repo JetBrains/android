@@ -82,6 +82,11 @@ class PsProjectImpl(override val ideProject: Project) : PsChildModel(), PsProjec
     }
   }
 
+  fun refreshFrom(models: List<PsResolvedModuleModel>) {
+    internalResolvedModuleModels = models.associateBy { it.gradlePath }
+    moduleCollection.refresh()
+  }
+
   internal fun getResolvedModuleModelsByGradlePath(): Map<String, PsResolvedModuleModel> {
     internalResolvedModuleModels?.let { return it }
 

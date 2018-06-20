@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.structure.model.PsResolvedModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
@@ -35,13 +36,38 @@ import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 class GradleResolver {
   private val myProjectResolver = GradleProjectResolver()
 
-  fun requestProjectResolved(project: Project, disposable: Disposable): ListenableFuture<Unit> {
+  // TODO(b/110411567): Rework to make it compatible with the new sync.
+  /**
+   * Request Gradle sync models without updating IDE projects and returns the [ListenableFuture] of the requested models.
+   */
+  fun requestProjectResolved(project: Project, disposable: Disposable): ListenableFuture<List<PsResolvedModuleModel>> {
     val settings = getGradleExecutionSettings(project)
     val id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, project)
     val projectPath = project.basePath!!
 
-    return MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<Unit> {
+    return MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<List<PsResolvedModuleModel>> {
       myProjectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT)!!
+        .children
+        .mapNotNull { module ->
+          module.children.mapNotNull { it.data as? GradleModuleModel }.firstOrNull()?.let { it.gradlePath to module }
+        }
+        .flatMap { (gradlePath, module) ->
+          module
+            .takeIf { it.data is ModuleData }
+            ?.let {
+              it.children
+                .map { it.data }
+                .mapNotNull {
+                  when (it) {
+                    is AndroidModuleModel -> PsResolvedModuleModel.PsAndroidModuleResolvedModel(gradlePath, it)
+                    is JavaModuleModel -> PsResolvedModuleModel.PsJavaModuleResolvedModel(gradlePath, it)
+                    else -> null
+                  }
+                }
+            }
+            .orEmpty()
+        }
+
     }.also {
       Disposer.register(disposable, Disposable { it.cancel(true) })
     }
