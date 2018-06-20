@@ -65,7 +65,7 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
                             List<ModuleBuildTask> moduleBuildTasks,
                             @Nullable ProjectTaskNotification callback) {
     Module[] modules = moduleBuildTasks.stream().map(task -> task.getModule()).toArray(Module[]::new);
-    if (modules == null || modules.length == 0) {
+    if (modules.length == 0) {
       // nothing to build
       if (callback != null) {
         callback.finished(new ProjectTaskResult(false, 0, 0));
