@@ -18,9 +18,7 @@ package org.jetbrains.android.dom.converters;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.GenericDomValue;
-import com.intellij.util.xml.NamedEnumUtil;
 import com.intellij.util.xml.converters.DelimitedListConverter;
-import com.intellij.openapi.util.text.StringUtil;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +27,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 public class FormatConverter extends DelimitedListConverter<AttributeFormat> {
   public FormatConverter() {
@@ -39,7 +36,7 @@ public class FormatConverter extends DelimitedListConverter<AttributeFormat> {
   @Override
   @Nullable
   protected AttributeFormat convertString(@Nullable String string, ConvertContext context) {
-    return string == null ? null : AttributeFormat.fromName(string);
+    return string == null ? null : AttributeFormat.fromXmlName(string);
   }
 
   @Override
