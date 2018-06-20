@@ -25,13 +25,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Interface a {@link com.android.tools.datastore.ServicePassThrough} object returns to indicate this object is
  * storing results in a database.
  */
 public abstract class DataStoreTable<T extends Enum> {
-  private static final Set<DataStoreTableErrorCallback> ERROR_CALLBACKS = new HashSet<>();
+  private static final Set<DataStoreTableErrorCallback> ERROR_CALLBACKS = ConcurrentHashMap.newKeySet();
 
   private Connection myConnection;
   private final ThreadLocal<Map<T, PreparedStatement>> myStatementMap = new ThreadLocal<>();
