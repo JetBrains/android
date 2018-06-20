@@ -46,12 +46,20 @@ class PsSigningConfig(
 
   override val isDeclared: Boolean get() = parsedModel != null
 
+  fun ensureDeclared() {
+    if (parsedModel == null) {
+      parsedModel = parent.parsedModel!!.android()!!.addSigningConfig(name)
+      parent.isModified = true
+    }
+  }
+
   object SigningConfigDescriptors : ModelDescriptor<PsSigningConfig, SigningConfig, SigningConfigModel> {
     override fun getResolved(model: PsSigningConfig): SigningConfig? = model.resolvedModel
 
     override fun getParsed(model: PsSigningConfig): SigningConfigModel? = model.parsedModel
 
     override fun setModified(model: PsSigningConfig) {
+      model.ensureDeclared()
       model.isModified = true
     }
 
