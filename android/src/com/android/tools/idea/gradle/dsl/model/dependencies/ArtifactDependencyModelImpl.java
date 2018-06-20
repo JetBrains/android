@@ -291,7 +291,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
                                   @NotNull GradleDslSimpleExpression dslExpression,
                                   @Nullable GradleDslClosure configurationElement) {
       String value = dslExpression.getValue(String.class);
-      if (value == null) {
+      if (value == null || value.trim().isEmpty()) {
         return null;
       }
       return new CompactNotation(configurationName, dslExpression, configurationElement);
