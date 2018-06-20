@@ -112,7 +112,7 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public DataViewer createDataViewer(@NotNull byte[] content, @NotNull ContentType contentType) {
+  public DataViewer createDataViewer(@NotNull byte[] content, @NotNull ContentType contentType, @NotNull DataViewer.Style style) {
     if (contentType.isImageType()) {
       try (ByteArrayInputStream inputStream = new ByteArrayInputStream(content)) {
         BufferedImage image = ImageIO.read(inputStream);
@@ -123,6 +123,9 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
       catch (IOException ignored) {
       }
       return IntellijDataViewer.createInvalidViewer();
+    }
+    if (style == DataViewer.Style.PRETTY) {
+      return IntellijDataViewer.createPrettyViewer(myProject, content, contentType.getFileType());
     }
     return IntellijDataViewer.createEditorViewer(myProject, new String(content), contentType.getFileType());
   }
