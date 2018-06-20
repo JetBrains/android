@@ -22,12 +22,15 @@ import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.fest.swing.util.StringTextMatcher;
@@ -43,44 +46,27 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.tests.gui.instantrun.InstantRunTestUtility.extractPidFromOutput;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class ChangeManifestTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(9, TimeUnit.MINUTES);
 
   private FakeAdbServer fakeAdbServer;
+  private CountingProcessStarter myProcessStarter;
 
   private static final String APP_NAME = "app";
   private static final Pattern RUN_OUTPUT =
     Pattern.compile(".*Connected to process (\\d+) .*", Pattern.DOTALL);
-  private static final int OUTPUT_RESET_TIMEOUT = 30;
 
   @Before
   public void setupFakeAdbServer() throws IOException, InterruptedException, ExecutionException {
-    ActivityManagerCommandHandler.ProcessStarter startCmdHandler = new ActivityManagerCommandHandler.ProcessStarter() {
-      private ClientState prevState;
-      private int pidCount = 1234;
-
-      @NotNull
-      @Override
-      public String startProcess(@NotNull DeviceState deviceState) {
-        if (prevState != null) {
-          deviceState.stopClient(prevState.getPid());
-        }
-
-        prevState = deviceState.startClient(pidCount, 1235, "google.simpleapplication", false);
-        pidCount++;
-
-        return "";
-      }
-    };
+    myProcessStarter = new CountingProcessStarter();
 
     FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
     adbBuilder.installDefaultCommandHandlers()
-      .setShellCommandHandler(ActivityManagerCommandHandler.COMMAND, () -> new ActivityManagerCommandHandler(startCmdHandler))
+      .setShellCommandHandler(ActivityManagerCommandHandler.COMMAND, () -> new ActivityManagerCommandHandler(myProcessStarter))
       .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new);
 
     fakeAdbServer = adbBuilder.build();
@@ -120,10 +106,18 @@ public class ChangeManifestTest {
    *   2. Make sure the instant run is applied in EventLog tool window.
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void changeManifest() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrameFixture;
+    try {
+      guiTest.importSimpleLocalApplication();
+    } catch (WaitTimedOutError indexSyncTimeout) {
+      // We really do not care about timeouts during project indexing and sync.
+      GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(300));
+    } finally {
+      ideFrameFixture = guiTest.ideFrame();
+    }
 
     ideFrameFixture
       .runApp(APP_NAME)
@@ -132,8 +126,6 @@ public class ChangeManifestTest {
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
-    String output = contentFixture.getOutput(10);
-    String pid = extractPidFromOutput(contentFixture.getOutput(10), RUN_OUTPUT);
 
     ideFrameFixture
       .getEditor()
@@ -141,20 +133,27 @@ public class ChangeManifestTest {
       .moveBetween("", "<application")
       .pasteText("<uses-permission android:name=\"android.permission.INTERNET\" />\n");
 
-    ideFrameFixture
-      .findApplyChangesButton()
-      .click();
+    ActionButtonFixture applyChanges = ideFrameFixture.findApplyChangesButton();
+    // Clear the console so the next window check doesn't confuse this run's outputs with the next
+    // run's outputs
+    //contentFixture.clickClearAllButton();
+    try {
+      applyChanges.click();
+    } catch (IllegalStateException buttonNotEnabled) {
+      throw new AssertionError("Apply changes button not enabled. Is Android process nonexistent?", buttonNotEnabled);
+    }
 
     guiTest.waitForBackgroundTasks();
 
-    // Studio takes a few seconds to reset Run tool window contents.
-    Wait.seconds(OUTPUT_RESET_TIMEOUT)
-        .expecting("Run tool window output has been reset")
-        .until(() -> !contentFixture.getOutput(10).contains(output));
-    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
-    String newPid = extractPidFromOutput(contentFixture.getOutput(10), RUN_OUTPUT);
-    // (Cold swap) Verify the inequality of PIDs before and after IR
-    assertThat(pid).isNotEqualTo(newPid);
+    try {
+      // Verify that the IDE shows that the app has been restarted:
+      contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    } catch(WaitTimedOutError timeout) {
+      // Check the num of start counts. Perhaps the listening logic for waiting for process to start has a race condition?
+      throw new Exception("We started " + myProcessStarter.getStartCount() + " processes", timeout);
+    }
+    // (Cold swap) Verify that the app was started twice through ActivityManager
+    assertThat(myProcessStarter.getStartCount()).isEqualTo(2);
   }
 
   @After
@@ -162,5 +161,43 @@ public class ChangeManifestTest {
     AndroidDebugBridge.terminate();
     AndroidDebugBridge.disableFakeAdbServerMode();
     fakeAdbServer.close();
+  }
+
+  /**
+   * A thread-safe implementation of a ProcessHandler, since it's possible for ADB to receive multiple
+   * am commands, all of which run on the different threads that access this shared object.
+   */
+  private static class CountingProcessStarter implements ActivityManagerCommandHandler.ProcessStarter {
+    private final Object lock;
+    private ClientState prevState;
+    private int pid;
+
+    private int procStartCounter;
+
+    public CountingProcessStarter() {
+      pid = 1234;
+      procStartCounter = 0;
+      lock = new Object();
+    }
+
+    @NotNull
+    @Override
+    public String startProcess(@NotNull DeviceState deviceState) {
+      synchronized(lock) {
+        if (prevState != null) {
+          deviceState.stopClient(prevState.getPid());
+        }
+        prevState = deviceState.startClient(pid, 1235, "google.simpleapplication", false);
+        pid++;
+        procStartCounter++;
+      }
+      return "";
+    }
+
+    public int getStartCount() {
+      synchronized (lock) {
+        return procStartCounter;
+      }
+    }
   }
 }
