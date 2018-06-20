@@ -63,6 +63,7 @@ public class StatisticsViewer extends JPanel implements Disposable {
   }
 
   private void hookUsageTracker() {
+    myOriginalUsageTracker = UsageTracker.getInstanceForTest();
     // Use the setInstanceForTest API to temporary wrap the UsageTracker in our own usage tracker that logs to our console.
     myOriginalUsageTracker = UsageTracker.setInstanceForTest(new UsageTracker(myOriginalUsageTracker.getAnalyticsSettings(), myOriginalUsageTracker.getScheduler()) {
       @Override
