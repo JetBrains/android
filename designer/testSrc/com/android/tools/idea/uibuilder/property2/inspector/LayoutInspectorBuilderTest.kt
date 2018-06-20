@@ -21,26 +21,29 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
 import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 
+@RunsInEdt
 class LayoutInspectorBuilderTest {
   @JvmField @Rule
   val projectRule = AndroidProjectRule.inMemory()
 
+  @JvmField @Rule
+  val edtRule = EdtRule()
+
   @Test
   fun testLinearLayout() {
-    runInEdtAndWait {
-      val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
-      val builder = LayoutInspectorBuilder(projectRule.project, util.editorProvider)
-      addLayoutProperties(util)
-      builder.attachToInspector(util.inspector, util.properties)
-      assertThat(util.inspector.lines).hasSize(2)
-      assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
-      assertThat(util.inspector.lines[0].title).isEqualTo("layout")
-      assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_LAYOUT_WEIGHT)
-    }
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    val builder = LayoutInspectorBuilder(projectRule.project, util.editorProvider)
+    addLayoutProperties(util)
+    builder.attachToInspector(util.inspector, util.properties)
+    assertThat(util.inspector.lines).hasSize(2)
+    assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
+    assertThat(util.inspector.lines[0].title).isEqualTo("layout")
+    assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_LAYOUT_WEIGHT)
   }
 
   private fun addLayoutProperties(util: InspectorTestUtil) {
