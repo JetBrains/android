@@ -16,6 +16,7 @@
 
 package org.jetbrains.android;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -43,7 +44,7 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyFileToProject(BASE_PATH + "picture3.gif", "res/drawable/picture3.gif");
-    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
   }
 
   public List<UsageInfo> findCodeUsages(String path, String pathInProject) throws Throwable {
@@ -382,7 +383,10 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
   public void testStyleable() throws Throwable {
     createManifest();
     myFixture.copyFileToProject(BASE_PATH + "attrs.xml", "res/values/attrs.xml");
-    myFixture.copyFileToProject(BASE_PATH + "R_MyView.java", "src/p1/p2/R.java");
+
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.copyFileToProject(BASE_PATH + "R_MyView.java", "src/p1/p2/R.java");
+    }
 
     Collection<UsageInfo> references = findCodeUsages("MyView1.java", "src/p1/p2/MyView.java");
     //noinspection SpellCheckingInspection

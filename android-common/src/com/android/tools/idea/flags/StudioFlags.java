@@ -350,6 +350,8 @@ public final class StudioFlags {
     "If enabled, it will be possible to create and edit navigation resource files", true);
 
   private static final FlagGroup EDITOR = new FlagGroup(FLAGS, "editor", "Editor features");
+
+  // To enable temporarily, use -Deditor.in.memory.r.classes=true
   public static final Flag<Boolean> IN_MEMORY_R_CLASSES = Flag.create(
     EDITOR,
     "in.memory.r.classes",
