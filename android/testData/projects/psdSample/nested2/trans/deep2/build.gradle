@@ -1,0 +1,18 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 27
+    buildTypes {
+        debug {
+            jniDebuggable = true
+        }
+    }
+}
+
+configurations {
+}
+
+dependencies {
+}
+
+
