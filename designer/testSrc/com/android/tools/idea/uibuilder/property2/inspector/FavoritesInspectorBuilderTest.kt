@@ -20,42 +20,42 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
-import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 
+@RunsInEdt
 class FavoritesInspectorBuilderTest {
   @JvmField @Rule
   val projectRule = AndroidProjectRule.inMemory()
 
+  @JvmField @Rule
+  val edtRule = EdtRule()
+
   @Test
   fun testNotApplicableWhenNoFavorites() {
-    runInEdtAndWait {
-      val util = InspectorTestUtil(projectRule, TEXT_VIEW)
-      val propertiesComponent = PropertiesComponentMock()
-      val builder = FavoritesInspectorBuilder(util.editorProvider, propertiesComponent)
-      builder.attachToInspector(util.inspector, util.properties)
-      assertThat(util.inspector.lines).hasSize(0)
-    }
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW)
+    val propertiesComponent = PropertiesComponentMock()
+    val builder = FavoritesInspectorBuilder(util.editorProvider, propertiesComponent)
+    builder.attachToInspector(util.inspector, util.properties)
+    assertThat(util.inspector.lines).hasSize(0)
   }
 
   @Test
   fun testApplicableWith2Properties() {
-    runInEdtAndWait {
-      val util = InspectorTestUtil(projectRule, TEXT_VIEW)
-      val propertiesComponent = PropertiesComponentMock()
-      val builder = FavoritesInspectorBuilder(util.editorProvider, propertiesComponent)
-      propertiesComponent.setValue(STARRED_PROP, "gravity;paddingBottom;nonExistingProperty")
-      util.addProperty(ANDROID_URI, ATTR_GRAVITY, NelePropertyType.STRING)
-      util.addProperty(ANDROID_URI, ATTR_PADDING_BOTTOM, NelePropertyType.INTEGER)
-      builder.attachToInspector(util.inspector, util.properties)
-      assertThat(util.inspector.lines).hasSize(3)
-      assertThat(util.inspector.lines[0].title).isEqualTo("Favorite Attributes")
-      assertThat(util.inspector.lines[0].expandable).isTrue()
-      assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_GRAVITY)
-      assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_PADDING_BOTTOM)
-    }
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW)
+    val propertiesComponent = PropertiesComponentMock()
+    val builder = FavoritesInspectorBuilder(util.editorProvider, propertiesComponent)
+    propertiesComponent.setValue(STARRED_PROP, "gravity;paddingBottom;nonExistingProperty")
+    util.addProperty(ANDROID_URI, ATTR_GRAVITY, NelePropertyType.STRING)
+    util.addProperty(ANDROID_URI, ATTR_PADDING_BOTTOM, NelePropertyType.INTEGER)
+    builder.attachToInspector(util.inspector, util.properties)
+    assertThat(util.inspector.lines).hasSize(3)
+    assertThat(util.inspector.lines[0].title).isEqualTo("Favorite Attributes")
+    assertThat(util.inspector.lines[0].expandable).isTrue()
+    assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_GRAVITY)
+    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_PADDING_BOTTOM)
   }
 }

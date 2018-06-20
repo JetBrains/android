@@ -24,89 +24,86 @@ import com.android.tools.idea.uibuilder.property2.model.ToggleButtonPropertyEdit
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
 import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import icons.StudioIcons.LayoutEditor.Properties.*
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.Icon
 
+@RunsInEdt
 class TextViewInspectorBuilderTest {
   @JvmField @Rule
   val projectRule = AndroidProjectRule.inMemory()
 
+  @JvmField @Rule
+  val edtRule = EdtRule()
+
   @Test
   fun testAvailableWithRequiredPropertiesPresent() {
-    runInEdtAndWait {
-      val util = InspectorTestUtil(projectRule, TEXT_VIEW)
-      val builder = TextViewInspectorBuilder(util.editorProvider)
-      addRequiredProperties(util)
-      builder.attachToInspector(util.inspector, util.properties)
-      assertThat(util.inspector.lines).hasSize(10)
-      assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
-      assertThat(util.inspector.lines[0].title).isEqualTo("TextView")
-      assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_TEXT)
-      assertThat(util.inspector.lines[1].editorModel?.property?.namespace).isEqualTo(ANDROID_URI)
-      assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_TEXT)
-      assertThat(util.inspector.lines[2].editorModel?.property?.namespace).isEqualTo(TOOLS_URI)
-      assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_CONTENT_DESCRIPTION)
-      assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_TEXT_APPEARANCE)
-      assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_TYPEFACE)
-      assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_TEXT_SIZE)
-      assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_LINE_SPACING_EXTRA)
-      assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_TEXT_COLOR)
-      assertThat(util.inspector.lines[9].editorModel?.property?.name).isEqualTo(ATTR_TEXT_STYLE)
-    }
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW)
+    val builder = TextViewInspectorBuilder(util.editorProvider)
+    addRequiredProperties(util)
+    builder.attachToInspector(util.inspector, util.properties)
+    assertThat(util.inspector.lines).hasSize(10)
+    assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
+    assertThat(util.inspector.lines[0].title).isEqualTo("TextView")
+    assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_TEXT)
+    assertThat(util.inspector.lines[1].editorModel?.property?.namespace).isEqualTo(ANDROID_URI)
+    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_TEXT)
+    assertThat(util.inspector.lines[2].editorModel?.property?.namespace).isEqualTo(TOOLS_URI)
+    assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_CONTENT_DESCRIPTION)
+    assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_TEXT_APPEARANCE)
+    assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_TYPEFACE)
+    assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_TEXT_SIZE)
+    assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_LINE_SPACING_EXTRA)
+    assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_TEXT_COLOR)
+    assertThat(util.inspector.lines[9].editorModel?.property?.name).isEqualTo(ATTR_TEXT_STYLE)
   }
 
   @Test
   fun testOptionalPropertiesPresent() {
-    runInEdtAndWait {
-      val util = InspectorTestUtil(projectRule, TEXT_VIEW)
-      val builder = TextViewInspectorBuilder(util.editorProvider)
-      addRequiredProperties(util)
-      util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
-      addOptionalProperties(util)
-      builder.attachToInspector(util.inspector, util.properties)
-      assertThat(util.inspector.lines).hasSize(12)
-      assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_FONT_FAMILY)
-      assertThat(util.inspector.lines[11].editorModel?.property?.name).isEqualTo(ATTR_TEXT_ALIGNMENT)
-    }
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW)
+    val builder = TextViewInspectorBuilder(util.editorProvider)
+    addRequiredProperties(util)
+    util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
+    addOptionalProperties(util)
+    builder.attachToInspector(util.inspector, util.properties)
+    assertThat(util.inspector.lines).hasSize(12)
+    assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_FONT_FAMILY)
+    assertThat(util.inspector.lines[11].editorModel?.property?.name).isEqualTo(ATTR_TEXT_ALIGNMENT)
   }
 
   @Test
   fun testTextStyleModel() {
-    runInEdtAndWait {
-      val util = InspectorTestUtil(projectRule, TEXT_VIEW)
-      val builder = TextViewInspectorBuilder(util.editorProvider)
-      addRequiredProperties(util)
-      addOptionalProperties(util)
-      builder.attachToInspector(util.inspector, util.properties)
-      assertThat(util.inspector.lines).hasSize(12)
-      assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_FONT_FAMILY)
-      val line = util.inspector.lines[10].editorModel as HorizontalEditorPanelModel
-      assertThat(line.models).hasSize(3)
-      checkToggleButtonModel(line.models[0], "Bold", TEXT_STYLE_BOLD, "true", "false")
-      checkToggleButtonModel(line.models[1], "Italics", TEXT_STYLE_ITALIC, "true", "false")
-      checkToggleButtonModel(line.models[2], "All Caps", TEXT_STYLE_UPPERCASE, "true", "false")
-    }
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW)
+    val builder = TextViewInspectorBuilder(util.editorProvider)
+    addRequiredProperties(util)
+    addOptionalProperties(util)
+    builder.attachToInspector(util.inspector, util.properties)
+    assertThat(util.inspector.lines).hasSize(12)
+    assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_FONT_FAMILY)
+    val line = util.inspector.lines[10].editorModel as HorizontalEditorPanelModel
+    assertThat(line.models).hasSize(3)
+    checkToggleButtonModel(line.models[0], "Bold", TEXT_STYLE_BOLD, "true", "false")
+    checkToggleButtonModel(line.models[1], "Italics", TEXT_STYLE_ITALIC, "true", "false")
+    checkToggleButtonModel(line.models[2], "All Caps", TEXT_STYLE_UPPERCASE, "true", "false")
   }
 
   @Test
   fun testTextAlignmentModel() {
-    runInEdtAndWait {
-      val util = InspectorTestUtil(projectRule, TEXT_VIEW)
-      val builder = TextViewInspectorBuilder(util.editorProvider)
-      addRequiredProperties(util)
-      addOptionalProperties(util)
-      builder.attachToInspector(util.inspector, util.properties)
-      val line = util.inspector.lines[11].editorModel as HorizontalEditorPanelModel
-      assertThat(line.models).hasSize(5)
-      checkToggleButtonModel(line.models[0], "Align Start of View", TEXT_ALIGN_LAYOUT_LEFT, TextAlignment.VIEW_START)
-      checkToggleButtonModel(line.models[1], "Align Start of Text", TEXT_ALIGN_LEFT, TextAlignment.TEXT_START)
-      checkToggleButtonModel(line.models[2], "Align Center", TEXT_ALIGN_CENTER, TextAlignment.CENTER)
-      checkToggleButtonModel(line.models[3], "Align End of Text", TEXT_ALIGN_RIGHT, TextAlignment.TEXT_END)
-      checkToggleButtonModel(line.models[4], "Align End of View", TEXT_ALIGN_LAYOUT_RIGHT, TextAlignment.VIEW_END)
-    }
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW)
+    val builder = TextViewInspectorBuilder(util.editorProvider)
+    addRequiredProperties(util)
+    addOptionalProperties(util)
+    builder.attachToInspector(util.inspector, util.properties)
+    val line = util.inspector.lines[11].editorModel as HorizontalEditorPanelModel
+    assertThat(line.models).hasSize(5)
+    checkToggleButtonModel(line.models[0], "Align Start of View", TEXT_ALIGN_LAYOUT_LEFT, TextAlignment.VIEW_START)
+    checkToggleButtonModel(line.models[1], "Align Start of Text", TEXT_ALIGN_LEFT, TextAlignment.TEXT_START)
+    checkToggleButtonModel(line.models[2], "Align Center", TEXT_ALIGN_CENTER, TextAlignment.CENTER)
+    checkToggleButtonModel(line.models[3], "Align End of Text", TEXT_ALIGN_RIGHT, TextAlignment.TEXT_END)
+    checkToggleButtonModel(line.models[4], "Align End of View", TEXT_ALIGN_LAYOUT_RIGHT, TextAlignment.VIEW_END)
   }
 
   private fun checkToggleButtonModel(model: PropertyEditorModel, description: String, icon: Icon,
@@ -120,39 +117,35 @@ class TextViewInspectorBuilderTest {
 
   @Test
   fun testNotAvailableWhenMissingRequiredProperty() {
-    runInEdtAndWait {
-      val util = InspectorTestUtil(projectRule, TEXT_VIEW)
-      val builder = TextViewInspectorBuilder(util.editorProvider)
-      for (missing in TextViewInspectorBuilder.REQUIRED_PROPERTIES) {
-        addRequiredProperties(util)
-        util.removeProperty(ANDROID_URI, missing)
-        builder.attachToInspector(util.inspector, util.properties)
-        assertThat(util.inspector.lines).isEmpty()
-      }
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW)
+    val builder = TextViewInspectorBuilder(util.editorProvider)
+    for (missing in TextViewInspectorBuilder.REQUIRED_PROPERTIES) {
+      addRequiredProperties(util)
+      util.removeProperty(ANDROID_URI, missing)
+      builder.attachToInspector(util.inspector, util.properties)
+      assertThat(util.inspector.lines).isEmpty()
     }
   }
 
   @Test
   fun testExpandableSections() {
-    runInEdtAndWait {
-      val util = InspectorTestUtil(projectRule, TEXT_VIEW)
-      val builder = TextViewInspectorBuilder(util.editorProvider)
-      addRequiredProperties(util)
-      util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
-      builder.attachToInspector(util.inspector, util.properties)
-      assertThat(util.inspector.lines).hasSize(11)
-      val title = util.inspector.lines[0]
-      val textAppearance = util.inspector.lines[4]
-      assertThat(title.expandable).isTrue()
-      assertThat(title.expanded).isTrue()
-      assertThat(title.childProperties)
-        .containsExactly(ATTR_TEXT, ATTR_TEXT, ATTR_CONTENT_DESCRIPTION, ATTR_TEXT_APPEARANCE).inOrder()
-      assertThat(textAppearance.expandable).isTrue()
-      assertThat(textAppearance.expanded).isFalse()
-      assertThat(textAppearance.childProperties)
-        .containsExactly(ATTR_FONT_FAMILY, ATTR_TYPEFACE, ATTR_TEXT_SIZE, ATTR_LINE_SPACING_EXTRA, ATTR_TEXT_COLOR,
-                         ATTR_TEXT_STYLE).inOrder()
-    }
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW)
+    val builder = TextViewInspectorBuilder(util.editorProvider)
+    addRequiredProperties(util)
+    util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
+    builder.attachToInspector(util.inspector, util.properties)
+    assertThat(util.inspector.lines).hasSize(11)
+    val title = util.inspector.lines[0]
+    val textAppearance = util.inspector.lines[4]
+    assertThat(title.expandable).isTrue()
+    assertThat(title.expanded).isTrue()
+    assertThat(title.childProperties)
+      .containsExactly(ATTR_TEXT, ATTR_TEXT, ATTR_CONTENT_DESCRIPTION, ATTR_TEXT_APPEARANCE).inOrder()
+    assertThat(textAppearance.expandable).isTrue()
+    assertThat(textAppearance.expanded).isFalse()
+    assertThat(textAppearance.childProperties)
+      .containsExactly(ATTR_FONT_FAMILY, ATTR_TYPEFACE, ATTR_TEXT_SIZE, ATTR_LINE_SPACING_EXTRA, ATTR_TEXT_COLOR,
+                       ATTR_TEXT_STYLE).inOrder()
   }
 
   private fun addRequiredProperties(util: InspectorTestUtil) {
