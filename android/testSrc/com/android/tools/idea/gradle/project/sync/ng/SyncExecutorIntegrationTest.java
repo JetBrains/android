@@ -216,6 +216,39 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     verifyRequestedVariants(modelsByModule.get("library2"), asList("debug", "release"));
   }
 
+  public void testVariantOnlySyncWithDynamicApp() throws Throwable {
+    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+
+    prepareProjectForImport(DYNAMIC_APP);
+
+    Project project = getProject();
+    // Simulate that "release" variant is selected in both modules.
+    SelectedVariantCollectorMock variantCollector = new SelectedVariantCollectorMock(project);
+    variantCollector.setSelectedVariants("app", "release");
+    variantCollector.setSelectedVariants("feature1", "release");
+
+    // Request variant only sync for "app" -> "debug".
+    File buildId = getProjectFolderPath();
+    VariantOnlySyncOptions options = new VariantOnlySyncOptions(buildId, ":app", "debug");
+
+    SyncExecutor syncExecutor = new SyncExecutor(project, ExtraGradleSyncModelsManager.getInstance(),
+                                                 new CommandLineArgs(false /* don't apply Java library plugin */),
+                                                 new SyncErrorHandlerManager(project), variantCollector);
+    SyncListener syncListener = new SyncListener();
+    syncExecutor.syncProject(new MockProgressIndicator(), syncListener, options);
+    syncListener.await();
+
+    syncListener.propagateFailureIfAny();
+
+    VariantOnlyProjectModels models = syncListener.getVariantOnlyModels();
+    Map<String, VariantOnlyModuleModel> modelsByModuleId =
+      models.getModuleModels().stream().collect(toMap(VariantOnlyModuleModel::getModuleId, m -> m));
+
+    // Verify that feature module was also requested.
+    verifyRequestedVariants(modelsByModuleId.get(createUniqueModuleId(buildId, ":app")), singletonList("debug"));
+    verifyRequestedVariants(modelsByModuleId.get(createUniqueModuleId(buildId, ":feature1")), singletonList("debug"));
+  }
+
   private static void verifyRequestedVariants(@NotNull SyncModuleModels moduleModels, @NotNull List<String> requestedVariants) {
     AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
     assertNotNull(androidProject);
