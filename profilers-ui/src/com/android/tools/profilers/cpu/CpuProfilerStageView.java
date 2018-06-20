@@ -544,7 +544,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         .setEaseOut(myStage.getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
         .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
         .build();
-    parent.add(panel, new TabularLayout.Constraint(0, 0));
+    // Add the instructions panel as the first component of |parent|, so that |parent| renders the instructions on top of other components.
+    parent.add(panel, new TabularLayout.Constraint(0, 0), 0);
   }
 
   @Override
