@@ -141,7 +141,9 @@ object PropertyModelTestUtil {
 
       override var onEnter = {}
 
-      override fun cancelEditing() {}
+      override fun cancelEditing(): Boolean {
+        return true
+      }
 
       override fun requestFocus() {
         focusWasRequested = true

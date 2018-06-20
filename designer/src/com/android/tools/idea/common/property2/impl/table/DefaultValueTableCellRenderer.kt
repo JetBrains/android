@@ -21,6 +21,7 @@ import com.android.tools.adtui.ptable2.PTableColumn
 import com.android.tools.adtui.ptable2.PTableItem
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import javax.swing.JComponent
 
 class DefaultValueTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
@@ -30,6 +31,14 @@ class DefaultValueTableCellRenderer : SimpleColoredComponent(), PTableCellRender
     setPaintFocusBorder(hasFocus)
     font = table.activeFont
     append(item.value.orEmpty())
+    if (isSelected && hasFocus) {
+      foreground = UIUtil.getTreeSelectionForeground()
+      background = UIUtil.getTreeSelectionBackground()
+    }
+    else {
+      foreground = table.foregroundColor
+      background = table.backgroundColor
+    }
     border = JBUI.Borders.customLine(table.gridLineColor, 0, 1, 0, 0)
     return this
   }

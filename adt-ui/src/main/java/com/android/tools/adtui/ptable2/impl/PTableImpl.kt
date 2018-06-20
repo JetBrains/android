@@ -97,7 +97,7 @@ class PTableImpl(override val tableModel: PTableModel,
   override val itemCount: Int
     get() = rowCount
 
-  override var filter: String by Delegates.observable("", { _, oldValue, newValue -> filterChanged(oldValue, newValue) })
+  override var filter: String by Delegates.observable("") { _, oldValue, newValue -> filterChanged(oldValue, newValue) }
 
   override fun item(row: Int): PTableItem {
     return super.getValueAt(row, 0) as PTableItem
@@ -129,7 +129,7 @@ class PTableImpl(override val tableModel: PTableModel,
   fun startEditing(row: Int, column: Int) {
     selectRow(row)
     selectColumn(column)
-    startEditing(row, column, {})
+    startEditing(row, column) {}
   }
 
   override fun getModel(): PTableModelImpl {
@@ -252,20 +252,23 @@ class PTableImpl(override val tableModel: PTableModel,
     // only perform edit if we know the editor is capable of a quick toggle action.
     // We know that boolean editors switch their state and finish editing right away
     if (editor.isBooleanEditor) {
-      startEditing(row, column, { editor.toggleValue() })
+      startEditing(row, column) { editor.toggleValue() }
     }
   }
 
-  private fun startEditing(row: Int, column: Int, afterActivation: () -> Unit) {
+  // Start editing a table cell.
+  // Return true if an editor was successfully created, false if the cell was not editable.
+  private fun startEditing(row: Int, column: Int, afterActivation: () -> Unit?): Boolean {
     val editor = getCellEditor(row, 0)
     if (!editCellAt(row, column)) {
-      return
+      return false
     }
 
     IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
       editor.requestFocus()
       afterActivation()
     }
+    return true
   }
 
   override fun editingCanceled(event: ChangeEvent?) {
@@ -276,7 +279,9 @@ class PTableImpl(override val tableModel: PTableModel,
     // before stopping the cell editor.
     //
     // Do not remove the editor i.e. do not call the super method.
-    tableCellEditor.editor.cancelEditing()
+    if (tableCellEditor.editor.cancelEditing()) {
+      super.editingCanceled(event)
+    }
   }
 
   override fun removeEditor() {
@@ -304,7 +309,6 @@ class PTableImpl(override val tableModel: PTableModel,
 
     override fun actionPerformed(event: ActionEvent) {
       val row = selectedRow
-      val column = selectedColumn
       if (isEditing || row == -1) {
         return
       }
@@ -312,8 +316,12 @@ class PTableImpl(override val tableModel: PTableModel,
       val item = item(row)
       when {
         model.isGroupItem(item) -> toggleAndSelect(row)
-        toggleOnly -> quickEdit(row, column)
-        else -> startEditing(row, column, {})
+        toggleOnly -> quickEdit(row, 1)
+        else -> {
+          if (!startEditing(row, 0) {}) {
+            startEditing(row, 1) {}
+          }
+        }
       }
     }
   }
@@ -440,12 +448,11 @@ class PTableImpl(override val tableModel: PTableModel,
     override fun keyTyped(event: KeyEvent) {
       val table = this@PTableImpl
       val row = table.selectedRow
-      val column = table.selectedColumn
       if (table.isEditing || row == -1 || event.keyChar == '\t' || event.keyCode == KeyEvent.VK_ESCAPE) {
         return
       }
-      table.startEditing(row, column, {
-        ApplicationManager.getApplication().invokeLater {
+      val focusRequest = {
+        ApplicationManager.getApplication()?.invokeLater {
           IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
             val textEditor = IdeFocusManager.findInstance().focusOwner
             if (textEditor is JTextComponent) {
@@ -454,7 +461,10 @@ class PTableImpl(override val tableModel: PTableModel,
             }
           }
         }
-      })
+      }
+      if (!table.startEditing(row, 0, focusRequest)) {
+        table.startEditing(row, 1, focusRequest)
+      }
     }
   }
 
@@ -494,7 +504,7 @@ class PTableImpl(override val tableModel: PTableModel,
         pos.next(forwards)
         if (table.isCellEditable(pos.row, pos.column)) {
           table.setRowSelectionInterval(pos.row, pos.row)
-          table.startEditing(pos.row, pos.column, {})
+          table.startEditing(pos.row, pos.column) {}
           return table.editorComponent
         }
       }

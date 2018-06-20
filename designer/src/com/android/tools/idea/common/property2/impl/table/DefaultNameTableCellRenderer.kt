@@ -48,6 +48,14 @@ class DefaultNameTableCellRenderer : SimpleColoredComponent(), PTableCellRendere
       indent = max(iconCenterXPos - icon.iconWidth / 2, minSpacing)
       iconTextGap = max(leftIconArea - indent - icon.iconWidth, minSpacing)
     }
+    if (isSelected && hasFocus) {
+      foreground = UIUtil.getTreeSelectionForeground()
+      background = UIUtil.getTreeSelectionBackground()
+    }
+    else {
+      foreground = table.foregroundColor
+      background = table.backgroundColor
+    }
     ipad = Insets(0, indent, 0, 0)
     return this
   }

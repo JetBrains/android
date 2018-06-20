@@ -18,7 +18,6 @@ package com.android.tools.adtui.ptable2.item
 import com.android.tools.adtui.ptable2.*
 import com.android.tools.adtui.ptable2.impl.PTableModelImpl
 import org.mockito.Mockito
-import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.event.TableModelListener
 
@@ -68,23 +67,8 @@ class PTableTestModel(vararg items: PTableItem) : PTableModel {
   }
 }
 
-class DummyPTableCellEditor : PTableCellEditor {
-
+class DummyPTableCellEditor : DefaultPTableCellEditor() {
   override val editorComponent = JPanel()
-
-  override val value: String?
-    get() = null
-
-  override val isBooleanEditor: Boolean
-    get() = false
-
-  override fun toggleValue() {}
-
-  override fun requestFocus() {}
-
-  override fun cancelEditing() {}
-
-  override fun close(oldTable: PTable) {}
 }
 
 class DummyPTableCellEditorProvider : PTableCellEditorProvider {

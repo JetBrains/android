@@ -54,9 +54,11 @@ interface PTableCellEditor {
   fun requestFocus()
 
   /**
-   * Editing was cancelled.
+   * Called when editing was cancelled.
+   *
+   * Return true to stop cell editing. False to remain editing the cell.
    */
-  fun cancelEditing()
+  fun cancelEditing(): Boolean
 
   /**
    * Close is called when the editor is no longer used.
@@ -64,7 +66,7 @@ interface PTableCellEditor {
   fun close(oldTable: PTable)
 }
 
-class DefaultPTableCellEditor : PTableCellEditor {
+open class DefaultPTableCellEditor : PTableCellEditor {
 
   override val editorComponent: JComponent? = null
 
@@ -78,7 +80,7 @@ class DefaultPTableCellEditor : PTableCellEditor {
 
   override fun requestFocus() {}
 
-  override fun cancelEditing() {}
+  override fun cancelEditing(): Boolean { return true }
 
   override fun close(oldTable: PTable) {}
 }

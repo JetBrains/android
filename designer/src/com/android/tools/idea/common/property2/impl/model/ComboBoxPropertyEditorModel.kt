@@ -66,15 +66,16 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
     cancelEditing()
   }
 
-  override fun cancelEditing() {
+  override fun cancelEditing(): Boolean {
     if (isPopupVisible) {
       blockUpdates = true
       updateValueFromProperty()
       isPopupVisible = false
       blockUpdates = false
+      return false
     }
     else {
-      super.cancelEditing()
+      return super.cancelEditing()
     }
   }
 

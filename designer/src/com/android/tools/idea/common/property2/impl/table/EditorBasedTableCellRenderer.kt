@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.common.property2.impl.table
 
-import com.android.tools.adtui.common.AdtSecondaryPanel
-import com.android.tools.adtui.ptable2.*
+import com.android.tools.adtui.ptable2.PTable
+import com.android.tools.adtui.ptable2.PTableCellRenderer
+import com.android.tools.adtui.ptable2.PTableColumn
+import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.idea.common.property2.api.*
+import com.android.tools.idea.common.property2.impl.ui.CellPanel
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
 import javax.swing.Icon
@@ -49,14 +53,23 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     val key = ControlKey(controlType, icon)
     val (model, editor) = componentCache[key] ?: createEditor(key, property, column, table.gridLineColor)
     model.property = property
+    if (isSelected && hasFocus) {
+      editor.foreground = UIUtil.getTreeSelectionForeground()
+      editor.background = UIUtil.getTreeSelectionBackground()
+    }
+    else {
+      editor.foreground = table.foregroundColor
+      editor.background = table.backgroundColor
+    }
     return editor
   }
 
   private fun createEditor(key: ControlKey, property: P, column: PTableColumn, gridLineColor: Color): Pair<PropertyEditorModel, JComponent> {
     val (model, editor) = editorProvider.createEditor(property, asTableCellEditor = true)
-    val panel = AdtSecondaryPanel(BorderLayout())
+    val panel = CellPanel()
     panel.add(editor, BorderLayout.CENTER)
     panel.border = createBorder(column, editor, gridLineColor)
+
     val result = Pair(model, panel)
     componentCache[key] = result
     return result
