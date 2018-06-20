@@ -179,7 +179,6 @@ public class LinkExternalCppProjectDialog extends DialogWrapper {
     assert buildModel != null;
 
     AndroidModel android = buildModel.android();
-    assert android != null;
 
     if (myBuildSystemCombo.getSelectedItem() == BuildSystem.CMAKE) {
       android.externalNativeBuild().cmake().path().setValue(relativePath);

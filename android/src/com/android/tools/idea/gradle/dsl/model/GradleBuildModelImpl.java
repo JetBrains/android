@@ -296,7 +296,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
    * experimental dsl.</p>
    */
   @Override
-  @Nullable
+  @NotNull
   public AndroidModel android() {
     AndroidDslElement androidDslElement = myGradleDslFile.getPropertyElement(ANDROID_BLOCK_NAME, AndroidDslElement.class);
     if (androidDslElement == null) {
