@@ -246,6 +246,12 @@ public class GradleTaskFinderTest extends IdeaTestCase {
 
     assertThat(tasks).containsExactly(":testFindTasksToExecuteForCompilingJavaModuleAndTests:compileJava",
                                       ":testFindTasksToExecuteForCompilingJavaModuleAndTests:testClasses");
+
+    // check it also for TestCompileType.ALL
+    tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, myModules, COMPILE_JAVA, TestCompileType.ALL);
+    tasks = tasksPerProject.get(projectPath.toPath());
+    assertThat(tasks).containsExactly(":testFindTasksToExecuteForCompilingJavaModuleAndTests:compileJava",
+                                      ":testFindTasksToExecuteForCompilingJavaModuleAndTests:testClasses");
   }
 
   private void setUpModuleAsJavaModule() {
