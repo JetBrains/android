@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.ng;
+package com.android.tools.idea.gradle.project.sync.idea;
 
-import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
-import com.android.tools.idea.gradle.project.sync.ng.caching.CachedModuleModels;
-import com.intellij.openapi.module.Module;
+import com.android.tools.idea.gradle.project.sync.GradleSync;
+import com.android.tools.idea.gradle.project.sync.GradleSyncTestCase;
 import org.jetbrains.annotations.NotNull;
 
-class ModuleSetupInfo {
-  @NotNull final Module module;
-  @NotNull final GradleModuleModels moduleModels;
-  @NotNull final CachedModuleModels cachedModels;
-
-  ModuleSetupInfo(@NotNull Module module, @NotNull GradleModuleModels moduleModels, @NotNull CachedModuleModels cachedModels) {
-    this.module = module;
-    this.moduleModels = moduleModels;
-    this.cachedModels = cachedModels;
+/**
+ * Tests for {@link IdeaGradleSync}.
+ */
+public class IdeaGradleSyncTest extends GradleSyncTestCase {
+  @Override
+  @NotNull
+  protected GradleSync createGradleSync() {
+    return new IdeaGradleSync(getProject());
   }
 }

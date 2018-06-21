@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.builder.model.AndroidProject;
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.java.model.JavaProject;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradlePerProjectExperimentalSettings;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
-import com.android.tools.idea.gradle.project.sync.GradleSync;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModelFactory;
+import com.android.tools.idea.gradle.project.sync.*;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -36,8 +42,13 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.gradle.GradleScript;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.createProjectSetupFromCacheTaskWithStartMessage;
 
@@ -167,9 +178,9 @@ public class NewGradleSync implements GradleSync {
 
     SyncExecutionCallback callback = myCallbackFactory.create();
     callback.doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
-    if (request.variantOnlySyncOptions != null) {
+    if (request.myVariantOnlySyncOptions != null) {
       callback.doWhenDone(() -> myResultHandler.onVariantOnlySyncFinished(callback, setupRequest, indicator, syncListener));
-      mySyncExecutor.syncProject(indicator, callback, request.variantOnlySyncOptions);
+      mySyncExecutor.syncProject(indicator, callback, request.myVariantOnlySyncOptions);
     }
     else {
       callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, setupRequest, indicator, syncListener));
@@ -182,5 +193,54 @@ public class NewGradleSync implements GradleSync {
     if (ApplicationManager.getApplication().isUnitTestMode() && syncRequest.skipAndroidPluginUpgrade) {
       setupRequest.skipAndroidPluginUpgrade = true;
     }
+  }
+
+  @Override
+  @NotNull
+  public List<GradleModuleModels> fetchGradleModels(@NotNull ProgressIndicator indicator) {
+    List<SyncModuleModels> models = mySyncExecutor.fetchGradleModels(indicator);
+    ImmutableList.Builder<GradleModuleModels> builder = ImmutableList.builder();
+
+    IdeDependenciesFactory dependenciesFactory = new IdeDependenciesFactory();
+    JavaModuleModelFactory javaModelFactory = new JavaModuleModelFactory();
+    String emptyVariantName = "";
+
+    for (SyncModuleModels moduleModels : models) {
+      GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
+      if (gradleProject != null) {
+        String name = moduleModels.getModuleName();
+        PsdModuleModels newModels = new PsdModuleModels(name);
+        builder.add(newModels);
+
+        GradleScript buildScript = null;
+        try {
+          buildScript = gradleProject.getBuildScript();
+        }
+        catch (Throwable e) {
+          // Ignored. We got here because the project is using Gradle 1.8 or older.
+        }
+
+        File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
+        GradleModuleModel gradleModel = new GradleModuleModel(name, gradleProject, buildFilePath, null);
+        newModels.addModel(GradleModuleModel.class, gradleModel);
+
+        File moduleRootPath = gradleProject.getProjectDirectory();
+
+        AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
+        if (androidProject != null) {
+          AndroidModuleModel androidModel = new AndroidModuleModel(name, moduleRootPath, androidProject, emptyVariantName,
+                                                                   dependenciesFactory);
+          newModels.addModel(AndroidModuleModel.class, androidModel);
+        }
+        else {
+          JavaProject javaProject = moduleModels.findModel(JavaProject.class);
+          if (javaProject != null) {
+            JavaModuleModel javaModel = javaModelFactory.create(moduleRootPath, gradleProject, javaProject);
+            newModels.addModel(JavaModuleModel.class, javaModel);
+          }
+        }
+      }
+    }
+    return builder.build();
   }
 }
