@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.idea;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
+import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.CheckAndroidModuleWithoutVariantsStep;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -79,6 +80,7 @@ public class JavaModuleSetupTest extends IdeaTestCase {
 
   public void testSetUpAndroidModuleWithoutVariants() {
     when(myJavaModel.isAndroidModuleWithoutVariants()).thenReturn(true);
+    myModuleSetup = new JavaModuleSetup(new CheckAndroidModuleWithoutVariantsStep());
 
     Module module = getModule();
     // Add AndroidFacet to verify that is removed.
