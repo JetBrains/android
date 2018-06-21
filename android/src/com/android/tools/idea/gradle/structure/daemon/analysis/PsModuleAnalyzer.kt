@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.model.PsIssue
+import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.INFO
 import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.WARNING
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection
@@ -37,10 +37,9 @@ abstract class PsModuleAnalyzer<T : PsModule> protected constructor(protected va
     val declaredVersion = declaredSpec.version
     if (declaredVersion != null && declaredVersion.endsWith("+")) {
       val message = "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds."
-      val issue = PsIssue(message, "", path, PROJECT_ANALYSIS, WARNING)
-
-      val quickFix = PsLibraryDependencyVersionQuickFixPath(dependency, PsLibraryDependencyVersionQuickFixPath.DEFAULT_QUICK_FIX_TEXT)
-      issue.quickFixPath = quickFix
+      val issue = PsGeneralIssue(message, "", path, PROJECT_ANALYSIS, WARNING,
+                                 PsLibraryDependencyVersionQuickFixPath(dependency,
+                                                                        PsLibraryDependencyVersionQuickFixPath.DEFAULT_QUICK_FIX_TEXT))
 
       issueCollection.add(issue)
     }
@@ -50,7 +49,7 @@ abstract class PsModuleAnalyzer<T : PsModule> protected constructor(protected va
       val description = "To resolve version conflicts, Gradle by default uses the newest version of a dependency. " +
                         "<a href='https://docs.gradle.org/current/userguide/dependency_management.html'>Open Gradle " +
                         "documentation</a>"
-      val issue = PsIssue(message, description, path, PROJECT_ANALYSIS, INFO)
+      val issue = PsGeneralIssue(message, description, path, PROJECT_ANALYSIS, INFO)
       issueCollection.add(issue)
     }
   }

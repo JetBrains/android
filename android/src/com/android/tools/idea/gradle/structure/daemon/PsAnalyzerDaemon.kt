@@ -101,10 +101,8 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
       val text = String.format("Newer version available: <b>%1\$s</b> (%2\$s)", update.version, update.repository)
 
       val mainPath = PsLibraryDependencyNavigationPath(dependency)
-      val issue = PsIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, UPDATE)
-
-      val quickFix = PsLibraryDependencyVersionQuickFixPath(dependency, update.version, "[Update]")
-      issue.quickFixPath = quickFix
+      val issue = PsGeneralIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, UPDATE,
+                                 PsLibraryDependencyVersionQuickFixPath(dependency, update.version, "[Update]"))
 
       issues.add(issue)
       return true

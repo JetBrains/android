@@ -15,10 +15,7 @@ package com.android.tools.idea.gradle.structure.configurables.issues
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.suggestions.SuggestionsViewIssueRenderer
-import com.android.tools.idea.gradle.structure.model.PsIssue
-import com.android.tools.idea.gradle.structure.model.PsIssueType
-import com.android.tools.idea.gradle.structure.model.PsPath
-import com.android.tools.idea.gradle.structure.model.TestPath
+import com.android.tools.idea.gradle.structure.model.*
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Before
@@ -38,10 +35,8 @@ class SuggestionsViewIssueRendererTest {
     initMocks(this)
   }
 
-  private fun createIssue(testIssuePath: PsPath, quickFixPath: PsPath? = null) =
-      PsIssue("TEXT", "DESCRIPTION", testIssuePath, PsIssueType.PROJECT_ANALYSIS, PsIssue.Severity.ERROR).apply {
-        this.quickFixPath = quickFixPath
-      }
+  private fun createIssue(testIssuePath: PsPath, quickFixPath: PsPath? = null) : PsIssue =
+      PsGeneralIssue("TEXT", "DESCRIPTION", testIssuePath, PsIssueType.PROJECT_ANALYSIS, PsIssue.Severity.ERROR, quickFixPath)
 
   data class RenderResult(val header: String?, val details: String?)
 
