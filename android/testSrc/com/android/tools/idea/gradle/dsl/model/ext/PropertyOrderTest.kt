@@ -274,7 +274,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     assertSize(2, extProperties)
     verifyPropertyModel(extProperties[0], STRING_TYPE, "hello", STRING, REGULAR, 0, "prop1")
     verifyPropertyModel(extProperties[1], BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, "prop2")
-    val debug = buildModel.android()!!.buildTypes()[0]!!
+    val debug = buildModel.android().buildTypes()[0]!!
     val debugProperties = debug.declaredProperties
     assertSize(1, debugProperties)
     verifyPropertyModel(debugProperties[0], STRING_TYPE, "sneaky", REFERENCE, VARIABLE, 0, "var")
@@ -726,7 +726,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val buildModel = gradleBuildModel
-    val propertyModel = buildModel.android()!!.defaultConfig().minSdkVersion()
+    val propertyModel = buildModel.android().defaultConfig().minSdkVersion()
     verifyPropertyModel(propertyModel, INTEGER_TYPE, 20, INTEGER, REGULAR, 1, "minSdkVersion")
   }
 
@@ -748,8 +748,8 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
 
-    val minSdkModel = buildModel.android()!!.defaultConfig().minSdkVersion()
-    val maxSdkModel = buildModel.android()!!.defaultConfig().maxSdkVersion()
+    val minSdkModel = buildModel.android().defaultConfig().minSdkVersion()
+    val maxSdkModel = buildModel.android().defaultConfig().maxSdkVersion()
 
     verifyPropertyModel(minSdkModel, STRING_TYPE, "minSdk", REFERENCE, REGULAR, 0, "minSdkVersion")
     verifyPropertyModel(maxSdkModel, STRING_TYPE, "maxSdk", REFERENCE, REGULAR, 0, "maxSdkVersion")
@@ -773,8 +773,8 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
 
-    val minSdkModel = buildModel.android()!!.defaultConfig().minSdkVersion()
-    val maxSdkModel = buildModel.android()!!.defaultConfig().maxSdkVersion()
+    val minSdkModel = buildModel.android().defaultConfig().minSdkVersion()
+    val maxSdkModel = buildModel.android().defaultConfig().maxSdkVersion()
 
     verifyPropertyModel(minSdkModel, STRING_TYPE, "ext.minSdk", REFERENCE, REGULAR, 0, "minSdkVersion")
     verifyPropertyModel(maxSdkModel, STRING_TYPE, "ext.maxSdk", REFERENCE, REGULAR, 0, "maxSdkVersion")
@@ -804,7 +804,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val buildModel = gradleBuildModel
-    val configModel = buildModel.android()!!.signingConfigs()[0]!!
+    val configModel = buildModel.android().signingConfigs()[0]!!
     val fileModel = configModel.storeFile()
     val passwordModel = configModel.storePassword()
 

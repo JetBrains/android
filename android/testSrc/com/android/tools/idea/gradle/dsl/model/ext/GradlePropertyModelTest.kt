@@ -522,7 +522,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
 
     run {
-      val propertyModel = buildModel.android()?.defaultConfig()?.manifestPlaceholders()!!
+      val propertyModel = buildModel.android().defaultConfig().manifestPlaceholders()
       assertMissingProperty(propertyModel)
       propertyModel.getMapValue("key").setValue("true")
       verifyMapProperty(propertyModel, mapOf("key" to "true"))
@@ -536,7 +536,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
 
     run {
-      val propertyModel = buildModel.android()?.defaultConfig()?.manifestPlaceholders()!!
+      val propertyModel = buildModel.android().defaultConfig().manifestPlaceholders()
       verifyMapProperty(propertyModel, mapOf())
     }
   }
@@ -2750,7 +2750,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
 
     run {
-      val proguardFiles = buildModel.android()?.defaultConfig()?.proguardFiles()!!
+      val proguardFiles = buildModel.android().defaultConfig().proguardFiles()
       verifyListProperty(proguardFiles, listOf("getDefaultProguardFile('proguard-android.txt')", "proguard-rules2.txt"), DERIVED, 0)
       proguardFiles.addListValueAt(0).setValue("z.txt")
       proguardFiles.addListValueAt(2).setValue("proguard-rules.txt")
@@ -2765,7 +2765,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
 
     run {
-      val proguardFiles = buildModel.android()?.defaultConfig()?.proguardFiles()!!
+      val proguardFiles = buildModel.android().defaultConfig().proguardFiles()
       verifyListProperty(
           proguardFiles,
           listOf("z.txt", "getDefaultProguardFile('proguard-android.txt')", "proguard-rules.txt", "proguard-rules2.txt"),
@@ -3108,7 +3108,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
 
     run {
-      val defaultConfig = buildModel.android()!!.defaultConfig()
+      val defaultConfig = buildModel.android().defaultConfig()
       verifyPropertyModel(defaultConfig.minSdkVersion(), INTEGER_TYPE, 12, INTEGER, REGULAR, 1)
       verifyPropertyModel(defaultConfig.targetSdkVersion(), INTEGER_TYPE, 15, INTEGER, REGULAR, 1)
 
@@ -3123,7 +3123,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
 
     run {
-      val defaultConfig = buildModel.android()!!.defaultConfig()
+      val defaultConfig = buildModel.android().defaultConfig()
       verifyPropertyModel(defaultConfig.minSdkVersion(), INTEGER_TYPE, 18, INTEGER, REGULAR, 1)
       verifyPropertyModel(defaultConfig.targetSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1)
     }
@@ -3162,7 +3162,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val buildModel = subModuleGradleBuildModel
 
     run {
-      val defaultConfig = buildModel.android()!!.defaultConfig()
+      val defaultConfig = buildModel.android().defaultConfig()
       val properties = defaultConfig.inScopeProperties
       assertEquals(7, properties.entries.size)
 
@@ -3524,8 +3524,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
     val extProperties = buildModel.ext().declaredProperties
-    val androidProperties = buildModel.android()!!.declaredProperties
-    val debugProperties = buildModel.android()!!.buildTypes()[0].declaredProperties
+    val androidProperties = buildModel.android().declaredProperties
+    val debugProperties = buildModel.android().buildTypes()[0].declaredProperties
 
     assertSize(2, extProperties)
     assertSize(3, androidProperties)
@@ -3718,7 +3718,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertThat(listItem.expressionPsiElement!!.text, equalTo("'val2'"))
     assertThat(listItem.fullExpressionPsiElement!!.text, equalTo("'val2'"))
 
-    val configModel = buildModel.android()!!.signingConfigs()[0]!!
+    val configModel = buildModel.android().signingConfigs()[0]!!
     assertThat(configModel.storeFile().expressionPsiElement!!.text, equalTo("'my_file.txt'"))
     assertThat(configModel.storeFile().fullExpressionPsiElement!!.text, equalTo("file('my_file.txt')"))
     assertThat(configModel.storePassword().expressionPsiElement!!.text, equalTo("\"KSTOREPWD\""))
