@@ -263,7 +263,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
 
-    val storeFile = buildModel.android()!!.signingConfigs()[0]!!.storeFile()
+    val storeFile = buildModel.android().signingConfigs()[0]!!.storeFile()
     assertFalse(storeFile.isModified)
     storeFile.setValue("some_file_value.txt")
 
@@ -278,7 +278,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
     writeToBuildFile(testString)
 
     val buildModel = gradleBuildModel
-    val storePassword = buildModel.android()!!.signingConfigs()[0]!!.storePassword()
+    val storePassword = buildModel.android().signingConfigs()[0]!!.storePassword()
     assertFalse(storePassword.isModified);
 
     storePassword.setValue("nice")
@@ -347,7 +347,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
     writeToBuildFile(testString)
 
     val buildModel = gradleBuildModel
-    val listModel = buildModel.android()!!.defaultConfig().proguardFiles()
+    val listModel = buildModel.android().defaultConfig().proguardFiles()
     val firstModel = listModel.toList()!![0]
     val secondModel = listModel.toList()!![1]
 
@@ -385,7 +385,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
     writeToBuildFile("")
 
     val buildModel = gradleBuildModel
-    assertNotNull(buildModel.android()?.defaultConfig())
+    assertNotNull(buildModel.android().defaultConfig())
 
     verifyFileContents(myBuildFile, "")
   }

@@ -78,7 +78,7 @@ class SuggestionsViewTest {
     message = updatesGroup.findMessageMatching("support-compat:26.0.0 \\(app\\) : Newer version available:")
     assertNotNull(message)
     assertTrue (message!!.isActionActionAvailable())
-    message?.clickAction()
+    message.clickAction()
     suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(30))
 
     suggestionsConfigurable.waitForGroups("Updates")
@@ -92,7 +92,7 @@ class SuggestionsViewTest {
     message = updatesGroup.findMessageMatching("appcompat-v7:26.0.1 \\(app\\) : Newer version available:")
     assertNotNull(message)
     assertTrue (message!!.isActionActionAvailable())
-    message?.clickAction()
+    message.clickAction()
     suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(30))
 
     updatesGroup = suggestionsConfigurable.findGroup("Updates")

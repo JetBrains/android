@@ -98,13 +98,13 @@ class PropertyUtilTest : TransformTestCase() {
   fun testWriteBackElementWithTrimmedName() {
     val literal = createLiteral(name = "android.defaultConfig.applicationId")
     val buildModel = gradleBuildModel
-    val defaultConfigBlock = (buildModel.android()!!.defaultConfig() as ProductFlavorModelImpl).dslElement()
+    val defaultConfigBlock = (buildModel.android().defaultConfig() as ProductFlavorModelImpl).dslElement()
     defaultConfigBlock.setNewElement(literal)
     literal.setValue("hello")
 
     applyChangesAndReparse(buildModel)
 
-    val applicationId = buildModel.android()!!.defaultConfig().applicationId()
+    val applicationId = buildModel.android().defaultConfig().applicationId()
     assertThat(applicationId.psiElement!!.parent!!.text, equalTo("applicationId 'hello'"))
   }
 }

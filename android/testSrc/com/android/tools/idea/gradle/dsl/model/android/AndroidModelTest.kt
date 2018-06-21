@@ -32,7 +32,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "23.0.0", android!!.buildToolsVersion())
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
@@ -48,7 +48,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "23.0.0", android!!.buildToolsVersion())
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("flavorDimensions", listOf("abi", "version", "strawberry"), android.flavorDimensions())
@@ -99,7 +99,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "23.0.0", android!!.buildToolsVersion())
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "android-23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
@@ -120,7 +120,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "23.0.0", android!!.buildToolsVersion())
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
@@ -141,7 +141,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "23.0.0", android!!.buildToolsVersion())
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "android-23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
@@ -172,7 +172,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "21.0.0", android!!.buildToolsVersion())
+    assertEquals("buildToolsVersion", "21.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "android-21", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("flavorDimensions", listOf("abi1", "version1"), android.flavorDimensions())
@@ -194,7 +194,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
   }
 
@@ -216,7 +216,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
-    val buildTypes = android!!.buildTypes()
+    val buildTypes = android.buildTypes()
     assertThat(buildTypes).hasSize(2)
     val buildType1 = buildTypes[0]
     assertEquals("name", "type1", buildType1.name())
@@ -244,7 +244,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
-    val productFlavors = android!!.productFlavors()
+    val productFlavors = android.productFlavors()
     assertThat(productFlavors).hasSize(2)
     val flavor1 = productFlavors[0]
     assertEquals("name", "flavor1", flavor1.name())
@@ -269,7 +269,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
-    val externalNativeBuild = android!!.externalNativeBuild()
+    val externalNativeBuild = android.externalNativeBuild()
     checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl::class.java)
     val cmake = externalNativeBuild.cmake()
     checkForValidPsiElement(cmake, CMakeModelImpl::class.java)
@@ -294,7 +294,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "23.0.0", android!!.buildToolsVersion())
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
@@ -346,7 +346,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "23.0.0", android!!.buildToolsVersion())
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
@@ -400,7 +400,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    assertMissingProperty("buildToolsVersion", android!!.buildToolsVersion())
+    assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
     assertMissingProperty("defaultPublishConfig", android.defaultPublishConfig())
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
@@ -455,7 +455,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("flavorDimensions", listOf("abi", "version"), android!!.flavorDimensions())
+    assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
     android.flavorDimensions().getListValue("abi")!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
@@ -475,7 +475,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    assertMissingProperty("flavorDimensions", android!!.flavorDimensions())
+    assertMissingProperty("flavorDimensions", android.flavorDimensions())
 
     android.flavorDimensions().addListValue().setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
@@ -496,7 +496,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("flavorDimensions", listOf("abi"), android!!.flavorDimensions())
+    assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
 
     android.flavorDimensions().addListValue().setValue("version")
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
@@ -516,7 +516,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("flavorDimensions", listOf("abi", "version"), android!!.flavorDimensions())
+    assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
     android.flavorDimensions().addListValue().setValue("xyz")
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
@@ -536,7 +536,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("flavorDimensions", listOf("abi", "version"), android!!.flavorDimensions())
+    assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
     android.flavorDimensions().getListValue("version")!!.delete()
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
@@ -555,7 +555,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    checkForInValidPsiElement(android!!.defaultConfig(), ProductFlavorModelImpl::class.java)
+    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
     assertMissingProperty(android.defaultConfig().applicationId())
 
     android.defaultConfig().applicationId().setValue("foo.bar")
@@ -576,7 +576,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    assertThat(android!!.buildTypes()).isEmpty()
+    assertThat(android.buildTypes()).isEmpty()
 
     android.addBuildType("type")
     val buildTypes = android.buildTypes()
@@ -597,7 +597,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    assertThat(android!!.productFlavors()).isEmpty()
+    assertThat(android.productFlavors()).isEmpty()
 
     android.addProductFlavor("flavor")
     val productFlavors = android.productFlavors()
@@ -624,7 +624,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    var buildTypes = android!!.buildTypes()
+    var buildTypes = android.buildTypes()
     assertThat(buildTypes).hasSize(2)
     assertEquals("buildTypes", "type1", buildTypes[0].name())
     assertEquals("buildTypes", "type2", buildTypes[1].name())
@@ -656,7 +656,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    var productFlavors = android!!.productFlavors()
+    var productFlavors = android.productFlavors()
     assertThat(productFlavors).hasSize(2)
     assertEquals("productFlavors", "flavor1", productFlavors[0].name())
     assertEquals("productFlavors", "flavor2", productFlavors[1].name())
@@ -691,7 +691,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "23.0.0", android!!.buildToolsVersion())
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
@@ -727,7 +727,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    checkForInValidPsiElement(android!!, AndroidModelImpl::class.java)
+    checkForInValidPsiElement(android, AndroidModelImpl::class.java)
   }
 
   @Test
@@ -740,7 +740,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    android!!.addBuildType("type")
+    android.addBuildType("type")
     val buildTypes = android.buildTypes()
     assertThat(buildTypes).hasSize(1)
     buildTypes[0].applicationIdSuffix().setValue("suffix")
@@ -750,7 +750,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertThat(loadBuildFile()).contains("buildTypes")
 
     android = buildModel.android()
-    assertThat(android!!.buildTypes()).hasSize(1)
+    assertThat(android.buildTypes()).hasSize(1)
     android.removeBuildType("type")
     assertThat(android.buildTypes()).isEmpty()
 
@@ -768,7 +768,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    android!!.addProductFlavor("flavor")
+    android.addProductFlavor("flavor")
     val productFlavors = android.productFlavors()
     productFlavors[0].applicationId().setValue("appId")
     assertThat(productFlavors).hasSize(1)
@@ -778,7 +778,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertThat(loadBuildFile()).contains("productFlavors")
 
     android = buildModel.android()
-    assertThat(android!!.productFlavors()).hasSize(1)
+    assertThat(android.productFlavors()).hasSize(1)
     android.removeProductFlavor("flavor")
     assertThat(android.productFlavors()).isEmpty()
 
@@ -796,7 +796,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    android!!.addSigningConfig("config")
+    android.addSigningConfig("config")
     val signingConfigs = android.signingConfigs()
     assertThat(signingConfigs).hasSize(1)
     assertEquals("signingConfigs", "config", signingConfigs[0].name())
@@ -807,7 +807,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    assertThat(android!!.signingConfigs()).isEmpty() // Empty blocks are not saved to the file.
+    assertThat(android.signingConfigs()).isEmpty() // Empty blocks are not saved to the file.
   }
 
   @Test
@@ -820,7 +820,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    android!!.addSourceSet("set")
+    android.addSourceSet("set")
     val sourceSets = android.sourceSets()
     assertThat(sourceSets).hasSize(1)
     assertEquals("sourceSets", "set", sourceSets[0].name())
@@ -831,7 +831,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    assertThat(android!!.sourceSets()).isEmpty() // Empty blocks are not saved to the file.
+    assertThat(android.sourceSets()).isEmpty() // Empty blocks are not saved to the file.
   }
 
   @Test
@@ -844,7 +844,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    android!!.defaultConfig().applicationId().setValue("foo.bar")
+    android.defaultConfig().applicationId().setValue("foo.bar")
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId())
 
     applyChanges(buildModel)
@@ -853,7 +853,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    assertEquals("defaultConfig", "foo.bar", android!!.defaultConfig().applicationId())
+    assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId())
   }
 
   @Test
@@ -866,7 +866,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    android!!.addBuildType("type")
+    android.addBuildType("type")
     var buildTypes = android.buildTypes()
     assertThat(buildTypes).hasSize(1)
     var buildType = buildTypes[0]
@@ -889,7 +889,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    buildTypes = android!!.buildTypes()
+    buildTypes = android.buildTypes()
     assertThat(buildTypes).hasSize(1)
     buildType = buildTypes[0]
     assertEquals("buildTypes", "type", buildType.name())
@@ -906,7 +906,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    android!!.addProductFlavor("flavor")
+    android.addProductFlavor("flavor")
     var productFlavors = android.productFlavors()
     assertThat(productFlavors).hasSize(1)
     var productFlavor = productFlavors[0]
@@ -929,7 +929,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    productFlavors = android!!.productFlavors()
+    productFlavors = android.productFlavors()
     assertThat(productFlavors).hasSize(1)
     productFlavor = productFlavors[0]
     assertEquals("productFlavors", "flavor", productFlavor.name())
@@ -946,7 +946,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    android!!.addSigningConfig("config")
+    android.addSigningConfig("config")
     var signingConfigs = android.signingConfigs()
     assertThat(signingConfigs).hasSize(1)
     var signingConfig = signingConfigs[0]
@@ -969,7 +969,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    signingConfigs = android!!.signingConfigs()
+    signingConfigs = android.signingConfigs()
     assertThat(signingConfigs).hasSize(1)
     signingConfig = signingConfigs[0]
     assertEquals("signingConfigs", "config", signingConfig.name())
@@ -986,7 +986,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    android!!.addSourceSet("set")
+    android.addSourceSet("set")
     var sourceSets = android.sourceSets()
     assertThat(sourceSets).hasSize(1)
     var sourceSet = sourceSets[0]
@@ -1009,7 +1009,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    sourceSets = android!!.sourceSets()
+    sourceSets = android.sourceSets()
     assertThat(sourceSets).hasSize(1)
     sourceSet = sourceSets[0]
     assertEquals("sourceSets", "set", sourceSet.name())
@@ -1029,7 +1029,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("defaultConfig", "foo.bar", android!!.defaultConfig().applicationId())
+    assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId())
     checkForValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
 
     android.defaultConfig().applicationId().delete()
@@ -1044,7 +1044,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    assertMissingProperty(android!!.defaultConfig().applicationId())
+    assertMissingProperty(android.defaultConfig().applicationId())
     checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
   }
 
@@ -1064,7 +1064,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var buildTypes = android!!.buildTypes()
+    var buildTypes = android.buildTypes()
     assertThat(buildTypes).hasSize(2)
     assertEquals("buildTypes", "type1", buildTypes[0].name())
     assertEquals("buildTypes", "type2", buildTypes[1].name())
@@ -1083,7 +1083,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    buildTypes = android!!.buildTypes()
+    buildTypes = android.buildTypes()
     assertThat(buildTypes).hasSize(1)
     assertEquals("buildTypes", "type2", buildTypes[0].name())
   }
@@ -1103,7 +1103,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var productFlavors = android!!.productFlavors()
+    var productFlavors = android.productFlavors()
     assertThat(productFlavors).hasSize(2)
     assertEquals("productFlavors", "flavor1", productFlavors[0].name())
     assertEquals("productFlavors", "flavor2", productFlavors[1].name())
@@ -1122,7 +1122,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    productFlavors = android!!.productFlavors()
+    productFlavors = android.productFlavors()
     assertThat(productFlavors).hasSize(1)
     assertEquals("productFlavors", "flavor1", productFlavors[0].name())
   }
@@ -1142,7 +1142,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var signingConfigs = android!!.signingConfigs()
+    var signingConfigs = android.signingConfigs()
     assertThat(signingConfigs).hasSize(2)
     assertEquals("signingConfigs", "config1", signingConfigs[0].name())
     assertEquals("signingConfigs", "config2", signingConfigs[1].name())
@@ -1161,7 +1161,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    signingConfigs = android!!.signingConfigs()
+    signingConfigs = android.signingConfigs()
     assertThat(signingConfigs).hasSize(1)
     assertEquals("signingConfigs", "config1", signingConfigs[0].name())
   }
@@ -1181,7 +1181,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var sourceSets = android!!.sourceSets()
+    var sourceSets = android.sourceSets()
     assertThat(sourceSets).hasSize(2)
     assertEquals("sourceSets", "set1", sourceSets[0].name())
     assertEquals("sourceSets", "set2", sourceSets[1].name())
@@ -1200,7 +1200,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    sourceSets = android!!.sourceSets()
+    sourceSets = android.sourceSets()
     assertThat(sourceSets).hasSize(1)
     assertEquals("sourceSets", "set1", sourceSets[0].name())
   }
@@ -1215,7 +1215,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
     assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
 
@@ -1226,7 +1226,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
     assertMissingProperty(defaultConfig.applicationId())
     assertMissingProperty(defaultConfig.proguardFiles())
   }
@@ -1242,7 +1242,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
     assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
 
@@ -1255,7 +1255,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
     assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
     assertEquals("dimension", "abcd", defaultConfig.dimension())
@@ -1277,7 +1277,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "23.0.0", android!!.buildToolsVersion())
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
@@ -1312,7 +1312,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "24.0.0", android!!.buildToolsVersion())
+    assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
@@ -1333,7 +1333,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "23.0.0", android!!.buildToolsVersion())
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
 
     android.buildToolsVersion().setValue(22)
@@ -1351,7 +1351,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "22", android!!.buildToolsVersion())
+    assertEquals("buildToolsVersion", "22", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "21", android.compileSdkVersion())
   }
 
@@ -1366,7 +1366,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    assertMissingProperty("buildToolsVersion", android!!.buildToolsVersion())
+    assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
     assertMissingProperty("defaultPublishConfig", android.defaultPublishConfig())
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
@@ -1400,7 +1400,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "24.0.0", android!!.buildToolsVersion())
+    assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
@@ -1419,7 +1419,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    assertMissingProperty("buildToolsVersion", android!!.buildToolsVersion())
+    assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
 
     android.buildToolsVersion().setValue(22)
@@ -1437,7 +1437,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "22", android!!.buildToolsVersion())
+    assertEquals("buildToolsVersion", "22", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "21", android.compileSdkVersion())
   }
 
@@ -1452,7 +1452,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
-    assertEquals("flavorDimensions", listOf("abi", "version"), android!!.flavorDimensions())
+    assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
     android.flavorDimensions().getListValue("abi")!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
@@ -1463,7 +1463,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    assertEquals("flavorDimensions", listOf("xyz", "version"), android!!.flavorDimensions())
+    assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
   }
 
   @Test
@@ -1476,7 +1476,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    assertMissingProperty("flavorDimensions", android!!.flavorDimensions())
+    assertMissingProperty("flavorDimensions", android.flavorDimensions())
 
     android.flavorDimensions().addListValue().setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
@@ -1487,7 +1487,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    assertEquals("flavorDimensions", listOf("xyz"), android!!.flavorDimensions())
+    assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
   }
 
   @Test
@@ -1500,7 +1500,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
-    assertEquals("flavorDimensions", listOf("abi"), android!!.flavorDimensions())
+    assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
 
     android.flavorDimensions().addListValue().setValue("version")
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
@@ -1511,7 +1511,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    assertEquals("flavorDimensions", listOf("abi", "version"), android!!.flavorDimensions())
+    assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
   }
 
   @Test
@@ -1525,7 +1525,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
-    assertEquals("flavorDimensions", listOf("abi", "version"), android!!.flavorDimensions())
+    assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
     android.flavorDimensions().addListValue().setValue("xyz")
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
@@ -1536,7 +1536,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android!!.flavorDimensions())
+    assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
   }
 
   @Test
@@ -1549,7 +1549,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
-    assertEquals("flavorDimensions", listOf("abi", "version"), android!!.flavorDimensions())
+    assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
     android.flavorDimensions().getListValue("version")!!.delete()
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
@@ -1560,6 +1560,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    assertEquals("flavorDimensions", listOf("abi"), android!!.flavorDimensions())
+    assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
   }
 }
