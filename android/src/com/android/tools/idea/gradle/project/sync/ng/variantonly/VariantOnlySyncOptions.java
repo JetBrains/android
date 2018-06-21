@@ -26,9 +26,7 @@ public class VariantOnlySyncOptions implements Serializable {
   @NotNull public final String myGradlePath;
   @NotNull public final String myVariantName;
 
-  public VariantOnlySyncOptions(@NotNull File buildId,
-                                @NotNull String gradlePath,
-                                @NotNull String variantName) {
+  public VariantOnlySyncOptions(@NotNull File buildId, @NotNull String gradlePath, @NotNull String variantName) {
     myBuildId = buildId;
     myGradlePath = gradlePath;
     myVariantName = variantName;

@@ -321,7 +321,7 @@ public class BuildVariantUpdater {
         GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
         if (androidModel != null && gradleModel != null) {
           GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
-          request.variantOnlySyncOptions =
+          request.myVariantOnlySyncOptions =
             new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), buildVariantName);
           // TODO: It is not necessary to generate source for all modules, only the modules that have variant changes need to be re-generated.
           // Need to change generateSource functions to accept specified modules.

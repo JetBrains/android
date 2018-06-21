@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.setup.Facets;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.google.common.annotations.VisibleForTesting;

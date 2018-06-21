@@ -50,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.List;
 import java.util.Objects;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
@@ -260,6 +261,12 @@ public class GradleSyncInvoker {
     }
   }
 
+  @NotNull
+  public List<GradleModuleModels> fetchGradleModels(@NotNull Project project, @NotNull ProgressIndicator indicator) {
+    GradleSync gradleSync = NewGradleSync.isEnabled(project) ? new NewGradleSync(project) : new IdeaGradleSync(project);
+    return gradleSync.fetchGradleModels(indicator);
+  }
+
   public static class Request {
     public final GradleSyncStats.Trigger trigger;
 
@@ -269,7 +276,7 @@ public class GradleSyncInvoker {
     public boolean useCachedGradleModels;
     public boolean skipAndroidPluginUpgrade;
     // Perform a variant-only sync if not null.
-    @Nullable public VariantOnlySyncOptions variantOnlySyncOptions;
+    @Nullable public VariantOnlySyncOptions myVariantOnlySyncOptions;
 
     @NotNull
     public static Request projectLoaded() {
@@ -309,13 +316,13 @@ public class GradleSyncInvoker {
              generateSourcesOnSuccess == request.generateSourcesOnSuccess &&
              useCachedGradleModels == request.useCachedGradleModels &&
              trigger == request.trigger &&
-             Objects.equals(variantOnlySyncOptions, request.variantOnlySyncOptions);
+             Objects.equals(myVariantOnlySyncOptions, request.myVariantOnlySyncOptions);
     }
 
     @Override
     public int hashCode() {
       return Objects
-        .hash(runInBackground, cleanProject, generateSourcesOnSuccess, useCachedGradleModels, trigger, variantOnlySyncOptions);
+        .hash(runInBackground, cleanProject, generateSourcesOnSuccess, useCachedGradleModels, trigger, myVariantOnlySyncOptions);
     }
 
     @Override
@@ -326,7 +333,7 @@ public class GradleSyncInvoker {
              ", myGenerateSourcesOnSuccess=" + generateSourcesOnSuccess +
              ", myUseCachedGradleModels=" + useCachedGradleModels +
              ", myTrigger=" + trigger +
-             ", variantOnlySyncOptions=" + variantOnlySyncOptions +
+             ", variantOnlySyncOptions=" + myVariantOnlySyncOptions +
              '}';
     }
   }
