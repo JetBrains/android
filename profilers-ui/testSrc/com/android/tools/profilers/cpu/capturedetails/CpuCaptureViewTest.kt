@@ -20,9 +20,13 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.*
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ART
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE
 import com.android.tools.profilers.*
-import com.android.tools.profilers.cpu.*
+import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.cpu.CpuProfilerStageView
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils
+import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService

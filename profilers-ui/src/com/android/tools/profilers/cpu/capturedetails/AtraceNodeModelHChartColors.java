@@ -18,7 +18,6 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.cpu.CaptureModel;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;

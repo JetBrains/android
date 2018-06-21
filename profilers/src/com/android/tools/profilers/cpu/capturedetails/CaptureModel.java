@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu;
+package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profilers.cpu.capturedetails.BottomUpNode;
-import com.android.tools.profilers.cpu.capturedetails.BottomUpTreeModel;
-import com.android.tools.profilers.cpu.capturedetails.TopDownNode;
-import com.android.tools.profilers.cpu.capturedetails.TopDownTreeModel;
+import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.CpuCapture;
+import com.android.tools.profilers.cpu.CpuProfilerAspect;
+import com.android.tools.profilers.cpu.CpuProfilerStage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -85,7 +85,7 @@ public class CaptureModel {
     myCaptureConvertedRange.addDependency(myStage.getAspect()).onChange(Range.Aspect.RANGE, this::updateSelectionRange);
   }
 
-  void setCapture(@Nullable CpuCapture capture) {
+  public void setCapture(@Nullable CpuCapture capture) {
     if (myCapture == capture) {
       return;
     }
@@ -103,11 +103,11 @@ public class CaptureModel {
   }
 
   @Nullable
-  CpuCapture getCapture() {
+  public CpuCapture getCapture() {
     return myCapture;
   }
 
-  void setThread(int thread) {
+  public void setThread(int thread) {
     if (myThread == thread) {
       return;
     }
@@ -116,11 +116,11 @@ public class CaptureModel {
     myStage.getAspect().changed(CpuProfilerAspect.SELECTED_THREADS);
   }
 
-  int getThread() {
+  public int getThread() {
     return myThread;
   }
 
-  void setClockType(@NotNull ClockType type) {
+  public void setClockType(@NotNull ClockType type) {
     if (myClockType == type) {
       return;
     }
@@ -134,11 +134,11 @@ public class CaptureModel {
   }
 
   @NotNull
-  ClockType getClockType() {
+  public ClockType getClockType() {
     return myClockType;
   }
 
-  void setFilter(@Nullable Pattern filter) {
+  public void setFilter(@Nullable Pattern filter) {
     if (Objects.equals(filter, myFilter)) {
       return;
     }
@@ -146,7 +146,7 @@ public class CaptureModel {
     rebuildDetails();
   }
 
-  void setDetails(@Nullable Details.Type type) {
+  public void setDetails(@Nullable Details.Type type) {
     if (type != null && myDetails != null && type == myDetails.getType()) {
       return;
     }
@@ -154,7 +154,7 @@ public class CaptureModel {
   }
 
   @Nullable
-  Details getDetails() {
+  public Details getDetails() {
     return myDetails;
   }
 
@@ -412,6 +412,7 @@ public class CaptureModel {
     }
 
     private void selectionRangeChanged() {
+      assert myTopDownNode != null;
       myTopDownNode.update(mySelectionRange);
       if (myTopDownNode.getTotal() > 0) {
         double start = Math.max(myTopDownNode.getNodes().get(0).getStart(), mySelectionRange.getMin());
