@@ -24,6 +24,8 @@ import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,9 +58,16 @@ public class AndroidProfilerProgramRunner extends AndroidBaseProgramRunner {
       descriptor.setActivateToolWindowWhenAdded(false);
     }
 
-    ToolWindowManagerEx.getInstanceEx(env.getProject()).getToolWindow(AndroidProfilerToolWindowFactory.ID).show(null);
+    Project project = env.getProject();
+    ToolWindow window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
+    if (!window.isVisible()) {
+      // First unset the last run app info, showing the tool window can trigger the profiler to start profiling using the stale info.
+      // The most current run app info will be set in AndroidProfilerToolWindowLaunchTask instead.
+      project.putUserData(AndroidProfilerToolWindow.LAST_RUN_APP_INFO, null);
+      window.show(null);
+    }
 
-    AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(env.getProject());
+    AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project);
     if (profilerToolWindow != null) {
       // Prevents from starting profiling a pid restored by emulator snapshot or a pid that was previously alive.
       profilerToolWindow.disableAutoProfiling();

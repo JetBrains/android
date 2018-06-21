@@ -35,6 +35,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.resolveElement;
 
 /**
  * A Gradle artifact dependency. There are two notations supported for declaring a dependency on an external module. One is a string
@@ -57,6 +59,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
                                                                               ArtifactDependencyModel {
   @Nullable private GradleDslClosure myConfigurationElement;
   @NotNull private String myConfigurationName;
+  protected boolean mySetThrough = false;
 
   public ArtifactDependencyModelImpl(@Nullable GradleDslClosure configurationElement, @NotNull String configurationName) {
     myConfigurationElement = configurationElement;
@@ -114,6 +117,16 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
   }
 
   @Override
+  public void enableSetThrough() {
+    mySetThrough = true;
+  }
+
+  @Override
+  public void disableSetThrough() {
+    mySetThrough = false;
+  }
+
+  @Override
   @NotNull
   public String configurationName() {
     return myConfigurationName;
@@ -132,27 +145,36 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
       configurationElement = element.getClosureElement();
     }
     List<ArtifactDependencyModel> results = Lists.newArrayList();
-    if (!(element instanceof GradleDslSimpleExpression ||
-          element instanceof GradleDslExpressionMap ||
-          element instanceof GradleDslExpressionList)) {
+    // We can only create ArtifactDependencyModels from expressions, if for some reason we don't have an expression here (e.g form a
+    // parser bug) then don't create anything.
+    if (!(element instanceof GradleDslExpression)) {
       return ImmutableList.of();
     }
-    if (element instanceof GradleDslExpressionMap) {
-      MapNotation mapNotation = MapNotation.create(configurationName, (GradleDslExpressionMap)element, configurationElement);
+    GradleDslExpression resolved = (GradleDslExpression)element;
+    if (element instanceof GradleDslLiteral) {
+      GradleDslElement foundElement = followElement((GradleDslLiteral)element);
+      if (foundElement instanceof GradleDslExpression) {
+        resolved = (GradleDslExpression)foundElement;
+      }
+    }
+
+    if (resolved instanceof GradleDslExpressionMap) {
+      MapNotation mapNotation =
+        MapNotation.create(configurationName, (GradleDslExpressionMap)resolved, configurationElement);
       if (mapNotation != null) {
         results.add(mapNotation);
       }
     }
-    else if (element instanceof GradleDslMethodCall) {
-      String name = ((GradleDslMethodCall)element).getMethodName();
+    else if (resolved instanceof GradleDslMethodCall) {
+      String name = ((GradleDslMethodCall)resolved).getMethodName();
       if (!"project".equals(name) && !"fileTree".equals(name) && !"files".equals(name)) {
-        for (GradleDslElement argument : ((GradleDslMethodCall)element).getArguments()) {
+        for (GradleDslElement argument : ((GradleDslMethodCall)resolved).getArguments()) {
           results.addAll(create(configurationName, argument, configurationElement));
         }
       }
     }
-    else if (element instanceof GradleDslExpressionList) {
-      for (GradleDslSimpleExpression expression : ((GradleDslExpressionList)element).getSimpleExpressions()) {
+    else if (resolved instanceof GradleDslExpressionList) {
+      for (GradleDslSimpleExpression expression : ((GradleDslExpressionList)resolved).getSimpleExpressions()) {
         CompactNotation compactNotation = CompactNotation.create(configurationName, expression, configurationElement);
         if (compactNotation != null) {
           results.add(compactNotation);
@@ -190,7 +212,8 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
    */
   @NotNull
   private static String createCompactNotationForLiterals(@NotNull ArtifactDependencySpec spec) {
-    List<String> segments = Lists.newArrayList(spec.getGroup(), spec.getName(), spec.getVersion(), spec.getClassifier(), spec.getExtension());
+    List<String> segments =
+      Lists.newArrayList(spec.getGroup(), spec.getName(), spec.getVersion(), spec.getClassifier(), spec.getExtension());
     boolean shouldInterpolate = segments.stream().filter(Objects::nonNull).anyMatch(FakeArtifactElement::shouldInterpolate);
     String compact = spec.compactNotation();
     return shouldInterpolate ? iStr(compact) : compact;
@@ -268,7 +291,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
                                   @NotNull GradleDslSimpleExpression dslExpression,
                                   @Nullable GradleDslClosure configurationElement) {
       String value = dslExpression.getValue(String.class);
-      if (value == null) {
+      if (value == null || value.trim().isEmpty()) {
         return null;
       }
       return new CompactNotation(configurationName, dslExpression, configurationElement);
@@ -286,8 +309,9 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
                                                 @NotNull Function<ArtifactDependencySpec, String> getFunc,
                                                 @NotNull BiConsumer<ArtifactDependencySpec, String> setFunc,
                                                 boolean canDelete) {
+      GradleDslSimpleExpression element = mySetThrough ? resolveElement(myDslExpression) : myDslExpression;
       FakeElement fakeElement =
-        new FakeArtifactElement(myDslExpression.getParent(), GradleNameElement.fake(name), myDslExpression, getFunc, setFunc, canDelete);
+        new FakeArtifactElement(element.getParent(), GradleNameElement.fake(name), element, getFunc, setFunc, canDelete);
       return GradlePropertyModelBuilder.create(fakeElement).addTransform(new FakeElementTransform()).asMethod(true).buildResolved();
     }
 

@@ -40,7 +40,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,7 +77,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
                                       @Nullable AttributeDefinition attributeDefinition,
                                       @NotNull List<NlComponent> components,
                                       @NotNull PropertiesManager propertiesManager) {
-    if (attributeDefinition != null && attributeDefinition.getFormats().contains(AttributeFormat.Flags)) {
+    if (attributeDefinition != null && attributeDefinition.getFormats().contains(AttributeFormat.FLAGS)) {
       return new NlFlagPropertyItem(name, attributeDefinition, components, propertiesManager);
     }
     else if (name.getLocalName().equals(SdkConstants.ATTR_ID)) {
@@ -345,7 +345,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   }
 
   private boolean isBooleanEditor() {
-    return myDefinition != null && myDefinition.getFormats().contains(AttributeFormat.Boolean);
+    return myDefinition != null && myDefinition.getFormats().contains(AttributeFormat.BOOLEAN);
   }
 
   protected void setValueIgnoreDefaultValue(@Nullable String attrValue, @Nullable Runnable valueUpdated) {

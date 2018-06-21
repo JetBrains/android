@@ -15,31 +15,23 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.annotations.Nullable;
-import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.avdmanager.AvdManagerUtils;
 import com.android.tools.idea.device.DeviceArtPainter;
 import com.android.tools.idea.npw.FormFactor;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.ide.common.rendering.HardwareConfigHelper.*;
 
@@ -70,6 +62,31 @@ public class DeviceMenuAction extends DropDownAction {
     }
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
+    }
+  }
+
+  public void nextDevice(AnActionEvent e) {
+    Configuration config = myRenderContext.getConfiguration();
+    if (config == null) {
+      return;
+    }
+    Device current = config.getDevice();
+    if (current == null) {
+      return;
+    }
+
+    AnAction[] action = getChildren(null);
+    // filter Separator.
+    List<DeviceAction> actions = Arrays.stream(action)
+                                       .filter(a -> a instanceof DeviceAction)
+                                       .map(a -> (DeviceAction) a)
+                                       .collect(Collectors.toList());
+
+    Optional<DeviceAction> currentActions = actions.stream().filter(a -> a.getDevice() == current).findFirst();
+    if (currentActions.isPresent()) {
+      int index = actions.indexOf(currentActions.get());
+      DeviceAction nextAction = actions.get((index + 1) % actions.size());
+      nextAction.actionPerformed(e);
     }
   }
 
@@ -146,7 +163,6 @@ public class DeviceMenuAction extends DropDownAction {
     }
     Device current = configuration.getDevice();
     ConfigurationManager configurationManager = configuration.getConfigurationManager();
-    List<Device> deviceList = configurationManager.getDevices();
 
     if (LIST_RECENT_DEVICES) {
       List<Device> recent = configurationManager.getDevices();
@@ -164,147 +180,60 @@ public class DeviceMenuAction extends DropDownAction {
       }
     }
 
-    AndroidFacet facet = AndroidFacet.getInstance(configurationManager.getModule());
-    if (facet == null) {
-      // Unlikely, but has happened - see http://b.android.com/68091
-      return true;
-    }
+    Map<DeviceGroup, List<Device>> groupedDevices = DeviceUtils.getSuitableDevices(configuration);
 
-    if (!deviceList.isEmpty()) {
-      Map<String, List<Device>> manufacturers = new TreeMap<>();
-      for (Device device : deviceList) {
-        String deviceId = device.getId();
-        if (Configuration.CUSTOM_DEVICE_ID.equals(deviceId) || isAvd(device)) {
-          continue;
-        }
-        List<Device> devices;
-        if (manufacturers.containsKey(device.getManufacturer())) {
-          devices = manufacturers.get(device.getManufacturer());
-        }
-        else {
-          devices = new ArrayList<>();
-          manufacturers.put(device.getManufacturer(), devices);
-        }
-        devices.add(device);
-      }
-      List<Device> nexus = new ArrayList<>();
-      Map<FormFactor, List<Device>> deviceMap = Maps.newEnumMap(FormFactor.class);
-      for (FormFactor factor : FormFactor.values()) {
-        deviceMap.put(factor, Lists.newArrayList());
-      }
-      for (List<Device> devices : manufacturers.values()) {
-        for (Device device : devices) {
-          if (isNexus(device) && !device.getManufacturer().equals(HardwareConfig.MANUFACTURER_GENERIC)
-              && !isWear(device) && !isTv(device)) {
-            nexus.add(device);
-          }
-          else {
-            deviceMap.get(FormFactor.getFormFactor(device)).add(device);
-          }
-        }
-      }
-
-      sortDevicesByScreenSize(nexus);
-      for (List<Device> list : splitDevicesByScreenSize(nexus)) {
-        addNexusDeviceSection(this, current, list);
-        addSeparator();
-      }
-      addDeviceSection(this, current, deviceMap, false, FormFactor.WEAR);
-      addSeparator();
-      addDeviceSection(this, current, deviceMap, false, FormFactor.TV);
-      addSeparator();
-
-      add(new SetCustomDeviceAction(myRenderContext, current));
-      addSeparator();
-
-      AvdManager avdManager = AvdManagerUtils.getAvdManagerSilently(facet);
-      if (avdManager != null) {
-        boolean separatorNeeded = false;
-        for (AvdInfo avd : avdManager.getValidAvds()) {
-          Device device = configurationManager.createDeviceForAvd(avd);
-          if (device != null) {
-            String avdDisplayName = "AVD: " + avd.getName();
-            boolean selected = current != null && current.getDisplayName().equals(avdDisplayName);
-            Icon icon = selected ? AllIcons.Actions.Checked : getDeviceClassIcon(device);
-            add(new SetAvdAction(myRenderContext, device, avdDisplayName, icon));
-            separatorNeeded = true;
-          }
-        }
-
-        if (separatorNeeded) {
-          addSeparator();
-        }
-      }
-
-      DefaultActionGroup genericGroup = new DefaultActionGroup("_Generic Phones and Tablets", true);
-      sortDevicesByScreenSize(deviceMap.get(FormFactor.MOBILE));
-      addDeviceSection(genericGroup, current, deviceMap, true, FormFactor.MOBILE);
-      add(genericGroup);
-    }
-
+    addDeviceSection(groupedDevices.get(DeviceGroup.NEXUS), current);
+    addDeviceSection(groupedDevices.get(DeviceGroup.NEXUS_XL), current);
+    addDeviceSection(groupedDevices.get(DeviceGroup.NEXUS_TABLET), current);
+    addDeviceSection(groupedDevices.get(DeviceGroup.WEAR), current);
+    addDeviceSection(groupedDevices.get(DeviceGroup.TV), current);
+    addCustomDeviceSection(current);
+    addAvdDeviceSection(DeviceUtils.getAvdDevices(configuration), current);
+    addGenericDeviceSection(groupedDevices.get(DeviceGroup.GENERIC), current);
     add(new RunAndroidAvdManagerAction("Add Device Definition..."));
 
     return true;
   }
 
-  private static List<List<Device>> splitDevicesByScreenSize(List<Device> devices) {
-    List<List<Device>> lists = Lists.newArrayList();
-    List<Device> list = Lists.newArrayListWithExpectedSize(6);
-    int prevGroup = -1;
-    for (Device device : devices) {
-      int group = sizeGroup(device);
-      if (group != prevGroup) {
-        prevGroup = group;
-        list = Lists.newArrayListWithExpectedSize(6);
-        lists.add(list);
+  private void addDeviceSection(@NotNull List<Device> devices, @Nullable Device current) {
+    if (!devices.isEmpty()) {
+      boolean first = true;
+      for (final Device device : devices) {
+        String label = getLabel(device, isNexus(device));
+        Icon icon = first ? getDeviceClassIcon(device) : null;
+        add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
+        first = false;
       }
-      list.add(device);
-    }
-
-    return lists;
-  }
-
-  private static int sizeGroup(Device device) {
-    double diagonalLength = device.getDefaultHardware().getScreen().getDiagonalLength();
-    if (diagonalLength < 5) {
-      return 1;
-    }
-    else if (diagonalLength < 6.5) {
-      return 2;
-    }
-    else {
-      return 3;
+      addSeparator();
     }
   }
 
-  private void addNexusDeviceSection(@NotNull DefaultActionGroup group, @Nullable Device current, @NotNull List<Device> devices) {
-    boolean first = true;
-    for (final Device device : devices) {
-      String label = getLabel(device, true /*nexus*/);
-      Icon icon = first ? getDeviceClassIcon(device) : null;
-      first = false;
-      add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
-    }
+  private void addCustomDeviceSection(@Nullable Device currentDevice) {
+    add(new SetCustomDeviceAction(myRenderContext, currentDevice));
+    addSeparator();
   }
 
-  private void addDeviceSection(@NotNull DefaultActionGroup group,
-                                @Nullable Device current,
-                                @NotNull Map<FormFactor, List<Device>> deviceMap,
-                                boolean reverse,
-                                @NotNull FormFactor factor) {
-    List<Device> generic = deviceMap.get(factor);
-    if (reverse) {
-      Collections.reverse(generic);
-    }
-    boolean first = true;
-    for (final Device device : generic) {
-      if (isAvd(device)) {
-        continue;
+  private void addAvdDeviceSection(@NotNull List<Device> devices, @Nullable Device current) {
+    if (!devices.isEmpty()) {
+      for (final Device device : devices) {
+        boolean selected = current != null && current.getId().equals(device.getId());
+
+        String avdDisplayName = "AVD: " + device.getDisplayName();
+        Icon icon = selected ? AllIcons.Actions.Checked : null;
+        add(new SetAvdAction(myRenderContext, device, avdDisplayName, icon));
       }
-      String label = getLabel(device, isNexus(device));
-      Icon icon = first ? getDeviceClassIcon(device) : null;
-      group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
-      first = false;
+      addSeparator();
+    }
+  }
+
+  private void addGenericDeviceSection(@NotNull List<Device> devices, @Nullable Device current) {
+    if (!devices.isEmpty()) {
+      DefaultActionGroup genericGroup = new DefaultActionGroup("_Generic Phones and Tablets", true);
+      for (final Device device : devices) {
+        String label = getLabel(device, isNexus(device));
+        genericGroup.add(new SetDeviceAction(myRenderContext, label, device, null, current == device));
+      }
+      add(genericGroup);
     }
   }
 
@@ -321,11 +250,23 @@ public class DeviceMenuAction extends DropDownAction {
     return isNexus ? getNexusMenuLabel(device) : getGenericLabel(device);
   }
 
-  private static boolean isAvd(@NotNull Device device) {
-    return device.getId().startsWith(Configuration.AVD_ID_PREFIX);
+  protected abstract class DeviceAction extends ConfigurationAction {
+
+    DeviceAction(@NotNull ConfigurationHolder renderContext,
+                 @Nullable String title) {
+      super(renderContext, title);
+    }
+
+    @Override
+    protected final void updatePresentation(@NotNull Presentation presentation) {
+      DeviceMenuAction.this.updatePresentation(presentation);
+    }
+
+    @Nullable
+    abstract public Device getDevice();
   }
 
-  private class SetDeviceAction extends ConfigurationAction {
+  private class SetDeviceAction extends DeviceAction {
     private final Device myDevice;
 
     public SetDeviceAction(@NotNull ConfigurationHolder renderContext,
@@ -333,7 +274,7 @@ public class DeviceMenuAction extends DropDownAction {
                            @NotNull final Device device,
                            @Nullable Icon defaultIcon,
                            final boolean select) {
-      super(renderContext);
+      super(renderContext, null);
       myDevice = device;
       // The name of AVD device may contain underline character, but they should not be recognized as the mnemonic.
       getTemplatePresentation().setText(title, false);
@@ -346,11 +287,6 @@ public class DeviceMenuAction extends DropDownAction {
       else if (defaultIcon != null) {
         getTemplatePresentation().setIcon(defaultIcon);
       }
-    }
-
-    @Override
-    protected void updatePresentation(@NotNull Presentation presentation) {
-      DeviceMenuAction.this.updatePresentation(presentation);
     }
 
     @Override
@@ -383,13 +319,21 @@ public class DeviceMenuAction extends DropDownAction {
         configuration.setDevice(myDevice, true);
       }
     }
+
+    @NotNull
+    @Override
+    public Device getDevice() {
+      return myDevice;
+    }
   }
 
-  private class SetCustomDeviceAction extends ConfigurationAction {
-    private final Device myDevice;
+  private class SetCustomDeviceAction extends DeviceAction {
+    private static final String CUSTOM_DEVICE_NAME = "Custom";
+    @Nullable private final Device myDevice;
+    @Nullable private Device myCustomDevice;
 
-    public SetCustomDeviceAction(@NotNull ConfigurationHolder renderContext, @Nullable final Device device) {
-      super(renderContext, "Custom");
+    public SetCustomDeviceAction(@NotNull ConfigurationHolder renderContext, @Nullable Device device) {
+      super(renderContext, CUSTOM_DEVICE_NAME);
       myDevice = device;
       if (myDevice != null && Configuration.CUSTOM_DEVICE_ID.equals(myDevice.getId())) {
         getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
@@ -397,19 +341,22 @@ public class DeviceMenuAction extends DropDownAction {
     }
 
     @Override
-    protected void updatePresentation(@NotNull Presentation presentation) {
-      DeviceMenuAction.this.updatePresentation(presentation);
+    protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
+      if (myDevice != null) {
+        Device.Builder customBuilder = new Device.Builder(myDevice);
+        customBuilder.setTagId(myDevice.getTagId());
+        customBuilder.setName(CUSTOM_DEVICE_NAME);
+        customBuilder.setId(Configuration.CUSTOM_DEVICE_ID);
+        myCustomDevice = customBuilder.build();
+        configuration.getConfigurationManager().getDevices().add(myCustomDevice);
+        configuration.setEffectiveDevice(myCustomDevice, myDevice.getDefaultState());
+      }
     }
 
+    @Nullable
     @Override
-    protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
-      Device.Builder customBuilder = new Device.Builder(myDevice);
-      customBuilder.setTagId(myDevice.getTagId());
-      customBuilder.setName("Custom");
-      customBuilder.setId(Configuration.CUSTOM_DEVICE_ID);
-      Device custom = customBuilder.build();
-      configuration.getConfigurationManager().getDevices().add(custom);
-      configuration.setEffectiveDevice(custom, myDevice.getDefaultState());
+    public Device getDevice() {
+      return myCustomDevice;
     }
   }
 

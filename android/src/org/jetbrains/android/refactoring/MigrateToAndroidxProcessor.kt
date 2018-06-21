@@ -22,7 +22,6 @@ import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.google.common.collect.Range
@@ -34,9 +33,6 @@ import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.project.DumbModeTask
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.GeneratedSourcesFilter
 import com.intellij.openapi.ui.Messages
@@ -92,8 +88,8 @@ private fun getLibraryRevision(newGroupName: String, newArtifactName: String, de
 }
 
 open class MigrateToAndroidxProcessor(val project: Project,
-                                 private val migrationMap: List<AppCompatMigrationEntry>,
-                                 versionProvider: ((String, String, String) -> String)? = null) : BaseRefactoringProcessor(project) {
+                                      private val migrationMap: List<AppCompatMigrationEntry>,
+                                      versionProvider: ((String, String, String) -> String)? = null) : BaseRefactoringProcessor(project) {
   private val elements: MutableList<PsiElement> = ArrayList()
   private val refsToShorten: MutableList<SmartPsiElementPointer<PsiElement>> = ArrayList()
   private val versionProvider = versionProvider ?: ::getLibraryRevision
@@ -105,8 +101,8 @@ open class MigrateToAndroidxProcessor(val project: Project,
     val migration = PsiMigrationManager.getInstance(project).startMigration()
     for (entry in migrationMap) {
       when (entry) {
-        is PackageMigrationEntry -> AndroidRefactoringUtil.findOrCreatePackage(project, migration, entry.myOldName)
-        is ClassMigrationEntry -> AndroidRefactoringUtil.findOrCreateClass(project, migration, entry.myOldName)
+        is PackageMigrationEntry -> findOrCreatePackage(project, migration, entry.myOldName)
+        is ClassMigrationEntry -> findOrCreateClass(project, migration, entry.myOldName)
       }
     }
     return migration
@@ -220,15 +216,8 @@ open class MigrateToAndroidxProcessor(val project: Project,
     }
 
     if (usages.any { it is MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo }) {
-      // If we modified gradle entries, request sync
-      DumbService.getInstance(project).queueTask(object: DumbModeTask() {
-        override fun performInDumbMode(indicator: ProgressIndicator) {
-          val syncRequest = GradleSyncInvoker.Request.projectModified()
-          syncRequest.generateSourcesOnSuccess = true
-          syncRequest.runInBackground = false
-          GradleSyncInvoker.getInstance().requestProjectSync(project, syncRequest)
-        }
-      })
+      // If we modified gradle entries, request sync.
+      syncBeforeFinishingRefactoring(myProject)
     }
   }
 
@@ -260,16 +249,16 @@ open class MigrateToAndroidxProcessor(val project: Project,
 
   override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
     val filtered = refUsages.get().filter {
-        when (it) {
-          is ClassMigrationUsageInfo -> {
-            return@filter it.mapEntry.myOldName != it.mapEntry.myNewName
-          }
-          is PackageMigrationUsageInfo -> {
-            return@filter it.mapEntry.myOldName != it.mapEntry.myNewName
-          }
-          else -> true
+      when (it) {
+        is ClassMigrationUsageInfo -> {
+          return@filter it.mapEntry.myOldName != it.mapEntry.myNewName
         }
-      }.toTypedArray()
+        is PackageMigrationUsageInfo -> {
+          return@filter it.mapEntry.myOldName != it.mapEntry.myNewName
+        }
+        else -> true
+      }
+    }.toTypedArray()
 
     if (filtered.isEmpty()) {
       if (!ApplicationManager.getApplication().isUnitTestMode) {
@@ -364,11 +353,12 @@ open class MigrateToAndroidxProcessor(val project: Project,
       for (dep in dependencies.all()) {
         if (dep is ArtifactDependencyModel) {
           val compactDependencyNotation = dep.compactNotation()
-          val psiElement = dep.psiElement ?: continue
+          val psiElement = dep.completeModel().resultModel.expressionPsiElement ?: continue
           val gc = GradleCoordinate.parseCoordinateString(compactDependencyNotation) ?: continue
           val key: Pair<String, String> = Pair.create(gc.groupId, gc.artifactId)
           val entry = gradleDependencyEntries[key] ?: continue
-          gradleUsages.add(MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo(psiElement, entry, versionProvider))
+          gradleUsages.add(
+            MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo(psiElement, projectBuildModel, dep, entry, versionProvider))
         }
       }
 

@@ -52,6 +52,8 @@ import java.awt.*;
 import java.awt.event.InputEvent;
 import java.util.List;
 
+import static junit.framework.TestCase.assertTrue;
+
 /**
  * Fixture wrapping the the layout editor for a particular file
  */
@@ -133,6 +135,11 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   public boolean canInteractWithSurface() {
     return !myLoadingPanelFixture.hasError() && myDesignSurfaceFixture.target().isShowing();
+  }
+
+  public NlEditorFixture assertCanInteractWithSurface() {
+    assertTrue(canInteractWithSurface());
+    return this;
   }
 
   public boolean hasRenderErrors() {

@@ -31,6 +31,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
@@ -46,6 +47,12 @@ import java.io.File;
 import java.util.function.Predicate;
 
 public class AndroidProfilerToolWindow extends AspectObserver implements Disposable {
+
+  /**
+   * Key for storing the last app that was run when the profiler window was not opened. This allows the Profilers to start auto-profiling
+   * that app when the user opens the window at a later time.
+   */
+  static final Key<PreferredProcessInfo> LAST_RUN_APP_INFO = Key.create("Profiler.Last.Run.App");
 
   private static final String HIDE_STOP_PROMPT = "profilers.hide.stop.prompt";
 
@@ -80,11 +87,19 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     }
     myProfilers = new StudioProfilers(client, ideProfilerServices);
 
-    // Sets the preferred process. Note the always-false predicate, which prevents the Profilers to immediately starts profiling an app that
-    // is already running.
-    StartupManager
-      .getInstance(project)
-      .runWhenProjectIsInitialized(() -> myProfilers.setPreferredProcess(null, getPreferredProcessName(myProject), p -> false));
+    // Attempt to find the last-run process and start profiling it. This covers the case where the user presses "Run" (without profiling),
+    // but then opens the profiling window manually.
+    PreferredProcessInfo processInfo = myProject.getUserData(LAST_RUN_APP_INFO);
+    if (processInfo != null) {
+      myProfilers.setPreferredProcess(processInfo.deviceName, processInfo.processName, processInfo.processFilter);
+      myProject.putUserData(LAST_RUN_APP_INFO, null);
+    }
+    else {
+      // Note the always-false predicate, which prevents the Profilers from randomly start profiling.
+      StartupManager
+        .getInstance(project)
+        .runWhenProjectIsInitialized(() -> myProfilers.setPreferredProcess(null, getPreferredProcessName(myProject), p -> false));
+    }
 
     myIdeProfilerComponents = new IntellijProfilerComponents(myProject, myProfilers.getIdeServices().getFeatureTracker());
     myView = new StudioProfilersView(myProfilers, myIdeProfilerComponents);
@@ -114,8 +129,8 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
    * @param processPredicate Additional filter used for choosing the most desirable process. e.g. Process of a particular pid,
    *                         or process that starts after a certain time.
    */
-  public void profileModule(@NotNull Module module, @NotNull IDevice device, @Nullable Predicate<Common.Process> processPredicate) {
-    myProfilers.setPreferredProcess(getDeviceDisplayName(device), getModuleName(module), processPredicate);
+  public void profile(@NotNull PreferredProcessInfo processInfo) {
+    myProfilers.setPreferredProcess(processInfo.deviceName, processInfo.processName, processInfo.processFilter);
   }
 
   /**
@@ -190,7 +205,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   }
 
   @Nullable
-  private static String getModuleName(@NotNull Module module) {
+  static String getModuleName(@NotNull Module module) {
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
     if (moduleInfo != null) {
       String pkg = moduleInfo.getPackage();
@@ -207,7 +222,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
    * @return A string of the format: {Manufacturer Model}.
    */
   @NotNull
-  public static String getDeviceDisplayName(@NotNull IDevice device) {
+  static String getDeviceDisplayName(@NotNull IDevice device) {
     StringBuilder deviceNameBuilder = new StringBuilder();
     String manufacturer = ProfilerServiceProxy.getDeviceManufacturer(device);
     String model = ProfilerServiceProxy.getDeviceModel(device);
@@ -230,6 +245,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
    */
   private class AndroidProfilerWindowManagerListener extends ToolWindowManagerAdapter {
     private boolean myIsProfilingActiveBalloonShown = false;
+    private boolean myWasWindowExpanded = false;
 
     /**
      * How the profilers should respond to the tool window's state changes is as follow:
@@ -247,8 +263,11 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
 
       boolean hasAliveSession = SessionsManager.isSessionAlive(myProfilers.getSessionsManager().getProfilingSession());
 
-      boolean isWindowHidden = !window.isShowStripeButton();
-      if (isWindowHidden) {
+      boolean isWindowTabHidden = !window.isShowStripeButton(); // Profilers is removed from the toolbar.
+      boolean isWindowExpanded = window.isVisible(); // Profiler window is expanded.
+      boolean windowVisibilityChanged = isWindowExpanded == myWasWindowExpanded;
+      myWasWindowExpanded = isWindowExpanded;
+      if (isWindowTabHidden) {
         if (hasAliveSession) {
           boolean hidePrompt = myProfilers.getIdeServices().getTemporaryProfilerPreferences().getBoolean(HIDE_STOP_PROMPT, false);
           boolean confirm = hidePrompt || myIdeProfilerComponents.createUiMessageHandler().displayOkCancelMessage(
@@ -270,19 +289,39 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
         return;
       }
 
-      boolean isWindowVisible = window.isVisible();
-      if (isWindowVisible) {
+      if (isWindowExpanded) {
         myIsProfilingActiveBalloonShown = false;
+        if (windowVisibilityChanged) {
+          PreferredProcessInfo processInfo = myProject.getUserData(LAST_RUN_APP_INFO);
+          if (processInfo != null && Common.Session.getDefaultInstance().equals(myProfilers.getSession())) {
+            myProfilers.setPreferredProcess(processInfo.deviceName, processInfo.processName, processInfo.processFilter);
+          }
+        }
       }
-      else if (hasAliveSession && !myIsProfilingActiveBalloonShown) {
-        // Only shown the balloon if we detect the window is hidden for the first time.
-        myIsProfilingActiveBalloonShown = true;
-        String messageHtml = "A profiler session is running in the background.<br>" +
-                             (myProfilers.getIdeServices().getFeatureConfig().isSessionsEnabled() ?
-                              "To end the session, open the profiler and click the stop button in the Sessions pane." :
-                              "To end the session, open the profiler and click the \"End Session\" button");
-        ToolWindowManager.getInstance(myProject).notifyByBalloon(AndroidProfilerToolWindowFactory.ID, MessageType.INFO, messageHtml);
+      else {
+        myProfilers.setAutoProfilingEnabled(false);
+        if (hasAliveSession && !myIsProfilingActiveBalloonShown) {
+          // Only shown the balloon if we detect the window is hidden for the first time.
+          myIsProfilingActiveBalloonShown = true;
+          String messageHtml = "A profiler session is running in the background.<br>" +
+                               (myProfilers.getIdeServices().getFeatureConfig().isSessionsEnabled() ?
+                                "To end the session, open the profiler and click the stop button in the Sessions pane." :
+                                "To end the session, open the profiler and click the \"End Session\" button");
+          ToolWindowManager.getInstance(myProject).notifyByBalloon(AndroidProfilerToolWindowFactory.ID, MessageType.INFO, messageHtml);
+        }
       }
+    }
+  }
+
+  static class PreferredProcessInfo {
+    @NotNull private final String deviceName;
+    @NotNull private final String processName;
+    @NotNull private final Predicate<Common.Process> processFilter;
+
+    PreferredProcessInfo(@NotNull String deviceName, @NotNull String processName, @NotNull Predicate<Common.Process> processFilter) {
+      this.deviceName = deviceName;
+      this.processName = processName;
+      this.processFilter = processFilter;
     }
   }
 }

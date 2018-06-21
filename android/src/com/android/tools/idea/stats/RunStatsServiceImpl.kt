@@ -67,7 +67,9 @@ class RunStatsServiceImpl : RunStatsService() {
                                                      .build(), currentRun.packageName))
   }
 
-  override fun notifyStudioSectionFinished(isSuccessful: Boolean, isInstantRun: Boolean) {
+  override fun notifyStudioSectionFinished(isSuccessful: Boolean,
+                                           isInstantRun: Boolean,
+                                           userSelectedDeployTarget: Boolean) {
     val currentRun = myRun?: return
     synchronized(lock) {
       currentRun.studioProcessFinishedTimestamp = System.currentTimeMillis()
@@ -83,6 +85,7 @@ class RunStatsServiceImpl : RunStatsService() {
                                                                     currentRun.startTimestamp).toInt())
                                                      .setInstantRun(isInstantRun)
                                                      .setIsSuccessful(isSuccessful)
+                                                     .setUserSelectedTarget(userSelectedDeployTarget)
                                                      .build(), currentRun.packageName))
   }
 

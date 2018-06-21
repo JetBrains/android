@@ -20,13 +20,8 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.*
-import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType.INITIATED_BY_API
 import com.android.tools.profilers.*
-import com.android.tools.profilers.cpu.CpuProfilerStage.CaptureState.CAPTURING
-import com.android.tools.profilers.cpu.CpuProfilerStage.CaptureState.IDLE
-import com.android.tools.profilers.cpu.CpuProfilingConfigurationView.EDIT_CONFIGURATIONS_ENTRY
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService

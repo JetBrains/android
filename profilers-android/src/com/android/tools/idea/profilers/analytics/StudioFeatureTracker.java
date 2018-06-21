@@ -733,7 +733,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
         case INSTRUMENTED:
           cpuConfigInfo.setMode(CpuProfilingConfig.Mode.INSTRUMENTED);
           break;
-        case UNSTATED:
+        case UNSPECIFIED_MODE:
         case UNRECOGNIZED:
           break;
       }

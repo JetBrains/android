@@ -532,7 +532,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   @Test
   fun testBuildScriptAppliedDependencies() {
     val text = """
-                 buildscript {
+               buildscript {
                  apply from: 'versions.gradle'
                  dependencies {
                    classpath deps.android_gradle_plugin
@@ -629,7 +629,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     runApplyFileToChildrenTest("allprojects")
   }
 
-  private fun runApplyFileToChildrenTest(function : String) {
+  private fun runApplyFileToChildrenTest(function: String) {
     val text = """
                $function { project ->
                  apply from: "versions.gradle"
@@ -753,5 +753,40 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     prop2Model.setValue(ReferenceTo("repositories"))
     verifyPropertyModel(prop1Model.resolve(), STRING_TYPE, "android", UNKNOWN, REGULAR, 1)
     verifyPropertyModel(prop2Model.resolve(), STRING_TYPE, "repositories", REFERENCE, REGULAR, 0)
+  }
+
+  @Test
+  fun testRootProjectInAppliedFiles() {
+    val text = """
+               buildscript {
+                 ext.version = '1.0'
+               }
+
+               subprojects {
+                 apply from: 'versions.gradle'
+               }
+               """.trimIndent()
+    val appliedText = """
+                      rootProject.ext.greetings = "goodbye"
+                      rootProject.ext.dep = "good:dep:${'$'}{version}"
+                      """.trimIndent()
+    val childText = """
+                    ext.hello = greetings
+
+                    dependencies {
+                      compile dep
+                    }
+                    """.trimIndent()
+    writeToBuildFile(text)
+    writeToNewProjectFile("versions.gradle", appliedText)
+    writeToSubModuleBuildFile(childText)
+    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+
+    val projectModel = ProjectBuildModel.get(myProject)
+    val childBuildModel = projectModel.getModuleBuildModel(mySubModule)!!
+    val artModel = childBuildModel.dependencies().artifacts()[0]!!
+
+    verifyPropertyModel(childBuildModel.ext().findProperty("hello").resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1)
+    verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "good:dep:1.0", STRING, REGULAR, 1)
   }
 }

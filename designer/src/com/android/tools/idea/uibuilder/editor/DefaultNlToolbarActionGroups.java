@@ -56,8 +56,9 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(SWITCH_ORIENTATION.registerForHiddenAction(new OrientationMenuAction(mySurface::getConfiguration, mySurface),
                                                          new ToggleDeviceOrientationAction(mySurface), mySurface, this));
     group.addSeparator();
-    group.add(NEXT_DEVICE.registerForHiddenAction(new DeviceMenuAction(mySurface::getConfiguration),
-                                                  new SwitchDeviceAction(mySurface), mySurface, this));
+    DeviceMenuAction menuAction = new DeviceMenuAction(mySurface::getConfiguration);
+    group.add(NEXT_DEVICE.registerForHiddenAction(menuAction, new NextDeviceAction(menuAction), mySurface, this));
+
     group.add(new TargetMenuAction(mySurface::getConfiguration));
     group.add(new ThemeMenuAction(mySurface::getConfiguration));
 

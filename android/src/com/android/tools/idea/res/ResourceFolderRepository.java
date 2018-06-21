@@ -463,6 +463,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
     }
     for (PsiFileResourceQueueEntry fileResource : myInitialScanState.myPsiFileResourceQueue) {
+      if (!fileResource.file.isValid()) {
+        continue;
+      }
+
       PsiFile file = psiManager.findFile(fileResource.file);
       if (file != null) {
         List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(fileResource.folderType);

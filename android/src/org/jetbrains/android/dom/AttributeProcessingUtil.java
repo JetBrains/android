@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom;
 
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;

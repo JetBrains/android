@@ -23,9 +23,9 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
 import org.jetbrains.ide.PooledThreadExecutor
 
-internal fun <I, O> ListenableFuture<I>.continueOnEdt(continuation: (I) -> O) =
+internal fun <I, O> ListenableFuture<I>.continueOnEdt(function: (I) -> O) =
   Futures.transform(
-    this, { continuation(it!!) },
+    this, { function(it!!) },
     {
       val application = ApplicationManager.getApplication()
       if (application.isDispatchThread) {
@@ -36,9 +36,17 @@ internal fun <I, O> ListenableFuture<I>.continueOnEdt(continuation: (I) -> O) =
       }
     })
 
-internal fun <I, O> ListenableFuture<I>.invokeLater(continuation: (I) -> O) =
+internal fun <T> ListenableFuture<T>.handleFailureOnEdt(function: (Throwable?) -> Unit): ListenableFuture<T> =
+  Futures.catching(this, Throwable::class.java) { ex ->
+    val application = ApplicationManager.getApplication()
+    if (application.isDispatchThread) function(ex)
+    else application.invokeLater({ function(ex) }, ModalityState.any())
+    null
+  }
+
+internal fun <I, O> ListenableFuture<I>.invokeLater(function: (I) -> O) =
   Futures.transform(
-    this, { continuation(it!!) },
+    this, { function(it!!) },
     {
       val application = ApplicationManager.getApplication()
       if (application.isUnitTestMode) {
@@ -49,5 +57,5 @@ internal fun <I, O> ListenableFuture<I>.invokeLater(continuation: (I) -> O) =
       }
     })
 
-internal fun <T> readOnPooledThread(block: () -> T): ListenableFuture<T> =
-  MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<T> { ReadAction.compute<T, Throwable>(block) }
+internal fun <T> readOnPooledThread(function: () -> T): ListenableFuture<T> =
+  MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<T> { ReadAction.compute<T, Throwable>(function) }

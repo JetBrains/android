@@ -250,30 +250,42 @@ public class BuildVariantUpdater {
                                                                  @NotNull AndroidModuleModel androidModel,
                                                                  @NotNull List<AndroidFacet> affectedFacets) {
     for (Library library : androidModel.getSelectedMainCompileLevel2Dependencies().getModuleDependencies()) {
-      String gradlePath = library.getProjectPath();
-      if (isEmpty(gradlePath)) {
-        continue;
-      }
-      String projectVariant = library.getVariant();
-      if (isNotEmpty(projectVariant)) {
+      if (isNotEmpty(library.getVariant()) && isNotEmpty(library.getProjectPath())) {
         Module dependencyModule = ProjectStructure.getInstance(project).getModuleFinder().findModuleFromLibrary(library);
-        if (dependencyModule == null) {
-          logAndShowUpdateFailure(projectVariant, String.format("Cannot find module with Gradle path '%1$s'.", gradlePath));
-          continue;
-        }
-
-        AndroidFacet dependencyFacet = AndroidFacet.getInstance(dependencyModule);
-        if (dependencyFacet == null) {
-          logAndShowUpdateFailure(projectVariant,
-                                  String.format("Cannot find 'Android' facet in module '%1$s'.", dependencyModule.getName()));
-          continue;
-        }
-
-        AndroidModuleModel dependencyModel = getAndroidModel(dependencyFacet, projectVariant);
-        if (dependencyModel != null) {
-          updateAffectedFacetsForAndroidModule(project, dependencyFacet, dependencyModel, projectVariant, affectedFacets);
-        }
+        updateDependencyModule(project, library.getProjectPath(), dependencyModule, library.getVariant(), affectedFacets);
       }
+    }
+
+    // Keep feature modules consistent with base module for Dynamic Apps
+    // TODO: if feature variant is exposed in the model, change this hard coded imposed 1:1 variant between base and feature
+    for (String gradlePath : androidModel.getAndroidProject().getDynamicFeatures()) {
+      if (isNotEmpty(gradlePath)) {
+        Module dependencyModule = ProjectStructure.getInstance(project).getModuleFinder().findModuleByGradlePath(gradlePath);
+        updateDependencyModule(project, gradlePath, dependencyModule, androidModel.getSelectedVariant().getName(), affectedFacets);
+      }
+    }
+  }
+
+  private static void updateDependencyModule(@NotNull Project project,
+                                             @NotNull String gradlePath,
+                                             @Nullable Module dependencyModule,
+                                             @NotNull String projectVariant,
+                                             @NotNull List<AndroidFacet> affectedFacets) {
+    if (dependencyModule == null) {
+      logAndShowUpdateFailure(projectVariant, String.format("Cannot find module with Gradle path '%1$s'.", gradlePath));
+      return;
+    }
+
+    AndroidFacet dependencyFacet = AndroidFacet.getInstance(dependencyModule);
+    if (dependencyFacet == null) {
+      logAndShowUpdateFailure(projectVariant,
+                              String.format("Cannot find 'Android' facet in module '%1$s'.", dependencyModule.getName()));
+      return;
+    }
+
+    AndroidModuleModel dependencyModel = getAndroidModel(dependencyFacet, projectVariant);
+    if (dependencyModel != null) {
+      updateAffectedFacetsForAndroidModule(project, dependencyFacet, dependencyModel, projectVariant, affectedFacets);
     }
   }
 

@@ -105,6 +105,40 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findSigningConfig("myConfig")!!, afterSync = true)
+  }
 
+  fun testSetProperties_undeclaredDebug() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    var project = PsProjectImpl(resolvedProject)
+
+    var appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val signingConfig = appModule.findSigningConfig("debug")
+    assertThat(appModule, notNullValue()); signingConfig!!
+
+    signingConfig.keyAlias = "ka".asParsed()
+
+    fun verifyValues(signingConfig: PsSigningConfig, afterSync: Boolean = false) {
+
+      val keyAlias = PsSigningConfig.SigningConfigDescriptors.keyAlias.bind(signingConfig).getValue()
+
+      assertThat(keyAlias.parsedValue.asTestValue(), equalTo("ka"))
+
+      if (afterSync) {
+        assertThat(keyAlias.parsedValue.asTestValue(), equalTo(keyAlias.resolved.asTestValue()))
+      }
+    }
+
+    verifyValues(signingConfig)
+
+    appModule.applyChanges()
+    requestSyncAndWait()
+    project = PsProjectImpl(resolvedProject)
+    appModule = project.findModuleByName("app") as PsAndroidModule
+    // Verify nothing bad happened to the values after the re-parsing.
+    verifyValues(appModule.findSigningConfig("debug")!!, afterSync = true)
   }
 }

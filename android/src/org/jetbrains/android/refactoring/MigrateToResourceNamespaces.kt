@@ -33,7 +33,6 @@ import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.module.Module
@@ -112,9 +111,11 @@ class MigrateToResourceNamespacesHandler : RefactoringActionHandler {
   }
 
   private fun invoke(module: Module) {
-    MigrateToResourceNamespacesProcessor(AndroidFacet.getInstance(module)!!).run {
-      setPreviewUsages(true)
-      run()
+    val processor = MigrateToResourceNamespacesProcessor(AndroidFacet.getInstance(module)!!)
+    processor.setPreviewUsages(true)
+
+    offerToCreateBackupAndRun(module.project, processor.commandName) {
+      processor.run()
     }
   }
 }
@@ -187,7 +188,7 @@ class MigrateToResourceNamespacesProcessor(
   private val invokingFacet: AndroidFacet
 ) : BaseRefactoringProcessor(invokingFacet.module.project) {
 
-  override fun getCommandName() = "Migrate to resource namespaces"
+  public override fun getCommandName() = "Migrate to resource namespaces"
 
   private val allFacets = AndroidUtils.getAllAndroidDependencies(invokingFacet.module, true) + invokingFacet
 
@@ -431,7 +432,7 @@ class MigrateToResourceNamespacesProcessor(
         }
         is CodeUsageInfo -> {
           usageInfo.classReference.bindToElement(
-            AndroidRefactoringUtil.findOrCreateClass(
+            findOrCreateClass(
               myProject,
               psiMigration,
               AndroidResourceUtil.packageToRClass(inferredPackage)
@@ -458,10 +459,7 @@ class MigrateToResourceNamespacesProcessor(
       progressIndicator.fraction = (index + 1) / totalFacets
     }
 
-    val application = ApplicationManager.getApplication()
-    if (!application.isUnitTestMode) {
-      application.invokeLater { AndroidRefactoringUtil.offerToSync(myProject, commandName) }
-    }
+    syncBeforeFinishingRefactoring(myProject)
   }
 
   /**

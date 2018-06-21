@@ -25,7 +25,7 @@ import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyl
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,16 +50,16 @@ class ResourcesCompletionProvider implements AttributeReferenceRendererEditor.Co
     }
 
     Set<ResourceType> acceptedTypes = EnumSet.noneOf(ResourceType.class);
-    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color)) {
+    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.COLOR)) {
       acceptedTypes.add(ResourceType.COLOR);
     }
-    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Dimension)) {
+    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.DIMENSION)) {
       acceptedTypes.add(ResourceType.DIMEN);
     }
-    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.String)) {
+    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.STRING)) {
       acceptedTypes.add(ResourceType.STRING);
     }
-    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Reference)) {
+    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.REFERENCE)) {
       acceptedTypes.addAll(ImmutableList
                              .of(ResourceType.LAYOUT, ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP, ResourceType.STYLE,
                                  ResourceType.ATTR, ResourceType.STRING, ResourceType.DIMEN, ResourceType.TRANSITION));

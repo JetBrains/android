@@ -49,6 +49,17 @@ public final class BuildModelContext {
   private final ClassToInstanceMap<BuildModelNotification> myNotifications = MutableClassToInstanceMap.create();
   @NotNull
   private final DependencyManager myDependencyManager;
+  @Nullable
+  private GradleDslFile myRootProjectFile;
+
+  public void setRootProjectFile(@NotNull GradleDslFile rootProjectFile) {
+    myRootProjectFile = rootProjectFile;
+  }
+
+  @Nullable
+  public GradleDslFile getRootProjectFile() {
+    return myRootProjectFile;
+  }
 
   @NotNull
   public static BuildModelContext create(@NotNull Project project) {
@@ -59,6 +70,7 @@ public final class BuildModelContext {
     myProject = project;
     myFileCache = new GradleDslFileCache(project);
     myDependencyManager = DependencyManager.create();
+    myRootProjectFile = null;
   }
 
   @NotNull
@@ -109,5 +121,15 @@ public final class BuildModelContext {
   @Nullable
   public GradleSettingsFile getOrCreateSettingsFile(@NotNull Project project) {
     return myFileCache.getOrCreateSettingsFile(project, this);
+  }
+
+  // This should normally not be used. Please use getOrCreateBuildFile
+  public void putBuildFile(@NotNull String name, @NotNull GradleDslFile buildFile) {
+    myFileCache.putBuildFile(name, buildFile);
+  }
+
+  @NotNull
+  public List<GradleDslFile> getAllRequestedFiles() {
+    return myFileCache.getAllFiles();
   }
 }

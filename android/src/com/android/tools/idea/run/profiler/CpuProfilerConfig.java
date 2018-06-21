@@ -115,28 +115,28 @@ public class CpuProfilerConfig {
       @NotNull
       @Override
       public String getName() {
-        return "Sampled (Java)";
+        return "Sample Java Methods";
       }
     },
     INSTRUMENTED_JAVA {
       @NotNull
       @Override
       public String getName() {
-        return "Instrumented (Java)";
+        return "Trace Java Methods";
       }
     },
     SAMPLED_NATIVE {
       @NotNull
       @Override
       public String getName() {
-        return "Sampled (Native)";
+        return "Sample C/C++ Functions";
       }
     },
     ATRACE {
       @NotNull
       @Override
       public String getName() {
-        return "System Trace";
+        return "Trace System Calls";
       }
     };
 

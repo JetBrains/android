@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.AndroidProject
+import com.android.tools.idea.gradle.structure.GradleResolver
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.TestProjectPaths.*
 import com.google.common.collect.Lists
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.util.Disposer
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 /**
  * Tests for [PsAndroidModule].
@@ -479,6 +483,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     appModule.buildTypes[0].jniDebuggable = true.asParsed()
     project.applyChanges()
+    assertThat(appModule).isSameAs(project.findModuleByGradlePath(":") as PsAndroidModule?)
 
     assertThat(appModule.resolvedModel).isNull()
     appModule.buildTypes.forEach { buildType ->
@@ -492,6 +497,87 @@ class PsAndroidModuleTest : DependencyTestCase() {
     }
     // TODO(b/110194207): Populate variant collection when unsynced.
     assertThat(appModule.variants).isEmpty()
+  }
+
+  fun testApplyChangesAndSyncReloadsResolvedValues() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+
+    (project.findModuleByGradlePath(":app") as PsAndroidModule?).let { appModule ->
+      assertNotNull(appModule); appModule!!
+
+      val debugBuildType = appModule.buildTypes.find { it.name == "debug" }!!
+      debugBuildType.jniDebuggable = true.asParsed()
+      project.applyChanges()
+      FileDocumentManager.getInstance().saveAllDocuments()
+      val resolver = GradleResolver()
+      val disposable = Disposer.newDisposable()
+      try {
+        val resolved = resolver.requestProjectResolved(project.ideProject, disposable)
+        project.refreshFrom(resolved.get(30, TimeUnit.SECONDS))
+
+        assertThat(appModule).isSameAs(project.findModuleByGradlePath(":app") as PsAndroidModule?)
+        assertThat(debugBuildType).isSameAs(appModule.buildTypes.find { it.name == "debug" })
+
+        assertThat(debugBuildType.jniDebuggable).isEqualTo(true.asParsed())
+        assertThat(PsBuildType.BuildTypeDescriptors.jniDebuggable.bind(debugBuildType).getValue().annotation).isNull()
+
+        assertThat(appModule.buildTypes.map { it.name }).containsExactly("debug", "release")
+        assertThat(appModule.productFlavors.map { it.name }).containsExactly("basic", "paid", "bar")
+        assertThat(appModule.signingConfigs.map { it.name }).containsExactly("myConfig", "debug")
+        assertThat(appModule.dependencies.items().map { "${it.joinedConfigurationNames} ${it.name}" }).containsExactly("api appcompat-v7")
+      }
+      finally {
+        Disposer.dispose(disposable)
+      }
+    }
+
+    (project.findModuleByGradlePath(":nested2:trans:deep2") as PsAndroidModule?).let { nestedModules ->
+      assertNotNull(nestedModules); nestedModules!!
+
+      val debugBuildType = nestedModules.buildTypes.find { it.name == "debug" }!!
+      debugBuildType.jniDebuggable = true.asParsed()
+      project.applyChanges()
+      FileDocumentManager.getInstance().saveAllDocuments()
+      val resolver = GradleResolver()
+      val disposable = Disposer.newDisposable()
+      try {
+        val resolved = resolver.requestProjectResolved(project.ideProject, disposable)
+        project.refreshFrom(resolved.get(30, TimeUnit.SECONDS))
+
+        assertThat(nestedModules).isSameAs(project.findModuleByGradlePath(":nested2:trans:deep2") as PsAndroidModule?)
+        assertThat(debugBuildType).isSameAs(nestedModules.buildTypes.find { it.name == "debug" })
+
+        assertThat(debugBuildType.jniDebuggable).isEqualTo(true.asParsed())
+        assertThat(PsBuildType.BuildTypeDescriptors.jniDebuggable.bind(debugBuildType).getValue().annotation).isNull()
+
+        assertThat(nestedModules.buildTypes.map { it.name }).containsExactly("debug", "release")
+        assertThat(nestedModules.productFlavors.map { it.name }).isEmpty()
+        assertThat(nestedModules.signingConfigs.map { it.name }).containsExactly("debug")
+        assertThat(nestedModules.dependencies.items().map { "${it.joinedConfigurationNames} ${it.name}" }).isEmpty()
+      }
+      finally {
+        Disposer.dispose(disposable)
+      }
+    }
+  }
+
+  fun testLoadingRootlessProject() {
+    loadProject(BASIC)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+
+    val module = project.findModuleByGradlePath(":") as PsAndroidModule?
+    assertNotNull(module); module!!
+
+    assertThat(module.buildTypes.map { it.name }).containsExactly("debug", "release")
+    assertThat(module.productFlavors.map { it.name }).isEmpty()
+    assertThat(module.signingConfigs.map { it.name }).containsExactly("myConfig", "debug")
+    assertThat(module.dependencies.items().map { "${it.joinedConfigurationNames} ${it.name}" })
+      .containsExactly("debugApi support-v13", "api support-v4")
   }
 
   fun testConfigurations() {

@@ -15,35 +15,25 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
-import com.android.SdkConstants.*
-import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.intellij.openapi.command.WriteCommandAction
 import icons.StudioIcons.NavEditor.Surface.DEEPLINK
+import org.jetbrains.annotations.TestOnly
 
-class NavDeeplinkInspectorProvider :
+class NavDeeplinkInspectorProvider(
+  @TestOnly private val dialogProvider: (NlComponent?, NlComponent) -> AddDeeplinkDialog =
+    { existing: NlComponent?, parent: NlComponent -> AddDeeplinkDialog(existing, parent) }) :
   NavListInspectorProvider<NavDeeplinkProperty>(NavDeeplinkProperty::class.java, DEEPLINK, "Deep Link") {
 
   override fun doAddItem(existing: NlComponent?, parents: List<NlComponent>, surface: DesignSurface?) {
     assert(parents.size == 1)
 
-    val deeplinkDialog = AddDeeplinkDialog(existing)
+    val deeplinkDialog = dialogProvider(existing, parents[0])
 
     if (deeplinkDialog.showAndGet()) {
-      WriteCommandAction.runWriteCommandAction(null, {
-        val realComponent = existing ?: run {
-          val tag = parents[0].tag.createChildTag(TAG_DEEP_LINK, null, null, false)
-          parents[0].model.createComponent(null, tag, parents[0], null, InsertType.CREATE)
-        }
-        realComponent.setAttribute(
-            AUTO_URI, ATTR_URI, deeplinkDialog.uri)
-        if (deeplinkDialog.autoVerify) {
-          realComponent.setAttribute(AUTO_URI, ATTR_AUTO_VERIFY, "true")
-        }
-      })
+      deeplinkDialog.save()
     }
   }
 

@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property2.support
 import com.android.SdkConstants
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import org.jetbrains.android.dom.attrs.AttributeDefinition
-import org.jetbrains.android.dom.attrs.AttributeFormat
+import com.android.ide.common.rendering.api.AttributeFormat
 
 /**
  * Temporary type resolver.
@@ -39,13 +39,13 @@ object TypeResolver {
 
     for (format in attribute.formats) {
       when (format) {
-        AttributeFormat.Boolean -> return NelePropertyType.THREE_STATE_BOOLEAN
-        AttributeFormat.Color -> return NelePropertyType.COLOR_OR_DRAWABLE // We dont know if a drawable is acceptable !!!
-        AttributeFormat.Dimension -> return NelePropertyType.DIMENSION
-        AttributeFormat.Float -> return NelePropertyType.FLOAT
-        AttributeFormat.Fraction -> return NelePropertyType.FRACTION
-        AttributeFormat.Integer -> return NelePropertyType.INTEGER
-        AttributeFormat.String -> return NelePropertyType.STRING
+        AttributeFormat.BOOLEAN -> return NelePropertyType.THREE_STATE_BOOLEAN
+        AttributeFormat.COLOR -> return NelePropertyType.COLOR_OR_DRAWABLE // We dont know if a drawable is acceptable !!!
+        AttributeFormat.DIMENSION -> return NelePropertyType.DIMENSION
+        AttributeFormat.FLOAT -> return NelePropertyType.FLOAT
+        AttributeFormat.FRACTION -> return NelePropertyType.FRACTION
+        AttributeFormat.INTEGER -> return NelePropertyType.INTEGER
+        AttributeFormat.STRING -> return NelePropertyType.STRING
         else -> {}
       }
     }

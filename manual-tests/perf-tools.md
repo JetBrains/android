@@ -34,15 +34,15 @@ The app presents two pulldowns.
 
 ![Profiler QA app screenshot][app]
 
-You use the first pulldown to chose a category (CPU, Memory, Network, Events)
-and the second pulldown to prepare a particular scenario (Perodic Usage, File
-Writing, etc.)
+You use the first pulldown to chose a category (CPU, Memory, Network, Events,
+etc.) and the second pulldown to prepare a particular scenario (Perodic Usage,
+File Writing, etc.)
 
 Once any scenario is selected, press the "run" button to test it. The scenario
-will run for a few seconds before stopping, at which point you can observe and
-confirm its effects.
+will run for some amount of time (anywhere from a few seconds to a minute)
+before stopping, at which point you can observe and confirm its effects.
 
-For convenience, you can aso press the "previous" and "next" buttons to
+For convenience, you can also press the "previous" and "next" buttons to
 navigate through all scenarios in the order presented in this document.
 
 ## Profilers
@@ -85,6 +85,110 @@ effects.**
 
 ![CPU - File Writing][cpu-file-write]
 
+### Native Code
+
+1. In the "Android Profiler" Toolbar, make sure you are on the CPU profiler.
+1. In the QA App, select the "Native Code" scenario.
+1. In the CPU profiler, make sure the selected configuration is set to
+   "Sampled (Native)" and press "Record"
+1. In the QA App, press the "run" button.
+1. After about five seconds, you should get a toast, showing the message
+   "Finished calling native code"
+1. In the CPU profiler, press "Stop" to finish the recording.
+1. In the "THREADS" view, scroll down and select the thread with a name which
+   will be something like "AsyncTask #3" or "AsyncTask #4" (the exact number may
+   be different).
+   * You'll know you found the right thread when you see a longer, solid, dark
+     bar.
+   because there should be a long, solid bar representing activity.
+1. **In the "Call Chart" view, you should see both blue (system) and
+   green (user) function calls.**
+   * You can zoom in on the area and confirm that the green function call is
+     called "DoExpensiveFpuCalculation".
+   * *Optional:* You can also type "Fpu" into the method filter to highlight the
+     native methods.
+
+![CPU - Native Code][cpu-native]
+
+---
+
+![CPU - Native Code w/ Filter][cpu-native-filter]
+
+### Startup Profiling
+
+1. Edit the run configuration for "app", going to the "Profiling" tab.
+1. Check the "Start recording a method trace on startup" option
+   * Feel free to leave the particular trace config on "Sampled (Java)", but if
+     you change it, just remember your choice for later.
+1. Press "OK" and return to the main editor view.
+1. Restart your profiling session by hitting the "profile" button.
+1. In the "Androd Profiler" toolbar, you should observe it automatically open
+   into the CPU profiler. A recording should already be in progress.
+1. Stop the recording.
+1. Look at the "Call Chart" view below.
+1. **Verify you see "ZygoteInit.main" and "ActivityThread.main" in the list of
+   methods.**
+   * This confirms the profiler started recording before the first activity
+     opened.
+1. **Don't forget**: Go back into the run configuration for "app" and uncheck
+   the "Start recording..." option.
+
+![CPU - Startup Profiling Configuration][cpu-startup-config]
+![CPU - Startup Profiling][cpu-startup]
+
+### System Tracing
+
+1. In the "Android Profiler" Toolbar, make sure you are on the CPU profiler.
+1. In the QA App, select the "Code With Trace Markers" scenario.
+1. In the CPU profiler, make sure the selected configuration is set to
+   "System Trace" and press "Record"
+1. In the QA App, press the "run" button.
+1. After about five seconds, you should get a toast, showing the message
+   "Computation finished"
+1. In the CPU profiler, press "Stop" to finish the recording.
+1. **Verify there's a "KERNEL" view (with one or more "CPU" entries).**
+1. In the "THREADS" view, scroll down and select the thread with a name which
+   will be something like "AsyncTask #3" or "AsyncTask #4" (the exact number may
+   be different).
+   * You'll know you found the right thread when you see a longer, solid, grey
+     bar. (It's grey because it makes calls to other threads and sleeps, waiting
+     for them)
+1. **In the "Trace Events" view, you should see a single dark green bar labelled
+   "CodeWithTraceMarkersTask#execute"**
+
+![CPU - Systrace][cpu-systrace]
+
+### Automatic Recording
+
+1. In the "Android Profiler" Toolbar, make sure you are on the CPU profiler.
+1. In the QA App, select the "Automatic Recording" scenario.
+1. In the QA App, press the "run" button.
+1. After about five seconds, you should get a toast, showing the message
+   "Computation finished"
+1. **Note that a recording was automatically started and stopped in the CPU
+   profiler without requiring explicitly pressing the "Record" button.**
+
+![CPU - Automatic Recording][cpu-automatic]
+
+### Export / Import Trace
+
+1. In the "Android Profiler", after you've performed at least one CPU recording,
+   you can find an option to export it to a file (a save icon present in the
+   left hand sessions view).
+1. Save the file anywhere you'd like, for example in "~/tmp" on Linux or Mac.
+1. In the same sessions panel, press the "+" button. Select the file you've
+   just saved.
+1. When prompted which process you want to analyze, choose ".profilertester"
+1. **Check that the CPU profiler is populated with the data you just exported.**
+
+![CPU - Export Trace][cpu-trace-export]
+
+---
+
+![CPU - Import Trace][session-import]
+
+![CPU - Select Process][cpu-trace-import]
+
 ## Memory
 
 ### Java Memory Allocaion
@@ -96,6 +200,7 @@ effects.**
    falling back to baseline**
 
 ![Memory - Java Memory Allocation][memory-alloc-java]
+
 ### Native Memory Allocaion
 
 1. In the "Android Profiler" Toolbar, make sure you are on the memory profiler.
@@ -135,6 +240,22 @@ effects.**
 ![Memory - Object Allocation][memory-jni-app]
 ![Memory - Object Allocation][memory-jni-studio]
 
+### Export / Import Heap Dump
+
+1. In the "Android Profiler", after you've performed at least one heap dump,
+   you can find an option to export it to a file (a save icon present in the
+   left hand sessions view).
+1. Save the file anywhere you'd like, for example in "~/tmp" on Linux or Mac.
+1. In the same sessions panel, press the "+" button. Select the file you've
+   just saved.
+1. **Check that the memory profiler is populated with the data you just
+   exported.**
+
+![Memory - Export Heap Dump][memory-heap-export]
+
+---
+
+![Memory - Import Heap Dump][session-import]
 
 ## Network
 
@@ -160,6 +281,89 @@ effects.**
    time a new download task starts**
 
 ![Network - OkHttp Request][network-okhttp]
+
+## Energy
+
+### Basic Profiling
+
+#### CPU
+
+1. In the "Android Profiler" Toolbar, make sure you are on the energy profiler.
+1. In the QA App, select the "CPU -> Periodic Usage" scenario.
+2. Press the "run" button
+3. In the energy profiler, you should see **five chunks of heavy energy usage**
+   attributed to CPU.
+
+![Energy - CPU][energy-basic-cpu]
+
+#### Network
+
+1. In the "Android Profiler" Toolbar, make sure you are on the energy profiler.
+1. In the QA App, select the "Network -> Http Request" scenario.
+1. Press the "run" button
+1. In the energy profiler, you should see **five chunks of light energy usage**
+   attributed to network.
+
+![Energy - Network][energy-basic-network]
+
+#### Location
+
+1. In the "Android Profiler" Toolbar, make sure you are on the energy profiler.
+1. In the QA App, select the "Location -> Update fine location with minimal
+   interval" scenario.
+1. Press the "run" button
+1. **Note**: This task takes about 30 seconds to complete.
+1. In the energy profiler, you should see **a 30s section of light energy
+   usage** attributed to location.
+
+![Energy - Location][energy-basic-location]
+
+### Events
+
+#### Wake Lock
+
+1. In the "Android Profiler" Toolbar, make sure you are on the energy profiler.
+1. In the QA App, select the "Background Tasks -> Wake Lock" scenario.
+1. Press the "run" button
+1. **Note**: This task takes about 30 seconds to complete.
+1. In the energy profiler in the system area, you should see **a wake lock
+   system event**.
+1. Select a range which overlaps the event. This will show a table which should
+   include the wake lock event. Select that row.
+1. **Ensure a "Wake Lock Details" view appears in a panel on the right and is
+   populated with relevant details and callstacks.**
+
+![Energy - Wake Lock][energy-wakelock]
+
+#### Jobs
+
+1. In the "Android Profiler" Toolbar, make sure you are on the energy profiler.
+1. In the QA App, select the "Background Tasks -> Single Job" scenario.
+1. Press the "run" button
+1. In the energy profiler in the system area, you should see **a short job
+   system event**.
+1. Select a range which overlaps the event. This will show a table which should
+   include the job event. Select that row.
+1. **Ensure a "Job Details" view appears in a panel on the right and is
+   populated with relevant details and callstacks.**
+
+![Energy - Jobs][energy-job]
+
+#### Location
+
+1. In the "Android Profiler" Toolbar, make sure you are on the energy profiler.
+1. In the QA App, select the "Location -> Update fine location with minimal
+   interval" scenario.
+1. Press the "run" button
+4. **Note**: This task takes about 30 seconds to complete.
+5. In the energy profiler in the system area, you should see **a location
+   system event**.
+6. Select a range which overlaps the event. This will show a table which should
+   include the location event. Select that row.
+7. **Ensure a "Location Details" view appears in a panel on the right and is
+   populated with relevant details and callstacks.**
+
+![Energy - Location][energy-location]
 
 ## Events
 
@@ -214,14 +418,30 @@ of whichever profiler you have selected.
 [app]: res/perf-tools/app.png
 [cpu-periodic]: res/perf-tools/cpu-periodic.png
 [cpu-file-write]: res/perf-tools/cpu-file-write.png
+[cpu-native]: res/perf-tools/cpu-native.png
+[cpu-native-filter]: res/perf-tools/cpu-native-filter.png
+[cpu-startup-config]: res/perf-tools/cpu-startup-config.png
+[cpu-startup]: res/perf-tools/cpu-startup.png
+[cpu-systrace]: res/perf-tools/cpu-systrace.png
+[cpu-automatic]: res/perf-tools/cpu-automatic.png
+[cpu-trace-export]: res/perf-tools/cpu-trace-export.png
+[cpu-trace-import]: res/perf-tools/cpu-trace-import.png
 [memory-alloc-java]: res/perf-tools/memory-alloc-java.png
 [memory-alloc-native]: res/perf-tools/memory-alloc-native.png
 [memory-alloc-object]: res/perf-tools/memory-alloc-object.png
 [memory-jni-app]: res/perf-tools/memory-jni-app.png
 [memory-jni-studio]: res/perf-tools/memory-jni-studio.png
+[memory-heap-export]: res/perf-tools/memory-heap-export.png
 [network-httpurl]: res/perf-tools/network-httpurl.png
 [network-okhttp]: res/perf-tools/network-okhttp.png
+[energy-basic-cpu]: res/perf-tools/energy-basic-cpu.png
+[energy-basic-network]: res/perf-tools/energy-basic-network.png
+[energy-basic-location]: res/perf-tools/energy-basic-location.png
+[energy-wakelock]: res/perf-tools/energy-wakelock.png
+[energy-job]: res/perf-tools/energy-job.png
+[energy-location]: res/perf-tools/energy-location.png
 [events-basic]: res/perf-tools/events-basic.png
 [events-typing]: res/perf-tools/events-typing.png
 [events-activity-enter]: res/perf-tools/events-activity-enter.png
 [events-activity-exit]: res/perf-tools/events-activity-exit.png
+[session-import]: res/perf-tools/session-import.png

@@ -105,7 +105,8 @@ class AndroidInlineUtil {
                                        @NotNull ErrorReporter errorReporter,
                                        @Nullable AndroidInlineTestConfig testConfig) {
     final Style style = data.myStyleElement;
-    final Map<AndroidAttributeInfo, String> attributeValues = AndroidRefactoringUtil.computeAttributeMap(style, errorReporter,
+    final Map<AndroidAttributeInfo, String> attributeValues = AndroidRefactoringUtil.computeAttributeMap(style,
+                                                                                                         errorReporter,
                                                                                                          AndroidBundle.message(
                                                                                                            "android.inline.style.title"));
     if (attributeValues == null) {

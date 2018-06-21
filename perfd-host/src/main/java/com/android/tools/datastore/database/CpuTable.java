@@ -37,6 +37,11 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
    */
   private static final int PROFILER_TYPE_COLUMN_TRACE_DATA = 2;
 
+  /**
+   * Profiler mode column number when querying trace data.
+   */
+  private static final int PROFILER_MODE_COLUMN_TRACE_DATA = 3;
+
   public enum CpuStatements {
     INSERT_THREAD_ACTIVITY,
     QUERY_THREAD_ACTIVITIES,
@@ -67,6 +72,8 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                   "TraceId INTEGER NOT NULL",
                   // We need profilerType to choose parser
                   "ProfilerType TEXT",
+                  // We need profiler mode to figure out the name of the profiling configuration used to generate the trace
+                  "ProfilerMode TEXT",
                   "Data BLOB");
       createTable("Cpu_Trace_Info",
                   "Session INTEGER NOT NULL",
@@ -98,9 +105,9 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                       "SELECT TraceInfo from Cpu_Trace_Info WHERE " +
                       "Session = ? AND ((StartTime < ? AND ? <= EndTime) OR (StartTime > ? AND EndTime = 0));");
       createStatement(CpuTable.CpuStatements.FIND_TRACE_DATA,
-                      "SELECT Data, ProfilerType from Cpu_Trace WHERE Session = ? AND TraceId = ?");
+                      "SELECT Data, ProfilerType, ProfilerMode from Cpu_Trace WHERE Session = ? AND TraceId = ?");
       createStatement(CpuTable.CpuStatements.INSERT_TRACE_DATA,
-                      "INSERT INTO Cpu_Trace (Session, TraceId, ProfilerType, Data) values (?, ?, ?, ?)");
+                      "INSERT INTO Cpu_Trace (Session, TraceId, ProfilerType, ProfilerMode, Data) values (?, ?, ?, ?, ?)");
       createStatement(CpuTable.CpuStatements.INSERT_TRACE_INFO,
                       "INSERT OR REPLACE INTO Cpu_Trace_Info (Session, StartTime, EndTime, TraceInfo) values (?, ?, ?, ?)");
       createStatement(CpuTable.CpuStatements.INSERT_THREAD_ACTIVITY,
@@ -242,7 +249,9 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
         if (data != null) {
           CpuProfilerType profilerType =
             CpuProfilerType.valueOf(results.getString(PROFILER_TYPE_COLUMN_TRACE_DATA));
-          return new TraceData(ByteString.copyFrom(data), profilerType);
+          CpuProfilerMode profilerMode =
+            CpuProfilerMode.valueOf(results.getString(PROFILER_MODE_COLUMN_TRACE_DATA));
+          return new TraceData(ByteString.copyFrom(data), profilerType, profilerMode);
         }
       }
     }
@@ -252,8 +261,10 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     return null;
   }
 
-  public void insertTrace(Common.Session session, int traceId, CpuProfilerType profilerType, ByteString data) {
-    execute(CpuStatements.INSERT_TRACE_DATA, session.getSessionId(), traceId, profilerType.toString(), data.toByteArray());
+  public void insertTrace(Common.Session session, int traceId, CpuProfilerType profilerType, CpuProfilerMode profilerMode,
+                          ByteString data) {
+    execute(CpuStatements.INSERT_TRACE_DATA, session.getSessionId(), traceId, profilerType.toString(), profilerMode.toString(),
+            data.toByteArray());
   }
 
   public void insertTraceInfo(Common.Session session, TraceInfo trace) {
@@ -290,10 +301,12 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
   public static class TraceData {
     private final ByteString myTraceBytes;
     private final CpuProfilerType myProfilerType;
+    private final CpuProfilerMode myProfilerMode;
 
-    public TraceData(ByteString traceBytes, CpuProfilerType profilerType) {
+    public TraceData(ByteString traceBytes, CpuProfilerType profilerType, CpuProfilerMode profilerMode) {
       myTraceBytes = traceBytes;
       myProfilerType = profilerType;
+      myProfilerMode = profilerMode;
     }
 
     public ByteString getTraceBytes() {
@@ -302,6 +315,10 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
 
     public CpuProfilerType getProfilerType() {
       return myProfilerType;
+    }
+
+    public CpuProfilerMode getProfilerMode() {
+      return myProfilerMode;
     }
   }
 }

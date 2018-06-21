@@ -19,7 +19,7 @@ import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.common.property.NlProperty;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -43,6 +43,6 @@ public class NlFlagRenderer extends NlAttributeRenderer {
 
   @Override
   public boolean canRender(@NotNull NlProperty item, @NotNull Set<AttributeFormat> formats) {
-    return formats.contains(AttributeFormat.Flags);
+    return formats.contains(AttributeFormat.FLAGS);
   }
 }

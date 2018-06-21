@@ -45,19 +45,19 @@ public class CpuProfilerConfigConverter {
     switch (config.getTechnology()) {
       case SAMPLED_JAVA:
         protoBuilder.setProfilerType(CpuProfiler.CpuProfilerType.ART);
-        protoBuilder.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+        protoBuilder.setProfilerMode(CpuProfiler.CpuProfilerMode.SAMPLED);
         break;
       case INSTRUMENTED_JAVA:
         protoBuilder.setProfilerType(CpuProfiler.CpuProfilerType.ART);
-        protoBuilder.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED);
+        protoBuilder.setProfilerMode(CpuProfiler.CpuProfilerMode.INSTRUMENTED);
         break;
       case SAMPLED_NATIVE:
         protoBuilder.setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF);
-        protoBuilder.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+        protoBuilder.setProfilerMode(CpuProfiler.CpuProfilerMode.SAMPLED);
         break;
       case ATRACE:
         protoBuilder.setProfilerType(CpuProfiler.CpuProfilerType.ATRACE);
-        protoBuilder.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+        protoBuilder.setProfilerMode(CpuProfiler.CpuProfilerMode.SAMPLED);
         break;
     }
 
@@ -75,9 +75,10 @@ public class CpuProfilerConfigConverter {
 
     switch (proto.getProfilerType()) {
       case ART:
-        if (proto.getMode() == CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED) {
+        if (proto.getProfilerMode() == CpuProfiler.CpuProfilerMode.SAMPLED) {
           config.setTechnology(CpuProfilerConfig.Technology.SAMPLED_JAVA);
-        } else {
+        }
+        else {
           config.setTechnology(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA);
         }
         break;

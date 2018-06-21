@@ -20,7 +20,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.common.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,7 +50,7 @@ public class SimpleQuantityEnumSupportTest {
     initMocks(this);
     when(myProperty.getResolver()).thenReturn(myResolver);
     when(myProperty.resolveValue(anyString())).thenAnswer(invocation -> invocation.getArguments()[0]);
-    when(myNumericDefinition.getFormats()).thenReturn(Collections.singleton(AttributeFormat.Dimension));
+    when(myNumericDefinition.getFormats()).thenReturn(Collections.singleton(AttributeFormat.DIMENSION));
     mySupport = new SimpleQuantityEnumSupport(myProperty, ImmutableList.of("item1", "item2"));
   }
 

@@ -30,6 +30,7 @@ import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 
 import static com.android.SdkConstants.ATTR_HIDE_MOTION_SPEC;
 import static com.android.SdkConstants.ATTR_MENU;
@@ -98,7 +99,7 @@ public class BrowsePanelTest extends PropertyTestCase {
     assertThat(browseButton.isVisible()).isFalse();
   }
 
-  private static EnumSet<ResourceType> getResourceTypes(@NotNull String attributeName) {
+  private static Set<ResourceType> getResourceTypes(@NotNull String attributeName) {
     NlPropertyItem property = mock(NlPropertyItem.class);
     when(property.getName()).thenReturn(attributeName);
     return BrowsePanel.getResourceTypes(property);

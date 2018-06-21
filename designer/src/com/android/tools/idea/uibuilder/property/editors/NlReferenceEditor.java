@@ -40,7 +40,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,10 +50,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.time.Clock;
-import java.util.Collections;
-import java.util.EnumSet;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
 
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.api.ViewEditor.resolveDimensionPixelSize;
@@ -231,7 +229,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
     }
   }
 
-  private static EnumSet<ResourceType> getResourceTypes(@NotNull NlProperty property) {
+  private static Set<ResourceType> getResourceTypes(@NotNull NlProperty property) {
     AttributeDefinition definition = property.getDefinition();
     if (definition == null || SdkConstants.ATTR_ID.equals(property.getName())) {
       // Don't offer code completion on id's; you typically want to specify a new, unique
@@ -239,7 +237,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
       return EnumSet.noneOf(ResourceType.class);
     }
 
-    EnumSet<ResourceType> resourceTypes = BrowsePanel.getResourceTypes(property);
+    Set<ResourceType> resourceTypes = BrowsePanel.getResourceTypes(property);
     if (TOOLS_URI.equals(property.getNamespace())) {
       // Tools attributes can use sample data as source
       resourceTypes.add(ResourceType.SAMPLE_DATA);
@@ -337,7 +335,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
     }
     AttributeDefinition definition = myProperty.getDefinition();
     if (definition == null || Collections.disjoint(definition.getFormats(),
-                                                   ImmutableList.of(AttributeFormat.Dimension, AttributeFormat.Float))) {
+                                                   ImmutableList.of(AttributeFormat.DIMENSION, AttributeFormat.FLOAT))) {
       return false;
     }
 

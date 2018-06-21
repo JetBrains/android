@@ -5,6 +5,8 @@ COMMON_DATA = [
     "//prebuilts/studio/jdk",
     "//prebuilts/studio/sdk:build-tools/latest",
     "//prebuilts/studio/sdk:constraint-layout_latest",
+    "//prebuilts/studio/sdk:cmake",
+    "//prebuilts/studio/sdk:ndk-bundle",
     "//prebuilts/studio/sdk:platforms/latest",
     "//prebuilts/studio/sdk:platform-tools",
     "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
@@ -784,6 +786,119 @@ java_test(
     jvm_flags = [
         "-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CreateBasicKotlinProjectTest",
     ],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "AddRemoveCppDependencyTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ],
+    jvm_flags = [
+        "-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.AddRemoveCppDependencyTest",
+    ],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "CreateNewProjectWithCpp1Test",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp1Test"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "CreateNewProjectWithCpp2Test",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp2Test"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "CreateNewProjectWithCpp3Test",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp3Test"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "CreateNewProjectWithCpp4Test",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp4Test"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "ChangeManifestTest",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/SimpleLocalApplication/**",
+    ]) + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ],
+    jvm_flags = [
+        "-Dtest.suite.class=com.android.tools.idea.tests.gui.instantrun.ChangeManifestTest",
+    ],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "CreateNewMobileProjectTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.CreateNewMobileProjectTest"],
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",

@@ -1754,6 +1754,90 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     verifyPropertyModel(artifactModel.completeModel(), STRING_TYPE, "junit:junit:2.3.1", STRING, REGULAR, 1);
   }
 
+  @Test
+  public void testSetThroughMapReference() throws IOException {
+    String text = "ext.version = 1.0\n" +
+                  "ext.dep = ['name': 'awesome', 'group' : 'some', 'version' : \"$version\"]\n" +
+                  "dependencies {\n" +
+                  "  compile dep\n" +
+                  "}\n";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    ArtifactDependencyModel artModel = buildModel.dependencies().artifacts().get(0);
+    verifyMapProperty(artModel.completeModel().getResultModel(), ImmutableMap.of("name", "awesome", "group", "some", "version", "1.0"));
+
+    artModel.name().setValue("boo");
+    artModel.group().setValue("spooky");
+    artModel.version().setValue("2.0");
+
+    applyChangesAndReparse(buildModel);
+
+    artModel = buildModel.dependencies().artifacts().get(0);
+    verifyMapProperty(artModel.completeModel().getResultModel(), ImmutableMap.of("name", "boo", "group", "spooky", "version", "2.0"));
+  }
+
+  public void testMalformedFakeArtifactElement() throws IOException {
+    String text = "dependencies {\n" +
+                  "  compile \"[]#$a\"\n" +
+                  "}\n";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    ArtifactDependencyModel artModel = buildModel.dependencies().artifacts().get(0);
+    assertNotNull(artModel);
+
+    assertEquals("[]#$a", artModel.name().forceString());
+    assertNull(artModel.extension().toString());
+    assertNull(artModel.group().toString());
+    assertNull(artModel.version().toString());
+    assertNull(artModel.classifier().toString());
+  }
+
+  @Test
+  public void testCompactSetThroughReferences() throws IOException {
+    String text = "ext.dep = 'a:b:1.0'\n" +
+                  "dependencies {\n" +
+                  "  compile dep\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    ArtifactDependencyModel artModel = buildModel.dependencies().artifacts().get(0);
+    verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "a:b:1.0", STRING, REGULAR, 1);
+
+    artModel.enableSetThrough();
+    artModel.version().setValue("2.0");
+    artModel.name().setValue("c");
+    artModel.group().setValue("d");
+    artModel.disableSetThrough();
+    artModel.group().setValue("e");
+
+    applyChangesAndReparse(buildModel);
+
+    artModel = buildModel.dependencies().artifacts().get(0);
+    verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "e:c:2.0", STRING, REGULAR, 0);
+    verifyPropertyModel(buildModel.ext().findProperty("dep").resolve(), STRING_TYPE, "d:c:2.0", STRING, REGULAR, 0);
+  }
+
+  @Test
+  public void testEmptyFakeArtifactElement() throws IOException {
+    String text = "dependencies {\n" +
+                  "  compile \"\"\n" +
+                  "  compile \" \"\n" +
+                  "  compile \"\n\"\n" +
+                  "  compile \"\t\t\n\"\n" +
+                  "}\n";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    assertSize(0, buildModel.dependencies().all());
+  }
+
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {
     @NotNull public String configurationName;
 

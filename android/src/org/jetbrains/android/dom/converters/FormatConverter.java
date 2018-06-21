@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.android.dom.converters;
 
 import com.intellij.psi.PsiElement;
@@ -22,7 +21,7 @@ import com.intellij.util.xml.GenericDomValue;
 import com.intellij.util.xml.NamedEnumUtil;
 import com.intellij.util.xml.converters.DelimitedListConverter;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,36 +37,35 @@ public class FormatConverter extends DelimitedListConverter<AttributeFormat> {
   }
 
   @Override
+  @Nullable
   protected AttributeFormat convertString(@Nullable String string, ConvertContext context) {
-    if (string == null) return null;
-    return NamedEnumUtil.getEnumElementByValue(AttributeFormat.class, StringUtil.capitalize(string));
+    return string == null ? null : AttributeFormat.fromName(string);
   }
 
   @Override
   protected String toString(@Nullable AttributeFormat format) {
-    if (format == null) return null;
-    return format.name().toLowerCase(Locale.US);
+    return format == null ? null : format.getName();
   }
 
   @Override
-  protected Object[] getReferenceVariants(final ConvertContext context, final GenericDomValue<List<AttributeFormat>> value) {
-    List<AttributeFormat> variants = new ArrayList<>();
+  protected Object[] getReferenceVariants(ConvertContext context, GenericDomValue<List<AttributeFormat>> value) {
+    List<AttributeFormat> variants = new ArrayList<>(AttributeFormat.values().length);
     Collections.addAll(variants, AttributeFormat.values());
     filterVariants(variants, value);
     String[] stringVariants = new String[variants.size()];
     for (int i = 0, variantsSize = variants.size(); i < variantsSize; i++) {
-      stringVariants[i] = StringUtil.decapitalize(variants.get(i).name());
+      stringVariants[i] = variants.get(i).getName();
     }
     return stringVariants;
   }
 
   @Override
-  protected PsiElement resolveReference(@Nullable final AttributeFormat s, final ConvertContext context) {
+  protected PsiElement resolveReference(@Nullable AttributeFormat s, ConvertContext context) {
     return s == null ? null : context.getReferenceXmlElement();
   }
 
   @Override
-  protected String getUnresolvedMessage(final String value) {
+  protected String getUnresolvedMessage(String value) {
     return MessageFormat.format(AndroidBundle.message("cannot.resolve.format.error"), value);
   }
 }

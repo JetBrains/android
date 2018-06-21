@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.attrs;
 
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
@@ -154,12 +155,12 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     }
     XmlTag[] values = tag.findSubTags(TAG_ENUM);
     if (values.length > 0) {
-      formats.add(AttributeFormat.Enum);
+      formats.add(AttributeFormat.ENUM);
     }
     else {
       values = tag.findSubTags(TAG_FLAG);
       if (values.length > 0) {
-        formats.add(AttributeFormat.Flags);
+        formats.add(AttributeFormat.FLAGS);
       }
     }
     def.addFormats(formats);
@@ -201,17 +202,13 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
 
   @Nullable
   private static List<AttributeFormat> parseAttrFormat(String formatString) {
-    List<AttributeFormat> result = new ArrayList<>();
     String[] formats = formatString.split("\\|");
+    List<AttributeFormat> result = new ArrayList<>(formats.length);
     for (String format : formats) {
-      AttributeFormat attributeFormat;
-      try {
-        attributeFormat = AttributeFormat.valueOf(StringUtil.capitalize(format));
+      AttributeFormat attributeFormat = AttributeFormat.fromName(format);
+      if (attributeFormat != null) {
+        result.add(attributeFormat);
       }
-      catch (IllegalArgumentException e) {
-        return null;
-      }
-      result.add(attributeFormat);
     }
     return result;
   }

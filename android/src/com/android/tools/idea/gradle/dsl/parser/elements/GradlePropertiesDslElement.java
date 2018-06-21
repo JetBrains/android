@@ -133,6 +133,13 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     Map<String, GradleDslElement> ourProperties = getPropertyElements();
     for (Map.Entry<String, GradleDslElement> entry : other.getPropertyElements().entrySet()) {
       GradleDslElement newProperty = entry.getValue();
+
+      // Don't merge ApplyDslElements, this can cause stack overflow exceptions while applying changes in
+      // complex projects.
+      if (newProperty instanceof ApplyDslElement) {
+        continue;
+      }
+
       if (ourProperties.containsKey(entry.getKey())) {
         GradleDslElement existingProperty = getElementWhere(entry.getKey(), PROPERTY_FILTER);
         // If they are both block elements, merge them.

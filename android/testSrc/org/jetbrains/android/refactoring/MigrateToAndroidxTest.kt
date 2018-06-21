@@ -138,12 +138,12 @@ class MigrateToAndroidxTest : AndroidTestCase() {
 
       // Create the "old" classes since they are not available for tests
       val migration = PsiMigrationManager.getInstance(fixture.project).startMigration()
-      entries.forEach({ entry ->
+      entries.forEach { entry ->
         when (entry) {
-          is ClassMigrationEntry -> AndroidRefactoringUtil.findOrCreateClass(fixture.project, migration, entry.myOldName)
-          is PackageMigrationEntry -> AndroidRefactoringUtil.findOrCreatePackage(fixture.project, migration, entry.myOldName)
+          is ClassMigrationEntry -> findOrCreateClass(fixture.project, migration, entry.myOldName)
+          is PackageMigrationEntry -> findOrCreatePackage(fixture.project, migration, entry.myOldName)
         }
-      })
+      }
 
       object : MigrateToAndroidxProcessor(fixture.project, entries, versionProvider) {
         override fun findUsages(): Array<UsageInfo> {

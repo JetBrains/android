@@ -68,7 +68,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -777,7 +777,7 @@ public class RenderErrorContributor {
       return;
     }
     Set<AttributeFormat> formats = definition.getFormats();
-    if (formats.contains(AttributeFormat.Flags) || formats.contains(AttributeFormat.Enum)) {
+    if (formats.contains(AttributeFormat.FLAGS) || formats.contains(AttributeFormat.ENUM)) {
       String[] values = definition.getValues();
       if (values.length > 0) {
         HtmlBuilder builder = new HtmlBuilder();

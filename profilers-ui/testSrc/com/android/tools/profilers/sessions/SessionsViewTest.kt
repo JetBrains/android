@@ -105,7 +105,11 @@ class SessionsViewTest {
     val heapDumpTimestamp = 10L
     val cpuTraceTimestamp = 20L
     val heapDumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
-    val cpuTraceInfo = CpuProfiler.TraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
+    val cpuTraceInfo = CpuProfiler.TraceInfo.newBuilder()
+      .setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF)
+      .setFromTimestamp(cpuTraceTimestamp)
+      .setToTimestamp(cpuTraceTimestamp + 1)
+      .build()
     myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
     myCpuService.addTraceInfo(cpuTraceInfo)
     mySessionsManager.update()
@@ -341,7 +345,12 @@ class SessionsViewTest {
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
     val heapDumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(10).setEndTime(11).build()
-    val cpuTraceInfo = CpuProfiler.TraceInfo.newBuilder().setFromTimestamp(20).setToTimestamp(21).build()
+    val cpuTraceInfo = CpuProfiler.TraceInfo.newBuilder()
+      .setProfilerType(CpuProfiler.CpuProfilerType.ART)
+      .setProfilerMode(CpuProfiler.CpuProfilerMode.SAMPLED)
+      .setFromTimestamp(20)
+      .setToTimestamp(21)
+      .build()
     myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
     myCpuService.addTraceInfo(cpuTraceInfo)
 
@@ -478,7 +487,7 @@ class SessionsViewTest {
     assertThat(sessionItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.isOngoing).isFalse()
-    assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingConfiguration.SIMPLEPERF_ARTIFACT)
+    assertThat(cpuCaptureItem.artifact.name).isEqualTo(CpuCaptureSessionArtifact.SIMPLEPERF_NAME)
     assertThat(cpuCaptureItem.artifact.subtitle).isEqualTo("00:01:00.000")
 
     // Prepare FakeCpuService to return a valid trace.
@@ -534,7 +543,7 @@ class SessionsViewTest {
     assertThat(sessionItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.isOngoing).isTrue()
-    assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingConfiguration.ATRACE)
+    assertThat(cpuCaptureItem.artifact.name).isEqualTo(CpuCaptureSessionArtifact.ATRACE_NAME)
     assertThat(cpuCaptureItem.artifact.subtitle).isEqualTo(SessionArtifact.CAPTURING_SUBTITLE)
     assertThat(cpuCaptureItem.exportLabel).isNull()
 

@@ -23,9 +23,11 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.google.common.collect.Table;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.ScrollPaneFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
@@ -41,7 +43,11 @@ public class NavPropertiesPanel extends PropertiesPanel<NavPropertiesManager> {
     super(new BorderLayout());
     myPropertiesManager = propertiesManager;
     myInspectorPanel = new NavInspectorPanel(this);
-    add(myInspectorPanel, BorderLayout.CENTER);
+    JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myInspectorPanel,
+                                                                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                                                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    scrollPane.setBorder(null);
+    add(scrollPane, BorderLayout.CENTER);
     Disposer.register(myPropertiesManager, this);
   }
 

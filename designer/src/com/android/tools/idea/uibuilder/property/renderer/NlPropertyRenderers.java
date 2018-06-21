@@ -19,7 +19,7 @@ import com.android.tools.adtui.ptable.*;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItemValue;
 import com.android.tools.idea.common.property.NlProperty;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.table.TableCellRenderer;
@@ -80,12 +80,12 @@ public class NlPropertyRenderers implements PTableCellRendererProvider {
     }
 
     Set<AttributeFormat> formats = definition.getFormats();
-    if (formats.size() == 1 && formats.contains(AttributeFormat.Boolean)) {
+    if (formats.size() == 1 && formats.contains(AttributeFormat.BOOLEAN)) {
       if (myBooleanRenderer.canRender(property, formats)) {
         return myBooleanRenderer;
       }
     }
-    if (formats.contains(AttributeFormat.Flags)) {
+    if (formats.contains(AttributeFormat.FLAGS)) {
       if (myFlagRenderer.canRender(property, formats)) {
         return myFlagRenderer;
       }

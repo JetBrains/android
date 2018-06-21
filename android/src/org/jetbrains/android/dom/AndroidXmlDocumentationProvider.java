@@ -28,7 +28,7 @@ import com.intellij.util.xml.*;
 import com.intellij.util.xml.reflect.DomAttributeChildDescription;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.dom.converters.AttributeValueDocumentationProvider;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;

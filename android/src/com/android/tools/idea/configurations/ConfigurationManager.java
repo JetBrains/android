@@ -281,6 +281,10 @@ public class ConfigurationManager implements Disposable {
     return null;
   }
 
+  public static boolean isAvdDevice(@NotNull Device device) {
+    return device.getId().startsWith(Configuration.AVD_ID_PREFIX);
+  }
+
   /**
    * Returns all the {@link IAndroidTarget} instances applicable for the current module.
    * Note that this may include non-rendering targets, so for layout rendering contexts,

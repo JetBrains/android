@@ -1300,8 +1300,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
-  // fails after IDEA 181.3263.15 merge
-  public void ignore_testSpellcheckerQuickfix() throws Throwable {
+  public void testSpellcheckerQuickfix() throws Throwable {
     myFixture.copyFileToProject(myTestFolder + "/spellchecker_resources.xml", "res/values/sr.xml");
     doTestSpellcheckerQuickFixes();
   }

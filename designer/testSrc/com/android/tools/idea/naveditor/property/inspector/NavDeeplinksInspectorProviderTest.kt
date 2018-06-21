@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
+import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -27,6 +28,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBList
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
+import org.mockito.Mockito.*
 import java.awt.Component
 import java.awt.Container
 
@@ -82,6 +84,31 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
     assertEquals(2, deeplinkList.itemsCount)
     val propertiesList = listOf(deeplinkList.model.getElementAt(0), deeplinkList.model.getElementAt(1))
     assertSameElements(propertiesList.map { it.name }, listOf(uri1, uri2))
+  }
+
+  fun testAddNew() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1")
+      }
+    }
+    val fragment = model.find("f1")!!
+    val dialog = spy(AddDeeplinkDialog(null, fragment))
+    `when`(dialog.uri).thenReturn("http://example.com")
+    `when`(dialog.autoVerify).thenReturn(true)
+    doReturn(true).`when`(dialog).showAndGet()
+
+    NavDeeplinkInspectorProvider({ _, _ -> dialog }).addItem(null, listOf(fragment), null)
+    assertEquals(1, fragment.childCount)
+    val deeplink = fragment.getChild(0)!!
+    assertEquals(TAG_DEEP_LINK, deeplink.tagName)
+    assertEquals("http://example.com", deeplink.getAttribute(AUTO_URI, ATTR_URI))
+    assertEquals("true", deeplink.getAndroidAttribute(ATTR_AUTO_VERIFY))
+    dialog.close(0)
+  }
+
+  fun testModify() {
+
   }
 }
 

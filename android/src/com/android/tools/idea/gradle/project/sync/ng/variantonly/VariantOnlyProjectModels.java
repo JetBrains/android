@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +82,10 @@ public class VariantOnlyProjectModels implements Serializable {
         if (variant != null) {
           // Populate models for dependency modules.
           populateForDependencyModules(controller, variant);
+
+          // Populate models for dynamic features.
+          // As dependency is not variant defined, we suppose a 1:1 map between base module variant and feature module variant.
+          populateForFeatureModules(controller, androidProject.getDynamicFeatures(), variantName, buildId);
         }
       }
     }
@@ -121,6 +126,15 @@ public class VariantOnlyProjectModels implements Serializable {
       if (projectPath != null && dependencyBuildId != null && variantToSelect != null) {
         populateModelsForModule(controller, new File(dependencyBuildId), projectPath, variantToSelect);
       }
+    }
+  }
+
+  private void populateForFeatureModules(@NotNull BuildController controller,
+                                         @NotNull Collection<String> features,
+                                         @NotNull String variantToSelect,
+                                         @NotNull File buildId) {
+    for (String feature : features) {
+      populateModelsForModule(controller, buildId, feature, variantToSelect);
     }
   }
 

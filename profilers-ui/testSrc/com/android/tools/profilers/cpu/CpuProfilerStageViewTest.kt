@@ -47,10 +47,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Graphics2D
+import java.awt.Point
 import java.io.File
 import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JList
+import javax.swing.SwingUtilities
 
 // Path to trace file. Used in test to build AtraceParser.
 private const val TOOLTIP_TRACE_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
@@ -316,4 +318,46 @@ class CpuProfilerStageViewTest {
     val itemsSuffix = items.subList(items.size - expectedCommonMenus.size, items.size)
     assertThat(itemsSuffix.map { it.text }).containsExactlyElementsIn(expectedCommonMenus).inOrder()
   }
+
+  @Test
+  fun instructionsPanelIsTheFirstComponentOfUsageView() {
+    val usageView = getUsageView(CpuProfilerStageView(myProfilersView, myStage))
+    assertThat(usageView.getComponent(0)).isInstanceOf(InstructionsPanel::class.java)
+  }
+
+  @Test
+  fun showsTooltipSeekComponentWhenMouseIsOverUsageView() {
+    val stageView = CpuProfilerStageView(myProfilersView, myStage)
+    stageView.component.setBounds(0, 0, 500, 500)
+
+    val usageView = getUsageView(stageView)
+    val usageViewOrigin = SwingUtilities.convertPoint(usageView, Point(0, 0), stageView.component)
+
+    val ui = FakeUi(stageView.component)
+
+    assertThat(stageView.showTooltipSeekComponent()).isFalse()
+    // Move into |CpuUsageView|
+    ui.mouse.moveTo(usageViewOrigin.x + usageView.width / 2, usageViewOrigin.y + usageView.height / 2)
+    assertThat(stageView.showTooltipSeekComponent()).isTrue()
+  }
+
+  @Test
+  fun tooltipIsUsageTooltipWhenMouseIsOverUsageView() {
+    val stageView = CpuProfilerStageView(myProfilersView, myStage)
+    stageView.component.setBounds(0, 0, 500, 500)
+
+    val usageView = getUsageView(stageView)
+    val usageViewOrigin = SwingUtilities.convertPoint(usageView, Point(0, 0), stageView.component)
+    val ui = FakeUi(stageView.component)
+
+    assertThat(myStage.tooltip).isNull()
+    // Move into |CpuUsageView|
+    ui.mouse.moveTo(usageViewOrigin.x + usageView.width / 2, usageViewOrigin.y + usageView.height / 2)
+    assertThat(myStage.tooltip).isInstanceOf(CpuUsageTooltip::class.java)
+  }
+
+  private fun getUsageView(stageView: CpuProfilerStageView) = TreeWalker(stageView.component)
+    .descendants()
+    .filterIsInstance<CpuUsageView>()
+    .first()
 }

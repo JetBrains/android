@@ -28,7 +28,7 @@ import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvide
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import org.jetbrains.android.dom.attrs.AttributeDefinition
-import org.jetbrains.android.dom.attrs.AttributeFormat
+import com.android.ide.common.rendering.api.AttributeFormat
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -48,7 +48,7 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, tag: String, parentTag:
   }
 
   fun addFlagsProperty(namespace: String, name: String, values: List<String>) {
-    val definition = AttributeDefinition(name, null, null, listOf(AttributeFormat.Flags))
+    val definition = AttributeDefinition(name, null, null, listOf(AttributeFormat.FLAGS))
     values.forEach { definition.addValue(it) }
     _properties.put(namespace, name, makeFlagsProperty(namespace, definition))
   }

@@ -107,7 +107,7 @@ private class NonNamespacedResourceTypeClass(
 
   override fun doGetFields(): Array<PsiField> {
     return buildResourceFields(
-      symbolTable.getSymbolByResourceType(resourceType).associateBy({ it.name }, { it.javaType.toPsiType() }),
+      symbolTable.getSymbolByResourceType(resourceType).associateBy({ it.canonicalName }, { it.javaType.toPsiType() }),
       resourceType,
       containingClass,
       FieldModifier.NON_FINAL

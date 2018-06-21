@@ -97,7 +97,6 @@ public class AndroidResourceUtil {
 
   public static final Set<ResourceType> ALL_VALUE_RESOURCE_TYPES = EnumSet.noneOf(ResourceType.class);
 
-  public static final Set<ResourceType> REFERRABLE_RESOURCE_TYPES = EnumSet.noneOf(ResourceType.class);
   public static final Map<ResourceType, ResourceFolderType> XML_FILE_RESOURCE_TYPES = ImmutableMap.<ResourceType, ResourceFolderType>builder()
     .put(ResourceType.ANIM, ResourceFolderType.ANIM)
     .put(ResourceType.ANIMATOR, ResourceFolderType.ANIMATOR)
@@ -147,12 +146,6 @@ public class AndroidResourceUtil {
   }
 
   static {
-    REFERRABLE_RESOURCE_TYPES.addAll(Arrays.asList(ResourceType.values()));
-    REFERRABLE_RESOURCE_TYPES.remove(ATTR);
-    REFERRABLE_RESOURCE_TYPES.remove(STYLEABLE);
-    REFERRABLE_RESOURCE_TYPES.remove(PUBLIC);
-    REFERRABLE_RESOURCE_TYPES.remove(ATTR);
-
     ALL_VALUE_RESOURCE_TYPES.addAll(VALUE_RESOURCE_TYPES);
     ALL_VALUE_RESOURCE_TYPES.add(ATTR);
     ALL_VALUE_RESOURCE_TYPES.add(STYLEABLE);

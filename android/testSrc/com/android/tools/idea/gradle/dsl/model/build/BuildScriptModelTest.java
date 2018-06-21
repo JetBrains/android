@@ -17,8 +17,10 @@ package com.android.tools.idea.gradle.dsl.model.build;
 
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
@@ -30,6 +32,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_NAME;
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_URL;
 import static com.google.common.truth.Truth.assertThat;
@@ -187,5 +191,25 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     buildscript.removeRepositoriesBlocks();
     repositories = buildscript.repositories().repositories();
     assertThat(repositories).hasSize(0);
+  }
+
+  @Test
+  public void testExtPropertiesFromBuildscriptBlock() throws IOException {
+    String text = "buildscript {\n" +
+                  "  ext.hello = 'boo'\n" +
+                  "}\n";
+    String childText = "android {\n" +
+                       "  defaultConfig {\n" +
+                       "    applicationId ext.hello\n" +
+                       "  }\n" +
+                       "}\n";
+    writeToBuildFile(text);
+    writeToSubModuleBuildFile(childText);
+    writeToSettingsFile("include ':" + SUB_MODULE_NAME + "'");
+
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
+    GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(mySubModule);
+
+    verifyPropertyModel(buildModel.android().defaultConfig().applicationId(), STRING_TYPE, "boo", STRING, PropertyType.REGULAR, 1);
   }
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.model;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
@@ -30,7 +31,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +39,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceType.ID;
 import static java.util.Arrays.stream;
 
@@ -58,6 +58,38 @@ public class LayoutParamsManager {
     .build();
   private static final Map<String, Function<String, MappedField>> FIELD_MAPPERS = new HashMap<>();
 
+  private static final Function<String, MappedField> CONSTRAINT_LAYOUT_MAPPER = (attributeName) -> {
+    /*
+     This field mapper converts the given ConstraintLayout$LayoutParams attribute name into the field name that
+     stores its value.
+     All ConstraintLayout attributes are in the form of layout_constraint* so we do the following processing:
+     - Remove the "constraint" part (the layout_ prefix is already removed before the call to this mapper
+     - Remove "Of" at the end (if it is present). While some fields have "Of" at the end, the corresponding fields
+       do not.
+     - Convert the case from the lower underscores format to camel case.
+
+     For an attribute like "layout_constraintTop_toTopOf", the resulting field would be "topToTop"
+     */
+
+    attributeName = StringUtil.trimStart(attributeName, "constraint");
+    attributeName = StringUtil.trimEnd(attributeName, "Of");
+
+    StringBuilder fieldName = new StringBuilder();
+    boolean first = true;
+    for (String component : Splitter.on('_').split(attributeName)) {
+      fieldName.append(first ? StringUtil.decapitalize(component) : StringUtil.capitalize(component));
+      first = false;
+    }
+    return new MappedField(fieldName.toString(), null);
+  };
+  private static final Function<String, MappedField> COORDINATOR_LAYOUT_MAPPER = (attributeName) -> {
+    if ("anchor".equals(attributeName)) {
+      return new MappedField("anchorId", AttributeFormat.INTEGER);
+    }
+
+    return null;
+  };
+
   /**
    * Registers the given field mapper to resolve attributes for the given LayoutParams class. The field mapper will return the field name
    * and type that store the attribute value for a given attribute name.
@@ -71,64 +103,37 @@ public class LayoutParamsManager {
       switch (attributeName) {
         case "width":
         case "height":
-          return new MappedField(attributeName, AttributeFormat.Dimension);
+          return new MappedField(attributeName, AttributeFormat.DIMENSION);
         case "gravity":
-          return new MappedField(attributeName, AttributeFormat.Flags);
+          return new MappedField(attributeName, AttributeFormat.FLAGS);
       }
 
       return null;
     });
     registerFieldMapper(LinearLayout.LayoutParams.class.getName(),
-                        (attributeName) -> "gravity".equals(attributeName) ? new MappedField(attributeName, AttributeFormat.Flags) : null);
+                        (attributeName) -> "gravity".equals(attributeName) ? new MappedField(attributeName, AttributeFormat.FLAGS) : null);
     registerFieldMapper(ViewGroup.MarginLayoutParams.class.getName(), (attributeName) -> {
       switch (attributeName) {
         case "marginBottom":
-          return new MappedField("bottomMargin", AttributeFormat.Dimension);
+          return new MappedField("bottomMargin", AttributeFormat.DIMENSION);
         case "marginTop":
-          return new MappedField("topMargin", AttributeFormat.Dimension);
+          return new MappedField("topMargin", AttributeFormat.DIMENSION);
         case "marginLeft":
-          return new MappedField("leftMargin", AttributeFormat.Dimension);
+          return new MappedField("leftMargin", AttributeFormat.DIMENSION);
         case "marginRight":
-          return new MappedField("rightMargin", AttributeFormat.Dimension);
+          return new MappedField("rightMargin", AttributeFormat.DIMENSION);
         case "marginStart":
-          return new MappedField(attributeName, AttributeFormat.Dimension);
+          return new MappedField(attributeName, AttributeFormat.DIMENSION);
         case "marginEnd":
-          return new MappedField(attributeName, AttributeFormat.Dimension);
+          return new MappedField(attributeName, AttributeFormat.DIMENSION);
       }
 
       return null;
     });
-    registerFieldMapper("android.support.constraint.ConstraintLayout$LayoutParams", (attributeName) -> {
-      /*
-       This field mapper converts the given ConstraintLayout$LayoutParams attribute name into the field name that
-       stores its value.
-       All ConstraintLayout attributes are in the form of layout_constraint* so we do the following processing:
-       - Remove the "constraint" part (the layout_ prefix is already removed before the call to this mapper
-       - Remove "Of" at the end (if it is present). While some fields have "Of" at the end, the corresponding fields
-         do not.
-       - Convert the case from the lower underscores format to camel case.
-
-       For an attribute like "layout_constraintTop_toTopOf", the resulting field would be "topToTop"
-       */
-
-      attributeName = StringUtil.trimStart(attributeName, "constraint");
-      attributeName = StringUtil.trimEnd(attributeName, "Of");
-
-      StringBuilder fieldName = new StringBuilder();
-      boolean first = true;
-      for (String component : Splitter.on('_').split(attributeName)) {
-        fieldName.append(first ? StringUtil.decapitalize(component) : StringUtil.capitalize(component));
-        first = false;
-      }
-      return new MappedField(fieldName.toString(), null);
-    });
-    registerFieldMapper("android.support.design.widget.CoordinatorLayout$LayoutParams", (attributeName) -> {
-      if ("anchor".equals(attributeName)) {
-        return new MappedField("anchorId", AttributeFormat.Integer);
-      }
-
-      return null;
-    });
+    registerFieldMapper(CLASS_CONSTRAINT_LAYOUT_PARAMS.oldName(), CONSTRAINT_LAYOUT_MAPPER);
+    registerFieldMapper(CLASS_CONSTRAINT_LAYOUT_PARAMS.newName(), CONSTRAINT_LAYOUT_MAPPER);
+    registerFieldMapper(CLASS_COORDINATOR_LAYOUT.oldName() + "$LayoutParams", COORDINATOR_LAYOUT_MAPPER);
+    registerFieldMapper(CLASS_COORDINATOR_LAYOUT.newName() + "$LayoutParams", COORDINATOR_LAYOUT_MAPPER);
   }
 
   /**
@@ -137,13 +142,13 @@ public class LayoutParamsManager {
   @NotNull
   private static EnumSet<AttributeFormat> attributeFormatFromType(@NotNull Class type) {
     if (type == Integer.class || type == int.class) {
-      return EnumSet.of(AttributeFormat.Integer);
+      return EnumSet.of(AttributeFormat.INTEGER);
     }
     else if (type == Float.class || type == float.class) {
-      return EnumSet.of(AttributeFormat.Float);
+      return EnumSet.of(AttributeFormat.FLOAT);
     }
     else if (type == String.class) {
-      return EnumSet.of(AttributeFormat.String);
+      return EnumSet.of(AttributeFormat.STRING);
     }
 
     return EnumSet.noneOf(AttributeFormat.class); // unknown
@@ -245,7 +250,7 @@ public class LayoutParamsManager {
   private static EnumSet<AttributeFormat> inferTypeFromValue(@Nullable String value) {
     if (value != null) {
       if (value.endsWith(SdkConstants.UNIT_DP) || value.endsWith(SdkConstants.UNIT_DIP) || value.endsWith(SdkConstants.UNIT_PX)) {
-        return EnumSet.of(AttributeFormat.Dimension);
+        return EnumSet.of(AttributeFormat.DIMENSION);
       }
     }
 
@@ -385,10 +390,10 @@ public class LayoutParamsManager {
           case INTEGER:
           case ID:
           case DIMEN:
-            inferredTypes.add(AttributeFormat.Integer);
+            inferredTypes.add(AttributeFormat.INTEGER);
             break;
           case FRACTION:
-            inferredTypes.add(AttributeFormat.Float);
+            inferredTypes.add(AttributeFormat.FLOAT);
             break;
         }
 
@@ -437,10 +442,10 @@ public class LayoutParamsManager {
 
       for (AttributeFormat type : inferredTypes) {
         switch (type) {
-          case Dimension:
+          case DIMENSION:
             fieldSet = setField(layoutParams, mappedField, getDimensionValue(value, model.getConfiguration()));
             break;
-          case Integer:
+          case INTEGER:
             try {
               fieldSet = setField(layoutParams, mappedField, Integer.parseInt(value));
             }
@@ -448,13 +453,13 @@ public class LayoutParamsManager {
               fieldSet = false;
             }
             break;
-          case String:
+          case STRING:
             fieldSet = setField(layoutParams, mappedField, value);
             break;
-          case Boolean:
+          case BOOLEAN:
             fieldSet = setField(layoutParams, mappedField, Boolean.parseBoolean(value));
             break;
-          case Float:
+          case FLOAT:
             try {
               fieldSet = setField(layoutParams, mappedField, Float.parseFloat(value));
             }
@@ -462,14 +467,14 @@ public class LayoutParamsManager {
               fieldSet = false;
             }
             break;
-          case Enum: {
+          case ENUM: {
             Integer intValue = attributeDefinition != null ? attributeDefinition.getValueMapping(value) : null;
             if (intValue != null) {
               fieldSet = setField(layoutParams, mappedField, intValue);
             }
           }
           break;
-          case Flags: {
+          case FLAGS: {
             if (attributeDefinition == null) {
               continue;
             }

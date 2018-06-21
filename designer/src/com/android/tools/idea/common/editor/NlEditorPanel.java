@@ -96,7 +96,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
   @NotNull
   private DesignSurface createDesignSurface(@NotNull NlEditor editor, @NotNull Project project) {
     if (NlLayoutType.typeOf(getFile()) == NlLayoutType.NAV) {
-      return new NavDesignSurface(project, editor);
+      return new NavDesignSurface(project, this, editor);
     }
     else {
       NlDesignSurface nlDesignSurface;
@@ -117,7 +117,12 @@ public class NlEditorPanel extends JPanel implements Disposable {
     myWorkBench.loadingStopped(DESIGN_UNAVAILABLE_MESSAGE);
   }
 
-  private void initNeleModel() {
+  /**
+   * This is called by the constructor to set up the UI, and in the normal case shouldn't be called again. However,
+   * if there's an error during setup that can be detected and fixed, this should be called again afterward to retry
+   * setting up the UI.
+   */
+  public void initNeleModel() {
     ProjectSystemSyncManager syncManager = ProjectSystemUtil.getSyncManager(myProject);
 
     if (!syncManager.isSyncInProgress()) {

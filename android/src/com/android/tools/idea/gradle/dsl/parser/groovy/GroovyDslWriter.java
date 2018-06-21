@@ -130,7 +130,7 @@ public class GroovyDslWriter implements GradleDslWriter {
       }
     }
     else {
-      statementText += "\"abc\", \"xyz\"";
+      statementText += " \"abc\", \"xyz\"";
     }
     GrStatement statement = factory.createStatementFromText(statementText);
     // TODO: Move these workarounds to a more sensible way of doing things.

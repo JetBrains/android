@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.attrs;
 
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
@@ -63,11 +64,11 @@ public class AttributeDefinitionsImplTest extends AndroidTestCase {
 
   public void testAttrFormat() {
     Set<AttributeFormat> format;
-    format = EnumSet.of(AttributeFormat.Color);
+    format = EnumSet.of(AttributeFormat.COLOR);
 
     checkAttrFormatForName("colorPrimary", format);
 
-    format = EnumSet.of(AttributeFormat.Color, AttributeFormat.Reference);
+    format = EnumSet.of(AttributeFormat.COLOR, AttributeFormat.REFERENCE);
     checkAttrFormatForName("textColor", format);
     checkAttrFormatForName("textColorHighlight", format);
   }

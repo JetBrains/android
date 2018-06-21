@@ -54,7 +54,9 @@ abstract class RunStatsService {
                                 forceColdswap: Boolean,
                                 instantRunEnabled: Boolean)
 
-  abstract fun notifyStudioSectionFinished(isSuccessful: Boolean, isInstantRun: Boolean)
+  abstract fun notifyStudioSectionFinished(isSuccessful: Boolean,
+                                           isInstantRun: Boolean,
+                                           userSelectedDeployTarget: Boolean)
 
   abstract fun notifyGradleStarted(buildMode: BuildMode?)
 

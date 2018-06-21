@@ -330,7 +330,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       private void addConfiguration() {
         ProfilingConfiguration configuration = new ProfilingConfiguration(getUniqueName("Unnamed"),
                                                                           CpuProfiler.CpuProfilerType.ART,
-                                                                          CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+                                                                          CpuProfiler.CpuProfilerMode.SAMPLED);
         int lastConfigurationIndex = getCustomConfigurationCount();
         myConfigurationsModel.insertElementAt(configuration, lastConfigurationIndex);
         // Select the newly added configuration

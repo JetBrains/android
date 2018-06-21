@@ -36,7 +36,7 @@ import java.util.concurrent.CountDownLatch
  * to stub project system functionalities.
  */
 class TestProjectSystem @JvmOverloads constructor(val project: Project,
-                                                  private val allowedFutureDependencies: List<GradleCoordinate> = listOf(),
+                                                  private val availableDependencies: List<GradleCoordinate> = listOf(),
                                                   @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS)
   : AndroidProjectSystem, AndroidProjectSystemProvider {
 
@@ -71,7 +71,7 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
   override fun isApplicable(): Boolean = true
 
   override fun getAvailableDependency(coordinate: GradleCoordinate, includePreview: Boolean): GradleCoordinate? =
-    allowedFutureDependencies.firstOrNull { coordinate.matches(it) }
+    availableDependencies.firstOrNull { coordinate.matches(it) }
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {

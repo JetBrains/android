@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerConfiguration;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerMode;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.JComboBoxView;
@@ -42,21 +42,21 @@ class CpuProfilingConfigurationView {
    */
   static final ProfilingConfiguration EDIT_CONFIGURATIONS_ENTRY = new ProfilingConfiguration("Edit Configuration Entry",
                                                                                              CpuProfilerType.UNSPECIFIED_PROFILER,
-                                                                                             CpuProfilerConfiguration.Mode.UNSTATED);
+                                                                                             CpuProfilerMode.UNSPECIFIED_MODE);
 
   /**
    * Fake configuration to represent a separator on the profiling configurations combobox.
    */
   static final ProfilingConfiguration CONFIG_SEPARATOR_ENTRY = new ProfilingConfiguration("Configuration Separator Entry",
                                                                                           CpuProfilerType.UNSPECIFIED_PROFILER,
-                                                                                          CpuProfilerConfiguration.Mode.UNSTATED);
+                                                                                          CpuProfilerMode.UNSPECIFIED_MODE);
 
   /**
    * A fake configuration shown when an API-initiated tracing is in progress. It exists for UX purpose only and isn't something
    * we want to preserve across stages. Therefore, it exists inside {@link CpuProfilerStage}.
    */
   private final ProfilingConfiguration API_INITIATED_TRACING_PROFILING_CONFIG =
-    new ProfilingConfiguration("Debug API (Java)", CpuProfilerType.ART, CpuProfilerConfiguration.Mode.UNSTATED);
+    new ProfilingConfiguration("Debug API (Java)", CpuProfilerType.ART, CpuProfilerMode.INSTRUMENTED);
 
   @NotNull private final CpuProfilerStage myStage;
   @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
