@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu.capturedetails
 
 import com.android.tools.profilers.ProfilerColors
-import com.android.tools.profilers.cpu.CaptureModel
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.nodemodel.*
 import com.google.common.truth.Truth.assertThat

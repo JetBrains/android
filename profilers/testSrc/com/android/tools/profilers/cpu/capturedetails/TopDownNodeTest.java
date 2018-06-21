@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.capturedetails.TopDownNode;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;

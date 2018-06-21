@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.profilers.cpu.CaptureModel;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.*;
 import com.google.common.annotations.VisibleForTesting;
