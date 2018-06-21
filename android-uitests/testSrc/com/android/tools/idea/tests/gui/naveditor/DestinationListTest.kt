@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.naveditor
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture
@@ -22,6 +23,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import com.intellij.util.ui.UIUtil
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,6 +33,12 @@ import kotlin.test.assertEquals
 @RunWith(GuiTestRemoteRunner::class)
 class DestinationListTest {
   @Rule @JvmField val guiTest = GuiTestRule()
+
+  @Before
+  fun setUp() = StudioFlags.ENABLE_NAV_EDITOR.override(true)
+
+  @After
+  fun tearDown() = StudioFlags.ENABLE_NAV_EDITOR.clearOverride()
 
   /**
    * Make sure the DestinationList is updated correctly when the nav file is updated outside studio.
