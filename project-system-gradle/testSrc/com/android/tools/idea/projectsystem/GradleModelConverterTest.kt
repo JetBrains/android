@@ -15,6 +15,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.gradle.model.*
 import com.android.ide.common.util.PathString
+import com.android.ide.common.util.toPathStrings
 import com.android.projectmodel.AndroidPathType
 import com.android.projectmodel.AndroidProject
 import com.android.projectmodel.matchArtifactsWith
@@ -128,7 +129,7 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
       with (mainArtifact) {
         assertThat(name).isEqualTo(MAIN_ARTIFACT_NAME)
         assertThat(classFolders).isEqualTo(
-          listOf(PathString(originalArtifact.classesFolder)) + filesToPathStrings(originalArtifact.additionalClassesFolders))
+          listOf(PathString(originalArtifact.classesFolder)) + originalArtifact.additionalClassesFolders.toPathStrings())
         assertThat(packageName).isEqualTo(project.defaultConfig.productFlavor.applicationId)
         with(resolved) {
           assertThat(usingSupportLibVectors).isFalse()
@@ -143,7 +144,7 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
       with (testArtifact!!) {
         assertThat(name).isEqualTo(originalTestArtifact.name)
         assertThat(classFolders).isEqualTo(
-            listOf(PathString(originalTestArtifact.classesFolder)) + filesToPathStrings(originalTestArtifact.additionalClassesFolders))
+            listOf(PathString(originalTestArtifact.classesFolder)) + originalTestArtifact.additionalClassesFolders.toPathStrings())
         // Note that we don't currently fill in the package name for test artifacts, since the gradle model doesn't return it
         with(resolved) {
           assertThat(usingSupportLibVectors).isFalse()
