@@ -294,7 +294,7 @@ public final class GuiTests {
   }
 
   @NotNull
-  private static File getGuiTestRootDirPath() throws IOException {
+  public static File getGuiTestRootDirPath() throws IOException {
     String guiTestRootDirPathProperty = System.getProperty("gui.tests.root.dir.path");
     if (isNotEmpty(guiTestRootDirPathProperty)) {
       File rootDirPath = new File(guiTestRootDirPathProperty);
