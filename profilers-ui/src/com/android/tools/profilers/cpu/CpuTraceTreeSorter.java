@@ -16,6 +16,8 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.profilers.cpu.capturedetails.CpuTreeModel;
+import com.android.tools.profilers.cpu.capturedetails.CpuTreeNode;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
