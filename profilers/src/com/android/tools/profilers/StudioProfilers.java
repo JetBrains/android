@@ -530,7 +530,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // Next, prefer the one previously used, either selected by user or automatically (even if the process has switched states)
     if (myProcess != null) {
       for (Common.Process process : processes) {
-        if (isSameProcess(myProcess, process)) {
+        if (isSameProcess(myProcess, process) &&
+            // The profilers only keep the same process under the following scenarios:
+            // 1. The process's states have not changed
+            // 2. The process went from alive to dead. (e.g. the process is killed, the device is disconnected)
+            // If a identical process goes from dead to alive, it is most likely due to a device being reconnected, or an emulator snapshot
+            // being booted with a previously running process. We don't want to select and profiler that process in those cases.
+            (myProcess.getState() == process.getState() ||
+             (myProcess.getState() == Common.Process.State.ALIVE && process.getState() == Common.Process.State.DEAD))) {
           return process;
         }
       }
