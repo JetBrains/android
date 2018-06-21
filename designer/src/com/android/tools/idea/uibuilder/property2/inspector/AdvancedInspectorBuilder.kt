@@ -23,6 +23,9 @@ import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import icons.StudioIcons
 import org.jetbrains.android.formatter.AttributeComparator
 
 class AdvancedInspectorBuilder(model: NelePropertiesModel, private val tableUIProvider: TableUIProvider)
@@ -30,7 +33,7 @@ class AdvancedInspectorBuilder(model: NelePropertiesModel, private val tableUIPr
 
   private val comparator = AttributeComparator<NelePropertyItem>({ it.name })
   private val newPropertyInstance = NeleNewPropertyItem(model, PropertiesTable.emptyTable())
-  private var lastDeclaredTable: NeleTableModel? = null
+  private var lastDeclaredTable: TableLineModel? = null
 
   init {
     model.addListener(object: PropertiesModelListener<NelePropertyItem> {
@@ -40,39 +43,52 @@ class AdvancedInspectorBuilder(model: NelePropertiesModel, private val tableUIPr
 
       override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
         val table = lastDeclaredTable ?: return
+        val tableModel = table.tableModel as? NeleTableModel ?: return
         val declared = model.properties.values.filter { it.rawValue != null }.toMutableList()
         sort(declared)
-        table.updateItems(declared)
+        val newProperty = tableModel.lastItem()
+        if (newProperty != null) {
+          declared.add(newProperty)
+        }
+        if (!tableModel.isSameItems(declared)) {
+          val selected = table.selectedItem
+          table.stopEditing()
+          tableModel.updateItems(declared)
+          if (selected != null) {
+            table.requestFocus(selected)
+          }
+        }
       }
     })
   }
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+    if (properties.isEmpty) {
+      return
+    }
     val declared = properties.values.filter { it.rawValue != null }.toMutableList()
-    val newProperty = if (properties.isEmpty) null else newPropertyInstance
-    newProperty?.properties = properties
-    newProperty?.name = ""
-    lastDeclaredTable = addTable(inspector, "Declared Attributes", declared, newProperty, searchable = false)
+    newPropertyInstance.properties = properties
+    newPropertyInstance.name = ""
+    val declaredTableModel = NeleTableModel(declared)
+    val addNewRow = AddNewRowAction(declaredTableModel, newPropertyInstance)
+    val deleteRowAction = DeleteRowAction(declaredTableModel)
+    lastDeclaredTable = addTable(inspector, "Declared Attributes", declaredTableModel, addNewRow, deleteRowAction, searchable = false)
+    addNewRow.lineModel = lastDeclaredTable
+    deleteRowAction.lineModel = lastDeclaredTable
 
     val all = properties.values.toMutableList()
-    addTable(inspector, "All Attributes", all, null, searchable = true)
+    val allTableModel = NeleTableModel(all)
+    addTable(inspector, "All Attributes", allTableModel, searchable = true)
   }
 
   private fun addTable(inspector: InspectorPanel,
                        title: String,
-                       properties: MutableList<NelePropertyItem>,
-                       newProperty: NelePropertyItem?,
-                       searchable: Boolean): NeleTableModel {
-    sort(properties)
-    if (newProperty != null) {
-      properties.add(newProperty)
-    }
-    val titleModel = inspector.addExpandableTitle(title, true)
-    val tableModel = NeleTableModel(properties)
-    if (tableModel.items.isNotEmpty()) {
-      inspector.addTable(tableModel, searchable, tableUIProvider, titleModel)
-    }
-    return tableModel
+                       tableModel: NeleTableModel,
+                       vararg actions: AnAction,
+                       searchable: Boolean): TableLineModel {
+    sort(tableModel.items)
+    val titleModel = inspector.addExpandableTitle(title, true, *actions)
+    return inspector.addTable(tableModel, searchable, tableUIProvider, titleModel)
   }
 
   private fun sort(properties: MutableList<NelePropertyItem>) {
@@ -82,7 +98,6 @@ class AdvancedInspectorBuilder(model: NelePropertiesModel, private val tableUIPr
 }
 
 private class NeleTableModel(override val items: MutableList<NelePropertyItem>) : PTableModel {
-
   private val listeners = mutableListOf<PTableModelUpdateListener>()
 
   override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {
@@ -104,28 +119,95 @@ private class NeleTableModel(override val items: MutableList<NelePropertyItem>) 
     listeners.add(listener)
   }
 
-  fun updateItems(declared: MutableList<NelePropertyItem>) {
-    val last = lastItem()
-    if (last != null) {
-      declared.add(last)
-    }
-    if (isSameItems(declared)) {
+  fun updateItems(newItems: MutableList<NelePropertyItem>) {
+    if (isSameItems(newItems)) {
       return
     }
     items.clear()
-    items.addAll(declared)
+    items.addAll(newItems)
     listeners.forEach { it.itemsUpdated() }
   }
 
-  private fun lastItem(): NeleNewPropertyItem? {
+  fun lastItem(): NeleNewPropertyItem? {
     if (items.isEmpty()) {
       return null
     }
     return items[items.size - 1] as? NeleNewPropertyItem
   }
 
-  private fun isSameItems(declared: List<NelePropertyItem>): Boolean {
+  fun isSameItems(newItems: List<NelePropertyItem>): Boolean {
     // Provide size shortcut and then use AbstractList.equals method to check that all items are the same:
-    return declared.size == items.size && declared == items
+    return newItems.size == items.size && newItems == items
+  }
+}
+
+private class AddNewRowAction(val tableModel: NeleTableModel,
+                              val newProperty: NeleNewPropertyItem): AnAction(null, "Add Property", StudioIcons.Common.ADD) {
+
+  var lineModel: TableLineModel? = null
+
+  override fun actionPerformed(event: AnActionEvent) {
+    val model = lineModel ?: return
+    val last = tableModel.lastItem()
+    if (last == null) {
+      val newItems = mutableListOf<NelePropertyItem>()
+      newItems.addAll(tableModel.items)
+      newItems.add(newProperty)
+      tableModel.updateItems(newItems)
+      model.requestFocus(newProperty)
+    }
+    else {
+      model.requestFocus(last)
+    }
+  }
+}
+
+private class DeleteRowAction(private val tableModel: NeleTableModel)
+  : AnAction(null, "Remove Selected Property", StudioIcons.Common.REMOVE) {
+
+  var lineModel: TableLineModel? = null
+
+  override fun actionPerformed(event: AnActionEvent) {
+    val model = lineModel ?: return
+    val selected = model.selectedItem as? NelePropertyItem ?: return
+    val index = tableModel.items.indexOf(selected)
+    if (index < 0) {
+      return
+    }
+    var nextItem: NelePropertyItem? = null
+    val last = tableModel.lastItem()
+    model.stopEditing()
+    if (selected == last) {
+      // First determine the next item to select:
+      if (index > 0) {
+        nextItem = tableModel.items[index - 1]
+      }
+
+      // Then remove the add new property line
+      val newItems = mutableListOf<NelePropertyItem>()
+      newItems.addAll(tableModel.items.subList(0, tableModel.items.lastIndex))
+      tableModel.updateItems(newItems)
+    }
+    else {
+      // First determine the next item to select:
+      if (index < tableModel.items.lastIndex) {
+        nextItem = tableModel.items[index + 1]
+      }
+      else if (index > 0) {
+        nextItem = tableModel.items[index - 1]
+      }
+
+      // Then delete the attribute by removing the value for the property.
+      selected.value = null
+
+      // Then remove the add new property line
+      val newItems = mutableListOf<NelePropertyItem>()
+      newItems.addAll(tableModel.items.subList(0, index))
+      newItems.addAll(tableModel.items.subList(index + 1, tableModel.items.size))
+      tableModel.updateItems(newItems)
+    }
+    if (nextItem != null) {
+      model.requestFocus(nextItem)
+    }
   }
 }

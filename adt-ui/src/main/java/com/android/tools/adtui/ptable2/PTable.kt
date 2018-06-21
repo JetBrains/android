@@ -68,6 +68,9 @@ interface PTable {
   /** Returns true if the item is currently expanded. */
   fun isExpanded(item: PTableGroupItem): Boolean
 
+  /** Start editing the specified row, and stop editing if row is -1. */
+  fun startEditing(row: Int)
+
   /** Stops editing the current row and starts editing in the next row. */
   fun startNextEditor(): Boolean
 

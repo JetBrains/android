@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.property2.api
 
 import com.android.tools.adtui.ptable2.PTableModel
+import com.intellij.openapi.actionSystem.AnAction
 import javax.swing.JComponent
 
 /**
@@ -33,13 +34,13 @@ interface InspectorPanel {
   /**
    * Add a title line to the inspector.
    */
-  fun addTitle(title: String): InspectorLineModel
+  fun addTitle(title: String, vararg actions: AnAction): InspectorLineModel
 
   /**
    * Add an expandable title line to the inspector.
    */
-  fun addExpandableTitle(title: String, initiallyExpanded: Boolean = true): InspectorLineModel {
-    val line = addTitle(title)
+  fun addExpandableTitle(title: String, initiallyExpanded: Boolean = true, vararg actions: AnAction): InspectorLineModel {
+    val line = addTitle(title, *actions)
     line.makeExpandable(initiallyExpanded)
     return line
   }
@@ -74,7 +75,7 @@ interface InspectorPanel {
   fun addTable(tableModel: PTableModel,
                searchable: Boolean,
                tableUI: TableUIProvider,
-               parent: InspectorLineModel? = null): InspectorLineModel
+               parent: InspectorLineModel? = null): TableLineModel
 
   /**
    * Adds a custom panel that spans the entire width.
