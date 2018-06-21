@@ -101,7 +101,10 @@ public class AndroidRunState implements RunProfileState {
         myPreviousSessionProcessHandler.detachProcess();
       }
 
-      processHandler = new AndroidProcessHandler(applicationId, launchTasksProvider.monitorRemoteProcess());
+      processHandler = new AndroidProcessHandler.Builder()
+        .setApplicationId(applicationId)
+        .monitorRemoteProcesses(launchTasksProvider.monitorRemoteProcess())
+        .build();
       console = attachConsole(processHandler, executor);
     } else {
       assert myPreviousSessionProcessHandler != null : "No process handler from previous session, yet current tasks don't create one";

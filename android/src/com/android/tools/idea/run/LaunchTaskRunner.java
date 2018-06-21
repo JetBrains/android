@@ -147,7 +147,8 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       else { // we only need to inform the process handler if certain scenarios
         if (myLaunchTasksProvider.createsNewProcess() // we are not doing a hot swap (in which case we are creating a new process)
             && myProcessHandler instanceof AndroidProcessHandler) { // we aren't debugging (in which case its a DebugProcessHandler)
-          ((AndroidProcessHandler)myProcessHandler).addTargetDevice(device);
+          AndroidProcessHandler procHandler = (AndroidProcessHandler) myProcessHandler;
+          procHandler.addTargetDevice(device);
         }
       }
     }
