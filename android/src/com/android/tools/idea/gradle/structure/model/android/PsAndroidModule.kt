@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon
-import com.android.utils.StringHelper
+import com.android.utils.combineAsCamelCase
 import java.io.File
 import javax.swing.Icon
 
@@ -110,12 +110,12 @@ class PsAndroidModule(
 
     fun buildFlavorCombinations() = when {
       flavorDimensions.size > 1 -> flavorDimensions
-        .fold(listOf(listOf("")), { acc, dimension ->
+        .fold(listOf(listOf(""))) { acc, dimension ->
           flavorsByDimension(dimension).flatMap { flavor ->
             acc.map { prefix -> prefix + flavor }
           }
-        })
-        .map { StringHelper.combineAsCamelCase(it.filter { it != "" }) }
+        }
+        .map { it.filter { it != "" }.combineAsCamelCase() }
       else -> listOf()  // There are no additional flavor combinations if there is only one flavor dimension.
     }
 
@@ -137,7 +137,7 @@ class PsAndroidModule(
       applicableProductFlavors().forEach { productFlavor ->
         applicableBuildTypes(artifact).forEach { buildType ->
           applicableScopes().forEach { scope ->
-            result.add(StringHelper.combineAsCamelCase(listOf(artifact, productFlavor, buildType, scope).filter { it != "" }))
+            result.add(listOf(artifact, productFlavor, buildType, scope).filter { it != "" }.combineAsCamelCase())
           }
         }
       }
