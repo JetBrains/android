@@ -15,45 +15,51 @@
  */
 package com.android.tools.datastore.database;
 
-import com.android.tools.datastore.DataStoreDatabase;
-import com.android.tools.datastore.FakeLogService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static com.google.common.truth.Truth.assertThat;
 
-public class NetworkTableTest {
+public class NetworkTableTest extends DatabaseTest<NetworkTable> {
   private static final int VALID_CONN_ID = 3;
   private static final int INVALID_CONN_ID = -1;
   private static final int TEST_DATA = 10;
   private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setSessionId(1L).setDeviceId(1234).build();
   private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setSessionId(-1L).setDeviceId(4321).build();
 
-  private File myDbFile;
-  private NetworkTable myTable;
-  private DataStoreDatabase myDatabase;
-
-  @Before
+  @Override
   public void setUp() throws Exception {
-    myDbFile = File.createTempFile("NetworkTable", "mysql");
-    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE, new FakeLogService());
-    myTable = new NetworkTable();
-    myTable.initialize(myDatabase.getConnection());
+    super.setUp();
     populateDatabase();
   }
 
-  @After
-  public void tearDown() {
-    myDatabase.disconnect();
-    //noinspection ResultOfMethodCallIgnored
-    myDbFile.delete();
+  @Override
+  protected NetworkTable createTable() {
+    return new NetworkTable();
+  }
+
+  @Override
+  protected List<Consumer<NetworkTable>> getTableQueryMethodsForVerification() {
+    List<Consumer<NetworkTable>> methodCalls = new ArrayList<>();
+    methodCalls.add((table) -> assertThat(
+      table.getHttpDetailsResponseById(0, Common.Session.getDefaultInstance(), NetworkProfiler.HttpDetailsRequest.Type.REQUEST)).isNull());
+    methodCalls
+      .add((table) -> assertThat(table.getNetworkConnectionDataByRequest(NetworkProfiler.HttpRangeRequest.getDefaultInstance())).isEmpty());
+    methodCalls
+      .add((table) -> assertThat(table.getNetworkDataByRequest(NetworkProfiler.NetworkDataRequest.getDefaultInstance())).isEmpty());
+    methodCalls.add((table) -> table.insert(Common.Session.getDefaultInstance(), NetworkProfiler.NetworkProfilerData.getDefaultInstance()));
+    methodCalls.add((table) -> {
+      NetworkProfiler.HttpDetailsResponse defaultData = NetworkProfiler.HttpDetailsResponse.getDefaultInstance();
+      table.insertOrReplace(Common.Session.getDefaultInstance(), defaultData, defaultData, defaultData, defaultData, defaultData,
+                            NetworkProfiler.HttpConnectionData
+                              .getDefaultInstance());
+    });
+    return methodCalls;
   }
 
   private void populateDatabase() {
@@ -70,76 +76,76 @@ public class NetworkTableTest {
             .addThread(NetworkProfiler.JavaThread.newBuilder().setId(0).setName("threadA"))
             .addThread(NetworkProfiler.JavaThread.newBuilder().setId(1).setName("threadB")))
         .build();
-      myTable.insertOrReplace(VALID_SESSION, request, null, null, null, threads, connection);
+      getTable().insertOrReplace(VALID_SESSION, request, null, null, null, threads, connection);
     }
   }
 
   @Test
   public void testGetHttpDetails() {
     NetworkProfiler.HttpDetailsResponse response =
-      myTable.getHttpDetailsResponseById(VALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
-    assertEquals("TestUrl", response.getRequest().getUrl());
+      getTable().getHttpDetailsResponseById(VALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
+    assertThat(response.getRequest().getUrl()).isEqualTo("TestUrl");
   }
 
   @Test
   public void testGetHttpDetailsInvalidConnId() {
     NetworkProfiler.HttpDetailsResponse response =
-      myTable.getHttpDetailsResponseById(INVALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
-    assertNull(response);
+      getTable().getHttpDetailsResponseById(INVALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
+    assertThat(response).isNull();
   }
 
   @Test
   public void testGetHttpDetailsInvalidSession() {
     NetworkProfiler.HttpDetailsResponse response =
-      myTable.getHttpDetailsResponseById(VALID_CONN_ID, INVALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
-    assertNull(response);
+      getTable().getHttpDetailsResponseById(VALID_CONN_ID, INVALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
+    assertThat(response).isNull();
   }
 
   @Test
   public void testGetHttpDetailsAccessingThreads() {
     NetworkProfiler.HttpDetailsResponse response =
-      myTable.getHttpDetailsResponseById(VALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
-    assertEquals(2, response.getAccessingThreads().getThreadCount());
-    assertEquals(0, response.getAccessingThreads().getThread(0).getId());
-    assertEquals("threadA", response.getAccessingThreads().getThread(0).getName());
-    assertEquals(1, response.getAccessingThreads().getThread(1).getId());
-    assertEquals("threadB", response.getAccessingThreads().getThread(1).getName());
+      getTable().getHttpDetailsResponseById(VALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
+    assertThat(response.getAccessingThreads().getThreadCount()).isEqualTo(2);
+    assertThat(response.getAccessingThreads().getThread(0).getId()).isEqualTo(0);
+    assertThat(response.getAccessingThreads().getThread(0).getName()).isEqualTo("threadA");
+    assertThat(response.getAccessingThreads().getThread(1).getId()).isEqualTo(1);
+    assertThat(response.getAccessingThreads().getThread(1).getName()).isEqualTo("threadB");
   }
 
   @Test
   public void testGetHttpDetailsAccessingThreadsInvalidSession() {
     NetworkProfiler.HttpDetailsResponse response =
-      myTable.getHttpDetailsResponseById(VALID_CONN_ID, INVALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
-    assertNull(response);
+      getTable().getHttpDetailsResponseById(VALID_CONN_ID, INVALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
+    assertThat(response).isNull();
   }
 
   @Test
   public void testGetNetworkConnectionDataByRequest() {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest
       .newBuilder().setSession(VALID_SESSION).setStartTimestamp(100).setEndTimestamp(101).build();
-    List<NetworkProfiler.HttpConnectionData> response = myTable.getNetworkConnectionDataByRequest(request);
-    assertEquals(2, response.size());
+    List<NetworkProfiler.HttpConnectionData> response = getTable().getNetworkConnectionDataByRequest(request);
+    assertThat(response).hasSize(2);
     int offset = 0;
-    assertEquals(VALID_CONN_ID + offset, response.get(offset).getConnId());
-    assertEquals(100 + offset, response.get(offset).getStartTimestamp());
+    assertThat(response.get(offset).getConnId()).isEqualTo(VALID_CONN_ID + offset);
+    assertThat(response.get(offset).getStartTimestamp()).isEqualTo(100 + offset);
     offset++;
-    assertEquals(VALID_CONN_ID + offset, response.get(offset).getConnId());
-    assertEquals(100 + offset, response.get(offset).getStartTimestamp());
+    assertThat(response.get(offset).getConnId()).isEqualTo(VALID_CONN_ID + offset);
+    assertThat(response.get(offset).getStartTimestamp()).isEqualTo(100 + offset);
   }
 
   @Test
   public void testGetNetworkConnectionDataByRequestInvalidSession() {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest
       .newBuilder().setSession(INVALID_SESSION).setStartTimestamp(100).setEndTimestamp(101).build();
-    List<NetworkProfiler.HttpConnectionData> response = myTable.getNetworkConnectionDataByRequest(request);
-    assertEquals(0, response.size());
+    List<NetworkProfiler.HttpConnectionData> response = getTable().getNetworkConnectionDataByRequest(request);
+    assertThat(response).isEmpty();
   }
 
   @Test
   public void testGetNetworkConnectionDataByRequestInvalidRange() {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest
       .newBuilder().setSession(VALID_SESSION).setStartTimestamp(0).setEndTimestamp(10).build();
-    List<NetworkProfiler.HttpConnectionData> response = myTable.getNetworkConnectionDataByRequest(request);
-    assertEquals(0, response.size());
+    List<NetworkProfiler.HttpConnectionData> response = getTable().getNetworkConnectionDataByRequest(request);
+    assertThat(response).isEmpty();
   }
 }
