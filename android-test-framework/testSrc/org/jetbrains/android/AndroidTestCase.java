@@ -257,7 +257,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
    */
   @Nullable
   protected LanguageLevel getLanguageLevel() {
-    return null;
+    // Higher language levels trigger JavaPlatformModuleSystem checks which fail for our light PSI classes. For now set the language level
+    // to what real AS actually uses.
+    // TODO(b/110679859): figure out how to stop JavaPlatformModuleSystem from thinking the light classes are not accessible.
+    return LanguageLevel.JDK_1_8;
   }
 
   protected static AndroidXmlCodeStyleSettings getAndroidCodeStyleSettings() {
