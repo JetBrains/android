@@ -265,7 +265,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
 
       boolean isWindowTabHidden = !window.isShowStripeButton(); // Profilers is removed from the toolbar.
       boolean isWindowExpanded = window.isVisible(); // Profiler window is expanded.
-      boolean windowVisibilityChanged = isWindowExpanded == myWasWindowExpanded;
+      boolean windowVisibilityChanged = isWindowExpanded != myWasWindowExpanded;
       myWasWindowExpanded = isWindowExpanded;
       if (isWindowTabHidden) {
         if (hasAliveSession) {
