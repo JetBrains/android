@@ -48,7 +48,7 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
 
   public void setUpLibraryRClass() {
     if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyFileToProject(BASE_PATH + "LibR.java", "additionalModules/lib/src/p1/p2/lib/R.java");
+      myFixture.copyFileToProject(BASE_PATH + "LibR.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
     }
   }
 
@@ -77,7 +77,7 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
 
   public void testJavaHighlighting() {
     setUpLibraryRClass();
-    String to = "additionalModules/lib/src/p1/p2/lib" + getTestName(true) + ".java";
+    String to = "additionalModules/lib/src/p1/p2/lib/" + getTestName(true) + ".java";
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", to);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.doHighlighting();

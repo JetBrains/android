@@ -390,12 +390,14 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
 
     Collection<UsageInfo> references = findCodeUsages("MyView1.java", "src/p1/p2/MyView.java");
     //noinspection SpellCheckingInspection
-    assertEquals("MyView.java:13:\n" +
-                 "  TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MyView);\n" +
-                 "                                                                   |~~~~~~ \n" +
-                 "MyView.java:14:\n" +
-                 "  int answer = a.getInt(R.styleable.MyView_answer, 0);\n" +
-                 "                                    |~~~~~~~~~~~~~    \n" +
+    String expected = "MyView.java:13:\n" +
+                      "  TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MyView);\n" +
+                      "                                                                   |~~~~~~ \n" +
+                      "MyView.java:14:\n" +
+                      "  int answer = a.getInt(R.styleable.MyView_answer, 0);\n" +
+                      "                                    |~~~~~~~~~~~~~    \n";
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      expected = expected +
                  "R.java:46:\n" +
                  "  <tr><td><code>{@link #MyView_answer p1.p2:answer}</code></td><td></td></tr>\n" +
                  "                        |~~~~~~~~~~~~~                                       \n" +
@@ -404,8 +406,9 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
                  "        |~~~~~~~~~~~~\n" +
                  "R.java:55:\n" +
                  "  attribute's value can be found in the {@link #MyView} array.\n" +
-                 "                                                |~~~~~~       \n",
-
+                 "                                                |~~~~~~       \n";
+    }
+    assertEquals(expected,
                  // Note: the attrs.xml occurence of "MyView" is not a *reference* to the *field*,
                  // the field is a reference to the XML:
                  // I had earlier implemented this such the following showed up (by
@@ -483,31 +486,28 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
     assertNotNull(collection);
     // Ensure stable output: sort in a predictable order
     List<UsageInfo> usages = new ArrayList<>(collection);
-    Collections.sort(usages, new Comparator<UsageInfo>() {
-      @Override
-      public int compare(UsageInfo usageInfo1, UsageInfo usageInfo2) {
-        PsiFile file1 = usageInfo1.getFile();
-        PsiFile file2 = usageInfo2.getFile();
-        assertNotNull(file1);
-        assertNotNull(file2);
-        int delta = file1.getName().compareTo(file2.getName());
-        if (delta != 0) {
-          return delta;
-        }
-        VirtualFile virtualFile1 = file1.getVirtualFile();
-        VirtualFile virtualFile2 = file2.getVirtualFile();
-        if (virtualFile1 != null && virtualFile2 != null) {
-          delta = virtualFile1.getPath().compareTo(virtualFile2.getPath());
-        } else if (virtualFile1 != null) {
-          delta = -1;
-        } else {
-          delta = 1;
-        }
-        if (delta != 0) {
-          return delta;
-        }
-        return usageInfo1.getNavigationOffset() - usageInfo2.getNavigationOffset();
+    Collections.sort(usages, (usageInfo1, usageInfo2) -> {
+      PsiFile file1 = usageInfo1.getFile();
+      PsiFile file2 = usageInfo2.getFile();
+      assertNotNull(file1);
+      assertNotNull(file2);
+      int delta = file1.getName().compareTo(file2.getName());
+      if (delta != 0) {
+        return delta;
       }
+      VirtualFile virtualFile1 = file1.getVirtualFile();
+      VirtualFile virtualFile2 = file2.getVirtualFile();
+      if (virtualFile1 != null && virtualFile2 != null) {
+        delta = virtualFile1.getPath().compareTo(virtualFile2.getPath());
+      } else if (virtualFile1 != null) {
+        delta = -1;
+      } else {
+        delta = 1;
+      }
+      if (delta != 0) {
+        return delta;
+      }
+      return usageInfo1.getNavigationOffset() - usageInfo2.getNavigationOffset();
     });
 
     // Remove duplicates: For some of the tests we manually add an R class with values
