@@ -33,7 +33,7 @@ public class MotionSceneTest extends AndroidDomTestCase {
   }
 
   public void testTransitionSubTags() throws Throwable {
-    doTestCompletionVariants(getTestName(true) + ".xml", "OnSwipe", "KeyFrameSet");
+    doTestCompletionVariants(getTestName(true) + ".xml", "OnSwipe", "OnClick", "KeyFrameSet");
   }
 
   public void testConstraintSetSubTags() throws Throwable {
