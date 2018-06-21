@@ -20,12 +20,9 @@ import com.android.builder.model.SyncIssue
 import com.android.builder.model.SyncIssue.SEVERITY_ERROR
 import com.android.builder.model.SyncIssue.SEVERITY_WARNING
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.model.PsIssue
+import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.*
-import com.android.tools.idea.gradle.structure.model.PsIssueCollection
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
-import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
-import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
 import com.google.common.annotations.VisibleForTesting
@@ -60,7 +57,7 @@ class PsAndroidModuleAnalyzer(context: PsContext) : PsModuleAnalyzer<PsAndroidMo
           issueCollection.add(issue)
         }
         // TODO(b/77848741): Fix promotion analysis.
-        //analyzeDeclaredDependency(libraryDependency, issueCollection);
+        // analyzeDeclaredDependency(libraryDependency, issueCollection);
       }
     }
   }
@@ -79,7 +76,7 @@ fun createIssueFrom(syncIssue: SyncIssue, path: PsPath): PsIssue {
     message = message.replace(url, "<a href='$url'>$url</a>")
     result = matcher.find()
   }
-  return PsIssue(message, path, PROJECT_ANALYSIS, getSeverity(syncIssue))
+  return PsGeneralIssue(message, path, PROJECT_ANALYSIS, getSeverity(syncIssue))
 }
 
 private fun getSeverity(issue: SyncIssue): PsIssue.Severity {
