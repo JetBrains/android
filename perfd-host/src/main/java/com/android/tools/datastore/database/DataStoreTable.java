@@ -65,6 +65,9 @@ public abstract class DataStoreTable<T extends Enum> {
   }
 
   /**
+   * A connection represents a link between code and the database layer. This link is accessed via multiple threads
+   * as such means the only guarantee this function offers is the state of the connection at the time of the call.
+   * If the connection is closed at any time this function will always return false since we never attempt to reestablish.
    * @return true if the underlying connection is closed, false otherwise.
    */
   public boolean isClosed() {
@@ -130,10 +133,10 @@ public abstract class DataStoreTable<T extends Enum> {
   }
 
   protected void execute(@NotNull T statement, Object... params) {
+    if (isClosed()) {
+      return;
+    }
     try {
-      if (isClosed()) {
-        return;
-      }
       PreparedStatement stmt = getStatementMap().get(statement);
       applyParams(stmt, params);
       stmt.execute();
@@ -144,10 +147,10 @@ public abstract class DataStoreTable<T extends Enum> {
   }
 
   protected ResultSet executeQuery(@NotNull T statement, Object... params) throws SQLException {
-    PreparedStatement stmt = getStatementMap().get(statement);
-    if (isClosed() || stmt.isClosed()) {
+    if (isClosed()) {
       return new EmptyResultSet();
     }
+    PreparedStatement stmt = getStatementMap().get(statement);
     applyParams(stmt, params);
     return stmt.executeQuery();
   }

@@ -70,10 +70,12 @@ pid: 1234
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetAgentStatus" Class="class com.android.tools.profiler.proto.Profiler$AgentStatusResponse">
-        <Message></Message>
+        <Message>status: ATTACHED
+</Message>
         <clazz>class com.android.tools.profiler.proto.Profiler$AgentStatusResponse</clazz>
         <functionCalled>profiler.proto.ProfilerService/GetAgentStatus</functionCalled>
-        <message></message>
+        <message>status: ATTACHED
+</message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetDevices" Class="class com.android.tools.profiler.proto.Profiler$GetDevicesRequest">
         <Message></Message>

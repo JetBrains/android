@@ -344,7 +344,8 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     return resultBuilder.build();
   }
 
-  private JNIGlobalReferenceEvent readJniEventFromResultSet(ResultSet resultset, JNIGlobalReferenceEvent.Type type) throws SQLException {
+  private static JNIGlobalReferenceEvent readJniEventFromResultSet(ResultSet resultset, JNIGlobalReferenceEvent.Type type)
+    throws SQLException {
     int objectTag = resultset.getInt("Tag");
     long refValue = resultset.getLong("RefValue");
     long timestamp = resultset.getLong("Timestamp");
@@ -384,7 +385,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       }
     }
     catch (SQLException | InvalidProtocolBufferException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return resultBuilder.build();
   }
@@ -434,7 +435,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
   }
 
   private static TreeMap<Long, MemoryMap.MemoryRegion> buildAddressMap(MemoryMap map) {
-    TreeMap<Long, MemoryMap.MemoryRegion> result = new TreeMap<Long, MemoryMap.MemoryRegion>();
+    TreeMap<Long, MemoryMap.MemoryRegion> result = new TreeMap<>();
     if (map == null) {
       return result;
     }
@@ -444,7 +445,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     return result;
   }
 
-  public static MemoryMap.MemoryRegion getRegionByAddress(TreeMap<Long, MemoryMap.MemoryRegion> addressMap, Long address) {
+  private static MemoryMap.MemoryRegion getRegionByAddress(TreeMap<Long, MemoryMap.MemoryRegion> addressMap, Long address) {
     Map.Entry<Long, MemoryMap.MemoryRegion> entry = addressMap.floorEntry(address);
     if (entry == null) {
       return null;
@@ -460,6 +461,9 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     PreparedStatement insertRefStatement = null;
     PreparedStatement updateRefStatement = null;
     PreparedStatement insertFrameStatement = null;
+    if (isClosed()) {
+      return;
+    }
     try {
       TreeMap<Long, MemoryMap.MemoryRegion> addressMap = buildAddressMap(batch.getMemoryMap());
       TLongHashSet insertedAddresses = new TLongHashSet();
@@ -546,13 +550,13 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       }
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return records;
   }
 
   public void updateSymbolizedNativeFrames(@NotNull Common.Session session, @NotNull List<NativeCallStack.NativeFrame> frames) {
-    if (frames.isEmpty()) {
+    if (frames.isEmpty() || isClosed()) {
       return;
     }
     try {
@@ -564,7 +568,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       updateFramesStatement.executeBatch();
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -572,6 +576,11 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     MemoryProfiler.AllocationEvent.EventCase currentCase = null;
     PreparedStatement currentStatement = null;
     int allocAndFreeCount = 0;
+    // If we don't do a closed check it is possible for this function to assert instead of handling
+    // the connection being closed gracefully.
+    if (isClosed()) {
+      return;
+    }
     try {
       for (MemoryProfiler.AllocationEvent event : sample.getEventsList()) {
         if (currentCase != event.getEventCase()) {
@@ -635,6 +644,9 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
   }
 
   public void insertMethodInfo(Common.Session session, List<AllocationStack.StackFrame> methods) {
+    if (isClosed()) {
+      return;
+    }
     try {
       PreparedStatement statement = getStatementMap().get(INSERT_METHOD);
       assert statement != null;
@@ -666,6 +678,9 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
   }
 
   public void insertStackInfo(Common.Session session, List<EncodedAllocationStack> stacks) {
+    if (isClosed()) {
+      return;
+    }
     try {
       PreparedStatement statement = getStatementMap().get(INSERT_ENCODED_STACK);
       assert statement != null;
@@ -681,6 +696,9 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
   }
 
   public void insertThreadInfo(Common.Session session, List<ThreadInfo> threads) {
+    if (isClosed()) {
+      return;
+    }
     try {
       PreparedStatement statement = getStatementMap().get(INSERT_THREAD_INFO);
       assert statement != null;

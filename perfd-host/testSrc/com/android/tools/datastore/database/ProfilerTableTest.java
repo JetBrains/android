@@ -15,44 +15,56 @@
  */
 package com.android.tools.datastore.database;
 
-import com.android.tools.datastore.DataStoreDatabase;
 import com.android.tools.datastore.DeviceId;
-import com.android.tools.datastore.FakeLogService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.AgentStatusRequest;
 import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
 import com.android.tools.profiler.proto.Profiler.GetSessionsResponse;
-import org.junit.After;
-import org.junit.Before;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Consumer;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class ProfilerTableTest {
+public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
   private static final DeviceId FAKE_DEVICE_ID = DeviceId.of(1);
-  private File myDbFile;
-  private ProfilerTable myTable;
-  private DataStoreDatabase myDatabase;
 
-  @Before
-  public void setUp() throws Exception {
-    myDbFile = File.createTempFile("ProfileTable", "mysql");
-    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE, new FakeLogService());
-    myTable = new ProfilerTable();
-    myTable.initialize(myDatabase.getConnection());
+  @Override
+  protected ProfilerTable createTable() {
+    return new ProfilerTable();
   }
 
-  @After
-  public void tearDown() {
-    myDatabase.disconnect();
-    //noinspection ResultOfMethodCallIgnored
-    myDbFile.delete();
+  @Override
+  protected List<Consumer<ProfilerTable>> getTableQueryMethodsForVerification() {
+    List<Consumer<ProfilerTable>> methodCalls = new ArrayList<>();
+    methodCalls.add((table) -> assertThat(table.getDeviceLastKnownTime(DeviceId.of(-1))).isEqualTo(Long.MIN_VALUE));
+    methodCalls.add((table) -> assertThat(table.getDevices()).isEqualTo(Profiler.GetDevicesResponse.getDefaultInstance()));
+    methodCalls.add((table) -> assertThat(table.getProcesses(Profiler.GetProcessesRequest.getDefaultInstance()))
+      .isEqualTo(Profiler.GetProcessesResponse.getDefaultInstance()));
+    methodCalls.add((table) -> assertThat(table.getSessionById(-1)).isEqualTo(Common.Session.getDefaultInstance()));
+    methodCalls
+      .add((table) -> assertThat(table.getSessionMetaData(-1)).isEqualTo(Profiler.GetSessionMetaDataResponse.getDefaultInstance()));
+    methodCalls.add((table) -> assertThat(table.getSessions()).isEqualTo(GetSessionsResponse.getDefaultInstance()));
+    methodCalls.add((table) -> assertThat(table.getAgentStatus(AgentStatusRequest.getDefaultInstance()))
+      .isEqualTo(AgentStatusResponse.getDefaultInstance()));
+    methodCalls.add((table) -> assertThat(table.getBytes(Profiler.BytesRequest.getDefaultInstance())).isEqualTo(null));
+    methodCalls.add((table) -> table.insertOrUpdateDevice(Common.Device.getDefaultInstance()));
+    methodCalls
+      .add((table) -> table.insertOrUpdateBytes("id", Common.Session.getDefaultInstance(), Profiler.BytesResponse.getDefaultInstance()));
+    methodCalls.add((table) -> table.insertOrUpdateProcess(DeviceId.of(-1), Common.Process.getDefaultInstance()));
+    methodCalls.add((table) -> table
+      .insertOrUpdateSession(Common.Session.getDefaultInstance(), "Name", 0, false, false, Common.SessionMetaData.SessionType.UNSPECIFIED));
+    methodCalls.add(
+      (table) -> table.updateAgentStatus(DeviceId.of(-1), Common.Process.getDefaultInstance(), AgentStatusResponse.getDefaultInstance()));
+    methodCalls.add((table) -> table.updateDeviceLastKnownTime(Common.Device.getDefaultInstance(), 0));
+    methodCalls.add((table) -> table.updateSessionEndTime(0, 0));
+    methodCalls.add((table) -> table.deleteSession(-1));
+    return methodCalls;
   }
 
   @Test
@@ -60,16 +72,16 @@ public class ProfilerTableTest {
     Common.Device device = Common.Device.newBuilder().setDeviceId(1).build();
     long knownTimestamp = 100L;
     long knownTimestamp2 = 200L;
-    myTable.insertOrUpdateDevice(device);
-    myTable.updateDeviceLastKnownTime(device, knownTimestamp);
-    assertThat(myTable.getDeviceLastKnownTime(DeviceId.of(device.getDeviceId()))).isEqualTo(knownTimestamp);
+    getTable().insertOrUpdateDevice(device);
+    getTable().updateDeviceLastKnownTime(device, knownTimestamp);
+    assertThat(getTable().getDeviceLastKnownTime(DeviceId.of(device.getDeviceId()))).isEqualTo(knownTimestamp);
 
     // Test that subsequent call returns the most recent value.
-    myTable.updateDeviceLastKnownTime(device, knownTimestamp2);
-    assertThat(myTable.getDeviceLastKnownTime(DeviceId.of(device.getDeviceId()))).isEqualTo(knownTimestamp2);
+    getTable().updateDeviceLastKnownTime(device, knownTimestamp2);
+    assertThat(getTable().getDeviceLastKnownTime(DeviceId.of(device.getDeviceId()))).isEqualTo(knownTimestamp2);
 
     // Test that invalid device's id return Long.MIN_VALUE;
-    assertThat(myTable.getDeviceLastKnownTime(DeviceId.of(-1))).isEqualTo(Long.MIN_VALUE);
+    assertThat(getTable().getDeviceLastKnownTime(DeviceId.of(-1))).isEqualTo(Long.MIN_VALUE);
   }
 
   @Test
@@ -87,11 +99,11 @@ public class ProfilerTableTest {
         .setEndTimestamp(Long.MAX_VALUE)
         .build();
 
-      myTable.insertOrUpdateSession(session, sessionName, startTime, true, false, Common.SessionMetaData.SessionType.FULL);
+      getTable().insertOrUpdateSession(session, sessionName, startTime, true, false, Common.SessionMetaData.SessionType.FULL);
       sessions.add(session);
     }
 
-    GetSessionsResponse response = myTable.getSessions();
+    GetSessionsResponse response = getTable().getSessions();
     assertThat(response.getSessionsCount()).isEqualTo(10);
     for (int i = 0; i < 10; i++) {
       assertThat(response.getSessions(i)).isEqualTo(sessions.get(i));
@@ -99,11 +111,11 @@ public class ProfilerTableTest {
 
     for (int i = 0; i < 10; i++) {
       Common.Session session = sessions.get(i).toBuilder().setEndTimestamp(50 + i).build();
-      myTable.updateSessionEndTime(session.getSessionId(), session.getEndTimestamp());
+      getTable().updateSessionEndTime(session.getSessionId(), session.getEndTimestamp());
       sessions.set(i, session);
     }
 
-    response = myTable.getSessions();
+    response = getTable().getSessions();
     assertThat(response.getSessionsCount()).isEqualTo(10);
     for (int i = 0; i < 10; i++) {
       assertThat(response.getSessions(i)).isEqualTo(sessions.get(i));
@@ -125,16 +137,16 @@ public class ProfilerTableTest {
         .setEndTimestamp(Long.MAX_VALUE)
         .build();
 
-      myTable.insertOrUpdateSession(session, sessionName, startTime, true, false, Common.SessionMetaData.SessionType.FULL);
+      getTable().insertOrUpdateSession(session, sessionName, startTime, true, false, Common.SessionMetaData.SessionType.FULL);
       sessions.add(session);
     }
 
     for (int i = 0; i < 2; i++) {
-      assertThat(myTable.getSessionById(sessions.get(i).getSessionId())).isEqualTo(sessions.get(i));
+      assertThat(getTable().getSessionById(sessions.get(i).getSessionId())).isEqualTo(sessions.get(i));
     }
 
     // Test the invalid case.
-    assertThat(myTable.getSessionById(-1)).isEqualTo(Common.Session.getDefaultInstance());
+    assertThat(getTable().getSessionById(-1)).isEqualTo(Common.Session.getDefaultInstance());
   }
 
   @Test
@@ -152,17 +164,17 @@ public class ProfilerTableTest {
         .setEndTimestamp(Long.MAX_VALUE)
         .build();
 
-      myTable.insertOrUpdateSession(session, sessionName, startTime, true, false, Common.SessionMetaData.SessionType.FULL);
+      getTable().insertOrUpdateSession(session, sessionName, startTime, true, false, Common.SessionMetaData.SessionType.FULL);
       sessions.add(session);
     }
 
     for (int i = 0; i < 2; i++) {
-      assertThat(myTable.getSessionById(sessions.get(i).getSessionId())).isEqualTo(sessions.get(i));
-      myTable.deleteSession(sessions.get(i).getSessionId());
+      assertThat(getTable().getSessionById(sessions.get(i).getSessionId())).isEqualTo(sessions.get(i));
+      getTable().deleteSession(sessions.get(i).getSessionId());
     }
 
     for (int i = 0; i < 2; i++) {
-      assertThat(myTable.getSessionById(sessions.get(i).getSessionId())).isEqualTo(Common.Session.getDefaultInstance());
+      assertThat(getTable().getSessionById(sessions.get(i).getSessionId())).isEqualTo(Common.Session.getDefaultInstance());
     }
   }
 
@@ -187,13 +199,13 @@ public class ProfilerTableTest {
         .setType(Common.SessionMetaData.SessionType.FULL)
         .build();
 
-      myTable.insertOrUpdateSession(session, sessionName, startTime, useJvmti, useLiveAllocation, Common.SessionMetaData.SessionType.FULL);
+      getTable().insertOrUpdateSession(session, sessionName, startTime, useJvmti, useLiveAllocation, Common.SessionMetaData.SessionType.FULL);
       metaDatas.add(metaData);
     }
 
     for (int i = 0; i < 10; i++) {
       Common.SessionMetaData data = metaDatas.get(i);
-      Profiler.GetSessionMetaDataResponse response = myTable.getSessionMetaData(data.getSessionId());
+      Profiler.GetSessionMetaDataResponse response = getTable().getSessionMetaData(data.getSessionId());
       assertThat(response.getData()).isEqualTo(data);
     }
   }
@@ -205,22 +217,22 @@ public class ProfilerTableTest {
     // Setup initial process and status
     AgentStatusResponse status =
       AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.DETACHED).build();
-    myTable.insertOrUpdateProcess(FAKE_DEVICE_ID, process);
-    myTable.updateAgentStatus(FAKE_DEVICE_ID, process, status);
+    getTable().insertOrUpdateProcess(FAKE_DEVICE_ID, process);
+    getTable().updateAgentStatus(FAKE_DEVICE_ID, process, status);
 
     AgentStatusRequest request =
       AgentStatusRequest.newBuilder().setPid(process.getPid()).setDeviceId(FAKE_DEVICE_ID.get()).build();
-    assertThat(myTable.getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.DETACHED);
+    assertThat(getTable().getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.DETACHED);
 
     // Upgrading status to attach should work
     status = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build();
-    myTable.updateAgentStatus(FAKE_DEVICE_ID, process, status);
-    assertThat(myTable.getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
+    getTable().updateAgentStatus(FAKE_DEVICE_ID, process, status);
+    assertThat(getTable().getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
 
     // Attempt to downgrade status
     status = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.DETACHED).build();
-    myTable.updateAgentStatus(FAKE_DEVICE_ID, process, status);
-    assertThat(myTable.getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
+    getTable().updateAgentStatus(FAKE_DEVICE_ID, process, status);
+    assertThat(getTable().getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
   }
 
   @Test
@@ -232,34 +244,34 @@ public class ProfilerTableTest {
     // Setup initial process and status.
     AgentStatusResponse status =
       AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build();
-    myTable.insertOrUpdateProcess(FAKE_DEVICE_ID, process);
-    myTable.updateAgentStatus(FAKE_DEVICE_ID, process, status);
+    getTable().insertOrUpdateProcess(FAKE_DEVICE_ID, process);
+    getTable().updateAgentStatus(FAKE_DEVICE_ID, process, status);
 
     // Double-check the process has been added.
     Profiler.GetProcessesResponse processes =
-      myTable.getProcesses(Profiler.GetProcessesRequest.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).build());
+      getTable().getProcesses(Profiler.GetProcessesRequest.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).build());
     assertThat(processes.getProcessList()).hasSize(1);
     assertThat(processes.getProcess(0)).isEqualTo(process);
 
     // Double-check status has been set.
     AgentStatusRequest request =
       AgentStatusRequest.newBuilder().setPid(process.getPid()).setDeviceId(FAKE_DEVICE_ID.get()).build();
-    assertThat(myTable.getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
+    assertThat(getTable().getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
 
     // Kill the process entry and verify that the process state is updated and the agent status remains the same.
     Common.Process deadProcess = process.toBuilder().setState(Common.Process.State.DEAD).build();
-    myTable.insertOrUpdateProcess(FAKE_DEVICE_ID, deadProcess);
-    processes = myTable.getProcesses(Profiler.GetProcessesRequest.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).build());
+    getTable().insertOrUpdateProcess(FAKE_DEVICE_ID, deadProcess);
+    processes = getTable().getProcesses(Profiler.GetProcessesRequest.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).build());
     assertThat(processes.getProcessList()).hasSize(1);
     assertThat(processes.getProcess(0)).isEqualTo(deadProcess);
-    assertThat(myTable.getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
+    assertThat(getTable().getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
 
     // Resurrects the process and verify that the start time does not change. This is a scenario for Emulator Snapshots.
     Common.Process resurrectedProcess = process.toBuilder().setStartTimestampNs(20).build();
-    myTable.insertOrUpdateProcess(FAKE_DEVICE_ID, resurrectedProcess);
-    processes = myTable.getProcesses(Profiler.GetProcessesRequest.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).build());
+    getTable().insertOrUpdateProcess(FAKE_DEVICE_ID, resurrectedProcess);
+    processes = getTable().getProcesses(Profiler.GetProcessesRequest.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).build());
     assertThat(processes.getProcessList()).hasSize(1);
     assertThat(processes.getProcess(0)).isEqualTo(process);
-    assertThat(myTable.getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
+    assertThat(getTable().getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
   }
 }

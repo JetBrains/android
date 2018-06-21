@@ -77,16 +77,22 @@ pid: 1234
         <message>status: ATTACHED
 </message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetVersion" Class="class com.android.tools.profiler.proto.Profiler$VersionRequest">
-        <Message></Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$VersionRequest</clazz>
-        <functionCalled>profiler.proto.ProfilerService/GetVersion</functionCalled>
-        <message></message>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/ConfigureStartupAgent" Class="class com.android.tools.profiler.proto.Profiler$ConfigureStartupAgentRequest">
+        <Message>agent_lib_file_name: "TEST"
+device_id: 1234
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$ConfigureStartupAgentRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/ConfigureStartupAgent</functionCalled>
+        <message>agent_lib_file_name: "TEST"
+device_id: 1234
+</message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetVersion" Class="class com.android.tools.profiler.proto.Profiler$VersionResponse">
-        <Message></Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$VersionResponse</clazz>
-        <functionCalled>profiler.proto.ProfilerService/GetVersion</functionCalled>
-        <message></message>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/ConfigureStartupAgent" Class="class com.android.tools.profiler.proto.Profiler$ConfigureStartupAgentResponse">
+        <Message>agent_args: "TEST"
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$ConfigureStartupAgentResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/ConfigureStartupAgent</functionCalled>
+        <message>agent_args: "TEST"
+</message>
     </GrpcCall>
 </GrpcList>
