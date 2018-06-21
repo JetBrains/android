@@ -46,11 +46,6 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     // No need to copy R.java into gen!
   }
 
-  /**
-   * Sets the language level to avoid the module system visibility rules.
-   */
-  override fun getLanguageLevel() = LanguageLevel.JDK_1_8
-
   override fun tearDown() {
     try {
       StudioFlags.IN_MEMORY_R_CLASSES.clearOverride()
