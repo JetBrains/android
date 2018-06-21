@@ -13,30 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.property2.impl.model
+package com.android.tools.idea.common.property2.api
 
+import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
 
 /**
- * A model for table embedded in the properties panel.
+ * The model of a table in an inspector.
  */
-class TableLineModel(val tableModel: PTableModel, override val isSearchable: Boolean) : GenericInspectorLineModel() {
+interface TableLineModel: InspectorLineModel {
 
-  override var filter = ""
-    set(value) {
-      field = value
-      fireValueChanged()
-    }
+  /**
+   * The table model for the table embedded in this inspector line.
+   */
+  val tableModel: PTableModel
 
-  override val focusable: Boolean
-    get() = true
+  /**
+   * The item currently selected in the table.
+   */
+  val selectedItem: PTableItem?
 
-  var startEditing = false
-    private set
+  /**
+   * Request focus in a specified item.
+   */
+  fun requestFocus(item: PTableItem)
 
-  override fun requestFocus() {
-    startEditing = true
-    fireValueChanged()
-    startEditing = false
-  }
+  /**
+   * Stop editing the any table item.
+   */
+  fun stopEditing()
 }

@@ -21,7 +21,7 @@ import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.adtui.ptable2.impl.PTableImpl
 import com.android.tools.idea.common.property2.api.*
-import com.android.tools.idea.common.property2.impl.model.TableLineModel
+import com.android.tools.idea.common.property2.impl.model.TableLineModelImpl
 import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil.makeFlagsProperty
 import com.android.tools.idea.common.property2.impl.support.SimpleControlTypeProvider
 import com.android.tools.idea.common.property2.impl.table.EditorPanel
@@ -78,7 +78,7 @@ class FlagPropertyEditorTest {
       listOf("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen"),
       listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14))
     val tableModel = PTableTestModel(flag1, flag2, flag3)
-    val lineModel = TableLineModel(tableModel, true)
+    val lineModel = TableLineModelImpl(tableModel, true)
     val enumSupportProvider = object : EnumSupportProvider<PropertyItem> {
       override fun invoke(property: PropertyItem): EnumSupport? {
         return null

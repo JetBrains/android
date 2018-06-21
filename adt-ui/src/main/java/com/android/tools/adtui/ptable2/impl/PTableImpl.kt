@@ -26,6 +26,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.*
 import java.awt.event.*
+import java.util.*
 import javax.swing.*
 import javax.swing.event.ChangeEvent
 import javax.swing.table.TableCellEditor
@@ -87,8 +88,6 @@ class PTableImpl(override val tableModel: PTableModel,
     // We want expansion for the property names but not of the editors. This disables expansion for both columns.
     // TODO: Provide expansion of the left column only.
     super.setExpandableItemsEnabled(false)
-
-    model.table = this
   }
 
   override val component: JComponent
@@ -105,6 +104,15 @@ class PTableImpl(override val tableModel: PTableModel,
 
   override fun isExpanded(item: PTableGroupItem): Boolean {
     return model.isExpanded(item)
+  }
+
+  override fun startEditing(row: Int) {
+    if (row < 0) {
+      removeEditor()
+    }
+    else if (!startEditing(row, 0) {}) {
+      startEditing(row, 1) {}
+    }
   }
 
   override fun startNextEditor(): Boolean {
@@ -126,7 +134,7 @@ class PTableImpl(override val tableModel: PTableModel,
     return true
   }
 
-  fun startEditing(row: Int, column: Int) {
+  private fun startEditing(row: Int, column: Int) {
     selectRow(row)
     selectColumn(column)
     startEditing(row, column) {}
@@ -292,10 +300,31 @@ class PTableImpl(override val tableModel: PTableModel,
     }
 
     // Now remove the editor
+    repaintOtherCellInRow()
     super.removeEditor()
 
     // Give the cell editor a change to reset it's state
     tableCellEditor.editor.close(this)
+  }
+
+  override fun editCellAt(row: Int, column: Int, event: EventObject?): Boolean {
+    if (!super.editCellAt(row, column, event)) {
+      return false
+    }
+    repaintOtherCellInRow()
+    selectRow(row)
+    return true
+  }
+
+  // This method fixes a problem where the other cell was not repainted after
+  // focus was removed from a PTable with a cell being edited.
+  private fun repaintOtherCellInRow() {
+    if (editingRow < 0 || editingColumn < 0) {
+      return
+    }
+    val otherColumn = (editingColumn + 1) % 2
+    val cellRect = getCellRect(editingRow, otherColumn, false)
+    repaint(cellRect)
   }
 
   // ========== Keyboard Actions ===============================================

@@ -24,9 +24,11 @@ import com.android.tools.idea.common.property2.api.TableUIProvider
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
+import com.android.tools.idea.uibuilder.property2.testutils.FakeTableLine
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
 import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
@@ -58,6 +60,40 @@ class AdvancedInspectorBuilderTest {
     assertThat(util.inspector.lines[2].title).isEqualTo("All Attributes")
     assertThat(util.inspector.lines[2].expandable).isTrue()
 
+    // Check the 3 declared attributes
+    assertThat(util.inspector.lines[1].tableModel?.items?.map { it.name })
+      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT).inOrder()
+
+    // Also check the values of the 3 declared attributes
+    assertThat(util.inspector.lines[1].tableModel?.items?.map { it.value })
+      .containsExactly(VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT, "Testing").inOrder()
+
+    // Check all 6 attributes:
+    assertThat(util.inspector.lines[3].tableModel?.items?.map { it.name })
+      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_CONTENT_DESCRIPTION,
+                       ATTR_TEXT, ATTR_TEXT_COLOR, ATTR_TEXT_SIZE).inOrder()
+  }
+
+  @Test
+  fun testAdvancedInspectorWithAddedNewProperty() {
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    addProperties(util)
+    val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+    builder.attachToInspector(util.inspector, util.properties)
+    performAddNewRowAction(util)
+
+    assertThat(util.inspector.lines).hasSize(4)
+    assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
+    assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TABLE)
+    assertThat(util.inspector.lines[2].type).isEqualTo(LineType.TITLE)
+    assertThat(util.inspector.lines[3].type).isEqualTo(LineType.TABLE)
+
+    assertThat(util.inspector.lines[0].title).isEqualTo("Declared Attributes")
+    assertThat(util.inspector.lines[0].expandable).isTrue()
+    assertThat(util.inspector.lines[0].actions.size).isEqualTo(2)
+    assertThat(util.inspector.lines[2].title).isEqualTo("All Attributes")
+    assertThat(util.inspector.lines[2].expandable).isTrue()
+
     // Check the 4 declared attributes including a new property place holder
     assertThat(util.inspector.lines[1].tableModel?.items?.map { it.name })
       .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT, "").inOrder()
@@ -78,6 +114,7 @@ class AdvancedInspectorBuilderTest {
     addProperties(util)
     val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
     builder.attachToInspector(util.inspector, util.properties)
+    performAddNewRowAction(util)
 
     val declared = util.inspector.lines[1].tableModel!!
     assertThat(declared.acceptMoveToNextEditor(declared.items[0], PTableColumn.NAME)).isTrue()
@@ -96,6 +133,7 @@ class AdvancedInspectorBuilderTest {
     addProperties(util)
     val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
     builder.attachToInspector(util.inspector, util.properties)
+    performAddNewRowAction(util)
 
     val declared = util.inspector.lines[1].tableModel!!
     val newProperty = declared.items.last() as NeleNewPropertyItem
@@ -118,12 +156,13 @@ class AdvancedInspectorBuilderTest {
     addProperties(util)
     val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
     builder.attachToInspector(util.inspector, util.properties)
+    performAddNewRowAction(util)
 
     val declared = util.inspector.lines[1].tableModel!!
     val listener = mock(PTableModelUpdateListener::class.java)
     declared.addListener(listener)
 
-    util.model.showResolvedValues = false
+    forcePropertyValueChangedNotification(util)
     verifyZeroInteractions(listener)
   }
 
@@ -133,14 +172,47 @@ class AdvancedInspectorBuilderTest {
     addProperties(util)
     val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
     builder.attachToInspector(util.inspector, util.properties)
+    performAddNewRowAction(util)
 
     val declared = util.inspector.lines[1].tableModel!!
     val listener = mock(PTableModelUpdateListener::class.java)
     declared.addListener(listener)
 
     util.properties[ANDROID_URI, ATTR_TEXT_SIZE].value = "12sp"
-    util.model.showResolvedValues = false
+    forcePropertyValueChangedNotification(util)
     verify(listener).itemsUpdated()
+  }
+
+  @Test
+  fun testDeletePropertyItem() {
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    addProperties(util)
+    val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+    builder.attachToInspector(util.inspector, util.properties)
+    val tableLine = util.inspector.lines[1] as FakeTableLine
+    val model = tableLine.tableModel
+    tableLine.selectedItem = model.items[2] // select ATTR_TEXT
+    performDeleteRowAction(util)
+
+    // Check that there are only 2 declared attributes left
+    assertThat(model.items.map { it.name })
+      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT).inOrder()
+
+    assertThat(util.components[0].getAttribute(ANDROID_URI, ATTR_TEXT)).isNull()
+  }
+
+  @Test
+  fun testDeleteNewlyAddedPropertyItem() {
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    addProperties(util)
+    val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+    builder.attachToInspector(util.inspector, util.properties)
+    performAddNewRowAction(util)
+    performDeleteRowAction(util)
+
+    // Check that there are only the 3 declared attributes left (the place holder is gone)
+    assertThat(util.inspector.lines[1].tableModel?.items?.map { it.name })
+      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT).inOrder()
   }
 
   private class TestTableUIProvider : TableUIProvider {
@@ -159,5 +231,24 @@ class AdvancedInspectorBuilderTest {
     util.properties[ANDROID_URI, ATTR_TEXT].value = "Testing"
     util.properties[ANDROID_URI, ATTR_LAYOUT_WIDTH].value = VALUE_WRAP_CONTENT
     util.properties[ANDROID_URI, ATTR_LAYOUT_HEIGHT].value = VALUE_WRAP_CONTENT
+  }
+
+  private fun performAddNewRowAction(util: InspectorTestUtil) {
+    // Add a new property line in the table
+    val addNewPropertyAction = util.inspector.lines[0].actions[0]
+    val event = mock(AnActionEvent::class.java)
+    addNewPropertyAction.actionPerformed(event)
+  }
+
+  private fun performDeleteRowAction(util: InspectorTestUtil) {
+    // Remove the selected row in the table
+    val addNewPropertyAction = util.inspector.lines[0].actions[1]
+    val event = mock(AnActionEvent::class.java)
+    addNewPropertyAction.actionPerformed(event)
+  }
+
+  private fun forcePropertyValueChangedNotification(util: InspectorTestUtil) {
+    // This line will cause the model to dispatch a properties changed event
+    util.model.showResolvedValues = false
   }
 }

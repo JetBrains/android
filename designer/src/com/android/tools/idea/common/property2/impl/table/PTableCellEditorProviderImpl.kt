@@ -18,7 +18,7 @@ package com.android.tools.idea.common.property2.impl.table
 import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.ptable2.*
 import com.android.tools.idea.common.property2.api.*
-import com.android.tools.idea.common.property2.impl.model.TableLineModel
+import com.android.tools.idea.common.property2.impl.model.TableLineModelImpl
 import com.android.tools.idea.common.property2.impl.ui.CellPanel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -131,7 +131,7 @@ class PTableCellEditorImpl : PTableCellEditor {
     val currentTable = table ?: return
     val currentItem = item ?: return
     val currentColumn = column ?: return
-    val model = currentTable.context as TableLineModel
+    val model = currentTable.context as TableLineModelImpl
     if (model.tableModel.acceptMoveToNextEditor(currentItem, currentColumn)) {
       if (!currentTable.startNextEditor()) {
         model.gotoNextLine(model)

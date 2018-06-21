@@ -98,13 +98,12 @@ class PTableModelTest {
   }
 
   @Test
-  fun testUpdateWithEditingRestore() {
+  fun testUpdateMovesActiveItem() {
     val tableModel = createModel(Item("item1"), Item("item2"), Group("item3", Item("child1"), Item("child2")), Item("item4"))
     val table = PTableImpl(tableModel, null, DefaultPTableCellRendererProvider(), DummyPTableCellEditorProvider())
-    table.startEditing(3, 1)
+    val item = table.item(3)
     tableModel.updateTo(Item("item1"), Item("itemX"), Group("item3", Item("child1"), Item("child2")), Item("item5"), Item("item4"))
-
-    assertThat(table.editingRow).isEqualTo(4)
-    assertThat(table.editingColumn).isEqualTo(1)
+    val rowIndex = tableModel.items.indexOf(item)
+    assertThat(rowIndex).isEqualTo(4)
   }
 }

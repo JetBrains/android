@@ -27,7 +27,7 @@ class TableLineModelTest {
   @Test
   fun testEmptyFilter() {
     val test = TableTest()
-    val model = TableLineModel(test.model, true)
+    val model = TableLineModelImpl(test.model, true)
     model.filter = ""
     test.applyTableLineModel(model)
     assertThat(test.table.itemCount).isEqualTo(5)
@@ -36,7 +36,7 @@ class TableLineModelTest {
   @Test
   fun testSimpleMatch() {
     val test = TableTest()
-    val model = TableLineModel(test.model, true)
+    val model = TableLineModelImpl(test.model, true)
     model.filter = "co"
     test.applyTableLineModel(model)
     assertThat(test.table.itemCount).isEqualTo(2)
@@ -47,7 +47,7 @@ class TableLineModelTest {
   @Test
   fun testMatchIncludesGroupsEvenWhenGroupsAreCollapsed() {
     val test = TableTest()
-    val model = TableLineModel(test.model, true)
+    val model = TableLineModelImpl(test.model, true)
     model.filter = "to"
     test.applyTableLineModel(model)
     assertThat(test.table.itemCount).isEqualTo(3)
@@ -59,7 +59,7 @@ class TableLineModelTest {
   @Test
   fun testMatchIncludesGroupItemsWhenGroupsAreExpanded() {
     val test = TableTest(true)
-    val model = TableLineModel(test.model, true)
+    val model = TableLineModelImpl(test.model, true)
     model.filter = "to"
     test.applyTableLineModel(model)
     assertThat(test.table.itemCount).isEqualTo(6)
@@ -77,7 +77,7 @@ class TableLineModelTest {
     val model = makeTableModel(expanded, mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"), listOf(group1, group2))
     val table = PTable.create(model)
 
-    fun applyTableLineModel(tableLineModel: TableLineModel) {
+    fun applyTableLineModel(tableLineModel: TableLineModelImpl) {
       table.filter = tableLineModel.filter
     }
 
