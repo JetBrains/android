@@ -18,6 +18,10 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profilers.cpu.capturedetails.BottomUpNode;
+import com.android.tools.profilers.cpu.capturedetails.BottomUpTreeModel;
+import com.android.tools.profilers.cpu.capturedetails.TopDownNode;
+import com.android.tools.profilers.cpu.capturedetails.TopDownTreeModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu;
+package com.android.tools.profilers.cpu.capturedetails;
 
+import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +26,7 @@ import java.util.TreeMap;
  * A top-down CPU usage tree. This is a node on that tree and represents all the calls that share the same callstack upto a point.
  * It's created from an execution tree by merging the nodes with the same path from the root.
  */
-class TopDownNode extends CpuTreeNode<TopDownNode> {
+public class TopDownNode extends CpuTreeNode<TopDownNode> {
   private static final String INVALID_ID = "";
 
   public TopDownNode(@NotNull CaptureNode node) {

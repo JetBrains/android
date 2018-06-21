@@ -16,6 +16,9 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.cpu.capturedetails.CpuTreeModel;
+import com.android.tools.profilers.cpu.capturedetails.TopDownNode;
+import com.android.tools.profilers.cpu.capturedetails.TopDownTreeModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
