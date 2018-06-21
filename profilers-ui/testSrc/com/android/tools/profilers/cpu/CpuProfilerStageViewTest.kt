@@ -40,7 +40,6 @@ import com.android.tools.profilers.network.FakeNetworkService
 import com.android.tools.profilers.stacktrace.ContextMenuItem
 import com.google.common.collect.Iterators
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ui.ExpandedItemListCellRendererWrapper
 import com.intellij.ui.JBSplitter
 import org.junit.Before
 import org.junit.Rule
@@ -95,29 +94,6 @@ class CpuProfilerStageViewTest {
     myStage.studioProfilers.stage = myStage
     myStage.enter()
     myProfilersView = StudioProfilersView(profilers, myComponents)
-  }
-
-  @Test
-  fun testCpuCellRendererHasSessionPid() {
-    // Create
-    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process1 = Common.Process.newBuilder().setPid(1234).setState(Common.Process.State.ALIVE).build()
-    // Create a session and a ongoing profiling session.
-    myStage.studioProfilers.sessionsManager.endCurrentSession()
-    myStage.studioProfilers.sessionsManager.beginSession(device, process1)
-    val session = myStage.studioProfilers.sessionsManager.selectedSession
-    val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
-    val treeWalker = TreeWalker(cpuProfilerStageView.component)
-    val cpuTree = treeWalker.descendants().filterIsInstance<JList<CpuKernelModel.CpuState>>().first()
-    // JBList wraps cellRenderer in a ExpandedItemListCellRendererWrapper, so we get this and unwrap our instance.
-    assertThat(cpuTree.cellRenderer).isInstanceOf(ExpandedItemListCellRendererWrapper::class.java)
-    assertThat((cpuTree.cellRenderer as ExpandedItemListCellRendererWrapper<CpuKernelModel.CpuState>).wrappee).isInstanceOf(
-        CpuKernelCellRenderer::class.java
-    )
-    val cpuCell = (cpuTree.cellRenderer as ExpandedItemListCellRendererWrapper<CpuKernelModel.CpuState>).wrappee as CpuKernelCellRenderer
-
-    // Validate that the process we are looking at is the same as the process from the session.
-    assertThat(cpuCell.myProcessId).isEqualTo(session.pid)
   }
 
   @Test
