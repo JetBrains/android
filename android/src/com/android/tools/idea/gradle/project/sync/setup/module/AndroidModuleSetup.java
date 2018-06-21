@@ -18,14 +18,13 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.*;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.BaseSetup;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-public class AndroidModuleSetup {
-  @NotNull private final AndroidModuleSetupStep[] mySetupSteps;
-
+public class AndroidModuleSetup extends BaseSetup<AndroidModuleSetupStep, AndroidModuleModel> {
   public AndroidModuleSetup() {
     this(new AndroidFacetModuleSetupStep(), new SdkModuleSetupStep(), new JdkModuleSetupStep(), new ContentRootsModuleSetupStep(),
          new DependenciesAndroidModuleSetupStep(), new CompilerOutputModuleSetupStep());
@@ -33,16 +32,7 @@ public class AndroidModuleSetup {
 
   @VisibleForTesting
   AndroidModuleSetup(@NotNull AndroidModuleSetupStep... setupSteps) {
-    mySetupSteps = setupSteps;
-  }
-
-  public void setUpModule(@NotNull ModuleSetupContext context, @Nullable AndroidModuleModel androidModel, boolean syncSkipped) {
-    for (AndroidModuleSetupStep step : mySetupSteps) {
-      if (syncSkipped && !step.invokeOnSkippedSync()) {
-        continue;
-      }
-      step.setUpModule(context, androidModel);
-    }
+    super(setupSteps);
   }
 
   @TestOnly
