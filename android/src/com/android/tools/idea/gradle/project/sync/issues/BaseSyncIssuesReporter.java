@@ -26,6 +26,9 @@ import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+import java.util.Map;
+
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.project.messages.MessageType.*;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
@@ -40,6 +43,15 @@ abstract class BaseSyncIssuesReporter {
   abstract int getSupportedIssueType();
 
   abstract void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile);
+
+  void reportAll(@NotNull List<SyncIssue> syncIssues,
+                 @NotNull Map<SyncIssue, Module> moduleMap,
+                 @NotNull Map<Module, VirtualFile> buildFileMap) {
+    // Fall back to individual reporting.
+    for (SyncIssue issue : syncIssues) {
+      report(issue, moduleMap.get(issue), buildFileMap.get(moduleMap.get(issue)));
+    }
+  }
 
   @NotNull
   static MessageType getMessageType(@NotNull SyncIssue syncIssue) {
