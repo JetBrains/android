@@ -18,7 +18,9 @@ package com.android.tools.idea.tests.gui.editing;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,23 +50,38 @@ public class IdePermissionTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/68754578
+  @RunIn(TestGroup.QA_BAZEL)
   public void ideAddsPermissionChecks() throws Exception {
-    String editorContents = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication")
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleLocalApplication")
       .getEditor()
       .open("app/src/main/java/google/simpleapplication/MyActivity.java")
       .moveBetween("setContentView(R.layout.activity_my);\n    ", "}")
       .enterText(
         "((android.location.LocationManager)getSystemService("
         + "android.content.Context.LOCATION_SERVICE"
-        + ")).getLastKnownLocation(\"test\");\n")
-      .moveBetween("getSystemService", "")
-      .invokeQuickfixActionWithoutBulb("Add Permission ACCESS_COARSE_LOCATION")
+        + ")).getLastKnownLocation(\"test\");\n");
+
+    // Initially, it takes some time to wait for the permission options showing.
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    Wait.seconds(10).expecting("Permission options to be showing.").until(() -> {
+      try {
+        editor.moveBetween("getSystemService", "")
+          .invokeQuickfixActionWithoutBulb("Add Permission ACCESS_COARSE_LOCATION");
+        return true;
+      } catch (AssertionError e) {
+        return false;
+      }
+    });
+
+    String editorContents = editor.moveBetween("getSystemService", "")
+      .invokeQuickfixActionWithoutBulb("Add Permission ACCESS_FINE_LOCATION")
       .moveBetween("getSystemService", "")
       .invokeQuickfixActionWithoutBulb("Add permission check")
       .getCurrentFileContents();
 
     assertThat(editorContents)
       .contains("checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)");
+    assertThat(editorContents)
+      .contains("checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)");
   }
 }
