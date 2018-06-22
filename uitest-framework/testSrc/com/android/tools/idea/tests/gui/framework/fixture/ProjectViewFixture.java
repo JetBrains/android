@@ -38,6 +38,7 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.ui.tree.AsyncTreeModel;
@@ -100,12 +101,14 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
   private void changePane(@NotNull String paneName) {
     Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byText(BaseLabel.class, "Project:"));
-
-    myRobot.click(projectDropDown.getParent());
-    // In case the focus is not given to the dropdown at first, use the keyboard shortcut to ensure that it gets it.
-    Shortcut shortcut = KeymapManager.getInstance().getActiveKeymap().getShortcuts("ShowContent")[0];
-    KeyStroke firstKeyStroke = ((KeyboardShortcut)shortcut).getFirstKeyStroke();
-    myRobot.pressAndReleaseKey(firstKeyStroke.getKeyCode(), firstKeyStroke.getModifiers());
+    if (SystemInfo.isMac) {
+      myRobot.click(projectDropDown.getParent());
+    }
+    else {
+      Shortcut shortcut = KeymapManager.getInstance().getActiveKeymap().getShortcuts("ShowContent")[0];
+      KeyStroke firstKeyStroke = ((KeyboardShortcut)shortcut).getFirstKeyStroke();
+      myRobot.pressAndReleaseKey(firstKeyStroke.getKeyCode(), firstKeyStroke.getModifiers());
+    }
 
     GuiTests.clickPopupMenuItem("Content name=" + paneName, projectDropDown, myRobot);
   }
