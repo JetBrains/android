@@ -90,7 +90,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
     fun createRoot(variablesScope: PsVariablesScope): ModuleNode {
       val moduleVariables = variablesScope.getModuleVariables()
       val moduleRoot = ModuleNode(variablesScope)
-      moduleVariables.map({ VariableNode(it) }).sortedBy { it.variable.getName() }.forEach { moduleRoot.add(it) }
+      moduleVariables.map { VariableNode(it) }.sortedBy { it.variable.getName() }.forEach { moduleRoot.add(it) }
       return moduleRoot
     }
 
@@ -101,6 +101,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
 
     moduleNodes.forEach { (tableModel.root as DefaultMutableTreeNode).add(it) }
     tree.expandRow(0)
+    tree.expandRow(1)
     tree.isRootVisible = false
   }
 

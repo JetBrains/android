@@ -45,46 +45,55 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.getValueAt(projectNode, 0) as String, equalTo("testModuleNodeDisplay"))
     assertThat(tableModel.getValueAt(projectNode, 1) as String, equalTo(""))
     assertThat(projectNode.childCount, not(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(projectNode.path)), equalTo(true))
 
     val appNode = rootNode.getChildAt(1) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(appNode, 0) as String, equalTo("app"))
     assertThat(tableModel.getValueAt(appNode, 1) as String, equalTo(""))
     assertThat(appNode.childCount, not(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(appNode.path)), equalTo(false))
 
     val nested2Deep2Node = rootNode.getChildAt(2) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(nested2Deep2Node, 0) as String, equalTo("deep2"))
     assertThat(tableModel.getValueAt(nested2Deep2Node, 1) as String, equalTo(""))
     assertThat(nested2Deep2Node.childCount, equalTo(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(nested2Deep2Node.path)), equalTo(false))
 
     val javNode = rootNode.getChildAt(3) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(javNode, 0) as String, equalTo("jav"))
     assertThat(tableModel.getValueAt(javNode, 1) as String, equalTo(""))
     assertThat(javNode.childCount, equalTo(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(javNode.path)), equalTo(false))
 
     val libNode = rootNode.getChildAt(4) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(libNode, 0) as String, equalTo("lib"))
     assertThat(tableModel.getValueAt(libNode, 1) as String, equalTo(""))
     assertThat(libNode.childCount, equalTo(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(libNode.path)), equalTo(false))
 
     val nested1Node = rootNode.getChildAt(5) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(nested1Node, 0) as String, equalTo("nested1"))
     assertThat(tableModel.getValueAt(nested1Node, 1) as String, equalTo(""))
     assertThat(nested1Node.childCount, equalTo(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(nested1Node.path)), equalTo(false))
 
     val nested1DeepNode = rootNode.getChildAt(6) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(nested1DeepNode, 0) as String, equalTo("nested1-deep"))
     assertThat(tableModel.getValueAt(nested1DeepNode, 1) as String, equalTo(""))
     assertThat(nested1DeepNode.childCount, equalTo(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(nested1DeepNode.path)), equalTo(false))
 
     val nested2Node = rootNode.getChildAt(7) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(nested2Node, 0) as String, equalTo("nested2"))
     assertThat(tableModel.getValueAt(nested2Node, 1) as String, equalTo(""))
     assertThat(nested2Node.childCount, equalTo(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(nested2Node.path)), equalTo(false))
 
     val nested2DeepNode = rootNode.getChildAt(8) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(nested2DeepNode, 0) as String, equalTo("nested2-deep"))
     assertThat(tableModel.getValueAt(nested2DeepNode, 1) as String, equalTo(""))
     assertThat(nested2DeepNode.childCount, equalTo(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(nested2DeepNode.path)), equalTo(false))
 
     val row = variablesTable.tree.getRowForPath(TreePath(appNode.path))
     for (column in 0..2) {
