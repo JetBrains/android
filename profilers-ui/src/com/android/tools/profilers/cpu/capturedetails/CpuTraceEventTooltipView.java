@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu;
+package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
@@ -26,6 +26,9 @@ import com.android.tools.adtui.model.legend.EventLegend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.CpuProfilerStageView;
+import com.android.tools.profilers.cpu.capturedetails.CpuChartTooltipViewBase;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

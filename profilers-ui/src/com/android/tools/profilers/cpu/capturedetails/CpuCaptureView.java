@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu;
+package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.FilterComponent;
@@ -39,7 +39,7 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ViewBinder;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.cpu.capturedetails.*;
+import com.android.tools.profilers.cpu.*;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
@@ -81,7 +81,7 @@ import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
-class CpuCaptureView {
+public class CpuCaptureView {
   // Note the order of the values in the map defines the order of the tabs in UI.
   private static final Map<CaptureModel.Details.Type, String> DEFAULT_TAB_NAMES = ImmutableMap.of(
     CaptureModel.Details.Type.CALL_CHART, "Call Chart",
@@ -128,7 +128,7 @@ class CpuCaptureView {
   @NotNull
   private final ViewBinder<CpuProfilerStageView, CaptureModel.Details, CaptureDetailsView> myBinder;
 
-  CpuCaptureView(@NotNull CpuProfilerStageView view) {
+  public CpuCaptureView(@NotNull CpuProfilerStageView view) {
     myView = view;
     myTabsPanel = new CommonTabbedPane();
     JComboBox<ClockType> clockTypeCombo = new ComboBox<>();
@@ -176,7 +176,7 @@ class CpuCaptureView {
     updateView();
   }
 
-  void updateView() {
+  public void updateView() {
     // Clear the content of all the tabs
     for (Component tab : myTabsPanel.getComponents()) {
       // In the constructor, we make sure to use JPanel as root components of the tabs.

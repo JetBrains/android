@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu;
+package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 

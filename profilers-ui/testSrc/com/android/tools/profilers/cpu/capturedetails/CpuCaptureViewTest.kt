@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu
+package com.android.tools.profilers.cpu.capturedetails
 
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
@@ -22,6 +22,7 @@ import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.*
 import com.android.tools.profilers.*
+import com.android.tools.profilers.cpu.*
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -78,7 +79,8 @@ class CpuCaptureViewTest {
   fun whenSelectingCallChartThereShouldBeInstanceOfTreeChartView() {
     val stage = myStageView.stage
     myCpuService.profilerType = ART
-    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TRACE_PATH)))
+    myCpuService.setTrace(
+      CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TRACE_PATH)))
     stage.setAndSelectCapture(1)
     stage.selectedThread = stage.capture!!.mainThreadId
     stage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP)
@@ -93,7 +95,8 @@ class CpuCaptureViewTest {
 
     //Change to an atrace capture because the tab name changes
     myCpuService.profilerType = ATRACE
-    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_TRACE_PATH)))
+    myCpuService.setTrace(
+      CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_TRACE_PATH)))
     stage.setAndSelectCapture(0)
     stage.selectedThread = stage.capture!!.mainThreadId
     tabPane = TreeWalker(myStageView.component).descendants().filterIsInstance(CommonTabbedPane::class.java)[0]
