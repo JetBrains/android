@@ -478,7 +478,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       mySplitter.setFirstSize(0);
     }
     else {
-      mySplitter.setDividerMouseZoneSize(JBUI.scale(6));
+      mySplitter.setDividerMouseZoneSize(JBUI.scale(10));
       mySessionsView.getComponent().setMinimumSize(mySessionsView.getComponentMinimizeSize(true));
       mySplitter
         .setFirstSize(myProfiler.getIdeServices().getPersistentProfilerPreferences().getInt(SESSION_EXPANDED_WIDTH, 0));
