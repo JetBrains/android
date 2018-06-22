@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.resourcechooser.colorpicker2
+package com.android.tools.idea.ui.resourcechooser.colorpicker2.internal
 
 import org.junit.Assert.*
 import org.junit.Test
 import java.awt.Color
 import java.awt.event.MouseEvent
 
-class ColorPaletteButtonTest {
+class MaterialColorPaletteButtonTest {
 
   @Test
   fun testChangeStatusByMouseEvent() {

@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.intellij.testFramework.IdeaTestCase
 import java.awt.Color
+import javax.swing.JComponent
 
 class ColorPickerBuilderTest : IdeaTestCase() {
 
@@ -42,15 +43,15 @@ class ColorPickerBuilderTest : IdeaTestCase() {
     assertTrue(picker.getComponent(0) is ColorValuePanel)
   }
 
-  fun testCreatePickerWithColorPalette() {
-    val picker = ColorPickerBuilder().addColorPalette().build()
+  fun testCreateCustomPanelPickerWithColorPalette() {
+    val picker = ColorPickerBuilder().addCustomComponent(EmptyColorPickerComponentProvider()).build()
     assertEquals(1, picker.components.size)
-    assertTrue(picker.getComponent(0) is ColorPalette)
+    assertTrue(picker.getComponent(0) is EmptyColorPickerPanel)
   }
 
   fun testCreatePickerWithOperationPanel() {
-    val ok = {_: Color -> Unit}
-    val cancel = {_: Color -> Unit}
+    val ok = { _: Color -> Unit }
+    val cancel = { _: Color -> Unit }
     val picker = ColorPickerBuilder().addOperationPanel(ok, cancel).build()
     assertEquals(1, picker.components.size)
     assertTrue(picker.getComponent(0) is OperationPanel)
@@ -61,4 +62,10 @@ class ColorPickerBuilderTest : IdeaTestCase() {
       ColorPickerBuilder().addOperationPanel(null, null).build()
     }
   }
+}
+
+private class EmptyColorPickerPanel : JComponent()
+
+private class EmptyColorPickerComponentProvider : ColorPickerComponentProvider {
+  override fun createComponent(colorPickerModel: ColorPickerModel) = EmptyColorPickerPanel()
 }
