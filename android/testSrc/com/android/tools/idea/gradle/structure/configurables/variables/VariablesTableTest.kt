@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
-import com.intellij.ui.JBColor
 import org.hamcrest.CoreMatchers.*
 import org.junit.Assert.assertThat
 import java.awt.Color
@@ -200,14 +199,6 @@ class VariablesTableTest : AndroidGradleTestCase() {
       val component = variablesTable.getCellRenderer(row, column)
         .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
       assertThat(component.background, equalTo(variablesTable.background))
-
-      val firstChild = variablesTable.getCellRenderer(row + 1, column)
-        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row + 1,  column), false, false, row + 1, column)
-      assertThat(firstChild.background.rgb, equalTo(JBColor.LIGHT_GRAY.rgb))
-
-      val secondChild = variablesTable.getCellRenderer(row + 2, column)
-        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row + 2,  column), false, false, row + 2, column)
-      assertThat(secondChild.background, equalTo(variablesTable.background))
     }
   }
 
@@ -248,14 +239,6 @@ class VariablesTableTest : AndroidGradleTestCase() {
       val component = variablesTable.getCellRenderer(row, column)
         .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
       assertThat(component.background, equalTo(variablesTable.background))
-
-      val firstChild = variablesTable.getCellRenderer(row + 1, column)
-        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row + 1,  column), false, false, row + 1, column)
-      assertThat(firstChild.background.rgb, equalTo(JBColor.LIGHT_GRAY.rgb))
-
-      val secondChild = variablesTable.getCellRenderer(row + 2, column)
-        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row + 2,  column), false, false, row + 2, column)
-      assertThat(secondChild.background, equalTo(variablesTable.background))
     }
   }
 

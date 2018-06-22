@@ -82,6 +82,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
         }
       }
     })
+    isStriped = true
     fillTable()
     tableModel.setTree(tree)
   }
@@ -142,32 +143,15 @@ class VariablesTable(private val project: Project, private val context: PsContex
 
   override fun getCellRenderer(row: Int, column: Int): TableCellRenderer {
     val defaultRenderer = super.getCellRenderer(row, column)
-    return TableCellRenderer { table, value, isSelected, hasFocus, rowIndex, columnIndex ->
+    return TableCellRenderer { table, value, isSelected, _, rowIndex, columnIndex ->
       val nodeRendered = tree.getPathForRow(rowIndex).lastPathComponent as DefaultMutableTreeNode
-      val component =
-        if (nodeRendered is EmptyListItemNode && column == UNRESOLVED_VALUE) {
-          JLabel("Insert new value").apply {
-            foreground = UIUtil.getInactiveTextColor()
-            isOpaque = true
-          }
-        }
-        else {
-          defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex)
-        }
-      component.background =
-        if (isSelected) {
-          table.selectionBackground
-        }
-        else {
-          val parent = nodeRendered.parent
-          if (parent is VariableNode && parent.getIndex(nodeRendered) % 2 == 0) {
-            JBColor.LIGHT_GRAY
-          }
-          else {
-            table.background
-          }
-        }
-      (component as JComponent).border = null
+      val component = defaultRenderer.getTableCellRendererComponent(table, value, isSelected, false, rowIndex, columnIndex)
+      if (nodeRendered is EmptyListItemNode && column == UNRESOLVED_VALUE) {
+        component.foreground = UIUtil.getInactiveTextColor()
+        (component as JLabel).text = "Insert new value"
+      } else {
+        component.foreground = if (table.isRowSelected(rowIndex)) table.selectionForeground else table.foreground
+      }
       component
     }
   }
