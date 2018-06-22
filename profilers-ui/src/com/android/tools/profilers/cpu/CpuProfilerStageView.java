@@ -28,6 +28,7 @@ import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
+import com.android.tools.profilers.cpu.capturedetails.CpuCaptureView;
 import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
