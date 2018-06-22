@@ -108,9 +108,6 @@ public class ProjectViewFixture extends ToolWindowFixture {
     myRobot.pressAndReleaseKey(firstKeyStroke.getKeyCode(), firstKeyStroke.getModifiers());
 
     GuiTests.clickPopupMenuItem("Content name=" + paneName, projectDropDown, myRobot);
-
-    final ProjectView projectView = ProjectView.getInstance(myProject);
-    Wait.seconds(5).expecting("pane title to be " + paneName).until(() -> paneName.equals(projectView.getCurrentProjectViewPane().getTitle()));
   }
 
   @NotNull
