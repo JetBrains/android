@@ -17,8 +17,6 @@
 package org.jetbrains.android.exportSignedPackage;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -26,6 +24,7 @@ import com.intellij.execution.util.ExecUtil;
 import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileChooser.actions.GotoDesktopDirAction;
@@ -274,9 +273,17 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   }
 
   private static String retrievePassword(@NotNull Class<?> primaryRequestor, @NotNull String key) {
-    final PasswordSafe passwordSafe = PasswordSafe.getInstance();
-    String password = passwordSafe.getPassword(primaryRequestor, key);
-    if (password == null) {
+    String password = null;
+    PasswordSafe passwordSafe = null;
+    // Return a null password in case there are problems reading it from PasswordSafe (b/70654787)
+    try {
+      passwordSafe = PasswordSafe.getInstance();
+      password = passwordSafe.getPassword(primaryRequestor, key);
+    }
+    catch (Throwable t) {
+        Logger.getInstance(KeystoreStep.class).info("Unable to use password safe", t);
+    }
+    if ((password == null) && (passwordSafe != null)){
       // Try to retrieve password previously saved with an old requestor in order to make user experience more seamless
       // while transitioning to a version which contains the fix for b/64995008, rather than having them retype all the
       // passwords at once.
