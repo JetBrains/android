@@ -20,8 +20,8 @@ import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.view.DesignAssetDetailView
 import com.android.tools.idea.resourceExplorer.view.ExternalResourceBrowser
-import com.android.tools.idea.resourceExplorer.view.ModuleResourceBrowser
 import com.android.tools.idea.resourceExplorer.view.QualifierMatcherPanel
+import com.android.tools.idea.resourceExplorer.view.ResourceExplorerView
 import com.android.tools.idea.resourceExplorer.viewmodel.*
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
@@ -46,7 +46,7 @@ class ResourceExplorer private constructor(
   companion object {
 
     /**
-     * Create a new instance of [ResourceExplorer] optimized to be used in an Editor tab
+     * Create a new instance of [ResourceExplorerView] optimized to be used in an Editor tab
      */
     fun createForEditor(parentDisposable: Disposable, facet: AndroidFacet): JPanel {
       return ResourceExplorer(
@@ -59,7 +59,7 @@ class ResourceExplorer private constructor(
     }
 
     /**
-     * Create a new instance of [ResourceExplorer] optimized to be used in a [com.intellij.openapi.wm.ToolWindow]
+     * Create a new instance of [ResourceExplorerView] optimized to be used in a [com.intellij.openapi.wm.ToolWindow]
      */
     fun createForToolWindow(parentDisposable: Disposable, facet: AndroidFacet): JPanel {
       return ResourceExplorer(
@@ -85,7 +85,7 @@ class ResourceExplorer private constructor(
       add(externalResourceBrowser, BorderLayout.EAST)
     }
 
-    val internalResourceBrowser = ModuleResourceBrowser(ModuleResourcesBrowserViewModel(facet, synchronizationManager))
+    val internalResourceBrowser = ResourceExplorerView(ProjectResourcesBrowserViewModel(facet, synchronizationManager))
     centerContainer.add(internalResourceBrowser)
 
     if (withDetailView) {

@@ -22,7 +22,7 @@ import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.projectsystem.transform
 import com.android.tools.idea.res.resolveMultipleColors
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
-import com.android.tools.idea.resourceExplorer.viewmodel.ModuleResourcesBrowserViewModel
+import com.android.tools.idea.resourceExplorer.viewmodel.ProjectResourcesBrowserViewModel
 import com.google.common.cache.CacheBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
@@ -191,7 +191,7 @@ class ColorResourceCellRenderer(
  * called once it's finished.
  */
 class DrawableResourceCellRenderer(
-  private val browserViewModel: ModuleResourcesBrowserViewModel,
+  private val browserViewModel: ProjectResourcesBrowserViewModel,
   private val refreshListCallback: (index: Int) -> Unit
 ) : DesignAssetCellRenderer() {
 

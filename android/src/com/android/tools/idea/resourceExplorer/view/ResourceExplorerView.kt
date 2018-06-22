@@ -17,7 +17,8 @@ package com.android.tools.idea.resourceExplorer.view
 
 import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
-import com.android.tools.idea.resourceExplorer.viewmodel.ModuleResourcesBrowserViewModel
+import com.android.tools.idea.resourceExplorer.viewmodel.ProjectResourcesBrowserViewModel
+import com.android.tools.idea.resourceExplorer.viewmodel.ResourceSection
 import com.android.tools.idea.resourceExplorer.widget.Section
 import com.android.tools.idea.resourceExplorer.widget.SectionList
 import com.android.tools.idea.resourceExplorer.widget.SectionListModel
@@ -45,10 +46,10 @@ private val SECTION_HEADER_BORDER = BorderFactory.createCompoundBorder(
 /**
  * View meant to display [com.android.tools.idea.resourceExplorer.model.DesignAsset] located
  * in the project.
- * It uses an [ModuleResourcesBrowserViewModel] to populates the views
+ * It uses an [ProjectResourcesBrowserViewModel] to populates the views
  */
-class ModuleResourceBrowser(
-  private val resourcesBrowserViewModel: ModuleResourcesBrowserViewModel
+class ResourceExplorerView(
+  private val resourcesBrowserViewModel: ProjectResourcesBrowserViewModel
 ) : JPanel(BorderLayout()) {
 
   var cellWidth = DEFAULT_CELL_WIDTH
@@ -67,7 +68,16 @@ class ModuleResourceBrowser(
   init {
 
     sectionList.setSectionListCellRenderer(createSectionListCellRenderer())
-    populateSectionListModel()
+    resourcesBrowserViewModel.getResourcesLists(listOf(ResourceType.DRAWABLE,
+                                                       ResourceType.COLOR))
+      .filterNot { it.assets.isEmpty() }
+      .forEach { (type, libName, assets): ResourceSection ->
+        sectionListModel.addSection(AssetSection(type.displayName + " ${libName}", JList<DesignAssetSet>().apply {
+          model = CollectionListModel(assets)
+          cellRenderer = getRendererForType(type, this)
+          setupListUI()
+        }))
+      }
 
     val mainComponent = sectionList.mainComponent
     mainComponent.border = JBUI.Borders.empty(8)
@@ -77,27 +87,6 @@ class ModuleResourceBrowser(
     sections.preferredSize = JBUI.size(132, -1)
     sections.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, 0, 1)
     add(sections, BorderLayout.WEST)
-  }
-
-  private fun createColorList(): JList<DesignAssetSet> {
-    return JList<DesignAssetSet>().apply {
-      model = CollectionListModel(resourcesBrowserViewModel.getResourceValues(ResourceType.COLOR))
-      cellRenderer = ColorResourceCellRenderer(resourcesBrowserViewModel.facet.module.project, resourcesBrowserViewModel.resourceResolver)
-      setupListUI()
-    }
-  }
-
-  private fun createDrawableList(): JList<DesignAssetSet> {
-    return JList<DesignAssetSet>().apply {
-      model = CollectionListModel(resourcesBrowserViewModel.getResourceValues(ResourceType.DRAWABLE))
-      cellRenderer = DrawableResourceCellRenderer(resourcesBrowserViewModel, { _ -> this.repaint() })
-      setupListUI()
-    }
-  }
-
-  private fun populateSectionListModel() {
-    sectionListModel.addSection(AssetSection("Drawable", createDrawableList()))
-    sectionListModel.addSection(AssetSection("Colors", createColorList()))
   }
 
   private fun createSectionListCellRenderer(): ListCellRenderer<Section<*>> {
@@ -142,7 +131,19 @@ class ModuleResourceBrowser(
     visibleRowCount = 0
     val renderer = cellRenderer
     if (renderer is DesignAssetCellRenderer) {
-      renderer.useSmallMargins = cellWidth < COMPACT_MODE_TRIGGER_SIZE
+      renderer.useSmallMargins = cellWidth < COMPACT_MODE_TRIGGER_SIZE // TODO Add Interface for compact mode
+    }
+  }
+
+  private fun getRendererForType(type: ResourceType, list: JList<*>): ListCellRenderer<DesignAssetSet> {
+    return when (type) {
+      ResourceType.DRAWABLE -> DrawableResourceCellRenderer(resourcesBrowserViewModel) { _ -> list.repaint() }
+      ResourceType.COLOR -> ColorResourceCellRenderer(resourcesBrowserViewModel.facet.module.project,
+                                                      resourcesBrowserViewModel.resourceResolver)
+      ResourceType.SAMPLE_DATA -> DrawableResourceCellRenderer(resourcesBrowserViewModel) { _ -> list.repaint() }
+      else -> ListCellRenderer { _, value, _, _, _ ->
+        JLabel(value.name)
+      }
     }
   }
 
