@@ -37,13 +37,13 @@ import java.awt.Dimension
 import java.awt.Image
 
 
-private val LOG = Logger.getInstance(ModuleResourcesBrowserViewModel::class.java)
+private val LOG = Logger.getInstance(ProjectResourcesBrowserViewModel::class.java)
 
 /**
- * ViewModel for [com.android.tools.idea.resourceExplorer.view.ModuleResourceBrowser]
+ * ViewModel for [com.android.tools.idea.resourceExplorer.view.ResourceExplorerView]
  * to manage resources in the provided [facet].
  */
-class ModuleResourcesBrowserViewModel(
+class ProjectResourcesBrowserViewModel(
   val facet: AndroidFacet,
   synchronizationManager: SynchronizationManager // TODO listen for update
 ) {
@@ -55,17 +55,10 @@ class ModuleResourcesBrowserViewModel(
    */
   fun getDrawablePreview(dimension: Dimension, designAssetSet: DesignAssetSet): ListenableFuture<out Image?> {
     val resolveValue = designAssetSet.resolveValue() ?: return Futures.immediateFuture(null)
-    val file = resourceResolver.resolveDrawableAsVirtualFile(resolveValue, facet.module.project) ?: designAssetSet.getHighestDensityAsset().file
+    val file = resourceResolver.resolveDrawableAsVirtualFile(resolveValue, facet.module.project)
+               ?: designAssetSet.getHighestDensityAsset().file
     return DesignAssetRendererManager.getInstance().getViewer(file)
-        .getImage(file, facet.module, dimension)
-  }
-
-  fun getResourceValues(type: ResourceType): List<DesignAssetSet> {
-    // TODO see if we return one listModel per Namespace)
-    return (getModuleResources(type) + getLibrariesResources(type))
-      .map { DesignAsset(it) }
-      .groupBy { it.name }
-      .map { (name, assets) -> DesignAssetSet(name, assets) }
+      .getImage(file, facet.module, dimension)
   }
 
   private fun getModuleResources(type: ResourceType): List<ResourceItem> {
@@ -76,14 +69,18 @@ class ModuleResourcesBrowserViewModel(
     }
   }
 
-  private fun getLibrariesResources(type: ResourceType): List<ResourceItem> {
+  /**
+   * Returns a map from the library name to its resource items
+   */
+  private fun getLibrariesResources(type: ResourceType): List<Pair<String, List<ResourceItem>>> {
     val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
-    return repoManager.libraries.flatMap { lib ->
-      lib.namespaces.flatMap { namespace ->
-        lib.getItemsOfType(namespace, type)
-          .flatMap { resourceItem -> lib.getResourceItems(namespace, type, resourceItem) }
+    return repoManager.libraries
+      .map { lib ->
+        (lib.libraryName ?: "") to lib.namespaces.flatMap { namespace ->
+          lib.getItemsOfType(namespace, type)
+            .flatMap { resourceItem -> lib.getResourceItems(namespace, type, resourceItem) }
+        }
       }
-    }
   }
 
   private fun createResourceResolver(): ResourceResolver {
@@ -105,4 +102,28 @@ class ModuleResourcesBrowserViewModel(
     }
     return resolvedValue
   }
+
+  fun getResourcesLists(resourceTypes: List<ResourceType>): List<ResourceSection> {
+    return resourceTypes.flatMap { resourceType ->
+      val moduleResources = createResourceSection(resourceType, facet.module.name, getModuleResources(resourceType))
+      val librariesResources = getLibrariesResources(resourceType)
+        .map { (libName, resourceItems) ->
+          createResourceSection(resourceType, libName, resourceItems)
+        }
+      listOf(moduleResources) + librariesResources
+    }
+  }
 }
+
+private fun createResourceSection(type: ResourceType,
+                                  libraryName: String,
+                                  resourceItems: List<ResourceItem>) =
+  ResourceSection(type,
+                  libraryName,
+                  resourceItems.map { DesignAsset(it) }
+                    .groupBy { it.name }
+                    .map { (name, assets) -> DesignAssetSet(name, assets) })
+
+data class ResourceSection(val type: ResourceType,
+                           val libraryName: String = "",
+                           val assets: List<DesignAssetSet>)
