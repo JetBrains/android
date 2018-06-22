@@ -77,8 +77,8 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     assertThat(testInstrumentationRunner.resolved.asTestValue(), nullValue())
     assertThat(testInstrumentationRunner.parsedValue.asTestValue(), nullValue())
 
-    assertThat(versionCode.resolved.asTestValue(), equalTo("1"))
-    assertThat(versionCode.parsedValue.asTestValue(), equalTo("1"))
+    assertThat(versionCode.resolved.asTestValue(), equalTo(1))
+    assertThat(versionCode.parsedValue.asTestValue(), equalTo(1))
 
     assertThat(versionName.resolved.asTestValue(), equalTo("1.0"))
     assertThat(versionName.parsedValue.asTestValue(), equalTo("1.0"))

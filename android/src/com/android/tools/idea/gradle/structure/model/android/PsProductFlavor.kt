@@ -174,13 +174,13 @@ open class PsProductFlavor(
       parser = ::parseString
     )
 
-    val versionCode: SimpleProperty<PsProductFlavor, String> = property(
+    val versionCode: SimpleProperty<PsProductFlavor, Int> = property(
       "Version Code",
-      resolvedValueGetter = { versionCode?.toString() },
+      resolvedValueGetter = { versionCode },
       parsedPropertyGetter = { versionCode() },
-      getter = { asString() },
+      getter = { asInt() },
       setter = { setValue(it) },
-      parser = ::parseString
+      parser = ::parseInt
     )
 
     val versionName: SimpleProperty<PsProductFlavor, String> = property(
