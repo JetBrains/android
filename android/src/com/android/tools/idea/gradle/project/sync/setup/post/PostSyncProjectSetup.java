@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
@@ -79,6 +80,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
 import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.removeSyncContextDataFrom;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.SINGLE_VARIANT_SYNC;
+import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isSingleVariantSync;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
@@ -233,7 +235,7 @@ public class PostSyncProjectSetup {
   }
 
   private void warnIfSingleVariantIsEnableButNotSupported() {
-    if (StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get()) {
+    if (isSingleVariantSync(myProject)) {
       for (Module module : ModuleManager.getInstance(myProject).getModules()) {
         AndroidModuleModel androidModel = AndroidModuleModel.get(module);
         if (androidModel != null && !androidModel.getFeatures().isSingleVariantSyncSupported()) {

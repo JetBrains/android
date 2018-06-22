@@ -44,7 +44,7 @@ class AndroidModelFactory {
   AndroidModuleModel createAndroidModel(@NotNull Module module,
                                         @NotNull AndroidProject androidProject,
                                         @NotNull GradleModuleModels moduleModels) {
-    if (StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get()) {
+    if (NewGradleSync.isSingleVariantSync(module.getProject())) {
       if (androidProject.getVariants().isEmpty()) {
         List<Variant> variants = moduleModels.findModels(Variant.class);
         if (variants != null) {
