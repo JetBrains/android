@@ -24,6 +24,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.android.utils.ILogger;
+import com.android.utils.XmlUtils;
 import com.google.common.collect.*;
 import com.google.common.hash.Hashing;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
@@ -33,6 +34,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ObjectIntHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -50,6 +52,9 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import static com.android.SdkConstants.TAG_ATTR;
+import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
+import static com.android.SdkConstants.TAG_EAT_COMMENT;
 import static com.google.common.collect.Sets.newLinkedHashSetWithExpectedSize;
 
 /**
@@ -74,8 +79,11 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   private static final ResourceNamespace ANDROID_NAMESPACE = ResourceNamespace.ANDROID;
   private static final String CACHE_DIRECTORY = "caches/framework_resources";
   private static final String CACHE_FILE_HEADER = "Framework resource cache";
-  private static final String CACHE_FILE_FORMAT_VERSION = "2";
+  private static final String CACHE_FILE_FORMAT_VERSION = "3";
   private static final String ANDROID_PLUGIN_ID = "org.jetbrains.android";
+  // Used for parsing group of attributes, used heuristically to skip long comments before <eat-comment/>.
+  private static final int ATTR_GROUP_MAX_CHARACTERS = 40;
+
   private static final Logger LOG = Logger.getInstance(FrameworkResourceRepository.class);
 
   /** Namespace prefixes used in framework resources and the corresponding URIs. */
@@ -140,6 +148,13 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       }
     }
 
+    // AttrResourceValue descriptions and group names are derived from XML comments and therefore
+    // require navigation to sibling XML nodes. Since the XML nodes loaded from the cache don't maintain
+    // references to their siblings or parents, we extract attr descriptions and group names and store
+    // them as values of synthetic attributes of "attr" XML elements.
+    repository.assignAttrDescriptions();
+    repository.assignAttrGroups();
+
     repository.loadPublicResources();
 
     if (usePersistentCache) {
@@ -188,6 +203,121 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   @VisibleForTesting
   boolean isLoadedFromCache() {
     return myLoadedFromCache;
+  }
+
+  /**
+   * Adds synthetic "description" attributes to the "attr" XML nodes located in attrs.xml.
+   */
+  private void assignAttrDescriptions() {
+    List<ResourceItem> items = getResourceItems(ANDROID_NAMESPACE, ResourceType.ATTR);
+    for (ResourceItem item: items) {
+      Node node = ((ResourceMergerItem)item).getValue();
+      if (node != null) {
+        setDescriptionAttribute(node);
+        NodeList nodes = node.getChildNodes();
+        for (int i = 0, n = nodes.getLength(); i < n; i++) {
+          setDescriptionAttribute(nodes.item(i));
+        }
+      }
+    }
+  }
+
+  private static void setDescriptionAttribute(@NotNull Node node) {
+    if (node instanceof Element) {
+      String description = XmlUtils.getPreviousCommentText(node);
+      if (description != null) {
+        ((Element)node).setAttribute(ResourceMergerItem.ATTR_DESCRIPTION, description);
+      }
+    }
+  }
+
+  /**
+   * Adds synthetic "groupName" attributes to the "attr" XML nodes located in attrs.xml.
+   */
+  private void assignAttrGroups() {
+    // The framework attrs.xml file follows a special convention where related attributes are grouped together,
+    // and there is always a set of comments that indicate these sections which look like this:
+    //     <!-- =========== -->
+    //     <!-- Text styles -->
+    //     <!-- =========== -->
+    //     <eat-comment />
+    // These section headers are always immediately followed by an <eat-comment>,
+    // so to identify these we just look for <eat-comment>, and then we look for the comment within the block that isn't ASCII art.
+
+    // To find the XML document corresponding to attrs.xml file we use the "Theme" <declare-styleable> defined in the same file.
+    List<ResourceItem> items = getResourceItems(ANDROID_NAMESPACE, ResourceType.DECLARE_STYLEABLE, "Theme");
+    if (items.size() != 1) {
+      return;
+    }
+    Node anchorNode = ((ResourceMergerItem)items.get(0)).getValue();
+    if (anchorNode == null) {
+      return;
+    }
+
+    String groupName = null;
+    Node resourcesNode = anchorNode.getParentNode();
+    Deque<Node> queue = new ArrayDeque<>();
+    insertChildrenInQueue(resourcesNode, queue);
+
+    while (!queue.isEmpty()) {
+      Node node = queue.removeFirst();
+      if (node instanceof Element) {
+        Element element = (Element)node;
+        switch (element.getTagName()) {
+          case TAG_DECLARE_STYLEABLE:
+            insertChildrenInQueue(element, queue);
+            break;
+
+          case TAG_EAT_COMMENT:
+            String newAttrGroup = getCommentBeforeEatComment(element);
+
+            // Not all <eat-comment> sections are actually attribute headers, some are comments.
+            // We identify these by looking at the comment length; category comments are short, and descriptive comments are longer.
+            if (newAttrGroup != null && newAttrGroup.length() <= ATTR_GROUP_MAX_CHARACTERS) {
+              groupName = newAttrGroup;
+            }
+            break;
+
+          case TAG_ATTR:
+            if (groupName != null) {
+              // Strip dot at the end if present.
+              if (groupName.endsWith(".")) {
+                groupName = groupName.substring(0, groupName.length() - 1);
+              }
+              element.setAttribute(ResourceMergerItem.ATTR_GROUP_NAME, groupName);
+            }
+            break;
+        }
+      }
+    }
+  }
+
+  private static void insertChildrenInQueue(@NotNull Node node, @NotNull Deque<Node> queue) {
+    NodeList nodes = node.getChildNodes();
+    for (int i = nodes.getLength(); --i >= 0;) {
+      queue.addFirst(nodes.item(i));
+    }
+  }
+
+  @Nullable
+  private static String getCommentBeforeEatComment(@NotNull Node eatCommentElement) {
+    Comment comment = XmlUtils.getPreviousComment(eatCommentElement);
+    for (int i = 0; i < 2; i++) {
+      if (comment == null) {
+        break;
+      }
+      String text = StringUtil.trim(comment.getNodeValue());
+
+      //  This check is there to ignore "formatting" comments like the first and third lines in
+      //  <!-- ============== -->
+      //  <!-- Generic styles -->
+      //  <!-- ============== -->
+      if (!StringUtil.isEmpty(text) && text.charAt(0) != '=' && text.charAt(0) != '*') {
+        return text;
+      }
+      comment = XmlUtils.getPreviousComment(comment);
+    }
+    return null;
   }
 
   /**
@@ -863,7 +993,6 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
         default:
           throw new RuntimeException("Unexpected node type: " + nodeType);
       }
-
     }
   }
 
@@ -1386,12 +1515,12 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
     @Override
     public Node getPreviousSibling() {
-      throw createAndLogUnsupportedOperationException();
+      return null; // No sibling references are kept to save memory.
     }
 
     @Override
     public Node getNextSibling() {
-      throw createAndLogUnsupportedOperationException();
+      return null; // No sibling references are kept to save memory.
     }
 
     @Override
