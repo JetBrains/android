@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static org.junit.Assert.assertSame;
 
 public class GradleSyncMessagesStub extends GradleSyncMessages {
@@ -46,6 +47,13 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
   public GradleSyncMessagesStub(@NotNull Project project) {
     super(project);
     Disposer.register(project, this);
+  }
+
+  /**
+   * Note: This can't override getErrorCount() since tests rely on syncs succeeding even with errors.
+   */
+  public int getFakeErrorCount() {
+    return myMessages.stream().mapToInt(message -> message.getType() == ERROR ? 1 : 0).sum();
   }
 
   @Override

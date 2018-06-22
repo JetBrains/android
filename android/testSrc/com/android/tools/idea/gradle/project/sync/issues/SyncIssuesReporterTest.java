@@ -17,9 +17,11 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -66,10 +68,12 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     Module appModule = myModules.getAppModule();
     VirtualFile buildFile = getGradleBuildFile(appModule);
-    reporter.report(Lists.newArrayList(mySyncIssue), appModule);
+    reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)));
 
-    verify(myStrategy1, never()).report(mySyncIssue, appModule, buildFile);
-    verify(myStrategy2).report(mySyncIssue, appModule, buildFile);
+    verify(myStrategy1, never())
+      .reportAll(ImmutableList.of(mySyncIssue), ImmutableMap.of(mySyncIssue, appModule), ImmutableMap.of(appModule, buildFile));
+    verify(myStrategy2)
+      .reportAll(ImmutableList.of(mySyncIssue), ImmutableMap.of(mySyncIssue, appModule), ImmutableMap.of(appModule, buildFile));
 
     assertTrue(GradleSyncState.getInstance(getProject()).getSummary().hasSyncErrors());
   }
@@ -88,10 +92,12 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     Module appModule = myModules.getAppModule();
     VirtualFile buildFile = getGradleBuildFile(appModule);
-    reporter.report(Lists.newArrayList(mySyncIssue), appModule);
+    reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)));
 
-    verify(myStrategy1, never()).report(mySyncIssue, appModule, buildFile);
-    verify(myStrategy2).report(mySyncIssue, appModule, buildFile);
+    verify(myStrategy1, never())
+      .reportAll(ImmutableList.of(mySyncIssue), ImmutableMap.of(mySyncIssue, appModule), ImmutableMap.of(appModule, buildFile));
+    verify(myStrategy2)
+      .reportAll(ImmutableList.of(mySyncIssue), ImmutableMap.of(mySyncIssue, appModule), ImmutableMap.of(appModule, buildFile));
   }
 
   public void testReportUsingDefaultStrategy() throws Exception {
@@ -107,13 +113,15 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     Module appModule = myModules.getAppModule();
     VirtualFile buildFile = getGradleBuildFile(appModule);
-    reporter.report(Lists.newArrayList(mySyncIssue), appModule);
+    reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)));
 
     SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
 
-    verify(myStrategy1, never()).report(mySyncIssue, appModule, buildFile);
-    verify(myStrategy2, never()).report(mySyncIssue, appModule, buildFile);
+    verify(myStrategy1, never())
+      .reportAll(ImmutableList.of(mySyncIssue), ImmutableMap.of(mySyncIssue, appModule), ImmutableMap.of(appModule, buildFile));
+    verify(myStrategy2, never())
+      .reportAll(ImmutableList.of(mySyncIssue), ImmutableMap.of(mySyncIssue, appModule), ImmutableMap.of(appModule, buildFile));
 
     assertTrue(GradleSyncState.getInstance(getProject()).getSummary().hasSyncErrors());
   }
@@ -130,7 +138,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     Map<Integer, BaseSyncIssuesReporter> strategies = reporter.getStrategies();
-    assertThat(strategies).hasSize(6);
+    assertThat(strategies).hasSize(7);
 
     strategy = strategies.get(TYPE_UNRESOLVED_DEPENDENCY);
     assertThat(strategy).isInstanceOf(UnresolvedDependenciesReporter.class);
@@ -154,6 +162,10 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     strategy = strategies.get(TYPE_MIN_SDK_VERSION_IN_MANIFEST);
     assertThat(strategy).isInstanceOf(SdkInManifestIssuesReporter.class);
+    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
+
+    strategy = strategies.get(TYPE_DEPRECATED_CONFIGURATION);
+    assertThat(strategy).isInstanceOf(DeprecatedConfigurationReporter.class);
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
   }
 }
