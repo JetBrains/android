@@ -789,4 +789,26 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     verifyPropertyModel(childBuildModel.ext().findProperty("hello").resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1)
     verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "good:dep:1.0", STRING, REGULAR, 1)
   }
+
+  @Test
+  fun testVariableInBuildscript() {
+    val text = """
+               buildscript {
+                 ext.kotlin = "2.0"
+
+                 dependencies {
+                   compile "hello:kotlin:${'$'}{kotlin}"
+                 }
+               }
+               """.trimIndent()
+    writeToBuildFile(text)
+
+    val pbm = ProjectBuildModel.get(myProject)
+    val buildModel = pbm.projectBuildModel!!
+
+    assertSize(1, buildModel.ext().properties)
+
+    val artModel = buildModel.buildscript().dependencies().artifacts()[0]!!
+    verifyPropertyModel(artModel.completeModel().resultModel, STRING_TYPE, "hello:kotlin:2.0", STRING, REGULAR, 1)
+  }
 }
