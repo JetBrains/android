@@ -267,7 +267,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
       return when (column) {
         NAME -> "Name"
         UNRESOLVED_VALUE -> "Value"
-        RESOLVED_VALUE -> "Resolved value"
+        RESOLVED_VALUE -> "Actual value"
         else -> ""
       }
     }
@@ -447,6 +447,9 @@ class VariablesTable(private val project: Project, private val context: PsContex
         return ""
       }
       val resolvedValue = variable.getResolvedValue(STRING_TYPE) ?: return ""
+      if (variable.getDependencies().isEmpty()) {
+        return ""
+      }
       if (variable.resolvedValueType == ValueType.STRING) {
         return StringUtil.wrapWithDoubleQuote(resolvedValue)
       }
@@ -474,6 +477,9 @@ class VariablesTable(private val project: Project, private val context: PsContex
 
     override fun getResolvedValue(expanded: Boolean): String {
       val resolvedValue = variable.getResolvedValue(STRING_TYPE) ?: ""
+      if (variable.getDependencies().isEmpty()) {
+        return ""
+      }
       if (variable.resolvedValueType == ValueType.STRING) {
         return StringUtil.wrapWithDoubleQuote(resolvedValue)
       }
@@ -513,6 +519,9 @@ class VariablesTable(private val project: Project, private val context: PsContex
 
     override fun getResolvedValue(expanded: Boolean): String {
       val resolvedValue = variable.getResolvedValue(STRING_TYPE) ?: ""
+      if (variable.getDependencies().isEmpty()) {
+        return ""
+      }
       if (variable.resolvedValueType == ValueType.STRING) {
         return StringUtil.wrapWithDoubleQuote(resolvedValue)
       }
