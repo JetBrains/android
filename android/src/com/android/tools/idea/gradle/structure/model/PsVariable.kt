@@ -85,6 +85,8 @@ class PsVariable(
     return PsVariable(mapValue, mapValue.resolve(), model, scopePsVariables)
   }
 
+  fun getDependencies(): List<GradlePropertyModel> = property.dependencies
+
   /**
    * Binds a new property to the underlying Gradle property using the binding configuration from the [prototype].
    */
@@ -92,5 +94,5 @@ class PsVariable(
   fun <T : Any, PropertyCoreT : ModelPropertyCore<T>> bindNewPropertyAs(prototype: PropertyCoreT): PropertyCoreT? =
     // Note: the as? test is only to test whether the interface is implemented.
     // If it is, the generic type arguments will match.
-    (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty, { model.isModified = true })
+    (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty) { model.isModified = true }
 }
