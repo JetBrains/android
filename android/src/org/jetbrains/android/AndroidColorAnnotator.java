@@ -37,6 +37,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder;
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPalette;
 import com.android.utils.HashCodes;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
@@ -586,7 +587,7 @@ public class AndroidColorAnnotator implements Annotator {
         .addColorAdjustPanel()
         .addColorValuePanel()
         .addSeparator()
-        .addColorPalette()
+        .addCustomComponent((model) -> new MaterialColorPalette(model))
         .addSeparator()
         .addOperationPanel(okCallback, cancelCallback)
         .build();

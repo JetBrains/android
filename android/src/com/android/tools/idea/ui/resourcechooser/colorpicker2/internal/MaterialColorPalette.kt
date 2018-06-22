@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.resourcechooser.colorpicker2
+package com.android.tools.idea.ui.resourcechooser.colorpicker2.internal
 
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.ui.MaterialColors
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_BACKGROUND_COLOR
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_PREFERRED_WIDTH
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.ui.JBUI
@@ -40,7 +43,7 @@ private val COLOR_BUTTON_SIZE = JBUI.size(34)
 private val COLOR_BUTTON_BORDER = JBUI.Borders.empty(6)
 private val COLOR_BUTTON_INSETS = JBUI.insets(0)
 
-class ColorPalette(private val pickerModel: ColorPickerModel) : JPanel(GridBagLayout()) {
+class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel() {
 
   @get:TestOnly
   val colorButtons = Array(COLOR_BUTTON_NUMBER, {
@@ -51,6 +54,7 @@ class ColorPalette(private val pickerModel: ColorPickerModel) : JPanel(GridBagLa
   })
 
   init {
+    layout = GridBagLayout()
     border = PALETTE_BORDER
     preferredSize = PALETTE_PREFERRED_SIZE
     background = PICKER_BACKGROUND_COLOR
@@ -185,18 +189,20 @@ private const val COLOR_PICKER_CATEGORY_PROPERTY = "colorPickerCategoryProperty"
 private val DEFAULT_COLOR_CATEGORY = MaterialColors.Category.MATERIAL_500
 
 private fun loadLastUsedColorCategory(): MaterialColors.Category {
-  val modeName = PropertiesComponent.getInstance().getValue(COLOR_PICKER_CATEGORY_PROPERTY, DEFAULT_COLOR_CATEGORY.name)
+  val modeName = PropertiesComponent.getInstance().getValue(
+    COLOR_PICKER_CATEGORY_PROPERTY, DEFAULT_COLOR_CATEGORY.name)
   return try {
     MaterialColors.Category.valueOf(modeName)
   }
   catch (e: IllegalArgumentException) {
     // If the code reach here, that means some of unexpected category is saved as user's preference.
     // In this case, return the default category instead.
-    Logger.getInstance(ColorPalette::class.java)
+    Logger.getInstance(MaterialColorPalette::class.java)
       .warn("The color category $modeName is not recognized, use default category $DEFAULT_COLOR_CATEGORY instead")
     DEFAULT_COLOR_CATEGORY
   }
 }
 
 private fun saveLastUsedColorCategory(category: MaterialColors.Category)
-  = PropertiesComponent.getInstance().setValue(COLOR_PICKER_CATEGORY_PROPERTY, category.name)
+  = PropertiesComponent.getInstance().setValue(
+  COLOR_PICKER_CATEGORY_PROPERTY, category.name)
