@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
@@ -28,9 +29,12 @@ import com.google.common.io.Files;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
+
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link FrameworkResourceRepository}.
@@ -136,7 +140,9 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
       ResourceItem actualItem = actualItems.get(i);
       assertTrue("Different ResourceItem at position " + i, areEquivalent(expectedItem, actualItem));
       assertEquals("Different FolderConfiguration at position " + i, expectedItem.getConfiguration(), actualItem.getConfiguration());
-      assertEquals("Different ResourceValue at position " + i, expectedItem.getResourceValue(), actualItem.getResourceValue());
+      if (!expectedItem.getResourceValue().equals(actualItem.getResourceValue())) { //TODO
+        assertEquals("Different ResourceValue at position " + i, expectedItem.getResourceValue(), actualItem.getResourceValue());
+      }
     }
 
     for (ResourceType type : ResourceType.values()) {
@@ -175,18 +181,34 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   }
 
   private static void checkAttributes(@NotNull FrameworkResourceRepository repository) {
-    // `typeface` is declared first at top-level and later referenced from within `<declare-styleable>`. Make sure the later reference
-    // doesn't shadow the original definition.
-    checkAttrDefinition(repository, "typeface");
+    // `typeface` is declared first at top-level and later referenced from within `<declare-styleable>`.
+    // Make sure the later reference doesn't shadow the original definition.
+    AttrResourceValue attrValue = getAttrValue(repository, "typeface");
+    assertThat(attrValue).isNotNull();
+    assertThat(attrValue.getFormats()).containsExactly(AttributeFormat.ENUM);
+    assertThat(attrValue.getDescription()).isEqualTo("Default text typeface.");
+    assertThat(attrValue.getGroupName()).isEqualTo("Other non-theme attributes");
+    Map<String, Integer> valueMap = attrValue.getAttributeValues();
+    assertThat(valueMap.size()).isEqualTo(4);
+    assertThat(valueMap).containsEntry("monospace", 3);
+    assertThat(attrValue.getValueDescription("monospace")).isNull();
 
     // `appCategory` is defined only in attr_manifest.xml.
-    checkAttrDefinition(repository, "appCategory");
+    attrValue = getAttrValue(repository, "appCategory");
+    assertThat(attrValue).isNotNull();
+    assertThat(attrValue.getFormats()).containsExactly(AttributeFormat.ENUM);
+    assertThat(attrValue.getDescription()).startsWith("Declare the category of this app");
+    assertThat(attrValue.getGroupName()).isNull();
+    valueMap = attrValue.getAttributeValues();
+    assertThat(valueMap.size()).isAtLeast(7);
+    assertThat(valueMap).containsEntry("maps", 6);
+    assertThat(attrValue.getValueDescription("maps")).contains("navigation");
   }
 
-  private static void checkAttrDefinition(@NotNull FrameworkResourceRepository repository, @NotNull String attrName) {
+  private static AttrResourceValue getAttrValue(@NotNull FrameworkResourceRepository repository,
+                                                @NotNull String attrName) {
     ResourceItem attrItem = repository.getResourceItems(ResourceNamespace.ANDROID, ResourceType.ATTR, attrName).get(0);
-    AttrResourceValue attrValue = (AttrResourceValue)attrItem.getResourceValue();
-    assertFalse(attrValue.getAttributeValues().isEmpty());
+    return (AttrResourceValue)attrItem.getResourceValue();
   }
 
   private static void checkPublicResourcesCount(@NotNull FrameworkResourceRepository repository) {

@@ -35,12 +35,17 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.xml.XmlComment;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.reference.SoftReference;
+import com.intellij.xml.util.XmlUtil;
+import com.intellij.xml.util.documentation.XmlDocumentationProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
 
 import static com.android.SdkConstants.*;
 
@@ -384,23 +389,53 @@ public class PsiResourceItem implements ResourceItem {
   }
 
   @NotNull
-  private static AttrResourceValue parseAttrValue(@NotNull XmlTag tag, @NotNull AttrResourceValueImpl attrValue) {
-    for (XmlTag child : tag.getSubTags()) {
+  private static AttrResourceValue parseAttrValue(@NotNull XmlTag attrTag, @NotNull AttrResourceValueImpl attrValue) {
+    attrValue.setDescription(getDescription(attrTag));
+
+    Set<AttributeFormat> formats = EnumSet.noneOf(AttributeFormat.class);
+    String formatString = getAttributeValue(attrTag, ATTR_FORMAT);
+    if (formatString != null) {
+      formats.addAll(AttributeFormat.parse(formatString));
+    }
+
+    for (XmlTag child : attrTag.getSubTags()) {
+      String tagName = child.getName();
+      if (TAG_ENUM.equals(tagName)) {
+        formats.add(AttributeFormat.ENUM);
+      } else if (TAG_FLAG.equals(tagName)) {
+        formats.add(AttributeFormat.FLAGS);
+      }
+
       String name = getAttributeValue(child, ATTR_NAME);
       if (name != null) {
+        Integer numericValue = null;
         String value = getAttributeValue(child, ATTR_VALUE);
         if (value != null) {
           try {
             // Use Long.decode to deal with hexadecimal values greater than 0x7FFFFFFF.
-            attrValue.addValue(name, Long.decode(value).intValue());
-          } catch (NumberFormatException e) {
-            // Ignore the invalid value.
+            numericValue = Long.decode(value).intValue();
+          } catch (NumberFormatException ignored) {
           }
         }
+        attrValue.addValue(name, numericValue, getDescription(child));
       }
     }
 
+    attrValue.setFormats(formats);
+
     return attrValue;
+  }
+
+  @Nullable
+  private static String getDescription(@NotNull XmlTag tag) {
+    PsiElement comment = XmlDocumentationProvider.findPreviousComment(tag);
+    if (comment != null) {
+      String text = XmlUtil.getCommentText((XmlComment)comment);
+      if (text != null && !StringUtil.isEmpty(text)) {
+        return text.trim();
+      }
+    }
+    return null;
   }
 
   @NotNull
