@@ -23,7 +23,7 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.CaptureNodeHRenderer;
+import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;

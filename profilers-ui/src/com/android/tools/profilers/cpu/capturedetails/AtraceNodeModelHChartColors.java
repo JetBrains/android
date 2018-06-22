@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package com.android.tools.profilers.cpu;
+package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.cpu.CaptureModel;
+import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-import static com.android.tools.profilers.cpu.CaptureNodeHRenderer.toUnmatchColor;
+import static com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer.toUnmatchColor;
 
 /**
  * Defines the colors (fill and border) of the rectangles used to represent {@link AtraceNodeModel} nodes in a

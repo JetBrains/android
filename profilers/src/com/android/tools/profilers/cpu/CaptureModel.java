@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
  * Manages states of the selected capture, such as current select thread, capture details (i.e top down tree, bottom up true, chart).
  * When a state changes, this class lets all view know about the changes they're interested in.
  */
-class CaptureModel {
+public class CaptureModel {
   /**
    * A negligible number. It is used for comparision.
    */
@@ -75,7 +75,7 @@ class CaptureModel {
    */
   private final Range myCaptureConvertedRange;
 
-  CaptureModel(@NotNull CpuProfilerStage stage) {
+  public CaptureModel(@NotNull CpuProfilerStage stage) {
     myStage = stage;
     myCaptureConvertedRange = new Range();
     myThread = NO_THREAD;
