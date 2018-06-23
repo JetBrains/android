@@ -128,7 +128,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
           if (expectedItem == null) {
             fail("Unexpected ResourceItem at position " + j);
           }
-          assertTrue("Different ResourceItem at position " + i, previousItem == null || areEquivalent(expectedItem, previousItem));
+          assertTrue("Different ResourceItem at position " + i, previousItem != null && areEquivalent(expectedItem, previousItem));
           assertTrue("Different ResourceValue at position " + i,
                      areEquivalentResourceValues(expectedItem.getResourceValue(), previousItem.getResourceValue()));
           FolderConfiguration expectedConfiguration = expectedItem.getConfiguration();
@@ -202,11 +202,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
           nonFileUri = path1.getFilesystemUri();
         }
         if (nonFileUri.getScheme().equals("apk")) {
-          String path = nonFileUri.getPath();
-          if (path.endsWith("/res.apk") &&
-              path1.getNativePath().equals(path.substring(0, path.length() - "/res.apk".length() + 1) + path2.getNativePath())) {
-            return true;
-          }
+          return path1.getPortablePath().equals(path2.getPortablePath().replace("/res.apk!/", "/"));
         }
       }
     }

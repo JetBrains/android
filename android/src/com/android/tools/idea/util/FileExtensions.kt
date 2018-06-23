@@ -17,14 +17,12 @@
 package com.android.tools.idea.util
 
 import com.android.ide.common.util.PathString
-import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.intellij.openapi.vfs.*
 import com.intellij.util.io.inputStream
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
-import java.net.URI
 
 fun VirtualFile.toIoFile(): File = VfsUtil.virtualToIoFile(this)
 
@@ -51,40 +49,13 @@ fun PathString.inputStream(): InputStream {
  */
 @JvmOverloads
 fun PathString.toVirtualFile(refresh: Boolean = false): VirtualFile? {
-  return when (filesystemUri.scheme) {
-    ApkFileSystem.PROTOCOL -> {
-      val apkFileSystem = ApkFileSystem.getInstance()
-      val apkPath = filesystemUri.path + JarFileSystem.JAR_SEPARATOR
-      val root = if (refresh) apkFileSystem.refreshAndFindFileByPath(apkPath) else apkFileSystem.findFileByPath(apkPath)
-      root?.findFileByRelativePath(rawPath)
-    }
-    else -> {
-      VirtualFileManager.getInstance().getFileSystem(filesystemUri.scheme)?.let { fs ->
-        if (refresh) fs.refreshAndFindFileByPath(portablePath) else fs.findFileByPath(portablePath)
-      }
-    }
-  }
+  val filesystem = VirtualFileManager.getInstance().getFileSystem(filesystemUri.scheme) ?: return null
+  return if (refresh) filesystem.refreshAndFindFileByPath(portablePath) else filesystem.findFileByPath(portablePath)
 }
 
 /**
  * Returns a [PathString] that describes the given [VirtualFile].
  */
 fun VirtualFile.toPathString(): PathString {
-  val fileSystem = this.fileSystem // make to allow smart casting below.
-
-  if (fileSystem.protocol == LocalFileSystem.PROTOCOL) {
-    return PathString(path)
-  }
-
-  if (fileSystem is ApkFileSystem) {
-    val archive = fileSystem.getLocalByEntry(this)
-    if (archive != null) {
-      return PathString(
-        URI(fileSystem.protocol, "", archive.path, null),
-        fileSystem.getRelativePath(this)
-      )
-    }
-  }
-
-  return PathString(URI(fileSystem.protocol, "", "/", null), path)
+  return PathString(fileSystem.protocol, path)
 }

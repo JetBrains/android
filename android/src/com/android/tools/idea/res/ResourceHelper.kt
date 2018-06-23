@@ -698,13 +698,7 @@ fun toFileResourcePathString(resourcePath: String): PathString? {
     if (separatorPos < prefixLength) {
       throw IllegalArgumentException("Invalid resource path \"$resourcePath\"")
     }
-    return try {
-      val uri = URI("apk", resourcePath.substring(prefixLength, separatorPos).replace('\\', '/'), null)
-      PathString(uri, resourcePath.substring(separatorPos + JAR_SEPARATOR.length))
-    }
-    catch (e: URISyntaxException) {
-      null
-    }
+    return PathString("apk", resourcePath.substring(separatorPos + JAR_SEPARATOR.length))
   }
 
   if (resourcePath.startsWith("file:")) {
