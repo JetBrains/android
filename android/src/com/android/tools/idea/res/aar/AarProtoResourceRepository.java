@@ -38,8 +38,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -70,10 +68,10 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
 
   @NotNull private final File myAarDirectory;
   /**
-   * Either an URI with "apk" scheme pointing to res.apk, or null if the repository was loaded
-   * from unzipped contents of res.apk.
+   * Either "apk" or "file"" depending on whether the repository was loaded from res.apk
+   * or its unzipped contents.
    */
-  @Nullable private URI myResApkUri;
+  private String myFilesystemProtocol;
   /**
    * Common prefix of paths of all file resources. Used to compose resource path strings when
    * the repository is loaded from unzipped contents of res.apk.
@@ -124,17 +122,13 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
   private void load(@NotNull DataLoader loader) {
     loadResourceTable(loader.resourceTableMsg);
     if (loader.loadedFromResApk) {
-      try {
-        File resApkFile = new File(myAarDirectory, FN_RESOURCE_STATIC_LIBRARY);
-        myResApkUri = new URI("apk", resApkFile.getAbsolutePath().replace('\\', '/'), null);
-      } catch (URISyntaxException e) {
-        throw new Error("Internal error", e);
-      }
-      myResourceUrlPrefix = myResApkUri.toString() + URLUtil.JAR_SEPARATOR;
+      myFilesystemProtocol = "apk";
+      myResourcePathPrefix = new File(myAarDirectory, FN_RESOURCE_STATIC_LIBRARY).getPath() + URLUtil.JAR_SEPARATOR;
     } else {
+      myFilesystemProtocol = "file";
       myResourcePathPrefix = myAarDirectory.getAbsolutePath() + File.separator;
-      myResourceUrlPrefix = "file://" + myResourcePathPrefix;
     }
+    myResourceUrlPrefix = myFilesystemProtocol + "://" + myResourcePathPrefix;
   }
 
   private void loadResourceTable(@NotNull Resources.ResourceTable resourceTableMsg) {
@@ -170,14 +164,7 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
 
   @Nullable
   final PathString getPathString(@Nullable String relativeResourcePath) {
-    if (relativeResourcePath == null) {
-      return null;
-    }
-    if (myResApkUri != null) {
-      return new PathString(myResApkUri, relativeResourcePath);
-    } else {
-      return new PathString(myResourcePathPrefix + relativeResourcePath);
-    }
+    return relativeResourcePath == null ? null : new PathString(myFilesystemProtocol, myResourcePathPrefix + relativeResourcePath);
   }
 
   /**

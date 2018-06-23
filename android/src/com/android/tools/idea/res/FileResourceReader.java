@@ -52,14 +52,19 @@ public class FileResourceReader {
    */
   @NotNull
   public static byte[] readBytes(@NotNull PathString resourcePath) throws IOException {
-    URI uri = resourcePath.getFilesystemUri();
-    String scheme = uri.getScheme();
+    String scheme = resourcePath.getFilesystemUri().getScheme();
     switch (scheme) {
       case "file":
         return readFileBytes(resourcePath.getRawPath());
 
       case "apk": {
-        return readZipEntryBytes(uri.getPath(), resourcePath.getPortablePath());
+        String path = resourcePath.getRawPath();
+        int separatorPos = path.indexOf(JAR_SEPARATOR);
+        int separatorEnd = separatorPos + JAR_SEPARATOR.length();
+        if (separatorPos <= 0 || separatorEnd == path.length()) {
+          throw new IllegalArgumentException("Invalid path in \"" + resourcePath + "\"");
+        }
+        return readZipEntryBytes(path.substring(0, separatorPos), path.substring(separatorEnd));
       }
 
       default:
@@ -113,16 +118,16 @@ public class FileResourceReader {
     try (ZipFile zipFile = new ZipFile(zipPath)) {
       ZipEntry entry = zipFile.getEntry(zipEntryPath);
       if (entry == null) {
-        throw new FileNotFoundException("Zip entry " + zipPath + ':' + zipEntryPath + " does not exist");
+        throw new FileNotFoundException("Zip entry \"" + zipPath + ':' + zipEntryPath + "\" does not exist");
       }
       long size = entry.getSize();
       if (size > Integer.MAX_VALUE) {
-        throw new IOException("Zip entry " + zipPath + ':' + zipEntryPath + " is too large");
+        throw new IOException("Zip entry \"" + zipPath + ':' + zipEntryPath + "\" is too large");
       }
       byte[] bytes = new byte[(int)size];
       InputStream stream = zipFile.getInputStream(entry);
       if (stream.read(bytes) != size) {
-        throw new IOException("Incomplete read from " + zipPath + ':' + zipEntryPath);
+        throw new IOException("Incomplete read from \"" + zipPath + ':' + zipEntryPath + "\"");
       }
       return bytes;
     }
