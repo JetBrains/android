@@ -143,10 +143,6 @@ public class ImportApkActionTest extends IdeaTestCase {
     }
 
     @Override
-    public void clearNameCache() {
-    }
-
-    @Override
     public void updateLastProjectPath() {
     }
 
