@@ -160,7 +160,7 @@ public final class GuiTests {
   }
 
   public static void setUpSdks() {
-    File androidSdkPath = GuiTestOptions.INSTANCE.isRunningOnRelease() ? getAndroidSdk() : TestUtils.getSdk();
+    File androidSdkPath = GuiTestOptions.INSTANCE.isStandaloneMode() ? getAndroidSdk() : TestUtils.getSdk();
 
     GuiTask.execute(
       () -> {
