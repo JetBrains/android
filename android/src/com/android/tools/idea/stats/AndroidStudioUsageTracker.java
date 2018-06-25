@@ -29,10 +29,12 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.impl.ProjectLifecycleListener;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
+import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 
@@ -154,6 +156,8 @@ public class AndroidStudioUsageTracker {
                                        .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_OPENED)
                                        .setStudioProjectChange(StudioProjectChange.newBuilder()
                                                                  .setProjectsOpen(projectsOpen)));
+
+
     }
 
     @Override
@@ -163,6 +167,16 @@ public class AndroidStudioUsageTracker {
                                        .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_CLOSED)
                                        .setStudioProjectChange(StudioProjectChange.newBuilder()
                                                                  .setProjectsOpen(projectsOpen)));
+
+    }
+
+    // Need to setup ToolWindowTrackerService here after project is initialized so service can be retrieved.  
+    @Override
+    public void projectComponentsInitialized(@NotNull Project project) {
+      ToolWindowTrackerService service = ToolWindowTrackerService.getInstance(project);
+      if (service != null) {
+        ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(service, project);
+      }
     }
   }
 }
