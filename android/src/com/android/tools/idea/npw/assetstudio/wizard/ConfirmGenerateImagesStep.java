@@ -66,7 +66,6 @@ import java.util.stream.Collectors;
 
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
 import static com.android.tools.idea.npw.assetstudio.IconGenerator.getMdpiScaleFactor;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
 import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
 import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_FULL_BLEED_DP;
 
@@ -424,11 +423,10 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
           }
           return directories.stream();
         })
-        .distinct()
         .collect(Collectors.toSet());
 
       // Sort the FileTreeModel so that the preview tree entries are sorted.
-      treeModel.sort(getFileComparator(outputDirectories));
+      treeModel.sort(new DensityAwareFileComparator(outputDirectories));
 
       myOutputPreviewTree.setModel(treeModel);
 
@@ -451,35 +449,6 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         }
       }
     });
-  }
-
-  @NotNull
-  private static Comparator<File> getFileComparator(Set<File> outputDirectories) {
-    return (file1, file2) -> {
-      // Sort by "directory vs file" first, then by density, then by name.
-      boolean isDirectory1 = outputDirectories.contains(file1);
-      boolean isDirectory2 = outputDirectories.contains(file2);
-      if (isDirectory1 == isDirectory2) {
-        String path1 = file1.getAbsolutePath();
-        String path2 = file2.getAbsolutePath();
-        Density density1 = pathToDensity(path1 + File.separator);
-        Density density2 = pathToDensity(path2 + File.separator);
-
-        if (density1 != null && density2 != null && density1 != density2) {
-          // Sort least dense to most dense.
-          return Integer.compare(density2.ordinal(), density1.ordinal());
-        }
-        else {
-          return path1.compareTo(path2);
-        }
-      }
-      else if (isDirectory1) {
-        return -1;
-      }
-      else {
-        return 1;
-      }
-    };
   }
 
   @Override
