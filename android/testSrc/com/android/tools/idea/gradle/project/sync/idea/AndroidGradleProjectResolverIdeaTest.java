@@ -221,9 +221,10 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     IdeaModuleStub includedModule = includedProject.addModule("lib", "clean", "jar");
     myResolverCtx.getModels().getIncludedBuilds().add(includedProject);
 
-    // Verify that task data for included module is empty.
+    // Verify that task data for included module is not empty.
     Collection<TaskData> taskData = myProjectResolver.populateModuleTasks(includedModule, moduleDataNode, projectNode);
-    assertThat(taskData).isEmpty();
+    Collection<String> includedModuleTaskNames = taskData.stream().map(TaskData::getName).collect(Collectors.toList());
+    assertThat(includedModuleTaskNames).containsExactly("clean", "jar");
 
     // Verify that task data for non-included module contains all available tasks.
     taskData = myProjectResolver.populateModuleTasks(myJavaModuleModel, moduleDataNode, projectNode);
