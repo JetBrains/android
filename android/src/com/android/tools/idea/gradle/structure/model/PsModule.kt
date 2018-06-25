@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
@@ -74,13 +75,68 @@ abstract class PsModule protected constructor(
   abstract val rootDir: File?
   abstract val projectType: PsModuleType
   abstract fun getConfigurations(): List<String>
-  abstract fun addLibraryDependency(library: String, scopesNames: List<String>)
-  abstract fun addModuleDependency(modulePath: String, scopesNames: List<String>)
-  abstract fun removeDependency(dependency: PsDeclaredDependency)
-  abstract fun setLibraryDependencyVersion(
+  protected abstract fun resetDependencies()
+  protected abstract fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency>
+
+  fun addLibraryDependency(library: String, scopesNames: List<String>) {
+    // Update/reset the "parsed" model.
+    addLibraryDependencyToParsedModel(scopesNames, library)
+
+    resetDependencies()
+
+    val spec = PsArtifactDependencySpec.create(library)!!
+    fireLibraryDependencyAddedEvent(spec)
+    isModified = true
+  }
+
+
+  fun addModuleDependency(modulePath: String, scopesNames: List<String>) {
+    // Update/reset the "parsed" model.
+    addModuleDependencyToParsedModel(scopesNames, modulePath)
+
+    resetDependencies()
+
+    fireModuleDependencyAddedEvent(modulePath)
+    isModified = true
+  }
+
+  fun removeDependency(dependency: PsDeclaredDependency) {
+    removeDependencyFromParsedModel(dependency)
+
+    resetDependencies()
+
+    fireDependencyRemovedEvent(dependency)
+    isModified = true
+  }
+
+  fun setLibraryDependencyVersion(
     spec: PsArtifactDependencySpec,
     configurationName: String,
-    newVersion: String)
+    newVersion: String
+  ) {
+    var modified = false
+    val matchingDependencies = findLibraryDependencies(spec.group, spec.name)
+      .filter { it -> it.spec == spec }
+      .map { it as PsDeclaredDependency }
+      .filter { it.configurationName == configurationName }
+    // Usually there should be only one item in the matchingDependencies list. However, if there are duplicate entries in the config file
+    // it might differ. We update all of them.
+
+    for (dependency in matchingDependencies) {
+      val parsedDependency = dependency.parsedModel
+      assert(parsedDependency is ArtifactDependencyModel)
+      val artifactDependencyModel = parsedDependency as ArtifactDependencyModel
+      artifactDependencyModel.version().setValue(newVersion)
+      modified = true
+    }
+    if (modified) {
+      resetDependencies()
+      for (dependency in matchingDependencies) {
+        fireDependencyModifiedEvent(dependency)
+      }
+      isModified = true
+    }
+  }
 
   fun getArtifactRepositories(): List<ArtifactRepository> {
     val repositories = mutableListOf<ArtifactRepository>()
@@ -120,34 +176,38 @@ abstract class PsModule protected constructor(
     }
   }
 
-  protected fun addLibraryDependencyToParsedModel(configurationNames: List<String>, compactNotation: String) {
+  private fun addLibraryDependencyToParsedModel(configurationNames: List<String>, compactNotation: String) {
     parsedModel?.let { parsedModel ->
       val dependencies = parsedModel.dependencies()
       configurationNames.forEach { configurationName -> dependencies.addArtifact(configurationName, compactNotation) }
       parsedDependencies.reset(parsedModel)
-    }
+    } ?: noParsedModel()
   }
 
-  protected fun addModuleDependencyToParsedModel(configurationNames: List<String>, modulePath: String) {
+  private fun noParsedModel() {
+    throw IllegalStateException("Module $name doe snot have a parsed model.")
+  }
+
+  private fun addModuleDependencyToParsedModel(configurationNames: List<String>, modulePath: String) {
     parsedModel?.let { parsedModel ->
       val dependencies = parsedModel.dependencies()
       configurationNames.forEach { configurationName -> dependencies.addModule(configurationName, modulePath) }
       parsedDependencies.reset(parsedModel)
-    }
+    } ?: noParsedModel()
   }
 
-  protected fun removeDependencyFromParsedModel(dependency: PsDeclaredDependency) {
+  private fun removeDependencyFromParsedModel(dependency: PsDeclaredDependency) {
     parsedModel?.let { parsedModel ->
       parsedModel.dependencies().remove(dependency.parsedModel)
       parsedDependencies.reset(parsedModel)
-    }
+    } ?: noParsedModel()
   }
 
-  protected fun fireLibraryDependencyAddedEvent(spec: PsArtifactDependencySpec) {
+  private fun fireLibraryDependencyAddedEvent(spec: PsArtifactDependencySpec) {
     dependenciesChangeEventDispatcher.multicaster.dependencyChanged(LibraryDependencyAddedEvent(spec))
   }
 
-  protected fun fireModuleDependencyAddedEvent(modulePath: String) {
+  private fun fireModuleDependencyAddedEvent(modulePath: String) {
     dependenciesChangeEventDispatcher.multicaster.dependencyChanged(ModuleDependencyAddedEvent(modulePath))
   }
 

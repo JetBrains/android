@@ -56,29 +56,10 @@ class PsJavaModule(
     dependencies.forEach(consumer)
   }
 
-  override fun addLibraryDependency(library: String, scopesNames: List<String>) {
-    // Update/reset the "parsed" model.
-    addLibraryDependencyToParsedModel(scopesNames, library)
-
-    // Reset dependencies.
+  override fun resetDependencies() {
     myDependencyCollection = null
-
-    val spec = PsArtifactDependencySpec.create(library)!!
-    fireLibraryDependencyAddedEvent(spec)
-    isModified = true
   }
 
-  override fun addModuleDependency(modulePath: String, scopesNames: List<String>) {
+  override fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency> =
     throw UnsupportedOperationException()
-  }
-
-  override fun removeDependency(dependency: PsDeclaredDependency) {
-    throw UnsupportedOperationException()
-  }
-
-  override fun setLibraryDependencyVersion(spec: PsArtifactDependencySpec,
-                                           configurationName: String,
-                                           newVersion: String) {
-    throw UnsupportedOperationException()
-  }
 }

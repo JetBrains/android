@@ -25,19 +25,14 @@ open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule("<A
 
   override var isModified: Boolean
     get() = parent.isModified
-    set(value) = throw UnsupportedOperationException()
+    set(_) = throw UnsupportedOperationException()
 
   override fun applyChanges() = parent.applyChanges()
 
   override fun getConfigurations(): List<String> = throw UnsupportedOperationException()
 
-  override fun addLibraryDependency(library: String, scopesNames: List<String>) = throw UnsupportedOperationException()
+  override fun resetDependencies() = throw UnsupportedOperationException()
 
-  override fun addModuleDependency(modulePath: String, scopesNames: List<String>) = throw UnsupportedOperationException()
-
-  override fun removeDependency(dependency: PsDeclaredDependency) = throw UnsupportedOperationException()
-
-  override fun setLibraryDependencyVersion(spec: PsArtifactDependencySpec,
-                                           configurationName: String,
-                                           newVersion: String) = throw UnsupportedOperationException()
+  override fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency> =
+    throw UnsupportedOperationException()
 }
