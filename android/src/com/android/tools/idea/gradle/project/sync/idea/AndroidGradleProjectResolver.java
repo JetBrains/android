@@ -295,19 +295,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @Override
-  @NotNull
-  public Collection<TaskData> populateModuleTasks(@NotNull IdeaModule gradleModule,
-                                                  @NotNull DataNode<ModuleData> ideModule,
-                                                  @NotNull DataNode<ProjectData> ideProject)
-    throws IllegalArgumentException, IllegalStateException {
-    // Gradle doesn't support running tasks for included projects. Don't create task node if this module belongs to an included projects.
-    if (resolverCtx.getModels().getIncludedBuilds().contains(gradleModule.getProject())) {
-      return Collections.emptyList();
-    }
-    return nextResolver.populateModuleTasks(gradleModule, ideModule, ideProject);
-  }
-
-  @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
     populateModuleBuildDirs(gradleProject);
     populateGlobalLibraryMap(gradleProject);
