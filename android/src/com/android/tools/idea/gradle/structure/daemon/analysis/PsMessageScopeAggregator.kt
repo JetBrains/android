@@ -15,11 +15,19 @@
  */
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
+import com.android.utils.combineAsCamelCase
+import com.intellij.util.text.nullize
+
 data class PsMessageScope(val buildType: String, val productFlavors: List<String> = listOf(), val artifact: String = "")
-data class PsMessageAggregatedScope(val buildType: String?, val productFlavors: List<String?> = listOf(), val scope: String? = "") {
-  constructor (from: PsMessageScope) : this(from.buildType, from.productFlavors, from.artifact)
+data class PsMessageAggregatedScope(val buildType: String?,
+                                    val productFlavors: List<String?> = listOf(),
+                                    val scope: String? = "implementation") {
+  constructor (from: PsMessageScope) : this(from.buildType, from.productFlavors, from.artifact.nullize() ?: "implementation")
 
   fun withFlavor(flavor: String?, at: Int) = copy(productFlavors = productFlavors.toMutableList().also { it[at] = flavor })
+
+  override fun toString(): String =
+    (productFlavors.filterNotNull() + listOfNotNull(buildType) + listOfNotNull(scope)).combineAsCamelCase()
 }
 
 /**
