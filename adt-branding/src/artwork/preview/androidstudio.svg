@@ -8,8 +8,8 @@
 	.st2{opacity:0.2;clip-path:url(#SVGID_2_);fill:#FFFFFF;}
 	.st3{opacity:0.2;clip-path:url(#SVGID_2_);fill:#263238;}
 	.st4{clip-path:url(#SVGID_2_);}
-	.st5{fill:#263238;fill-opacity:5.000000e-02;}
-	.st6{fill:#FFFFFF;fill-opacity:5.000000e-02;}
+	.st5{fill:#263238;fill-opacity:0.05;}
+	.st6{fill:#FFFFFF;fill-opacity:0.05;}
 	.st7{fill:url(#SVGID_3_);}
 	.st8{fill:url(#SVGID_4_);}
 	.st9{fill:#7F6C1B;}
