@@ -30,7 +30,7 @@ abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModu
  */
 class PsAndroidModuleDependencyCollection(parent: PsAndroidModule) : PsAndroidDependencyCollection(parent) {
 
-  private val moduleDependenciesByGradlePath = LinkedListMultimap.create<String, PsModuleAndroidDependency>()!!
+  private val moduleDependenciesByGradlePath = LinkedListMultimap.create<String, PsDeclaredModuleAndroidDependency>()!!
   private val libraryDependenciesBySpec = LinkedListMultimap.create<PsLibraryKey, PsDeclaredLibraryAndroidDependency>()!!
 
   init {
@@ -44,7 +44,11 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule) : PsAndroidDe
     moduleDependenciesByGradlePath.values().forEach(consumer)
   }
 
-  fun forEachModuleDependency(consumer: (PsModuleAndroidDependency) -> Unit) {
+  fun forEachLibraryDependency(consumer: (PsDeclaredLibraryAndroidDependency) -> Unit) {
+    libraryDependenciesBySpec.values().forEach(consumer)
+  }
+
+  fun forEachModuleDependency(consumer: (PsDeclaredModuleAndroidDependency) -> Unit) {
     moduleDependenciesByGradlePath.values().forEach(consumer)
   }
 

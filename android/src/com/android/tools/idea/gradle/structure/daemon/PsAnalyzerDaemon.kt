@@ -65,22 +65,18 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
       context.project.forEachModule (Consumer { module ->
         var updatesFound = false
         if (module is PsAndroidModule) {
-          module.dependencies.forEach { dependency ->
-            if (dependency is PsLibraryDependency) {
-              val found = checkForUpdates(dependency as PsLibraryDependency)
-              if (found) {
-                updatesFound = true
-              }
+          module.dependencies.forEachLibraryDependency { dependency ->
+            val found = checkForUpdates(dependency)
+            if (found) {
+              updatesFound = true
             }
           }
         }
         else if (module is PsJavaModule) {
-          module.forEachDeclaredDependency { dependency ->
-            if (dependency is PsLibraryDependency) {
-              val found = checkForUpdates(dependency as PsLibraryDependency)
-              if (found) {
-                updatesFound = true
-              }
+          module.dependencies.forEachLibraryDependency { dependency ->
+            val found = checkForUpdates(dependency)
+            if (found) {
+              updatesFound = true
             }
           }
         }

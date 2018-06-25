@@ -17,19 +17,16 @@ package com.android.tools.idea.gradle.structure.daemon.analysis
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection
-import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 
 class PsJavaModuleAnalyzer(context: PsContext) : PsModuleAnalyzer<PsJavaModule>(context) {
   override val supportedModelType: Class<PsJavaModule> = PsJavaModule::class.java
 
   override fun doAnalyze(model: PsJavaModule, issueCollection: PsIssueCollection) {
-    model.forEachDependency { dependency ->
-      if (dependency is PsLibraryDependency && dependency.isDeclared) {
+    model.dependencies.forEachLibraryDependency { dependency ->
         // TODO(b/77848741): Fix promotion analysis.
         //PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
         //analyzeDeclaredDependency(libraryDependency, issueCollection);
-      }
     }
   }
 }

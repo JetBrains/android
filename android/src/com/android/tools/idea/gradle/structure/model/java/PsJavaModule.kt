@@ -39,7 +39,7 @@ class PsJavaModule(
     myDependencyCollection = null
   }
 
-  private val orCreateDependencyCollection: PsJavaDependencyCollection
+  val dependencies: PsJavaDependencyCollection
     get() = myDependencyCollection ?: PsJavaDependencyCollection(this).also { myDependencyCollection = it }
 
   override fun getConfigurations(): List<String> = resolvedModel?.configurations.orEmpty()
@@ -49,11 +49,11 @@ class PsJavaModule(
   override fun canDependOn(module: PsModule): Boolean = true
 
   fun forEachDeclaredDependency(consumer: (PsJavaDependency) -> Unit) {
-    orCreateDependencyCollection.forEachDeclaredDependency(consumer)
+    dependencies.forEachDeclaredDependency(consumer)
   }
 
   fun forEachDependency(consumer: (PsJavaDependency) -> Unit) {
-    orCreateDependencyCollection.forEach(consumer)
+    dependencies.forEach(consumer)
   }
 
   override fun addLibraryDependency(library: String, scopesNames: List<String>) {
