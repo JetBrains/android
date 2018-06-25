@@ -16,17 +16,15 @@
 package com.android.tools.idea.uibuilder.property2.testutils
 
 import com.android.SdkConstants
-import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.idea.uibuilder.property2.support.StyleEnumSupportTest
 import com.google.common.truth.Truth
 import com.intellij.openapi.diagnostic.Logger
 
 object EnumValueUtil {
-
   /**
    * Checks a section of [EnumValue]s.
    *
@@ -74,7 +72,7 @@ object EnumValueUtil {
     val resolver = property.resolver ?: error("Resolver should not be null")
     @Suppress("DEPRECATION")
     val resources = resolver.projectResources[ResourceType.STYLE] ?: return
-    val libraryNameField = ResourceValue::class.java.getDeclaredField("libraryName")
+    val libraryNameField = ResourceValueImpl::class.java.getDeclaredField("libraryName")
     libraryNameField.isAccessible = true
 
     for (style in resources.values) {
