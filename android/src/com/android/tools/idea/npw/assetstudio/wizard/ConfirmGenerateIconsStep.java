@@ -20,6 +20,7 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.validation.validators.FalseValidator;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.assetstudio.ProportionalImageScaler;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
@@ -37,7 +38,6 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -169,13 +169,6 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
 
       Map<File, BufferedImage> pathToUnscaledImage = iconGenerator.generateIntoFileMap(template.getPaths());
 
-      int minHeight = Integer.MAX_VALUE;
-      int maxHeight = Integer.MIN_VALUE;
-      for (BufferedImage image : pathToUnscaledImage.values()) {
-        minHeight = Math.min(minHeight, image.getHeight());
-        maxHeight = Math.max(maxHeight, image.getHeight());
-      }
-
       Map<File, Icon> pathToIcon = Maps.newTreeMap((file1, file2) -> {
         String path1 = file1.getAbsolutePath();
         String path2 = file2.getAbsolutePath();
@@ -195,16 +188,13 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
         }
       });
 
+      // By default, icons grow exponentially, and if presented at scale, may take up way too
+      // much real estate. Instead, let's scale down all icons proportionally so the largest
+      // one fits in our maximum allowed space.
+      ProportionalImageScaler imageScaler = ProportionalImageScaler.forImages(pathToUnscaledImage.values());
+
       for (Map.Entry<File, BufferedImage> entry: pathToUnscaledImage.entrySet()) {
-        Image image = entry.getValue();
-
-        // By default, icons grow exponentially, and if presented at scale, may take up way too
-        // much real estate. Instead, let's scale down all icons proportionally so the largest
-        // one fits in our maximum allowed space.
-        if (maxHeight > MAX_ICON_HEIGHT) {
-          image = scaleImage(image, maxHeight, minHeight);
-        }
-
+        Image image = imageScaler.scale(entry.getValue(), MAX_ICON_HEIGHT);
         pathToIcon.put(entry.getKey(), new ImageIcon(image));
       }
 
@@ -218,28 +208,6 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
         myOutputPreviewTree.expandRow(i);
       }
     });
-  }
-
-  private static Image scaleImage(Image image, int maxHeight, int minHeight) {
-    int height = image.getHeight(null);
-    int width = image.getWidth(null);
-
-    double hScale;
-    if (maxHeight != minHeight) {
-      // From hMin <= hCurr <= hMax, interpolate to hMin <= hFinal <= MAX_ICON_HEIGHT
-      double hCurrPercent = (double)(height - minHeight) / (double)(maxHeight - minHeight);
-      double scaledDeltaH = hCurrPercent * (MAX_ICON_HEIGHT - minHeight);
-      double hCurrScaled = minHeight + scaledDeltaH;
-      hScale = hCurrScaled / height;
-    }
-    else {
-      // This happens if there's only one entry in the list and it's larger than MAX_TREE_ROW_HEIGHT.
-      hScale = MAX_ICON_HEIGHT / (double)height;
-    }
-
-    int hFinal = (int)JBUI.scale((float)(height * hScale));
-    int wFinal = (int)JBUI.scale((float)(width * hScale));
-    return image.getScaledInstance(wFinal, hFinal, Image.SCALE_SMOOTH);
   }
 
   @Override
