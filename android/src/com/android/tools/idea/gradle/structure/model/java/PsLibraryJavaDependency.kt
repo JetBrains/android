@@ -33,6 +33,8 @@ class PsLibraryJavaDependency(
   override val parsedModel: ArtifactDependencyModel
 ) : PsJavaDependency(parent),
     PsLibraryDependency, PsDeclaredDependency, PsResolvedDependency, PsDeclaredLibraryDependency, PsResolvedLibraryDependency {
+  override val declaredDependencies: List<PsDeclaredDependency> = listOf()
+
   override val configurationName: String = parsedModel.configurationName()
 
   override fun getParsedModels(): List<DependencyModel> = listOf(parsedModel)

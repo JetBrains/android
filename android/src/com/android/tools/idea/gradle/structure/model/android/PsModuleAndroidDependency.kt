@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.android.tools.idea.gradle.structure.model.*
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
@@ -26,11 +25,11 @@ class PsDeclaredModuleAndroidDependency internal constructor(
   parent: PsAndroidModule,
   gradlePath: String,
   artifacts: Collection<PsAndroidArtifact>,
-  configurationName: String,
+  override val configurationName: String,
   moduleVariant: String?,
   override val parsedModel: ModuleDependencyModel
 ) : PsModuleAndroidDependency(
-  parent, gradlePath, artifacts, configurationName, moduleVariant
+  parent, gradlePath, artifacts, moduleVariant
 ), PsDeclaredDependency {
   override val name: String = parsedModel.name()
   override val isDeclared: Boolean = true
@@ -42,17 +41,14 @@ class PsResolvedModuleAndroidDependency internal constructor(
   parent: PsAndroidModule,
   gradlePath: String,
   artifacts: Collection<PsAndroidArtifact>,
-  configurationName: String,
   moduleVariant: String?,
   private val targetModule: PsModule,
-  private val parsedModels: Collection<ModuleDependencyModel>
+  override val declaredDependencies: List<PsDeclaredDependency>
 ) : PsModuleAndroidDependency(
-  parent, gradlePath, artifacts, configurationName, moduleVariant
+  parent, gradlePath, artifacts, moduleVariant
 ), PsResolvedDependency {
   override val name: String = targetModule.name
-  override val isDeclared: Boolean get() = !parsedModels.isEmpty()
-  override val joinedConfigurationNames: String get() = parsedModels.joinToString(separator = ", ") { it.configurationName()}
-  override fun getParsedModels(): List<DependencyModel> = parsedModels.toList()
+  override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
   override val icon: Icon? get() = targetModule.icon
 }
 
@@ -60,7 +56,6 @@ abstract class PsModuleAndroidDependency internal constructor(
   parent: PsAndroidModule,
   override val gradlePath: String,
   artifacts: Collection<PsAndroidArtifact>,
-  override val configurationName: String,
   private val moduleVariant: String?
 ) : PsAndroidDependency(parent, artifacts), PsModuleDependency {
 

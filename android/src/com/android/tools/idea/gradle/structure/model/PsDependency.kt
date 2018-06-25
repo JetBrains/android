@@ -22,8 +22,10 @@ interface PsDeclaredDependency : PsBaseDependency {
   val configurationName: String
 }
 
-interface PsResolvedDependency {
-  fun getParsedModels(): List<DependencyModel>
+interface PsResolvedDependency : PsBaseDependency {
+  val declaredDependencies: List<PsDeclaredDependency>
+  fun getParsedModels(): List<DependencyModel> = declaredDependencies.map { it.parsedModel }
+  override val joinedConfigurationNames: String get() = declaredDependencies.joinToString(separator = ", ") { it.configurationName }
 }
 
 abstract class PsDependency protected constructor() : PsChildModel(), PsBaseDependency {
