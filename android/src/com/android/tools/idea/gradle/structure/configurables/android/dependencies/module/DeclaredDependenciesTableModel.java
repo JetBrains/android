@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Model for the table displaying the "editable" dependencies of a module.
@@ -46,7 +47,13 @@ class DeclaredDependenciesTableModel extends AbstractDeclaredDependenciesTableMo
 
   @Override
   public void reset() {
-    List<PsAndroidDependency> dependencies = Lists.newArrayList(getModule().getDependencies().items());
+    List<PsAndroidDependency> dependencies =
+      Lists.newArrayList(getModule()
+                           .getDependencies()
+                           .items()
+                           .stream()
+                           .map(it -> (PsAndroidDependency)it)
+                           .collect(Collectors.toList()));
     Collections.sort(dependencies, new PsDependencyComparator(getContext().getUiSettings()));
     setItems(dependencies);
   }
