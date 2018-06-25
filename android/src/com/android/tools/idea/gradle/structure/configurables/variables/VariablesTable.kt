@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.ui.JBColor
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
@@ -33,10 +32,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.Component
-import java.awt.event.ActionListener
-import java.awt.event.FocusAdapter
-import java.awt.event.FocusEvent
-import java.awt.event.MouseEvent
+import java.awt.event.*
 import java.util.*
 import java.util.function.Consumer
 import javax.swing.*
@@ -164,6 +160,24 @@ class VariablesTable(private val project: Project, private val context: PsContex
       return VariableCellEditor()
     }
     return super.getCellEditor(row, column)
+  }
+
+  override fun processKeyEvent(e: KeyEvent?) {
+    if (e?.keyCode == KeyEvent.VK_ENTER && e.modifiers == 0) {
+      val rows = selectedRows
+      if (rows.size == 1) {
+        val selectedRow = rows[0]
+        if (isCellEditable(selectedRow, 0)) {
+          editCellAt(selectedRow, 0)
+          return
+        }
+        if (isCellEditable(selectedRow, 1)) {
+          editCellAt(selectedRow, 1)
+          return
+        }
+      }
+    }
+    super.processKeyEvent(e)
   }
 
   /**
