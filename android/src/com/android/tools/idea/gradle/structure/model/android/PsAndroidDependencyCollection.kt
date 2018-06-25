@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.builder.model.level2.Library
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.android.tools.idea.gradle.structure.model.*
 import com.google.common.collect.ImmutableList
@@ -142,20 +141,18 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
     val gradlePath = module.gradlePath!!
     val matchingParsedDependency =
       parent
-        .parsedDependencies
-        .findModuleDependency(gradlePath) { parsedDependency: DependencyModel -> artifact.contains(parsedDependency) }
+        .dependencies
+        .findModuleDependencies(gradlePath)
+        .filter { artifact.contains(it.parsedModel) }
     val dependency =
       PsResolvedModuleAndroidDependency(
         parent,
         gradlePath,
         ImmutableList.of(artifact),
-        matchingParsedDependency?.configurationName() ?: "",
         projectVariant,
         module,
-        matchingParsedDependency.wrapInList())
+        matchingParsedDependency)
     moduleDependenciesByGradlePath.put(gradlePath, dependency)
     // else we have a resolved dependency on a removed module (or composite build etc.).
   }
 }
-
-private fun <T> T?.wrapInList(): List<T> = if (this != null) listOf(this) else listOf()
