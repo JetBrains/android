@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 
-interface PsDeclaredDependency {
+interface PsDeclaredDependency : PsBaseDependency {
   val parsedModel: DependencyModel
   val configurationName: String
 }
