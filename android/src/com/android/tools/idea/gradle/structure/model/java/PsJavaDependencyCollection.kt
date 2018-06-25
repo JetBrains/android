@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsModelCollection
 import java.util.function.Consumer
 
-internal class PsJavaDependencyCollection(private val parent: PsJavaModule) : PsModelCollection<PsJavaDependency> {
+class PsJavaDependencyCollection(private val parent: PsJavaModule) : PsModelCollection<PsJavaDependency> {
 
   private val libraryDependenciesBySpec = mutableMapOf<String, PsLibraryJavaDependency>()
 
@@ -55,6 +55,14 @@ internal class PsJavaDependencyCollection(private val parent: PsJavaModule) : Ps
 
   fun forEachDeclaredDependency(consumer: (PsJavaDependency) -> Unit) {
     forEachDeclaredDependency(libraryDependenciesBySpec, consumer)
+  }
+
+  fun forEachLibraryDependency(consumer: (PsLibraryJavaDependency) -> Unit) {
+    forEachDeclaredDependency(libraryDependenciesBySpec) {
+      if (it is PsLibraryJavaDependency) {
+        consumer(it)
+      }
+    }
   }
 
   private fun forEachDeclaredDependency(dependenciesBySpec: Map<String, PsJavaDependency>, consumer: (PsJavaDependency) -> Unit) {
