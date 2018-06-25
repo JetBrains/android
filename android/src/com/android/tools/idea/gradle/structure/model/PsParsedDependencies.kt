@@ -62,7 +62,7 @@ class PsParsedDependencies(parsedModel: GradleBuildModel?) {
     return potentialMatches.toList()
   }
 
-  fun findModuleDependency(gradlePath: String, predicate: (ModuleDependencyModel) -> Boolean): ModuleDependencyModel? =
+  fun findModuleDependency(gradlePath: String, predicate: (ModuleDependencyModel) -> Boolean = { true }): ModuleDependencyModel? =
     parsedModuleDependencies[gradlePath]?.find(predicate)
 
   fun forEach(block: (DependencyModel) -> Unit) {

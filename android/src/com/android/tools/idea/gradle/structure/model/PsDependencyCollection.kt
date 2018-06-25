@@ -59,6 +59,9 @@ abstract class PsDeclaredDependencyCollection<out ModuleT, out LibraryDependency
     libraryDependenciesBySpec.values().forEach(consumer)
   }
 
+  fun findModuleDependencies(gradlePath: String): List<ModuleDependencyT> =
+    moduleDependenciesByGradlePath[gradlePath].toList()
+
   fun findLibraryDependencies(group: String?, name: String): List<LibraryDependencyT> =
     libraryDependenciesBySpec[PsLibraryKey(group.orEmpty(), name)].toList()
 
@@ -138,7 +141,7 @@ abstract class PsResolvedDependencyCollection<ContainerT, out ModuleT, LibraryDe
     libraryDependenciesBySpec.put(dependency.spec.toLibraryKey(), dependency)
   }
 
-  protected fun addModuleDependency(gradlePath: String, dependency: ModuleDependencyT) {
-    moduleDependenciesByGradlePath.put(gradlePath, dependency)
+  protected fun addModuleDependency(dependency: ModuleDependencyT) {
+    moduleDependenciesByGradlePath.put(dependency.gradlePath, dependency)
   }
 }

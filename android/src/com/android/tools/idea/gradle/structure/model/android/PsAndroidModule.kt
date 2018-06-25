@@ -145,66 +145,6 @@ class PsAndroidModule(
     return result.toList()
   }
 
-  override fun addLibraryDependency(library: String, scopesNames: List<String>) {
-    // Update/reset the "parsed" model.
-    addLibraryDependencyToParsedModel(scopesNames, library)
-
-    resetDependencies()
-
-    val spec = PsArtifactDependencySpec.create(library)!!
-    fireLibraryDependencyAddedEvent(spec)
-    isModified = true
-  }
-
-  override fun addModuleDependency(modulePath: String, scopesNames: List<String>) {
-    // Update/reset the "parsed" model.
-    addModuleDependencyToParsedModel(scopesNames, modulePath)
-
-    resetDependencies()
-
-    fireModuleDependencyAddedEvent(modulePath)
-    isModified = true
-  }
-
-  override fun removeDependency(dependency: PsDeclaredDependency) {
-    removeDependencyFromParsedModel(dependency)
-
-    resetDependencies()
-
-    fireDependencyRemovedEvent(dependency)
-    isModified = true
-  }
-
-  override fun setLibraryDependencyVersion(
-    spec: PsArtifactDependencySpec,
-    configurationName: String,
-    newVersion: String
-  ) {
-    var modified = false
-    val matchingDependencies = dependencies
-      .findLibraryDependencies(spec.group, spec.name)
-      .filter { it -> it.spec == spec }
-      .map { it as PsDeclaredDependency }
-      .filter { it.configurationName == configurationName }
-    // Usually there should be only one item in the matchingDependencies list. However, if there are duplicate entries in the config file
-    // it might differ. We update all of them.
-
-    for (dependency in matchingDependencies) {
-      val parsedDependency = dependency.parsedModel
-      assert(parsedDependency is ArtifactDependencyModel)
-      val artifactDependencyModel = parsedDependency as ArtifactDependencyModel
-      artifactDependencyModel.version().setValue(newVersion)
-      modified = true
-    }
-    if (modified) {
-      resetDependencies()
-      for (dependency in matchingDependencies) {
-        fireDependencyModifiedEvent(dependency)
-      }
-      isModified = true
-    }
-  }
-
   fun addNewBuildType(name: String): PsBuildType = getOrCreateBuildTypeCollection().addNew(name)
 
   fun removeBuildType(buildType: PsBuildType) = getOrCreateBuildTypeCollection().remove(buildType.name)
@@ -251,7 +191,10 @@ class PsAndroidModule(
   private fun getOrCreateSigningConfigCollection(): PsSigningConfigCollection =
     signingConfigCollection ?: PsSigningConfigCollection(this).also { signingConfigCollection = it }
 
-  private fun resetDependencies() {
+  override fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency> =
+    dependencies.findLibraryDependencies(group, name)
+
+  override fun resetDependencies() {
     resetDeclaredDependencies()
     resetResolvedDependencies()
   }
