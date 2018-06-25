@@ -25,13 +25,11 @@ class PsMessageScopeAggregatorTest {
     val aggregator = PsMessageScopeAggregator(setOf("debug", "release"), listOf())
     assertThat(aggregator.aggregate(setOf(PsMessageScope("debug"))), equalTo(setOf(PsMessageAggregatedScope("debug"))))
     assertThat(aggregator.aggregate(setOf(PsMessageScope("release"))), equalTo(setOf(PsMessageAggregatedScope("release"))))
-    assertThat(aggregator.aggregate(setOf(PsMessageScope("debug", artifact = "Test"))),
-               equalTo(setOf(PsMessageAggregatedScope("debug", scope = "Test"))))
+    assertThat(aggregator.aggregate(setOf(PsMessageScope("debug", artifact = "Test"))), equalTo(setOf(PsMessageAggregatedScope("debug", scope = "Test"))))
     assertThat(aggregator.aggregate(setOf(PsMessageScope("release", artifact = "AndroidTest"))),
                equalTo(setOf(PsMessageAggregatedScope("release", scope = "AndroidTest"))))
 
-    assertThat(aggregator.aggregate(setOf(PsMessageScope("debug"), PsMessageScope("release"))),
-               equalTo(setOf(PsMessageAggregatedScope(buildType = null))))
+    assertThat(aggregator.aggregate(setOf(PsMessageScope("debug"), PsMessageScope("release"))), equalTo(setOf(PsMessageAggregatedScope(buildType = null))))
 
     assertThat(aggregator.aggregate(setOf(PsMessageScope("debug"), PsMessageScope("release", artifact = "Test"))),
                equalTo(setOf(PsMessageAggregatedScope("debug"), PsMessageAggregatedScope("release", scope = "Test"))))

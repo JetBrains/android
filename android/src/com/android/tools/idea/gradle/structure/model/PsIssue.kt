@@ -33,8 +33,8 @@ interface PsIssue {
   enum class Severity constructor(val text: String, val pluralText: String, val icon: Icon, val color: Color, val priority: Int) {
     ERROR("Error", "Errors", BalloonError, RED, 0),
     WARNING("Warning", "Warnings", BalloonWarning, YELLOW, 1),
-    INFO("Information", "Information", BalloonInformation, GRAY, 3),
-    UPDATE("Update", "Updates", Download, GRAY, 2)
+    INFO("Information", "Information", BalloonInformation, GRAY, 2),
+    UPDATE("Update", "Updates", Download, GRAY, 3)
   }
 }
 
