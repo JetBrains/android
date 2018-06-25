@@ -129,6 +129,14 @@ public class GradleProjectInfoTest extends IdeaTestCase {
     assertEmpty(myProjectInfo.getAndroidModules());
   }
 
+  public void testHasGradleFacets() {
+    createAndAddGradleFacet(getModule());
+    assertTrue(myProjectInfo.hasGradleFacets());
+
+    removeGradleFacetFromModule();
+    assertFalse(myProjectInfo.hasGradleFacets());
+  }
+
   private void removeGradleFacetFromModule() {
     FacetManager facetManager = FacetManager.getInstance(getModule());
     GradleFacet facet = facetManager.findFacet(GradleFacet.getFacetTypeId(), GradleFacet.getFacetName());
