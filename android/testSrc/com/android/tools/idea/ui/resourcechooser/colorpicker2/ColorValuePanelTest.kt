@@ -17,39 +17,91 @@ package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.intellij.testFramework.IdeaTestCase
 import java.awt.Color
+import kotlin.math.roundToInt
 
 class ColorValuePanelTest : IdeaTestCase() {
 
-  fun testChangeModelWillUpdatePanel() {
+  fun testChangeColorModeFromRGBToHSB() {
     val model = ColorPickerModel()
     val panel = ColorValuePanel(model)
     panel.setSize(300, 300)
 
+    panel.currentColorFormat = ColorValuePanel.ColorFormat.RGB
     model.setColor(Color.YELLOW)
-    assertEquals(panel.aField.text, Color.YELLOW.alpha.toString())
-    assertEquals(panel.rField.text, Color.YELLOW.red.toString())
-    assertEquals(panel.gField.text, Color.YELLOW.green.toString())
-    assertEquals(panel.bField.text, Color.YELLOW.blue.toString())
-    assertEquals(panel.hexField.text, Integer.toHexString(Color.YELLOW.rgb).toUpperCase())
+
+    assertEquals(Color.YELLOW.alpha.toString(), panel.alphaField.text)
+    assertEquals(Color.YELLOW.red.toString(), panel.colorField1.text)
+    assertEquals(Color.YELLOW.green.toString(), panel.colorField2.text)
+    assertEquals(Color.YELLOW.blue.toString(), panel.colorField3.text)
+    assertEquals(Integer.toHexString(Color.YELLOW.rgb).toUpperCase(), panel.hexField.text)
+
+    panel.currentColorFormat = ColorValuePanel.ColorFormat.HSB
+    val hsb = Color.RGBtoHSB(Color.YELLOW.red, Color.YELLOW.green, Color.YELLOW.blue, null)
+    assertEquals(Color.YELLOW.alpha.toString(), panel.alphaField.text)
+    assertEquals((hsb[0] * 360).roundToInt().toString(), panel.colorField1.text)
+    assertEquals((hsb[1] * 100).roundToInt().toString(), panel.colorField2.text)
+    assertEquals((hsb[2] * 100).roundToInt().toString(), panel.colorField3.text)
+    assertEquals(Integer.toHexString(Color.YELLOW.rgb).toUpperCase(), panel.hexField.text)
+  }
+
+  fun testChangeColorModeFromHSBToRGB() {
+    val model = ColorPickerModel()
+    val panel = ColorValuePanel(model)
+    panel.setSize(300, 300)
+
+    panel.currentColorFormat = ColorValuePanel.ColorFormat.HSB
+    val argb = (0x12 shl 24) or (0x00FFFFFF and Color.HSBtoRGB(0.3f, 0.4f, 0.5f))
+    val color = Color(argb, true)
+    model.setColor(color)
+
+    assertEquals(0x12.toString(), panel.alphaField.text)
+    assertEquals((0.3f * 360).roundToInt().toString(), panel.colorField1.text)
+    assertEquals((0.4f * 100).roundToInt().toString(), panel.colorField2.text)
+    assertEquals((0.5f * 100).roundToInt().toString(), panel.colorField3.text)
+    assertEquals(Integer.toHexString(color.rgb).toUpperCase(), panel.hexField.text)
+
+    panel.currentColorFormat = ColorValuePanel.ColorFormat.RGB
+    assertEquals(color.alpha.toString(), panel.alphaField.text)
+    assertEquals(color.red.toString(), panel.colorField1.text)
+    assertEquals(color.green.toString(), panel.colorField2.text)
+    assertEquals(color.blue.toString(), panel.colorField3.text)
+    assertEquals(Integer.toHexString(color.rgb).toUpperCase(), panel.hexField.text)
+  }
+
+  fun testChangeModelWillUpdatePanelInRGBMode() {
+    val model = ColorPickerModel()
+    val panel = ColorValuePanel(model)
+    panel.setSize(300, 300)
+
+    panel.currentColorFormat = ColorValuePanel.ColorFormat.RGB
+
+    model.setColor(Color.YELLOW)
+    assertEquals(Color.YELLOW.alpha.toString(), panel.alphaField.text)
+    assertEquals(Color.YELLOW.red.toString(), panel.colorField1.text)
+    assertEquals(Color.YELLOW.green.toString(), panel.colorField2.text)
+    assertEquals(Color.YELLOW.blue.toString(), panel.colorField3.text)
+    assertEquals(Integer.toHexString(Color.YELLOW.rgb).toUpperCase(), panel.hexField.text)
 
     val newColor = Color(0x40, 0x50, 0x60, 0x70)
     model.setColor(newColor)
-    assertEquals(panel.aField.text, newColor.alpha.toString())
-    assertEquals(panel.rField.text, newColor.red.toString())
-    assertEquals(panel.gField.text, newColor.green.toString())
-    assertEquals(panel.bField.text, newColor.blue.toString())
-    assertEquals(panel.hexField.text, "70405060")
+    assertEquals(newColor.alpha.toString(), panel.alphaField.text)
+    assertEquals(newColor.red.toString(), panel.colorField1.text)
+    assertEquals(newColor.green.toString(), panel.colorField2.text)
+    assertEquals(newColor.blue.toString(), panel.colorField3.text)
+    assertEquals("70405060", panel.hexField.text)
   }
 
-  fun testChangeARGBFields() {
+  fun testChangeFieldsInARGBMode() {
     val model = ColorPickerModel()
     val panel = ColorValuePanel(model)
     panel.setSize(300, 300)
 
-    panel.rField.text = "200"
-    panel.gField.text = "150"
-    panel.bField.text = "100"
-    panel.aField.text = "50"
+    panel.currentColorFormat = ColorValuePanel.ColorFormat.RGB
+
+    panel.colorField1.text = "200"
+    panel.colorField2.text = "150"
+    panel.colorField3.text = "100"
+    panel.alphaField.text = "50"
 
     panel.updateAlarm.flush()
 
@@ -64,13 +116,13 @@ class ColorValuePanelTest : IdeaTestCase() {
     assertEquals(hex, panel.hexField.text)
   }
 
-  fun testChangeHexField() {
+  fun testChangeHexFieldInRGBMode() {
     val model = ColorPickerModel()
     val panel = ColorValuePanel(model)
     panel.setSize(300, 300)
 
+    panel.currentColorFormat = ColorValuePanel.ColorFormat.RGB
     panel.hexField.text = "10ABCDEF"
-
     panel.updateAlarm.flush()
 
     assertEquals(Color(0xAB, 0xCD, 0xEF, 0x10), model.color)
@@ -80,9 +132,78 @@ class ColorValuePanelTest : IdeaTestCase() {
     val blue = 0xEF.toString()
     val alpha = 0x10.toString()
 
-    assertEquals(red, panel.rField.text)
-    assertEquals(green, panel.gField.text)
-    assertEquals(blue, panel.bField.text)
-    assertEquals(alpha, panel.aField.text)
+    assertEquals(red, panel.colorField1.text)
+    assertEquals(green, panel.colorField2.text)
+    assertEquals(blue, panel.colorField3.text)
+    assertEquals(alpha, panel.alphaField.text)
+  }
+
+  fun testChangeModelWillUpdatePanelInHSBMode() {
+    val model = ColorPickerModel()
+    val panel = ColorValuePanel(model)
+    panel.setSize(300, 300)
+
+    panel.currentColorFormat = ColorValuePanel.ColorFormat.HSB
+
+    model.setColor(Color.YELLOW)
+    val yellowHsb = Color.RGBtoHSB(Color.YELLOW.red, Color.YELLOW.green, Color.YELLOW.blue, null)
+    assertEquals(Color.YELLOW.alpha.toString(), panel.alphaField.text)
+    assertEquals((yellowHsb[0] * 360).roundToInt().toString(), panel.colorField1.text)
+    assertEquals((yellowHsb[1] * 100).roundToInt().toString(), panel.colorField2.text)
+    assertEquals((yellowHsb[2] * 100).roundToInt().toString(), panel.colorField3.text)
+    assertEquals(Integer.toHexString(Color.YELLOW.rgb).toUpperCase(), panel.hexField.text)
+
+    val newColor = Color(0x40, 0x50, 0x60, 0x70)
+    val newColorHsb = Color.RGBtoHSB(newColor.red, newColor.green, newColor.blue, null)
+    model.setColor(newColor)
+    assertEquals(newColor.alpha.toString(), panel.alphaField.text)
+    assertEquals((newColorHsb[0] * 360).roundToInt().toString(), panel.colorField1.text)
+    assertEquals((newColorHsb[1] * 100).roundToInt().toString(), panel.colorField2.text)
+    assertEquals((newColorHsb[2] * 100).roundToInt().toString(), panel.colorField3.text)
+    assertEquals("70405060", panel.hexField.text)
+  }
+
+  fun testChangeFieldsInHSBMode() {
+    val model = ColorPickerModel()
+    val panel = ColorValuePanel(model)
+    panel.setSize(300, 300)
+
+    panel.currentColorFormat = ColorValuePanel.ColorFormat.HSB
+
+    panel.colorField1.text = "180"
+    panel.colorField2.text = "50"
+    panel.colorField3.text = "30"
+    panel.alphaField.text = "200"
+
+    panel.updateAlarm.flush()
+
+    val rgbValue = Color.HSBtoRGB(180 / 360f, 50 / 100f, 30 / 100f)
+    val color = Color((200 shl 24) or (0x00FFFFFF and rgbValue), true)
+    assertEquals(color, model.color)
+    assertEquals((200.toString(16) + (0x00FFFFFF and rgbValue).toString(16)).toUpperCase(), panel.hexField.text)
+  }
+
+  fun testChangeHexFieldInHSBMode() {
+    val model = ColorPickerModel()
+    val panel = ColorValuePanel(model)
+    panel.setSize(300, 300)
+
+    panel.currentColorFormat = ColorValuePanel.ColorFormat.HSB
+    panel.hexField.text = "10ABCDEF"
+    panel.updateAlarm.flush()
+
+    assertEquals(Color(0xAB, 0xCD, 0xEF, 0x10), model.color)
+
+    val hsb = Color.RGBtoHSB(0xAB, 0xCD, 0xEF, null)
+
+    val hue = (hsb[0] * 360).roundToInt().toString()
+    val saturation = (hsb[1] * 100).roundToInt().toString()
+    val brightness = (hsb[2] * 100).roundToInt().toString()
+    val alpha = 0x10.toString()
+
+    assertEquals(hue, panel.colorField1.text)
+    assertEquals(saturation, panel.colorField2.text)
+    assertEquals(brightness, panel.colorField3.text)
+    assertEquals(alpha, panel.alphaField.text)
   }
 }
