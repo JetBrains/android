@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.model
 import com.google.common.collect.ImmutableList
 import java.util.function.Consumer
 
-interface PsModelCollection<T : PsModel> {
+interface PsModelCollection<T> {
 
   fun forEach(consumer: Consumer<T>)
 
