@@ -67,7 +67,6 @@ public class NavNlEditorTest {
     StudioFlags.ENABLE_NAV_EDITOR.clearOverride();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/80343801
   @Test
   public void testSelectComponent() throws Exception {
     IdeFrameFixture frame = guiTest.importProject("Navigation");
