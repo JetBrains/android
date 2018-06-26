@@ -57,16 +57,16 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
                  @NotNull Map<SyncIssue, Module> moduleMap,
                  @NotNull Map<Module, VirtualFile> buildFileMap) {
     // Group by the deduplication key.
-    Map<String, List<SyncIssue>> groupedIssues = Maps.newHashMap();
+    Map<Object, List<SyncIssue>> groupedIssues = Maps.newHashMap();
     for (SyncIssue issue : syncIssues) {
-      String key = getDeduplicationKey(issue);
+      Object key = getDeduplicationKey(issue);
       if (key != null) {
         groupedIssues.computeIfAbsent(key, (config) -> Lists.newArrayList()).add(issue);
       }
     }
 
     // Report once for each group, including the list of affected modules.
-    for (Map.Entry<String, List<SyncIssue>> entry : groupedIssues.entrySet()) {
+    for (Map.Entry<Object, List<SyncIssue>> entry : groupedIssues.entrySet()) {
       if (entry.getValue().isEmpty()) {
         continue;
       }
@@ -86,5 +86,5 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
   }
 
   @Nullable
-  protected abstract String getDeduplicationKey(@NotNull SyncIssue issue);
+  protected abstract Object getDeduplicationKey(@NotNull SyncIssue issue);
 }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
@@ -26,10 +28,12 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.android.builder.model.SyncIssue.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -45,7 +49,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncIssue = mock(SyncIssue.class);
+    mySyncIssue =  mock(SyncIssue.class);
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
 
     myStrategy1 = mock(BaseSyncIssuesReporter.class);
@@ -101,8 +105,49 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
   }
 
   public void testReportUsingDefaultStrategy() throws Exception {
-    loadSimpleApplication();
+    loadProject(DEPENDENT_MODULES);
     mySyncMessagesStub.clearReportedMessages();
+
+    // This issue is created to be equal to mySyncIssue, in practice issues with the same fields will be classed as equal.
+    SyncIssue syncIssue2 = new SyncIssue() {
+      @Override
+      public int getSeverity() {
+        return SEVERITY_ERROR;
+      }
+
+      @Override
+      public int getType() {
+        return TYPE_GRADLE_TOO_OLD;
+      }
+
+      @Nullable
+      @Override
+      public String getData() {
+        return "";
+      }
+
+      @NonNull
+      @Override
+      public String getMessage() {
+        return "";
+      }
+
+      @Nullable
+      @Override
+      public List<String> getMultiLineMessage() {
+        return null;
+      }
+
+      @Override
+      public int hashCode() {
+        return mySyncIssue.hashCode();
+      }
+
+      @Override
+      public boolean equals(@NonNull Object o) {
+        return o instanceof SyncIssue;
+      }
+    };
 
     when(mySyncIssue.getType()).thenReturn(TYPE_GRADLE_TOO_OLD);
     when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
@@ -111,12 +156,14 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = myModules.getModule("app");
+    Module libModule = myModules.getModule("lib");
     VirtualFile buildFile = getGradleBuildFile(appModule);
-    reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)));
+    reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue), libModule, Lists.newArrayList(syncIssue2)));
 
     SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
+    assertSize(1, mySyncMessagesStub.getReportedMessages());
 
     verify(myStrategy1, never())
       .reportAll(ImmutableList.of(mySyncIssue), ImmutableMap.of(mySyncIssue, appModule), ImmutableMap.of(appModule, buildFile));
