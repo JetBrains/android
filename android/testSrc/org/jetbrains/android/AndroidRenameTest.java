@@ -20,6 +20,7 @@ import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -256,6 +257,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     String after = "strings5_after.xml";
 
     createManifest();
+    copyRJavaToGeneratedSources();
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + before, "res/values/strings.xml");
     myFixture.configureFromExistingVirtualFile(file);
     checkAndRename("str1");
@@ -332,7 +334,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     createManifest();
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + before, "res/values/" + before);
     myFixture.configureFromExistingVirtualFile(file);
-    myFixture.renameElementAtCaretUsingHandler(newName);
+    doRename(newName);
     myFixture.checkResultByFile(BASE_PATH + after);
   }
 
@@ -343,7 +345,7 @@ public class AndroidRenameTest extends AndroidTestCase {
 
     myFixture.copyFileToProject(BASE_PATH + "layoutStrUsage.xml", "res/layout/layoutStrUsage.xml");
     copyRJavaToGeneratedSources();
-    myFixture.renameElementAtCaretUsingHandler("str1");
+    doRename("str1");
 
     myFixture.checkResultByFile(BASE_PATH + "strings_after.xml");
     myFixture.checkResultByFile(R_JAVA_PATH, "R.java", true);
@@ -486,7 +488,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "MyView4.java", "src/p1/p2/MyView.java");
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "attrs13.xml", "res/values/attrs13.xml");
     myFixture.configureFromExistingVirtualFile(file);
-    myFixture.renameElementAtCaretUsingHandler("NewName");
+    doRename("NewName");
     myFixture.checkResultByFile(BASE_PATH + "attrs13_after.xml", true);
     myFixture.checkResultByFile("src/p1/p2/MyView.java", BASE_PATH + "MyView4_after.java", true);
   }
@@ -500,7 +502,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "MyView4.java", "src/p1/p2/MyView.java");
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "attrs13.xml", "res/values/attrs13.xml");
     myFixture.configureFromExistingVirtualFile(file);
-    myFixture.renameElementAtCaretUsingHandler("NewName");
+    doRename("NewName");
     myFixture.checkResultByFile(BASE_PATH + "attrs13_after.xml", true);
     myFixture.checkResultByFile("src/p1/p2/MyView.java", BASE_PATH + "MyView4_after.java", true);
   }
@@ -523,7 +525,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "MyView5.java", "src/p1/p2/MyView.java");
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "attrs14.xml", "res/values/attrs14.xml");
     myFixture.configureFromExistingVirtualFile(file);
-    myFixture.renameElementAtCaretUsingHandler("newname");
+    doRename("newname");
     myFixture.checkResultByFile(BASE_PATH + "attrs14_after.xml", true);
     myFixture.checkResultByFile("src/p1/p2/MyView.java", BASE_PATH + "MyView5_after.java", true);
   }
@@ -793,7 +795,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "AndroidManifest_theme_before.xml", "AndroidManifest.xml");
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "themes.xml", "res/values/themes.xml");
     myFixture.configureFromExistingVirtualFile(file);
-    myFixture.renameElementAtCaretUsingHandler("newTheme");
+    doRename("newTheme");
     myFixture.checkResultByFile(BASE_PATH + "themes_after.xml");
     myFixture.checkResultByFile("AndroidManifest.xml", BASE_PATH + "AndroidManifest_theme_after.xml", true);
   }
@@ -804,7 +806,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "dimens.xml", "res/values-en/dimens.xml");
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout16.xml", "res/layout/layout16.xml");
     myFixture.configureFromExistingVirtualFile(file);
-    checkAndRenameUsingHandler("localised_newname_value");
+    checkAndRename("localised_newname_value");
     myFixture.checkResultByFile(BASE_PATH + "layout16_after.xml");
     myFixture.checkResultByFile("res/values/dimens.xml", BASE_PATH + "dimens_after.xml", true);
     myFixture.checkResultByFile("res/values-en/dimens.xml", BASE_PATH + "dimens_after.xml", true);
@@ -867,16 +869,17 @@ public class AndroidRenameTest extends AndroidTestCase {
     final AnActionEvent e = new TestActionEvent(DataManager.getInstance().getDataContext(myFixture.getEditor().getComponent()), action);
     action.update(e);
     assertTrue(e.getPresentation().isEnabled() && e.getPresentation().isVisible());
-    // Note: This fails when trying to rename XML attribute values: Use myFixture.renameElementAtCaretUsingHandler() instead!
-    myFixture.renameElementAtCaret(newName);
+    doRename(newName);
   }
 
-  private void checkAndRenameUsingHandler(String newName) {
-    final RenameElementAction action = new RenameElementAction();
-    final AnActionEvent e = new TestActionEvent(DataManager.getInstance().getDataContext(myFixture.getEditor().getComponent()), action);
-    action.update(e);
-    assertTrue(e.getPresentation().isEnabled() && e.getPresentation().isVisible());
-    // Note: This fails when trying to rename XML attribute values: Use myFixture.renameElementAtCaretUsingHandler() instead!
-    myFixture.renameElementAtCaretUsingHandler(newName);
+  private void doRename(String newName) {
+    // We can either invoke the processor directly or go through the handler layer. Unfortunately MemberInplaceRenameHandler won't work in
+    // unit test mode, the default handler fails for light elements and some tests depend on the logic from AndroidRenameHandler. To handle
+    // that mess, use the handlers only if the Android handler is available.
+    if (new AndroidRenameHandler().isAvailableOnDataContext(((EditorEx)myFixture.getEditor()).getDataContext())) {
+      myFixture.renameElementAtCaretUsingHandler(newName);
+    } else {
+      myFixture.renameElementAtCaret(newName);
+    }
   }
 }
