@@ -90,7 +90,7 @@ public class ZoomLabelAction extends AnAction implements CustomComponentAction {
           String propertyName = evt.getPropertyName();
           if (Presentation.PROP_TEXT.equals(propertyName)) {
             setText((String)evt.getNewValue());
-            invalidate();
+            getParent().getParent().validate();
             repaint();
           }
         }

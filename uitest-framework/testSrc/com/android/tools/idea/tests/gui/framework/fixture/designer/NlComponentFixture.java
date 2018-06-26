@@ -74,7 +74,7 @@ public class NlComponentFixture {
    * Returns the center point in panel coordinates
    */
   @NotNull
-  private Point getMidPoint() {
+  public Point getMidPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
     int midX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getCenterX());
     int midY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getCenterY());
