@@ -16,20 +16,19 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class UnhandledIssuesReporter extends BaseSyncIssuesReporter {
+class UnhandledIssuesReporter extends SimpleDeduplicatingSyncIssueReporter {
   @Override
   int getSupportedIssueType() {
     //noinspection MagicConstant
     return -1; // This factory does not handle any particular issue type.
   }
 
+  @Nullable
   @Override
-  void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
-    getSyncMessages(module).report(generateSyncMessage(syncIssue, module, buildFile));
+  protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
+    return issue;
   }
 }
