@@ -23,8 +23,6 @@ import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.hchart.HTreeChartVerticalScrollBar;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.flat.FlatSeparator;
-import com.android.tools.adtui.instructions.InstructionsPanel;
-import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
@@ -36,7 +34,6 @@ import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.JComboBoxView;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ViewBinder;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.*;
@@ -55,7 +52,6 @@ import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -123,7 +119,7 @@ public class CpuCaptureView {
   // useful events.
   @SuppressWarnings("FieldCanBeLocal")
   @Nullable
-  private CpuCaptureView.CaptureDetailsView myDetailsView;
+  private CaptureDetailsView myDetailsView;
 
   @NotNull
   private final ViewBinder<CpuProfilerStageView, CaptureModel.Details, CaptureDetailsView> myBinder;
@@ -312,41 +308,6 @@ public class CpuCaptureView {
       stageView.getIdeComponents().createContextMenuInstaller().installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
     }
     return chart;
-  }
-
-  private static abstract class CaptureDetailsView {
-    protected static final String CARD_EMPTY_INFO = "Empty content";
-    protected static final String CARD_CONTENT = "Content";
-
-    @NotNull
-    abstract JComponent getComponent();
-
-    protected static void switchCardLayout(@NotNull JPanel panel, boolean isEmpty) {
-      CardLayout cardLayout = (CardLayout)panel.getLayout();
-      cardLayout.show(panel, isEmpty ? CARD_EMPTY_INFO : CARD_CONTENT);
-    }
-
-    protected static JPanel getNoDataForThread() {
-      String message = "No data available for the selected thread.";
-      JPanel panel = new JPanel(new BorderLayout());
-      InstructionsPanel info =
-        new InstructionsPanel.Builder(new TextInstruction(SwingUtilities2.getFontMetrics(panel, ProfilerFonts.H3_FONT), message))
-          .setColors(JBColor.foreground(), null)
-          .build();
-      panel.add(info, BorderLayout.CENTER);
-      return panel;
-    }
-
-    protected static JComponent getNoDataForRange() {
-      String message = "No data available for the selected time frame.";
-      JPanel panel = new JPanel(new BorderLayout());
-      InstructionsPanel info =
-        new InstructionsPanel.Builder(new TextInstruction(SwingUtilities2.getFontMetrics(panel, ProfilerFonts.H3_FONT), message))
-          .setColors(JBColor.foreground(), null)
-          .build();
-      panel.add(info, BorderLayout.CENTER);
-      return panel;
-    }
   }
 
   private static class ClockTypeCellRenderer extends ListCellRendererWrapper<ClockType> {
