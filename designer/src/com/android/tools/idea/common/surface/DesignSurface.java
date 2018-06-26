@@ -555,7 +555,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         }
       }
     }
-    myCurrentZoomType = type;
     switch (type) {
       case IN: {
         double currentScale = myScale * getScreenScalingFactor();
@@ -576,6 +575,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       case ACTUAL:
         setScale(1d / getScreenScalingFactor());
         repaint();
+        myCurrentZoomType = type;
         break;
       case FIT:
       case FIT_INTO:
@@ -585,6 +585,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
         setScale(getFitScale(type == ZoomType.FIT_INTO));
         repaint();
+        myCurrentZoomType = type;
         break;
       default:
       case SCREEN:
@@ -715,7 +716,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @VisibleForTesting(visibility = Visibility.PROTECTED)
   public void setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
-
+    myCurrentZoomType = null;
     if (scale < 0) {
       // We wait for component resized to be fired
       // that will take care of calling zoomToFit
