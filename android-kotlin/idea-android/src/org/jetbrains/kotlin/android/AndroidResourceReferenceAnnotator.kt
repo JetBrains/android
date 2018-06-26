@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.kotlin.android
 
 import com.android.SdkConstants
@@ -25,9 +24,9 @@ import com.android.tools.idea.res.resolveDrawable
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.psi.PsiElement
-import org.jetbrains.android.AndroidColorAnnotator
+import org.jetbrains.android.AndroidAnnotatorUtil
+import org.jetbrains.android.AndroidAnnotatorUtil.*
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.android.ResourceReferenceAnnotatorUtil.*
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
 import org.jetbrains.kotlin.psi.KtReferenceExpression
@@ -66,9 +65,9 @@ class AndroidResourceReferenceAnnotator : Annotator {
         else {
             var file = resourceResolver.resolveDrawable(resourceValue, element.project)
             if (file != null && file.path.endsWith(SdkConstants.DOT_XML)) {
-                file = pickBitmapFromXml(file, resourceResolver, element.project)
+                file = pickBitmapFromXml(file, resourceResolver, element.project, androidFacet, resourceValue)
             }
-            val iconFile = AndroidColorAnnotator.pickBestBitmap(file)
+            val iconFile = AndroidAnnotatorUtil.pickBestBitmap(file)
             if (iconFile != null) {
                 val annotation = holder.createInfoAnnotation(element, null)
                 annotation.gutterIconRenderer = GutterIconRenderer(resourceResolver, element, iconFile)
