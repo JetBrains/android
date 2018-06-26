@@ -962,7 +962,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   @VisibleForTesting
-  void setCapture(@Nullable CpuCapture capture) {
+  public void setCapture(@Nullable CpuCapture capture) {
     myCaptureModel.setCapture(capture);
     // If there's a capture, expand the profiler UI. Otherwise keep it the same.
     if (capture != null) {
