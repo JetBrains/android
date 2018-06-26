@@ -345,6 +345,14 @@ public final class SelectionComponent extends AnimatedComponent {
     return myMode;
   }
 
+  /**
+   * @return true if the blue seek component from {@link RangeTooltipComponent} should be visible.
+   * @see {@link RangeTooltipComponent#myShowSeekComponent}
+   */
+  public boolean shouldShowSeekComponent() {
+    return myMode != Mode.MOVE && myMode != Mode.ADJUST_MIN && myMode != Mode.ADJUST_MAX;
+  }
+
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
     if (myModel.getSelectionRange().isEmpty()) {

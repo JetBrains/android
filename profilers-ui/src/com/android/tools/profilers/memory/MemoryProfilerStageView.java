@@ -45,7 +45,6 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.IconUtil;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -324,7 +323,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     RangeTooltipComponent tooltip =
       new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
                                 getTooltipPanel(), getProfilersView().getComponent(),
-                                () -> mySelectionComponent.getMode() != SelectionComponent.Mode.MOVE);
+                                () -> mySelectionComponent.shouldShowSeekComponent());
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
     panel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);

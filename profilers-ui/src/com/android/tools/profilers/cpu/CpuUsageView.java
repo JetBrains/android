@@ -80,7 +80,7 @@ abstract class CpuUsageView extends JBPanel {
    * @see {@link RangeTooltipComponent#myShowSeekComponent}
    */
   boolean showTooltipSeekComponent() {
-    return mySelectionComponent.getMode() != SelectionComponent.Mode.MOVE;
+    return mySelectionComponent.shouldShowSeekComponent();
   }
 
   protected String formatCaptureLabel(@NotNull CpuTraceInfo info) {
