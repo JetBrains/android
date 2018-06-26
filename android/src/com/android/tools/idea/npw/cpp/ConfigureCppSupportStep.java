@@ -19,12 +19,9 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.core.BoolProperty;
-import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
-import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -53,10 +50,8 @@ public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
   private JBScrollPane myRoot;
   private JPanel myRootPanel;
   private JComboBox<CppStandardType> myCppStandardCombo;
-  private JCheckBox myExceptionSupportCheck;
   private JBLabel myIconLabel;
   private JComboBox<RuntimeLibraryType> myRuntimeLibraryCombo;
-  private JCheckBox myRttiSupportCheck;
   private JBLabel myRuntimeLibraryLabel;
   private HyperlinkLabel myDocumentationLink;
 
@@ -81,17 +76,9 @@ public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
     OptionalProperty<CppStandardType> cppStandard = new OptionalValueProperty<>(CppStandardType.DEFAULT);
     myBindings.bindTwoWay(new SelectedItemProperty<>(myCppStandardCombo), cppStandard);
 
-    BoolProperty exceptionSupport = new BoolValueProperty();
-    myBindings.bindTwoWay(new SelectedProperty(myExceptionSupportCheck), exceptionSupport);
-
-    BoolProperty rttiSupport = new BoolValueProperty();
-    myBindings.bindTwoWay(new SelectedProperty(myRttiSupportCheck), rttiSupport);
-
-    myListeners.listenAll(runtimeLibrary, cppStandard, exceptionSupport, rttiSupport).withAndFire(() -> {
+    myListeners.listenAll(runtimeLibrary, cppStandard).withAndFire(() -> {
       final ArrayList<Object> flags = new ArrayList<>();
       flags.add(cppStandard.getValueOr(CppStandardType.DEFAULT).getCompilerFlag());
-      flags.add(rttiSupport.get() ? "-frtti" : null);
-      flags.add(exceptionSupport.get() ? "-fexceptions" : null);
 
       getModel().cppFlags().set(Joiner.on(' ').skipNulls().join(flags));
     });
