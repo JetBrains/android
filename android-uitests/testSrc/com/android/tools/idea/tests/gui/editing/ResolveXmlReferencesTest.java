@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -30,29 +29,18 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
-public class DataBindingTest {
+public class ResolveXmlReferencesTest {
+
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   /**
-   * Verify Databinding class's methods are resolved even when XML file contains
-   * no databinding variables.
-   *
-   * <p>TT ID: e794da93-9693-4585-95d0-855628849770
-   *
-   * <pre>
-   *   Test steps:
-   *   1. Import DatabindingMethodsTest
-   *   2. Open BlankFragment.java
-   *   Verify:
-   *   1. Ensure BlankFragment.java has no highlighted errors.
-   * </pre>
+   * Verify data binding expressions in the XML are resolved properly.
    */
   @Test
-  @RunIn(TestGroup.QA)
-  public void resolvesSymbols() throws Exception {
+  public void resolveXmlReferences() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("DatabindingMethodsTest");
     List<String> errors = ideFrame.getEditor()
-      .open("app/src/main/java/com/google/test/databinding/BlankFragment.java")
+      .open("app/src/main/res/layout/binding_layout.xml", EditorFixture.Tab.EDITOR)
       .getHighlights(HighlightSeverity.ERROR);
     assertThat(errors).isEmpty();
   }
