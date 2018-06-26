@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.model.android
+package com.android.tools.idea.gradle.structure.model
 
 import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
-import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.android.*
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
 import com.intellij.openapi.project.Project
 import org.hamcrest.CoreMatchers.*
@@ -473,11 +473,11 @@ private fun PsAndroidArtifactDependencyCollection.findLibraryDependency(compactN
       .let { if (it.isEmpty()) null else it }
   }
 
-private fun List<PsResolvedLibraryAndroidDependency>?.testMatchingScopes(): List<String> = orEmpty().map {
-  it.getParsedModels().joinToString(":") { it.configurationName() }
-}
+private fun List<PsResolvedLibraryAndroidDependency>?.testMatchingScopes(): List<String> =
+  orEmpty().map { it.getParsedModels().joinToString(":") { it.configurationName() } }
 
-private fun List<PsDeclaredLibraryAndroidDependency>?.testDeclaredScopes(): List<String> = orEmpty().map { it.parsedModel.configurationName() }
+private fun List<PsDeclaredLibraryAndroidDependency>?.testDeclaredScopes(): List<String> =
+  orEmpty().map { it.parsedModel.configurationName() }
 
-private fun List<PsLibraryAndroidDependency>?.testDeclared() : List<Boolean> = orEmpty().map { it.isDeclared }
+private fun List<PsLibraryAndroidDependency>?.testDeclared(): List<Boolean> = orEmpty().map { it.isDeclared }
 private fun List<PsResolvedLibraryAndroidDependency>?.testHasPromotedVersion(): List<Boolean> = orEmpty().map { it.hasPromotedVersion() }
