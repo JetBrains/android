@@ -352,10 +352,6 @@ public class NavSceneManager extends SceneManager {
       }
     }
 
-    for (SceneComponent destination : destinations) {
-      destination.setPosition(0, 0);
-    }
-
     for (NavSceneLayoutAlgorithm algorithm : myLayoutAlgorithms) {
       List<SceneComponent> remaining = algorithm.layout(destinations);
       destinations.removeAll(remaining);
