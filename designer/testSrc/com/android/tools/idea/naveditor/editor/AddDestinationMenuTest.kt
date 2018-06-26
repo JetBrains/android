@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.rootManager
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase
 import org.mockito.Mockito.`when`
@@ -76,6 +77,18 @@ class AddDestinationMenuTest : NavTestCase() {
     surface.model = model
     _menu = AddDestinationMenu(surface)
     _panel = menu.mainPanel
+    // We kick of a worker thread to load the destinations and then update the list in the ui thread, so we have to wait and dispatch
+    // events until it's set.
+    for (i in 0..10) {
+      if (!_menu!!.destinationsList.isEmpty) {
+        break
+      }
+      if (i == 10) {
+        fail("Failed to create destination list")
+      }
+      Thread.sleep(10L)
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
   }
 
   fun testContent() {

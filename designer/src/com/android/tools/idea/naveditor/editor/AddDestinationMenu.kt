@@ -30,7 +30,12 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.JavaPsiFacade
@@ -46,7 +51,6 @@ import com.intellij.ui.DottedBorder
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
-import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.speedSearch.FilteringListModel
@@ -58,7 +62,6 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import java.awt.BorderLayout
 import java.awt.Image
-import java.awt.MediaTracker
 import java.awt.Point
 import java.awt.event.*
 import java.io.File
@@ -73,7 +76,7 @@ import javax.swing.event.DocumentEvent
 // open for testing only
 @VisibleForTesting
 open class AddDestinationMenu(surface: NavDesignSurface) :
-    NavToolbarMenu(surface, "New Destination", StudioIcons.NavEditor.Toolbar.ADD_DESTINATION) {
+  NavToolbarMenu(surface, "New Destination", StudioIcons.NavEditor.Toolbar.ADD_DESTINATION) {
 
   private lateinit var button: JComponent
   private var creatingInProgress = false
@@ -110,7 +113,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
           val element = item.element as? PsiClass ?: continue
           val tag = schema.findTagForComponent(element) ?: continue
           val destination =
-              Destination.RegularDestination(parent, tag, null, element.name, element.qualifiedName, layoutFile = resourceFile)
+            Destination.RegularDestination(parent, tag, null, element.name, element.qualifiedName, layoutFile = resourceFile)
           classToDestination[element] = destination
         }
       }
@@ -127,10 +130,13 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       return result
     }
 
-  @VisibleForTesting
-  lateinit var destinationsList: JBList<Destination>
-
-  private var loadingPanel: JBLoadingPanel = JBLoadingPanel(BorderLayout(), surface)
+  @Suppress("UNCHECKED_CAST")
+  val destinationsList: JBList<Destination> = object : JBList<Destination>() {
+    override fun locationToIndex(location: Point): Int {
+      val pointIndex = super.locationToIndex(location)
+      return if (getCellBounds(pointIndex, pointIndex).contains(location)) pointIndex else -1
+    }
+  }
 
   @VisibleForTesting
   lateinit var searchField: SearchTextField
@@ -140,7 +146,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   override val mainPanel: JPanel
     get() {
       creatingInProgress = false
-      return _mainPanel ?: createSelectionPanel().also { _mainPanel = it}
+      return _mainPanel ?: createSelectionPanel().also { _mainPanel = it }
     }
 
   @VisibleForTesting
@@ -164,20 +170,51 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   private var neverShown = true
 
   private fun createSelectionPanel(): JPanel {
+    val result = object : AdtSecondaryPanel(VerticalLayout(5)), DataProvider {
+      override fun getData(dataId: String?): Any? {
+        return if (NewAndroidComponentAction.CREATED_FILES.`is`(dataId)) {
+          createdFiles
+        }
+        else {
+          surface.getData(dataId)
+        }
+      }
+    }
+
     searchField = SearchTextField()
     // leading space is required so text doesn't overlap magnifying glass
     searchField.textEditor.emptyText.text = "   Search existing destinations"
+    result.add(searchField)
 
-    val listModel = FilteringListModel<Destination>(CollectionListModel<Destination>(destinations))
-
-    listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.toLowerCase()) }
-    @Suppress("UNCHECKED_CAST")
-    destinationsList = object : JBList<Destination>(listModel as ListModel<Destination>) {
-      override fun locationToIndex(location: Point): Int {
-        val result = super.locationToIndex(location)
-        return if (destinationsList.getCellBounds(result, result).contains(location)) result else -1
+    val action: AnAction = object : AnAction("Create blank destination") {
+      override fun actionPerformed(e: AnActionEvent?) {
+        createBlankDestination(e)
       }
     }
+    blankDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar", JBDimension(0, 45))
+    val buttonPanel = AdtSecondaryPanel(BorderLayout())
+    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 7), DottedBorder(JBUI.emptyInsets(), NavColorSet.SUBDUED_FRAME_COLOR))
+    buttonPanel.add(blankDestinationButton, BorderLayout.CENTER)
+    val scrollable = AdtSecondaryPanel(BorderLayout())
+    scrollable.add(buttonPanel, BorderLayout.NORTH)
+    val scrollPane = JBScrollPane(scrollable)
+    scrollPane.preferredSize = JBDimension(252, 300)
+    scrollPane.border = BorderFactory.createEmptyBorder()
+
+    result.add(scrollPane)
+
+    val application = ApplicationManager.getApplication()
+
+    result.addHierarchyListener { e ->
+      if (e?.changeFlags?.and(HierarchyEvent.SHOWING_CHANGED.toLong())?.let { it > 0 } == true) {
+        if (neverShown || balloon?.wasFadedOut() == true) {
+          neverShown = false
+          application.invokeLater { searchField.requestFocusInWindow() }
+        }
+      }
+    }
+    destinationsList.emptyText.text = "Loading..."
+    destinationsList.setPaintBusy(true)
     destinationsList.setCellRenderer { _, value, _, selected, _ ->
       THUMBNAIL_RENDERER.icon = ImageIcon(value.thumbnail.getScaledInstance(JBUI.scale(50), JBUI.scale(64), Image.SCALE_SMOOTH))
       PRIMARY_TEXT_RENDERER.text = value.label
@@ -185,6 +222,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       RENDERER.isOpaque = selected
       RENDERER
     }
+    destinationsList.background = result.background
 
     destinationsList.addMouseListener(object : MouseAdapter() {
       override fun mouseExited(e: MouseEvent?) {
@@ -198,87 +236,54 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
     destinationsList.background = null
     destinationsList.addMouseMotionListener(
-        object : MouseAdapter() {
-          override fun mouseMoved(event: MouseEvent) {
-            val index = destinationsList.locationToIndex(event.point)
-            if (index != -1) {
-              destinationsList.selectedIndex = index
-            } else {
-              destinationsList.clearSelection()
-            }
+      object : MouseAdapter() {
+        override fun mouseMoved(event: MouseEvent) {
+          val index = destinationsList.locationToIndex(event.point)
+          if (index != -1) {
+            destinationsList.selectedIndex = index
+          }
+          else {
+            destinationsList.clearSelection()
           }
         }
+      }
     )
 
-    val result = object: AdtSecondaryPanel(VerticalLayout(5)), DataProvider {
-      override fun getData(dataId: String?): Any? {
-        return if (NewAndroidComponentAction.CREATED_FILES.`is`(dataId)) {
-          createdFiles
-        }
-        else {
-          surface.getData(dataId)
-        }
-      }
-    }
-
-    destinationsList.background = result.background
-    result.add(searchField)
-
-    val action: AnAction = object : AnAction("Create blank destination") {
-      override fun actionPerformed(e: AnActionEvent?) {
-        createBlankDestination(e)
-      }
-    }
-    blankDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar",  JBDimension(0, 45))
-    val buttonPanel = AdtSecondaryPanel(BorderLayout())
-    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 7), DottedBorder(JBUI.emptyInsets(), NavColorSet.SUBDUED_FRAME_COLOR))
-    buttonPanel.add(blankDestinationButton, BorderLayout.CENTER)
-    searchField.addDocumentListener(
-        object : DocumentAdapter() {
-          override fun textChanged(e: DocumentEvent) {
-            listModel.refilter()
-          }
-        }
-    )
-    val scrollable = AdtSecondaryPanel(BorderLayout())
-    scrollable.add(buttonPanel, BorderLayout.NORTH)
-    scrollable.add(destinationsList, BorderLayout.CENTER)
-    val scrollPane = JBScrollPane(scrollable)
-    scrollPane.preferredSize = JBDimension(252, 300)
-    scrollPane.border = BorderFactory.createEmptyBorder()
-    val mediaTracker = MediaTracker(destinationsList)
-    destinations.forEach { destination -> mediaTracker.addImage(destination.thumbnail, 0) }
-    if (!mediaTracker.checkAll()) {
-      loadingPanel.add(scrollPane, BorderLayout.CENTER)
-      loadingPanel.startLoading()
-
-      ApplicationManager.getApplication().executeOnPooledThread {
-        try {
-          mediaTracker.waitForAll()
-          ApplicationManager.getApplication().invokeLater { loadingPanel.stopLoading() }
-        } catch (e: Exception) {
-          loadingPanel.setLoadingText("Failed to load thumbnails")
-        }
-      }
-
-      result.add(loadingPanel)
-    } else {
-      result.add(scrollPane)
-    }
-    result.addHierarchyListener { e ->
-      if (e?.changeFlags?.and(HierarchyEvent.SHOWING_CHANGED.toLong())?.let { it > 0 } == true) {
-        if (neverShown || balloon?.wasFadedOut() == true) {
-          neverShown = false
-          ApplicationManager.getApplication().invokeLater { searchField.requestFocusInWindow() }
-        }
-      }
-    }
     destinationsList.addKeyListener(object : KeyAdapter() {
       override fun keyTyped(e: KeyEvent?) {
         searchField.requestFocus()
-        ApplicationManager.getApplication().invokeLater { searchField.dispatchEvent(e) }
+        application.invokeLater { searchField.dispatchEvent(e) }
       }
     })
+    scrollable.add(destinationsList, BorderLayout.CENTER)
+
+
+    ProgressManager.getInstance().runProcessWithProgressAsynchronously(
+      object : Task.Backgroundable(surface.project, "Get Available Destinations") {
+        override fun run(indicator: ProgressIndicator) {
+          val listModel = application.runReadAction(Computable {
+            FilteringListModel<Destination>(CollectionListModel<Destination>(destinations))
+          })
+          listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.toLowerCase()) }
+          searchField.addDocumentListener(
+            object : DocumentAdapter() {
+              override fun textChanged(e: DocumentEvent) {
+                listModel.refilter()
+              }
+            }
+          )
+
+          application.invokeLater {
+            @Suppress("UNCHECKED_CAST")
+            destinationsList.model = listModel as ListModel<Destination>
+
+            destinationsList.setPaintBusy(false)
+            destinationsList.emptyText.text = "No existing destinations"
+          }
+
+        }
+      }, EmptyProgressIndicator())
+
     return result
   }
 
