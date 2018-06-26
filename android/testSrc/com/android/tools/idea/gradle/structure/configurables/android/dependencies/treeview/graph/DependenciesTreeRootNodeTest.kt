@@ -74,6 +74,7 @@ class DependenciesTreeRootNodeTest : DependencyTestCase() {
           com.example.libs:lib2
               lib2:1.0
               lib2:0.9.1
+          jModuleK
           mainModule""".trimIndent()
     val treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
