@@ -16,20 +16,18 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.pixelprobe.util.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.ui.QuickFixNotificationListener;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
@@ -57,31 +55,76 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
                  @NotNull Map<SyncIssue, Module> moduleMap,
                  @NotNull Map<Module, VirtualFile> buildFileMap) {
     // Group by the deduplication key.
-    Map<Object, List<SyncIssue>> groupedIssues = Maps.newHashMap();
+    Map<Object, List<SyncIssue>> groupedIssues = new LinkedHashMap<>();
     for (SyncIssue issue : syncIssues) {
       Object key = getDeduplicationKey(issue);
       if (key != null) {
-        groupedIssues.computeIfAbsent(key, (config) -> Lists.newArrayList()).add(issue);
+        groupedIssues.computeIfAbsent(key, (config) -> new ArrayList<>()).add(issue);
       }
     }
 
     // Report once for each group, including the list of affected modules.
-    for (Map.Entry<Object, List<SyncIssue>> entry : groupedIssues.entrySet()) {
-      if (entry.getValue().isEmpty()) {
+    for (List<SyncIssue> entry : groupedIssues.values()) {
+      if (entry.isEmpty()) {
         continue;
       }
-      SyncIssue issue = entry.getValue().get(0);
+      SyncIssue issue = entry.get(0);
       Module module = moduleMap.get(issue);
       if (module == null) {
         continue;
       }
 
-      Set<String> affectedModules = entry.getValue().stream().map(moduleMap::get).filter(Objects::nonNull).map(Module::getName).collect(
-        Collectors.toSet());
-      boolean isError = entry.getValue().stream().anyMatch(i -> i.getSeverity() == SEVERITY_ERROR);
-      String messageText = issue.getMessage() + "\nAffected Modules: " + Strings.join(affectedModules, ", ");
-      SyncMessage message = new SyncMessage(DEFAULT_GROUP, isError ? ERROR : WARNING, messageText);
-      GradleSyncMessages.getInstance(module.getProject()).report(message);
+      List<Module> affectedModules =
+        entry.stream().map(moduleMap::get).filter(Objects::nonNull).distinct().sorted(Comparator.comparing(Module::getName))
+             .collect(Collectors.toList());
+      boolean isError = entry.stream().anyMatch(i -> i.getSeverity() == SEVERITY_ERROR);
+      createNotificationDataAndReport(module.getProject(), issue, affectedModules, buildFileMap, isError);
+    }
+  }
+
+  private static void createNotificationDataAndReport(@NotNull Project project,
+                                                      @NotNull SyncIssue syncIssue,
+                                                      @NotNull List<Module> affectedModules,
+                                                      @NotNull Map<Module, VirtualFile> buildFileMap,
+                                                      boolean isError) {
+    GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
+    MessageType type = isError ? ERROR : WARNING;
+
+    String message = syncIssue.getMessage();
+    NotificationData notification = messages.createNotification(DEFAULT_GROUP, message, type.convertToCategory(), null);
+
+    // Add links to each of the affected modules
+    StringBuilder builder = new StringBuilder();
+    builder.append("<br>Affected Modules: ");
+    for (Iterator<Module> it = affectedModules.iterator(); it.hasNext(); ) {
+      Module m = it.next();
+      if (m != null) {
+        createModuleLink(project, notification, builder, m, buildFileMap.get(m));
+        if (it.hasNext()) {
+          builder.append(", ");
+        }
+      }
+    }
+
+    message += builder.toString();
+
+    notification.setMessage(message);
+    messages.report(notification);
+  }
+
+  private static void createModuleLink(@NotNull Project project,
+                                       @NotNull NotificationData notification,
+                                       @NotNull StringBuilder builder,
+                                       @NotNull Module module,
+                                       @Nullable VirtualFile buildFile) {
+    if (buildFile == null) {
+      // No build file found, just include the name of the module.
+      builder.append(module.getName());
+    }
+    else {
+      OpenFileHyperlink link = new OpenFileHyperlink(buildFile.getPath(), module.getName(), -1, -1);
+      builder.append(link.toHtml());
+      notification.setListener(link.getUrl(), new QuickFixNotificationListener(project, link));
     }
   }
 
