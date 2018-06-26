@@ -315,6 +315,13 @@ class CpuProfilerStageViewTest {
     // Move into |CpuUsageView|
     ui.mouse.moveTo(usageViewOrigin.x + usageView.width / 2, usageViewOrigin.y + usageView.height / 2)
     assertThat(stageView.showTooltipSeekComponent()).isTrue()
+
+    // Grab the selection component and move the mouse to set the mode to ADJUST_MIN.
+    val treeWalker = TreeWalker(stageView.component)
+    val selectionComponent = treeWalker.descendants().filterIsInstance<SelectionComponent>()[0]
+    FakeUi(selectionComponent).mouse.moveTo(0,0)
+    ui.mouse.moveTo(0, 0)
+    assertThat(stageView.showTooltipSeekComponent()).isFalse()
   }
 
   @Test
