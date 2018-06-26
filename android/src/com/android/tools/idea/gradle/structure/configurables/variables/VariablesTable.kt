@@ -134,7 +134,9 @@ class VariablesTable(private val project: Project, private val context: PsContex
     last.add(emptyNode)
     (tableModel as DefaultTreeModel).nodesWereInserted(last, IntArray(1) { last.getIndex(emptyNode) })
     tree.expandPath(TreePath(last.path))
-    editCellAt(tree.getRowForPath(TreePath(emptyNode.path)), 0, NewVariableEvent(emptyNode))
+    val emptyNodePath = TreePath(emptyNode.path)
+    scrollRectToVisible(tree.getPathBounds(emptyNodePath))
+    editCellAt(tree.getRowForPath(emptyNodePath), 0, NewVariableEvent(emptyNode))
   }
 
   override fun getCellRenderer(row: Int, column: Int): TableCellRenderer {
