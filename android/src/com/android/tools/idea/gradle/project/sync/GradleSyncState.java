@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
+import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -56,6 +57,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.PATH_IN_SETTINGS;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.*;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_UNKNOWN;
@@ -169,7 +171,7 @@ public class GradleSyncState {
    * @return {@code true} if there another sync is not already in progress and this sync request can continue; {@code false} if the
    * current request cannot continue because there is already one in progress.
    */
-  public boolean skippedSyncStarted(boolean notifyUser,  @NotNull GradleSyncInvoker.Request request) {
+  public boolean skippedSyncStarted(boolean notifyUser, @NotNull GradleSyncInvoker.Request request) {
     return syncStarted(true, notifyUser, request);
   }
 
@@ -221,7 +223,8 @@ public class GradleSyncState {
     }
 
     mySummary.reset();
-    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject, syncSkipped, request.generateSourcesOnSuccess));
+    syncPublisher(
+      () -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject, syncSkipped, request.generateSourcesOnSuccess));
 
     AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_STARTED);
     UsageTracker.log(event);
@@ -362,6 +365,16 @@ public class GradleSyncState {
     mySummary.setSyncTimestamp(timestamp);
     enableNotifications();
     notifyStateChanged();
+    warnIfSingleVariantSyncIsEnabled();
+  }
+
+  private void warnIfSingleVariantSyncIsEnabled() {
+    if (NewGradleSync.isSingleVariantSync(myProject)) {
+      String msg = "Experimental feature is enabled to only resolve active variants,\n" +
+                   "you could disable it from\n"
+                   + PATH_IN_SETTINGS;
+      addInfoToEventLog(msg);
+    }
   }
 
   private void stopSyncInProgress() {
@@ -439,7 +452,7 @@ public class GradleSyncState {
    */
   @NotNull
   public ThreeState isSyncNeeded() {
-    return myGradleFiles.areGradleFilesModified()? ThreeState.YES: ThreeState.NO;
+    return myGradleFiles.areGradleFilesModified() ? ThreeState.YES : ThreeState.NO;
   }
 
   @NotNull

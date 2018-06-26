@@ -51,8 +51,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
                                    @NotNull GradlePerProjectExperimentalSettings perProjectSettings) {
     mySettings = settings;
     myPerProjectSettings = perProjectSettings;
-    // TODO make visible when single-variant sync is ready to release.
-    myUseSingleVariantSyncCheckbox.setVisible(false);
     // TODO make visible once Gradle Sync switches to L2 dependencies
     myUseL2DependenciesCheckBox.setVisible(false);
     reset();

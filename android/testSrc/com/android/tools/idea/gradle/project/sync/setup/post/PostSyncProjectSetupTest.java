@@ -81,6 +81,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private RunManagerImpl myRunManager;
   @Mock private ProvisionTasks myProvisionTasks;
   @Mock private ExternalSystemTaskId myTaskId;
+  @Mock private EnableDisableSingleVariantSyncStep myEnableDisableSingleVariantSyncStep;
 
   private ProjectStructureStub myProjectStructure;
   private ProgressIndicator myProgressIndicator;
@@ -103,7 +104,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     mySetup = new PostSyncProjectSetup(project, myIdeInfo, myProjectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
                                        myDependencySetupIssues, myProjectSetup, myModuleSetup, myVersionUpgrade,
                                        myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory, myRunManager,
-                                       myProvisionTasks);
+                                       myProvisionTasks, myEnableDisableSingleVariantSyncStep);
   }
 
   @Override
