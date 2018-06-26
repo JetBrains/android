@@ -19,8 +19,6 @@ import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -62,14 +60,14 @@ public class SyncIssuesReporter {
   }
 
   public void report(@NotNull List<Module> modules) {
-    Map<Module, List<SyncIssue>> issuesByModule = Maps.newHashMap();
+    Map<Module, List<SyncIssue>> issuesByModule = new LinkedHashMap<>();
 
     for (Module module : modules) {
       AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
       if (androidModuleModel != null) {
         Collection<SyncIssue> androidSyncIssues = androidModuleModel.getSyncIssues();
         if (androidSyncIssues != null) {
-          issuesByModule.computeIfAbsent(module, m -> Lists.newArrayList()).addAll(androidSyncIssues);
+          issuesByModule.computeIfAbsent(module, m -> new ArrayList<>()).addAll(androidSyncIssues);
         }
       }
     }
@@ -85,11 +83,11 @@ public class SyncIssuesReporter {
       return;
     }
 
-    Map<Integer, List<SyncIssue>> syncIssues = Maps.newHashMap();
+    Map<Integer, List<SyncIssue>> syncIssues = new LinkedHashMap<>();
     // Note: Since the SyncIssues don't store the module they come from their hashes will be the same.
     // As such we use an IdentityHashMap to ensure different issues get hashed to different values.
-    Map<SyncIssue, Module> moduleMap = Maps.newIdentityHashMap();
-    Map<Module, VirtualFile> buildFileMap = Maps.newHashMap();
+    Map<SyncIssue, Module> moduleMap = new IdentityHashMap<>();
+    Map<Module, VirtualFile> buildFileMap = new LinkedHashMap<>();
 
     Project project = null;
     boolean[] hasSyncErrors = new boolean[1];
@@ -100,7 +98,7 @@ public class SyncIssuesReporter {
       buildFileMap.put(module, getGradleBuildFile(module));
 
       issuesByModules.get(module).forEach(issue -> {
-        syncIssues.computeIfAbsent(issue.getType(), (type) -> Lists.newArrayList()).add(issue);
+        syncIssues.computeIfAbsent(issue.getType(), (type) -> new ArrayList<>()).add(issue);
         moduleMap.put(issue, module);
         if (issue.getSeverity() == SEVERITY_ERROR) {
           hasSyncErrors[0] = true;

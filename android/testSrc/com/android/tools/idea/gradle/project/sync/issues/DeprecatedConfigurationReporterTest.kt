@@ -19,10 +19,11 @@ import com.android.builder.model.SyncIssue
 import com.android.builder.model.SyncIssue.SEVERITY_ERROR
 import com.android.builder.model.SyncIssue.SEVERITY_WARNING
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
-import com.android.tools.idea.project.messages.MessageType.ERROR
-import com.android.tools.idea.project.messages.MessageType.WARNING
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.vfs.VirtualFile
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -37,6 +38,7 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
   private lateinit var module2: Module
   private lateinit var messageStub: GradleSyncMessagesStub
   private lateinit var reporter: DeprecatedConfigurationReporter
+  private lateinit var mockFile: VirtualFile
 
   override fun setUp() {
     super.setUp()
@@ -47,11 +49,13 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     syncIssue2 = mock(SyncIssue::class.java)
     module1 = mock(Module::class.java)
     module2 = mock(Module::class.java)
+    mockFile = mock(VirtualFile::class.java)
 
     `when`(module1.name).thenReturn("app")
     `when`(module1.project).thenReturn(project)
     `when`(module2.name).thenReturn("lib")
     `when`(module2.project).thenReturn(project)
+    `when`(mockFile.path).thenReturn("file/path")
   }
 
   @Test
@@ -65,16 +69,16 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     `when`(syncIssue2.data).thenReturn("key")
     `when`(syncIssue2.severity).thenReturn(SEVERITY_WARNING)
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module1), mapOf())
+    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module1), mapOf(module1 to mockFile))
 
-    val messages = messageStub.reportedMessages
+    val messages = messageStub.notifications
     assertSize(1, messages)
     val message = messages[0]
     assertNotNull(message)
 
-    assertSize(1, message.text)
-    assertThat(message.text[0], equalTo("Warning message!\nAffected Modules: app"))
-    assertThat(message.type, equalTo(WARNING))
+    assertSize(1, message.registeredListenerIds)
+    assertThat(message.message, equalTo("Warning message!<br>Affected Modules: <a href=\"openFile:file/path\">app</a>"))
+    assertThat(message.notificationCategory, equalTo(WARNING))
 
     assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
   }
@@ -90,21 +94,22 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     `when`(syncIssue2.data).thenReturn("key")
     `when`(syncIssue2.severity).thenReturn(SEVERITY_WARNING)
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf())
+    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2),
+                       mapOf(module1 to mockFile))
 
-    val messages = messageStub.reportedMessages
+    val messages = messageStub.notifications
     assertSize(2, messages)
     var message = messages[0]
     assertNotNull(message)
-    assertSize(1, message.text)
-    assertThat(message.text[0], equalTo("Warning message!\nAffected Modules: app"))
-    assertThat(message.type, equalTo(WARNING))
+    assertSize(1, message.registeredListenerIds)
+    assertThat(message.message, equalTo("Warning message!<br>Affected Modules: <a href=\"openFile:file/path\">app</a>"))
+    assertThat(message.notificationCategory, equalTo(WARNING))
 
     message = messages[1]
     assertNotNull(message)
-    assertSize(1, message.text)
-    assertThat(message.text[0], equalTo("Warning message!\nAffected Modules: lib"))
-    assertThat(message.type, equalTo(WARNING))
+    assertSize(0, message.registeredListenerIds)
+    assertThat(message.message, equalTo("Warning message!<br>Affected Modules: lib"))
+    assertThat(message.notificationCategory, equalTo(WARNING))
 
     assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
   }
@@ -120,16 +125,18 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     `when`(syncIssue2.data).thenReturn("key")
     `when`(syncIssue2.severity).thenReturn(SEVERITY_WARNING)
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf())
+    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2),
+                       mapOf(module1 to mockFile, module2 to mockFile))
 
-    val messages = messageStub.reportedMessages
+    val messages = messageStub.notifications
     assertSize(1, messages)
     val message = messages[0]
     assertNotNull(message)
 
-    assertSize(1, message.text)
-    assertThat(message.text[0], equalTo("Warning message!\nAffected Modules: app, lib"))
-    assertThat(message.type, equalTo(WARNING))
+    assertSize(1, message.registeredListenerIds)
+    assertThat(message.message, equalTo("Warning message!<br>Affected Modules: " +
+                                        "<a href=\"openFile:file/path\">app</a>, <a href=\"openFile:file/path\">lib</a>"))
+    assertThat(message.notificationCategory, equalTo(WARNING))
 
     assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
   }
@@ -145,21 +152,22 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     `when`(syncIssue2.data).thenReturn("key")
     `when`(syncIssue2.severity).thenReturn(SEVERITY_WARNING)
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module2, syncIssue2 to module2), mapOf())
+    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2),
+                       mapOf(module1 to mockFile))
 
-    val messages = messageStub.reportedMessages
+    val messages = messageStub.notifications
     assertSize(2, messages)
     var message = messages[0]
     assertNotNull(message)
-    assertSize(1, message.text)
-    assertThat(message.text[0], equalTo("Warning message!\nAffected Modules: lib"))
-    assertThat(message.type, equalTo(WARNING))
+    assertSize(1, message.registeredListenerIds)
+    assertThat(message.message, equalTo("Warning message!<br>Affected Modules: <a href=\"openFile:file/path\">app</a>"))
+    assertThat(message.notificationCategory, equalTo(WARNING))
 
     message = messages[1]
     assertNotNull(message)
-    assertSize(1, message.text)
-    assertThat(message.text[0], equalTo("Warning message!\nAffected Modules: lib"))
-    assertThat(message.type, equalTo(WARNING))
+    assertSize(0, message.registeredListenerIds)
+    assertThat(message.message, equalTo("Warning message!<br>Affected Modules: lib"))
+    assertThat(message.notificationCategory, equalTo(WARNING))
 
     assertThat(messageStub.fakeErrorCount, equalTo(0))
   }
@@ -177,16 +185,18 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     `when`(syncIssue2.data).thenReturn("key")
     `when`(syncIssue2.severity).thenReturn(SEVERITY_ERROR)
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf())
+    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2),
+                       mapOf(module1 to mockFile, module2 to mockFile))
 
-    val messages = messageStub.reportedMessages
+    val messages = messageStub.notifications
     assertSize(1, messages)
     val message = messages[0]
     assertNotNull(message)
 
-    assertSize(1, message.text)
-    assertThat(message.text[0], equalTo("Error message!\nAffected Modules: app, lib"))
-    assertThat(message.type, equalTo(ERROR))
+    assertSize(1, message.registeredListenerIds)
+    assertThat(message.message, equalTo("Error message!<br>Affected Modules: " +
+                                        "<a href=\"openFile:file/path\">app</a>, <a href=\"openFile:file/path\">lib</a>"))
+    assertThat(message.notificationCategory, equalTo(ERROR))
 
     assertThat(messageStub.fakeErrorCount, equalTo(1))
   }

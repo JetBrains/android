@@ -20,11 +20,11 @@ import com.android.annotations.Nullable;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 
@@ -49,7 +49,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncIssue =  mock(SyncIssue.class);
+    mySyncIssue = mock(SyncIssue.class);
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
 
     myStrategy1 = mock(BaseSyncIssuesReporter.class);
@@ -151,6 +151,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     when(mySyncIssue.getType()).thenReturn(TYPE_GRADLE_TOO_OLD);
     when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
+    when(mySyncIssue.getMessage()).thenReturn("");
 
     when(myStrategy2.getSupportedIssueType()).thenReturn(TYPE_UNRESOLVED_DEPENDENCY);
 
@@ -161,9 +162,10 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     VirtualFile buildFile = getGradleBuildFile(appModule);
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue), libModule, Lists.newArrayList(syncIssue2)));
 
-    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
+
+    assertSize(1, mySyncMessagesStub.getNotifications());
+    NotificationData message = mySyncMessagesStub.getNotifications().get(0);
     assertNotNull(message);
-    assertSize(1, mySyncMessagesStub.getReportedMessages());
 
     verify(myStrategy1, never())
       .reportAll(ImmutableList.of(mySyncIssue), ImmutableMap.of(mySyncIssue, appModule), ImmutableMap.of(appModule, buildFile));
