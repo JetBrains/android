@@ -30,6 +30,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceDirector
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchLoadingPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.*;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
@@ -383,5 +384,9 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   public void invokeContextMenuAction(@NotNull String actionLabel) {
     new JMenuItemFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(JMenuItem.class, actionLabel))).click();
+  }
+
+  public DestinationListFixture destinationList() {
+    return DestinationListFixture.Companion.create(robot());
   }
 }
