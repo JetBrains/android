@@ -24,7 +24,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ResourceResolverCache
 import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.res.resolveDrawableAsVirtualFile
+import com.android.tools.idea.res.resolveDrawable
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
@@ -55,7 +55,7 @@ class ProjectResourcesBrowserViewModel(
    */
   fun getDrawablePreview(dimension: Dimension, designAssetSet: DesignAssetSet): ListenableFuture<out Image?> {
     val resolveValue = designAssetSet.resolveValue() ?: return Futures.immediateFuture(null)
-    val file = resourceResolver.resolveDrawableAsVirtualFile(resolveValue, facet.module.project)
+    val file = resourceResolver.resolveDrawable(resolveValue, facet.module.project)
                ?: designAssetSet.getHighestDensityAsset().file
     return DesignAssetRendererManager.getInstance().getViewer(file)
       .getImage(file, facet.module, dimension)

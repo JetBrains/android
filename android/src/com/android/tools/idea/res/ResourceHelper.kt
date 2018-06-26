@@ -609,8 +609,7 @@ private fun extend(nibble: Long): Long {
  * @param project the current project
  * @return the corresponding [VirtualFile], or null
  */
-// TODO: Rename to resolveDrawable when the existing resolveDrawable method is removed.
-fun RenderResources.resolveDrawableAsVirtualFile(drawable: ResourceValue?, project: Project): VirtualFile? {
+fun RenderResources.resolveDrawable(drawable: ResourceValue?, project: Project): VirtualFile? {
   val resolvedDrawable = resolveNullableResValue(drawable) ?: return null
 
   var result = resolvedDrawable.value
@@ -629,28 +628,6 @@ fun RenderResources.resolveDrawableAsVirtualFile(drawable: ResourceValue?, proje
   }
 
   return toFileResourcePathString(result)?.toVirtualFile()
-}
-
-@Deprecated("Use resolveDrawableAsVirtualFile")
-fun RenderResources.resolveDrawable(drawable: ResourceValue?, project: Project): File? {
-  val resolvedDrawable = resolveNullableResValue(drawable) ?: return null
-
-  var result = resolvedDrawable.value
-
-  val stateList = resolveStateList(resolvedDrawable, project)
-  if (stateList != null) {
-    val states = stateList.states
-    if (!states.isEmpty()) {
-      val state = states[states.size - 1]
-      result = state.value
-    }
-  }
-
-  if (result == null) {
-    return null
-  }
-
-  return toFileResourcePathString(result)?.toFile()
 }
 
 /**
