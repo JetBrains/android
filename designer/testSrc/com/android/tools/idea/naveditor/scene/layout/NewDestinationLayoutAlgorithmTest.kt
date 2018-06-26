@@ -40,9 +40,9 @@ class NewDestinationLayoutAlgorithmTest : NavTestCase() {
     val scene = model.surface.scene!!
     assertEquals(40, scene.getSceneComponent("fragment1")!!.drawX)
     assertEquals(40, scene.getSceneComponent("fragment1")!!.drawY)
-    assertEquals(80, scene.getSceneComponent("fragment2")!!.drawX)
-    assertEquals(80, scene.getSceneComponent("fragment2")!!.drawY)
-    assertEquals(120, scene.getSceneComponent("fragment3")!!.drawX)
-    assertEquals(120, scene.getSceneComponent("fragment3")!!.drawY)
+    assertEquals(70, scene.getSceneComponent("fragment2")!!.drawX)
+    assertEquals(70, scene.getSceneComponent("fragment2")!!.drawY)
+    assertEquals(100, scene.getSceneComponent("fragment3")!!.drawX)
+    assertEquals(100, scene.getSceneComponent("fragment3")!!.drawY)
   }
 }

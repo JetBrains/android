@@ -23,8 +23,13 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.editor.Destination
+import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
+import com.android.tools.idea.naveditor.scene.layout.*
 import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
 import org.mockito.Mockito
+import java.awt.Point
+import kotlin.math.roundToLong
 
 class NavSceneManagerTest : NavTestCase() {
 
@@ -137,5 +142,43 @@ class NavSceneManagerTest : NavTestCase() {
     component = scene.getSceneComponent("fragment1")!!
     assertEquals(153, component.drawWidth)
     assertEquals(256, component.drawHeight)
+  }
+
+  fun testNewDestination() {
+    val scale = 0.5
+    val initialOffset = (40 / scale).toInt()
+    val incrementalOffset = (30 / scale).toInt()
+    val scrollPosition = Point(5, 10)
+
+    val model = model("nav.xml") {
+      navigation("root")
+    }
+
+    val scene = model.surface.scene!!
+
+    val sceneManager = scene.sceneManager as NavSceneManager
+    val designSurface = sceneManager.designSurface
+    val sceneView = designSurface.currentSceneView!!
+    Mockito.`when`<Double>(sceneView.scale).thenReturn(scale)
+    Mockito.`when`(designSurface.scrollPosition).thenAnswer { Point(scrollPosition) }
+
+    val currentNavigation = designSurface.currentNavigation
+
+    val p = Point((scrollPosition.x / scale).toInt() + initialOffset,
+                  (scrollPosition.y / scale).toInt() + initialOffset)
+
+    listOf("first", "second", "third", "fourth", "fifth").forEach {
+      val destination = Destination.RegularDestination(currentNavigation, "fragment", null,
+                                                       null, null, it)
+      destination.addToGraph()
+      destination.component!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
+      sceneManager.update()
+
+      val component = scene.getSceneComponent(it)!!
+      assertEquals(p.x, component.drawX)
+      assertEquals(p.y, component.drawY)
+
+      p.translate(incrementalOffset, incrementalOffset)
+    }
   }
 }

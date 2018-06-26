@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.intellij.util.ui.JBUI
+import java.awt.Point
 
 const val NEW_DESTINATION_MARKER_PROPERTY = "new.destination"
 
@@ -36,7 +37,7 @@ class NewDestinationLayoutAlgorithm : SingleComponentLayoutAlgorithm() {
     component.nlComponent.removeClientProperty(NEW_DESTINATION_MARKER_PROPERTY)
 
     val surface = component.scene.designSurface
-    @SwingCoordinate val swingPoint = surface.scrollPosition
+    @SwingCoordinate val swingPoint = Point(surface.scrollPosition)
     swingPoint.translate(INITIAL_OFFSET, INITIAL_OFFSET)
 
     val view = surface.currentSceneView ?: return false

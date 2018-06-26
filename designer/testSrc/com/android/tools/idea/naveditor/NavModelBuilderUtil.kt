@@ -70,7 +70,7 @@ object NavModelBuilderUtil {
       `when`(surface.schema).thenReturn(NavigationSchema.get(facet))
       `when`<NlComponent>(surface.currentNavigation).then { model.components[0] }
       `when`(surface.extentSize).thenReturn(Dimension(500, 500))
-      `when`(surface.scrollPosition).thenReturn(Point(0, 0))
+      `when`(surface.scrollPosition).thenAnswer { Point(0, 0) }
       `when`(surface.interactionManager).thenReturn(InteractionManager(surface))
 
       val selectionModel = mock(SelectionModel::class.java)
