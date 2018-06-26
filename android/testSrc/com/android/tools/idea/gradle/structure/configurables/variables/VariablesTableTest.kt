@@ -451,7 +451,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
     val editorComp = variablesTable.editorComponent as JPanel
     val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
-    textBox.setText("newVariable")
+    textBox.text = "newVariable"
     variablesTable.editingStopped(null)
 
     val variableNode =
@@ -480,7 +480,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     variablesTable.addVariable(GradlePropertyModel.ValueType.LIST)
     val editorComp = variablesTable.editorComponent as JPanel
     val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
-    textBox.setText("newList")
+    textBox.text = "newList"
     variablesTable.editingStopped(null)
 
     val variableNode =
@@ -520,7 +520,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     variablesTable.addVariable(GradlePropertyModel.ValueType.MAP)
     val editorComp = variablesTable.editorComponent as JPanel
     val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
-    textBox.setText("newMap")
+    textBox.text = "newMap"
     variablesTable.editingStopped(null)
 
     val variableNode =
@@ -545,6 +545,29 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val secondElementNode = newMapNode.getChildAt(1)
     assertThat(tableModel.getValueAt(secondElementNode, 0) as String, equalTo(""))
     assertThat(tableModel.getValueAt(secondElementNode, 1) as String, equalTo(""))
+  }
+
+  fun testAddEmptyVariable() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val psContext = PsContextImpl(psProject, testRootDisposable)
+    val variablesTable = VariablesTable(project, psContext)
+    val tableModel = variablesTable.tableModel
+
+    val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as VariablesTable.ModuleNode
+    assertThat(appNode.childCount, equalTo(9))
+
+    variablesTable.tree.selectionPath = TreePath(appNode.path)
+    variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
+    assertThat(appNode.childCount, equalTo(10))
+    variablesTable.editingStopped(null)
+    assertThat(appNode.childCount, equalTo(9))
+
+    variablesTable.tree.selectionPath = TreePath(appNode.path)
+    variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
+    assertThat(appNode.childCount, equalTo(10))
+    variablesTable.editingCanceled(null)
+    assertThat(appNode.childCount, equalTo(9))
   }
 
   fun testVariableNodeDelete() {
