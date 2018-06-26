@@ -37,6 +37,7 @@ import java.util.*
 import java.util.function.Consumer
 import javax.swing.*
 import javax.swing.border.EmptyBorder
+import javax.swing.event.ChangeEvent
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.table.TableCellEditor
 import javax.swing.table.TableCellRenderer
@@ -121,6 +122,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
   }
 
   fun addVariable(type: ValueType) {
+    getCellEditor()?.stopCellEditing()
     val selectedNodes = tree.getSelectedNodes(DefaultMutableTreeNode::class.java, null)
     if (selectedNodes.isEmpty()) {
       return
@@ -180,6 +182,24 @@ class VariablesTable(private val project: Project, private val context: PsContex
       }
     }
     super.processKeyEvent(e)
+  }
+
+  override fun editingStopped(e: ChangeEvent?) {
+    val rowBeingEdited = editingRow
+    super.editingStopped(e)
+    val nodeBeingEdited = tree.getPathForRow(rowBeingEdited)?.lastPathComponent
+    if (nodeBeingEdited is EmptyNode) {
+      (tableModel as DefaultTreeModel).removeNodeFromParent(nodeBeingEdited)
+    }
+  }
+
+  override fun editingCanceled(e: ChangeEvent?) {
+    val rowBeingEdited = editingRow
+    super.editingCanceled(e)
+    val nodeBeingEdited = tree.getPathForRow(rowBeingEdited)?.lastPathComponent
+    if (nodeBeingEdited is EmptyNode) {
+      (tableModel as DefaultTreeModel).removeNodeFromParent(nodeBeingEdited)
+    }
   }
 
   /**
