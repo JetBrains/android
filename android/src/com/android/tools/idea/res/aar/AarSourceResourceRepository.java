@@ -171,6 +171,10 @@ public class AarSourceResourceRepository extends LocalResourceRepository impleme
     ResourceMerger merger = new ResourceMerger(0);
 
     ResourceSet resourceSet = new ResourceSet(file.getName(), namespace, libraryName, false /* validateEnabled */);
+    File rDotTxt = new File(file.getParent(), FN_RESOURCE_TEXT);
+    if (!rDotTxt.exists()) {
+      resourceSet.setShouldParseResourceIds(true);
+    }
     resourceSet.addSource(file);
     resourceSet.setTrackSourcePositions(false);
     try {
