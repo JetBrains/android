@@ -2034,7 +2034,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.STYLEABLE, "MyCustomView"));
     assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomView");
-    DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue();
+    StyleableResourceValue srv = (StyleableResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
     AttrResourceValue watchType = findAttr(srv.getAllAttributes(), "watchType");
@@ -2084,7 +2084,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
     assertFalse(resources.hasResourceItem(ResourceType.STYLEABLE, "MyCustomView"));
     style = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomerView");
-    srv = (DeclareStyleableResourceValue)style.getResourceValue();
+    srv = (StyleableResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
     watchType = findAttr(srv.getAllAttributes(), "watchType");
@@ -2110,7 +2110,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // Fetch resource value to ensure it gets replaced after update
     assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomView");
-    DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue();
+    StyleableResourceValue srv = (StyleableResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
     AttrResourceValue watchType = findAttr(srv.getAllAttributes(), "watchType");
@@ -2154,7 +2154,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
     assertTrue(resources.hasResourceItem(ResourceType.ATTR, "wwatchType"));
     style = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomView");
-    srv = (DeclareStyleableResourceValue)style.getResourceValue();
+    srv = (StyleableResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
     watchType = findAttr(srv.getAllAttributes(), "wwatchType");
@@ -2183,7 +2183,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       assertFalse(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
       assertTrue(resources.hasResourceItem(ResourceType.ATTR, "wwatchType"));
       ResourceItem style1 = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomView");
-      DeclareStyleableResourceValue srv1 = (DeclareStyleableResourceValue)style1.getResourceValue();
+      StyleableResourceValue srv1 = (StyleableResourceValue)style1.getResourceValue();
       assertNotNull(srv1);
       assertEquals(5, srv1.getAllAttributes().size());
       AttrResourceValue watchType1 = findAttr(srv1.getAllAttributes(), "wwatchType");
@@ -2215,7 +2215,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
     assertFalse(resources.hasResourceItem(ResourceType.ATTR, "ignore_no_format"));
     final ResourceItem style = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomView");
-    final DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue();
+    final StyleableResourceValue srv = (StyleableResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
     final AttrResourceValue flagType = findAttr(srv.getAllAttributes(), "flagType");
@@ -2242,7 +2242,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       assertTrue(resources.hasResourceItem(ResourceType.STYLEABLE, "MyCustomView"));
       assertTrue(resources.hasResourceItem(ResourceType.ATTR, "flagType"));
       ResourceItem style1 = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomView");
-      DeclareStyleableResourceValue srv1 = (DeclareStyleableResourceValue)style1.getResourceValue();
+      StyleableResourceValue srv1 = (StyleableResourceValue)style1.getResourceValue();
       assertNotNull(srv1);
       assertEquals(5, srv1.getAllAttributes().size());
       AttrResourceValue flagType1 = findAttr(srv1.getAllAttributes(), "flagType");
@@ -2268,7 +2268,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
       assertTrue(resources.hasResourceItem(ResourceType.ATTR, "flagType"));
       style1 = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomView");
-      srv1 = (DeclareStyleableResourceValue)style1.getResourceValue();
+      srv1 = (StyleableResourceValue)style1.getResourceValue();
       assertNotNull(srv1);
       assertEquals(5, srv1.getAllAttributes().size());
       flagType1 = findAttr(srv1.getAllAttributes(), "flagType");

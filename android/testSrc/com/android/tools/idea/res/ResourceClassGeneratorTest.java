@@ -409,7 +409,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     assertEquals(id, gravityValue);
 
     // The exact source order of attributes must be matched such that array indexing of the styleable arrays
-    // reaches the right elements. For this reason, we use a LinkedHashMap in DeclareStyleableResourceValue.
+    // reaches the right elements. For this reason, we use a LinkedHashMap in StyleableResourceValue.
     // Without this, using the v7 GridLayout widget and putting app:layout_gravity="left" on a child will
     // give value conversion errors.
     assertEquals(2, layoutColumnSpanIndex);

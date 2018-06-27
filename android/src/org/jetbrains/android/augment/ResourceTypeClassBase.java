@@ -1,7 +1,7 @@
 package org.jetbrains.android.augment;
 
 import com.android.ide.common.rendering.api.AttrResourceValue;
-import com.android.ide.common.rendering.api.DeclareStyleableResourceValue;
+import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
@@ -58,7 +58,7 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
     if (ResourceType.STYLEABLE == resourceType) {
       List<ResourceItem> items = repository.getResourceItems(namespace, ResourceType.STYLEABLE);
       for (ResourceItem item : items) {
-        DeclareStyleableResourceValue value = (DeclareStyleableResourceValue)item.getResourceValue();
+        StyleableResourceValue value = (StyleableResourceValue)item.getResourceValue();
         if (value != null) {
           List<AttrResourceValue> attributes = value.getAllAttributes();
           for (AttrResourceValue attr : attributes) {

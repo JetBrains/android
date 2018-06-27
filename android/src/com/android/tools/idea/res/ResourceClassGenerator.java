@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.ide.common.rendering.api.DeclareStyleableResourceValue;
+import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -183,8 +183,8 @@ public class ResourceClassGenerator {
   private static List<ResourceReference> getStyleableAttributes(@NotNull ResourceItem item) {
     ResourceValue resourceValue = ApplicationManager.getApplication().runReadAction(
       (Computable<ResourceValue>)() -> item.getResourceValue());
-    assert resourceValue instanceof DeclareStyleableResourceValue;
-    DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
+    assert resourceValue instanceof StyleableResourceValue;
+    StyleableResourceValue dv = (StyleableResourceValue)resourceValue;
     return Lists.transform(dv.getAllAttributes(), ResourceValue::asReference);
   }
 

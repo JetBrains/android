@@ -236,9 +236,9 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     }
 
     List<AttrResourceValue> attrs1 =
-        value1 instanceof DeclareStyleableResourceValue ? ((DeclareStyleableResourceValue)value1).getAllAttributes() : null;
+      value1 instanceof StyleableResourceValue ? ((StyleableResourceValue)value1).getAllAttributes() : null;
     List<AttrResourceValue> attrs2 =
-        value2 instanceof DeclareStyleableResourceValue ? ((DeclareStyleableResourceValue)value2).getAllAttributes() : null;
+      value2 instanceof StyleableResourceValue ? ((StyleableResourceValue)value2).getAllAttributes() : null;
     if (!Objects.equals(attrs1, attrs2)) {
       return false;
     }
@@ -527,8 +527,8 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     List<ResourceItem> items = repository.getResourceItems(namespace, ResourceType.STYLEABLE);
     for (ResourceItem item : items) {
       ResourceValue value = item.getResourceValue();
-      if (value instanceof DeclareStyleableResourceValue) {
-        List<AttrResourceValue> attributes = ((DeclareStyleableResourceValue)value).getAllAttributes();
+      if (value instanceof StyleableResourceValue) {
+        List<AttrResourceValue> attributes = ((StyleableResourceValue)value).getAllAttributes();
         for (AttrResourceValue attribute : attributes) {
           Map<String, Integer> map = myEnumMap.get(attribute.getName());
           if (map == null) {
