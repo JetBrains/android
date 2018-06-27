@@ -68,6 +68,21 @@ class ResourceExplorerView(
   init {
 
     sectionList.setSectionListCellRenderer(createSectionListCellRenderer())
+    resourcesBrowserViewModel.updateCallback = ::populateResourcesLists
+    populateResourcesLists()
+
+    val mainComponent = sectionList.mainComponent
+    mainComponent.border = JBUI.Borders.empty(8)
+    add(mainComponent)
+
+    val sections = sectionList.sectionsComponent
+    sections.preferredSize = JBUI.size(132, -1)
+    sections.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, 0, 1)
+    add(sections, BorderLayout.WEST)
+  }
+
+  private fun populateResourcesLists() {
+    sectionListModel.clear()
     resourcesBrowserViewModel.getResourcesLists(listOf(ResourceType.DRAWABLE,
                                                        ResourceType.COLOR))
       .filterNot { it.assets.isEmpty() }
@@ -78,15 +93,6 @@ class ResourceExplorerView(
           setupListUI()
         }))
       }
-
-    val mainComponent = sectionList.mainComponent
-    mainComponent.border = JBUI.Borders.empty(8)
-    add(mainComponent)
-
-    val sections = sectionList.sectionsComponent
-    sections.preferredSize = JBUI.size(132, -1)
-    sections.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, 0, 1)
-    add(sections, BorderLayout.WEST)
   }
 
   private fun createSectionListCellRenderer(): ListCellRenderer<Section<*>> {

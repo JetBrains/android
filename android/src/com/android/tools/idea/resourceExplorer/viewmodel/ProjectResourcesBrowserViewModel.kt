@@ -35,6 +35,7 @@ import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Image
+import kotlin.properties.Delegates
 
 
 private val LOG = Logger.getInstance(ProjectResourcesBrowserViewModel::class.java)
@@ -44,11 +45,18 @@ private val LOG = Logger.getInstance(ProjectResourcesBrowserViewModel::class.jav
  * to manage resources in the provided [facet].
  */
 class ProjectResourcesBrowserViewModel(
-  val facet: AndroidFacet,
+  facet: AndroidFacet,
   synchronizationManager: SynchronizationManager // TODO listen for update
 ) {
 
-  val resourceResolver = createResourceResolver()
+
+  /**
+   * callback called when the resource model have change. This happen when the facet is changed.
+   */
+  var updateCallback: (() -> Unit)? = null
+
+  var facet by Delegates.observable(facet) { _, _, _ -> updateCallback?.invoke() }
+  val resourceResolver = createResourceResolver(facet)
 
   /**
    * Returns a preview of the [DesignAsset].
@@ -83,9 +91,9 @@ class ProjectResourcesBrowserViewModel(
       }
   }
 
-  private fun createResourceResolver(): ResourceResolver {
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
-    val manifest = MergedManifest.get(facet)
+  private fun createResourceResolver(androidFacet: AndroidFacet): ResourceResolver {
+    val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet)
+    val manifest = MergedManifest.get(androidFacet)
     val theme = manifest.manifestTheme ?: manifest.getDefaultTheme(null, null, null)
     return ResourceResolverCache(configurationManager).getResourceResolver(
       configurationManager.target,
