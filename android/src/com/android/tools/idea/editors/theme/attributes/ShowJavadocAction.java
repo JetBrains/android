@@ -91,7 +91,8 @@ public class ShowJavadocAction extends AbstractAction {
         // superclass implementation throws an exception
         return null;
       }
-    }, true);
+    }, null);
+    docComponent.clearHistory();
 
     JBPopup hint = JBPopupFactory.getInstance().createComponentPopupBuilder(docComponent, docComponent).setProject(project)
       .setDimensionServiceKey(project, DocumentationManager.JAVADOC_LOCATION_AND_SIZE, false).setResizable(true).setMovable(true)
