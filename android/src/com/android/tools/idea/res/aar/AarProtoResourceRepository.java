@@ -358,8 +358,8 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
 
   @NotNull
   private ResourceValue createStyleableValue(@NotNull Resources.Styleable styleableMsg, @NotNull String resourceName) {
-    DeclareStyleableResourceValueImpl styleableValue =
-        new DeclareStyleableResourceValueImpl(getNamespace(), ResourceType.STYLEABLE, resourceName, null, getLibraryName());
+    StyleableResourceValueImpl styleableValue =
+        new StyleableResourceValueImpl(getNamespace(), ResourceType.STYLEABLE, resourceName, null, getLibraryName());
     for (Resources.Styleable.Entry entryMsg : styleableMsg.getEntryList()) {
       String url = entryMsg.getAttr().getName();
       myUrlParser.parseResourceUrl(url);

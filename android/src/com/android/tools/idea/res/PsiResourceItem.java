@@ -301,7 +301,7 @@ public class PsiResourceItem implements ResourceItem {
         value = parseStyleValue(tag, new StyleResourceValueImpl(myNamespace, myType, myName, parent, null));
         break;
       case STYLEABLE:
-        value = parseDeclareStyleable(tag, new DeclareStyleableResourceValueImpl(myNamespace, myType, myName, null, null));
+        value = parseDeclareStyleable(tag, new StyleableResourceValueImpl(myNamespace, myType, myName, null, null));
         break;
       case ATTR:
         value = parseAttrValue(tag, new AttrResourceValueImpl(myNamespace, myType, myName, null));
@@ -353,8 +353,8 @@ public class PsiResourceItem implements ResourceItem {
   }
 
   @NotNull
-  private DeclareStyleableResourceValueImpl parseDeclareStyleable(@NotNull XmlTag tag,
-                                                                  @NotNull DeclareStyleableResourceValueImpl declareStyleable) {
+  private StyleableResourceValueImpl parseDeclareStyleable(@NotNull XmlTag tag,
+                                                           @NotNull StyleableResourceValueImpl declareStyleable) {
     for (XmlTag child : tag.getSubTags()) {
       String name = getAttributeValue(child, ATTR_NAME);
       if (!StringUtil.isEmpty(name)) {
