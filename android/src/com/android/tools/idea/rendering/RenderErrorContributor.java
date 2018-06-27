@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.layoutlib.bridge.impl.RenderSessionImpl;
@@ -62,13 +63,13 @@ import com.intellij.problems.WolfTheProblemSolver;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -389,9 +390,6 @@ public class RenderErrorContributor {
         LOG.error("PsiFile is missing in RenderTask used in RenderErrorPanel!");
         return;
       }
-      AddMissingAttributesFix fix = new AddMissingAttributesFix(project, psiFile, resourceResolver);
-
-      List<XmlTag> missing = fix.findViewsMissingSizes();
 
       // See whether we should offer match_parent instead of fill_parent
       AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
@@ -400,32 +398,40 @@ public class RenderErrorContributor {
                           || moduleInfo.getBuildSdkVersion().getApiLevel() >= 8
                           ? VALUE_MATCH_PARENT : VALUE_FILL_PARENT;
 
-      for (final XmlTag tag : missing) {
-        ApplicationManager.getApplication().runReadAction(() -> {
-          boolean missingWidth = !AddMissingAttributesFix.definesWidth(tag, resourceResolver);
-          boolean missingHeight = !AddMissingAttributesFix.definesHeight(tag, resourceResolver);
-          assert missingWidth || missingHeight;
+      ApplicationManager.getApplication()
+                        .runReadAction(() -> AddMissingAttributesFix.findViewsMissingSizes(psiFile, resourceResolver).stream()
+                                                                    .map(SmartPsiElementPointer::getElement)
+                                                                    .filter(Objects::nonNull)
+                                                                    .filter(XmlTag::isValid)
+                                                                    .forEach(tag -> {
+                                                                      boolean missingWidth =
+                                                                        !AddMissingAttributesFix.definesWidth(tag, resourceResolver);
+                                                                      boolean missingHeight =
+                                                                        !AddMissingAttributesFix.definesHeight(tag, resourceResolver);
+                                                                      assert missingWidth || missingHeight;
 
-          String id = tag.getAttributeValue(ATTR_ID);
-          if (id == null || id.isEmpty()) {
-            id = '<' + tag.getName() + '>';
-          }
-          else {
-            id = '"' + stripIdPrefix(id) + '"';
-          }
+                                                                      String id = tag.getAttributeValue(ATTR_ID);
+                                                                      if (id == null || id.isEmpty()) {
+                                                                        id = '<' + tag.getName() + '>';
+                                                                      }
+                                                                      else {
+                                                                        id = '"' + stripIdPrefix(id) + '"';
+                                                                      }
 
-          if (missingWidth) {
-            reportMissingSize(builder, logger, fill, tag, id, ATTR_LAYOUT_WIDTH);
-          }
-          if (missingHeight) {
-            reportMissingSize(builder, logger, fill, tag, id, ATTR_LAYOUT_HEIGHT);
-          }
-        });
-      }
+                                                                      if (missingWidth) {
+                                                                        reportMissingSize(builder, logger, fill, tag, id,
+                                                                                          ATTR_LAYOUT_WIDTH);
+                                                                      }
+                                                                      if (missingHeight) {
+                                                                        reportMissingSize(builder, logger, fill, tag, id,
+                                                                                          ATTR_LAYOUT_HEIGHT);
+                                                                      }
+                                                                    }));
 
       builder.newline()
         .add("Or: ")
-        .addLink("Automatically add all missing attributes", myLinkManager.createCommandLink(fix)).newline()
+        .addLink("Automatically add all missing attributes",
+                 myLinkManager.createCommandLink(new AddMissingAttributesFix(project, psiFile, resourceResolver))).newline()
         .newline().newline();
 
       addIssue()
