@@ -376,8 +376,8 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   public void addTargets(@NotNull SceneComponent component) {
     ViewHandler componentHandler = NlComponentHelperKt.getViewHandler(component.getNlComponent());
-    if (componentHandler instanceof TargetProvider) {
-      component.setTargetProvider((TargetProvider) componentHandler);
+    if (componentHandler != null) {
+      component.setTargetProvider(componentHandler);
     }
 
     SceneComponent parent = component.getParent();
@@ -389,7 +389,7 @@ public class LayoutlibSceneManager extends SceneManager {
     }
     ViewHandler parentHandler = NlComponentHelperKt.getViewHandler(parent.getNlComponent());
     if (parentHandler instanceof ViewGroupHandler) {
-      parent.setTargetProvider((ViewGroupHandler) parentHandler);
+      parent.setTargetProvider(parentHandler);
     }
   }
 
@@ -404,7 +404,7 @@ public class LayoutlibSceneManager extends SceneManager {
       else {
         render(getTriggerFromChangeType(model.getLastChangeType()));
         mySelectionChangeListener
-          .selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
+          .selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection());
       }
     }
 
@@ -527,6 +527,7 @@ public class LayoutlibSceneManager extends SceneManager {
       if ((flags & CFG_DEVICE) != 0) {
         int newDpi = getModel().getConfiguration().getDensity().getDpiValue();
         if (myDpi != newDpi) {
+          myDpi = newDpi;
           // Update from the model to update the dpi
           LayoutlibSceneManager.this.update();
         }
@@ -544,15 +545,13 @@ public class LayoutlibSceneManager extends SceneManager {
    * Similar to {@link #requestRender()} but it will be logged as a user initiated action. This is
    * not exposed at SceneManager level since it only makes sense for the Layout editor.
    */
-  public void requestUserInitatedRender() {
+  public void requestUserInitiatedRender() {
     requestRender(null, LayoutEditorRenderResult.Trigger.USER);
   }
 
   @Override
   public void requestLayoutAndRender(boolean animate) {
-    requestRender(() -> {
-      getModel().notifyListenersModelLayoutComplete(animate);
-    }, getTriggerFromChangeType(getModel().getLastChangeType()));
+    requestRender(() -> getModel().notifyListenersModelLayoutComplete(animate), getTriggerFromChangeType(getModel().getLastChangeType()));
   }
 
   /**
@@ -691,7 +690,7 @@ public class LayoutlibSceneManager extends SceneManager {
       }
       getModel().checkStructure();
     }
-    catch (InterruptedException e) {
+    catch (InterruptedException ignored) {
     }
   }
 
@@ -750,7 +749,7 @@ public class LayoutlibSceneManager extends SceneManager {
     LayoutPullParsers.saveFileIfNecessary(getModel().getFile());
 
     RenderResult result = null;
-    RenderTask resultTask = null;
+    RenderTask resultTask;
     synchronized (myRenderingTaskLock) {
       if (myRenderTask != null && !force) {
         // No need to inflate
@@ -831,8 +830,7 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
-   * Renders the current model synchronously. Once the render is complete, the listeners {@link ModelListener#modelRendered(NlModel)}
-   * method will be called.
+   * Renders the current model synchronously. Once the render is complete, the render callbacks will be called.
    * <p/>
    * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
    * <p/>
@@ -880,7 +878,6 @@ public class LayoutlibSceneManager extends SceneManager {
       }
     }
 
-    NlModel.ChangeType changeType = getModel().getLastChangeType();
     getModel().resetLastChange();
     long renderStartTimeMs = System.currentTimeMillis();
     boolean inflated = inflate(false);
