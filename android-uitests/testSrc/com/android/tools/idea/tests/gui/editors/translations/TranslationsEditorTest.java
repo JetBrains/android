@@ -598,6 +598,28 @@ public final class TranslationsEditorTest {
     assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
   }
 
+  @Test
+  public void reloadButtonUpdatesEditorFromStringsXml() throws IOException {
+    importSimpleApplication();
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
+
+    // Change value to "Reload!"
+    editor
+      .open("app/src/main/res/values-en/strings.xml")
+      .moveBetween("\n", "\n</resources>")
+      .enterText("<string name=\"test_reload\">Reload!</string>\n");
+
+    // Switch back to translations editor and click reload
+    openTranslationsEditor(myStringsXmlPath);
+    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
+    translationsEditor.clickReloadButton();
+
+    // Check "Reload!"
+    TableCell cell = TableCell.row(5).column(ENGLISH_COLUMN);
+    translationsEditor.getTable().selectCell(cell);
+    translationsEditor.waitUntilTableValueAtEquals(cell, "Reload!");
+  }
+
   @NotNull
   private static String toResourceName(@NotNull String resName) {
     // Windows and Linux use a different file path separator
