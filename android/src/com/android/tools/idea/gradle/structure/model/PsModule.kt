@@ -184,10 +184,6 @@ abstract class PsModule protected constructor(
     } ?: noParsedModel()
   }
 
-  private fun noParsedModel() {
-    throw IllegalStateException("Module $name doe snot have a parsed model.")
-  }
-
   private fun addModuleDependencyToParsedModel(configurationNames: List<String>, modulePath: String) {
     parsedModel?.let { parsedModel ->
       val dependencies = parsedModel.dependencies()
@@ -201,6 +197,10 @@ abstract class PsModule protected constructor(
       parsedModel.dependencies().remove(dependency.parsedModel)
       parsedDependencies.reset(parsedModel)
     } ?: noParsedModel()
+  }
+
+  private fun noParsedModel() {
+    throw IllegalStateException("Module $name does not have a parsed model.")
   }
 
   private fun fireLibraryDependencyAddedEvent(spec: PsArtifactDependencySpec) {

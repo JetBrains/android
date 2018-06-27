@@ -22,13 +22,27 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.android.tools.idea.gradle.structure.model.*
 import com.google.common.collect.ImmutableList
 
+
+/**
+ * A collection of dependencies of [parent] Android module.
+ */
+interface PsAndroidDependencyCollection<out LibraryDependencyT, out ModuleDependencyT>
+  : PsDependencyCollection<PsAndroidModule, LibraryDependencyT, ModuleDependencyT>
+  where LibraryDependencyT : PsAndroidDependency,
+        LibraryDependencyT : PsLibraryDependency,
+        ModuleDependencyT : PsAndroidDependency,
+        ModuleDependencyT : PsModuleDependency
+{
+  val items: List<PsAndroidDependency> get() = modules + libraries
+}
+
 /**
  * A collection of parsed (configured) dependencies of [parent] module.
  */
 class PsAndroidModuleDependencyCollection(parent: PsAndroidModule)
   : PsDeclaredDependencyCollection<PsAndroidModule, PsDeclaredLibraryAndroidDependency, PsDeclaredModuleAndroidDependency>(
   parent
-) {
+), PsAndroidDependencyCollection<PsDeclaredLibraryAndroidDependency, PsDeclaredModuleAndroidDependency> {
   private var artifactsByConfigurationNames: Map<String, List<PsAndroidArtifact>> = mapOf()
   override fun initParsedDependencyCollection() {
     artifactsByConfigurationNames = buildArtifactsByConfigurations()
@@ -67,7 +81,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
   : PsResolvedDependencyCollection<PsAndroidArtifact, PsAndroidModule, PsResolvedLibraryAndroidDependency, PsResolvedModuleAndroidDependency>(
   artifact,
   artifact.parent.parent
-) {
+), PsAndroidDependencyCollection<PsResolvedLibraryAndroidDependency, PsResolvedModuleAndroidDependency> {
 
   internal val reverseDependencies: Map<PsLibraryKey, Set<ReverseDependency>>
 
@@ -100,11 +114,10 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
   }
 
   private fun collectReverseDependencies(): Map<PsLibraryKey, Set<ReverseDependency>> {
-    return libraryDependenciesBySpec
-      .values()
+    return libraries
       .flatMap { resolvedDependency ->
         resolvedDependency.pomDependencies.mapNotNull { transitiveDependencyTargetSpec ->
-          libraryDependenciesBySpec[transitiveDependencyTargetSpec.toLibraryKey()]?.singleOrNull()?.let { pomResolvedDependency ->
+          findLibraryDependencies(transitiveDependencyTargetSpec.toLibraryKey()).singleOrNull()?.let { pomResolvedDependency ->
             ReverseDependency.Transitive(pomResolvedDependency.spec, resolvedDependency, transitiveDependencyTargetSpec)
           }
         } +
@@ -133,7 +146,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
       declaredDependencies.addAll(matchingDeclaredDependencies)
       val androidDependency = PsResolvedLibraryAndroidDependency(parent, this, spec, artifact, declaredDependencies)
       androidDependency.setDependenciesFromPomFile(parent.parent.pomDependencyCache.getPomDependencies(library.artifact))
-      libraryDependenciesBySpec.put(androidDependency.spec.toLibraryKey(), androidDependency)
+      addLibraryDependency(androidDependency)
     }
   }
 
@@ -152,7 +165,6 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
         projectVariant,
         module,
         matchingParsedDependency)
-    moduleDependenciesByGradlePath.put(gradlePath, dependency)
-    // else we have a resolved dependency on a removed module (or composite build etc.).
+    addModuleDependency(dependency)
   }
 }

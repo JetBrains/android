@@ -23,13 +23,11 @@ import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
-import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Model for the table displaying the "editable" dependencies of a module.
@@ -47,13 +45,7 @@ class DeclaredDependenciesTableModel extends AbstractDeclaredDependenciesTableMo
 
   @Override
   public void reset() {
-    List<PsAndroidDependency> dependencies =
-      Lists.newArrayList(getModule()
-                           .getDependencies()
-                           .items()
-                           .stream()
-                           .map(it -> (PsAndroidDependency)it)
-                           .collect(Collectors.toList()));
+    List<PsAndroidDependency> dependencies = getModule().getDependencies().getItems();
     Collections.sort(dependencies, new PsDependencyComparator(getContext().getUiSettings()));
     setItems(dependencies);
   }

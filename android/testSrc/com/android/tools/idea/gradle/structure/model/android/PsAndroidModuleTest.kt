@@ -527,7 +527,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
         assertThat(appModule.buildTypes.map { it.name }).containsExactly("debug", "release")
         assertThat(appModule.productFlavors.map { it.name }).containsExactly("basic", "paid", "bar")
         assertThat(appModule.signingConfigs.map { it.name }).containsExactly("myConfig", "debug")
-        assertThat(appModule.dependencies.items().map { "${it.joinedConfigurationNames} ${it.name}" }).containsExactly("api appcompat-v7")
+        assertThat(appModule.dependencies.items.map { "${it.joinedConfigurationNames} ${it.name}" }).containsExactly("api appcompat-v7")
       }
       finally {
         Disposer.dispose(disposable)
@@ -556,7 +556,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
         assertThat(nestedModules.buildTypes.map { it.name }).containsExactly("debug", "release")
         assertThat(nestedModules.productFlavors.map { it.name }).isEmpty()
         assertThat(nestedModules.signingConfigs.map { it.name }).containsExactly("debug")
-        assertThat(nestedModules.dependencies.items().map { "${it.joinedConfigurationNames} ${it.name}" }).isEmpty()
+        assertThat(nestedModules.dependencies.items.map { "${it.joinedConfigurationNames} ${it.name}" }).isEmpty()
       }
       finally {
         Disposer.dispose(disposable)
@@ -576,7 +576,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(module.buildTypes.map { it.name }).containsExactly("debug", "release")
     assertThat(module.productFlavors.map { it.name }).isEmpty()
     assertThat(module.signingConfigs.map { it.name }).containsExactly("myConfig", "debug")
-    assertThat(module.dependencies.items().map { "${it.joinedConfigurationNames} ${it.name}" })
+    assertThat(module.dependencies.items.map { "${it.joinedConfigurationNames} ${it.name}" })
       .containsExactly("debugApi support-v13", "api support-v4")
   }
 

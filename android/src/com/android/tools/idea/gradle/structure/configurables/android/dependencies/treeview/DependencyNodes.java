@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsD
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
-import com.android.tools.idea.gradle.structure.model.PsResolvedDependency;
 import com.android.tools.idea.gradle.structure.model.android.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -62,7 +61,7 @@ public final class DependencyNodes {
         children.add(artifactNode);
       }
     }
-    for (PsDependency dependency : collection.items()) {
+    for (PsDependency dependency: collection.getItems()) {
       if (dependency.isDeclared()) {
         declared.add(dependency);
       }
