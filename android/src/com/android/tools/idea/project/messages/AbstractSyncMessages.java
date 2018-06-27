@@ -200,6 +200,11 @@ public abstract class AbstractSyncMessages implements Disposable {
     if (lines.length > 0) {
       title = lines[0];
     }
+
+    // Since we have no way of changing the text attributes in the BuildConsole we prefix the message with
+    // ERROR or WARNING to indicate to the user the severity of each message.
+    notification.setMessage(notification.getNotificationCategory().name() + ": " + notification.getMessage());
+
     AndroidSyncIssueEvent issueEvent;
     if (notification.getFilePath() != null) {
       issueEvent = new AndroidSyncIssueFileEvent(taskId, notification, title);
