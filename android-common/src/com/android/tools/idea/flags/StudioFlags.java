@@ -385,7 +385,7 @@ public final class StudioFlags {
     EDITOR,
     "in.memory.r.classes",
     "Generate R classes fully in memory",
-    "If enabled, R classes are generated in memory", false);
+    "If enabled, R classes are generated in memory", true);
 
   public static final Flag<Boolean> COLLAPSE_ANDROID_NAMESPACE = Flag.create(
     EDITOR,
