@@ -25,11 +25,10 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.editor.Destination
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
-import com.android.tools.idea.naveditor.scene.layout.*
 import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
+import com.intellij.openapi.command.WriteCommandAction
 import org.mockito.Mockito
 import java.awt.Point
-import kotlin.math.roundToLong
 
 class NavSceneManagerTest : NavTestCase() {
 
@@ -168,9 +167,8 @@ class NavSceneManagerTest : NavTestCase() {
                   (scrollPosition.y / scale).toInt() + initialOffset)
 
     listOf("first", "second", "third", "fourth", "fifth").forEach {
-      val destination = Destination.RegularDestination(currentNavigation, "fragment", null,
-                                                       null, null, it)
-      destination.addToGraph()
+      val destination = Destination.RegularDestination(currentNavigation, "fragment", idBase = it)
+      WriteCommandAction.runWriteCommandAction(project) { destination.addToGraph() }
       destination.component!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
       sceneManager.update()
 

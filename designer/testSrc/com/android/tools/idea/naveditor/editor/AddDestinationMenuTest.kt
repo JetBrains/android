@@ -18,8 +18,10 @@ package com.android.tools.idea.naveditor.editor
 import com.android.tools.idea.actions.NewAndroidComponentAction.CREATED_FILES
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.TestNlEditor
 import com.android.tools.idea.naveditor.model.className
 import com.android.tools.idea.naveditor.model.layout
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -28,7 +30,9 @@ import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.project.rootManager
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.PlatformTestUtil
@@ -95,7 +99,7 @@ class AddDestinationMenuTest : NavTestCase() {
     val parent = model.components[0]
     val expected1 = Destination.RegularDestination(parent, "fragment", null, "BlankFragment", "mytest.navtest.BlankFragment")
     val expected2 = Destination.RegularDestination(parent, "activity", null, "MainActivity", "mytest.navtest.MainActivity",
-        layoutFile = xmlFile)
+                                                   layoutFile = xmlFile)
     val expected3 = Destination.IncludeDestination("navigation.xml", parent)
     assertSameElements(AddDestinationMenu(surface).destinations, ImmutableList.of(expected1, expected2, expected3))
   }
@@ -113,10 +117,33 @@ class AddDestinationMenuTest : NavTestCase() {
     val destination = gallery.model.getElementAt(0) as Destination
     gallery.setSelectedValue(destination, false)
     gallery.dispatchEvent(MouseEvent(
-        gallery, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0,
-        cell0Bounds.centerX.toInt(), cell0Bounds.centerX.toInt(), 1, false))
+      gallery, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0,
+      cell0Bounds.centerX.toInt(), cell0Bounds.centerX.toInt(), 1, false))
     assertNotNull(destination.component)
     assertEquals(listOf(destination.component!!), surface.selectionModel.selection)
+  }
+
+  fun testUndoNewComponent() {
+    val gallery = menu.destinationsList
+    val cell0Bounds = gallery.getCellBounds(0, 0)
+    val destination = gallery.model.getElementAt(0) as Destination
+    gallery.setSelectedValue(destination, false)
+    gallery.dispatchEvent(MouseEvent(
+      gallery, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0,
+      cell0Bounds.centerX.toInt(), cell0Bounds.centerX.toInt(), 1, false))
+
+    // ordinarily this would be done by the resource change listener
+    model.notifyModified(NlModel.ChangeType.EDIT)
+
+    assertNotNull(destination.component)
+    assertEquals(3, surface.currentNavigation.children.size)
+
+    UndoManager.getInstance(project).undo(TestNlEditor(model.virtualFile, project))
+
+    PsiDocumentManager.getInstance(project).commitAllDocuments()
+    model.notifyModified(NlModel.ChangeType.EDIT)
+
+    assertEquals(2, surface.currentNavigation.children.size)
   }
 
   fun testFiltering() {
@@ -158,7 +185,7 @@ class AddDestinationMenuTest : NavTestCase() {
     model.pendingIds.addAll(model.flattenComponents().map { it.id }.collect(Collectors.toList()))
     val event = mock(AnActionEvent::class.java)
     `when`(event.project).thenReturn(project)
-    val action = object: AnAction() {
+    val action = object : AnAction() {
       override fun actionPerformed(e: AnActionEvent) {
         TestCase.assertEquals(event, e)
         val createdFiles = DataManagerImpl.MyDataContext(panel).getData(CREATED_FILES)!!
@@ -183,7 +210,7 @@ class AddDestinationMenuTest : NavTestCase() {
     model.pendingIds.addAll(model.flattenComponents().map { it.id }.collect(Collectors.toList()))
     val event = mock(AnActionEvent::class.java)
     `when`(event.project).thenReturn(project)
-    val action = object: AnAction() {
+    val action = object : AnAction() {
       override fun actionPerformed(e: AnActionEvent) {
         TestCase.assertEquals(event, e)
         val createdFiles = DataManagerImpl.MyDataContext(panel).getData(CREATED_FILES)!!

@@ -17,6 +17,7 @@ import com.android.annotations.VisibleForTesting
 import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.actions.NewAndroidComponentAction
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.scene.NavColorSet
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -34,6 +35,8 @@ import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
+import com.intellij.openapi.application.Result
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
@@ -334,13 +337,19 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       return
     }
     creatingInProgress = true
-    destination.addToGraph()
-    // explicitly update so the new SceneComponent is created
-    surface.sceneManager!!.update()
-    val component = destination.component
-    component!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
-    surface.selectionModel.setSelection(ImmutableList.of(component))
+
     balloon?.hide()
+    lateinit var component: NlComponent
+    object : WriteCommandAction<Unit>(surface.project, "Add ${destination.label}", surface.model?.file) {
+      override fun run(result: Result<Unit>) {
+        destination.addToGraph()
+        component = destination.component ?: return
+        component.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
+        // explicitly update so the new SceneComponent is created
+        surface.sceneManager!!.update()
+      }
+    }.execute()
+    surface.selectionModel.setSelection(ImmutableList.of(component))
   }
 
   override fun createCustomComponent(presentation: Presentation): JComponent {

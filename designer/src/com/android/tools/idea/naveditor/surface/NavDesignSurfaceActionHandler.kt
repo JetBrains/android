@@ -17,11 +17,11 @@ package com.android.tools.idea.naveditor.surface
 
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
 import com.android.tools.idea.naveditor.actions.getNextDestination
 import com.android.tools.idea.naveditor.model.*
 import com.android.tools.idea.naveditor.scene.getPositionData
-import com.android.tools.idea.naveditor.scene.restorePositionData
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
@@ -48,16 +48,20 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfa
         val model = surface.model ?: return
         for (component in selection) {
           if (component.isDestination) {
-            val sceneComponent = surface.scene?.getSceneComponent(component)
+            val sceneComponent: SceneComponent? = surface.scene?.getSceneComponent(component)
             val positionData = sceneComponent?.getPositionData()
+            val path = sceneComponent?.nlComponent?.idPath
+
             UndoManager.getInstance(project).undoableActionPerformed(object : BasicUndoableAction(component.model.file.virtualFile) {
               override fun undo() {
-                if (sceneComponent != null && positionData != null) {
-                  sceneComponent.restorePositionData(positionData)
+                if (path == null || positionData == null) {
+                  return
                 }
+                surface.sceneManager?.restorePositionData(path, positionData)
               }
 
-              override fun redo() {}
+              override fun redo() {
+              }
             })
             val parent = component.parent ?: continue
             model.delete(parent.flatten().filter { it.isAction && it.actionDestination == component }.collect(Collectors.toList()))

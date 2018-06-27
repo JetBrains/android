@@ -18,5 +18,3 @@ package com.android.tools.idea.naveditor.scene
 import com.android.tools.idea.common.scene.SceneComponent
 
 fun SceneComponent.getPositionData(): Any? = (scene.sceneManager as NavSceneManager).getPositionData(this)
-
-fun SceneComponent.restorePositionData(positionData: Any) = (scene.sceneManager as NavSceneManager).restorePositionData(this, positionData)
