@@ -27,6 +27,9 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.Map;
@@ -216,5 +219,35 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     strategy = strategies.get(TYPE_DEPRECATED_CONFIGURATION);
     assertThat(strategy).isInstanceOf(DeprecatedConfigurationReporter.class);
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
+  }
+
+  public void testReportErrorBeforeWarning() throws Exception {
+    loadSimpleApplication();
+    SyncIssue syncIssue2 = mock(SyncIssue.class);
+    SyncIssue syncIssue3 = mock(SyncIssue.class);
+
+    when(mySyncIssue.getMessage()).thenReturn("Warning message!");
+    when(mySyncIssue.getData()).thenReturn("key1");
+    when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_WARNING);
+    when(mySyncIssue.getType()).thenReturn(TYPE_BUILD_TOOLS_TOO_LOW);
+    when(syncIssue2.getMessage()).thenReturn("Error message!");
+    when(syncIssue2.getData()).thenReturn("key");
+    when(syncIssue2.getSeverity()).thenReturn(SEVERITY_ERROR);
+    when(syncIssue2.getType()).thenReturn(TYPE_DEPENDENCY_INTERNAL_CONFLICT);
+    when(syncIssue3.getMessage()).thenReturn("Warning message!");
+    when(syncIssue3.getData()).thenReturn("key2");
+    when(syncIssue3.getSeverity()).thenReturn(SEVERITY_WARNING);
+    when(syncIssue3.getType()).thenReturn(TYPE_BUILD_TOOLS_TOO_LOW);
+    when(myStrategy2.getSupportedIssueType()).thenReturn(TYPE_DEPENDENCY_INTERNAL_CONFLICT);
+
+    SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
+
+    Module appModule = myModules.getAppModule();
+    reporter.report(ImmutableMap.of(appModule, ImmutableList.of(mySyncIssue, syncIssue2, syncIssue3)));
+
+    InOrder inOrder = inOrder(myStrategy1, myStrategy2);
+
+    inOrder.verify(myStrategy2).reportAll(eq(ImmutableList.of(syncIssue2)), anyMap(), anyMap());
+    inOrder.verify(myStrategy1).reportAll(eq(ImmutableList.of(mySyncIssue, syncIssue3)), anyMap(), anyMap());
   }
 }

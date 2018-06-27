@@ -26,6 +26,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
@@ -98,15 +99,22 @@ public class SyncIssuesReporter {
       buildFileMap.put(module, getGradleBuildFile(module));
 
       issuesByModules.get(module).forEach(issue -> {
-        syncIssues.computeIfAbsent(issue.getType(), (type) -> new ArrayList<>()).add(issue);
-        moduleMap.put(issue, module);
-        if (issue.getSeverity() == SEVERITY_ERROR) {
-          hasSyncErrors[0] = true;
+        if (issue != null) {
+          syncIssues.computeIfAbsent(issue.getType(), (type) -> new ArrayList<>()).add(issue);
+          moduleMap.put(issue, module);
+          if (issue.getSeverity() == SEVERITY_ERROR) {
+            hasSyncErrors[0] = true;
+          }
         }
       });
     }
 
-    for (Map.Entry<Integer, List<SyncIssue>> entry : syncIssues.entrySet()) {
+    // Make sure errors are reported before warnings, note this assumes that each type of issue will be the same type.
+    // Otherwise errors and warnings may be interleaved.
+    Map<Integer, List<SyncIssue>> sortedSyncIssues = syncIssues.entrySet().stream().sorted(
+      Collections.reverseOrder(Map.Entry.comparingByValue(Comparator.comparing(issues -> issues.get(0).getSeverity())))).collect(
+      Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldVal, newVal) -> oldVal, LinkedHashMap::new));
+    for (Map.Entry<Integer, List<SyncIssue>> entry : sortedSyncIssues.entrySet()) {
       BaseSyncIssuesReporter strategy = myStrategies.get(entry.getKey());
       if (strategy == null) {
         strategy = myDefaultMessageFactory;
