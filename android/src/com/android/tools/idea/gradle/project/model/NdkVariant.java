@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.model;
 
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
-import com.android.builder.model.NativeFolder;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,9 +48,6 @@ public class NdkVariant {
     for (NativeArtifact artifact : getArtifacts()) {
       if (myExportedHeadersSupported) {
         sourceFolders.addAll(artifact.getExportedHeaders());
-      }
-      for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
-        sourceFolders.add(sourceFolder.getFolderPath());
       }
       for (NativeFile sourceFile : artifact.getSourceFiles()) {
         File parentFile = sourceFile.getFilePath().getParentFile();
