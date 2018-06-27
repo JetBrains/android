@@ -39,7 +39,7 @@ interface AndroidModuleTemplate {
    */
   fun getTestDirectory(packageName: String?): File?
 
-  val resDirectory: File?
+  val resDirectories: List<File>
 
   /**
    * Similar to [AndroidModuleTemplate.getSrcDirectory], except for new aidl files.

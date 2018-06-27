@@ -35,6 +35,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -386,11 +387,10 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time.
     myListeners.receiveAndFire(mySelectedTemplate, (NamedModuleTemplate template) -> {
       IconGenerator iconGenerator = getModel().getIconGenerator();
-      File resDir = template.getPaths().getResDirectory();
+      File resDir = Iterables.getFirst(template.getPaths().getResDirectories(), null);
       if (iconGenerator == null || resDir == null || resDir.getParentFile() == null) {
         return;
       }
-
 
       myFilesAlreadyExist.set(false);
       myPathToPreviewImage = iconGenerator.generateIntoIconMap(template.getPaths());

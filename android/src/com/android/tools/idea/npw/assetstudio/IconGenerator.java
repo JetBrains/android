@@ -28,6 +28,7 @@ import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -158,7 +159,7 @@ public abstract class IconGenerator implements Disposable {
       throw new IllegalStateException("Can't save icons to disk if a filename isn't set first");
     }
 
-    File resDirectory = paths.getResDirectory();
+    File resDirectory = Iterables.getFirst(paths.getResDirectories(), null);
     if (resDirectory == null || resDirectory.getParentFile() == null) {
       throw new IllegalArgumentException("Invalid paths used when trying to generate an icon");
     }
@@ -207,7 +208,7 @@ public abstract class IconGenerator implements Disposable {
       throw new IllegalStateException("Can't save icons to disk if a filename isn't set first");
     }
 
-    File resDirectory = paths.getResDirectory();
+    File resDirectory = Iterables.getFirst(paths.getResDirectories(), null);
     if (resDirectory == null || resDirectory.getParentFile() == null) {
       throw new IllegalArgumentException("Invalid paths used when trying to generate an icon");
     }

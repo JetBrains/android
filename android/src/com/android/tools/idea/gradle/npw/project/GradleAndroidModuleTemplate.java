@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.npw.project;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -59,7 +60,7 @@ public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
   @Nullable private File myModuleRoot;
   @Nullable private File mySrcRoot;
   @Nullable private File myTestRoot;
-  @Nullable private File myResDirectory;
+  @NotNull private List<File> myResDirectories = Collections.emptyList();
   @Nullable private File myAidlRoot;
   @Nullable private File myManifestDirectory;
 
@@ -91,9 +92,9 @@ public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
   }
 
   @Override
-  @Nullable
-  public File getResDirectory() {
-    return myResDirectory;
+  @NotNull
+  public List<File> getResDirectories() {
+    return myResDirectories;
   }
 
   @Override
@@ -119,14 +120,14 @@ public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
    */
   public static NamedModuleTemplate createDefaultTemplateAt(@NotNull File moduleRoot) {
     File baseSrcDir = new File(moduleRoot, FD_SOURCES);
-    File baseFlavourDir = new File(baseSrcDir, FD_MAIN);
+    File baseFlavorDir = new File(baseSrcDir, FD_MAIN);
     GradleAndroidModuleTemplate paths = new GradleAndroidModuleTemplate();
     paths.myModuleRoot = moduleRoot;
-    paths.mySrcRoot = new File(baseFlavourDir, FD_JAVA);
+    paths.mySrcRoot = new File(baseFlavorDir, FD_JAVA);
     paths.myTestRoot = new File(baseSrcDir.getPath(), FD_TEST + File.separatorChar + FD_JAVA);
-    paths.myResDirectory = new File(baseFlavourDir, FD_RESOURCES);
-    paths.myAidlRoot = new File(baseFlavourDir, FD_AIDL);
-    paths.myManifestDirectory = baseFlavourDir;
+    paths.myResDirectories = ImmutableList.of(new File(baseFlavorDir, FD_RESOURCES));
+    paths.myAidlRoot = new File(baseFlavorDir, FD_AIDL);
+    paths.myManifestDirectory = baseFlavorDir;
     return new NamedModuleTemplate("main", paths);
   }
 
@@ -168,7 +169,7 @@ public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
       if (!testsRoot.isEmpty()) {
         paths.myTestRoot = VfsUtilCore.virtualToIoFile(testsRoot.get(0));
       }
-      paths.myResDirectory = Iterables.getFirst(sourceProvider.getResDirectories(), null);
+      paths.myResDirectories = ImmutableList.copyOf(sourceProvider.getResDirectories());
       paths.myAidlRoot = Iterables.getFirst(sourceProvider.getAidlDirectories(), null);
       paths.myManifestDirectory = sourceProvider.getManifestFile().getParentFile();
       templates.add(new NamedModuleTemplate(sourceProvider.getName(), paths));
