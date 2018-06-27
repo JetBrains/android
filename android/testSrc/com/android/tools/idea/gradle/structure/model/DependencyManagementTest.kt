@@ -241,94 +241,86 @@ class DependencyManagementTest : DependencyTestCase() {
   }
 
   fun testEditLibraryDependencyVersion() {
-    var module = project.findModuleByName("moduleA") as PsAndroidModule
-    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
-    module.addLibraryDependency("com.example.libs:lib1:1.0", listOf("implementation"))
-    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+    var module = project.findModuleByName("mainModule") as PsAndroidModule
 
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation"), notNullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1", "implementation"), nullValue())
     run {
-      val resolvedDependencies = module.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
-      assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
-    }
-
-    project.applyChanges()
-    requestSyncAndWait()
-    reparse()
-
-    module = project.findModuleByName("moduleA") as PsAndroidModule
-    val declaredLib1Dependencies = module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
-    assertThat(declaredLib1Dependencies, notNullValue())
-    assertThat(declaredLib1Dependencies!!.size, equalTo(1))
-
-    run {
-      val resolvedDependencies = module.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
-      val resolvedDependency = resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0")
-      assertThat(resolvedDependency, notNullValue())
-      assertThat(resolvedDependency?.first()?.hasPromotedVersion(), equalTo(false))
+      val resolvedDependencies = module.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      val lib1 = resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0")
+      assertThat(lib1, notNullValue())
+      assertThat(lib1?.first()?.spec?.version, equalTo("1.0"))
     }
 
     module.setLibraryDependencyVersion(PsArtifactDependencySpec.create("com.example.libs:lib1:1.0")!!, "implementation", "0.9.1")
 
-    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
-    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1"), notNullValue())
-
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation"), nullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1", "implementation"), notNullValue())
     run {
-      val resolvedDependencies = module.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
-      val resolvedDependency = resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0")
-      assertThat(resolvedDependency, notNullValue())
-      assertThat(resolvedDependency?.first()?.hasPromotedVersion(), equalTo(true))
-    }
-  }
-
-  fun testEditLibraryDependencyVersionProperty() {
-    var module = project.findModuleByName("moduleA") as PsAndroidModule
-    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
-    module.addLibraryDependency("com.example.libs:lib1:1.0", listOf("implementation"))
-    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
-
-    run {
-      val resolvedDependencies = module.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
-      assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
+      val resolvedDependencies = module.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      val lib1 = resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0")
+      assertThat(lib1, notNullValue())
+      assertThat(lib1?.first()?.spec?.version, equalTo("1.0"))
     }
 
     project.applyChanges()
     requestSyncAndWait()
     reparse()
 
-    module = project.findModuleByName("moduleA") as PsAndroidModule
-    val declaredLib1Dependencies = module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
-    assertThat(declaredLib1Dependencies, notNullValue())
-    assertThat(declaredLib1Dependencies!!.size, equalTo(1))
-
-    val oldResolved = run {
-      val resolvedDependencies = module.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
-      val resolvedDependency = resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0")
-      assertThat(resolvedDependency, notNullValue())
-      assertThat(resolvedDependency?.first()?.hasPromotedVersion(), equalTo(false))
-      resolvedDependency
-    }
-
-    var modifiedEvent: PsModule.DependencyModifiedEvent? = null
-    module.addDependencyChangedListener(testRootDisposable) {
-      when (it) {is PsModule.DependencyModifiedEvent -> modifiedEvent = it
-      }
-    }
-
-    declaredLib1Dependencies[0].version = "0.9.1".asParsed()
-    assertThat<PsDeclaredDependency>(modifiedEvent?.dependency, sameInstance(declaredLib1Dependencies[0]))
-
-    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
-    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1"), notNullValue())
-
+    module = project.findModuleByName("mainModule") as PsAndroidModule
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation"), nullValue())
+    assertThat(
+      module.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1", "implementation"), notNullValue())
     run {
-      val resolvedDependencies = module.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
-      val resolvedDependency = resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0")
-      assertThat(resolvedDependency, notNullValue())
-      assertThat(resolvedDependency?.first()?.hasPromotedVersion(), equalTo(true))
-      // Ensure that the resolved dependencies have been updated.
-      // TODO(solodkyy): Replace the following implementation specific test with a test verifying that edits to the scope are reflected onto
-      //                 the resolved dependency collection (when scope editing is available).
-      assertThat(oldResolved, not(sameInstance(resolvedDependency)))
+      val resolvedDependencies = module.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      val lib1 = resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:0.9.1")
+      assertThat(lib1, notNullValue())
+      assertThat(lib1?.first()?.spec?.version, equalTo("0.9.1"))
+    }
+  }
+
+  fun testEditLibraryDependencyVersionProperty() {
+    var module = project.findModuleByName("mainModule") as PsAndroidModule
+
+    val declaredDependency = module.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1", "releaseImplementation")
+    assertThat(declaredDependency, notNullValue())
+    assertThat(declaredDependency?.size, equalTo(1))
+    assertThat(
+      module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "releaseImplementation"), nullValue())
+    run {
+      val resolvedDependencies = module.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      val lib1 = resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0")
+      assertThat(lib1.testHasPromotedVersion(), equalTo(listOf(true)))
+      assertThat(lib1, notNullValue())
+      assertThat(lib1?.first()?.spec?.version, equalTo("1.0"))
+    }
+
+    declaredDependency!![0].version = "1.0".asParsed()
+
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "releaseImplementation"), notNullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1", "releaseImplementation"), nullValue())
+    run {
+      val resolvedDependencies = module.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      val lib1 = resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0")
+      assertThat(lib1.testHasPromotedVersion(), equalTo(listOf(false)))
+      assertThat(lib1, notNullValue())
+      assertThat(lib1?.first()?.spec?.version, equalTo("1.0"))
+    }
+
+    project.applyChanges()
+    requestSyncAndWait()
+    reparse()
+
+    module = project.findModuleByName("mainModule") as PsAndroidModule
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1", "releaseImplementation"), nullValue())
+    assertThat(
+      module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "releaseImplementation"), notNullValue())
+    run {
+      val resolvedDependencies = module.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      val lib1 = resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0")
+      assertThat(lib1.testHasPromotedVersion(), equalTo(listOf(false)))
+      assertThat(lib1, notNullValue())
+      assertThat(lib1?.first()?.spec?.version, equalTo("1.0"))
     }
   }
 
@@ -453,13 +445,16 @@ class DependencyManagementTest : DependencyTestCase() {
   }
 }
 
-private fun PsAndroidModuleDependencyCollection.findLibraryDependency(compactNotation: String): List<PsDeclaredLibraryAndroidDependency>? =
+private fun PsAndroidModuleDependencyCollection.findLibraryDependency(
+  compactNotation: String,
+  configuration: String? = null
+): List<PsDeclaredLibraryAndroidDependency>? =
   PsArtifactDependencySpec.create(compactNotation)?.let { spec ->
     findLibraryDependencies(
       spec.group,
       spec.name
     )
-      .filter { it.spec.version == spec.version }
+      .filter { it.spec.version == spec.version && it.configurationName == (configuration ?: it.configurationName) }
       .let { if (it.isEmpty()) null else it }
   }
 
