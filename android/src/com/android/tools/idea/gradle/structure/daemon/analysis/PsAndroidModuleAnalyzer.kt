@@ -25,8 +25,6 @@ import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.*
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.gradle.structure.model.android.PsDeclaredLibraryAndroidDependency
-import com.android.tools.idea.gradle.structure.model.android.PsResolvedLibraryAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.ReverseDependency
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
@@ -44,7 +42,7 @@ class PsAndroidModuleAnalyzer(context: PsContext) : PsModuleAnalyzer<PsAndroidMo
     val issuesByData = ArrayListMultimap.create<String, SyncIssue>()
     val gradleModel = model.resolvedModel
     transferSyncIssues(gradleModel, issuesByData)
-    analyzeDeclareDependencies(model, issuesByData, issueCollection)
+    analyzeDeclaredDependencies(model, issuesByData, issueCollection)
     analyzeLibraryVersionPromotions(model, issueCollection)
   }
 
@@ -57,21 +55,19 @@ class PsAndroidModuleAnalyzer(context: PsContext) : PsModuleAnalyzer<PsAndroidMo
     }
   }
 
-  private fun analyzeDeclareDependencies(model: PsAndroidModule,
-                                         issuesByData: ArrayListMultimap<String, SyncIssue>,
-                                         issueCollection: PsIssueCollection) {
-    model.dependencies.forEach { dependency ->
-      if (dependency is PsDeclaredLibraryAndroidDependency && dependency.isDeclared) {
-        val path = PsLibraryDependencyNavigationPath(dependency)
+  private fun analyzeDeclaredDependencies(model: PsAndroidModule,
+                                          issuesByData: ArrayListMultimap<String, SyncIssue>,
+                                          issueCollection: PsIssueCollection) {
+    model.dependencies.forEachLibraryDependency { dependency ->
+      val path = PsLibraryDependencyNavigationPath(dependency)
 
-        val issueKey = dependency.spec.group + GRADLE_PATH_SEPARATOR + dependency.spec.name
-        val librarySyncIssues = issuesByData.get(issueKey)
-        for (syncIssue in librarySyncIssues) {
-          val issue = createIssueFrom(syncIssue, path)
-          issueCollection.add(issue)
-        }
-        analyzeDeclaredDependency(dependency, issueCollection)
+      val issueKey = dependency.spec.group + GRADLE_PATH_SEPARATOR + dependency.spec.name
+      val librarySyncIssues = issuesByData.get(issueKey)
+      for (syncIssue in librarySyncIssues) {
+        val issue = createIssueFrom(syncIssue, path)
+        issueCollection.add(issue)
       }
+      analyzeDeclaredDependency(dependency, issueCollection)
     }
   }
 
@@ -81,7 +77,7 @@ class PsAndroidModuleAnalyzer(context: PsContext) : PsModuleAnalyzer<PsAndroidMo
       model
         .variants
         .flatMap { it.artifacts }
-        .flatMap { it.dependencies.items().filterIsInstance<PsResolvedLibraryAndroidDependency>() }
+        .flatMap { it.dependencies.libraries }
         .flatMap { resolved ->
           resolved
             .getReverseDependencies()

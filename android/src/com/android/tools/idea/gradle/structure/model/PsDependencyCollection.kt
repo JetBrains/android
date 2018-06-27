@@ -18,55 +18,59 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.google.common.collect.LinkedListMultimap
-import java.util.function.Consumer
 
-abstract class PsDependencyCollection<out ModuleT : PsModule, DependencyT>(protected val parent: ModuleT) : PsModelCollection<DependencyT>
-
-abstract class PsDeclaredDependencyCollection<out ModuleT, out LibraryDependencyT, out ModuleDependencyT>(parent: ModuleT)
-  : PsDependencyCollection<ModuleT, PsDeclaredDependency>(parent)
+interface PsDependencyCollection<out ModuleT, out LibraryDependencyT, out ModuleDependencyT>
   where ModuleT : PsModule,
-        LibraryDependencyT : PsDeclaredDependency,
         LibraryDependencyT : PsLibraryDependency,
         LibraryDependencyT : PsDependency,
-        ModuleDependencyT : PsDeclaredDependency,
         ModuleDependencyT : PsModuleDependency,
         ModuleDependencyT : PsDependency
 {
+  val parent: ModuleT
+  val libraries: List<LibraryDependencyT>
+  val modules: List<ModuleDependencyT>
 
-  open fun initParsedDependencyCollection() {}
-  abstract fun createLibraryDependency(artifactDependencyModel: ArtifactDependencyModel): LibraryDependencyT
-  abstract fun createModuleDependency(moduleDependencyModel: ModuleDependencyModel): ModuleDependencyT
+  fun isEmpty(): Boolean
 
-  private val moduleDependenciesByGradlePath = LinkedListMultimap.create<String, ModuleDependencyT>()!!
+  fun findModuleDependencies(gradlePath: String): List<ModuleDependencyT>
+  fun findLibraryDependencies(group: String?, name: String): List<LibraryDependencyT>
+  fun findLibraryDependencies(libraryKey: PsLibraryKey): List<LibraryDependencyT>
+
+  fun forEachModuleDependency(consumer: (ModuleDependencyT) -> Unit) = modules.forEach(consumer)
+  fun forEachLibraryDependency(consumer: (LibraryDependencyT) -> Unit) = libraries.forEach(consumer)
+}
+
+abstract class PsDependencyCollectionBase<out ModuleT, LibraryDependencyT, ModuleDependencyT>(
+  override val parent: ModuleT
+) : PsDependencyCollection<ModuleT, LibraryDependencyT, ModuleDependencyT>
+  where ModuleT : PsModule,
+        LibraryDependencyT : PsLibraryDependency,
+        LibraryDependencyT : PsDependency,
+        ModuleDependencyT : PsModuleDependency,
+        ModuleDependencyT : PsDependency {
   private val libraryDependenciesBySpec = LinkedListMultimap.create<PsLibraryKey, LibraryDependencyT>()!!
+  private val moduleDependenciesByGradlePath = LinkedListMultimap.create<String, ModuleDependencyT>()!!
 
-  init {
-    collectParsedDependencies()
-  }
+  override fun isEmpty(): Boolean = moduleDependenciesByGradlePath.isEmpty && libraryDependenciesBySpec.isEmpty
+  override val libraries: List<LibraryDependencyT> get() = libraryDependenciesBySpec.values()
+  override val modules: List<ModuleDependencyT> get() = moduleDependenciesByGradlePath.values()
 
-  fun isEmpty(): Boolean = moduleDependenciesByGradlePath.isEmpty && libraryDependenciesBySpec.isEmpty
-
-  override fun forEach(consumer: Consumer<PsDeclaredDependency>) {
-    libraryDependenciesBySpec.values().forEach(consumer)
-    moduleDependenciesByGradlePath.values().forEach(consumer)
-  }
-
-  fun forEachModuleDependency(consumer: (ModuleDependencyT) -> Unit) {
-    moduleDependenciesByGradlePath.values().forEach(consumer)
-  }
-
-  fun forEachLibraryDependency(consumer: (LibraryDependencyT) -> Unit) {
-    libraryDependenciesBySpec.values().forEach(consumer)
-  }
-
-  fun findModuleDependencies(gradlePath: String): List<ModuleDependencyT> =
+  override fun findModuleDependencies(gradlePath: String): List<ModuleDependencyT> =
     moduleDependenciesByGradlePath[gradlePath].toList()
 
-  fun findLibraryDependencies(group: String?, name: String): List<LibraryDependencyT> =
+  override fun findLibraryDependencies(group: String?, name: String): List<LibraryDependencyT> =
     libraryDependenciesBySpec[PsLibraryKey(group.orEmpty(), name)].toList()
 
-  fun findLibraryDependencies(libraryKey: PsLibraryKey): List<LibraryDependencyT> =
+  override fun findLibraryDependencies(libraryKey: PsLibraryKey): List<LibraryDependencyT> =
     libraryDependenciesBySpec[libraryKey].toList()
+
+  protected fun addLibraryDependency(dependency: LibraryDependencyT) {
+    libraryDependenciesBySpec.put(dependency.spec.toLibraryKey(), dependency)
+  }
+
+  protected fun addModuleDependency(dependency: ModuleDependencyT) {
+    moduleDependenciesByGradlePath.put(dependency.gradlePath, dependency)
+  }
 
   fun reindex() {
     val libraryDependencies = libraryDependenciesBySpec.values().toList()
@@ -78,6 +82,25 @@ abstract class PsDeclaredDependencyCollection<out ModuleT, out LibraryDependency
     moduleDependenciesByGradlePath.clear()
     moduleDependencies.forEach { moduleDependenciesByGradlePath.put(it.gradlePath, it) }
   }
+}
+
+abstract class PsDeclaredDependencyCollection<out ModuleT, LibraryDependencyT, ModuleDependencyT>(parent: ModuleT)
+  : PsDependencyCollectionBase<ModuleT, LibraryDependencyT, ModuleDependencyT>(parent)
+  where ModuleT : PsModule,
+        LibraryDependencyT : PsDeclaredDependency,
+        LibraryDependencyT : PsLibraryDependency,
+        LibraryDependencyT : PsDependency,
+        ModuleDependencyT : PsDeclaredDependency,
+        ModuleDependencyT : PsModuleDependency,
+        ModuleDependencyT : PsDependency
+{
+  open fun initParsedDependencyCollection() {}
+  abstract fun createLibraryDependency(artifactDependencyModel: ArtifactDependencyModel): LibraryDependencyT
+  abstract fun createModuleDependency(moduleDependencyModel: ModuleDependencyModel): ModuleDependencyT
+
+  init {
+    collectParsedDependencies()
+  }
 
   private fun collectParsedDependencies() {
     initParsedDependencyCollection()
@@ -86,13 +109,10 @@ abstract class PsDeclaredDependencyCollection<out ModuleT, out LibraryDependency
 
   private fun collectParsedDependencies(parsedDependencies: PsParsedDependencies) {
     parsedDependencies.forEachLibraryDependency { libraryDependency ->
-      val declaredDependency = createLibraryDependency(libraryDependency)
-      libraryDependenciesBySpec.put(declaredDependency.spec.toLibraryKey(), declaredDependency)
+      addLibraryDependency(createLibraryDependency(libraryDependency))
     }
     parsedDependencies.forEachModuleDependency { moduleDependency ->
-      val gradlePath = moduleDependency.path().forceString()
-      moduleDependenciesByGradlePath.put(gradlePath, createModuleDependency(moduleDependency)
-      )
+      addModuleDependency(createModuleDependency(moduleDependency))
     }
   }
 }
@@ -100,7 +120,7 @@ abstract class PsDeclaredDependencyCollection<out ModuleT, out LibraryDependency
 abstract class PsResolvedDependencyCollection<ContainerT, out ModuleT, LibraryDependencyT, ModuleDependencyT>(
   val container: ContainerT,
   module: ModuleT
-) : PsDependencyCollection<ModuleT, PsDependency>(module)
+) : PsDependencyCollectionBase<ModuleT, LibraryDependencyT, ModuleDependencyT>(module)
   where ModuleT : PsModule,
         LibraryDependencyT : PsResolvedDependency,
         LibraryDependencyT : PsLibraryDependency,
@@ -111,37 +131,8 @@ abstract class PsResolvedDependencyCollection<ContainerT, out ModuleT, LibraryDe
 
   abstract fun collectResolvedDependencies(container: ContainerT)
 
-  protected val moduleDependenciesByGradlePath = LinkedListMultimap.create<String, ModuleDependencyT>()!!
-  protected val libraryDependenciesBySpec = LinkedListMultimap.create<PsLibraryKey, LibraryDependencyT>()!!
-
   init {
     @Suppress("LeakingThis")
     collectResolvedDependencies(container)
-  }
-
-  fun isEmpty(): Boolean = moduleDependenciesByGradlePath.isEmpty && libraryDependenciesBySpec.isEmpty
-
-  override fun forEach(consumer: Consumer<PsDependency>) {
-    libraryDependenciesBySpec.values().forEach(consumer)
-    moduleDependenciesByGradlePath.values().forEach(consumer)
-  }
-
-  fun forEachModuleDependency(consumer: (ModuleDependencyT) -> Unit) {
-    moduleDependenciesByGradlePath.values().forEach(consumer)
-  }
-
-  fun forEachLibraryDependency(consumer: (LibraryDependencyT) -> Unit) {
-    libraryDependenciesBySpec.values().forEach { consumer(it) }
-  }
-
-  fun findLibraryDependencies(group: String?, name: String): List<LibraryDependencyT> =
-    libraryDependenciesBySpec[PsLibraryKey(group.orEmpty(), name)].toList()
-
-  protected fun addLibraryDependency(dependency: LibraryDependencyT) {
-    libraryDependenciesBySpec.put(dependency.spec.toLibraryKey(), dependency)
-  }
-
-  protected fun addModuleDependency(dependency: ModuleDependencyT) {
-    moduleDependenciesByGradlePath.put(dependency.gradlePath, dependency)
   }
 }
