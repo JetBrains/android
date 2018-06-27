@@ -24,6 +24,7 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationCate
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
+import junit.framework.TestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -43,6 +44,7 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
   override fun setUp() {
     super.setUp()
     messageStub = GradleSyncMessagesStub.replaceSyncMessagesService(project)
+    messageStub.clearReportedMessages()
     reporter = DeprecatedConfigurationReporter()
     reporter = DeprecatedConfigurationReporter()
     syncIssue1 = mock(SyncIssue::class.java)
@@ -60,8 +62,6 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
 
   @Test
   fun testDeduplicationInSameModule() {
-    messageStub.clearReportedMessages()
-
     `when`(syncIssue1.message).thenReturn("Warning message!")
     `when`(syncIssue1.data).thenReturn("key")
     `when`(syncIssue1.severity).thenReturn(SEVERITY_WARNING)
@@ -85,8 +85,6 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
 
   @Test
   fun testNoDeduplicationInSameModule() {
-    messageStub.clearReportedMessages()
-
     `when`(syncIssue1.message).thenReturn("Warning message!")
     `when`(syncIssue1.data).thenReturn("key1")
     `when`(syncIssue1.severity).thenReturn(SEVERITY_WARNING)
@@ -116,8 +114,6 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
 
   @Test
   fun testDeduplicationAcrossModules() {
-    messageStub.clearReportedMessages()
-
     `when`(syncIssue1.message).thenReturn("Warning message!")
     `when`(syncIssue1.data).thenReturn("key")
     `when`(syncIssue1.severity).thenReturn(SEVERITY_WARNING)
@@ -143,8 +139,6 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
 
   @Test
   fun testNoDeduplicationAcrossModules() {
-    messageStub.clearReportedMessages()
-
     `when`(syncIssue1.message).thenReturn("Warning message!")
     `when`(syncIssue1.data).thenReturn("key1")
     `when`(syncIssue1.severity).thenReturn(SEVERITY_WARNING)
@@ -174,10 +168,6 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
 
   @Test
   fun testDeduplicationHandlesErrors() {
-    messageStub.clearReportedMessages()
-
-    messageStub.clearReportedMessages()
-
     `when`(syncIssue1.message).thenReturn("Error message!")
     `when`(syncIssue1.data).thenReturn("key")
     `when`(syncIssue1.severity).thenReturn(SEVERITY_WARNING)
