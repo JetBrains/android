@@ -34,6 +34,7 @@ import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.ui.ListCellRendererWrapper;
@@ -46,6 +47,7 @@ import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -162,7 +164,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time
     myListeners.receiveAndFire(mySelectedTemplate, template -> {
       IconGenerator iconGenerator = getModel().getIconGenerator();
-      File resDir = template.getPaths().getResDirectory();
+      File resDir = Iterables.getFirst(template.getPaths().getResDirectories(), null);
       if (iconGenerator == null || resDir == null || resDir.getParentFile() == null) {
         return;
       }
@@ -175,17 +177,20 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
         Density density1 = pathToDensity(path1);
         Density density2 = pathToDensity(path2);
 
+        int cmp = Boolean.compare(density1 != null, density2 != null);
+        if (cmp != 0) {
+          return cmp;
+        }
+
         if (density1 != null && density2 != null && density1 != density2) {
-          // Sort least dense to most dense
-          return Integer.compare(density2.ordinal(), density1.ordinal());
+          return Integer.compare(density2.getDpiValue(), density1.getDpiValue()); // Sort least dense to most dense.
         }
-        else {
-          BufferedImage image1 = pathToUnscaledImage.get(file1);
-          BufferedImage image2 = pathToUnscaledImage.get(file2);
-          int compareValue = Integer.compare(image2.getHeight(), image1.getHeight());
-          // If heights are the same, use path as a tie breaker.
-          return compareValue != 0 ? compareValue : path2.compareTo(path1);
-        }
+
+        BufferedImage image1 = pathToUnscaledImage.get(file1);
+        BufferedImage image2 = pathToUnscaledImage.get(file2);
+        cmp = Integer.compare(image2.getHeight(), image1.getHeight());
+        // If heights are the same, use path as a tie breaker.
+        return cmp != 0 ? cmp : path2.compareTo(path1);
       });
 
       // By default, icons grow exponentially, and if presented at scale, may take up way too
