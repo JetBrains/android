@@ -24,6 +24,7 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiField;
@@ -133,12 +134,11 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     copyRJavaToGeneratedSources();
 
     PsiField[] fields = AndroidResourceUtil.findResourceFields(myFacet, "string", "hello", false);
-
-    for (PsiField field : fields) {
-      assertEquals("hello", field.getName());
-      assertEquals("p2", field.getContainingFile().getContainingDirectory().getName());
-    }
     assertEquals(1, fields.length);
+    PsiField field = fields[0];
+    assertEquals("hello", field.getName());
+    assertEquals("string", field.getContainingClass().getName());
+    assertEquals("p1.p2.R", field.getContainingClass().getContainingClass().getQualifiedName());
   }
 
   public void testFindResourceFieldsWithMultipleResourceNames() {
@@ -151,7 +151,7 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     Set<String> fieldNames = Sets.newHashSet();
     for (PsiField field : fields) {
       fieldNames.add(field.getName());
-      assertEquals("p2", field.getContainingFile().getContainingDirectory().getName());
+      assertEquals("p1.p2.R", field.getContainingClass().getContainingClass().getQualifiedName());
     }
     assertEquals(ImmutableSet.of("hello", "goodbye"), fieldNames);
     assertEquals(2, fields.length);
@@ -173,12 +173,12 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     assertThat(facet).isNotNull();
     PsiField[] fields = AndroidResourceUtil.findResourceFields(facet, "string", "lib_hello", false /* onlyInOwnPackages */);
 
-    Set<String> dirNames = Sets.newHashSet();
+    Set<String> packages = Sets.newHashSet();
     for (PsiField field : fields) {
       assertEquals("lib_hello", field.getName());
-      dirNames.add(field.getContainingFile().getContainingDirectory().getName());
+      packages.add(StringUtil.getPackageName(field.getContainingClass().getContainingClass().getQualifiedName()));
     }
-    assertEquals(ImmutableSet.of("p2", "lib"), dirNames);
+    assertEquals(ImmutableSet.of("p1.p2", "p1.p2.lib"), packages);
     assertEquals(2, fields.length);
   }
 
