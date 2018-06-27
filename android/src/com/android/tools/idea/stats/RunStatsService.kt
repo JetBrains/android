@@ -18,11 +18,15 @@ package com.android.tools.idea.stats
 import com.android.annotations.VisibleForTesting
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.gradle.util.BuildMode
+import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.tasks.DynamicAppDeployTaskContext
 import com.android.tools.idea.run.tasks.SplitApkDeployTaskContext
+import com.android.tools.ir.client.InstantRunArtifact
+import com.google.wireless.android.sdk.stats.ArtifactDetail
 import com.google.wireless.android.sdk.stats.StudioRunEvent
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.NotNull
 import org.jetbrains.annotations.TestOnly
 
 /**
@@ -66,19 +70,21 @@ abstract class RunStatsService {
 
   abstract fun notifyEmulatorStarted(isSuccessful: Boolean)
 
-  fun notifyDeployApkStarted(device: IDevice,
-                                   artifactCount: Int) {
-    notifyDeployStarted(StudioRunEvent.DeployTask.DEPLOY_APK, device, artifactCount)
+  fun notifyDeployApkStarted(device: IDevice, artifacts: Collection<ApkInfo>) {
+    notifyDeployStarted(StudioRunEvent.DeployTask.DEPLOY_APK, device,
+                        artifacts.map { artifact -> ArtifactDetail.newBuilder().setSize(artifact.file.length()).build() })
   }
 
   fun notifyDeployInstantAppStarted(device: IDevice,
-                             artifactCount: Int) {
-    notifyDeployStarted(StudioRunEvent.DeployTask.DEPLOY_INSTANT_APP, device, artifactCount)
+                                    artifacts: Collection<ApkInfo>) {
+    notifyDeployStarted(StudioRunEvent.DeployTask.DEPLOY_INSTANT_APP, device,
+                        artifacts.map { artifact -> ArtifactDetail.newBuilder().setSize(artifact.file.length()).build() })
   }
 
   fun notifyDeployHotSwapStarted(device: IDevice,
-                             artifactCount: Int) {
-    notifyDeployStarted(StudioRunEvent.DeployTask.HOTSWAP, device, artifactCount)
+                                 artifacts: Collection<InstantRunArtifact>) {
+    notifyDeployStarted(StudioRunEvent.DeployTask.HOTSWAP, device,
+                        artifacts.map { artifact -> ArtifactDetail.newBuilder().setSize(artifact.file.length()).build() })
   }
 
   fun notifyDeploySplitApkStarted(device: IDevice,
@@ -89,13 +95,14 @@ abstract class RunStatsService {
     else {
       0
     }
-    notifyDeployStarted(StudioRunEvent.DeployTask.SPLIT_APK_DEPLOY, device, context.artifacts.size, context.isPatchBuild, dontKill,
+    val artifacts = context.artifacts.map { artifact -> ArtifactDetail.newBuilder().setSize(artifact.canonicalFile.length()).build() }
+    notifyDeployStarted(StudioRunEvent.DeployTask.SPLIT_APK_DEPLOY, device, artifacts, context.isPatchBuild, dontKill,
                         disabledFeaturesCount)
   }
 
   abstract fun notifyDeployStarted(deployTask: StudioRunEvent.DeployTask,
                                    device: IDevice,
-                                   artifactCount: Int,
+                                   artifacts: Collection<ArtifactDetail>,
                                    isPatchBuild: Boolean = false,
                                    dontKill: Boolean = false, disabledDynamicFeaturesCount: Int = 0)
 
