@@ -474,7 +474,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().register(myCpuUsageAxis);
     getStudioProfilers().getUpdater().register(myThreadCountAxis);
     getStudioProfilers().getUpdater().register(myLegends);
-    getStudioProfilers().getUpdater().register(myThreadsStates);
     getStudioProfilers().getUpdater().register(myCaptureElapsedTimeUpdatable);
 
     if (getStudioProfilers().getIdeServices().getFeatureConfig().isCpuApiTracingEnabled()) {
@@ -509,7 +508,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().unregister(myCpuUsageAxis);
     getStudioProfilers().getUpdater().unregister(myThreadCountAxis);
     getStudioProfilers().getUpdater().unregister(myLegends);
-    getStudioProfilers().getUpdater().unregister(myThreadsStates);
     getStudioProfilers().getUpdater().unregister(myCaptureElapsedTimeUpdatable);
 
     if (getStudioProfilers().getIdeServices().getFeatureConfig().isCpuApiTracingEnabled()) {

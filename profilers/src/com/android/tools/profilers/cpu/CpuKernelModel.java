@@ -41,6 +41,7 @@ public class CpuKernelModel extends DefaultListModel<CpuKernelModel.CpuState> {
     myStage = stage;
     myAspectObserver = new AspectObserver();
     myStage.getAspect().addDependency(myAspectObserver).onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::captureStateChanged);
+    range.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::contentsChanged);
   }
 
   /**
@@ -55,6 +56,10 @@ public class CpuKernelModel extends DefaultListModel<CpuKernelModel.CpuState> {
         addElement(new CpuState(i, myStage));
       }
     }
+    contentsChanged();
+  }
+
+  private void contentsChanged() {
     fireContentsChanged(this, 0, getSize());
   }
 

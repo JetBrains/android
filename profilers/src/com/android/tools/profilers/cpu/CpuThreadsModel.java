@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.*;
-import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
@@ -36,7 +35,7 @@ import java.util.stream.Collectors;
 /**
  * This class is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
  */
-public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.RangedCpuThread> implements Updatable {
+public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.RangedCpuThread> {
   @NotNull private static final String RENDER_THREAD_NAME = "RenderThread";
 
   @NotNull private final CpuProfilerStage myStage;
@@ -72,6 +71,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
       // again for other 5 seconds. As it's common for a thread to be inactive (e.g. sleeping, waiting for I/O, stopped, etc.) during its
       // lifespan, we don't change the threads list automatically to avoid a poor user experience.
       // Note that users can still explicitly change the threads order by using the drag-and-drop functionality.
+      contentsChanged();
       return;
     }
 
@@ -109,6 +109,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     for (RangedCpuThread element : requestedThreadsRangedCpuThreads.values()) {
       insertOrderedElement(element);
     }
+    contentsChanged();
   }
 
   private void sortElements() {
@@ -171,8 +172,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     sortElements();
   }
 
-  @Override
-  public void update(long elapsedNs) {
+  private void contentsChanged() {
     fireContentsChanged(this, 0, size());
   }
 
