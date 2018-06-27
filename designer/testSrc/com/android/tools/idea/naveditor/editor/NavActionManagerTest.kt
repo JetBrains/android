@@ -31,6 +31,7 @@ import com.intellij.ide.actions.PasteAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
@@ -62,18 +63,21 @@ class NavActionManagerTest : NavTestCase() {
 
   fun testAddElement() {
     val layout = LocalResourceManager.getInstance(myFacet.module)!!.findResourceFiles(
-        ResourceFolderType.LAYOUT).stream().filter { file -> file.name == "activity_main.xml" }.findFirst().get() as XmlFile
-    Destination.RegularDestination(surface.currentNavigation, "activity", null, "MainActivity", "mytest.navtest.MainActivity",
-        "myId", layout)
+      ResourceFolderType.LAYOUT).stream().filter { file -> file.name == "activity_main.xml" }.findFirst().get() as XmlFile
+    WriteCommandAction.runWriteCommandAction(project) {
+      Destination.RegularDestination(surface.currentNavigation, "activity", null, "MainActivity", "mytest.navtest.MainActivity", "myId",
+                                     layout)
         .addToGraph()
+    }
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
-        "    NlComponent{tag=<fragment>, instance=1}\n" +
-        "    NlComponent{tag=<navigation>, instance=2}\n" +
-        "        NlComponent{tag=<fragment>, instance=3}\n" +
-        "    NlComponent{tag=<activity>, instance=4}",
-        NlTreeDumper().toTree(model.components))
+                 "    NlComponent{tag=<fragment>, instance=1}\n" +
+                 "    NlComponent{tag=<navigation>, instance=2}\n" +
+                 "        NlComponent{tag=<fragment>, instance=3}\n" +
+                 "    NlComponent{tag=<activity>, instance=4}",
+                 NlTreeDumper().toTree(model.components))
     val newChild = model.find("myId")!!
-    assertEquals(SdkConstants.LAYOUT_RESOURCE_PREFIX + "activity_main", newChild.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT))
+    assertEquals(SdkConstants.LAYOUT_RESOURCE_PREFIX + "activity_main",
+                 newChild.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT))
     assertEquals("mytest.navtest.MainActivity", newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME))
     assertEquals("@+id/myId", newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID))
   }
@@ -92,13 +96,14 @@ class NavActionManagerTest : NavTestCase() {
     `when`(surface.currentNavigation).thenReturn(model.find("subflow"))
 
     val psiClass = JavaPsiFacade.getInstance(project).findClass("mytest.navtest.MainActivity", GlobalSearchScope.allScope(project))
-    Destination.RegularDestination(surface.currentNavigation, "activity", null, psiClass!!.name, psiClass.qualifiedName).addToGraph()
-
+    WriteCommandAction.runWriteCommandAction(project) {
+      Destination.RegularDestination(surface.currentNavigation, "activity", null, psiClass!!.name, psiClass.qualifiedName).addToGraph()
+    }
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
-        "    NlComponent{tag=<navigation>, instance=1}\n" +
-        "        NlComponent{tag=<fragment>, instance=2}\n" +
-        "        NlComponent{tag=<activity>, instance=3}\n" +
-        "    NlComponent{tag=<fragment>, instance=4}", NlTreeDumper().toTree(model.components))
+                 "    NlComponent{tag=<navigation>, instance=1}\n" +
+                 "        NlComponent{tag=<fragment>, instance=2}\n" +
+                 "        NlComponent{tag=<activity>, instance=3}\n" +
+                 "    NlComponent{tag=<fragment>, instance=4}", NlTreeDumper().toTree(model.components))
   }
 
   fun testFragmentContextMenu() {
@@ -346,7 +351,8 @@ class NavActionManagerTest : NavTestCase() {
                    item.disableIfNoVisibleChildren() &&
                    !item.hideIfNoVisibleChildren() &&
                    item.getChildren(null).none { it.templatePresentation.isVisible })
-    } else {
+    }
+    else {
       assertEquals(enabled, item.templatePresentation.isEnabled)
     }
   }

@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.naveditor.surface
 
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.TestNlEditor
 import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.command.undo.UndoManager
+import com.intellij.psi.PsiDocumentManager
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
@@ -55,6 +59,80 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     surface.selectionModel.setSelection(listOf(model.find("a3")))
     handler.deleteElement(context)
     assertEquals(surface.selectionModel.selection, model.components)
+  }
+
+  fun testUndoRedoDelete() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment")
+        fragment("fragment2")
+      }
+    }
+
+    val surface = model.surface as NavDesignSurface
+    val handler = NavDesignSurfaceActionHandler(surface)
+    val context = DataManagerImpl.MyDataContext(model.surface)
+    var nlComponent = model.find("fragment")
+    val scene = surface.scene!!
+    var sceneComponent = scene.getSceneComponent(nlComponent)!!
+    sceneComponent.setPosition(123, 456)
+    val sceneManager = surface.sceneManager!!
+    sceneManager.save(listOf(sceneComponent))
+    val editor = TestNlEditor(model.virtualFile, project)
+
+    surface.selectionModel.setSelection(listOf(nlComponent))
+    handler.deleteElement(context)
+
+    assertNull(model.find("fragment"))
+    assertNull(scene.getSceneComponent("fragment"))
+
+    // move something so ManualLayoutAlgorithm doesn't have stale info
+    val fragment2 = scene.getSceneComponent("fragment2")!!
+    fragment2.setPosition(987, 654)
+    sceneManager.save(listOf(fragment2))
+
+    model.notifyModified(NlModel.ChangeType.EDIT)
+    sceneManager.update()
+
+    // undo the move
+    UndoManager.getInstance(project).undo(editor)
+    PsiDocumentManager.getInstance(project).commitAllDocuments()
+    model.notifyModified(NlModel.ChangeType.EDIT)
+
+    assertNull(model.find("fragment"))
+    assertNull(scene.getSceneComponent("fragment"))
+
+    // undo the delete
+    UndoManager.getInstance(project).undo(editor)
+    PsiDocumentManager.getInstance(project).commitAllDocuments()
+    model.notifyModified(NlModel.ChangeType.EDIT)
+
+    nlComponent = model.find("fragment")
+    sceneComponent = scene.getSceneComponent(nlComponent)!!
+
+    assertNotNull(nlComponent)
+    assertEquals(123, sceneComponent.drawX)
+    assertEquals(456, sceneComponent.drawY)
+
+    // redo the delete
+    UndoManager.getInstance(project).redo(editor)
+    PsiDocumentManager.getInstance(project).commitAllDocuments()
+    model.notifyModified(NlModel.ChangeType.EDIT)
+
+    assertNull(model.find("fragment"))
+    assertNull(scene.getSceneComponent("fragment"))
+
+    // undo again
+    UndoManager.getInstance(project).undo(editor)
+    PsiDocumentManager.getInstance(project).commitAllDocuments()
+    model.notifyModified(NlModel.ChangeType.EDIT)
+
+    nlComponent = model.find("fragment")
+    sceneComponent = scene.getSceneComponent(nlComponent)!!
+
+    assertNotNull(nlComponent)
+    assertEquals(123, sceneComponent.drawX)
+    assertEquals(456, sceneComponent.drawY)
   }
 
   fun testGetPasteTarget() {

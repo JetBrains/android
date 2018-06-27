@@ -17,7 +17,6 @@ package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.common.api.InsertType
-import com.android.tools.idea.common.editor.NlEditor
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneComponent
@@ -27,18 +26,14 @@ import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.TestNlEditor
 import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.command.undo.DocumentReference
-import com.intellij.openapi.command.undo.DocumentReferenceManager
-import com.intellij.openapi.command.undo.DocumentReferenceProvider
 import com.intellij.openapi.command.undo.UndoManager
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -324,13 +319,6 @@ class NavSceneTest : NavTestCase() {
             "\n" +
             "UNClip\n", list.serialize()
     )
-  }
-
-  private class TestNlEditor(private val myFile: VirtualFile, project: Project) : NlEditor(myFile, project), DocumentReferenceProvider {
-
-    override fun getDocumentReferences(): Collection<DocumentReference> {
-      return ImmutableList.of(DocumentReferenceManager.getInstance().create(myFile))
-    }
   }
 
   fun testSubflow() {

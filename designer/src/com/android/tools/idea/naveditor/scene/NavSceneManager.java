@@ -34,7 +34,10 @@ import com.android.tools.idea.naveditor.model.ActionType;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
-import com.android.tools.idea.naveditor.scene.layout.*;
+import com.android.tools.idea.naveditor.scene.layout.ElkLayeredLayoutAlgorithm;
+import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
+import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
+import com.android.tools.idea.naveditor.scene.layout.NewDestinationLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
 import com.android.tools.idea.naveditor.scene.targets.NavigationTargetProvider;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
@@ -97,8 +100,10 @@ public class NavSceneManager extends SceneManager {
   public NavSceneManager(@NotNull NlModel model, @NotNull NavDesignSurface surface) {
     super(model, surface);
     createSceneView();
-    myLayoutAlgorithms =
-      ImmutableList.of(new NewDestinationLayoutAlgorithm(), new ManualLayoutAlgorithm(model.getModule()), new ElkLayeredLayoutAlgorithm());
+    myLayoutAlgorithms = ImmutableList.of(
+      new NewDestinationLayoutAlgorithm(),
+      new ManualLayoutAlgorithm(model.getModule(), this),
+      new ElkLayeredLayoutAlgorithm());
     mySavingLayoutAlgorithm = myLayoutAlgorithms.stream().filter(algorithm -> algorithm.canSave()).findFirst().orElse(null);
     myScreenTargetProvider = new NavScreenTargetProvider();
     myNavigationTargetProvider = new NavigationTargetProvider(surface);
@@ -415,9 +420,9 @@ public class NavSceneManager extends SceneManager {
     return null;
   }
 
-  public void restorePositionData(@NotNull SceneComponent component, @NotNull Object positionData) {
+  public void restorePositionData(@NotNull List<String> path, @NotNull Object positionData) {
     if (mySavingLayoutAlgorithm != null) {
-      mySavingLayoutAlgorithm.restorePositionData(component, positionData);
+      mySavingLayoutAlgorithm.restorePositionData(path, positionData);
     }
   }
 

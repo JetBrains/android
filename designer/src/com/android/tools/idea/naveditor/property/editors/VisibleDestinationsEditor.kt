@@ -20,7 +20,7 @@ import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.visibleDestinations
-import com.android.tools.idea.uibuilder.model.parentSequence
+import com.android.tools.idea.naveditor.model.parentSequence
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
 
