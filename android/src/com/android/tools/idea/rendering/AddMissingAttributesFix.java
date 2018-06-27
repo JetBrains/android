@@ -25,6 +25,8 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -34,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import static com.android.SdkConstants.*;
 
@@ -48,17 +51,14 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
   }
 
   @NotNull
-  public List<XmlTag> findViewsMissingSizes() {
-    final List<XmlTag> missing = Lists.newArrayList();
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
-        Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(myFile, XmlTag.class);
-        for (XmlTag tag : xmlTags) {
-          if (requiresSize(tag)) {
-            if (!definesWidth(tag, myResourceResolver) || !definesHeight(tag, myResourceResolver)) {
-              missing.add(tag);
-            }
+  public static List<SmartPsiElementPointer<XmlTag>> findViewsMissingSizes(@NotNull XmlFile file, @Nullable ResourceResolver resolver) {
+    final List<SmartPsiElementPointer<XmlTag>> missing = Lists.newArrayList();
+    ApplicationManager.getApplication().runReadAction(() -> {
+      Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
+      for (XmlTag tag : xmlTags) {
+        if (requiresSize(tag)) {
+          if (!definesWidth(tag, resolver) || !definesHeight(tag, resolver)) {
+            missing.add(SmartPointerManager.createPointer(tag));
           }
         }
       }
@@ -70,15 +70,17 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
 
   @Override
   protected void run(@NotNull Result<Void> result) throws Throwable {
-    final List<XmlTag> missing = findViewsMissingSizes();
-    for (XmlTag tag : missing) {
-      if (!definesWidth(tag, myResourceResolver)) {
-        tag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, getDefaultWidth(tag));
-      }
-      if (!definesHeight(tag, myResourceResolver)) {
-        tag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, getDefaultHeight(tag));
-      }
-    }
+    findViewsMissingSizes(myFile, myResourceResolver).stream()
+                                                     .map(SmartPsiElementPointer::getElement)
+                                                     .filter(Objects::nonNull)
+                                                     .forEach(tag -> {
+                                                       if (!definesWidth(tag, myResourceResolver)) {
+                                                         tag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, getDefaultWidth(tag));
+                                                       }
+                                                       if (!definesHeight(tag, myResourceResolver)) {
+                                                         tag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, getDefaultHeight(tag));
+                                                       }
+                                                     });
   }
 
   public static boolean definesHeight(@NotNull XmlTag tag, @Nullable ResourceResolver resourceResolver) {
