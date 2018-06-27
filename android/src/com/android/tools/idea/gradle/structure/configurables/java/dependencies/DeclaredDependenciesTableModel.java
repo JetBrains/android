@@ -20,11 +20,9 @@ import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.Abs
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.java.PsDeclaredLibraryJavaDependency;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaDependency;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
-import com.android.tools.idea.gradle.structure.model.java.PsLibraryJavaDependency;
-import com.google.common.collect.Lists;
-import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,19 +45,15 @@ class DeclaredDependenciesTableModel extends AbstractDeclaredDependenciesTableMo
 
   @Override
   public void reset() {
-    List<PsJavaDependency> dependencies = Lists.newArrayList();
-    getModule().forEachDeclaredDependency(it -> {
-      dependencies.add(it);
-      return Unit.INSTANCE;
-    });
+    List<PsJavaDependency> dependencies = getModule().getDependencies().getItems();
     Collections.sort(dependencies, new PsDependencyComparator(getContext().getUiSettings()));
     setItems(dependencies);
   }
 
   @Override
   @Nullable
-  public PsLibraryJavaDependency findDependency(@NotNull PsArtifactDependencySpec spec) {
+  public PsDeclaredLibraryJavaDependency findDependency(@NotNull PsArtifactDependencySpec spec) {
     PsLibraryDependency found = super.findDependency(spec);
-    return found instanceof PsLibraryJavaDependency ? (PsLibraryJavaDependency)found : null;
+    return found instanceof PsDeclaredLibraryJavaDependency ? (PsDeclaredLibraryJavaDependency)found : null;
   }
 }

@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
@@ -93,7 +94,7 @@ class PsAndroidModule(
 
   override fun canDependOn(module: PsModule): Boolean =
     // 'module' is either a Java library or an AAR module.
-    (module as? PsAndroidModule)?.isLibrary == true
+    (module as? PsAndroidModule)?.isLibrary == true || (module is PsJavaModule)
 
   override fun populateRepositories(repositories: MutableList<ArtifactRepository>) {
     super.populateRepositories(repositories)
