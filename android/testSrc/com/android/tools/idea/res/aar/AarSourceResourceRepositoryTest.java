@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res.aar;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
@@ -22,9 +23,7 @@ import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.google.common.collect.ListMultimap;
 import com.intellij.util.containers.ContainerUtil;
 import junit.framework.TestCase;
-
 import java.util.List;
-
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
@@ -34,12 +33,25 @@ import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
  */
 public class AarSourceResourceRepositoryTest extends TestCase {
 
-  public void testGetAllDeclaredIds() {
+  public void testGetAllDeclaredIds_hasRDotTxt() {
     AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
     assertThat(repository.getAllDeclaredIds()).containsExactly(
       "id1", 0x7f0b0000,
       "id2", 0x7f0b0001,
       "id3", 0x7f0b0002);
+  }
+
+  public void testGetAllDeclaredIds_noRDotTxt() {
+    AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository("my_aar_lib_noRDotTxt");
+
+    List<String> ids = ContainerUtil.map(
+      repository.getResourceItems(ResourceNamespace.TODO(), ResourceType.ID),
+      resourceItem -> {
+        String value = resourceItem.getName();
+        assertNotNull(value);
+        return value;
+      });
+    assertSameElements(ids, "id1", "id2");
   }
 
   public void testMultipleValues() {
