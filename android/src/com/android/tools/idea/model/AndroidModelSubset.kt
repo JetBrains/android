@@ -61,16 +61,25 @@ data class AndroidModelSubset(val model: AndroidModel, val selection: SelectedVa
    * Returns the selected [Config] instances. The result will be returned in order of precedence, with
    * higher precedence [Config] instances near the end of the list.
    *
-   * @param artifactName if specified, the result will only include [Config] instances for artifacts with the
-   * given name. If null, the result will include [Config] instances from all artifacts.
+   * @param artifactNames if specified, the result will only include [Config] instances for artifacts with one of the
+   * given names. If no names are provided, the result will include [Config] instances from all artifacts.
    */
-  fun selectedConfigs(artifactName: String? = null): List<ConfigAssociation> =
+  fun selectedConfigs(vararg artifactNames: String): List<ConfigAssociation> =
     selection.flatMap { entry ->
       model.getProject(entry.key)?.let { project ->
-        val artifactFilter = if (artifactName != null) project.configTable.schema.matchArtifact(artifactName) else matchAllArtifacts()
-        project.configTable.filterIntersecting(entry.value.intersect(artifactFilter)).associations
+        project.findConfigsFor(entry.value, *artifactNames)
       }.orEmpty()
     }
+
+  /**
+   * Returns all [ConfigAssociation] instances for the given artifact(s), including configs for deselected
+   * variants.
+   *
+   * @param artifactNames if specified, the result will only include [Config] instances for artifacts with one of the
+   * given names. If no names are provided, the result will include [Config] instances from all artifacts.
+   */
+  fun allConfigs(vararg artifactNames: String): List<ConfigAssociation> =
+    model.projects.flatMap { it.findConfigsFor(matchAllArtifacts(), *artifactNames) }
 
   /**
    * Returns all selected variants.
@@ -105,6 +114,14 @@ data class AndroidModelSubset(val model: AndroidModel, val selection: SelectedVa
     selectedArtifacts().flatMap { it.artifact.resolved.compileDeps.orEmpty().asSequence() }
       .visitEach()
       .any { it.resolvedMavenCoordinate?.let { it.matches(searchCriteria) } ?: false }
+
+  private fun AndroidProject.findConfigsFor(filter: ConfigPath, vararg artifactName: String): List<ConfigAssociation> =
+    if (artifactName.isEmpty()) {
+      configTable.filterIntersecting(filter).associations
+    } else {
+      val artifactFilters = artifactName.map {configTable.schema.matchArtifact(it)}
+      configTable.filter {it.path.intersects(filter) && artifactFilters.any(it.path::intersects) }.associations
+    }
 }
 
 /**
