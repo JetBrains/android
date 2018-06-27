@@ -23,9 +23,9 @@ import com.android.tools.adtui.swing.laf.HeadlessListUI;
 import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.stacktrace.*;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.EmptyRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -145,7 +145,6 @@ public class IntelliJStackTraceViewTest {
     assertThat(list.getSelectedValue()).isNull();
   }
 
-  @Ignore("b/73322442")
   @Test
   public void doubleClickingStackViewNavigatesToSelectedElement() throws InvocationTargetException, InterruptedException {
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
@@ -162,13 +161,13 @@ public class IntelliJStackTraceViewTest {
     assertThat(myStackView.getModel().getCodeLocations().size()).isEqualTo(CODE_LOCATIONS.size());
 
     fakeUi.mouse.doubleClick(5, 5); // First row
+    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
     assertThat(list.getSelectedValue()).isInstanceOf(FakeCodeElement.class);
     assertThat(invocationCount[0]).isEqualTo(1);
   }
 
-  @Ignore("b/110185274")
   @Test
-  public void rightClickingStackTraceView() {
+  public void rightClickingStackTraceView() throws InvocationTargetException, InterruptedException {
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
     AspectObserver observer = new AspectObserver();
     final int[] invocationCount = {0};
@@ -183,10 +182,10 @@ public class IntelliJStackTraceViewTest {
     assertThat(myStackView.getModel().getCodeLocations().size()).isEqualTo(CODE_LOCATIONS.size());
 
     fakeUi.mouse.click(5, 5, FakeMouse.Button.RIGHT); // First row
+    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
     assertThat(list.getSelectedValue()).isInstanceOf(FakeCodeElement.class);
   }
 
-  @Ignore("b/110185274")
   @Test
   public void pressingEnterOnStackViewNavigatesToSelectedElement() throws Exception {
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
@@ -203,6 +202,7 @@ public class IntelliJStackTraceViewTest {
     assertThat(myStackView.getModel().getCodeLocations().size()).isEqualTo(CODE_LOCATIONS.size());
 
     fakeUi.mouse.click(5, 5); // First row
+    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
     assertThat(list.getSelectedValue()).isInstanceOf(FakeCodeElement.class);
     assertThat(invocationCount[0]).isEqualTo(0);
 

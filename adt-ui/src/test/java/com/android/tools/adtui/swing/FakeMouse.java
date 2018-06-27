@@ -107,6 +107,11 @@ public final class FakeMouse {
   /**
    * Convenience method which calls {@link #press(int, int, Button)} and
    * {@link #release()} in turn and ensures that a clicked event is fired.
+   *
+   * Unfortunately, it seems like it may take some time for the click event to propagate to its
+   * target component. Therefore, you may need to call {@link SwingUtilities#invokeLater(Runnable)}
+   * or {@link SwingUtilities#invokeAndWait(Runnable)} after calling this method, to ensure the
+   * event is handled before you check a component's state.
    */
   public void click(int x, int y, Button button) {
     if (myCursor != null) {
@@ -122,6 +127,11 @@ public final class FakeMouse {
 
   /**
    * Convenience method which calls {@link #click(int, int)} twice in quick succession.
+   *
+   * Unfortunately, it seems like it may take some time for the click event to propagate to its
+   * target component. Therefore, you may need to call {@link SwingUtilities#invokeLater(Runnable)}
+   * or {@link SwingUtilities#invokeAndWait(Runnable)} after calling this method, to ensure the
+   * event is handled before you check a component's state.
    */
   public void doubleClick(int x, int y, Button button) {
     if (myCursor != null) {
