@@ -77,7 +77,7 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     assertNotNull(message)
 
     assertSize(1, message.registeredListenerIds)
-    assertThat(message.message, equalTo("Warning message!<br>Affected Modules: <a href=\"openFile:file/path\">app</a>"))
+    assertThat(message.message, equalTo("Warning message!\nAffected Modules: <a href=\"openFile:file/path\">app</a>"))
     assertThat(message.notificationCategory, equalTo(WARNING))
 
     assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
@@ -100,13 +100,13 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     var message = messages[0]
     assertNotNull(message)
     assertSize(1, message.registeredListenerIds)
-    assertThat(message.message, equalTo("Warning message!<br>Affected Modules: <a href=\"openFile:file/path\">app</a>"))
+    assertThat(message.message, equalTo("Warning message!\nAffected Modules: <a href=\"openFile:file/path\">app</a>"))
     assertThat(message.notificationCategory, equalTo(WARNING))
 
     message = messages[1]
     assertNotNull(message)
     assertSize(0, message.registeredListenerIds)
-    assertThat(message.message, equalTo("Warning message!<br>Affected Modules: lib"))
+    assertThat(message.message, equalTo("Warning message!\nAffected Modules: lib"))
     assertThat(message.notificationCategory, equalTo(WARNING))
 
     assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
@@ -130,7 +130,7 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     assertNotNull(message)
 
     assertSize(1, message.registeredListenerIds)
-    assertThat(message.message, equalTo("Warning message!<br>Affected Modules: " +
+    assertThat(message.message, equalTo("Warning message!\nAffected Modules: " +
                                         "<a href=\"openFile:file/path\">app</a>, <a href=\"openFile:file/path\">lib</a>"))
     assertThat(message.notificationCategory, equalTo(WARNING))
 
@@ -154,13 +154,13 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     var message = messages[0]
     assertNotNull(message)
     assertSize(1, message.registeredListenerIds)
-    assertThat(message.message, equalTo("Warning message!<br>Affected Modules: <a href=\"openFile:file/path\">app</a>"))
+    assertThat(message.message, equalTo("Warning message!\nAffected Modules: <a href=\"openFile:file/path\">app</a>"))
     assertThat(message.notificationCategory, equalTo(WARNING))
 
     message = messages[1]
     assertNotNull(message)
     assertSize(0, message.registeredListenerIds)
-    assertThat(message.message, equalTo("Warning message!<br>Affected Modules: lib"))
+    assertThat(message.message, equalTo("Warning message!\nAffected Modules: lib"))
     assertThat(message.notificationCategory, equalTo(WARNING))
 
     assertThat(messageStub.fakeErrorCount, equalTo(0))
@@ -184,7 +184,7 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     assertNotNull(message)
 
     assertSize(1, message.registeredListenerIds)
-    assertThat(message.message, equalTo("Error message!<br>Affected Modules: " +
+    assertThat(message.message, equalTo("Error message!\nAffected Modules: " +
                                         "<a href=\"openFile:file/path\">app</a>, <a href=\"openFile:file/path\">lib</a>"))
     assertThat(message.notificationCategory, equalTo(ERROR))
 

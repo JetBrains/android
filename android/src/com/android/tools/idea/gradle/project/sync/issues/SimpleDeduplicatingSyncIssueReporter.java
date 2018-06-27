@@ -95,7 +95,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
 
     // Add links to each of the affected modules
     StringBuilder builder = new StringBuilder();
-    builder.append("<br>Affected Modules: ");
+    builder.append("\nAffected Modules: ");
     for (Iterator<Module> it = affectedModules.iterator(); it.hasNext(); ) {
       Module m = it.next();
       if (m != null) {
