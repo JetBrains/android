@@ -26,18 +26,22 @@ import com.intellij.util.PlatformIcons.LIBRARY_ICON
 import javax.swing.Icon
 import kotlin.reflect.KProperty
 
-class PsLibraryJavaDependency(
+class PsDeclaredLibraryJavaDependency(
   parent: PsJavaModule,
-  override val spec: PsArtifactDependencySpec,
-  val resolvedModel: JarLibraryDependency?,
   override val parsedModel: ArtifactDependencyModel
 ) : PsJavaDependency(parent),
-    PsLibraryDependency, PsDeclaredDependency, PsResolvedDependency, PsDeclaredLibraryDependency, PsResolvedLibraryDependency {
-  override val declaredDependencies: List<PsDeclaredDependency> = listOf()
+    PsLibraryDependency, PsDeclaredDependency, PsDeclaredLibraryDependency {
+  private val nameResolvedProperty = parsedModel.name()
+  private val groupResolvedProperty = parsedModel.group()
+  private val versionResolvedProperty = parsedModel.version()
+  override val spec: PsArtifactDependencySpec
+    get() = PsArtifactDependencySpec.create(
+      groupResolvedProperty.toString(),
+      nameResolvedProperty.forceString(),
+      versionResolvedProperty.toString()
+    )
 
   override val configurationName: String = parsedModel.configurationName()
-
-  override fun getParsedModels(): List<DependencyModel> = listOf(parsedModel)
 
   override val isDeclared: Boolean = true
 
@@ -47,34 +51,32 @@ class PsLibraryJavaDependency(
 
   override val icon: Icon get() = LIBRARY_ICON
 
-  override fun hasPromotedVersion(): Boolean = false
-
   override fun toText(type: PsDependency.TextType): String = spec.toString()
 
-  var version by PsLibraryJavaDependency.Descriptor.version
+  var version by PsDeclaredLibraryJavaDependency.Descriptor.version
 
   override val versionProperty: ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String>
     get() = object : ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String> {
       override val description: String get() = Descriptor.version.description
-      override fun bind(model: Unit): ModelPropertyCore<String> = Descriptor.version.bind(this@PsLibraryJavaDependency)
+      override fun bind(model: Unit): ModelPropertyCore<String> = Descriptor.version.bind(this@PsDeclaredLibraryJavaDependency)
       override fun bindContext(context: ArtifactRepositorySearchService, model: Unit): ModelPropertyContext<String> =
-        Descriptor.version.bindContext(context, this@PsLibraryJavaDependency)
+        Descriptor.version.bindContext(context, this@PsDeclaredLibraryJavaDependency)
 
       override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<String> = throw UnsupportedOperationException()
       override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<String>) = throw UnsupportedOperationException()
     }
 
-  object Descriptor : ModelDescriptor<PsLibraryJavaDependency, Nothing, ArtifactDependencyModel> {
-    override fun getResolved(model: PsLibraryJavaDependency): Nothing? = null
+  object Descriptor : ModelDescriptor<PsDeclaredLibraryJavaDependency, Nothing, ArtifactDependencyModel> {
+    override fun getResolved(model: PsDeclaredLibraryJavaDependency): Nothing? = null
 
-    override fun getParsed(model: PsLibraryJavaDependency): ArtifactDependencyModel? = model.parsedModel
+    override fun getParsed(model: PsDeclaredLibraryJavaDependency): ArtifactDependencyModel? = model.parsedModel
 
     // TODO(solodkyy): Ensure setModified refreshes the resolved dependency collection when required.
-    override fun setModified(model: PsLibraryJavaDependency) {
+    override fun setModified(model: PsDeclaredLibraryJavaDependency) {
       model.isModified = true
     }
 
-    val version: ModelSimpleProperty<ArtifactRepositorySearchService, PsLibraryJavaDependency, String> = property(
+    val version: ModelSimpleProperty<ArtifactRepositorySearchService, PsDeclaredLibraryJavaDependency, String> = property(
       "Version",
       resolvedValueGetter = { null },
       parsedPropertyGetter = { this.version() },
@@ -83,4 +85,28 @@ class PsLibraryJavaDependency(
       parser = ::parseString
     )
   }
+}
+
+class PsResolvedLibraryJavaDependency(
+  parent: PsJavaModule,
+  library: JarLibraryDependency,
+  override val declaredDependencies: List<PsDeclaredLibraryJavaDependency>
+) : PsJavaDependency(parent),
+    PsLibraryDependency, PsResolvedDependency, PsResolvedLibraryDependency {
+  override val isDeclared: Boolean get() = declaredDependencies.isNotEmpty()
+
+  override val joinedConfigurationNames: String = library.scope ?: ""
+
+  override val spec: PsArtifactDependencySpec = PsArtifactDependencySpec.create(library.moduleVersion!!)
+
+  override fun getParsedModels(): List<DependencyModel> = declaredDependencies.map { it.parsedModel }
+
+  // TODO(b/110778597): Implement library version promotion analysis for Java modules.
+  override fun hasPromotedVersion(): Boolean = false
+
+  override val name: String get() = spec.name
+
+  override val icon: Icon get() = LIBRARY_ICON
+
+  override fun toText(type: PsDependency.TextType): String = spec.toString()
 }

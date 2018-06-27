@@ -17,7 +17,10 @@ package com.android.tools.idea.gradle.structure.model.java
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
-import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.structure.model.PsModuleType
+import com.android.tools.idea.gradle.structure.model.PsProject
 import com.intellij.icons.AllIcons
 import java.io.File
 import javax.swing.Icon
@@ -30,7 +33,8 @@ class PsJavaModule(
   override var rootDir: File? = null ; private set
   override val projectType: PsModuleType = PsModuleType.JAVA
   override val icon: Icon? = AllIcons.Nodes.PpJdk
-  private var myDependencyCollection: PsJavaDependencyCollection? = null
+  private var myDependencyCollection: PsDeclaredJavaDependencyCollection? = null
+  private var myResolvedDependencyCollection: PsResolvedJavaDependencyCollection? = null
 
   fun init(name: String, resolvedModel: JavaModuleModel?, parsedModel: GradleBuildModel?) {
     super.init(name, parsedModel)
@@ -39,8 +43,11 @@ class PsJavaModule(
     myDependencyCollection = null
   }
 
-  val dependencies: PsJavaDependencyCollection
-    get() = myDependencyCollection ?: PsJavaDependencyCollection(this).also { myDependencyCollection = it }
+  val dependencies: PsDeclaredJavaDependencyCollection
+    get() = myDependencyCollection ?: PsDeclaredJavaDependencyCollection(this).also { myDependencyCollection = it }
+
+  val resolvedDependencies: PsResolvedJavaDependencyCollection
+    get() = myResolvedDependencyCollection ?: PsResolvedJavaDependencyCollection(this).also { myResolvedDependencyCollection = it }
 
   override fun getConfigurations(): List<String> = resolvedModel?.configurations.orEmpty()
 
@@ -48,18 +55,11 @@ class PsJavaModule(
   // module for the Android app.)
   override fun canDependOn(module: PsModule): Boolean = true
 
-  fun forEachDeclaredDependency(consumer: (PsJavaDependency) -> Unit) {
-    dependencies.forEachDeclaredDependency(consumer)
-  }
-
-  fun forEachDependency(consumer: (PsJavaDependency) -> Unit) {
-    dependencies.forEach(consumer)
-  }
+  override fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency> =
+    dependencies.findLibraryDependencies(group, name)
 
   override fun resetDependencies() {
     myDependencyCollection = null
+    myResolvedDependencyCollection = null
   }
-
-  override fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency> =
-    throw UnsupportedOperationException()
 }
