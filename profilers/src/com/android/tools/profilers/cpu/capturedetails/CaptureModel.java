@@ -336,7 +336,7 @@ public class CaptureModel {
   }
 
   public static class TopDown implements Details {
-    @Nullable private TopDownTreeModel myModel;
+    @Nullable private final TopDownTreeModel myModel;
 
     public TopDown(@NotNull Range range, @Nullable CaptureNode node) {
       myModel = node == null ? null : new TopDownTreeModel(range, new TopDownNode(node));
@@ -371,7 +371,12 @@ public class CaptureModel {
     }
   }
 
-  public static class CallChart implements Details {
+  public interface ChartDetails extends Details {
+    @Nullable
+    CaptureNode getNode();
+  }
+
+  public static class CallChart implements ChartDetails {
     @NotNull private final Range myRange;
     @Nullable private CaptureNode myNode;
 
@@ -385,6 +390,7 @@ public class CaptureModel {
       return myRange;
     }
 
+    @Override
     @Nullable
     public CaptureNode getNode() {
       return myNode;
@@ -396,7 +402,7 @@ public class CaptureModel {
     }
   }
 
-  public static class FlameChart implements Details {
+  public static class FlameChart implements ChartDetails {
     public enum Aspect {
       /**
        * When the root changes.
@@ -447,6 +453,7 @@ public class CaptureModel {
       return myFlameRange;
     }
 
+    @Override
     @Nullable
     public CaptureNode getNode() {
       return myFlameNode;
