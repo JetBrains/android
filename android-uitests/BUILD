@@ -18,6 +18,7 @@ COMMON_DATA = [
     "//tools/base/build-system:studio_repo.zip",
     "//tools/base/build-system:gradle-distrib",
     "//tools/base/templates",
+    "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     "//tools/idea/java/jdkAnnotations",
     "//tools/idea:config",
     "//tools/idea:platform-build-info",
@@ -99,7 +100,7 @@ java_test(
 )
 
 java_test(
-    name = "DataBindingTest",
+    name = "ResolveXmlReferencesTest",
     size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
@@ -107,7 +108,7 @@ java_test(
     ] + glob([
         "testData/DatabindingMethodsTest/**",
     ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.DataBindingTest"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.ResolveXmlReferencesTest"],
     tags = COMMON_TAGS + ["manual"],  # b/110178024
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -902,6 +903,40 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "GoogleApiIntegrationTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ] + glob([
+        "testData/SimpleLocalApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.integration.GoogleApiIntegrationTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "DataBindingTest",
+    data = COMMON_DATA + [
+        "//tools/data-binding:data_binding_runtime.zip",
+    ] + glob([
+        "testData/DatabindingMethodsTest/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.DataBindingTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

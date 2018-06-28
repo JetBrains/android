@@ -76,7 +76,7 @@ internal fun JavaPropertyDescriptor.getAndroidResourceType(): ResourceType? {
     }
 
     val containingClass = containingDeclaration as? JavaClassDescriptor ?: return null
-    return ResourceType.getEnum(containingClass.name.asString())
+    return ResourceType.fromClassName(containingClass.name.asString())
 }
 
 internal fun JavaPropertyDescriptor.getResourceReferenceType(): AndroidPsiUtils.ResourceReferenceType {

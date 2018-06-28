@@ -103,7 +103,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles())
@@ -171,7 +171,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles())
@@ -227,7 +227,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles())
@@ -275,7 +275,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles())
@@ -345,7 +345,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
     assertEquals("applicationId", "com.example.myapplication1", defaultConfig.applicationId())
     assertEquals("consumerProguardFiles", listOf("proguard-android-1.txt", "proguard-rules-1.pro"),
                  defaultConfig.consumerProguardFiles())
@@ -397,7 +397,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
     assertEquals("manifestPlaceholders",
                  mapOf("activityLabel1" to "defaultName1", "activityLabel2" to "defaultName2", "activityLabel3" to "defaultName3",
                        "activityLabel4" to "defaultName4"), defaultConfig.manifestPlaceholders())
@@ -423,7 +423,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
     assertEquals("manifestPlaceholders", mapOf("activityLabel1" to "defaultName1", "activityLabel2" to "defaultName2"),
                  defaultConfig.manifestPlaceholders())
     assertEquals("testInstrumentationRunnerArguments", mapOf("key1" to "value1", "key2" to "value2"),
@@ -462,7 +462,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles())
@@ -578,7 +578,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
     assertEquals("dimension", "abcd", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion())
@@ -666,7 +666,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
     assertMissingProperty("applicationId", defaultConfig.applicationId())
     assertMissingProperty("dimension", defaultConfig.dimension())
     assertMissingProperty("maxSdkVersion", defaultConfig.maxSdkVersion())
@@ -758,7 +758,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles())
@@ -799,7 +799,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
     assertMissingProperty("consumerProguardFiles", defaultConfig.consumerProguardFiles())
     assertMissingProperty("proguardFiles", defaultConfig.proguardFiles())
     assertMissingProperty("resConfigs", defaultConfig.resConfigs())
@@ -841,7 +841,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles())
@@ -889,7 +889,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles())
@@ -932,7 +932,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
 
     assertEquals("manifestPlaceholders", mapOf("key1" to "value1", "key2" to "value2"), defaultConfig.manifestPlaceholders())
     assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "medium", "foo" to "bar"),
@@ -967,7 +967,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
 
     assertMissingProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
     assertMissingProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
@@ -1002,7 +1002,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
 
     assertEquals("manifestPlaceholders", mapOf("activityLabel1" to "defaultName1", "activityLabel2" to "defaultName2"),
                  defaultConfig.manifestPlaceholders())
@@ -1056,7 +1056,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
-    checkForValidPsiElement(android!!, AndroidModelImpl::class.java)
+    checkForValidPsiElement(android, AndroidModelImpl::class.java)
 
     val defaultConfig = android.defaultConfig()
     checkForValidPsiElement(defaultConfig, ProductFlavorModelImpl::class.java)
@@ -1154,7 +1154,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    checkForInValidPsiElement(android!!, AndroidModelImpl::class.java)
+    checkForInValidPsiElement(android, AndroidModelImpl::class.java)
     checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
     assertMissingProperty("applicationId", defaultConfig.applicationId())
     assertMissingProperty("consumerProguardFiles", defaultConfig.consumerProguardFiles())
@@ -1203,7 +1203,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
     assertEquals("dimension", "abcd", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion())
@@ -1265,7 +1265,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
@@ -1297,7 +1297,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
     assertEquals("minSdkVersion", "15", defaultConfig.minSdkVersion())
     assertEquals("targetSdkVersion", "22", defaultConfig.targetSdkVersion())
     assertEquals("versionCode", 1, defaultConfig.versionCode())
@@ -1319,7 +1319,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
     assertEquals("minSdkVersion", 16, defaultConfig.minSdkVersion())
     assertEquals("targetSdkVersion", 23, defaultConfig.targetSdkVersion())
     assertEquals("versionCode", 2, defaultConfig.versionCode())
@@ -1338,7 +1338,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
     assertMissingProperty("applicationId", defaultConfig.applicationId())
     assertMissingProperty("dimension", defaultConfig.dimension())
     assertMissingProperty("maxSdkVersion", defaultConfig.maxSdkVersion())
@@ -1400,7 +1400,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
@@ -1429,7 +1429,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
     assertMissingProperty("applicationId", defaultConfig.applicationId())
     assertMissingProperty("targetSdkVersion", defaultConfig.targetSdkVersion())
     assertMissingProperty("versionCode", defaultConfig.versionCode())
@@ -1451,7 +1451,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
     assertEquals("minSdkVersion", 16, defaultConfig.minSdkVersion())
     assertEquals("targetSdkVersion", 23, defaultConfig.targetSdkVersion())
     assertEquals("versionCode", 2, defaultConfig.versionCode())
@@ -1474,7 +1474,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles())
     assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
@@ -1503,7 +1503,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
     assertEquals("consumerProguardFiles", listOf("proguard-android-1.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles())
     assertEquals("proguardFiles", listOf("proguard-android-1.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
@@ -1524,7 +1524,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
     assertMissingProperty("consumerProguardFiles", defaultConfig.consumerProguardFiles())
     assertMissingProperty("proguardFiles", defaultConfig.proguardFiles())
     assertMissingProperty("resConfigs", defaultConfig.resConfigs())
@@ -1552,7 +1552,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt"), defaultConfig.consumerProguardFiles())
     assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
     assertEquals("resConfigs", listOf("abcd"), defaultConfig.resConfigs())
@@ -1576,7 +1576,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles())
@@ -1610,7 +1610,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
                  defaultConfig.consumerProguardFiles())
     assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
@@ -1638,7 +1638,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles())
@@ -1667,7 +1667,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt"), defaultConfig.consumerProguardFiles())
     assertEquals("proguardFiles", listOf("proguard-android.txt"), defaultConfig.proguardFiles())
     assertEquals("resConfigs", listOf("abcd"), defaultConfig.resConfigs())
@@ -1689,7 +1689,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt"), defaultConfig.consumerProguardFiles())
     assertEquals("proguardFiles", listOf("proguard-rules.pro"), defaultConfig.proguardFiles())
@@ -1708,7 +1708,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    assertMissingProperty(android!!.defaultConfig().consumerProguardFiles())
+    assertMissingProperty(android.defaultConfig().consumerProguardFiles())
     assertSize(0, android.defaultConfig().proguardFiles().getValue(LIST_TYPE))
   }
 
@@ -1727,7 +1727,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
     assertEquals("manifestPlaceholders", mapOf("key1" to "value1", "key2" to "value2"), defaultConfig.manifestPlaceholders())
     assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "medium", "foo" to "bar"),
                  defaultConfig.testInstrumentationRunnerArguments())
@@ -1752,7 +1752,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
     assertEquals("manifestPlaceholders", mapOf("key1" to 12345, "key2" to "value2", "key3" to true),
                  defaultConfig.manifestPlaceholders())
     assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "small", "foo" to "bar", "key" to "value"),
@@ -1772,7 +1772,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
     assertMissingProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
     assertMissingProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
 
@@ -1796,7 +1796,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
     assertEquals("manifestPlaceholders", mapOf("activityLabel1" to "newName1", "activityLabel2" to "newName2"),
                  defaultConfig.manifestPlaceholders())
     assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "small", "key" to "value"),
@@ -1818,7 +1818,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
 
     assertEquals("manifestPlaceholders", mapOf("activityLabel1" to "defaultName1", "activityLabel2" to "defaultName2"),
                  defaultConfig.manifestPlaceholders())
@@ -1843,7 +1843,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
 
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
     assertEquals("manifestPlaceholders", mapOf("activityLabel2" to "defaultName2"),
                  defaultConfig.manifestPlaceholders())
     assertEquals("testInstrumentationRunnerArguments", mapOf("foo" to "bar"),
@@ -1865,7 +1865,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
     var externalNativeBuild = defaultConfig.externalNativeBuild()
     var cmake = externalNativeBuild.cmake()
     cmake.abiFilters().getListValue("abiFilter2")!!.setValue("abiFilterX")
@@ -1887,7 +1887,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
     android = buildModel.android()
     assertNotNull(android)
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
 
     externalNativeBuild = defaultConfig.externalNativeBuild()
     cmake = externalNativeBuild.cmake()
@@ -1922,7 +1922,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
     var externalNativeBuild = defaultConfig.externalNativeBuild()
     var cmake = externalNativeBuild.cmake()
     cmake.abiFilters().addListValue().setValue("abiFilterX")
@@ -1944,7 +1944,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
     android = buildModel.android()
     assertNotNull(android)
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
 
     externalNativeBuild = defaultConfig.externalNativeBuild()
     cmake = externalNativeBuild.cmake()
@@ -1974,7 +1974,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
     val externalNativeBuild = defaultConfig.externalNativeBuild()
     val cmake = externalNativeBuild.cmake()
     cmake.abiFilters().delete()
@@ -2006,7 +2006,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
     var externalNativeBuild = defaultConfig.externalNativeBuild()
     var cmake = externalNativeBuild.cmake()
     cmake.abiFilters().getListValue("abiFilter1")!!.delete()
@@ -2028,7 +2028,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
     android = buildModel.android()
     assertNotNull(android)
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
 
     externalNativeBuild = defaultConfig.externalNativeBuild()
     cmake = externalNativeBuild.cmake()
@@ -2079,7 +2079,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
 
     val externalNativeBuild = defaultConfig.externalNativeBuild()
     val cmake = externalNativeBuild.cmake()
@@ -2120,7 +2120,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   private fun verifyNativeElements() {
     val android = gradleBuildModel.android()
     assertNotNull(android)
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
 
     val externalNativeBuild = defaultConfig.externalNativeBuild()
     val cmake = externalNativeBuild.cmake()
@@ -2144,7 +2144,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   private fun verifyNullNativeElements() {
     val android = gradleBuildModel.android()
     assertNotNull(android)
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
 
     val externalNativeBuild = defaultConfig.externalNativeBuild()
     val cmake = externalNativeBuild.cmake()
@@ -2183,7 +2183,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
-    var defaultConfig = android!!.defaultConfig()
+    var defaultConfig = android.defaultConfig()
     checkForValidPsiElement(defaultConfig.externalNativeBuild(), ExternalNativeBuildOptionsModelImpl::class.java)
     checkForValidPsiElement(defaultConfig.ndk(), NdkOptionsModelImpl::class.java)
 
@@ -2193,7 +2193,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
     android = buildModel.android()
     assertNotNull(android)
-    defaultConfig = android!!.defaultConfig()
+    defaultConfig = android.defaultConfig()
     checkForInValidPsiElement(defaultConfig.externalNativeBuild(), ExternalNativeBuildOptionsModelImpl::class.java)
     checkForInValidPsiElement(defaultConfig.ndk(), NdkOptionsModelImpl::class.java)
   }
@@ -2215,7 +2215,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
-    var externalNativeBuild = android!!.defaultConfig().externalNativeBuild()
+    var externalNativeBuild = android.defaultConfig().externalNativeBuild()
     checkForValidPsiElement(externalNativeBuild.cmake(), CMakeOptionsModelImpl::class.java)
     checkForValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildOptionsModelImpl::class.java)
 
@@ -2225,7 +2225,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
     android = buildModel.android()
     assertNotNull(android)
-    externalNativeBuild = android!!.defaultConfig().externalNativeBuild()
+    externalNativeBuild = android.defaultConfig().externalNativeBuild()
     checkForInValidPsiElement(externalNativeBuild.cmake(), CMakeOptionsModelImpl::class.java)
     checkForInValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildOptionsModelImpl::class.java)
   }
@@ -2248,7 +2248,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    val defaultConfig = android!!.defaultConfig()
+    val defaultConfig = android.defaultConfig()
     assertEquals("targetSdkVersion", 19, defaultConfig.targetSdkVersion())
   }
 }

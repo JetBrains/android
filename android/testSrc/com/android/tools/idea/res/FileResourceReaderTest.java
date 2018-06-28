@@ -22,11 +22,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.xmlpull.v1.XmlPullParser;
 
-import java.net.URI;
 import java.nio.file.Paths;
 
 import static com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY;
-import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
 /**
  * Tests for {@link FileResourceReader}.
@@ -34,24 +32,22 @@ import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 public class FileResourceReaderTest extends AndroidTestCase {
   public void testReadBytes() throws Exception {
     String resApkPath = Paths.get(myFixture.getTestDataPath(), "design_aar", FN_RESOURCE_STATIC_LIBRARY).normalize().toString();
-    URI uri = new URI("apk", "", resApkPath, null);
-    String resourcePath = "res/drawable-mdpi-v4/design_ic_visibility.png";
-    PathString pathString = new PathString(uri, resourcePath);
+    String resourcePath = resApkPath + "!/res/drawable-mdpi-v4/design_ic_visibility.png";
+    PathString pathString = new PathString("apk", resourcePath);
 
     byte[] bytes = FileResourceReader.readBytes(pathString);
     assertNotNull(bytes);
     assertEquals(309, bytes.length);
 
-    bytes = FileResourceReader.readBytes(uri.toString() + JAR_SEPARATOR + resourcePath);
+    bytes = FileResourceReader.readBytes("apk:" + resourcePath);
     assertNotNull(bytes);
     assertEquals(309, bytes.length);
   }
 
   public void testCreateXmlPullParser() throws Exception {
     String resApkPath = Paths.get(myFixture.getTestDataPath(), "design_aar", FN_RESOURCE_STATIC_LIBRARY).normalize().toString();
-    URI uri = new URI("apk", resApkPath, null);
-    String resourcePath = "res/layout/design_bottom_navigation_item.xml";
-    PathString pathString = new PathString(uri, resourcePath);
+    String resourcePath = resApkPath + "!/res/layout/design_bottom_navigation_item.xml";
+    PathString pathString = new PathString("apk", resourcePath);
 
     XmlPullParser parser = FileResourceReader.createXmlPullParser(pathString);
     assertTrue(parser instanceof ProtoXmlPullParser);

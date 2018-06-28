@@ -65,22 +65,18 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
       context.project.forEachModule (Consumer { module ->
         var updatesFound = false
         if (module is PsAndroidModule) {
-          module.dependencies.forEach { dependency ->
-            if (dependency is PsLibraryDependency) {
-              val found = checkForUpdates(dependency as PsLibraryDependency)
-              if (found) {
-                updatesFound = true
-              }
+          module.dependencies.forEachLibraryDependency { dependency ->
+            val found = checkForUpdates(dependency)
+            if (found) {
+              updatesFound = true
             }
           }
         }
         else if (module is PsJavaModule) {
-          module.forEachDeclaredDependency { dependency ->
-            if (dependency is PsLibraryDependency) {
-              val found = checkForUpdates(dependency as PsLibraryDependency)
-              if (found) {
-                updatesFound = true
-              }
+          module.dependencies.forEachLibraryDependency { dependency ->
+            val found = checkForUpdates(dependency)
+            if (found) {
+              updatesFound = true
             }
           }
         }
@@ -101,10 +97,8 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
       val text = String.format("Newer version available: <b>%1\$s</b> (%2\$s)", update.version, update.repository)
 
       val mainPath = PsLibraryDependencyNavigationPath(dependency)
-      val issue = PsIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, UPDATE)
-
-      val quickFix = PsLibraryDependencyVersionQuickFixPath(dependency, update.version, "[Update]")
-      issue.quickFixPath = quickFix
+      val issue = PsGeneralIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, UPDATE,
+                                 PsLibraryDependencyVersionQuickFixPath(dependency, update.version, "[Update]"))
 
       issues.add(issue)
       return true

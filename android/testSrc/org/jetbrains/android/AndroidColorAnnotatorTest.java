@@ -119,7 +119,7 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
     Annotation annotation = findAnnotation(layoutPath, "@android:drawable/ic_lock_lock", XmlAttributeValue.class);
 
     // Find the icon we should be rendering in layoutlib data.
-    Configuration configuration = AndroidColorAnnotator.pickConfiguration(myFacet, myModule, getPsiFile(layoutPath));
+    Configuration configuration = AndroidAnnotatorUtil.pickConfiguration(myFacet, myModule, getPsiFile(layoutPath));
     assertThat(configuration).isNotNull();
     IAndroidTarget target = configuration.getTarget();
     assertThat(target).isNotNull();

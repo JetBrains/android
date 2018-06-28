@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.GradlePerProjectExperimentalSettings;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -50,11 +51,16 @@ public class NewGradleSync implements GradleSync {
   @NotNull private final SyncExecutionCallback.Factory myCallbackFactory;
 
   public static boolean isLevel4Model() {
-    return isEnabled() && StudioFlags.L4_DEPENDENCY_MODEL.get();
+    return StudioFlags.L4_DEPENDENCY_MODEL.get();
   }
 
-  public static boolean isEnabled() {
-    return StudioFlags.NEW_SYNC_INFRA_ENABLED.get();
+  public static boolean isEnabled(@NotNull Project project) {
+    return StudioFlags.NEW_SYNC_INFRA_ENABLED.get() || GradlePerProjectExperimentalSettings.getInstance(project).USE_SINGLE_VARIANT_SYNC;
+  }
+
+  public static boolean isSingleVariantSync(@NotNull Project project) {
+    return StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get() ||
+           GradlePerProjectExperimentalSettings.getInstance(project).USE_SINGLE_VARIANT_SYNC;
   }
 
   public NewGradleSync(@NotNull Project project) {

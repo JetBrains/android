@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.naveditor
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture
@@ -22,14 +23,26 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import com.intellij.util.ui.UIUtil
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.awt.Point
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @RunWith(GuiTestRemoteRunner::class)
 class DestinationListTest {
-  @Rule @JvmField val guiTest = GuiTestRule()
+  @Rule
+  @JvmField
+  val guiTest = GuiTestRule()
+
+  @Before
+  fun setUp() = StudioFlags.ENABLE_NAV_EDITOR.override(true)
+
+  @After
+  fun tearDown() = StudioFlags.ENABLE_NAV_EDITOR.clearOverride()
 
   /**
    * Make sure the DestinationList is updated correctly when the nav file is updated outside studio.
@@ -70,4 +83,32 @@ class DestinationListTest {
     val destinationListFixture = DestinationListFixture.create(guiTest.robot())
     assertEquals(listOf("new_fragment"), destinationListFixture.components.map { it.id })
   }
+
+  @Test
+  @Throws(Exception::class)
+  fun testSelectComponent() {
+    val frame = guiTest.importProject("Navigation")
+    // Open file as XML and switch to design tab, wait for successful render
+    val editor = frame
+      .waitForGradleProjectSyncToFinish()
+      .editor
+      .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(true)
+
+    editor
+      .waitForRenderToFinish()
+      .destinationList()
+      .clickItem(1)
+
+    // At this point the surface scrolls and zooms. There's nothing obvious to watch for, especially since bugs (110435862) caused us to
+    // reach the target value and then zoom/scroll more, incorrectly. So, just wait for what seems like long enough.
+    Thread.sleep(1000)
+    val surfaceSize = editor
+      .navSurface
+      .target().extentSize
+    assertTrue(
+      Point(surfaceSize.width / 2, surfaceSize.height / 2).distance(editor.navSurface.findDestination("first_screen").midPoint) < 2)
+    assertEquals(1.0, editor.navSurface.scale)
+  }
+
 }

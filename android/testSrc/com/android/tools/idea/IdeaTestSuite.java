@@ -65,6 +65,7 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
 
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/adt/idea/android/android-gradle-1.5.0_repo.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/data-binding/data_binding_runtime.zip", "prebuilts/tools/common/m2/repository");
 

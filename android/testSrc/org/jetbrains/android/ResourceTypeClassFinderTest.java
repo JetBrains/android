@@ -12,7 +12,7 @@ public class ResourceTypeClassFinderTest extends AndroidTestCase {
 
   public void testResourceClasses() throws Exception {
     myFixture.copyFileToProject(BASE_PATH + "values.xml", "res/values/values.xml");
-    myFixture.copyFileToProject("R.java", "src/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
     final Project project = getProject();
     final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
     assertNotNull(facade.findClass("p1.p2.R.drawable", GlobalSearchScope.projectScope(project)));

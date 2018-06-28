@@ -70,7 +70,7 @@ public class DeployApkTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    RunStatsService.get(myProject).notifyDeployApkStarted(device, myApks.size());
+    RunStatsService.get(myProject).notifyDeployApkStarted(device, myApks);
     printer = new SkipEmptyLinesConsolePrinter(printer);
     FullApkInstaller
       installer = new FullApkInstaller(myProject, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);

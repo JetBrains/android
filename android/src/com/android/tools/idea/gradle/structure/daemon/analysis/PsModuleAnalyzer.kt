@@ -16,41 +16,29 @@
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.model.PsIssue
-import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.INFO
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.WARNING
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.PsResolvedLibraryDependency
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath
 
 abstract class PsModuleAnalyzer<T : PsModule> protected constructor(protected val context: PsContext) : PsModelAnalyzer<T>() {
 
-  protected fun analyzeDeclaredDependency(dependency: PsResolvedLibraryDependency,
+  protected fun analyzeDeclaredDependency(dependency: PsDeclaredLibraryDependency,
                                           issueCollection: PsIssueCollection) {
-    val resolvedSpec = dependency.spec
     val path = PsLibraryDependencyNavigationPath(dependency)
 
     val declaredSpec = dependency.spec
     val declaredVersion = declaredSpec.version
     if (declaredVersion != null && declaredVersion.endsWith("+")) {
       val message = "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds."
-      val issue = PsIssue(message, "", path, PROJECT_ANALYSIS, WARNING)
+      val issue = PsGeneralIssue(message, "", path, PROJECT_ANALYSIS, WARNING,
+                                 PsLibraryDependencyVersionQuickFixPath(dependency,
+                                                                        PsLibraryDependencyVersionQuickFixPath.DEFAULT_QUICK_FIX_TEXT))
 
-      val quickFix = PsLibraryDependencyVersionQuickFixPath(dependency, PsLibraryDependencyVersionQuickFixPath.DEFAULT_QUICK_FIX_TEXT)
-      issue.quickFixPath = quickFix
-
-      issueCollection.add(issue)
-    }
-
-    if (dependency.hasPromotedVersion()) {
-      val message = "Gradle promoted library version from $declaredVersion to ${resolvedSpec.version}"
-      val description = "To resolve version conflicts, Gradle by default uses the newest version of a dependency. " +
-                        "<a href='https://docs.gradle.org/current/userguide/dependency_management.html'>Open Gradle " +
-                        "documentation</a>"
-      val issue = PsIssue(message, description, path, PROJECT_ANALYSIS, INFO)
       issueCollection.add(issue)
     }
   }

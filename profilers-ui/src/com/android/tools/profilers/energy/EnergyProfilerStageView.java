@@ -101,7 +101,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
                                 timeline.getDataRange(),
                                 getTooltipPanel(),
                                 getProfilersView().getComponent(),
-                                () -> selection.getMode() != SelectionComponent.Mode.MOVE);
+                                () -> selection.shouldShowSeekComponent());
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
     panel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);

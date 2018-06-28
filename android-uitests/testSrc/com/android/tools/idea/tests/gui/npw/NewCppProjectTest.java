@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +37,7 @@ public class NewCppProjectTest {
    * This checks that our (default) project templates are warnings-clean.
    * The test then proceeds to make a couple of edits and checks that these do not generate additional warnings either.
    */
+  @Ignore("b/110443122")
   @RunIn(TestGroup.UNRELIABLE)  // b/110443122 @RunIn(TestGroup.PROJECT_WIZARD)
   @Test
   public void noWarningsInNewProjectWithCpp() {

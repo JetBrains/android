@@ -131,13 +131,13 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     parser = ::parseString
   )
 
-  val versionCode: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
+  val versionCode: SimpleProperty<PsAndroidModuleDefaultConfig, Int> = property(
     "Version Code",
-    resolvedValueGetter = { versionCode?.toString() },
+    resolvedValueGetter = { versionCode },
     parsedPropertyGetter = { versionCode() },
-    getter = { asString() },
+    getter = { asInt() },
     setter = { setValue(it) },
-    parser = ::parseString
+    parser = ::parseInt
   )
 
   val versionName: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(

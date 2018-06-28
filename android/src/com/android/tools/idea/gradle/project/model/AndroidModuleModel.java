@@ -894,6 +894,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Override
   public boolean isClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile) {
+    return testIsClassFileOutOfDate(module, fqcn, classFile);
+  }
+
+  public static boolean testIsClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile) {
     Project project = module.getProject();
     GlobalSearchScope scope = module.getModuleWithDependenciesScope();
     VirtualFile sourceFile =

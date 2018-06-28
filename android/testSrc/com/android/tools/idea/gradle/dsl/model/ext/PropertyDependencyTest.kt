@@ -230,7 +230,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     assertDependencyBetween(seventhModel, fifthModel, "files")
 
     // Now we check the default config.
-    val config = buildModel.android()!!.defaultConfig()
+    val config = buildModel.android().defaultConfig()
     val maxSdkModel = config.maxSdkVersion()
     val minSdkModel = config.minSdkVersion()
 
@@ -240,7 +240,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     assertDependencyBetween(minSdkModel, maxSdkModel, "android.defaultConfig.maxSdkVersion")
 
     // Now the signing config
-    val signingConfig = buildModel.android()!!.signingConfigs()[0]
+    val signingConfig = buildModel.android().signingConfigs()[0]
     val storeFileModel = signingConfig.storeFile()
     val storePasswordModel = signingConfig.storePassword()
 
@@ -305,7 +305,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     assertDependencyBetween(varRefString, numbersModel.toList()!![3], "numbers[3]")
     assertDependencyNumbers(varProGuardFiles, 0, 1, 1, 0)
 
-    val android = childModel.android()!!
+    val android = childModel.android()
     val compileSdkModel = android.compileSdkVersion()
     val buildToolsModel = android.buildToolsVersion()
 
@@ -348,7 +348,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     otherNewModel.setValue(ReferenceTo("N0"))
     assertDependencyNumbers(otherNewModel, 1, 1, 0, 0)
     assertDependencyBetween(otherNewModel, buildModel.ext().findProperty("N0"), "N0")
-    val keyPass = buildModel.android()!!.signingConfigs()[0]!!.keyPassword()
+    val keyPass = buildModel.android().signingConfigs()[0]!!.keyPassword()
     keyPass.setValue(PLAIN_TEXT, iStr("${'$'}{prop2['key']}${'$'}{N1}"))
     assertDependencyNumbers(keyPass, 2, 2, 0, 0)
     assertDependencyBetween(keyPass, buildModel.ext().findProperty("N1"), "N1")
@@ -358,7 +358,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val key3 = filesModel.getMapValue("key3")
     key3.setValue("boo")
     assertDependencyNumbers(key3, 0, 0, 0, 1)
-    val storePass = buildModel.android()!!.signingConfigs()[0]!!.storePassword()
+    val storePass = buildModel.android().signingConfigs()[0]!!.storePassword()
     assertDependencyNumbers(storePass, 1, 1, 0, 0)
     assertDependencyBetween(storePass, key3, "prop2['key3']")
   }
@@ -394,7 +394,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val changedModel = buildModel.ext().findProperty("versions").toList()!![1]!!
     val oModel = buildModel.ext().findProperty("O")
     val oldN1Model = buildModel.ext().findProperty("N1")
-    val maxSdkModel = buildModel.android()!!.defaultConfig().maxSdkVersion()
+    val maxSdkModel = buildModel.android().defaultConfig().maxSdkVersion()
 
     changedModel.setValue(iStr("${'$'}{O}"))
     assertDependencyNumbers(changedModel, 1, 1, 0, 1)
@@ -417,8 +417,8 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     // Swap min and max sdk names from the applied file.
     val appliedMinSdk = appliedModel.ext().findProperty("vars").toMap()!!["minSdk"]!!
     val appliedMaxSdk = appliedModel.ext().findProperty("vars").toMap()!!["maxSdk"]!!
-    val childMaxSdk = childModel.android()!!.defaultConfig().maxSdkVersion()
-    val childMinSdk = childModel.android()!!.defaultConfig().minSdkVersion()
+    val childMaxSdk = childModel.android().defaultConfig().maxSdkVersion()
+    val childMinSdk = childModel.android().defaultConfig().minSdkVersion()
 
     appliedMinSdk.rename("maxSdk")
     assertDependencyNumbers(appliedMaxSdk, 0, 1, 1, 1)
@@ -446,7 +446,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     // and create one on applicationId.
     val boolModel = parentModel.ext().findProperty("bool")
     val varBoolModel = childModel.ext().findProperty("varBool")
-    val appIdModel = childModel.android()!!.defaultConfig().applicationId()
+    val appIdModel = childModel.android().defaultConfig().applicationId()
 
     boolModel.rename("appId")
     assertDependencyNumbers(boolModel, 0, 0, 0, 1)
@@ -463,7 +463,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
     val deletedN1Model = buildModel.ext().findProperty("versions").toList()!![1]!!
     val n1Model = buildModel.ext().findProperty("N1")
-    val maxSdkModel = buildModel.android()!!.defaultConfig().maxSdkVersion()
+    val maxSdkModel = buildModel.android().defaultConfig().maxSdkVersion()
     val oModel = buildModel.ext().findProperty("versions").toList()!![2]!!
     val deletedN0Model = buildModel.ext().findProperty("N0")
     val n0Model = buildModel.ext().findProperty("versions").toList()!![0]!!
@@ -788,5 +788,27 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
     verifyPropertyModel(childBuildModel.ext().findProperty("hello").resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1)
     verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "good:dep:1.0", STRING, REGULAR, 1)
+  }
+
+  @Test
+  fun testVariableInBuildscript() {
+    val text = """
+               buildscript {
+                 ext.kotlin = "2.0"
+
+                 dependencies {
+                   compile "hello:kotlin:${'$'}{kotlin}"
+                 }
+               }
+               """.trimIndent()
+    writeToBuildFile(text)
+
+    val pbm = ProjectBuildModel.get(myProject)
+    val buildModel = pbm.projectBuildModel!!
+
+    assertSize(1, buildModel.ext().properties)
+
+    val artModel = buildModel.buildscript().dependencies().artifacts()[0]!!
+    verifyPropertyModel(artModel.completeModel().resultModel, STRING_TYPE, "hello:kotlin:2.0", STRING, REGULAR, 1)
   }
 }

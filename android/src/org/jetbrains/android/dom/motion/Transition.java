@@ -26,5 +26,6 @@ import java.util.List;
 @Styleable(value = "Transition", packageName = "android.support.constraint")
 public interface Transition extends MotionElement {
   OnSwipe getOnSwipe();
+  OnClick getOnClick();
   List<KeyFrameSet> getKeyFrameSets();
 }

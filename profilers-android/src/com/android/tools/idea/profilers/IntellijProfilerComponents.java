@@ -24,11 +24,6 @@ import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.DataViewer;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.android.tools.profilers.stacktrace.StackTraceGroup;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeManager;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLoadingPanel;
 import org.jetbrains.annotations.NotNull;
@@ -38,23 +33,12 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Collection;
-import java.util.Map;
 import java.util.function.Consumer;
 
 public class IntellijProfilerComponents implements IdeProfilerComponents {
-
-  private static final Map<String, FileType> FILE_TYPE_MAP = new ImmutableMap.Builder<String, FileType>()
-    .put(".csv", FileTypeManager.getInstance().getStdFileType("CSV"))
-    .put(".html", StdFileTypes.HTML)
-    .put(".json", FileTypeManager.getInstance().getStdFileType("JSON"))
-    .put(".xml", StdFileTypes.XML)
-    .build();
-
-  private static final ImmutableSet<String> IMAGE_EXTENSIONS = ImmutableSet.of(".bmp", ".gif", ".jpeg", ".jpg", ".png", ".webp");
 
   @NotNull private final Project myProject;
 
@@ -110,7 +94,6 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-
   public ContextMenuInstaller createContextMenuInstaller() {
     return new IntellijContextMenuInstaller();
   }
@@ -129,40 +112,19 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public DataViewer createFileViewer(@NotNull File file) {
-    String fileName = file.getName();
-    int dot = fileName.lastIndexOf('.');
-    String extension = dot >= 0 && dot < fileName.length() ? fileName.substring(dot) : "";
-
-    if (IMAGE_EXTENSIONS.contains(extension)) {
-      BufferedImage image = null;
-      try {
-        image = ImageIO.read(file);
+  public DataViewer createDataViewer(@NotNull byte[] content, @NotNull ContentType contentType) {
+    if (contentType.isImageType()) {
+      try (ByteArrayInputStream inputStream = new ByteArrayInputStream(content)) {
+        BufferedImage image = ImageIO.read(inputStream);
+        if (image != null) {
+          return IntellijDataViewer.createImageViewer(image);
+        }
       }
       catch (IOException ignored) {
       }
-      if (image != null) {
-        return IntellijDataViewer.createImageViewer(image);
-      }
-      else {
-        return IntellijDataViewer.createInvalidViewer();
-      }
-    }
-
-    String content = null;
-    if (file.exists()) {
-      try {
-        content = new String(Files.readAllBytes(file.toPath()));
-      }
-      catch (IOException ignored) {
-      }
-    }
-
-    if (content == null) {
       return IntellijDataViewer.createInvalidViewer();
     }
-
-    return IntellijDataViewer.createEditorViewer(myProject, content, FILE_TYPE_MAP.getOrDefault(extension, null));
+    return IntellijDataViewer.createEditorViewer(myProject, new String(content), contentType.getFileType());
   }
 
   @NotNull

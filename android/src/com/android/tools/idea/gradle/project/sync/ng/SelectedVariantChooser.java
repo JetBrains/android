@@ -115,16 +115,17 @@ class SelectedVariantChooser implements Serializable {
     String moduleId = createUniqueModuleId(gradleProject);
     String variant = selectedVariants.getSelectedVariant(moduleId);
 
+    Collection<String> variantNames = androidModule.getAndroidProject().getVariantNames();
     // Selected variant is null means that this is the very first sync, choose debug or the first one.
-    if (variant == null) {
-      variant = getDebugOrFirstVariant(androidModule.getAndroidProject());
+    // Also, make sure the variant in SelectedVariants exists - this can be false if the variants in build files are modified from the last sync.
+    if (variant == null || !variantNames.contains(variant)) {
+      variant = getDebugOrFirstVariant(variantNames);
     }
     return (variant != null) ? syncAndAddVariant(variant, androidModule.getModuleModels(), controller) : null;
   }
 
   @Nullable
-  private static String getDebugOrFirstVariant(@NotNull AndroidProject androidProject) {
-    Collection<String> names = androidProject.getVariantNames();
+  private static String getDebugOrFirstVariant(@NotNull Collection<String> names) {
     int nameCount = names.size();
     if (nameCount == 0) {
       return null;
@@ -148,8 +149,8 @@ class SelectedVariantChooser implements Serializable {
     GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
     requireNonNull(gradleProject);
 
-    Variant variant = controller.getModel(gradleProject, Variant.class, ModelBuilderParameter.class,
-                                          parameter -> parameter.setVariantName(variantName));
+    Variant variant = controller.findModel(gradleProject, Variant.class, ModelBuilderParameter.class,
+                                           parameter -> parameter.setVariantName(variantName));
     if (variant != null) {
       moduleModels.addModel(Variant.class, variant);
     }

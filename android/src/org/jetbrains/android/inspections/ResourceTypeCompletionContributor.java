@@ -398,7 +398,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
 
   @Nullable
   public static ResourceType getResourceTypeFromAnnotation(@NotNull String qualifiedName) {
-    String resourceTypeName = null;
+    String resourceTypeName;
 
     if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX.oldName())) {
       resourceTypeName = Character.toLowerCase(qualifiedName.charAt(SUPPORT_ANNOTATIONS_PREFIX.oldName().length())) +
@@ -410,7 +410,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
                          qualifiedName
                            .substring(SUPPORT_ANNOTATIONS_PREFIX.newName().length() + 1, qualifiedName.length() - RES_SUFFIX.length());
     }
-    return ResourceType.getEnum(resourceTypeName);
+    return ResourceType.fromClassName(resourceTypeName);
   }
 
   static class ResourceTypeAllowedValues extends Constraints {
@@ -466,4 +466,3 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
 
 
 }
-  

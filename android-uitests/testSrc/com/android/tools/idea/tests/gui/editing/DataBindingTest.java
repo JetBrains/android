@@ -18,11 +18,9 @@ package com.android.tools.idea.tests.gui.editing;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,22 +48,11 @@ public class DataBindingTest {
    * </pre>
    */
   @Test
+  @RunIn(TestGroup.QA)
   public void resolvesSymbols() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("DatabindingMethodsTest");
     List<String> errors = ideFrame.getEditor()
       .open("app/src/main/java/com/google/test/databinding/BlankFragment.java")
-      .getHighlights(HighlightSeverity.ERROR);
-    assertThat(errors).isEmpty();
-  }
-
-  /**
-   * Verify data binding expressions in the XML are resolved properly.
-   */
-  @Test
-  public void resolveXmlReferences() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("DatabindingMethodsTest");
-    List<String> errors = ideFrame.getEditor()
-      .open("app/src/main/res/layout/binding_layout.xml", EditorFixture.Tab.EDITOR)
       .getHighlights(HighlightSeverity.ERROR);
     assertThat(errors).isEmpty();
   }

@@ -95,9 +95,9 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
         is JUnitInfoMessage ->
           when (message.info.type) {
             Type.STARTED -> eachNotifier.fireTestStarted()
-            Type.ASSUMPTION_FAILURE -> eachNotifier.addFailedAssumption((message.info.obj as Failure).exception as AssumptionViolatedException)
+            Type.ASSUMPTION_FAILURE -> eachNotifier.addFailedAssumption(((message.info as JUnitFailureInfo).failure).exception as AssumptionViolatedException)
             Type.IGNORED -> { eachNotifier.fireTestIgnored(); testIsRunning = false }
-            Type.FAILURE -> eachNotifier.addFailure(message.info.obj as Throwable)
+            Type.FAILURE -> eachNotifier.addFailure((message.info as JUnitFailureInfo).failure.exception)
             Type.FINISHED -> {
               server.setIdeErrorFlag(message.info.ideError)
               eachNotifier.fireTestFinished()

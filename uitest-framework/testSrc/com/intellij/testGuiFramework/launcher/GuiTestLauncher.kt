@@ -22,20 +22,12 @@ import com.android.tools.tests.IdeaTestSuiteBase
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.testGuiFramework.impl.GuiTestStarter
 import org.apache.log4j.Level
-import org.jetbrains.jps.model.JpsElementFactory
-import org.jetbrains.jps.model.JpsProject
-import org.jetbrains.jps.model.java.JpsJavaExtensionService
-import org.jetbrains.jps.model.module.JpsModule
-import org.jetbrains.jps.model.serialization.JpsModelSerializationDataService
-import org.jetbrains.jps.model.serialization.JpsProjectLoader
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
 import java.nio.file.Paths
-import java.util.*
 import java.util.jar.Attributes
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
@@ -64,28 +56,15 @@ object GuiTestLauncher {
   var process: Process? = null
   private var vmOptionsFile: File? = null
 
-  private const val TEST_GUI_FRAMEWORK_MODULE_NAME = "intellij.android.guiTestFramework"
-  private const val STUDIO_UITESTS_MAIN_MODULE_NAME = "intellij.android.guiTests"
   private const val MAIN_CLASS_NAME = "com.intellij.idea.Main"
+
+  private val classpathJar = File(GuiTests.getGuiTestRootDirPath(), "classpath.jar")
 
   init {
     LOG.setLevel(Level.INFO)
-  }
-
-  val project: JpsProject by lazy {
-    val home = PathManager.getHomePath()
-    val model = JpsElementFactory.getInstance().createModel()
-    val pathVariables = JpsModelSerializationDataService.computeAllPathVariables(model.global)
-    val jpsProject = model.project
-    JpsProjectLoader.loadProject(jpsProject, pathVariables, home)
-    jpsProject.changeOutputIfNeeded()
-    jpsProject
-  }
-  private val modulesList: List<JpsModule> by lazy {
-    project.modules
-  }
-  private val testGuiFrameworkModule: JpsModule by lazy {
-    modulesList.module(TEST_GUI_FRAMEWORK_MODULE_NAME) ?: throw Exception("Unable to find module '$TEST_GUI_FRAMEWORK_MODULE_NAME'")
+    if (!GuiTestOptions.isRunningOnRelease()) {
+      buildClasspathJar()
+    }
   }
 
   fun runIde (port: Int) {
@@ -122,18 +101,13 @@ object GuiTestLauncher {
 -Didea.system.path=${GuiTests.getSystemDirPath()}""")
     }
 
-  private fun createArgs(port: Int): List<String> {
-    if (TestUtils.runningFromBazel()) {
-      buildBazelClasspathJar()
-    }
-    val args = listOf<String>()
+  private fun createArgs(port: Int) =
+    listOf<String>()
         .plus(getCurrentJavaExec())
         .plus(getVmOptions(port))
         .plus("-classpath")
-        .plus(getFullClasspath(STUDIO_UITESTS_MAIN_MODULE_NAME))
+        .plus(classpathJar.absolutePath)
         .plus(MAIN_CLASS_NAME)
-    return args
-  }
 
   private fun createArgsByPath(path: String): List<String> = listOf(path)
 
@@ -205,19 +179,6 @@ object GuiTestLauncher {
     return File(binDir, javaName).path
   }
 
-  /**
-   * return union of classpaths for current test (get from classloader) and classpaths of main and testGuiFramework modules*
-   */
-  private fun getFullClasspath(moduleName: String): String {
-    if (TestUtils.runningFromBazel()) {
-      return TestUtils.getWorkspaceFile("classpath.jar").canonicalPath
-    } else {
-      val classpath = getExtendedClasspath(moduleName)
-      classpath.addAll(getTestClasspath())
-      return classpath.toList().joinToString(separator = ":")
-    }
-  }
-
   private fun getTestClasspath(): List<File> {
     val classLoader = this.javaClass.classLoader
     val urlClassLoaderClass = classLoader.javaClass
@@ -229,63 +190,19 @@ object GuiTestLauncher {
   }
 
 
-  /**
-   * return union of classpaths for @moduleName and testGuiFramework modules
-   */
-  private fun getExtendedClasspath(moduleName: String): MutableSet<File> {
-    val resultSet = LinkedHashSet<File>()
-    val module = modulesList.module(moduleName) ?: throw Exception("Unable to find module with name: $moduleName")
-    resultSet.addAll(module.getClasspath())
-    resultSet.addAll(testGuiFrameworkModule.getClasspath())
-    return resultSet
-  }
-
-  private fun buildBazelClasspathJar() {
-    if (TestUtils.runningFromBazel()) {
-      val jars = getTestClasspath()
-      val classpath = StringBuilder().apply {
-        for (jar in jars) {
-          append("file:" + jar.absolutePath.replace(" ", "%20") + " ")
-        }
+  private fun buildClasspathJar() {
+    val files = getTestClasspath()
+    val classpath = StringBuilder().apply {
+      for (file in files) {
+        append("file:" + file.absolutePath.replace(" ", "%20") + if (file.isDirectory) "/ " else " ")
       }
-
-      val manifest = Manifest()
-      manifest.mainAttributes[Attributes.Name.MANIFEST_VERSION] = "1.0"
-      manifest.mainAttributes[Attributes.Name.CLASS_PATH] = classpath.toString()
-
-      JarOutputStream(FileOutputStream(File(TestUtils.getWorkspaceRoot(), "classpath.jar")), manifest).use {}
     }
-  }
 
-  private fun List<JpsModule>.module(moduleName: String): JpsModule? =
-    this.firstOrNull { it.name == moduleName }
+    val manifest = Manifest()
+    manifest.mainAttributes[Attributes.Name.MANIFEST_VERSION] = "1.0"
+    manifest.mainAttributes[Attributes.Name.CLASS_PATH] = classpath.toString()
 
-  private fun JpsModule.getClasspath(): MutableCollection<File> =
-    JpsJavaExtensionService.dependencies(this).productionOnly().runtimeOnly().recursively().classes().roots
-
-
-  private fun getOutputRootFromClassloader(): File {
-    val pathFromClassloader = PathManager.getJarPathForClass(GuiTestLauncher::class.java)
-    val productionDir = File(pathFromClassloader).parentFile
-    assert(productionDir.isDirectory)
-    val outputDir = productionDir.parentFile
-    assert(outputDir.isDirectory)
-    return outputDir
-  }
-
-  /**
-   * @return true if classloader's output path is the same to module's output path (and also same to project)
-   */
-  private fun needToChangeProjectOutput(project: JpsProject): Boolean =
-    JpsJavaExtensionService.getInstance().getProjectExtension(project)?.outputUrl ==
-        getOutputRootFromClassloader().path
-
-
-  private fun JpsProject.changeOutputIfNeeded() {
-    if (!needToChangeProjectOutput(this)) {
-      val projectExtension = JpsJavaExtensionService.getInstance().getOrCreateProjectExtension(this)
-      projectExtension.outputUrl = VfsUtilCore.pathToUrl(FileUtil.toSystemIndependentName(getOutputRootFromClassloader().path))
-    }
+    JarOutputStream(FileOutputStream(classpathJar), manifest).use {}
   }
 
 }

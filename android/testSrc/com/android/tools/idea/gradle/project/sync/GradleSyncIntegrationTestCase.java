@@ -20,18 +20,22 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 public abstract class GradleSyncIntegrationTestCase extends AndroidGradleTestCase {
   private boolean myUseNewGradleSync;
+  private boolean myUseSingleVariantSync;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myUseNewGradleSync = StudioFlags.NEW_SYNC_INFRA_ENABLED.get();
+    myUseSingleVariantSync = StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get();
     StudioFlags.NEW_SYNC_INFRA_ENABLED.override(useNewSyncInfrastructure());
+    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(useSingleVariantSyncInfrastructure());
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
       StudioFlags.NEW_SYNC_INFRA_ENABLED.override(myUseNewGradleSync); // back to default value.
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(myUseSingleVariantSync);
     }
     finally {
       super.tearDown();
@@ -39,4 +43,6 @@ public abstract class GradleSyncIntegrationTestCase extends AndroidGradleTestCas
   }
 
   protected abstract boolean useNewSyncInfrastructure();
+
+  protected abstract boolean useSingleVariantSyncInfrastructure();
 }

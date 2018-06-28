@@ -16,12 +16,10 @@
 package com.android.tools.profilers.network.httpdata;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.CharsetToolkit;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -35,19 +33,6 @@ import java.util.*;
  * connection completes.
  */
 public class HttpData {
-  // TODO: Way more robust handling of different types. See also:
-  // http://www.iana.org/assignments/media-types/media-types.xhtml
-  private static final Map<String, String> CONTENT_EXTENSIONS_MAP = new ImmutableMap.Builder<String, String>()
-    .put("/bmp", ".bmp")
-    .put("/csv", ".csv")
-    .put("/gif", ".gif")
-    .put("/html", ".html")
-    .put("/jpeg", ".jpg")
-    .put("/json", ".json")
-    .put("/png", ".png")
-    .put("/webp", ".webp")
-    .put("/xml", ".xml")
-    .build();
 
   private final long myId;
   private final long myStartTimeUs;
@@ -241,20 +226,6 @@ public class HttpData {
     @NotNull
     public String getMimeType() {
       return myContentType.split(";")[0];
-    }
-
-    /**
-     * Returns file extension based on the response Content-Type header field.
-     * If type is absent or not supported, returns null.
-     */
-    @Nullable
-    public String guessFileExtension() {
-      for (Map.Entry<String, String> entry : CONTENT_EXTENSIONS_MAP.entrySet()) {
-        if (myContentType.contains(entry.getKey())) {
-          return entry.getValue();
-        }
-      }
-      return null;
     }
 
     @NotNull

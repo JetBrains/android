@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
@@ -180,7 +181,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
     myUpdateIssuesQueue.queue(new Update(this) {
       @Override
       public void run() {
-        List<PsIssue> issues = Lists.newArrayList();
+        Set<PsIssue> issues = Sets.newHashSet();
         for (AbstractDependencyNode<? extends PsAndroidDependency> node : selection) {
           for (PsAndroidDependency dependency : node.getModels()) {
             issues.addAll(myContext.getAnalyzerDaemon().getIssues().findIssues(dependency, null));

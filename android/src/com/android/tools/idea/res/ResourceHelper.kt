@@ -609,8 +609,7 @@ private fun extend(nibble: Long): Long {
  * @param project the current project
  * @return the corresponding [VirtualFile], or null
  */
-// TODO: Rename to resolveDrawable when the existing resolveDrawable method is removed.
-fun RenderResources.resolveDrawableAsVirtualFile(drawable: ResourceValue?, project: Project): VirtualFile? {
+fun RenderResources.resolveDrawable(drawable: ResourceValue?, project: Project): VirtualFile? {
   val resolvedDrawable = resolveNullableResValue(drawable) ?: return null
 
   var result = resolvedDrawable.value
@@ -629,28 +628,6 @@ fun RenderResources.resolveDrawableAsVirtualFile(drawable: ResourceValue?, proje
   }
 
   return toFileResourcePathString(result)?.toVirtualFile()
-}
-
-@Deprecated("Use resolveDrawableAsVirtualFile")
-fun RenderResources.resolveDrawable(drawable: ResourceValue?, project: Project): File? {
-  val resolvedDrawable = resolveNullableResValue(drawable) ?: return null
-
-  var result = resolvedDrawable.value
-
-  val stateList = resolveStateList(resolvedDrawable, project)
-  if (stateList != null) {
-    val states = stateList.states
-    if (!states.isEmpty()) {
-      val state = states[states.size - 1]
-      result = state.value
-    }
-  }
-
-  if (result == null) {
-    return null
-  }
-
-  return toFileResourcePathString(result)?.toFile()
 }
 
 /**
@@ -698,13 +675,7 @@ fun toFileResourcePathString(resourcePath: String): PathString? {
     if (separatorPos < prefixLength) {
       throw IllegalArgumentException("Invalid resource path \"$resourcePath\"")
     }
-    return try {
-      val uri = URI("apk", resourcePath.substring(prefixLength, separatorPos).replace('\\', '/'), null)
-      PathString(uri, resourcePath.substring(separatorPos + JAR_SEPARATOR.length))
-    }
-    catch (e: URISyntaxException) {
-      null
-    }
+    return PathString("apk", resourcePath.substring(separatorPos + JAR_SEPARATOR.length))
   }
 
   if (resourcePath.startsWith("file:")) {
@@ -1012,28 +983,26 @@ fun AbstractResourceRepository.getResourceItems(
   minVisibility: ResourceVisibility
 ): Collection<String> {
   Preconditions.checkArgument(minVisibility != ResourceVisibility.UNDEFINED)
-  // TODO(b/74325205): remove the need for this.
-  val adjustedType = if (type == ResourceType.STYLEABLE) ResourceType.DECLARE_STYLEABLE else type
 
   // TODO(namespaces): Only AarProtoResourceRepository properly supports resource visibility. We need to make all repositories support it.
   return when {
     this is FrameworkResourceRepository -> when {
       namespace != ResourceNamespace.ANDROID -> emptySet()
-      minVisibility != ResourceVisibility.PUBLIC -> getItemsOfType(ResourceNamespace.ANDROID, adjustedType)
+      minVisibility != ResourceVisibility.PUBLIC -> getItemsOfType(ResourceNamespace.ANDROID, type)
       else -> {
-        val public = getPublicResourcesOfType(adjustedType)
+        val public = getPublicResourcesOfType(type)
         public.mapTo(HashSet(public.size), ResourceItem::getName)
       }
     }
     this is AarProtoResourceRepository -> {
       // Resources in AarProtoResourceRepository know their visibility.
-      val items = getResourceItems(namespace, adjustedType) { item ->
+      val items = getResourceItems(namespace, type) { item ->
         (item as ResourceItemWithVisibility).visibility >= minVisibility
       }
       items.mapTo(HashSet(items.size), ResourceItem::getName)
     }
     else -> {
-      val items = getResourceItems(namespace, adjustedType) { item ->
+      val items = getResourceItems(namespace, type) { item ->
         when {
           minVisibility == ResourceVisibility.values()[0] -> true
           item is ResourceItemWithVisibility -> item.visibility >= minVisibility
@@ -1042,7 +1011,7 @@ fun AbstractResourceRepository.getResourceItems(
             // TODO(namespaces)
             // This is not the same as calling isPublic, see ResourceVisibilityLookup docs. If we don't know, we assume things are accessible,
             // which is probably a better UX and the only way to make our tests pass (for now).
-            minVisibility != ResourceVisibility.PUBLIC || !visibilityLookup.isPrivate(adjustedType, item.name)
+            minVisibility != ResourceVisibility.PUBLIC || !visibilityLookup.isPrivate(type, item.name)
         }
       }
       items.mapTo(HashSet(items.size), ResourceItem::getName)

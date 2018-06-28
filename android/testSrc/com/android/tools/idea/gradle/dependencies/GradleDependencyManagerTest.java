@@ -69,7 +69,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
 
     // @formatter:off
     List<ResourceItem> items = ResourceRepositoryManager.getAppResources(myAndroidFacet)
-                                                    .getResourceItem(ResourceType.DECLARE_STYLEABLE, "RecyclerView");
+                                                    .getResourceItem(ResourceType.STYLEABLE, "RecyclerView");
     // @formatter:on
     assertThat(items).isNotEmpty();
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();

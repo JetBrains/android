@@ -22,7 +22,6 @@ import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
-import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.light.LightElement
@@ -45,11 +44,6 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     StudioFlags.IN_MEMORY_R_CLASSES.override(true)
     // No need to copy R.java into gen!
   }
-
-  /**
-   * Sets the language level to avoid the module system visibility rules.
-   */
-  override fun getLanguageLevel() = LanguageLevel.JDK_1_8
 
   override fun tearDown() {
     try {
@@ -138,8 +132,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.completeBasic()
 
-      // TODO(b/80425291): remove "sample"
-      assertThat(myFixture.lookupElementStrings).containsExactly("class", "string", "sample")
+      assertThat(myFixture.lookupElementStrings).containsExactly("class", "string")
     }
 
     fun testResourceNamesCompletion() {

@@ -47,9 +47,6 @@ public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
     GradleBuildModel buildModel = parseBuildFile(buildFile, project);
 
     AndroidModel android = buildModel.android();
-    if (android == null) {
-      return;
-    }
 
     if (version.equals(android.buildToolsVersion().toString())) {
       return;

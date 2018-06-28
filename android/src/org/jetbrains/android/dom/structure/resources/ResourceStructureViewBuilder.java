@@ -69,7 +69,7 @@ public class ResourceStructureViewBuilder extends TreeBasedStructureViewBuilder 
       final List<StructureViewTreeElement> result = Lists.newArrayList();
       final DomElementVisitor visitor = new DomElementVisitor() {
         public void visitResourceElement(ResourceElement element) {
-          final ResourceType type = AndroidResourceUtil.getType(element.getXmlTag());
+          final ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(element.getXmlTag());
           final String name = element.getName().getValue();
           final XmlElement xmlElement = element.getXmlElement();
           if (name != null && type != null && xmlElement != null) {

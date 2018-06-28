@@ -100,6 +100,17 @@ public final class TranslationsEditorFixture {
     clickComboBoxItem(getButton("Show All Locales"), text);
   }
 
+  public void clickReloadButton() {
+    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton button) {
+        return "Reload string resources".equals(button.getAction().getTemplatePresentation().getText());
+      }
+    };
+
+    new ActionButtonFixture(myRobot, GuiTests.waitUntilShowingAndEnabled(myRobot, myLoadingPanel, matcher)).click();
+  }
+
   public void addNewLocale(@NotNull String newLocale) {
     getAddLocaleButton().click();
     JListFixture listFixture= new JListFixture(myRobot, getLocaleList());

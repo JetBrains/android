@@ -23,7 +23,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.sdklib.repository.PkgProps;
 import com.android.tools.idea.io.BufferingFileWrapper;
-import com.android.utils.TraceUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.execution.process.BaseOSProcessHandler;
@@ -313,17 +312,6 @@ public class AndroidCommonUtils {
            FileUtilRt.extensionEquals(fileName, PNG_EXTENSION)
            ? s.substring(0, s.length() - 2)
            : s;
-  }
-
-  @NotNull
-  public static String getResourceTypeByTagName(@NotNull String tagName) {
-    if (tagName.equals("declare-styleable")) {
-      tagName = "styleable";
-    }
-    else if (tagName.endsWith("-array")) {
-      tagName = "array";
-    }
-    return tagName;
   }
 
   @NotNull

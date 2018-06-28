@@ -366,7 +366,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     resources.updateRoots(Arrays.asList(res1, res2, res3));
 
     EnumSet<ResourceType> allTypes = EnumSet.copyOf(typesWithoutRes3);
-    allTypes.addAll(Arrays.asList(ResourceType.ATTR, ResourceType.INTEGER, ResourceType.DECLARE_STYLEABLE, ResourceType.PLURALS));
+    allTypes.addAll(Arrays.asList(ResourceType.ATTR, ResourceType.INTEGER, ResourceType.STYLEABLE, ResourceType.PLURALS));
     assertHasExactResourceTypes(resources, allTypes);
 
     // Now delete the values file and check again.

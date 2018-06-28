@@ -18,6 +18,8 @@ package com.android.tools.idea.tests.gui.editors.translations;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.FrozenColumnTableFixture;
@@ -199,6 +201,7 @@ public final class TranslationsEditorTest {
     assertFalse(editor.getCurrentFileContents().contains("hello_world"));
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/110711267
   @Test
   public void removeKeyWithSafeDeleteProcessor() throws Exception {
     importSimpleApplication();
@@ -596,6 +599,28 @@ public final class TranslationsEditorTest {
 
     editor.open("app/src/main/res/values-en/strings.xml");
     assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
+  }
+
+  @Test
+  public void reloadButtonUpdatesEditorFromStringsXml() throws IOException {
+    importSimpleApplication();
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
+
+    // Change value to "Reload!"
+    editor
+      .open("app/src/main/res/values-en/strings.xml")
+      .moveBetween("\n", "\n</resources>")
+      .enterText("<string name=\"test_reload\">Reload!</string>\n");
+
+    // Switch back to translations editor and click reload
+    openTranslationsEditor(myStringsXmlPath);
+    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
+    translationsEditor.clickReloadButton();
+
+    // Check "Reload!"
+    TableCell cell = TableCell.row(5).column(ENGLISH_COLUMN);
+    translationsEditor.getTable().selectCell(cell);
+    translationsEditor.waitUntilTableValueAtEquals(cell, "Reload!");
   }
 
   @NotNull

@@ -1834,8 +1834,29 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-
+    
     assertSize(0, buildModel.dependencies().all());
+  }
+
+  public void testFollowMultipleReferences() throws IOException {
+    String text = "ext.dep = 'a:b:1.0'\n" +
+                  "ext.other = dep\n" +
+                  "ext.someOther = other\n" +
+                  "dependencies {\n" +
+                  "  compile someOther\n" +
+                  "}\n";
+      writeToBuildFile(text);
+
+      GradleBuildModel buildModel = getGradleBuildModel();
+      ArtifactDependencyModel artModel = buildModel.dependencies().artifacts().get(0);
+      verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "a:b:1.0", STRING, REGULAR, 1);
+
+      artModel.enableSetThrough();
+      artModel.name().setValue("z");
+
+      applyChangesAndReparse(buildModel);
+
+      verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "a:z:1.0", STRING, REGULAR, 1);
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {

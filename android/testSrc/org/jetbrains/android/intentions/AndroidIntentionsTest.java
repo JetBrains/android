@@ -1,5 +1,6 @@
 package org.jetbrains.android.intentions;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -15,23 +16,36 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 public class AndroidIntentionsTest extends AndroidTestCase {
   private static final String BASE_PATH = "intentions/";
 
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    myFixture.addFileToProject("res/values/drawables.xml",
+                               "<resources><drawable name='icon'>@android:drawable/btn_star</drawable></resources>");
+  }
+
   public void testSwitchOnResourceId() {
     myFacet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
-    myFixture.copyFileToProject(BASE_PATH + "R.java", "src/p1/p2/R.java");
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.copyFileToProject(BASE_PATH + "non_final_R.java", "src/p1/p2/R.java");
+    }
     final AndroidNonConstantResIdsInSwitchInspection inspection = new AndroidNonConstantResIdsInSwitchInspection();
     doTest(inspection, true, inspection.getQuickFixName());
   }
 
   public void testSwitchOnResourceId1() {
     myFacet.getConfiguration().setProjectType(PROJECT_TYPE_APP);
-    myFixture.copyFileToProject(BASE_PATH + "R.java", "src/p1/p2/R.java");
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.copyFileToProject(BASE_PATH + "final_R.java", "src/p1/p2/R.java");
+    }
     final AndroidNonConstantResIdsInSwitchInspection inspection = new AndroidNonConstantResIdsInSwitchInspection();
     doTest(inspection, false, inspection.getQuickFixName());
   }
 
   public void testSwitchOnResourceId2() {
     myFacet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
-    myFixture.copyFileToProject(BASE_PATH + "R.java", "src/p1/p2/R.java");
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.copyFileToProject(BASE_PATH + "non_final_R.java", "src/p1/p2/R.java");
+    }
     final AndroidNonConstantResIdsInSwitchInspection inspection = new AndroidNonConstantResIdsInSwitchInspection();
     doTest(inspection, false, inspection.getQuickFixName());
   }

@@ -22,14 +22,8 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode
-import com.android.tools.idea.gradle.structure.model.PsLibraryKey
-import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency
-import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency
-import com.android.tools.idea.gradle.structure.model.toLibraryKey
+import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.android.*
 import java.util.function.Consumer
 
 class DependenciesTreeRootNode(model: PsProject, uiSettings: PsUISettings) : AbstractPsResettableNode<PsProject>(model, uiSettings) {
@@ -59,10 +53,11 @@ class DependenciesTreeRootNode(model: PsProject, uiSettings: PsUISettings) : Abs
 
   private fun collectDependencies(module: PsModule, collector: DependencyCollector) {
     (module as? PsAndroidModule)?.run {
-      dependencies.forEach(collector::add)
+      dependencies.forEachLibraryDependency { collector.add(it) }
+      dependencies.forEachModuleDependency { collector.add(it) }
       variants.forEach { variant ->
         variant.forEachArtifact { artifact ->
-          artifact.dependencies.forEachLibraryDependency(collector::add)
+          artifact.dependencies.forEachLibraryDependency { collector.add(it) }
         }
       }
     }
@@ -72,18 +67,23 @@ class DependenciesTreeRootNode(model: PsProject, uiSettings: PsUISettings) : Abs
     internal val libraryDependenciesBySpec = mutableMapOf<PsLibraryKey, MutableList<PsLibraryAndroidDependency>>()
     internal val moduleDependenciesByGradlePath = mutableMapOf<String, MutableList<PsModuleAndroidDependency>>()
 
-    internal fun add(dependency: PsAndroidDependency) {
-      when (dependency) {
-        is PsLibraryAndroidDependency -> add(dependency)
-        is PsModuleAndroidDependency -> add(dependency)
-      }
+    internal fun add(dependency: PsDeclaredModuleAndroidDependency) {
+      addModule(dependency)
     }
 
-    private fun add(dependency: PsLibraryAndroidDependency) {
+    internal fun add(dependency: PsDeclaredLibraryAndroidDependency) {
+      addLibrary(dependency)
+    }
+
+    internal fun add(dependency: PsResolvedLibraryAndroidDependency) {
+      addLibrary(dependency)
+    }
+
+    private fun addLibrary(dependency: PsLibraryAndroidDependency) {
       libraryDependenciesBySpec.getOrPut(dependency.spec.toLibraryKey(), { mutableListOf() }).add(dependency)
     }
 
-    private fun add(dependency: PsModuleAndroidDependency) {
+    private fun addModule(dependency: PsModuleAndroidDependency) {
       moduleDependenciesByGradlePath.getOrPut(dependency.gradlePath, { mutableListOf() }).add(dependency)
     }
   }

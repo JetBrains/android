@@ -16,13 +16,13 @@
 package com.android.tools.idea.util
 
 import com.android.tools.idea.apk.viewer.ApkFileSystem
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.ex.temp.TempFileSystem
 import org.jetbrains.android.AndroidTestCase
 import java.io.File
-import java.net.URI
 
 class FileExtensionsTest : AndroidTestCase() {
   fun testRegularFile() {
@@ -40,21 +40,15 @@ class FileExtensionsTest : AndroidTestCase() {
   fun testApk() {
     val ioFile = File(getTestDataPath()).resolve("design_aar").resolve("res.apk").canonicalFile
     assertTrue(ioFile.exists())
-    val apkFsUrl = URI(ApkFileSystem.getInstance().protocol, "", ioFile.absolutePath, null).toString() +
-                   ApkFileSystem.APK_SEPARATOR +
-                   "res/drawable-mdpi-v4/design_ic_visibility.png"
-
-
-    assertTrue(apkFsUrl.contains(":///"))
+    val entryPath = ioFile.absolutePath + ApkFileSystem.APK_SEPARATOR + "res/drawable-mdpi-v4/design_ic_visibility.png"
+    val apkFsUrl = ApkFileSystem.PROTOCOL + "://" + entryPath
 
     val vfsFile = VirtualFileManager.getInstance().refreshAndFindFileByUrl(apkFsUrl)!!
     checkPathStringFromVirtualFile(vfsFile)
 
     val pathString = vfsFile.toPathString()
-    assertFalse(pathString.filesystemUri.toString().contains(ApkFileSystem.APK_SEPARATOR))
-    assertFalse(pathString.nativePath.contains(ApkFileSystem.APK_SEPARATOR))
-    assertFalse(pathString.portablePath.contains(ApkFileSystem.APK_SEPARATOR))
-    assertTrue(pathString.toString().contains(ApkFileSystem.APK_SEPARATOR))
+    assertThat(pathString.filesystemUri.scheme).isEqualTo(ApkFileSystem.PROTOCOL)
+    assertThat(pathString.rawPath).isEqualTo(entryPath)
   }
 
   fun testTemp() {
@@ -77,8 +71,7 @@ class FileExtensionsTest : AndroidTestCase() {
     assertTrue(vfsFile.url.contains(threeSlashes))
 
     val pathString = vfsFile.toPathString()
-    assertTrue(pathString.filesystemUri.toString().contains(threeSlashes))
-    assertTrue(pathString.toString().contains(threeSlashes))
+    assertThat(pathString.filesystemUri.path).isEqualTo(File.separator)
 
     assertEquals(vfsFile, pathString.toVirtualFile())
     assertEquals(vfsFile, VirtualFileManager.getInstance().refreshAndFindFileByUrl(pathString.toString()))

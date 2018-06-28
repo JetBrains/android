@@ -106,6 +106,11 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     return false;
   }
 
+  @Override
+  protected boolean useSingleVariantSyncInfrastructure() {
+    return false;
+  }
+
   // https://code.google.com/p/android/issues/detail?id=233038
   public void testLoadPlainJavaProject() throws Exception {
     prepareProjectForImport(PURE_JAVA_PROJECT);

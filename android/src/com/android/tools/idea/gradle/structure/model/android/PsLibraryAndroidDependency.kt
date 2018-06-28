@@ -101,13 +101,9 @@ open class PsResolvedLibraryAndroidDependency(
   val collection: PsAndroidArtifactDependencyCollection,
   override val spec: PsArtifactDependencySpec,
   val artifact: PsAndroidArtifact,
-  internal val declaredDependencies: Collection<PsDeclaredLibraryAndroidDependency>
+  override val declaredDependencies: List<PsDeclaredLibraryAndroidDependency>
 ) : PsLibraryAndroidDependency(parent, listOf(artifact)), PsResolvedDependency, PsResolvedLibraryDependency {
-  private val parsedModels = declaredDependencies.map { it.parsedModel }
   override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
-  override val joinedConfigurationNames: String get() = parsedModels.joinToString(separator = ", ") { it.configurationName() }
-
-  override fun getParsedModels(): List<DependencyModel> = parsedModels.toList()
 
   override fun hasPromotedVersion(): Boolean = getReverseDependencies().any { it.isPromoted }
 

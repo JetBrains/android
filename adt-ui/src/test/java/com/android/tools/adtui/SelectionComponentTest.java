@@ -42,6 +42,19 @@ public class SelectionComponentTest {
   }
 
   @Test
+  public void clickingInViewRangeCreatesSmallSelectionRange() {
+    SelectionModel model = new SelectionModel(new Range());
+    SelectionComponent component = new SelectionComponent(model, new Range(0, 100), true);
+    component.setSize(100, 100);
+    assertThat(model.getSelectionRange().isEmpty()).isTrue();
+    new FakeUi(component).mouse.click(20, 50);
+    double delta = 100.0 * SelectionComponent.CLICK_RANGE_RATIO;
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(20 - delta);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(20 + delta);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+  }
+
+  @Test
   public void clickingOutsideOfSelectionCreatesNewSelection() {
     SelectionModel model = new SelectionModel(new Range(20, 40));
     SelectionComponent component = new SelectionComponent(model, new Range(20, 120));

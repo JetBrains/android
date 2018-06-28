@@ -17,74 +17,48 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.level2.Library
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.android.tools.idea.gradle.structure.model.*
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.LinkedListMultimap
-import java.util.function.Consumer
 
-abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModule) : PsModelCollection<PsAndroidDependency>
+
+/**
+ * A collection of dependencies of [parent] Android module.
+ */
+interface PsAndroidDependencyCollection<out LibraryDependencyT, out ModuleDependencyT>
+  : PsDependencyCollection<PsAndroidModule, LibraryDependencyT, ModuleDependencyT>
+  where LibraryDependencyT : PsAndroidDependency,
+        LibraryDependencyT : PsLibraryDependency,
+        ModuleDependencyT : PsAndroidDependency,
+        ModuleDependencyT : PsModuleDependency
+{
+  val items: List<PsAndroidDependency> get() = modules + libraries
+}
 
 /**
  * A collection of parsed (configured) dependencies of [parent] module.
  */
-class PsAndroidModuleDependencyCollection(parent: PsAndroidModule) : PsAndroidDependencyCollection(parent) {
-
-  private val moduleDependenciesByGradlePath = LinkedListMultimap.create<String, PsModuleAndroidDependency>()!!
-  private val libraryDependenciesBySpec = LinkedListMultimap.create<PsLibraryKey, PsDeclaredLibraryAndroidDependency>()!!
-
-  init {
-    collectParsedDependencies()
+class PsAndroidModuleDependencyCollection(parent: PsAndroidModule)
+  : PsDeclaredDependencyCollection<PsAndroidModule, PsDeclaredLibraryAndroidDependency, PsDeclaredModuleAndroidDependency>(
+  parent
+), PsAndroidDependencyCollection<PsDeclaredLibraryAndroidDependency, PsDeclaredModuleAndroidDependency> {
+  private var artifactsByConfigurationNames: Map<String, List<PsAndroidArtifact>> = mapOf()
+  override fun initParsedDependencyCollection() {
+    artifactsByConfigurationNames = buildArtifactsByConfigurations()
   }
 
-  fun isEmpty(): Boolean = moduleDependenciesByGradlePath.isEmpty && libraryDependenciesBySpec.isEmpty
-
-  override fun forEach(consumer: Consumer<PsAndroidDependency>) {
-    libraryDependenciesBySpec.values().forEach(consumer)
-    moduleDependenciesByGradlePath.values().forEach(consumer)
+  override fun createLibraryDependency(artifactDependencyModel: ArtifactDependencyModel): PsDeclaredLibraryAndroidDependency {
+    val artifacts = artifactsByConfigurationNames[artifactDependencyModel.configurationName()] ?: listOf()
+    return PsDeclaredLibraryAndroidDependency(parent, artifacts, artifactDependencyModel)
   }
 
-  fun forEachModuleDependency(consumer: (PsModuleAndroidDependency) -> Unit) {
-    moduleDependenciesByGradlePath.values().forEach(consumer)
-  }
-
-  fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryAndroidDependency> =
-    libraryDependenciesBySpec[PsLibraryKey(group.orEmpty(), name)].toList()
-
-  fun findLibraryDependencies(libraryKey: PsLibraryKey): List<PsDeclaredLibraryAndroidDependency> =
-    libraryDependenciesBySpec[libraryKey].toList()
-
-  fun reindex() {
-    val libraryDependencies = libraryDependenciesBySpec.values().toList()
-    val moduleDependencies = moduleDependenciesByGradlePath.values().toList()
-
-    libraryDependenciesBySpec.clear()
-    libraryDependencies.forEach { libraryDependenciesBySpec.put(it.spec.toLibraryKey(), it) }
-
-    moduleDependenciesByGradlePath.clear()
-    moduleDependencies.forEach { moduleDependenciesByGradlePath.put(it.gradlePath, it) }
-  }
-
-  private fun collectParsedDependencies() {
-    collectParsedDependencies(parent.parsedDependencies)
-  }
-
-  private fun collectParsedDependencies(parsedDependencies: PsParsedDependencies) {
-    val artifactsByConfigurationNames = buildArtifactsByConfigurations()
-    parsedDependencies.forEachLibraryDependency { libraryDependency ->
-      val artifacts = artifactsByConfigurationNames[libraryDependency.configurationName()] ?: listOf()
-      val declaredDependency = PsDeclaredLibraryAndroidDependency(parent, artifacts, libraryDependency)
-      libraryDependenciesBySpec.put(declaredDependency.spec.toLibraryKey(), declaredDependency)
-    }
-    parsedDependencies.forEachModuleDependency { moduleDependency ->
-      val gradlePath = moduleDependency.path().forceString()
-      val artifacts = artifactsByConfigurationNames[moduleDependency.configurationName()] ?: listOf()
-      moduleDependenciesByGradlePath.put(
-        gradlePath, PsDeclaredModuleAndroidDependency(
-        parent, gradlePath, artifacts.toList(), moduleDependency.configurationName(), null,
-        moduleDependency)
-      )
-    }
+  override fun createModuleDependency(moduleDependencyModel: ModuleDependencyModel): PsDeclaredModuleAndroidDependency {
+    val gradlePath = moduleDependencyModel.path().forceString()
+    val artifacts = artifactsByConfigurationNames[moduleDependencyModel.configurationName()] ?: listOf()
+    return PsDeclaredModuleAndroidDependency(
+      parent, gradlePath, artifacts.toList(), moduleDependencyModel.configurationName(), null,
+      moduleDependencyModel)
   }
 
   private fun buildArtifactsByConfigurations(): Map<String, List<PsAndroidArtifact>> {
@@ -103,36 +77,20 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule) : PsAndroidDe
 /**
  * A collection of resolved dependencies of a specific [artifact] of module [parent].
  */
-class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) : PsAndroidDependencyCollection(artifact.parent.parent) {
+class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
+  : PsResolvedDependencyCollection<PsAndroidArtifact, PsAndroidModule, PsResolvedLibraryAndroidDependency, PsResolvedModuleAndroidDependency>(
+  artifact,
+  artifact.parent.parent
+), PsAndroidDependencyCollection<PsResolvedLibraryAndroidDependency, PsResolvedModuleAndroidDependency> {
 
   internal val reverseDependencies: Map<PsLibraryKey, Set<ReverseDependency>>
-  private val moduleDependenciesByGradlePath = LinkedListMultimap.create<String, PsModuleAndroidDependency>()!!
-  private val libraryDependenciesBySpec = LinkedListMultimap.create<PsLibraryKey, PsResolvedLibraryAndroidDependency>()!!
 
   init {
-    collectResolvedDependencies(artifact)
     reverseDependencies = collectReverseDependencies()
   }
 
-  fun isEmpty(): Boolean = moduleDependenciesByGradlePath.isEmpty && libraryDependenciesBySpec.isEmpty
-
-  override fun forEach(consumer: Consumer<PsAndroidDependency>) {
-    libraryDependenciesBySpec.values().forEach(consumer)
-    moduleDependenciesByGradlePath.values().forEach(consumer)
-  }
-
-  fun forEachModuleDependency(consumer: (PsModuleAndroidDependency) -> Unit) {
-    moduleDependenciesByGradlePath.values().forEach(consumer)
-  }
-
-  fun forEachLibraryDependency(consumer: (PsResolvedLibraryAndroidDependency) -> Unit) {
-    libraryDependenciesBySpec.values().forEach { consumer(it) }
-  }
-
-  fun findLibraryDependencies(group: String?, name: String): List<PsResolvedLibraryAndroidDependency> =
-    libraryDependenciesBySpec[PsLibraryKey(group.orEmpty(), name)].toList()
-
-  private fun collectResolvedDependencies(artifact: PsAndroidArtifact) {
+  override fun collectResolvedDependencies(container: PsAndroidArtifact) {
+    val artifact = container
     val resolvedArtifact = artifact.resolvedModel ?: return
     val dependencies = resolvedArtifact.level2Dependencies
 
@@ -156,11 +114,10 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) : P
   }
 
   private fun collectReverseDependencies(): Map<PsLibraryKey, Set<ReverseDependency>> {
-    return libraryDependenciesBySpec
-      .values()
+    return libraries
       .flatMap { resolvedDependency ->
         resolvedDependency.pomDependencies.mapNotNull { transitiveDependencyTargetSpec ->
-          libraryDependenciesBySpec[transitiveDependencyTargetSpec.toLibraryKey()]?.singleOrNull()?.let { pomResolvedDependency ->
+          findLibraryDependencies(transitiveDependencyTargetSpec.toLibraryKey()).singleOrNull()?.let { pomResolvedDependency ->
             ReverseDependency.Transitive(pomResolvedDependency.spec, resolvedDependency, transitiveDependencyTargetSpec)
           }
         } +
@@ -189,7 +146,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) : P
       declaredDependencies.addAll(matchingDeclaredDependencies)
       val androidDependency = PsResolvedLibraryAndroidDependency(parent, this, spec, artifact, declaredDependencies)
       androidDependency.setDependenciesFromPomFile(parent.parent.pomDependencyCache.getPomDependencies(library.artifact))
-      libraryDependenciesBySpec.put(androidDependency.spec.toLibraryKey(), androidDependency)
+      addLibraryDependency(androidDependency)
     }
   }
 
@@ -197,20 +154,17 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) : P
     val gradlePath = module.gradlePath!!
     val matchingParsedDependency =
       parent
-        .parsedDependencies
-        .findModuleDependency(gradlePath) { parsedDependency: DependencyModel -> artifact.contains(parsedDependency) }
+        .dependencies
+        .findModuleDependencies(gradlePath)
+        .filter { artifact.contains(it.parsedModel) }
     val dependency =
       PsResolvedModuleAndroidDependency(
         parent,
         gradlePath,
         ImmutableList.of(artifact),
-        matchingParsedDependency?.configurationName() ?: "",
         projectVariant,
         module,
-        matchingParsedDependency.wrapInList())
-    moduleDependenciesByGradlePath.put(gradlePath, dependency)
-    // else we have a resolved dependency on a removed module (or composite build etc.).
+        matchingParsedDependency)
+    addModuleDependency(dependency)
   }
 }
-
-private fun <T> T?.wrapInList(): List<T> = if (this != null) listOf(this) else listOf()

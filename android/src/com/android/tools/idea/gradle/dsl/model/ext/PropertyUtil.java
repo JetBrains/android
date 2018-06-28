@@ -160,7 +160,7 @@ public class PropertyUtil {
   public static GradleDslElement followElement(@NotNull GradleDslSimpleExpression expression) {
     GradleDslElement element = expression;
     while (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference() && !((GradleDslLiteral)element).hasCycle()) {
-      GradleReferenceInjection injection = ((GradleDslLiteral)expression).getReferenceInjection();
+      GradleReferenceInjection injection = ((GradleDslLiteral)element).getReferenceInjection();
       if (injection == null) {
         return null;
       }

@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.profilers.ContentType;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerMonitor;
@@ -54,7 +55,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
-import java.io.File;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
 
@@ -263,13 +263,14 @@ final class OverviewTabContent extends TabContent {
       return;
     }
 
-    File payloadFile = Payload.newResponsePayload(myModel, data).toFile();
-    DataViewer fileViewer = myComponents.createFileViewer(payloadFile);
-    JComponent responsePayloadComponent = fileViewer.getComponent();
+    Payload payload = Payload.newResponsePayload(myModel, data);
+    String mimeType = payload.getContentType().getMimeType();
+    DataViewer payloadViewer = myComponents.createDataViewer(payload.getBytes().toByteArray(), ContentType.fromMimeType(mimeType));
+    JComponent responsePayloadComponent = payloadViewer.getComponent();
     responsePayloadComponent.setName(ID_RESPONSE_PAYLOAD_VIEWER);
 
     myPanel.add(responsePayloadComponent, new TabularLayout.Constraint(0, 0));
-    myPanel.add(createFields(data, fileViewer.getDimension()), new TabularLayout.Constraint(1, 0));
+    myPanel.add(createFields(data, payloadViewer.getDimension()), new TabularLayout.Constraint(1, 0));
   }
 
   @Override

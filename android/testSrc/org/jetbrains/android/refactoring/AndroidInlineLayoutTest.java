@@ -112,7 +112,7 @@ public class AndroidInlineLayoutTest extends AndroidTestCase {
   }
 
   public void test16() throws Exception {
-    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
     doTestCommonInlineActionWithConflicts(false, true);
     myFixture.checkResultByFile("res/layout/test.xml", BASE_PATH + getTestName(true) + "_after.xml", true);

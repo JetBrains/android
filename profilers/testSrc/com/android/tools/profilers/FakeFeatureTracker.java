@@ -66,6 +66,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
   private Boolean myLastImportTraceSucceeded;
 
   /**
+   * Whether {@link #trackSelectThread()} was called.
+   */
+  private boolean myTrackSelectThreadCalled;
+
+  /**
    * Stores the last boolean value of {@link pathProvided} passed to track API tracing.
    */
   private boolean myLastCpuApiTracingPathProvided;
@@ -219,7 +224,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackSelectThread() {
+    myTrackSelectThreadCalled = true;
+  }
 
+  public boolean isTrackSelectThreadCalled() {
+    return myTrackSelectThreadCalled;
   }
 
   @Override

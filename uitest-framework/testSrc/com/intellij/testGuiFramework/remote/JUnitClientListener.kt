@@ -18,9 +18,9 @@ package com.intellij.testGuiFramework.remote
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.intellij.testGuiFramework.framework.isFirstRun
 import com.intellij.testGuiFramework.framework.isLastRun
+import com.intellij.testGuiFramework.remote.transport.JUnitFailureInfo
 import com.intellij.testGuiFramework.remote.transport.JUnitInfo
 import com.intellij.testGuiFramework.remote.transport.Type
-import org.junit.AssumptionViolatedException
 import org.junit.runner.Description
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunListener
@@ -36,32 +36,25 @@ class JUnitClientListener(val sendObjectFun: (JUnitInfo) -> Unit) : RunListener(
   override fun testStarted(description: Description?) {
     description ?: throw Exception("Unable to send notification to JUnitServer that test is starter due to null description!")
     //don't send start state to server if it is a resumed test
-    if (isFirstRun()) sendObjectFun(JUnitInfo(Type.STARTED, description, JUnitInfo.getClassAndMethodName(description)))
+    if (isFirstRun()) sendObjectFun(JUnitInfo(Type.STARTED, description))
   }
 
   override fun testAssumptionFailure(failure: Failure?) {
-    sendObjectFun(JUnitInfo(Type.ASSUMPTION_FAILURE, failure.friendlySerializable(), JUnitInfo.getClassAndMethodName(failure!!.description)))
-    if (!isLastRun()) sendObjectFun(JUnitInfo(Type.FINISHED, failure.description, JUnitInfo.getClassAndMethodName(failure.description), GuiTests.fatalErrorsFromIde().isNotEmpty()))
+    sendObjectFun(JUnitFailureInfo(Type.ASSUMPTION_FAILURE, failure!!))
+    if (!isLastRun()) sendObjectFun(JUnitInfo(Type.FINISHED, failure.description, GuiTests.fatalErrorsFromIde().isNotEmpty()))
   }
 
   override fun testFailure(failure: Failure?) {
-    sendObjectFun(JUnitInfo(Type.FAILURE, failure!!.exception, JUnitInfo.getClassAndMethodName(failure.description)))
-    if (!isLastRun()) sendObjectFun(JUnitInfo(Type.FINISHED, failure.description, JUnitInfo.getClassAndMethodName(failure.description), GuiTests.fatalErrorsFromIde().isNotEmpty()))
+    sendObjectFun(JUnitFailureInfo(Type.FAILURE, failure!!))
+    if (!isLastRun()) sendObjectFun(JUnitInfo(Type.FINISHED, failure.description, GuiTests.fatalErrorsFromIde().isNotEmpty()))
   }
 
   override fun testFinished(description: Description?) {
-    if (isLastRun()) sendObjectFun(JUnitInfo(Type.FINISHED, description, JUnitInfo.getClassAndMethodName(description!!), GuiTests.fatalErrorsFromIde().isNotEmpty()))
+    if (isLastRun()) sendObjectFun(JUnitInfo(Type.FINISHED, description!!, GuiTests.fatalErrorsFromIde().isNotEmpty()))
   }
 
   override fun testIgnored(description: Description?) {
-    sendObjectFun(JUnitInfo(Type.IGNORED, description, JUnitInfo.getClassAndMethodName(description!!)))
-  }
-
-  private fun Failure?.friendlySerializable(): Failure? {
-    if (this == null) return null
-    val e = this.exception as AssumptionViolatedException
-    val newException = AssumptionViolatedException(e.toString(), e.cause)
-    return Failure(this.description, newException)
+    sendObjectFun(JUnitInfo(Type.IGNORED, description!!))
   }
 
 }

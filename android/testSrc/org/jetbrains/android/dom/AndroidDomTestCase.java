@@ -33,7 +33,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.spellchecker.quickfixes.RenameTo;
 import com.intellij.spellchecker.quickfixes.SaveTo;
-import com.intellij.testFramework.UsefulTestCase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.AndroidDomInspection;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
@@ -70,7 +69,7 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     ensureWebserverAccess();
-    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
     //noinspection unchecked
     myFixture.enableInspections(AndroidDomInspection.class,
                                 AndroidUnknownAttributeInspection.class,

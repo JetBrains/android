@@ -739,6 +739,9 @@ public class GroovyDslParser implements GradleDslParser {
             ExtDslElement extDslElement = parentElement.getDslFile().getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
             if (extDslElement == null) {
               newElement = new ExtDslElement(parentElement.getDslFile());
+              parentElement.getDslFile().addParsedPropertyAsFirstElement(newElement);
+              resultElement = newElement;
+              continue;
             }
             else {
               resultElement = extDslElement;

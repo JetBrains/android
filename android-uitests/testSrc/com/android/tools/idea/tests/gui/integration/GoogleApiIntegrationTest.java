@@ -64,7 +64,7 @@ public class GoogleApiIntegrationTest {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.SANITY_BAZEL)
   public void testGoogleApiIntegration() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
 

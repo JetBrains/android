@@ -226,6 +226,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   private void invalidateUI() {
     ((MyUI)ui).invalidateNodeSize();
+    repaint();
   }
 
   // ---- Methods for updating hierarchy while attempting to keep expanded nodes expanded ----

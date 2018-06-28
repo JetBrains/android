@@ -216,16 +216,6 @@ public class HttpDataTest {
   }
 
   @Test
-  public void guessFileExtensionFromContentType() {
-    assertThat(new HttpData.ContentType("text/html").guessFileExtension()).isEqualTo(".html");
-    assertThat(new HttpData.ContentType("image/jpeg").guessFileExtension()).isEqualTo(".jpg");
-    assertThat(new HttpData.ContentType("application/json").guessFileExtension()).isEqualTo(".json");
-    assertThat(new HttpData.ContentType("application/xml").guessFileExtension()).isEqualTo(".xml");
-    assertThat(new HttpData.ContentType("application/text").guessFileExtension()).isNull();
-    assertThat(new HttpData.ContentType("").guessFileExtension()).isNull();
-  }
-
-  @Test
   public void getMimeTypeFromContentType() {
     assertThat(new HttpData.ContentType("text/html; charset=utf-8").getMimeType()).isEqualTo("text/html");
     assertThat(new HttpData.ContentType("text/html").getMimeType()).isEqualTo("text/html");

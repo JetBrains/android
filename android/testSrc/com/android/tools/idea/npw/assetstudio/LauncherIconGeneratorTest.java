@@ -20,6 +20,7 @@ import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
@@ -69,9 +70,9 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
     }
 
     @Override
-    @Nullable
-    public File getResDirectory() {
-      return new File(getModuleRoot(), "res");
+    @NotNull
+    public List<File> getResDirectories() {
+      return ImmutableList.of(new File(getModuleRoot(), "res"));
     }
 
     @Override

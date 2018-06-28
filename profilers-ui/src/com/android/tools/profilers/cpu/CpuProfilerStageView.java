@@ -15,19 +15,20 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.RangeTooltipComponent;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
-import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
+import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
+import com.android.tools.profilers.cpu.capturedetails.CpuCaptureView;
 import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
@@ -35,7 +36,6 @@ import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
-import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
@@ -47,11 +47,11 @@ import javax.swing.*;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
-import java.awt.event.*;
-import java.util.List;
+import java.awt.event.MouseListener;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
-import static com.android.tools.profilers.ProfilerLayout.*;
+import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER;
+import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private enum PanelSpacing {
@@ -129,8 +129,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    * Contains the status of the capture, e.g. "Starting record...", "Recording - XXmXXs", etc.
    */
   private final JLabel myCaptureStatus;
-  @NotNull private final DragAndDropList<CpuThreadsModel.RangedCpuThread> myThreads;
-  @NotNull private final JList<CpuKernelModel.CpuState> myCpus;
+  @NotNull private final CpuThreadsView myThreads;
+  @NotNull private final CpuKernelsView myCpus;
+
   /**
    * The action listener of the capture button changes depending on the state of the profiler.
    * It can be either "start capturing" or "stop capturing".
@@ -191,9 +192,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       myUsageView.addMouseListener(listener);
     }
 
-    myThreads = new DragAndDropList<>(myStage.getThreadStates());
-    myCpus = new JBList<>(myStage.getCpuKernelModel());
-
     // "Fit" for the event profiler, "*" for everything else.
     final JPanel details = new JPanel(new TabularLayout("*", "Fit-,*"));
     details.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
@@ -222,9 +220,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     final JPanel detailsPanel = new JBPanel(detailsLayout);
     detailsPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
-    configureKernelPanel(detailsPanel);
-    configureThreadsPanel(detailsPanel, detailsLayout);
 
+    myThreads = new CpuThreadsView(stage, detailsPanel);
+    myCpus = new CpuKernelsView(myStage, myThreads, detailsPanel);
+    addKernelPanelToDetails(detailsPanel);
+    addThreadsPanelToDetails(detailsLayout, detailsPanel);
     mainPanel.add(myUsageView, new TabularLayout.Constraint(MONITOR_PANEL_ROW, 0));
     mainPanel.add(detailsPanel, new TabularLayout.Constraint(DETAILS_PANEL_ROW, 0));
 
@@ -274,6 +274,27 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
   }
 
+  private void updateThreadSelection() {
+    myThreads.updateThreadSelection();
+
+    if (myStage.getSelectedThread() != CaptureModel.NO_THREAD && myStage.isSelectionFailure()) {
+      // If the help tip info panel is already showing and the user clears thread selection, we'll leave the panel showing.
+      mySplitter.setSecondComponent(myHelpTipPanel);
+    }
+  }
+
+  private void addThreadsPanelToDetails(@NotNull TabularLayout detailsLayout, @NotNull JPanel detailsPanel) {
+    HideablePanel threadsPanel = myThreads.getPanel();
+    threadsPanel.addStateChangedListener((actionEvent) -> {
+      getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuThreadsHideablePanel();
+      // On expanded set row sizing to initial ratio.
+      PanelSpacing panelSpacing = threadsPanel.isExpanded() ? PanelSpacing.THREADS_EXPANDED : PanelSpacing.THREADS_COLLAPSED;
+      detailsLayout.setRowSizing(DETAILS_THREADS_PANEL_ROW, panelSpacing.toString());
+    });
+    myTooltipComponent.registerListenersOn(myThreads);
+    detailsPanel.add(threadsPanel, new TabularLayout.Constraint(DETAILS_THREADS_PANEL_ROW, 0));
+  }
+
   /**
    * Makes sure the selected capture fits entirely in user's view range.
    */
@@ -288,67 +309,19 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     timeline.adjustRangeCloseToMiddleView(new Range(capture.getRange().getMin() - padding, capture.getRange().getMax() + padding));
   }
 
-  /**
-   * This function handles the layout and rendering of the cpu kernel panel. This panel represents
-   * each core found in an atrace file and the state associated with each core.
-   *
-   * @param detailsPanel  panel that is assumed to contain the Kernel list, as well as the Threads List.
-   */
-  private void configureKernelPanel(@NotNull JPanel detailsPanel) {
-    CpuKernelModel cpuModel = myStage.getCpuKernelModel();
-    myCpus.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    myCpus.setCellRenderer(new CpuKernelCellRenderer(getStage().getStudioProfilers().getIdeServices().getFeatureConfig(),
-                                                     myStage.getStudioProfilers().getSession().getPid(),
-                                                     myStage.getUpdatableManager(), myCpus, myThreads));
-
-    // Handle selection.
-    myCpus.addListSelectionListener((e) -> cpuKernelRunningStateSelected(cpuModel));
-    myCpus.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        cpuKernelRunningStateSelected(cpuModel);
-        getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectCpuKernelElement();
-      }
-    });
-
-    // Handle Tooltip
-    myCpus.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuKernelTooltip(myStage)));
-    myCpus.addMouseMotionListener(new MouseAdapter() {
-      @Override
-      public void mouseMoved(MouseEvent e) {
-        int row = myCpus.locationToIndex(e.getPoint());
-        if (row != -1) {
-          CpuKernelModel.CpuState model = myCpus.getModel().getElementAt(row);
-          if (myStage.getTooltip() instanceof CpuKernelTooltip) {
-            CpuKernelTooltip tooltip = (CpuKernelTooltip)myStage.getTooltip();
-            tooltip.setCpuSeries(model.getCpuId(), model.getSeries());
-          }
-        }
-      }
-    });
-    myTooltipComponent.registerListenersOn(myCpus);
-
-    // Create hideable panel for CPU list.
-    HideablePanel kernelsPanel = new HideablePanel.Builder("KERNEL", new CpuListScrollPane(myCpus, detailsPanel))
-      .setShowSeparator(false)
-      // We want to keep initially expanded to false because the kernel layout is set to "Fix" by default. As such when
-      // we later change the contents to have elements and expand the view we also want to trigger the StateChangedListener below
-      // to properly set the layout to be expanded. If we set initially expanded to true, then the StateChangedListener will never
-      // get triggered and we will not update our layout.
-      .setInitiallyExpanded(false)
-      .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
-      .build();
-
+  private void addKernelPanelToDetails(@NotNull JPanel detailsPanel) {
+    HideablePanel kernelsPanel = myCpus.getPanel();
     // Handle when we get CPU data we want to show the cpu list.
-    cpuModel.addListDataListener(new ListDataListener() {
+    myStage.getCpuKernelModel().addListDataListener(new ListDataListener() {
       @Override
       public void contentsChanged(ListDataEvent e) {
-        boolean hasElements = myCpus.getModel().getSize() != 0;
+        int size = myCpus.getModel().getSize();
+        boolean hasElements = size != 0;
         // Lets only show 4 cores max the user can scroll to view the rest.
-        myCpus.setVisibleRowCount(Math.min(4, myCpus.getModel().getSize()));
+        myCpus.setVisibleRowCount(Math.min(4, size));
         kernelsPanel.setVisible(hasElements);
         kernelsPanel.setExpanded(hasElements);
-        kernelsPanel.setTitle(String.format("KERNEL (%d)", myCpus.getModel().getSize()));
+        kernelsPanel.setTitle(String.format("KERNEL (%d)", size));
         // When the CpuKernelModel is updated we adjust the splitter. The higher the number the more space
         // the first component occupies. For when we are showing Kernel elements we want to take up more space
         // than when we are not. As such each time we modify the CpuKernelModel (when a trace is selected) we
@@ -370,112 +343,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       public void intervalRemoved(ListDataEvent e) {
       }
     });
-    // Hide CPU panel by default
-    kernelsPanel.setVisible(false);
-
-    // Clear border set by default on the hideable panel.
-    kernelsPanel.setBorder(JBUI.Borders.empty());
-    kernelsPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    kernelsPanel.addStateChangedListener(
-      (e) -> getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuKernelHideablePanel());
-    detailsPanel.add(kernelsPanel, new TabularLayout.Constraint(DETAILS_KERNEL_PANEL_ROW, 0));
-  }
-
-  private void configureThreadsPanel(@NotNull JPanel detailsPanel, TabularLayout detailsLayout) {
-    // TODO(b/62447834): Make a decision on how we want to handle thread selection.
-    myThreads.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    myThreads.setBorder(null);
-    myThreads.setCellRenderer(new ThreadCellRenderer(myThreads, myStage.getUpdatableManager()));
-    myThreads.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    CpuThreadsModel model = myStage.getThreadStates();
-    myThreads.addListSelectionListener((e) -> {
-      int selectedIndex = myThreads.getSelectedIndex();
-      if (selectedIndex >= 0) {
-        CpuThreadsModel.RangedCpuThread thread = model.getElementAt(selectedIndex);
-        if (myStage.getSelectedThread() != thread.getThreadId()) {
-          myStage.setSelectedThread(thread.getThreadId());
-          myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectThread();
-        }
-      }
-      else {
-        myStage.setSelectedThread(CaptureModel.NO_THREAD);
-      }
-    });
-
-    myThreads.addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusGained(FocusEvent e) {
-        if (myThreads.getSelectedIndex() < 0 && myThreads.getModel().getSize() > 0) {
-          myThreads.setSelectedIndex(0);
-        }
-      }
-    });
-
-    myThreads.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuThreadsTooltip(myStage)));
-    myThreads.addMouseMotionListener(new MouseAdapter() {
-      @Override
-      public void mouseMoved(MouseEvent e) {
-        int row = myThreads.locationToIndex(e.getPoint());
-        if (row != -1) {
-          CpuThreadsModel.RangedCpuThread model = myThreads.getModel().getElementAt(row);
-          if (myStage.getTooltip() instanceof CpuThreadsTooltip) {
-            CpuThreadsTooltip tooltip = (CpuThreadsTooltip)myStage.getTooltip();
-            tooltip.setThread(model.getName(), model.getStateSeries());
-          }
-        }
-      }
-    });
-    myTooltipComponent.registerListenersOn(myThreads);
-
-    // Add AxisComponent only to scrollable section of threads list.
-    final AxisComponent timeAxisGuide = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM);
-    timeAxisGuide.setShowAxisLine(false);
-    timeAxisGuide.setShowLabels(false);
-    timeAxisGuide.setHideTickAtMin(true);
-    timeAxisGuide.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR);
-    CpuListScrollPane scrollingThreads = new CpuListScrollPane(myThreads, detailsPanel);
-    scrollingThreads.addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        timeAxisGuide.setMarkerLengths(scrollingThreads.getHeight(), 0);
-      }
-    });
-
-    final JPanel threads = new JPanel(new TabularLayout("*", "*"));
-    threads.add(timeAxisGuide, new TabularLayout.Constraint(0, 0));
-    threads.add(scrollingThreads, new TabularLayout.Constraint(0, 0));
-
-    final HideablePanel threadsPanel = new HideablePanel.Builder("THREADS", threads)
-      .setShowSeparator(false)
-      .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
-      .build();
-    threadsPanel.addStateChangedListener((actionEvent) -> {
-      getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuThreadsHideablePanel();
-      // On expanded set row sizing to initial ratio.
-      PanelSpacing panelSpacing = threadsPanel.isExpanded() ? PanelSpacing.THREADS_EXPANDED : PanelSpacing.THREADS_COLLAPSED;
-      detailsLayout.setRowSizing(DETAILS_THREADS_PANEL_ROW, panelSpacing.toString());
-    });
-    // Clear border set by default on the hideable panel.
-    threadsPanel.setBorder(JBUI.Borders.customLine(ProfilerColors.CPU_AXIS_GUIDE_COLOR, 2, 0, 0, 0));
-    threadsPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    myThreads.getModel().addListDataListener(new ListDataListener() {
-      @Override
-      public void intervalAdded(ListDataEvent e) {
-
-      }
-
-      @Override
-      public void intervalRemoved(ListDataEvent e) {
-
-      }
-
-      @Override
-      public void contentsChanged(ListDataEvent e) {
-        threadsPanel.setTitle(String.format("THREADS (%d)", myThreads.getModel().getSize()));
-      }
-    });
-    threads.setBorder(JBUI.Borders.empty());
-    detailsPanel.add(threadsPanel, new TabularLayout.Constraint(DETAILS_THREADS_PANEL_ROW, 0));
+    myTooltipComponent.registerListenersOn(myCpus);
+    detailsPanel.add(myCpus.getPanel(), new TabularLayout.Constraint(DETAILS_KERNEL_PANEL_ROW, 0));
   }
 
   private void configureHelpTipPanel() {
@@ -490,35 +359,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       .setColors(JBColor.foreground(), null)
       .build();
     myHelpTipPanel.add(infoMessage, BorderLayout.CENTER);
-  }
-
-  /**
-   * When a running state is selected from the CPU {@link JBList} this function handles
-   * finding the proper thread and selecting the thread as well as triggering the feature tracker.
-   */
-  private void cpuKernelRunningStateSelected(CpuKernelModel cpuModel) {
-    int selectedIndex = myCpus.getSelectedIndex();
-    if (selectedIndex < 0) {
-      myStage.setSelectedThread(CaptureModel.NO_THREAD);
-      return;
-    }
-    CpuKernelModel.CpuState state = cpuModel.getElementAt(selectedIndex);
-    Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
-    List<SeriesData<CpuThreadSliceInfo>> process = state.getModel().getSeries().get(0).getDataSeries().getDataForXRange(tooltipRange);
-    if (process.isEmpty()) {
-      return;
-    }
-
-    int id = process.get(0).value.getId();
-    CpuThreadsModel threadsModel = getStage().getThreadStates();
-    for (int i = 0; i < myThreads.getModel().getSize(); i++) {
-      CpuThreadsModel.RangedCpuThread thread = threadsModel.getElementAt(i);
-      if (id == thread.getThreadId()) {
-        myStage.setSelectedThread(thread.getThreadId());
-        myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectThread();
-        break;
-      }
-    }
   }
 
   private void clearSelection() {
@@ -668,27 +508,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
       long elapsedTimeUs = myStage.getCaptureElapsedTimeUs();
       myCaptureStatus.setText(TimeFormatter.getSemiSimplifiedClockString(elapsedTimeUs));
-    }
-  }
-
-  private void updateThreadSelection() {
-    if (myStage.getSelectedThread() == CaptureModel.NO_THREAD) {
-      myThreads.clearSelection();
-      return;
-    }
-
-    // Select the thread which has its tree displayed in capture panel in the threads list
-    for (int i = 0; i < myThreads.getModel().getSize(); i++) {
-      CpuThreadsModel.RangedCpuThread thread = myThreads.getModel().getElementAt(i);
-      if (myStage.getSelectedThread() == thread.getThreadId()) {
-        myThreads.setSelectedIndex(i);
-        break;
-      }
-    }
-
-    if (myStage.getSelectedThread() != CaptureModel.NO_THREAD && myStage.isSelectionFailure()) {
-      // If the help tip info panel is already showing and the user clears thread selection, we'll leave the panel showing.
-      mySplitter.setSecondComponent(myHelpTipPanel);
     }
   }
 

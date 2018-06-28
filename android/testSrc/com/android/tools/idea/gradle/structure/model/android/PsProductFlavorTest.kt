@@ -84,8 +84,8 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     assertThat(testInstrumentationRunner.resolved.asTestValue(), nullValue())
     assertThat(testInstrumentationRunner.parsedValue.asTestValue(), nullValue())
 
-    assertThat(versionCode.resolved.asTestValue(), equalTo("2"))
-    assertThat(versionCode.parsedValue.asTestValue(), equalTo("2"))
+    assertThat(versionCode.resolved.asTestValue(), equalTo(2))
+    assertThat(versionCode.parsedValue.asTestValue(), equalTo(2))
 
     assertThat(versionName.resolved.asTestValue(), equalTo("2.0"))
     assertThat(versionName.parsedValue.asTestValue(), equalTo("2.0"))
