@@ -291,6 +291,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> SINGLE_VARIANT_SYNC_ENABLED = Flag.create(
     GRADLE_IDE, "single.variant.sync", "Enable new \"Single-Variant Sync\"",
     "Turns on Single-Variant Sync.", false);
+  public static final Flag<Boolean> COMPOUND_SYNC_ENABLED = Flag.create(
+    GRADLE_IDE, "compound.sync", "Enable new \"Compound Sync\"",
+    "Turns on Compound Sync.", false);
   // REMOVE or change default to true after http://b/80245603 is fixed.
   public static final Flag<Boolean> L4_DEPENDENCY_MODEL = Flag.create(
     GRADLE_IDE, "level4.dependency.model", "Use L4 DependencyGraph Model",
