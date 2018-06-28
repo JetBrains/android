@@ -117,8 +117,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     for (int i = 0, j = 0; i < expectedItems.size() || j < actualItems.size(); i++, j++) {
       ResourceItem expectedItem = i < expectedItems.size() ? expectedItems.get(i) : null;
       ResourceItem actualItem = j < actualItems.size() ? actualItems.get(j) : null;
-      if (actualItem == null || expectedItem == null || !areEquivalent(expectedItem, actualItem) ||
-          !expectedItem.getConfiguration().equals(actualItem.getConfiguration())) {
+      if (actualItem == null || expectedItem == null || !areEquivalent(expectedItem, actualItem)) {
         if (actualItem != null && actualItem.getType() == ResourceType.ID) {
           // AarSourceResourceRepository does not create ID resources for some attr values and for inline ID declarations ("@+id/name").
           i--; // Skip the ID resource.
@@ -143,7 +142,6 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
         }
       } else {
         assertTrue("Different ResourceItem at position " + i, areEquivalent(expectedItem, actualItem));
-        assertEquals("Different FolderConfiguration at position " + i, expectedItem.getConfiguration(), actualItem.getConfiguration());
         assertTrue("Different ResourceValue at position " + i,
                    areEquivalentResourceValues(expectedItem.getResourceValue(), actualItem.getResourceValue()));
         previousItem = actualItem;
@@ -175,6 +173,10 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
       return false;
     }
     if (!Objects.equals(item1.getLibraryName(), item2.getLibraryName())) {
+      return false;
+    }
+    // ID resources in AARv2 always belong to the default configuration.
+    if (item1.getType() != ResourceType.ID && !Objects.equals(item1.getConfiguration(), item2.getConfiguration())) {
       return false;
     }
     // TODO: AarValueResourceItem.getSource() method hasn't been fully implemented yet.
@@ -376,6 +378,9 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
           return true;
         }
         break;
+
+      case ID:
+        return true; // ID resources don't have values in AARv2.
 
       default:
         break;
