@@ -28,7 +28,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPropertyInspectorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
-import com.google.common.truth.Truth;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
@@ -43,7 +42,6 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.stream.Collectors;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
@@ -51,7 +49,7 @@ import static org.junit.Assert.*;
 
 /**
  * UI tests regarding the ChooseResourceDialog
- * <p>
+ *
  * Note that {@link ThemeEditorTableTest} also exercises the resource chooser a bit
  */
 @RunIn(TestGroup.THEME)
@@ -363,8 +361,10 @@ public class ChooseResourceDialogTest {
     tabs.requireTabTitles("Drawable", "Color");
     dialog.clickOnTab("Color");
 
-    dialog.getSearchField().enterText("color_state");
-    assertThat(dialog.getAllLists().stream().map(list -> list.getName()).collect(Collectors.toList())).doesNotContain("Project");
+    dialog.getSearchField().enterText("actionMenuTextColor");
+    JListFixture themeAttrList = dialog.getList("Theme attributes", 1);
+
+    Wait.seconds(1).expecting("theme attributes to be filtered").until(() -> listToString(themeAttrList).isEmpty());
 
     dialog.clickCancel();
   }
@@ -488,7 +488,7 @@ public class ChooseResourceDialogTest {
    */
   @NotNull
   private static String tableToString(@NotNull JTableFixture table, int startRow, int endRow, int startColumn, int endColumn,
-                                      int cellWidth) {
+                                     int cellWidth) {
     String[][] contents = table.contents();
 
     StringBuilder sb = new StringBuilder();
