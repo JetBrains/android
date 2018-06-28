@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.naveditor
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.RunIn
+import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture
 import com.intellij.openapi.application.ApplicationManager
@@ -84,6 +86,7 @@ class DestinationListTest {
     assertEquals(listOf("new_fragment"), destinationListFixture.components.map { it.id })
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/110924391
   @Test
   @Throws(Exception::class)
   fun testSelectComponent() {
