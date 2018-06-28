@@ -641,7 +641,8 @@ public class ChooseResourceDialog extends DialogWrapper {
 
     ResourcePanel panel = myTypeToPanels.get(type);
     if (panel == null) {
-      panel = new ResourcePanel(type, type != ResourceType.COLOR || !allowDrawables(), myThemAttributes.get(type), myShowSampleDataPicker);
+      boolean includeFileResources = type != ResourceType.COLOR || !allowDrawables() || !myFilterColorStateLists;
+      panel = new ResourcePanel(type, includeFileResources, myThemAttributes.get(type), myShowSampleDataPicker);
       panel.expandAll();
 
       JPanel container = myAltPane;
