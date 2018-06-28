@@ -18,17 +18,21 @@ package com.android.tools.profilers.cpu.capturedetails;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 /**
@@ -45,6 +49,13 @@ public class CaptureModel {
    * Negative number used when no thread is selected.
    */
   public static final int NO_THREAD = -1;
+
+  private static final Map<Details.Type, Consumer<FeatureTracker>> DETAILS_TRACKERS = ImmutableMap.of(
+    CaptureModel.Details.Type.TOP_DOWN, FeatureTracker::trackSelectCaptureTopDown,
+    CaptureModel.Details.Type.BOTTOM_UP, FeatureTracker::trackSelectCaptureBottomUp,
+    CaptureModel.Details.Type.CALL_CHART, FeatureTracker::trackSelectCaptureCallChart,
+    CaptureModel.Details.Type.FLAME_CHART, FeatureTracker::trackSelectCaptureFlameChart
+  );
 
   @NotNull
   private final CpuProfilerStage myStage;
@@ -149,6 +160,11 @@ public class CaptureModel {
   public void setDetails(@Nullable Details.Type type) {
     if (type != null && myDetails != null && type == myDetails.getType()) {
       return;
+    }
+
+    FeatureTracker tracker = myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
+    if (type != null) {
+      DETAILS_TRACKERS.get(type).accept(tracker);
     }
     buildDetails(type);
   }
