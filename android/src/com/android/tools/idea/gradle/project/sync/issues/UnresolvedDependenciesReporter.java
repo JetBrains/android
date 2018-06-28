@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.api.ProgressIndicator;
@@ -24,24 +25,29 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.hyperlink.*;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.util.PositionInFile;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.pom.NonNavigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.ide.common.repository.SdkMavenRepository.GOOGLE;
@@ -50,12 +56,10 @@ import static com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbedde
 import static com.android.tools.idea.gradle.project.sync.issues.ConstraintLayoutFeature.isSupportedInSdkManager;
 import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.sdk.StudioSdkUtil.reloadRemoteSdkWithModalProgress;
 
-public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
+public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssueReporter {
   private static final String UNRESOLVED_DEPENDENCIES_GROUP = "Unresolved dependencies";
-  private static final String OPEN_FILE_HYPERLINK_TEXT = "Open File";
 
   private DependencyPositionFinder myDependencyPositionFinder = new DependencyPositionFinder();
 
@@ -69,88 +73,150 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
     return TYPE_UNRESOLVED_DEPENDENCY;
   }
 
+  @Nullable
   @Override
-  void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
-    String dependency = syncIssue.getData();
-    if (dependency != null) {
-      report(dependency, module, buildFile);
+  protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
+    return issue;
+  }
+
+  @NotNull
+  @Override
+  protected List<NotificationHyperlink> getCustomLinks(@NotNull Project project,
+                                                       @NotNull List<SyncIssue> syncIssues,
+                                                       @NotNull List<Module> affectedModules,
+                                                       @NotNull Map<Module, VirtualFile> buildFileMap) {
+    assert !syncIssues.isEmpty();
+    SyncIssue issue = syncIssues.get(0);
+    String dependency = issue.getData();
+
+    List<NotificationHyperlink> quickFixes = Lists.newArrayList();
+    if (dependency == null) {
+      List<String> extraInfo = new ArrayList<>();
+      try {
+        List<String> multiLineMessage = issue.getMultiLineMessage();
+        if (multiLineMessage != null) {
+          extraInfo.addAll(multiLineMessage);
+        }
+      }
+      catch (UnsupportedOperationException ex) {
+        // SyncIssue.getMultiLineMessage() is not available for pre 3.0 plugins.
+      }
+
+      if (!extraInfo.isEmpty()) {
+        quickFixes.add(new ShowSyncIssuesDetailsHyperlink(issue.getMessage(), extraInfo));
+      }
+
+      if (isOfflineBuildModeEnabled(project)) {
+        quickFixes.add(0, new DisableOfflineModeHyperlink());
+      }
+
+      return quickFixes;
     }
     else {
-      reportWithoutDependencyInfo(syncIssue, module, buildFile);
+      GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
+      Module module = affectedModules.get(0);
+
+      RepoPackage constraintPackage = null;
+      if (coordinate != null) {
+        ProgressIndicator indicator = new StudioLoggerProgressIndicator(getClass());
+        reloadRemoteSdkWithModalProgress();
+        Collection<RemotePackage> remotePackages = getRemotePackages(indicator);
+        constraintPackage = findBestPackageMatching(coordinate, remotePackages);
+      }
+
+      if (dependency.startsWith("com.android.support.constraint:constraint-layout:") && !isSupportedInSdkManager(module)) {
+        quickFixes.add(new FixAndroidGradlePluginVersionHyperlink());
+      }
+      else if (constraintPackage != null) {
+        quickFixes.add(new InstallArtifactHyperlink(constraintPackage.getPath()));
+      }
+      else if (dependency.startsWith("com.android.support")) {
+        // TODO: Add support to add to multiple build files.
+        addGoogleMavenRepositoryHyperlink(module, buildFileMap.get(module), quickFixes);
+      }
+      else if (dependency.startsWith("com.google.android")) {
+        quickFixes.add(new InstallRepositoryHyperlink(GOOGLE, dependency));
+      }
+      else {
+        if (isOfflineBuildModeEnabled(project)) {
+          quickFixes.add(new DisableOfflineModeHyperlink());
+        }
+      }
+
+      if (IdeInfo.getInstance().isAndroidStudio()) {
+        if (coordinate != null) {
+          quickFixes.add(new ShowDependencyInProjectStructureHyperlink(module, coordinate));
+        }
+      }
+
+      // Offer to turn on embedded offline repo if the missing dependency can be found there.
+      if (shouldEnableEmbeddedRepo(dependency)) {
+        quickFixes.add(new EnableEmbeddedRepoHyperlink());
+      }
+
+      return quickFixes;
     }
   }
 
+  @NotNull
+  @Override
+  protected NotificationData setupNotificationData(@NotNull Project project,
+                                                   @NotNull List<SyncIssue> syncIssues,
+                                                   @NotNull List<Module> affectedModules,
+                                                   @NotNull Map<Module, VirtualFile> buildFileMap,
+                                                   @NotNull MessageType type) {
+    NotificationData notificationData =
+      super.setupNotificationData(project, syncIssues, affectedModules, buildFileMap, type);
+    notificationData.setTitle(UNRESOLVED_DEPENDENCIES_GROUP);
+
+    String dependency = syncIssues.get(0).getData();
+    if (dependency == null) {
+      return notificationData;
+    }
+
+    String message = "Failed to resolve: " + dependency;
+    notificationData.setMessage(message);
+    return notificationData;
+  }
+
+
   public void report(@NotNull Collection<String> unresolvedDependencies, @NotNull Module module) {
+    // TODO: Allow java modules to have sync issues.
     if (unresolvedDependencies.isEmpty()) {
       return;
     }
     VirtualFile buildFile = getGradleBuildFile(module);
-    for (String dependency : unresolvedDependencies) {
-      report(dependency, module, buildFile);
-    }
-
-    GradleSyncState.getInstance(module.getProject()).getSummary().setSyncErrorsFound(true);
-  }
-
-  private void report(@NotNull String dependency, @NotNull Module module, @Nullable VirtualFile buildFile) {
-    String group = "Unresolved Android dependencies";
-    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
-
-    RepoPackage constraintPackage = null;
-    if (coordinate != null) {
-      ProgressIndicator indicator = new StudioLoggerProgressIndicator(getClass());
-      reloadRemoteSdkWithModalProgress();
-      Collection<RemotePackage> remotePackages = getRemotePackages(indicator);
-      constraintPackage = findBestPackageMatching(coordinate, remotePackages);
-    }
-
-    List<NotificationHyperlink> quickFixes = new ArrayList<>();
-    if (dependency.startsWith("com.android.support.constraint:constraint-layout:") && !isSupportedInSdkManager(module)) {
-      quickFixes.add(new FixAndroidGradlePluginVersionHyperlink());
-    }
-    else if (constraintPackage != null) {
-      quickFixes.add(new InstallArtifactHyperlink(constraintPackage.getPath()));
-    }
-    else if (dependency.startsWith("com.android.support")) {
-      addGoogleMavenRepositoryHyperlink(module, buildFile, quickFixes);
-    }
-    else if (dependency.startsWith("com.google.android")) {
-      quickFixes.add(new InstallRepositoryHyperlink(GOOGLE, dependency));
-    }
-    else {
-      group = UNRESOLVED_DEPENDENCIES_GROUP;
-      Project project = module.getProject();
-
-      if (isOfflineBuildModeEnabled(project)) {
-        quickFixes.add(new DisableOfflineModeHyperlink());
+    List<SyncIssue> syncIssues = unresolvedDependencies.stream().map(s -> new SyncIssue() {
+      @Override
+      public int getSeverity() {
+        return SEVERITY_ERROR;
       }
-    }
 
-    String text = "Failed to resolve: " + dependency;
-
-    SyncMessage message;
-    if (buildFile != null) {
-      PositionInFile position = myDependencyPositionFinder.findDependencyPosition(dependency, buildFile);
-      message = new SyncMessage(module.getProject(), group, ERROR, position, text);
-      String hyperlinkText = position.line > -1 ? "Show in File" : OPEN_FILE_HYPERLINK_TEXT;
-      quickFixes.add(new OpenFileHyperlink(buildFile.getPath(), hyperlinkText, position.line, position.column));
-    }
-    else {
-      message = new SyncMessage(group, ERROR, NonNavigatable.INSTANCE, text);
-    }
-
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      if (coordinate != null) {
-        quickFixes.add(new ShowDependencyInProjectStructureHyperlink(module, coordinate));
+      @Override
+      public int getType() {
+        return TYPE_UNRESOLVED_DEPENDENCY;
       }
-    }
 
-    // Offer to turn on embedded offline repo if the missing dependency can be found there.
-    if (shouldEnableEmbeddedRepo(dependency)) {
-      quickFixes.add(new EnableEmbeddedRepoHyperlink());
-    }
-    message.add(quickFixes);
-    getSyncMessages(module).report(message);
+      @Nullable
+      @Override
+      public String getData() {
+        return s;
+      }
+
+      @NonNull
+      @Override
+      public String getMessage() {
+        return s;
+      }
+
+      @Nullable
+      @Override
+      public List<String> getMultiLineMessage() {
+        return null;
+      }
+    }).collect(Collectors.toList());
+    reportAll(syncIssues, syncIssues.stream().collect(Collectors.toMap(Function.identity(), k -> module)),
+              buildFile == null ? ImmutableMap.of() : ImmutableMap.of(module, buildFile));
   }
 
   @NotNull
@@ -160,56 +226,12 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
     return packages.getRemotePackages().values();
   }
 
-  private void reportWithoutDependencyInfo(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
-    // getData can be null if the unresolved dependency is on a sub-module due to non-matching variant attributes.
-    // Use getMessage to display the sync error in that case.
-    // b/64213214.
-    String text = syncIssue.getMessage();
-    List<NotificationHyperlink> quickFixes = new ArrayList<>();
-
-    SyncMessage message;
-    if (buildFile != null) {
-      PositionInFile position = new PositionInFile(buildFile, -1, 1);
-      message = new SyncMessage(module.getProject(), UNRESOLVED_DEPENDENCIES_GROUP, ERROR, position, text);
-      quickFixes.add(new OpenFileHyperlink(buildFile.getPath(), OPEN_FILE_HYPERLINK_TEXT, position.line, position.column));
-    }
-    else {
-      message = new SyncMessage(UNRESOLVED_DEPENDENCIES_GROUP, ERROR, NonNavigatable.INSTANCE, text);
-    }
-
-    // Show the "extra info" of the SyncIssue in a dialog.
-    // See: https://issuetracker.google.com/62251247
-    List<String> extraInfo = new ArrayList<>();
-    try {
-      List<String> multiLineMessage = syncIssue.getMultiLineMessage();
-      if (multiLineMessage != null) {
-        extraInfo.addAll(multiLineMessage);
-      }
-    }
-    catch (UnsupportedOperationException ex) {
-      // SyncIssue.getMultiLineMessage() is not available for pre 3.0 plugins.
-    }
-
-    if (!extraInfo.isEmpty()) {
-      quickFixes.add(new ShowSyncIssuesDetailsHyperlink(text, extraInfo));
-    }
-
-    // Add quickfix to disable offline mode if it is enabled (b/65188424)
-    Project project = module.getProject();
-    if (isOfflineBuildModeEnabled(project)) {
-      quickFixes.add(0, new DisableOfflineModeHyperlink());
-    }
-
-    message.add(quickFixes);
-    getSyncMessages(module).report(message);
-  }
-
   /**
    * Append a quick fix to add Google Maven repository to solve a dependency in a module in a list of fixes if needed.
    *
-   * @param module Module that has a dependency on the repository.
+   * @param module    Module that has a dependency on the repository.
    * @param buildFile Build file where the dependency is.
-   * @param fixes List of hyperlinks in which the quickfix will be added if the repository is not already used.
+   * @param fixes     List of hyperlinks in which the quickfix will be added if the repository is not already used.
    */
   private static void addGoogleMavenRepositoryHyperlink(@NotNull Module module,
                                                         @Nullable VirtualFile buildFile,
