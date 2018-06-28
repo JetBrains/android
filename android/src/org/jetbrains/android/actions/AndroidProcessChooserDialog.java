@@ -218,16 +218,14 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     AndroidDebugger defaultDebugger = null;
     List<AndroidDebugger> androidDebuggers = Lists.newLinkedList();
     for (AndroidDebugger androidDebugger : AndroidDebugger.EP_NAME.getExtensions()) {
-      if (androidDebugger.supportsProject(myProject)) {
-        androidDebuggers.add(androidDebugger);
-        if (selectedDebugger == null &&
-            lastSelectedDebuggerId != null &&
-            androidDebugger.getId().equals(lastSelectedDebuggerId)) {
-          selectedDebugger = androidDebugger;
-        }
-        else if (androidDebugger.shouldBeDefault()) {
-          defaultDebugger = androidDebugger;
-        }
+      androidDebuggers.add(androidDebugger);
+      if (selectedDebugger == null &&
+          lastSelectedDebuggerId != null &&
+          androidDebugger.getId().equals(lastSelectedDebuggerId)) {
+        selectedDebugger = androidDebugger;
+      }
+      else if (androidDebugger.shouldBeDefault()) {
+        defaultDebugger = androidDebugger;
       }
     }
 
