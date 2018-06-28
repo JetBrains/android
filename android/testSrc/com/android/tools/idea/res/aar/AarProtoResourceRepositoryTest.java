@@ -287,7 +287,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
       while (it1.hasNext()) {
         StyleItemResourceValue item1 = it1.next();
         StyleItemResourceValue item2 = it2.next();
-        if (!areEquivalentResourceValues((ResourceValue)item1, (ResourceValue)item2)) {
+        if (!areEquivalentResourceValues(item1, item2)) {
           return false;
         }
       }

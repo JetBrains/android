@@ -91,7 +91,7 @@ public class AttributesModelColorPaletteModel implements ColorPalette.ColorPalet
       }
 
       EditedStyleItem item = (EditedStyleItem)myModel.getValueAt(i, 0);
-      for (Color color : ResourceHelper.resolveMultipleColors(myResourceResolver, (ResourceValue)item.getSelectedValue(), myProject)) {
+      for (Color color : ResourceHelper.resolveMultipleColors(myResourceResolver, item.getSelectedValue(), myProject)) {
         myColorReferences.put(color, item);
         colorSet.add(color);
       }
