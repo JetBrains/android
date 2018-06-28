@@ -74,6 +74,12 @@ public class NewGradleSync implements GradleSync {
            GradlePerProjectExperimentalSettings.getInstance(project).USE_SINGLE_VARIANT_SYNC;
   }
 
+  public static boolean isCompoundSync(@NotNull Project project) {
+    // Since Gradle plugin don't have the concept of selected variant and we don't want to generate sources for all variants, we only
+    // activate Compound Sync if Single Variant Sync is also enabled.
+    return StudioFlags.COMPOUND_SYNC_ENABLED.get() && isEnabled(project) && isSingleVariantSync(project);
+  }
+
   public NewGradleSync(@NotNull Project project) {
     this(project, GradleSyncMessages.getInstance(project), new SyncExecutor(project), new SyncResultHandler(project),
          new ProjectBuildFileChecksums.Loader(), new CachedProjectModels.Loader(), new SyncExecutionCallback.Factory());
