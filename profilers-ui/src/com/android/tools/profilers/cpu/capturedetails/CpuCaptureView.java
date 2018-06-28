@@ -24,7 +24,6 @@ import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.JComboBoxView;
 import com.android.tools.profilers.ViewBinder;
-import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.*;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
@@ -34,11 +33,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
 import java.awt.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.*;
@@ -57,13 +54,6 @@ public class CpuCaptureView {
 
   // Some of the tab names may be replaced. This list defines the currently active tab names as
   private final Map<CaptureModel.Details.Type, String> myTabs = new LinkedHashMap<>(DEFAULT_TAB_NAMES);
-
-  private static final Map<CaptureModel.Details.Type, Consumer<FeatureTracker>> CAPTURE_TRACKERS = ImmutableMap.of(
-    CaptureModel.Details.Type.TOP_DOWN, FeatureTracker::trackSelectCaptureTopDown,
-    CaptureModel.Details.Type.BOTTOM_UP, FeatureTracker::trackSelectCaptureBottomUp,
-    CaptureModel.Details.Type.CALL_CHART, FeatureTracker::trackSelectCaptureCallChart,
-    CaptureModel.Details.Type.FLAME_CHART, FeatureTracker::trackSelectCaptureFlameChart
-  );
 
   @NotNull
   private final CpuProfilerStageView myView;
@@ -105,7 +95,7 @@ public class CpuCaptureView {
     for (String label : myTabs.values()) {
       myTabsPanel.addTab(label, new JPanel(new BorderLayout()));
     }
-    myTabsPanel.addChangeListener(this::setCaptureDetailToTab);
+    myTabsPanel.addChangeListener(event -> setCaptureDetailToTab());
     myTabsPanel.setOpaque(false);
     // TOOLBAR_HEIGHT - 1, so the bottom border of the parent is visible.
     myPanel = new JPanel(new TabularLayout("*,Fit-", (TOOLBAR_HEIGHT - 1) + "px,*"));
@@ -182,7 +172,7 @@ public class CpuCaptureView {
     }
   }
 
-  private void setCaptureDetailToTab(ChangeEvent event) {
+  private void setCaptureDetailToTab() {
     CaptureModel.Details.Type type = null;
     if (myTabsPanel.getSelectedIndex() >= 0) {
       String tabTitle = myTabsPanel.getTitleAt(myTabsPanel.getSelectedIndex());
@@ -193,13 +183,6 @@ public class CpuCaptureView {
       }
     }
     myView.getStage().setCaptureDetails(type);
-
-    // TODO: Move this logic into setCaptureDetails later. Right now, if we do it, we track the
-    // event several times instead of just once after taking a capture. setCaptureDetails should
-    // probably have a guard condition.
-    FeatureTracker tracker = myView.getStage().getStudioProfilers().getIdeServices().getFeatureTracker();
-    CAPTURE_TRACKERS.getOrDefault(type, featureTracker -> {
-    }).accept(tracker);
   }
 
   private static Logger getLog() {
