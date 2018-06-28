@@ -214,7 +214,7 @@ public class AndroidAddStringResourceActionTest extends AndroidTestCase {
     if (stringsXml != null) {
       myFixture.copyFileToProject(BASE_PATH + stringsXml, "res/values/strings.xml");
     }
-    myFixture.copyFileToProject("R.java", "src/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
     myFixture.configureFromExistingVirtualFile(javaFile);
     final PsiFile javaPsiFile = myFixture.getFile();
     assertTrue(new AndroidAddStringResourceAction().isAvailable(myFixture.getProject(), myFixture.getEditor(), javaPsiFile));

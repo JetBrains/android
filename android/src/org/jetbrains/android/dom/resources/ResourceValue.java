@@ -201,13 +201,13 @@ public class ResourceValue {
     } else if (PLUS_ID.equals(myResourceType)) {
       type = ResourceType.ID;
     } else {
-      type = ResourceType.getEnum(myResourceType);
+      type = ResourceType.fromXmlValue(myResourceType);
       if (type == null) {
         return false;
       }
     }
 
-    if (ResourceType.getEnum(myResourceType) == ResourceType.SAMPLE_DATA) {
+    if (type == ResourceType.SAMPLE_DATA) {
       // SAMPLE_DATA allows for characters that are not valid identifiers. This is ok because these are not compiled by aapt.
       return true;
     }
@@ -245,7 +245,7 @@ public class ResourceValue {
     } else if (PLUS_ID.equals(myResourceType)) {
       type = ResourceType.ID;
     } else {
-      type = ResourceType.getEnum(myResourceType);
+      type = ResourceType.fromXmlValue(myResourceType);
       if (type == null) {
         return "Unknown resource type " + myResourceType;
       }
@@ -265,7 +265,7 @@ public class ResourceValue {
         return "The resource name must begin with a character";
       }
 
-      if (ResourceType.SAMPLE_DATA == ResourceType.getEnum(myResourceType)) {
+      if (ResourceType.SAMPLE_DATA == type) {
         // SAMPLE_DATA allows for characters that are not valid identifiers. This is ok because these are not compiled by aapt.
         return null;
       }
@@ -301,7 +301,7 @@ public class ResourceValue {
       assert PLUS_ID.equals(myResourceType) : myResourceType;
       return ResourceType.ID;
     }
-    return ResourceType.getEnum(myResourceType);
+    return ResourceType.fromXmlValue(myResourceType);
   }
 
   @Nullable

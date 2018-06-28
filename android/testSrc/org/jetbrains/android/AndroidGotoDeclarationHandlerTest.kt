@@ -309,9 +309,11 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
 
   override fun setUp() {
     super.setUp()
-    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java")
-    myFixture.copyFileToProject("Manifest.java", "gen/p1/p2/Manifest.java")
-    myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java")
+    copyRJavaToGeneratedSources()
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.copyFileToProject("Manifest.java", "gen/p1/p2/Manifest.java")
+      myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java")
+    }
   }
 
   override fun addAarDependency() {

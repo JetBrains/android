@@ -61,12 +61,12 @@ public final class DependencyNodes {
         children.add(artifactNode);
       }
     }
-    for (PsAndroidDependency dependency : collection.items()) {
+    for (PsDependency dependency: collection.getItems()) {
       if (dependency.isDeclared()) {
         declared.add(dependency);
       }
       else {
-        mayBeTransitive.add(dependency);
+        mayBeTransitive.add((PsAndroidDependency)dependency);
       }
       addTransitive(dependency, collection, allTransitive);
     }

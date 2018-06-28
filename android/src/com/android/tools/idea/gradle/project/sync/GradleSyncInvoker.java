@@ -222,7 +222,7 @@ public class GradleSyncInvoker {
       listener.syncStarted(project, request.useCachedGradleModels, request.generateSourcesOnSuccess);
     }
 
-    boolean useNewGradleSync = NewGradleSync.isEnabled();
+    boolean useNewGradleSync = NewGradleSync.isEnabled(project);
     if (!useNewGradleSync) {
       removeAndroidModels(project);
     }

@@ -276,7 +276,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout.getVirtualFile());
     ResourceResolver resolver = configuration.getResourceResolver();
     assertEquals("string1", resolver.findResValue("@sample/strings", false).getValue());
-    assertEquals("string2",resolver.findResValue("@sample/strings", false).getValue());
+    assertEquals("string2", resolver.findResValue("@sample/strings", false).getValue());
     ApplicationManager.getApplication().runWriteAction(() -> {
       try {
         sampleDataFile.getVirtualFile().setBinaryContent(("new1\n" +

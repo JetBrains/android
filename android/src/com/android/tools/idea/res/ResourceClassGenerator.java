@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.ide.common.rendering.api.DeclareStyleableResourceValue;
+import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -117,7 +117,7 @@ public class ResourceClassGenerator {
     int index = className.lastIndexOf('$');
     if (index != -1) {
       String typeName = className.substring(index + 1);
-      ResourceType type = ResourceType.getEnum(typeName);
+      ResourceType type = ResourceType.fromClassName(typeName);
       if (type == null) {
         if (LOG.isDebugEnabled()) {
           LOG.debug(String.format("  type '%s' doesn't exist", typeName));
@@ -154,20 +154,10 @@ public class ResourceClassGenerator {
       }
     } else {
       // Default R class.
-      boolean styleableAdded = false;
       for (ResourceType t : myResources.getAvailableResourceTypes(myNamespace)) {
-        // getAvailableResourceTypes() sometimes returns both styleable and declare styleable. Make sure that we only create one subclass.
-        if (t == ResourceType.DECLARE_STYLEABLE) {
-          t = ResourceType.STYLEABLE;
+        if (t.getHasInnerClass()) {
+          cw.visitInnerClass(className + "$" + t.getName(), className, t.getName(), ACC_PUBLIC + ACC_FINAL + ACC_STATIC);
         }
-        if (t == ResourceType.STYLEABLE) {
-          if (styleableAdded) {
-            continue;
-          } else {
-            styleableAdded = true;
-          }
-        }
-        cw.visitInnerClass(className + "$" + t.getName(), className, t.getName(), ACC_PUBLIC + ACC_FINAL + ACC_STATIC);
       }
     }
 
@@ -193,8 +183,8 @@ public class ResourceClassGenerator {
   private static List<ResourceReference> getStyleableAttributes(@NotNull ResourceItem item) {
     ResourceValue resourceValue = ApplicationManager.getApplication().runReadAction(
       (Computable<ResourceValue>)() -> item.getResourceValue());
-    assert resourceValue instanceof DeclareStyleableResourceValue;
-    DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
+    assert resourceValue instanceof StyleableResourceValue;
+    StyleableResourceValue dv = (StyleableResourceValue)resourceValue;
     return Lists.transform(dv.getAllAttributes(), ResourceValue::asReference);
   }
 
@@ -205,12 +195,12 @@ public class ResourceClassGenerator {
     boolean debug = LOG.isDebugEnabled() && isPublicClass(className);
 
     TObjectIntHashMap<String> indexFieldsCache = myCache.get(ResourceType.STYLEABLE);
-    Collection<String> styleableNames = myResources.getItemsOfType(myNamespace, ResourceType.DECLARE_STYLEABLE);
+    Collection<String> styleableNames = myResources.getItemsOfType(myNamespace, ResourceType.STYLEABLE);
     List<MergedStyleable> mergedStyleables = new ArrayList<>(styleableNames.size());
 
     // Generate all declarations - both int[] and int for the indices into the array.
     for (String styleableName : styleableNames) {
-      List<ResourceItem> items = myResources.getResourceItems(myNamespace, ResourceType.DECLARE_STYLEABLE, styleableName);
+      List<ResourceItem> items = myResources.getResourceItems(myNamespace, ResourceType.STYLEABLE, styleableName);
       if (items.isEmpty()) {
         if (debug) {
           LOG.debug("  No items for " + styleableName);

@@ -144,7 +144,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public DataViewer createFileViewer(@NotNull File file) {
+  public DataViewer createDataViewer(@NotNull byte[] content, @NotNull ContentType contentType) {
     return new DataViewer() {
       private final JComponent DUMMY_COMPONENT = new JPanel();
 

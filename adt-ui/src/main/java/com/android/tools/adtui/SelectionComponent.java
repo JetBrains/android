@@ -50,6 +50,12 @@ public final class SelectionComponent extends AnimatedComponent {
 
   private static final double SELECTION_MOVE_PERCENT = 0.01;
 
+  /**
+   * The ratio of selection range to view range when making a single click.
+   * It is ignored when {@link #myIsPointSelectionReplaced} is false.
+   */
+  public static final double CLICK_RANGE_RATIO = 0.003;
+
   private int myMousePressed;
 
   private int myMouseMovedX;
@@ -90,10 +96,20 @@ public final class SelectionComponent extends AnimatedComponent {
    */
   private boolean myIsMouseOverComponent;
 
+  /**
+   * Whether point selection should be replaced by a small range.
+   */
+  private boolean myIsPointSelectionReplaced;
+
   public SelectionComponent(@NotNull SelectionModel model, @NotNull Range viewRange) {
+    this(model, viewRange, false);
+  }
+
+  public SelectionComponent(@NotNull SelectionModel model, @NotNull Range viewRange, boolean isPointSelectionReplaced) {
     myModel = model;
     myViewRange = viewRange;
     myMode = Mode.NONE;
+    myIsPointSelectionReplaced = isPointSelectionReplaced;
     setFocusable(true);
     initListeners();
 
@@ -125,6 +141,12 @@ public final class SelectionComponent extends AnimatedComponent {
       @Override
       public void mouseReleased(MouseEvent e) {
         if (SwingUtilities.isLeftMouseButton(e)) {
+          if (myIsPointSelectionReplaced && myModel.getSelectionRange().getLength() == 0) {
+            Range range = myModel.getSelectionRange();
+            double delta = myViewRange.getLength() * CLICK_RANGE_RATIO;
+            myModel.set(range.getMin() - delta, range.getMax() + delta);
+          }
+
           if (myMode == Mode.CREATE) {
             myModel.endUpdate();
           }
@@ -321,6 +343,14 @@ public final class SelectionComponent extends AnimatedComponent {
   @NotNull
   public Mode getMode() {
     return myMode;
+  }
+
+  /**
+   * @return true if the blue seek component from {@link RangeTooltipComponent} should be visible.
+   * @see {@link RangeTooltipComponent#myShowSeekComponent}
+   */
+  public boolean shouldShowSeekComponent() {
+    return myMode != Mode.MOVE && myMode != Mode.ADJUST_MIN && myMode != Mode.ADJUST_MAX;
   }
 
   @Override

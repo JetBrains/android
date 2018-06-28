@@ -35,7 +35,7 @@ import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.AndroidColorAnnotator;
+import org.jetbrains.android.AndroidAnnotatorUtil;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -123,8 +123,8 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
       return null;
     }
 
-    VirtualFile bitmap = ResourceHelper.resolveDrawableAsVirtualFile(resolver, drawable, property.getModel().getProject());
-    bitmap = AndroidColorAnnotator.pickBestBitmap(bitmap);
+    VirtualFile bitmap = ResourceHelper.resolveDrawable(resolver, drawable, property.getModel().getProject());
+    bitmap = AndroidAnnotatorUtil.pickBestBitmap(bitmap);
     return bitmap == null ? null : GutterIconCache.getInstance().getIcon(bitmap.getPath(), resolver);
   }
 

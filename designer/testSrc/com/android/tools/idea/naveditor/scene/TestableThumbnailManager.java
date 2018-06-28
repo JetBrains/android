@@ -18,7 +18,9 @@ package com.android.tools.idea.naveditor.scene;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.RenderTestUtil;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -55,10 +57,6 @@ public class TestableThumbnailManager extends ThumbnailManager {
                                   @NotNull XmlFile file,
                                   @NotNull Configuration configuration,
                                   RenderService renderService) {
-    RenderTask task = super.createTask(facet, file, configuration, renderService);
-    if (task != null) {
-      task.disableSecurityManager();
-    }
-    return task;
+    return ReadAction.compute(() -> RenderTestUtil.createRenderTask(facet, file.getVirtualFile(), configuration));
   }
 }

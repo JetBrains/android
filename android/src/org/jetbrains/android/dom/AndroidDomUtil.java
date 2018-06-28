@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.dom;
 
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.resources.ResourceType;
 import com.android.support.AndroidxName;
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
@@ -30,11 +31,9 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
 import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
@@ -46,7 +45,6 @@ import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -298,17 +296,6 @@ public class AndroidDomUtil {
       }
     }
     return false;
-  }
-
-  @Nullable
-  public static Activity getActivityDomElementByClass(@NotNull List<Activity> activities, PsiClass c) {
-    for (Activity activity : activities) {
-      PsiClass activityClass = activity.getActivityClass().getValue();
-      if (c.getManager().areElementsEquivalent(c, activityClass)) {
-        return activity;
-      }
-    }
-    return null;
   }
 
   @Nullable

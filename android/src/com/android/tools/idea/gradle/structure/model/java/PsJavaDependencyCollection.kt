@@ -15,49 +15,69 @@
  */
 package com.android.tools.idea.gradle.structure.model.java
 
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
-import com.android.tools.idea.gradle.structure.model.PsModelCollection
-import java.util.function.Consumer
+import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
+import com.android.tools.idea.gradle.model.java.JarLibraryDependency
+import com.android.tools.idea.gradle.structure.model.*
 
-internal class PsJavaDependencyCollection(private val parent: PsJavaModule) : PsModelCollection<PsJavaDependency> {
+interface PsJavaDependencyCollection<out LibraryDependencyT, out ModuleDependencyT>
+  : PsDependencyCollection<PsJavaModule, LibraryDependencyT, ModuleDependencyT>
+  where LibraryDependencyT : PsJavaDependency,
+        LibraryDependencyT : PsLibraryDependency,
+        ModuleDependencyT : PsJavaDependency,
+        ModuleDependencyT : PsModuleDependency {
+  val items: List<PsJavaDependency> get() = modules + libraries
+}
 
-  private val libraryDependenciesBySpec = mutableMapOf<String, PsLibraryJavaDependency>()
+class PsDeclaredJavaDependencyCollection(parent: PsJavaModule)
+  : PsDeclaredDependencyCollection<PsJavaModule, PsDeclaredLibraryJavaDependency, PsDeclaredModuleJavaDependency>(parent),
+    PsJavaDependencyCollection<PsDeclaredLibraryJavaDependency, PsDeclaredModuleJavaDependency> {
 
-  init {
-    addDependencies()
-  }
+  override fun createLibraryDependency(artifactDependencyModel: ArtifactDependencyModel): PsDeclaredLibraryJavaDependency =
+    PsDeclaredLibraryJavaDependency(parent, artifactDependencyModel)
 
-  private fun addDependencies() {
-    val parsedDependencies = parent.parsedDependencies
+  override fun createModuleDependency(moduleDependencyModel: ModuleDependencyModel): PsDeclaredModuleJavaDependency =
+    PsDeclaredModuleJavaDependency(parent, moduleDependencyModel)
+}
 
+class PsResolvedJavaDependencyCollection(module: PsJavaModule)
+  : PsResolvedDependencyCollection<PsJavaModule, PsJavaModule, PsResolvedLibraryJavaDependency, PsResolvedModuleJavaDependency>(
+  container = module,
+  module = module
+),
+    PsJavaDependencyCollection<PsResolvedLibraryJavaDependency, PsResolvedModuleJavaDependency> {
+  override fun collectResolvedDependencies(container: PsJavaModule) {
     val gradleModel = parent.resolvedModel
-    gradleModel?.jarLibraryDependencies?.forEach { libraryDependency ->
-      val moduleVersion = libraryDependency.moduleVersion
-      if (moduleVersion != null) {
-        val spec = PsArtifactDependencySpec.create(moduleVersion)
-        val parsed = parsedDependencies.findLibraryDependencies(moduleVersion.group, moduleVersion.name)
-        if (!parsed.isEmpty()) {
-          val dependency = PsLibraryJavaDependency(parent, spec, libraryDependency, parsed.first())
-          libraryDependenciesBySpec[spec.toString()] = dependency
-        }
-      }
+    gradleModel?.jarLibraryDependencies?.forEach { addLibrary(it) }
+    gradleModel?.javaModuleDependencies?.forEach { moduleDependency ->
+      parent.parent.findModuleByGradlePath(moduleDependency.moduleId)
+        ?.let { module -> addModule(module, moduleDependency.scope ?: "") }
     }
   }
 
-  override fun forEach(consumer: Consumer<PsJavaDependency>) {
-    forEachDependency(libraryDependenciesBySpec, consumer)
+  private fun addLibrary(library: JarLibraryDependency) {
+    val parsedDependencies = parent.dependencies
+    val group = library.moduleVersion?.group ?: ""
+    val name = library.moduleVersion?.name
+    val version = library.moduleVersion?.version
+    val coordinates = if (name != null && version != null) GradleCoordinate(group, name, version) else null
+    if (coordinates != null) {
+      val matchingDeclaredDependencies = parsedDependencies
+        .findLibraryDependencies(coordinates.groupId, coordinates.artifactId!!)
+        // TODO(b/110774403): Support Java module dependency scopes.
+        .filter { library.moduleVersion != null }
+      addLibraryDependency(PsResolvedLibraryJavaDependency(parent, library, matchingDeclaredDependencies))
+    }
   }
 
-  private fun forEachDependency(dependenciesBySpec: Map<String, PsJavaDependency>,
-                                consumer: Consumer<PsJavaDependency>) {
-    dependenciesBySpec.values.forEach(consumer)
-  }
-
-  fun forEachDeclaredDependency(consumer: (PsJavaDependency) -> Unit) {
-    forEachDeclaredDependency(libraryDependenciesBySpec, consumer)
-  }
-
-  private fun forEachDeclaredDependency(dependenciesBySpec: Map<String, PsJavaDependency>, consumer: (PsJavaDependency) -> Unit) {
-    dependenciesBySpec.values.filter { it.isDeclared }.forEach(consumer)
+  private fun addModule(module: PsModule, scope: String) {
+    val gradlePath = module.gradlePath!!
+    val matchingParsedDependencies =
+      parent
+        .dependencies
+        .findModuleDependencies(gradlePath)
+    addModuleDependency(PsResolvedModuleJavaDependency(parent, gradlePath, scope, module, matchingParsedDependencies))
   }
 }
+

@@ -72,8 +72,7 @@ public class AndroidPsiAugmentProvider extends PsiAugmentProvider {
         final List<Psi> result = new ArrayList<>();
 
         for (ResourceType resType : types) {
-          if (resType == ResourceType.SAMPLE_DATA) {
-            // Sample data is just private for the tools attribute resolution
+          if (!resType.getHasInnerClass()) {
             continue;
           }
 
@@ -108,7 +107,7 @@ public class AndroidPsiAugmentProvider extends PsiAugmentProvider {
         final String resClassName = aClass.getName();
 
         if (resClassName != null) {
-          ResourceType resourceType = ResourceType.getEnum(resClassName);
+          ResourceType resourceType = ResourceType.fromClassName(resClassName);
           if (resourceType != null) {
             final Set<String> existingFields = getOwnFields(aClass);
             final PsiField[] newFields = ModuleResourceTypeClass.buildLocalResourceFields(facet, resourceType, aClass);

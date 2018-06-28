@@ -46,7 +46,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -60,6 +59,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.reference.SoftReference;
 import com.intellij.ui.JBColor;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -90,6 +90,7 @@ import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT
  */
 public class NavDesignSurface extends DesignSurface {
   private static final int SCROLL_DURATION_MS = 300;
+  private static final Object CONNECTION_CLIENT_PROPERTY_KEY = new Object();
 
   private NlComponent myCurrentNavigation;
   @VisibleForTesting
@@ -219,12 +220,15 @@ public class NavDesignSurface extends DesignSurface {
           ApplicationManager.getApplication().executeOnPooledThread(() -> {
             if (tryToCreateSchema(model.getFacet())) {
               myEditorPanel.initNeleModel();
-              getProject().getMessageBus().connect(NavDesignSurface.this).disconnect();
+              ((MessageBusConnection)myEditorPanel.getClientProperty(CONNECTION_CLIENT_PROPERTY_KEY)).disconnect();
+              myEditorPanel.putClientProperty(CONNECTION_CLIENT_PROPERTY_KEY, null);
             }
           });
         }
       };
-      getProject().getMessageBus().connect(this).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, syncFailedListener);
+      MessageBusConnection connection = getProject().getMessageBus().connect(this);
+      myEditorPanel.putClientProperty(CONNECTION_CLIENT_PROPERTY_KEY, connection);
+      connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, syncFailedListener);
     }
     ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(
       getProject(), "Failed to add navigation library dependency", "Failed to Add Dependency"));

@@ -49,6 +49,7 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.ng.GradleSyncProgress.notifyProgress;
+import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isSingleVariantSync;
 import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.finishFailedSync;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
@@ -186,7 +187,7 @@ class SyncExecutor {
   @NotNull
   SyncAction createSyncAction() {
     SyncActionOptions options = new SyncActionOptions();
-    options.setSingleVariantSyncEnabled(StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get());
+    options.setSingleVariantSyncEnabled(isSingleVariantSync(myProject));
     if (options.isSingleVariantSyncEnabled()) {
       SelectedVariants selectedVariants = mySelectedVariantCollector.collectSelectedVariants();
       options.setSelectedVariants(selectedVariants);

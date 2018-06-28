@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.Collection;
 import java.util.function.Consumer;
 
@@ -60,8 +59,12 @@ public interface IdeProfilerComponents {
   @NotNull
   ImportDialog createImportDialog();
 
+  /**
+   * Creates a UI component that displays some data (which may be text or binary). The view uses the data's content type, if known,
+   * to render it correctly.
+   */
   @NotNull
-  DataViewer createFileViewer(@NotNull File file);
+  DataViewer createDataViewer(@NotNull byte[] bytes, @NotNull ContentType contentType);
 
   @NotNull
   JComponent createResizableImageComponent(@NotNull BufferedImage image);

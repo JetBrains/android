@@ -43,6 +43,7 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.ui.GuiTestingService;
+import com.google.common.collect.Iterables;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -231,7 +232,7 @@ public final class TemplateValueInjector {
       myTemplateValues.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
     }
 
-    File resDir = paths.getResDirectory();
+    File resDir = Iterables.getFirst(paths.getResDirectories(), null);
     if (resDir != null) {
       myTemplateValues.put(ATTR_RES_DIR, getRelativePath(moduleRoot, resDir));
       myTemplateValues.put(ATTR_RES_OUT, FileUtil.toSystemIndependentName(resDir.getPath()));

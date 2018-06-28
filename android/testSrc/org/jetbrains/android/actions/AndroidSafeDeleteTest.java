@@ -48,7 +48,7 @@ public class AndroidSafeDeleteTest extends AndroidTestCase {
     createManifest();
     final String testName = getTestName(false);
     myFixture.copyFileToProject(TEST_FOLDER + testName + ".java", "src/p1/p2/" + testName + ".java");
-    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
     final VirtualFile resVFile = myFixture.copyFileToProject(TEST_FOLDER + testName + ".xml", "res/drawable/my_resource_file.xml");
     final PsiFile resFile = PsiManager.getInstance(getProject()).findFile(resVFile);
     try {

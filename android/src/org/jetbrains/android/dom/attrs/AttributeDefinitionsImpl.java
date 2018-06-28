@@ -205,7 +205,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     String[] formats = formatString.split("\\|");
     List<AttributeFormat> result = new ArrayList<>(formats.length);
     for (String format : formats) {
-      AttributeFormat attributeFormat = AttributeFormat.fromName(format);
+      AttributeFormat attributeFormat = AttributeFormat.fromXmlName(format);
       if (attributeFormat != null) {
         result.add(attributeFormat);
       }

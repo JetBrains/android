@@ -161,10 +161,10 @@ public abstract class ResourceManager {
   }
 
   @Nullable
-  public String getValueResourceType(@NotNull XmlTag tag) {
+  public ResourceType getValueResourceType(@NotNull XmlTag tag) {
     ResourceFolderType fileResType = getFileResourceFolderType(tag.getContainingFile());
     if (ResourceFolderType.VALUES == fileResType) {
-      return tag.getName();
+      return AndroidResourceUtil.getResourceTypeForResourceTag(tag);
     }
     return null;
   }
@@ -346,7 +346,7 @@ public abstract class ResourceManager {
   public List<ValueResourceInfoImpl> findValueResourceInfos(@NotNull ResourceNamespace namespace, @NotNull String resourceType,
                                                             @NotNull String resourceName, boolean distinguishDelimitersInName,
                                                             boolean searchAttrs) {
-    ResourceType type = resourceType.startsWith("+") ? ResourceType.ID : ResourceType.getEnum(resourceType);
+    ResourceType type = resourceType.startsWith("+") ? ResourceType.ID : ResourceType.fromClassName(resourceType);
     if (type == null) {
       return Collections.emptyList();
     }

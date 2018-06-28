@@ -15,23 +15,22 @@
  */
 package org.jetbrains.android.dom.resources;
 
+import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.resources.ResourceType;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.GenericAttributeValue;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.dom.converters.FormatConverter;
 import org.jetbrains.android.dom.converters.QuietResourceReferenceConverter;
 import org.jetbrains.android.dom.converters.StaticEnumConverter;
-import org.jetbrains.android.util.AndroidResourceUtil;
 
 import java.util.List;
-
-import static com.android.resources.ResourceType.REFERENCEABLE_TYPES;
 
 @Convert(QuietResourceReferenceConverter.class)
 public interface Item extends ResourceElement {
   class TypeConverter extends StaticEnumConverter {
     public TypeConverter() {
-      super(AndroidResourceUtil.getNamesArray(REFERENCEABLE_TYPES));
+      super(ContainerUtil.map(ResourceType.REFERENCEABLE_TYPES, ResourceType::getName));
     }
   }
 

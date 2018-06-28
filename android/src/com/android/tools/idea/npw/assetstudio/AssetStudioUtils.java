@@ -23,6 +23,7 @@ import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.CaseFormat;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -141,8 +142,9 @@ public final class AssetStudioUtils {
    * Returns true if a resource with the same name is already found at a location implied by the
    * input parameters.
    */
-  public static boolean resourceExists(@NotNull AndroidModuleTemplate paths, @NotNull ResourceFolderType resourceType, @NotNull String name) {
-    File resDir = paths.getResDirectory();
+  public static boolean resourceExists(@NotNull AndroidModuleTemplate paths, @NotNull ResourceFolderType resourceType,
+                                       @NotNull String name) {
+    File resDir = Iterables.getFirst(paths.getResDirectories(), null);
     if (resDir == null) {
       return false;
     }

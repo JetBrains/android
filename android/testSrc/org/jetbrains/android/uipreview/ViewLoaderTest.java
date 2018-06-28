@@ -110,7 +110,9 @@ public class ViewLoaderTest extends AndroidTestCase {
     assertEquals(0x7f0a000e, idManager.getCompiledId(new ResourceReference(RES_AUTO, ResourceType.STRING, "app_name")).intValue());
     // This value wasn't read from the R class since it wasn't a const.
     assertNull(idManager.getCompiledId(new ResourceReference(RES_AUTO, ResourceType.STRING, "not_const")));
-    assertEquals(0x7f_15_fffe, idManager.getOrGenerateId(new ResourceReference(RES_AUTO, ResourceType.STRING, "not_const")));
+
+    // 7f is the app package, 14 is STRING ordinal and fffe is the first dynamic ID assigned.
+    assertEquals(0x7f_14_fffe, idManager.getOrGenerateId(new ResourceReference(RES_AUTO, ResourceType.STRING, "not_const")));
   }
 
   public void testGetShortClassName() {

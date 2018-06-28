@@ -69,7 +69,9 @@ public class ModulePackageRClass extends AndroidPackageRClassBase {
     List<PsiClass> result = new ArrayList<>();
 
     for (ResourceType type : types) {
-      result.add(new ModuleResourceTypeClass(facet, type, this));
+      if (type.getHasInnerClass()) {
+        result.add(new ModuleResourceTypeClass(facet, type, this));
+      }
     }
     LOG.debug("R_CLASS_AUGMENT: " + result.size() + " classes added");
     return result.toArray(PsiClass.EMPTY_ARRAY);

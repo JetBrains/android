@@ -17,6 +17,4 @@ package com.android.tools.idea.gradle.structure.model
 
 interface PsModuleDependency : PsBaseDependency {
   val gradlePath: String
-  val configurationName: String?
-  val name: String
 }

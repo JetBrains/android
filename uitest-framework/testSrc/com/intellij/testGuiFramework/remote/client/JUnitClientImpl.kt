@@ -18,11 +18,9 @@ package com.intellij.testGuiFramework.remote.client
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.impl.ApplicationImpl
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.testGuiFramework.remote.transport.KeepAliveMessage
-import com.intellij.testGuiFramework.remote.transport.MessageFromClient
-import com.intellij.testGuiFramework.remote.transport.MessageFromServer
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
+import com.intellij.testGuiFramework.remote.transport.*
+import org.junit.runner.notification.Failure
+import java.io.*
 import java.net.*
 import java.util.*
 import java.util.concurrent.BlockingQueue
@@ -117,9 +115,21 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
     override fun run() {
       try {
         while (!connection.isClosed) {
-          val transportMessage = poolOfMessages.take()
-          LOG.info("Sending message: $transportMessage")
-          objectOutputStream.writeObject(transportMessage)
+          val message = poolOfMessages.take()
+          LOG.info("Sending message: $message")
+          try {
+            objectOutputStream.writeObject(message)
+          } catch (e : IOException) {
+            // if we tried to send a non-serializable Throwable, then wrap its string representation in an Exception and send that instead.
+            if ((e is NotSerializableException || e is InvalidClassException) && message is JUnitInfoMessage && message.info is JUnitFailureInfo) {
+              val info = message.info
+              val serializableThrowable = Exception(info.failure.exception.toString())
+              val serializableMessage = JUnitInfoMessage(JUnitFailureInfo(info.type, Failure(info.description, serializableThrowable)))
+              objectOutputStream.writeObject(serializableMessage)
+            } else {
+              throw e
+            }
+          }
         }
       }
       catch(e: InterruptedException) {

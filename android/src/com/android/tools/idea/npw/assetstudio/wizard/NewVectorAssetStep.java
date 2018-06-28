@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.adtui.validation.validators.PositiveIntegerValidator;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.VectorIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
@@ -222,6 +223,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       });
 
       myValidatorPanel.registerValidator(myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name)));
+      myValidatorPanel.registerValidator(myWidth, new PositiveIntegerValidator("Width should be a positive value"));
+      myValidatorPanel.registerValidator(myHeight, new PositiveIntegerValidator("Height should be a positive value"));
       myValidatorPanel.registerValidator(myAssetValidityState, validity -> truncateMessage(validity));
 
       if (myAssetSourceType.get() == AssetSourceType.CLIP_ART) {

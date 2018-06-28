@@ -378,7 +378,7 @@ class MigrateToResourceNamespacesProcessor(
         if (nameRef.qualifierExpression != typeRef || typeRef.qualifierExpression != classRef) continue
 
         val name = nameRef.referenceName ?: continue
-        val resourceType = ResourceType.getEnum(typeRef.referenceName ?: continue) ?: continue
+        val resourceType = ResourceType.fromClassName(typeRef.referenceName ?: continue) ?: continue
         if (!moduleRepo.hasResourceItem(ResourceNamespace.RES_AUTO, resourceType, name)) {
           result += CodeUsageInfo(
             fieldReferenceExpression = nameRef,

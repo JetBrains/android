@@ -71,7 +71,7 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
         else {
           ResourceFolderType fileResType = resourceManager.getFileResourceFolderType(element1.getContainingFile());
           if (ResourceFolderType.VALUES == fileResType) {
-            return AndroidResourceUtil.getResourceTypeByValueResourceTag((XmlTag)element1) != null;
+            return AndroidResourceUtil.getResourceTypeForResourceTag((XmlTag)element1) != null;
           }
         }
       }

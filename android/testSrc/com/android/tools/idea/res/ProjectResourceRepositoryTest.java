@@ -220,7 +220,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     EnumSet<ResourceType> typesWithoutRes3 = EnumSet.of(ResourceType.ARRAY, ResourceType.ID, ResourceType.LAYOUT,
                                                         ResourceType.STRING, ResourceType.STYLE);
     EnumSet<ResourceType> allTypes = EnumSet.copyOf(typesWithoutRes3);
-    allTypes.addAll(Arrays.asList(ResourceType.ATTR, ResourceType.INTEGER, ResourceType.DECLARE_STYLEABLE, ResourceType.PLURALS));
+    allTypes.addAll(Arrays.asList(ResourceType.ATTR, ResourceType.INTEGER, ResourceType.STYLEABLE, ResourceType.PLURALS));
 
 
     assertHasExactResourceTypes(resources, allTypes);

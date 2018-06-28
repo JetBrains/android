@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.daemon
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage.AvailableLibraryUpdates
-import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
@@ -140,15 +139,12 @@ class PsLibraryUpdateCheckerDaemon(context: PsContext) : PsDaemon(context) {
         context.project.forEachModule(Consumer { module ->
           repositories.addAll(module.getArtifactRepositories())
           if (module is PsAndroidModule) {
-            module.dependencies.forEach { dependency ->
-              if (dependency is PsLibraryDependency) {
-                val libraryDependency = dependency as PsLibraryDependency
-                val spec = libraryDependency.spec
-                if (isNotEmpty(spec.version)) {
-                  val version = GradleVersion.tryParse(spec.version!!)
-                  if (version != null) {
-                    ids.add(LibraryUpdateId(spec.name, spec.group))
-                  }
+            module.dependencies.forEachLibraryDependency { dependency ->
+              val spec = dependency.spec
+              if (isNotEmpty(spec.version)) {
+                val version = GradleVersion.tryParse(spec.version!!)
+                if (version != null) {
+                  ids.add(LibraryUpdateId(spec.name, spec.group))
                 }
               }
             }

@@ -22,6 +22,7 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.ArtifactDetail
 import com.google.wireless.android.sdk.stats.StudioRunEvent
 import org.junit.After
 import org.junit.Before
@@ -137,13 +138,15 @@ class RunStatsServiceTest {
         Mockito.RETURNS_DEFAULTS.answer(it)
       }
     })
+    val artifacts = listOf<ArtifactDetail>(ArtifactDetail.newBuilder().setSize(10).build(), ArtifactDetail.newBuilder().setSize(40).build())
     myRunStatsService.notifyDeployStarted(StudioRunEvent.DeployTask.SPLIT_APK_DEPLOY,
-                                          mockDevice, 1, false, false, 0);
+                                          mockDevice, artifacts, false, false, 0);
     val usages = myUsageTracker.usages.filterNotNull()
     Truth.assertThat(usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }).hasSize(1)
-    Truth.assertThat(
-      usages.find { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }?.studioEvent?.studioRunEvent?.artifactCount).isEqualTo(
-      1)
+    val deployStartedEvent = usages.find { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }?.studioEvent?.studioRunEvent
+    Truth.assertThat(deployStartedEvent?.artifactCount).isEqualTo(2)
+    Truth.assertThat(deployStartedEvent?.artifactDetailsList?.get(0)?.size).isEqualTo(10)
+    Truth.assertThat(deployStartedEvent?.artifactDetailsList?.get(1)?.size).isEqualTo(40)
   }
 
 }

@@ -18,16 +18,29 @@ package com.android.tools.idea.naveditor.scene;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.NavTestCase;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Tests for {@link ThumbnailManager}
@@ -69,5 +82,40 @@ public class ThumbnailManagerTest extends NavTestCase {
 
     image = imageFuture.get();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
-    assertSame(image, imageFuture.get());  }
+    assertSame(image, imageFuture.get());
+  }
+
+  public void testSimultaneousRequests() throws Exception {
+    Lock lock = new ReentrantLock();
+    lock.lock();
+    Semaphore started = new Semaphore(0);
+    AtomicInteger renderCount = new AtomicInteger();
+    ThumbnailManager manager = new ThumbnailManager(myFacet) {
+      @Nullable
+      @Override
+      protected RenderTask createTask(@NotNull AndroidFacet facet,
+                                      @NotNull XmlFile file,
+                                      @NotNull Configuration configuration,
+                                      RenderService renderService) {
+        started.release();
+        lock.tryLock();
+        renderCount.incrementAndGet();
+        return ReadAction.compute(() -> RenderTestUtil.createRenderTask(facet, file.getVirtualFile(), configuration));
+      }
+    };
+    Disposer.register(getProject(), manager);
+    VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
+    XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
+
+    NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
+    CompletableFuture<BufferedImage> imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
+    CompletableFuture<BufferedImage> imageFuture2 = manager.getThumbnail(psiFile, model.getConfiguration());
+
+    started.acquire();
+    assertFalse(imageFuture.isDone());
+    assertFalse(imageFuture2.isDone());
+    lock.unlock();
+    assertSame(imageFuture.get(), imageFuture2.get());
+    assertEquals(1, renderCount.get());
+  }
 }

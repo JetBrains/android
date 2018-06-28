@@ -130,7 +130,7 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
 
   public void testFindResourceFields() {
     myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml");
-    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
 
     PsiField[] fields = AndroidResourceUtil.findResourceFields(myFacet, "string", "hello", false);
 
@@ -143,7 +143,7 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
 
   public void testFindResourceFieldsWithMultipleResourceNames() {
     myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml");
-    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
 
     PsiField[] fields = AndroidResourceUtil.findResourceFields(
       myFacet, "string", ImmutableList.of("hello", "goodbye"), false);
@@ -159,7 +159,7 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
 
   /** Tests that "inherited" resource references are found (R fields in generated in dependent modules). */
   public void testFindResourceFieldsWithInheritance() throws Exception {
-    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
     Module libModule = myAdditionalModules.get(0);
     // Remove the current manifest (has wrong package name) and copy a manifest with proper package into the lib module.
     deleteManifest(libModule);

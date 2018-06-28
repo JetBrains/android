@@ -29,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-import java.io.File;
 import java.util.List;
 import java.util.Set;
 
@@ -93,11 +92,12 @@ public interface GradleBuildModel extends GradleFileModel {
   @NotNull
   List<PluginModel> plugins();
 
+  @NotNull
   PluginModel applyPlugin(@NotNull String plugin);
 
   void removePlugin(@NotNull String plugin);
 
-  @Nullable
+  @NotNull
   AndroidModel android();
 
   @NotNull

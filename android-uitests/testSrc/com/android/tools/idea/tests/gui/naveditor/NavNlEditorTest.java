@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.naveditor;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -33,6 +34,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.ui.UIUtil;
 import org.fest.swing.driver.BasicJListCellReader;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,7 +57,16 @@ public class NavNlEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/80343801
+  @Before
+  public void setUp() {
+    StudioFlags.ENABLE_NAV_EDITOR.override(true);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.ENABLE_NAV_EDITOR.clearOverride();
+  }
+
   @Test
   public void testSelectComponent() throws Exception {
     IdeFrameFixture frame = guiTest.importProject("Navigation");

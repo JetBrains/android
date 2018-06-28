@@ -34,7 +34,6 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.actions.CreateResourceFileAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -120,9 +119,8 @@ public class IncludeTagCreator extends SimpleViewCreator {
    */
   private String createNewIncludedLayout() {
     AndroidFacet facet = getMockup().getComponent().getModel().getFacet();
-    ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(ResourceType.LAYOUT);
     XmlFile newFile = CreateResourceFileAction.createFileResource(
-      facet, folderType, null, null, null, true, null, null, null, false);
+      facet, ResourceFolderType.LAYOUT, null, null, null, true, null, null, null, false);
 
     if (newFile == null) {
       return null;

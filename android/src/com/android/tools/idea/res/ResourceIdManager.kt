@@ -23,7 +23,6 @@ import com.android.resources.ResourceType
 import com.android.resources.ResourceType.*
 import com.android.tools.idea.experimental.codeanalysis.datastructs.Modifier
 import com.android.tools.idea.res.aar.AarSourceResourceRepository
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
 import gnu.trove.TIntObjectHashMap
@@ -33,7 +32,6 @@ import java.lang.reflect.Field
 import java.util.*
 
 private const val FIRST_PACKAGE_ID: Byte = 0x02
-private val LOG = Logger.getInstance(ResourceIdManager::class.java)
 
 /**
  * Module service responsible for tracking the numeric resource ids we assign to resources, in an attempt to emulate aapt.
@@ -55,7 +53,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
    * [compiledIds] assigned by real aapt in a normal-size project (although there is no mechanism to check that).
    */
   class IdProvider(private val packageByte: Byte) {
-    private val counters: ShortArray = ShortArray(ResourceType.values().size, { 0xffff.toShort() })
+    private val counters: ShortArray = ShortArray(ResourceType.values().size) { 0xffff.toShort() }
 
     fun getNext(type: ResourceType): Int {
       return buildResourceId(packageByte, (type.ordinal + 1).toByte(), --counters[type.ordinal])
@@ -173,7 +171,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
       return dynamicId
     }
 
-    val provider = perNamespaceProviders.getOrPut(resource.namespace, { IdProvider(nextPackageId++) })
+    val provider = perNamespaceProviders.getOrPut(resource.namespace) { IdProvider(nextPackageId++) }
     val newId = provider.getNext(resource.resourceType)
 
     dynamicToIdMap.put(resource, newId)
@@ -265,10 +263,10 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
     }
 
     for (innerClass in klass.declaredClasses) {
-      val type = ResourceType.getEnum(innerClass.simpleName) ?: continue
+      val type = ResourceType.fromClassName(innerClass.simpleName) ?: continue
       when {
         type != STYLEABLE -> {
-          val toIdMap = into.toIdMap.getOrPut(type, { TObjectIntHashMap() })
+          val toIdMap = into.toIdMap.getOrPut(type, ::TObjectIntHashMap)
           val fromIdMap = into.fromIdMap
 
           for (field in innerClass.declaredFields) {
@@ -280,7 +278,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
           }
         }
         type == STYLEABLE && lookForAttrsInStyleables -> {
-          val toIdMap = into.toIdMap.getOrPut(ATTR, { TObjectIntHashMap() })
+          val toIdMap = into.toIdMap.getOrPut(ATTR, ::TObjectIntHashMap)
           val fromIdMap = into.fromIdMap
 
           // We process fields by name, so that arrays come before indices into them. currentArray is initialized to a dummy value.

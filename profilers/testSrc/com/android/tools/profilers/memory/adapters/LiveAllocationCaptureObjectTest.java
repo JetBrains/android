@@ -204,9 +204,10 @@ public class LiveAllocationCaptureObjectTest {
       for (int k = 0; k < 4; ++k) {
         loadRange.set(CAPTURE_START_TIME, loadRange.getMax() + 1);
       }
+      loadSuccess[0] = false;
+
       // unblocks our fake task, now only the last selection set should trigger the load.
       latch.countDown();
-      loadSuccess[0] = false;
       waitForLoadComplete(capture);
       assertThat(loadSuccess[0]).isTrue();
       verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_8), 0);

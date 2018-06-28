@@ -22,7 +22,10 @@ import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.viewmodel.DesignAssetDetailViewModel
 import com.intellij.util.ui.JBUI
 import java.awt.FlowLayout
-import javax.swing.*
+import javax.swing.BorderFactory
+import javax.swing.ImageIcon
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 /**
  * View to show and edit the details of a [DesignAssetSet]
@@ -31,7 +34,7 @@ class DesignAssetDetailView(
   private val designAssetDetailViewModel: DesignAssetDetailViewModel
 ) :
   JPanel(FlowLayout(FlowLayout.CENTER, 40, 40)),
-  ModuleResourceBrowser.SelectionListener {
+  ResourceExplorerView.SelectionListener {
 
   private var designAssetSet: DesignAssetSet? = null
     set(value) {

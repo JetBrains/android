@@ -48,14 +48,14 @@ class ColorPickerBuilder {
 
   fun addColorValuePanel() = apply { componentsToBuild.add(ColorValuePanel(model)) }
 
-  fun addColorPalette() = apply { componentsToBuild.add(ColorPalette(model)) }
-
   /**
    * If both [okOperation] and [cancelOperation] are null, [IllegalArgumentException] will be raised.
    */
   fun addOperationPanel(okOperation: ((Color) -> Unit)?, cancelOperation: ((Color) -> Unit)?) = apply {
     componentsToBuild.add(OperationPanel(model, okOperation, cancelOperation))
   }
+
+  fun addCustomComponent(provider: ColorPickerComponentProvider) = apply { componentsToBuild.add(provider.createComponent(model)) }
 
   fun addSeparator() = apply {
     val separator = JSeparator(JSeparator.HORIZONTAL)

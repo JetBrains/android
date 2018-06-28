@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDep
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -115,14 +116,12 @@ public class AddLibraryDependencyDialog extends AbstractAddDependenciesDialog {
     if (spec != null && module instanceof PsAndroidModule) {
       PsAndroidModule androidModule = (PsAndroidModule)module;
       Ref<Boolean> found = new Ref<>(false);
-      androidModule.getDependencies().forEach(dependency -> {
-        if (dependency instanceof PsLibraryAndroidDependency) {
-          PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;
-          PsArtifactDependencySpec resolvedSpec = libraryDependency.getSpec();
-          if (Objects.equals(spec.getGroup(), resolvedSpec.getGroup()) && Objects.equals(spec.getName(), resolvedSpec.getName())) {
-            found.set(true);
-          }
+      androidModule.getDependencies().forEachLibraryDependency(dependency -> {
+        PsArtifactDependencySpec resolvedSpec = dependency.getSpec();
+        if (Objects.equals(spec.getGroup(), resolvedSpec.getGroup()) && Objects.equals(spec.getName(), resolvedSpec.getName())) {
+          found.set(true);
         }
+        return Unit.INSTANCE;
       });
 
       if (found.get()) {

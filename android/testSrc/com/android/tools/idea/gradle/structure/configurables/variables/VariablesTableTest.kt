@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
-import com.intellij.ui.JBColor
 import org.hamcrest.CoreMatchers.*
 import org.junit.Assert.assertThat
 import java.awt.Color
@@ -45,46 +44,55 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.getValueAt(projectNode, 0) as String, equalTo("testModuleNodeDisplay"))
     assertThat(tableModel.getValueAt(projectNode, 1) as String, equalTo(""))
     assertThat(projectNode.childCount, not(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(projectNode.path)), equalTo(true))
 
     val appNode = rootNode.getChildAt(1) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(appNode, 0) as String, equalTo("app"))
     assertThat(tableModel.getValueAt(appNode, 1) as String, equalTo(""))
     assertThat(appNode.childCount, not(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(appNode.path)), equalTo(false))
 
     val nested2Deep2Node = rootNode.getChildAt(2) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(nested2Deep2Node, 0) as String, equalTo("deep2"))
     assertThat(tableModel.getValueAt(nested2Deep2Node, 1) as String, equalTo(""))
     assertThat(nested2Deep2Node.childCount, equalTo(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(nested2Deep2Node.path)), equalTo(false))
 
     val javNode = rootNode.getChildAt(3) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(javNode, 0) as String, equalTo("jav"))
     assertThat(tableModel.getValueAt(javNode, 1) as String, equalTo(""))
     assertThat(javNode.childCount, equalTo(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(javNode.path)), equalTo(false))
 
     val libNode = rootNode.getChildAt(4) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(libNode, 0) as String, equalTo("lib"))
     assertThat(tableModel.getValueAt(libNode, 1) as String, equalTo(""))
     assertThat(libNode.childCount, equalTo(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(libNode.path)), equalTo(false))
 
     val nested1Node = rootNode.getChildAt(5) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(nested1Node, 0) as String, equalTo("nested1"))
     assertThat(tableModel.getValueAt(nested1Node, 1) as String, equalTo(""))
     assertThat(nested1Node.childCount, equalTo(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(nested1Node.path)), equalTo(false))
 
     val nested1DeepNode = rootNode.getChildAt(6) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(nested1DeepNode, 0) as String, equalTo("nested1-deep"))
     assertThat(tableModel.getValueAt(nested1DeepNode, 1) as String, equalTo(""))
     assertThat(nested1DeepNode.childCount, equalTo(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(nested1DeepNode.path)), equalTo(false))
 
     val nested2Node = rootNode.getChildAt(7) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(nested2Node, 0) as String, equalTo("nested2"))
     assertThat(tableModel.getValueAt(nested2Node, 1) as String, equalTo(""))
     assertThat(nested2Node.childCount, equalTo(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(nested2Node.path)), equalTo(false))
 
     val nested2DeepNode = rootNode.getChildAt(8) as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(nested2DeepNode, 0) as String, equalTo("nested2-deep"))
     assertThat(tableModel.getValueAt(nested2DeepNode, 1) as String, equalTo(""))
     assertThat(nested2DeepNode.childCount, equalTo(0))
+    assertThat(variablesTable.tree.isExpanded(TreePath(nested2DeepNode.path)), equalTo(false))
 
     val row = variablesTable.tree.getRowForPath(TreePath(appNode.path))
     for (column in 0..2) {
@@ -191,14 +199,6 @@ class VariablesTableTest : AndroidGradleTestCase() {
       val component = variablesTable.getCellRenderer(row, column)
         .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
       assertThat(component.background, equalTo(variablesTable.background))
-
-      val firstChild = variablesTable.getCellRenderer(row + 1, column)
-        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row + 1,  column), false, false, row + 1, column)
-      assertThat(firstChild.background.rgb, equalTo(JBColor.LIGHT_GRAY.rgb))
-
-      val secondChild = variablesTable.getCellRenderer(row + 2, column)
-        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row + 2,  column), false, false, row + 2, column)
-      assertThat(secondChild.background, equalTo(variablesTable.background))
     }
   }
 
@@ -239,14 +239,6 @@ class VariablesTableTest : AndroidGradleTestCase() {
       val component = variablesTable.getCellRenderer(row, column)
         .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
       assertThat(component.background, equalTo(variablesTable.background))
-
-      val firstChild = variablesTable.getCellRenderer(row + 1, column)
-        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row + 1,  column), false, false, row + 1, column)
-      assertThat(firstChild.background.rgb, equalTo(JBColor.LIGHT_GRAY.rgb))
-
-      val secondChild = variablesTable.getCellRenderer(row + 2, column)
-        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row + 2,  column), false, false, row + 2, column)
-      assertThat(secondChild.background, equalTo(variablesTable.background))
     }
   }
 
@@ -459,7 +451,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
     val editorComp = variablesTable.editorComponent as JPanel
     val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
-    textBox.setText("newVariable")
+    textBox.text = "newVariable"
     variablesTable.editingStopped(null)
 
     val variableNode =
@@ -488,7 +480,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     variablesTable.addVariable(GradlePropertyModel.ValueType.LIST)
     val editorComp = variablesTable.editorComponent as JPanel
     val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
-    textBox.setText("newList")
+    textBox.text = "newList"
     variablesTable.editingStopped(null)
 
     val variableNode =
@@ -528,7 +520,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     variablesTable.addVariable(GradlePropertyModel.ValueType.MAP)
     val editorComp = variablesTable.editorComponent as JPanel
     val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
-    textBox.setText("newMap")
+    textBox.text = "newMap"
     variablesTable.editingStopped(null)
 
     val variableNode =
@@ -553,6 +545,29 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val secondElementNode = newMapNode.getChildAt(1)
     assertThat(tableModel.getValueAt(secondElementNode, 0) as String, equalTo(""))
     assertThat(tableModel.getValueAt(secondElementNode, 1) as String, equalTo(""))
+  }
+
+  fun testAddEmptyVariable() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val psContext = PsContextImpl(psProject, testRootDisposable)
+    val variablesTable = VariablesTable(project, psContext)
+    val tableModel = variablesTable.tableModel
+
+    val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as VariablesTable.ModuleNode
+    assertThat(appNode.childCount, equalTo(9))
+
+    variablesTable.tree.selectionPath = TreePath(appNode.path)
+    variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
+    assertThat(appNode.childCount, equalTo(10))
+    variablesTable.editingStopped(null)
+    assertThat(appNode.childCount, equalTo(9))
+
+    variablesTable.tree.selectionPath = TreePath(appNode.path)
+    variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
+    assertThat(appNode.childCount, equalTo(10))
+    variablesTable.editingCanceled(null)
+    assertThat(appNode.childCount, equalTo(9))
   }
 
   fun testVariableNodeDelete() {

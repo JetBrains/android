@@ -20,6 +20,7 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.validation.validators.FalseValidator;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.assetstudio.ProportionalImageScaler;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
@@ -27,17 +28,17 @@ import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
-import com.android.tools.idea.ui.FileTreeCellRenderer;
-import com.android.tools.idea.ui.FileTreeModel;
+import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeCellRenderer;
+import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,6 +47,7 @@ import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -94,7 +96,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
 
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);
     myOutputPreviewTree.setModel(emptyModel);
-    myOutputPreviewTree.setCellRenderer(new FileTreeCellRenderer());
+    myOutputPreviewTree.setCellRenderer(new ProposedFileTreeCellRenderer());
     myOutputPreviewTree.setBorder(BorderFactory.createLineBorder(UIUtil.getBoundsColor()));
     // Tell the tree to ask the TreeCellRenderer for an individual height for each cell.
     myOutputPreviewTree.setRowHeight(-1);
@@ -162,79 +164,48 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time
     myListeners.receiveAndFire(mySelectedTemplate, template -> {
       IconGenerator iconGenerator = getModel().getIconGenerator();
-      File resDir = template.getPaths().getResDirectory();
+      File resDir = Iterables.getFirst(template.getPaths().getResDirectories(), null);
       if (iconGenerator == null || resDir == null || resDir.getParentFile() == null) {
         return;
       }
 
-      Map<File, BufferedImage> pathIconMap = iconGenerator.generateIntoFileMap(template.getPaths());
-      myFilesAlreadyExist.set(false);
+      Map<File, BufferedImage> pathToUnscaledImage = iconGenerator.generateIntoFileMap(template.getPaths());
 
-      int minHeight = Integer.MAX_VALUE;
-      int maxHeight = Integer.MIN_VALUE;
-      for (BufferedImage image : pathIconMap.values()) {
-        minHeight = Math.min(minHeight, image.getHeight());
-        maxHeight = Math.max(maxHeight, image.getHeight());
-      }
-
-      ImmutableSortedSet.Builder<File> sortedPaths = ImmutableSortedSet.orderedBy((file1, file2) -> {
+      Map<File, Icon> pathToIcon = Maps.newTreeMap((file1, file2) -> {
         String path1 = file1.getAbsolutePath();
         String path2 = file2.getAbsolutePath();
         Density density1 = pathToDensity(path1);
         Density density2 = pathToDensity(path2);
 
+        int cmp = Boolean.compare(density1 != null, density2 != null);
+        if (cmp != 0) {
+          return cmp;
+        }
+
         if (density1 != null && density2 != null && density1 != density2) {
-          // Sort least dense to most dense
-          return Integer.compare(density2.ordinal(), density1.ordinal());
-        }
-        else {
-          BufferedImage image1 = pathIconMap.get(file1);
-          BufferedImage image2 = pathIconMap.get(file2);
-          int compareValue = Integer.compare(image2.getHeight(), image1.getHeight());
-          // If heights are the same, use path as a tie breaker.
-          return compareValue != 0 ? compareValue : path2.compareTo(path1);
+          return Integer.compare(density2.getDpiValue(), density1.getDpiValue()); // Sort least dense to most dense.
         }
 
+        BufferedImage image1 = pathToUnscaledImage.get(file1);
+        BufferedImage image2 = pathToUnscaledImage.get(file2);
+        cmp = Integer.compare(image2.getHeight(), image1.getHeight());
+        // If heights are the same, use path as a tie breaker.
+        return cmp != 0 ? cmp : path2.compareTo(path1);
       });
-      sortedPaths.addAll(pathIconMap.keySet());
 
-      FileTreeModel treeModel = new FileTreeModel(resDir.getParentFile(), true);
+      // By default, icons grow exponentially, and if presented at scale, may take up way too
+      // much real estate. Instead, let's scale down all icons proportionally so the largest
+      // one fits in our maximum allowed space.
+      ProportionalImageScaler imageScaler = ProportionalImageScaler.forImages(pathToUnscaledImage.values());
 
-      for (File path : sortedPaths.build()) {
-        Image image = pathIconMap.get(path);
-
-        if (path.exists()) {
-          myFilesAlreadyExist.set(true);
-        }
-
-        // By default, icons grow exponentially, and if presented at scale, may take up way too
-        // much real estate. Instead, let's scale down all icons proportionally so the largest
-        // one fits in our maximum allowed space.
-        if (maxHeight > MAX_ICON_HEIGHT) {
-          int height = image.getHeight(null);
-          int width = image.getWidth(null);
-
-          double hScale;
-          if (maxHeight != minHeight) {
-            // From hMin <= hCurr <= hMax, interpolate to hMin <= hFinal <= MAX_ICON_HEIGHT
-            double hCurrPercent = (double)(height - minHeight) / (double)(maxHeight - minHeight);
-            double scaledDeltaH = hCurrPercent * (MAX_ICON_HEIGHT - minHeight);
-            double hCurrScaled = minHeight + scaledDeltaH;
-            hScale = hCurrScaled / height;
-          }
-          else {
-            // This happens if there's only one entry in the list and it's larger than MAX_TREE_ROW_HEIGHT.
-            hScale = MAX_ICON_HEIGHT / (double)height;
-          }
-
-          int hFinal = (int)JBUI.scale((float)(height * hScale));
-          int wFinal = (int)JBUI.scale((float)(width * hScale));
-          image = image.getScaledInstance(wFinal, hFinal, Image.SCALE_SMOOTH);
-        }
-
-        treeModel.forceAddFile(path, new ImageIcon(image));
+      for (Map.Entry<File, BufferedImage> entry: pathToUnscaledImage.entrySet()) {
+        Image image = imageScaler.scale(entry.getValue(), MAX_ICON_HEIGHT);
+        pathToIcon.put(entry.getKey(), new ImageIcon(image));
       }
 
+      ProposedFileTreeModel treeModel = new ProposedFileTreeModel(resDir.getParentFile(), pathToIcon);
+
+      myFilesAlreadyExist.set(treeModel.hasConflicts());
       myOutputPreviewTree.setModel(treeModel);
 
       // The tree should be totally expanded by default.

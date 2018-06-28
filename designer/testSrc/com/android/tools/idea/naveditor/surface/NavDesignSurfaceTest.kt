@@ -20,15 +20,13 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.surface.DesignSurfaceListener
-import com.android.tools.idea.common.surface.InteractionManager
-import com.android.tools.idea.common.surface.Layer
-import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.common.surface.*
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavSceneManager
+import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -55,6 +53,22 @@ import kotlin.test.assertNotEquals
  * Tests for [NavDesignSurface]
  */
 class NavDesignSurfaceTest : NavTestCase() {
+
+  fun testSkipContentResize() {
+    val surface = NavDesignSurface(project, myRootDisposable)
+    surface.model = model("nav.xml") { navigation("root") }
+    LayoutTestCase.assertFalse(surface.isSkipContentResize)
+    surface.zoomToFit()
+    LayoutTestCase.assertFalse(surface.isSkipContentResize)
+    surface.zoomActual()
+    LayoutTestCase.assertTrue(surface.isSkipContentResize)
+    surface.zoomIn()
+    LayoutTestCase.assertTrue(surface.isSkipContentResize)
+    surface.zoomToFit()
+    LayoutTestCase.assertFalse(surface.isSkipContentResize)
+    surface.setScale(1.23, 100, 100)
+    LayoutTestCase.assertTrue(surface.isSkipContentResize)
+  }
 
   fun testLayers() {
     val droppedLayers: ImmutableList<Layer>

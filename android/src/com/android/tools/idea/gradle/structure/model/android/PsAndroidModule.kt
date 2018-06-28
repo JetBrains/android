@@ -20,11 +20,12 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon
-import com.android.utils.StringHelper
+import com.android.utils.combineAsCamelCase
 import java.io.File
 import javax.swing.Icon
 
@@ -93,7 +94,7 @@ class PsAndroidModule(
 
   override fun canDependOn(module: PsModule): Boolean =
     // 'module' is either a Java library or an AAR module.
-    (module as? PsAndroidModule)?.isLibrary == true
+    (module as? PsAndroidModule)?.isLibrary == true || (module is PsJavaModule)
 
   override fun populateRepositories(repositories: MutableList<ArtifactRepository>) {
     super.populateRepositories(repositories)
@@ -110,12 +111,12 @@ class PsAndroidModule(
 
     fun buildFlavorCombinations() = when {
       flavorDimensions.size > 1 -> flavorDimensions
-        .fold(listOf(listOf("")), { acc, dimension ->
+        .fold(listOf(listOf(""))) { acc, dimension ->
           flavorsByDimension(dimension).flatMap { flavor ->
             acc.map { prefix -> prefix + flavor }
           }
-        })
-        .map { StringHelper.combineAsCamelCase(it.filter { it != "" }) }
+        }
+        .map { it.filter { it != "" }.combineAsCamelCase() }
       else -> listOf()  // There are no additional flavor combinations if there is only one flavor dimension.
     }
 
@@ -137,72 +138,12 @@ class PsAndroidModule(
       applicableProductFlavors().forEach { productFlavor ->
         applicableBuildTypes(artifact).forEach { buildType ->
           applicableScopes().forEach { scope ->
-            result.add(StringHelper.combineAsCamelCase(listOf(artifact, productFlavor, buildType, scope).filter { it != "" }))
+            result.add(listOf(artifact, productFlavor, buildType, scope).filter { it != "" }.combineAsCamelCase())
           }
         }
       }
     }
     return result.toList()
-  }
-
-  override fun addLibraryDependency(library: String, scopesNames: List<String>) {
-    // Update/reset the "parsed" model.
-    addLibraryDependencyToParsedModel(scopesNames, library)
-
-    resetDependencies()
-
-    val spec = PsArtifactDependencySpec.create(library)!!
-    fireLibraryDependencyAddedEvent(spec)
-    isModified = true
-  }
-
-  override fun addModuleDependency(modulePath: String, scopesNames: List<String>) {
-    // Update/reset the "parsed" model.
-    addModuleDependencyToParsedModel(scopesNames, modulePath)
-
-    resetDependencies()
-
-    fireModuleDependencyAddedEvent(modulePath)
-    isModified = true
-  }
-
-  override fun removeDependency(dependency: PsDeclaredDependency) {
-    removeDependencyFromParsedModel(dependency)
-
-    resetDependencies()
-
-    fireDependencyRemovedEvent(dependency)
-    isModified = true
-  }
-
-  override fun setLibraryDependencyVersion(
-    spec: PsArtifactDependencySpec,
-    configurationName: String,
-    newVersion: String
-  ) {
-    var modified = false
-    val matchingDependencies = dependencies
-      .findLibraryDependencies(spec.group, spec.name)
-      .filter { it -> it.spec == spec }
-      .map { it as PsDeclaredDependency }
-      .filter { it.configurationName == configurationName }
-    // Usually there should be only one item in the matchingDependencies list. However, if there are duplicate entries in the config file
-    // it might differ. We update all of them.
-
-    for (dependency in matchingDependencies) {
-      val parsedDependency = dependency.parsedModel
-      assert(parsedDependency is ArtifactDependencyModel)
-      val artifactDependencyModel = parsedDependency as ArtifactDependencyModel
-      artifactDependencyModel.version().setValue(newVersion)
-      modified = true
-    }
-    if (modified) {
-      resetDependencies()
-      for (dependency in matchingDependencies) {
-        fireDependencyModifiedEvent(dependency)
-      }
-      isModified = true
-    }
   }
 
   fun addNewBuildType(name: String): PsBuildType = getOrCreateBuildTypeCollection().addNew(name)
@@ -211,14 +152,14 @@ class PsAndroidModule(
 
   fun addNewFlavorDimension(newName: String) {
     assert(parsedModel != null)
-    val androidModel = parsedModel!!.android()!!
+    val androidModel = parsedModel!!.android()
     androidModel.flavorDimensions().addListValue().setValue(newName)
     isModified = true
   }
 
   fun removeFlavorDimension(flavorDimension: String) {
     assert(parsedModel != null)
-    val androidModel = parsedModel!!.android()!!
+    val androidModel = parsedModel!!.android()
 
     val model = androidModel.flavorDimensions().getListValue(flavorDimension)
     if (model != null) {
@@ -251,7 +192,10 @@ class PsAndroidModule(
   private fun getOrCreateSigningConfigCollection(): PsSigningConfigCollection =
     signingConfigCollection ?: PsSigningConfigCollection(this).also { signingConfigCollection = it }
 
-  private fun resetDependencies() {
+  override fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency> =
+    dependencies.findLibraryDependencies(group, name)
+
+  override fun resetDependencies() {
     resetDeclaredDependencies()
     resetResolvedDependencies()
   }

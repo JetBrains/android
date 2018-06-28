@@ -34,6 +34,7 @@ import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
+import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
@@ -961,7 +962,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   @VisibleForTesting
-  void setCapture(@Nullable CpuCapture capture) {
+  public void setCapture(@Nullable CpuCapture capture) {
     myCaptureModel.setCapture(capture);
     // If there's a capture, expand the profiler UI. Otherwise keep it the same.
     if (capture != null) {

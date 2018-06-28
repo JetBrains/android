@@ -53,7 +53,8 @@ abstract class CpuUsageView extends JBPanel {
     // We only show the sparkline if we are over the cpu usage chart. The cpu usage
     // chart is under the overlay component so using the events captured from the overlay
     // component tell us if we are over the right area.
-    mySelectionComponent = new SelectionComponent(myStage.getSelectionModel(), myStage.getStudioProfilers().getTimeline().getViewRange());
+    mySelectionComponent =
+      new SelectionComponent(myStage.getSelectionModel(), myStage.getStudioProfilers().getTimeline().getViewRange(), true);
     mySelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
 
     myOverlayComponent = new OverlayComponent(mySelectionComponent);
@@ -79,7 +80,7 @@ abstract class CpuUsageView extends JBPanel {
    * @see {@link RangeTooltipComponent#myShowSeekComponent}
    */
   boolean showTooltipSeekComponent() {
-    return mySelectionComponent.getMode() != SelectionComponent.Mode.MOVE;
+    return mySelectionComponent.shouldShowSeekComponent();
   }
 
   protected String formatCaptureLabel(@NotNull CpuTraceInfo info) {

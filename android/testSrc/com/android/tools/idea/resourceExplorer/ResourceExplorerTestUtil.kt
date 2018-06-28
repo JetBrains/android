@@ -15,16 +15,23 @@
  */
 package com.android.tools.idea.resourceExplorer
 
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.NightModeQualifier
 import com.android.resources.Density
 import com.android.resources.NightMode
-import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.vfs.VfsUtil
+import com.android.resources.ResourceType
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.resourceExplorer.model.StaticStringMapper
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.ex.dummy.DummyFileSystem
 import org.jetbrains.android.AndroidTestBase
+import java.io.File
 
 /**
  * Return a fake directory on a DummyFileSystem.
@@ -41,7 +48,8 @@ fun getExternalResourceDirectory(vararg files: String): VirtualFile {
   return root
 }
 
-val pluginTestFilesDirectoryName = "/plugins-resources"
+const val pluginTestFilesDirectoryName = "/plugins-resources"
+private const val pngFileName = "png.png"
 
 fun getTestDataDirectory() = AndroidTestBase.getTestDataPath() + "/resourceExplorer"
 
@@ -62,3 +70,20 @@ val nightModeMapper = StaticStringMapper(
 )
 
 fun pathToVirtualFile(path: String) = BrowserUtil.getURL(path)!!.let(VfsUtil::findFileByURL)!!
+
+fun getPNGFile() = File(getPluginsResourcesDirectory(), pngFileName)
+
+fun AndroidProjectRule.getPNGResourceItem(): ResourceItem {
+  val fileName = pngFileName
+  return getResourceItemFromPath(getPluginsResourcesDirectory(), fileName)
+}
+
+fun AndroidProjectRule.getResourceItemFromPath(testFolderPath: String, fileName: String): ResourceItem {
+  ApplicationManager.getApplication().invokeAndWait {
+    fixture.copyFileToProject("$testFolderPath/$fileName", "res/drawable/$fileName")
+  }
+  return ResourceRepositoryManager
+    .getOrCreateInstance(module)
+    ?.getModuleResources(true)
+    ?.getResourceItems(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, fileName.substringBefore("."))!![0]
+}

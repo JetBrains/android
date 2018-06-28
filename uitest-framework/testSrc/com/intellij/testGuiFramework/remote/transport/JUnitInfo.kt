@@ -16,6 +16,7 @@
 package com.intellij.testGuiFramework.remote.transport
 
 import org.junit.runner.Description
+import org.junit.runner.notification.Failure
 import java.io.Serializable
 
 /**
@@ -23,8 +24,8 @@ import java.io.Serializable
  */
 enum class Type {RUN_STARTED, STARTED, ASSUMPTION_FAILURE, RUN_FINISHED, FAILURE, FINISHED, IGNORED }
 
-data class JUnitInfo(val type: Type, val obj: Any?, val testClassAndMethodName: String, val ideError: Boolean = false) : Serializable {
-  companion object {
-    fun getClassAndMethodName(description: Description) = "${description.className}#${description.methodName}"
-  }
+open class JUnitInfo(val type: Type, val description: Description, val ideError: Boolean = false) : Serializable {
+  override fun toString(): String = "${description.className}#${description.methodName}: $type"
 }
+
+class JUnitFailureInfo(type: Type, val failure: Failure, ideError: Boolean = false) : JUnitInfo(type, failure.description!!, ideError)

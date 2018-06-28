@@ -77,6 +77,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     }
   }
 
+  public void addParsedPropertyAsFirstElement(@NotNull GradleDslElement extElement) {
+    myProperties.addElementAtIndex(extElement, EXISTING, 0, true);
+  }
+
   private void addPropertyInternal(int index, @NotNull GradleDslElement element, @NotNull ElementState state) {
     myProperties.addElementAtIndex(element, state, index, state == EXISTING);
     if (state == TO_BE_ADDED) {

@@ -25,7 +25,6 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.*;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.actions.CreateElementActionBase;
@@ -54,7 +53,6 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.graph.Graph;
 import org.jetbrains.android.AndroidFileTemplateProvider;
@@ -88,30 +86,15 @@ import static com.android.resources.ResourceType.*;
 public class AndroidResourceUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.util.AndroidResourceUtil");
 
-  public static final Set<ResourceType> VALUE_RESOURCE_TYPES = EnumSet.of(ResourceType.DRAWABLE, ResourceType.COLOR, ResourceType.DIMEN,
-                                                                          ResourceType.STRING, ResourceType.STYLE, ResourceType.ARRAY,
-                                                                          ResourceType.PLURALS, ResourceType.ID, ResourceType.BOOL,
-                                                                          ResourceType.INTEGER, ResourceType.FRACTION,
+  public static final Set<ResourceType> VALUE_RESOURCE_TYPES = EnumSet.of(DRAWABLE, COLOR, DIMEN,
+                                                                          STRING, STYLE, ARRAY,
+                                                                          PLURALS, ID, BOOL,
+                                                                          INTEGER, FRACTION,
                                                                           // For aliases only
-                                                                          ResourceType.LAYOUT);
+                                                                          LAYOUT);
 
   public static final Set<ResourceType> ALL_VALUE_RESOURCE_TYPES = EnumSet.noneOf(ResourceType.class);
 
-  public static final Map<ResourceType, ResourceFolderType> XML_FILE_RESOURCE_TYPES = ImmutableMap.<ResourceType, ResourceFolderType>builder()
-    .put(ResourceType.ANIM, ResourceFolderType.ANIM)
-    .put(ResourceType.ANIMATOR, ResourceFolderType.ANIMATOR)
-    .put(ResourceType.COLOR, ResourceFolderType.COLOR)
-    .put(ResourceType.DRAWABLE, ResourceFolderType.DRAWABLE)
-    .put(ResourceType.FONT, ResourceFolderType.FONT)
-    .put(ResourceType.INTERPOLATOR, ResourceFolderType.INTERPOLATOR)
-    .put(ResourceType.LAYOUT, ResourceFolderType.LAYOUT)
-    .put(ResourceType.NAVIGATION, ResourceFolderType.NAVIGATION)
-    .put(ResourceType.MENU, ResourceFolderType.MENU)
-    .put(ResourceType.MIPMAP, ResourceFolderType.MIPMAP)
-    .put(ResourceType.RAW, ResourceFolderType.RAW)
-    .put(ResourceType.TRANSITION, ResourceFolderType.TRANSITION)
-    .put(ResourceType.XML, ResourceFolderType.XML)
-    .build();
   static final String ROOT_TAG_PROPERTY = "ROOT_TAG";
   static final String LAYOUT_WIDTH_PROPERTY = "LAYOUT_WIDTH";
   static final String LAYOUT_HEIGHT_PROPERTY = "LAYOUT_HEIGHT";
@@ -272,8 +255,8 @@ public class AndroidResourceUtil {
     }
 
     ResourceFolderType fileResType = ResourceHelper.getFolderType(tag.getContainingFile());
-    final String resourceType = fileResType == ResourceFolderType.VALUES
-                                ? getResourceTypeByValueResourceTag(tag)
+    final ResourceType resourceType = fileResType == ResourceFolderType.VALUES
+                                ? getResourceTypeForResourceTag(tag)
                                 : null;
     if (resourceType == null) {
       return PsiField.EMPTY_ARRAY;
@@ -284,7 +267,7 @@ public class AndroidResourceUtil {
       return PsiField.EMPTY_ARRAY;
     }
 
-    return findResourceFields(facet, resourceType, name, onlyInOwnPackages);
+    return findResourceFields(facet, resourceType.getName(), name, onlyInOwnPackages);
   }
 
   @NotNull
@@ -362,26 +345,8 @@ public class AndroidResourceUtil {
   }
 
   @Nullable
-  public static String getResourceTypeByValueResourceTag(@NotNull XmlTag tag) {
-    String resClassName = tag.getName();
-    resClassName = resClassName.equals("item")
-                   ? tag.getAttributeValue("type", null)
-                   : AndroidCommonUtils.getResourceTypeByTagName(resClassName);
-    if (resClassName != null) {
-      final String resourceName = tag.getAttributeValue("name");
-      return resourceName != null ? resClassName : null;
-    }
-    return null;
-  }
-
-  @Nullable
-  public static ResourceType getResourceForResourceTag(@NotNull XmlTag tag) {
-    String typeName = getResourceTypeByValueResourceTag(tag);
-    if (typeName != null) {
-      return ResourceType.getEnum(typeName);
-    }
-
-    return null;
+  public static ResourceType getResourceTypeForResourceTag(@NotNull XmlTag tag) {
+    return fromXmlTag(tag, XmlTag::getName, XmlTag::getAttributeValue);
   }
 
   @Nullable
@@ -479,7 +444,7 @@ public class AndroidResourceUtil {
         final AndroidFacet facet = AndroidFacet.getInstance(attribute);
 
         if (facet != null) {
-          return findResourceFields(facet, ResourceType.ID.getName(), id, false);
+          return findResourceFields(facet, ID.getName(), id, false);
         }
       }
     }
@@ -501,7 +466,7 @@ public class AndroidResourceUtil {
   public static String getResourceNameByReferenceText(@NotNull String text) {
     int i = text.indexOf('/');
     if (i < text.length() - 1) {
-      return text.substring(i + 1, text.length());
+      return text.substring(i + 1);
     }
     return null;
   }
@@ -518,13 +483,13 @@ public class AndroidResourceUtil {
         if (value != null && value.trim().endsWith("%")) {
           // Deals with dimension values in the form of percentages, e.g. "65%"
           final Item item = resources.addItem();
-          item.getType().setStringValue(ResourceType.DIMEN.getName());
+          item.getType().setStringValue(DIMEN.getName());
           return item;
         }
         if (value != null && value.indexOf('.') > 0) {
           // Deals with dimension values in the form of floating-point numbers, e.g. "0.24"
           final Item item = resources.addItem();
-          item.getType().setStringValue(ResourceType.DIMEN.getName());
+          item.getType().setStringValue(DIMEN.getName());
           item.getFormat().setStringValue("float");
           return item;
         }
@@ -546,7 +511,7 @@ public class AndroidResourceUtil {
         return resources.addBool();
       case ID:
         final Item item = resources.addItem();
-        item.getType().setValue(ResourceType.ID.getName());
+        item.getType().setValue(ID.getName());
         return item;
       case ATTR:
         return resources.addAttr();
@@ -576,15 +541,15 @@ public class AndroidResourceUtil {
 
   @Nullable
   public static String getDefaultResourceFileName(@NotNull ResourceType type) {
-    if (ResourceType.PLURALS == type || ResourceType.STRING == type) {
+    if (PLURALS == type || STRING == type) {
       return "strings.xml";
     }
     if (VALUE_RESOURCE_TYPES.contains(type)) {
 
-      if (type == ResourceType.LAYOUT
+      if (type == LAYOUT
           // Lots of unit tests assume drawable aliases are written in "drawables.xml" but going
           // forward lets combine both layouts and drawables in refs.xml as is done in the templates:
-          || type == ResourceType.DRAWABLE && !ApplicationManager.getApplication().isUnitTestMode()) {
+          || type == DRAWABLE && !ApplicationManager.getApplication().isUnitTestMode()) {
         return "refs.xml";
       }
 
@@ -755,24 +720,6 @@ public class AndroidResourceUtil {
     return false;
   }
 
-  public static List<String> getNames(@NotNull Collection<ResourceType> resourceTypes) {
-    if (resourceTypes.isEmpty()) {
-      return Collections.emptyList();
-    }
-    final List<String> result = new ArrayList<>();
-
-    for (ResourceType type : resourceTypes) {
-      result.add(type.getName());
-    }
-    return result;
-  }
-
-  @NotNull
-  public static String[] getNamesArray(@NotNull Collection<ResourceType> resourceTypes) {
-    final List<String> names = getNames(resourceTypes);
-    return ArrayUtil.toStringArray(names);
-  }
-
   public static boolean createValueResource(@NotNull Project project,
                                             @NotNull VirtualFile resDir,
                                             @NotNull String resourceName,
@@ -818,10 +765,10 @@ public class AndroidResourceUtil {
                                             @Nullable final List<ResourceElement> outTags) {
     return createValueResource(project, resDir, resourceName, value, resourceType, fileName, dirNames, element -> {
       if (!value.isEmpty()) {
-        final String s = resourceType == ResourceType.STRING ? normalizeXmlResourceValue(value) : value;
+        final String s = resourceType == STRING ? normalizeXmlResourceValue(value) : value;
         element.setStringValue(s);
       }
-      else if (resourceType == STYLEABLE || resourceType == ResourceType.STYLE) {
+      else if (resourceType == STYLEABLE || resourceType == STYLE) {
         element.setStringValue("value");
         element.getXmlTag().getValue().setText("");
       }
@@ -949,7 +896,7 @@ public class AndroidResourceUtil {
     PsiFile[] files = psiFiles.toArray(PsiFile.EMPTY_ARRAY);
     WriteCommandAction<Boolean> action = new WriteCommandAction<Boolean>(project, "Change " + resourceType.getName() + " Resource", files) {
       @Override
-      protected void run(@NotNull Result<Boolean> result) throws Throwable {
+      protected void run(@NotNull Result<Boolean> result) {
         if (useGlobalCommand) {
           CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
         }
@@ -1201,29 +1148,6 @@ public class AndroidResourceUtil {
   }
 
   /**
-   * Returns the type of the ResourceChooserItem based on a node's attributes.
-   * @param node the node
-   * @return the ResourceType or null if it could not be inferred.
-   */
-  @Nullable
-  public static ResourceType getType(@NotNull XmlTag node) {
-    String nodeName = node.getLocalName();
-    String typeString = null;
-
-    if (TAG_ITEM.equals(nodeName)) {
-      String attribute = node.getAttributeValue(ATTR_TYPE);
-      if (attribute != null) {
-        typeString = attribute;
-      }
-    } else {
-      // the type is the name of the node.
-      typeString = nodeName;
-    }
-
-    return typeString == null ? null : ResourceType.getEnum(typeString);
-  }
-
-  /**
    * Grabs resource directories from the given facets and pairs the directory with an arbitrary
    * AndroidFacet which happens to depend on the directory.
    *
@@ -1311,7 +1235,7 @@ public class AndroidResourceUtil {
       properties.setProperty(ROOT_TAG_PROPERTY, rootTagName);
     }
 
-    if (ResourceType.LAYOUT.getName().equals(resourceType)) {
+    if (LAYOUT.getName().equals(resourceType)) {
       final Module module = ModuleUtilCore.findModuleForPsiElement(resSubdir);
       final AndroidPlatform platform = module != null ? AndroidPlatform.getInstance(module) : null;
       final int apiLevel = platform != null ? platform.getApiLevel() : -1;

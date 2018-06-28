@@ -18,14 +18,12 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.TestAndroidModel;
-import com.android.tools.idea.util.FileExtensions;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
@@ -37,8 +35,6 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.awt.*;
-import java.net.URI;
-import java.nio.file.Paths;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -339,17 +335,5 @@ public class ResourceHelperTest extends AndroidTestCase {
   public void testBuildResourceId() {
     assertEquals(0x7f_02_ffff, ResourceHelper.buildResourceId((byte) 0x7f, (byte) 0x02, (short) 0xffff));
     assertEquals(0x02_02_0001, ResourceHelper.buildResourceId((byte) 0x02, (byte) 0x02, (short) 0x0001));
-  }
-
-  /** Test for the {@link ResourceHelper#toVirtualFile(PathString)} method. */
-  public void testToVirtualFile() throws Exception {
-    String resApkPath = Paths.get(myFixture.getTestDataPath(), "design_aar", "res.apk").normalize().toString();
-    URI uri = new URI("apk", resApkPath, null);
-    String resourcePath = "res/drawable/navigation_empty_icon.xml";
-    PathString pathString = new PathString(uri, resourcePath);
-
-    VirtualFile file = FileExtensions.toVirtualFile(pathString);
-    assertThat(file).isNotNull();
-    assertThat(file.getUrl()).isEqualTo("apk://" + resApkPath + "!/" + resourcePath);
   }
 }
