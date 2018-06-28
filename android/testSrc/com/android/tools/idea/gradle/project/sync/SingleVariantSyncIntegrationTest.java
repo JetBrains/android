@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -29,6 +31,7 @@ import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSub
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.*;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 
 public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTest {
@@ -64,14 +67,13 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
     }
 
     // Verify sync issues are reported properly.
-    List<SyncMessage> messages = syncMessages.getReportedMessages();
+    List<NotificationData> messages = syncMessages.getNotifications();
     assertThat(messages).hasSize(2);
-    SyncMessage message = messages.get(0);
-    // @formatter:off
-    // Verify text contains both of single line and multi-line message from SyncIssue.
-    assertAbout(syncMessage()).that(message).hasType(MessageType.ERROR)
-                                            .hasGroup("Unresolved dependencies")
-                                            .hasMessageLine("Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.", 0);
-    // @formatter:on
+    NotificationData message = messages.get(0);
+
+    assertEquals(ERROR, message.getNotificationCategory());
+    assertEquals("Unresolved dependencies", message.getTitle());
+    assertThat(message.getMessage()).contains(
+      "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:");
   }
 }

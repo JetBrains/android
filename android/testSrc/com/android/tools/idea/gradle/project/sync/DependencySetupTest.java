@@ -20,9 +20,8 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.project.messages.MessageType;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.Modules;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -38,12 +37,12 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.PROVIDED;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -132,15 +131,14 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
       // Sync issues are expected.
     }
 
-    List<SyncMessage> messages = syncMessages.getReportedMessages();
+    List<NotificationData> messages = syncMessages.getNotifications();
     assertThat(messages).hasSize(1);
 
-    SyncMessage message = messages.get(0);
-    // @formatter:off
-    // Verify text contains both of single line and multi-line message from SyncIssue.
-    assertAbout(syncMessage()).that(message).hasType(MessageType.ERROR)
-                                            .hasGroup("Unresolved Android dependencies")
-                                            .hasMessageLine("Failed to resolve: com.android.support:appcompat-v7:100.0.0", 0);
+    NotificationData notification = messages.get(0);
+
+    assertEquals(ERROR, notification.getNotificationCategory());
+    assertEquals("Unresolved dependencies", notification.getTitle());
+    assertThat(notification.getMessage()).contains("Failed to resolve: com.android.support:appcompat-v7:100.0.0\nAffected Modules:");
   }
 
   public void testWithLocalAarsAsModules() throws Exception {

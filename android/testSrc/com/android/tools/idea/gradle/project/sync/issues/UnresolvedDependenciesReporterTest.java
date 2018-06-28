@@ -19,9 +19,8 @@ import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.mockito.Mock;
@@ -29,7 +28,7 @@ import org.mockito.Mock;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.google.common.truth.Truth.assertThat;
+import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -47,13 +46,14 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessages = replaceSyncMessagesService(getProject());
     new IdeComponents(getProject()).replaceProjectService(GradleSettings.class, myGradleSettings);
     myReporter = new UnresolvedDependenciesReporter();
   }
 
   public void testReportWithoutDependencyAndExtraInfo() {
     String text = "Hello!";
+    String expected = text + "\nAffected Modules: testReportWithoutDependencyAndExtraInfo";
     when(mySyncIssue.getMessage()).thenReturn(text);
 
     List<String> extraInfo = Arrays.asList("line1", "line2");
@@ -61,18 +61,15 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
 
     myReporter.report(mySyncIssue, getModule(), null);
 
-    SyncMessage message = mySyncMessages.getFirstReportedMessage();
-    assertEquals(text, message.getText()[0]);
+    List<NotificationData> messages = mySyncMessages.getNotifications();
+    assertSize(1, messages);
+    NotificationData message = messages.get(0);
+    assertEquals(expected, message.getMessage());
 
-    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
-    assertThat(quickFixes).hasSize(1);
 
-    NotificationHyperlink quickFix = quickFixes.get(0);
-    assertThat(quickFix).isInstanceOf(ShowSyncIssuesDetailsHyperlink.class);
-
-    ShowSyncIssuesDetailsHyperlink showDetailsQuickFix = (ShowSyncIssuesDetailsHyperlink)quickFix;
-    assertEquals(text, showDetailsQuickFix.getMessage());
-    assertEquals(extraInfo, showDetailsQuickFix.getDetails());
+    NotificationUpdate update = mySyncMessages.getNotificationUpdate();
+    assertSize(1, update.getFixes());
+    assertInstanceOf(update.getFixes().get(0), ShowSyncIssuesDetailsHyperlink.class);
   }
 
   /**
@@ -80,19 +77,20 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
    */
   public void testReportOfflineMode() {
     String text = "Hello!";
+    String expected = text + "\nAffected Modules: testReportOfflineMode";
     when(mySyncIssue.getMessage()).thenReturn(text);
     when(mySyncIssue.getMultiLineMessage()).thenReturn(null);
     when(myGradleSettings.isOfflineWork()).thenReturn(true);
     myReporter.report(mySyncIssue, getModule(), null);
 
-    SyncMessage message = mySyncMessages.getFirstReportedMessage();
-    assertEquals(text, message.getText()[0]);
+    List<NotificationData> messages = mySyncMessages.getNotifications();
+    assertSize(1, messages);
+    NotificationData message = messages.get(0);
+    assertEquals(expected, message.getMessage());
 
-    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
-    assertThat(quickFixes).hasSize(1);
-
-    NotificationHyperlink quickFix = quickFixes.get(0);
-    assertThat(quickFix).isInstanceOf(DisableOfflineModeHyperlink.class);
+    NotificationUpdate update = mySyncMessages.getNotificationUpdate();
+    assertSize(1, update.getFixes());
+    assertInstanceOf(update.getFixes().get(0), DisableOfflineModeHyperlink.class);
   }
 
   /**
@@ -100,15 +98,17 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
    */
   public void testReportNoOfflineMode() {
     String text = "Hello!";
+    String expected = text + "\nAffected Modules: testReportNoOfflineMode";
     when(mySyncIssue.getMessage()).thenReturn(text);
     when(mySyncIssue.getMultiLineMessage()).thenReturn(null);
     when(myGradleSettings.isOfflineWork()).thenReturn(false);
     myReporter.report(mySyncIssue, getModule(), null);
 
-    SyncMessage message = mySyncMessages.getFirstReportedMessage();
-    assertEquals(text, message.getText()[0]);
+    List<NotificationData> messages = mySyncMessages.getNotifications();
+    assertSize(1, messages);
+    NotificationData message = messages.get(0);
+    assertEquals(expected, message.getMessage());
 
-    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
-    assertThat(quickFixes).hasSize(0);
+    assertSize(0, message.getRegisteredListenerIds());
   }
 }

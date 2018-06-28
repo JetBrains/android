@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -22,28 +24,28 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenReposi
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.util.PositionInFile;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.ide.common.repository.SdkMavenRepository.GOOGLE;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.google.common.truth.Truth.assertAbout;
+import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link UnresolvedDependenciesReporter}.
@@ -58,6 +60,8 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   public void setUp() throws Exception {
     super.setUp();
     mySyncIssue = mock(SyncIssue.class);
+    // getMessage() is NotNull but message is unused for dependencies.
+    when(mySyncIssue.getMessage()).thenReturn("");
     myIdeComponents = new IdeComponents(getProject());
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myReporter = new UnresolvedDependenciesReporter();
@@ -88,22 +92,19 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     VirtualFile buildFile = getGradleBuildFile(appModule);
     myReporter.report(mySyncIssue, appModule, buildFile);
 
-    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
-    assertNotNull(message);
-    assertThat(message.getText()).hasLength(1);
+    List<NotificationData> messages = mySyncMessagesStub.getNotifications();
+    assertSize(1, messages);
 
-    // @formatter:off
-    assertAbout(syncMessage()).that(message).hasGroup("Unresolved dependencies")
-                                            .hasMessageLine("Failed to resolve: com.google.guava:guava:19.0", 0);
-    // @formatter:on
+    NotificationData message = messages.get(0);
+    assertEquals("Unresolved dependencies", message.getTitle());
+    assertThat(message.getMessage()).contains("Failed to resolve: com.google.guava:guava:19.0\nAffected Modules:");
 
     assertThat(message.getNavigatable()).isInstanceOf(OpenFileDescriptor.class);
     OpenFileDescriptor navigatable = (OpenFileDescriptor)message.getNavigatable();
     assertEquals(buildFile, navigatable.getFile());
 
-    PositionInFile position = message.getPosition();
-    assertNotNull(position);
-    assertSame(buildFile, position.file);
+    VirtualFile file = ((OpenFileDescriptor)message.getNavigatable()).getFile();
+    assertSame(buildFile, file);
   }
 
   public void testReportWithConstraintLayout() throws Exception {
@@ -119,15 +120,16 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     myReporter.report(mySyncIssue, appModule, null);
 
-    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
-    assertNotNull(message);
+    List<NotificationData> messages = mySyncMessagesStub.getNotifications();
+    assertSize(1, messages);
 
-    // @formatter:off
-    assertAbout(syncMessage()).that(message).hasGroup("Unresolved Android dependencies")
-                                            .hasMessageLine("Failed to resolve: com.android.support.constraint:constraint-layout:+", 0);
-    // @formatter:on
+    NotificationData message = messages.get(0);
+    assertEquals("Unresolved dependencies", message.getTitle());
+    assertEquals("Failed to resolve: com.android.support.constraint:constraint-layout:+\n" +
+                 "Affected Modules: app",
+                 message.getMessage());
 
-    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
+    List<NotificationHyperlink> quickFixes = mySyncMessagesStub.getNotificationUpdate().getFixes();
     assertThat(quickFixes).hasSize(2);
   }
 
@@ -141,15 +143,15 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     myReporter.report(mySyncIssue, appModule, null);
 
-    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
-    assertNotNull(message);
+    List<NotificationData> messages = mySyncMessagesStub.getNotifications();
+    assertSize(1, messages);
 
-    // @formatter:off
-    assertAbout(syncMessage()).that(message).hasGroup("Unresolved Android dependencies")
-                                            .hasMessageLine("Failed to resolve: com.android.support:appcompat-v7:24.1.1", 0);
-    // @formatter:on
+    NotificationData message = messages.get(0);
+    assertEquals("Unresolved dependencies", message.getTitle());
+    assertEquals("Failed to resolve: com.android.support:appcompat-v7:24.1.1\nAffected Modules: app",
+                 message.getMessage());
 
-    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
+    List<NotificationHyperlink> quickFixes = mySyncMessagesStub.getNotificationUpdate().getFixes();
     int expectedSize = IdeInfo.getInstance().isAndroidStudio() ? 2 : 1;
     assertThat(quickFixes).hasSize(expectedSize);
 
@@ -180,15 +182,17 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     myReporter.report(mySyncIssue, appModule, null);
 
-    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
-    assertNotNull(message);
+    List<NotificationData> messages = mySyncMessagesStub.getNotifications();
+    assertSize(1, messages);
 
-    // @formatter:off
-    assertAbout(syncMessage()).that(message).hasGroup("Unresolved Android dependencies")
-                                            .hasMessageLine("Failed to resolve: com.android.support:appcompat-v7:24.1.1", 0);
-    // @formatter:on
 
-    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
+    NotificationData message = messages.get(0);
+    assertEquals("Unresolved dependencies", message.getTitle());
+    assertEquals("Failed to resolve: com.android.support:appcompat-v7:24.1.1\nAffected Modules: app",
+                 message.getMessage());
+
+    GradleSyncMessagesStub.NotificationUpdate update = mySyncMessagesStub.getNotificationUpdate();
+    List<NotificationHyperlink> quickFixes = update.getFixes();
     int expectedSize = IdeInfo.getInstance().isAndroidStudio() ? 1 : 0;
     assertThat(quickFixes).hasSize(expectedSize);
 
@@ -199,6 +203,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
   /**
    * Verify that an {@link AddGoogleMavenRepositoryHyperlink} is generated when the project is not initialized
+   *
    * @throws Exception
    */
   public void testReportNotInitialized() throws Exception {
@@ -215,15 +220,14 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     myReporter.report(mySyncIssue, spyAppModule, null);
 
-    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
-    assertNotNull(message);
+    List<NotificationData> messages = mySyncMessagesStub.getNotifications();
+    assertSize(1, messages);
 
-    // @formatter:off
-    assertAbout(syncMessage()).that(message).hasGroup("Unresolved Android dependencies")
-                                            .hasMessageLine("Failed to resolve: com.android.support:appcompat-v7:24.1.1", 0);
-    // @formatter:on
+    NotificationData message = messages.get(0);
+    assertEquals("Unresolved dependencies", message.getTitle());
+    assertEquals("Failed to resolve: com.android.support:appcompat-v7:24.1.1\nAffected Modules: app", message.getMessage());
 
-    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
+    List<NotificationHyperlink> quickFixes = mySyncMessagesStub.getNotificationUpdate().getFixes();
     int expectedSize = IdeInfo.getInstance().isAndroidStudio() ? 2 : 1;
     assertThat(quickFixes).hasSize(expectedSize);
 
@@ -249,15 +253,14 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     myReporter.report(mySyncIssue, appModule, null);
 
-    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
-    assertNotNull(message);
+    List<NotificationData> messages = mySyncMessagesStub.getNotifications();
+    assertSize(1, messages);
 
-    // @formatter:off
-    assertAbout(syncMessage()).that(message).hasGroup("Unresolved Android dependencies")
-                                            .hasMessageLine("Failed to resolve: com.google.android.gms:play-services:9.4.0", 0);
-    // @formatter:on
+    NotificationData message = messages.get(0);
+    assertEquals("Unresolved dependencies", message.getTitle());
+    assertEquals("Failed to resolve: com.google.android.gms:play-services:9.4.0\nAffected Modules: app", message.getMessage());
 
-    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
+    List<NotificationHyperlink> quickFixes = mySyncMessagesStub.getNotificationUpdate().getFixes();
     int expectedSize = IdeInfo.getInstance().isAndroidStudio() ? 2 : 1;
     assertThat(quickFixes).hasSize(expectedSize);
 
@@ -272,5 +275,70 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
       quickFix = quickFixes.get(1);
       assertThat(quickFix).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
     }
+  }
+
+  public void testDeduplicateAcrossModules() throws Exception {
+    loadProject(DEPENDENT_MODULES);
+    mySyncMessagesStub.clearReportedMessages();
+
+    Module appModule = myModules.getAppModule();
+    Module libModule = myModules.getModule("lib");
+
+    List<SyncIssue> issues = ImmutableList.of(1, 2).stream().map((i) -> new SyncIssue() {
+      @Override
+      public int hashCode() {
+        return 7;
+      }
+
+      @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+      @Override
+      public boolean equals(Object obj) {
+        if (obj.hashCode() == hashCode()) {
+          return true;
+        }
+        return false;
+      }
+
+      @Override
+      public int getSeverity() {
+        return SEVERITY_ERROR;
+      }
+
+      @Override
+      public int getType() {
+        return TYPE_UNRESOLVED_DEPENDENCY;
+      }
+
+      @Nullable
+      @Override
+      public String getData() {
+        return "com.google.android.gms.play-services:9.4.0";
+      }
+
+      @NonNull
+      @Override
+      public String getMessage() {
+        return "";
+      }
+
+      @Nullable
+      @Override
+      public List<String> getMultiLineMessage() {
+        return null;
+      }
+    }).collect(Collectors.toList());
+
+    IdentityHashMap<SyncIssue, Module> moduleMap = new IdentityHashMap<>();
+    moduleMap.put(issues.get(0), appModule);
+    moduleMap.put(issues.get(1), libModule);
+    myReporter
+      .reportAll(issues, moduleMap, ImmutableMap.of(appModule, getGradleBuildFile(appModule), libModule, getGradleBuildFile(libModule)));
+
+    List<NotificationData> messages = mySyncMessagesStub.getNotifications();
+    assertSize(1, messages);
+
+    NotificationData message = messages.get(0);
+    assertEquals("Unresolved dependencies", message.getTitle());
+    assertThat(message.getMessage()).contains("Failed to resolve: com.google.android.gms.play-services:9.4.0\nAffected Modules:");
   }
 }

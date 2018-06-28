@@ -18,9 +18,14 @@ package com.android.tools.idea.gradle.project.sync.issues;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.ui.QuickFixNotificationListener;
+import com.android.tools.idea.util.PositionInFile;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -37,8 +42,7 @@ import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
 /**
  * This class provides simple deduplication behaviour for other reporters.
- * The abstract method {@link #getDeduplicationKey(SyncIssue)} should be overwritten to return the key that should be
- * used for the deduplication.
+ * It contains several methods that can be overridden to provide more specific behaviour for different types of notifications.
  */
 public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssuesReporter {
   /**
@@ -47,7 +51,8 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    */
   @Override
   void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
-    getSyncMessages(module).report(generateSyncMessage(syncIssue, module, buildFile));
+    reportAll(ImmutableList.of(syncIssue), ImmutableMap.of(syncIssue, module),
+              buildFile == null ? ImmutableMap.of() : ImmutableMap.of(module, buildFile));
   }
 
   @Override
@@ -78,34 +83,41 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
         entry.stream().map(moduleMap::get).filter(Objects::nonNull).distinct().sorted(Comparator.comparing(Module::getName))
              .collect(Collectors.toList());
       boolean isError = entry.stream().anyMatch(i -> i.getSeverity() == SEVERITY_ERROR);
-      createNotificationDataAndReport(module.getProject(), issue, affectedModules, buildFileMap, isError);
+      createNotificationDataAndReport(module.getProject(), entry, affectedModules, buildFileMap, isError);
     }
   }
 
-  private static void createNotificationDataAndReport(@NotNull Project project,
-                                                      @NotNull SyncIssue syncIssue,
-                                                      @NotNull List<Module> affectedModules,
-                                                      @NotNull Map<Module, VirtualFile> buildFileMap,
-                                                      boolean isError) {
+  private void createNotificationDataAndReport(@NotNull Project project,
+                                               @NotNull List<SyncIssue> syncIssues,
+                                               @NotNull List<Module> affectedModules,
+                                               @NotNull Map<Module, VirtualFile> buildFileMap,
+                                               boolean isError) {
     GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
     MessageType type = isError ? ERROR : WARNING;
 
-    String message = syncIssue.getMessage();
-    NotificationData notification = messages.createNotification(DEFAULT_GROUP, message, type.convertToCategory(), null);
+    assert !syncIssues.isEmpty();
+    NotificationData notification = setupNotificationData(project, syncIssues, affectedModules, buildFileMap, type);
+
+    StringBuilder builder = new StringBuilder();
+
+    // Add custom links
+    messages
+      .updateNotification(notification, notification.getMessage(), getCustomLinks(project, syncIssues, affectedModules, buildFileMap));
+    String message = notification.getMessage();
 
     // Add links to each of the affected modules
-    StringBuilder builder = new StringBuilder();
-    builder.append("\nAffected Modules: ");
-    for (Iterator<Module> it = affectedModules.iterator(); it.hasNext(); ) {
-      Module m = it.next();
-      if (m != null) {
-        createModuleLink(project, notification, builder, m, buildFileMap.get(m));
-        if (it.hasNext()) {
-          builder.append(", ");
+    if (shouldIncludeModuleLinks() && !affectedModules.isEmpty()) {
+      builder.append("\nAffected Modules: ");
+      for (Iterator<Module> it = affectedModules.iterator(); it.hasNext(); ) {
+        Module m = it.next();
+        if (m != null) {
+          createModuleLink(project, notification, builder, m, buildFileMap.get(m));
+          if (it.hasNext()) {
+            builder.append(", ");
+          }
         }
       }
     }
-
     message += builder.toString();
 
     notification.setMessage(message);
@@ -128,6 +140,70 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     }
   }
 
+  /**
+   * @param issue each issue.
+   * @return the key that should be used to deduplicate issues, each issue with the same key will be grouped and reported as one, this
+   * method should be stateless.
+   */
   @Nullable
   protected abstract Object getDeduplicationKey(@NotNull SyncIssue issue);
+
+  /**
+   * @return whether or not links to each of the effected modules should be appended to the SyncIssue message.
+   */
+  protected boolean shouldIncludeModuleLinks() {
+    return true;
+  }
+
+  /**
+   * Allows reporters to provide custom links for each type of error message.
+   *
+   * @param project         the project.
+   * @param syncIssues      grouped sync issues, these all return the same value from {@link #getDeduplicationKey(SyncIssue)}.
+   * @param affectedModules list of origin modules that the issues in syncIssues belong to.
+   * @param buildFileMap    a module to build file map, entries are optional.
+   * @return a list of hyperlinks to be included in the message displayed to the user.
+   */
+  @NotNull
+  protected List<NotificationHyperlink> getCustomLinks(@NotNull Project project,
+                                                       @NotNull List<SyncIssue> syncIssues,
+                                                       @NotNull List<Module> affectedModules,
+                                                       @NotNull Map<Module, VirtualFile> buildFileMap) {
+    return ImmutableList.of();
+  }
+
+  /**
+   * Allows reporter to customize the sync issue message. Subclasses can call this method to create a basic notification message to
+   * mutate or can create them from scratch.
+   *
+   * @param project         the project.
+   * @param syncIssues      grouped sync issues, these all return the same value from {@link #getDeduplicationKey(SyncIssue)}.
+   * @param affectedModules list of origin modules that the issues in syncIssues belong to.
+   * @param buildFileMap    a module to build file map, entries are optional.
+   * @param type            whether or not this group of issues contain errors or warnings.
+   * @return a {@link NotificationData} instance with the correct configuration.
+   */
+  @NotNull
+  protected NotificationData setupNotificationData(@NotNull Project project,
+                                                   @NotNull List<SyncIssue> syncIssues,
+                                                   @NotNull List<Module> affectedModules,
+                                                   @NotNull Map<Module, VirtualFile> buildFileMap,
+                                                   @NotNull MessageType type) {
+    assert !syncIssues.isEmpty();
+    GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
+    PositionInFile position = null;
+    // If we only have one module/file allow us to navigate to it.
+    if (affectedModules.size() == 1) {
+      VirtualFile file = buildFileMap.get(affectedModules.get(0));
+      if (file != null) {
+        position = new PositionInFile(file);
+      }
+    }
+
+    NotificationData data = messages.createNotification(DEFAULT_GROUP, syncIssues.get(0).getMessage(), type.convertToCategory(), position);
+    if (position != null) {
+      data.setNavigatable(new OpenFileDescriptor(project, position.file, position.line, position.column));
+    }
+    return data;
+  }
 }

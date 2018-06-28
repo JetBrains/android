@@ -58,6 +58,7 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     `when`(module2.name).thenReturn("lib")
     `when`(module2.project).thenReturn(project)
     `when`(mockFile.path).thenReturn("file/path")
+    `when`(mockFile.url).thenReturn("file://file/path")
   }
 
   @Test
