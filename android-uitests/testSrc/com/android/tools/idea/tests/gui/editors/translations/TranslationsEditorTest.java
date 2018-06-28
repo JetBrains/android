@@ -18,6 +18,8 @@ package com.android.tools.idea.tests.gui.editors.translations;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.FrozenColumnTableFixture;
@@ -199,6 +201,7 @@ public final class TranslationsEditorTest {
     assertFalse(editor.getCurrentFileContents().contains("hello_world"));
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/110711267
   @Test
   public void removeKeyWithSafeDeleteProcessor() throws Exception {
     importSimpleApplication();
