@@ -216,6 +216,9 @@ class VariablesTable(private val project: Project, private val context: PsContex
           super.focusLost(e)
         }
       })
+      textBox.border = BorderFactory.createMatteBorder(editorInsets.top, editorInsets.left, editorInsets.bottom, editorInsets.right,
+                                                       this@VariablesTable.selectionBackground)
+      textBox.componentPopupMenu = null
     }
 
     override fun isCellEditable(e: EventObject?): Boolean {
