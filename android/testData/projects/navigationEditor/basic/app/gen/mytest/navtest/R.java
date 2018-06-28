@@ -4721,7 +4721,7 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         /** Attributes that can be used with a ActionMenuView.
          */
         public static final int[] ActionMenuView = {
-            
+
         };
         /** Attributes that can be used with a ActionMode.
            <p>Includes the following attributes:</p>
