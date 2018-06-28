@@ -230,7 +230,7 @@ public class ThemeEditorTable extends CellSpanTable {
         final ResourceResolver resolver = myContext.getResourceResolver();
         assert resolver != null;
         final Project project = myContext.getProject();
-        final ResourceValue resourceValue = resolver.resolveResValue((ResourceValue)item.getSelectedValue());
+        final ResourceValue resourceValue = resolver.resolveResValue(item.getSelectedValue());
         final File file = new File(resourceValue.getValue());
 
         final VirtualFileManager manager = VirtualFileManager.getInstance();

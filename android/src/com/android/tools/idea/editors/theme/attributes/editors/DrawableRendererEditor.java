@@ -84,7 +84,7 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     }
 
     myRenderTask.setMaxRenderSize(iconWidth, iconHeight);
-    List<BufferedImage> images = myRenderTask.renderDrawableAllStates((ResourceValue)item.getSelectedValue());
+    List<BufferedImage> images = myRenderTask.renderDrawableAllStates(item.getSelectedValue());
     ResourceSwatchComponent.SwatchIcon icon;
     if (images.isEmpty()) {
       icon = ResourceSwatchComponent.WARNING_ICON;

@@ -296,7 +296,7 @@ public class ResolutionUtils {
   public static ResourceType getAttrType(@NotNull StyleItemResourceValue item, @NotNull Configuration configuration) {
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
-    ResourceValue resolvedValue = resolver.resolveResValue((ResourceValue)item);
+    ResourceValue resolvedValue = resolver.resolveResValue(item);
     ResourceType attrType = resolvedValue.getResourceType();
     if (attrType != null) {
       return attrType;
