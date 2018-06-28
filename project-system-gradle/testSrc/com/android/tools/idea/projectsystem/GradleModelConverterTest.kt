@@ -16,6 +16,7 @@ package com.android.tools.idea.projectsystem
 import com.android.ide.common.gradle.model.*
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathStrings
+import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.AndroidPathType
 import com.android.projectmodel.AndroidProject
 import com.android.projectmodel.matchArtifactsWith
@@ -45,11 +46,11 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
     // the locations that actually exist on disk as part of the test case, so we only test for these. This makes the
     // test less brittle if the Gradle plugin adds new source locations in the future.
     assertHasConfigs(
-        "*/*/debug/main",
-        "*/*/release/main",
-        "free/x86/debug/main",
-        "*/*/*/main",
-        "pro/x86/*/main"
+        "*/*/debug/${ARTIFACT_NAME_MAIN}",
+        "*/*/release/${ARTIFACT_NAME_MAIN}",
+        "free/x86/debug/${ARTIFACT_NAME_MAIN}",
+        "*/*/*/${ARTIFACT_NAME_MAIN}",
+        "pro/x86/*/${ARTIFACT_NAME_MAIN}"
     )
     checkProjectAttributes()
     checkBuildTypeConfigurations()
@@ -96,7 +97,7 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
       // don't actually exist on disk. These hypothetical locations differ between Gradle plugin versions.
       assertThat(x86Configs.size).isGreaterThan(1)
 
-      val mainArtifactPath = x86Path.intersect(schema.pathFor(MAIN_ARTIFACT_NAME))
+      val mainArtifactPath = x86Path.intersect(schema.pathFor(ARTIFACT_NAME_MAIN))
       val mainArtifactX86Configs = filter { mainArtifactPath.contains(it.path) }.configs
 
       // Two of the source folders were for the main config. We should be able to find them in the model.
@@ -127,7 +128,7 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
       val testArtifact = variant.androidTestArtifact
 
       with (mainArtifact) {
-        assertThat(name).isEqualTo(MAIN_ARTIFACT_NAME)
+        assertThat(name).isEqualTo(ARTIFACT_NAME_MAIN)
         assertThat(classFolders).isEqualTo(
           listOf(PathString(originalArtifact.classesFolder)) + originalArtifact.additionalClassesFolders.toPathStrings())
         assertThat(packageName).isEqualTo(project.defaultConfig.productFlavor.applicationId)
@@ -154,7 +155,7 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
         }
       }
 
-      assertThat(variant.mainArtifactConfigPath).isEqualTo(matchArtifactsWith("free/x86/debug/main"))
+      assertThat(variant.mainArtifactConfigPath).isEqualTo(matchArtifactsWith("free/x86/debug/${ARTIFACT_NAME_MAIN}"))
       assertThat(variant.configPath).isEqualTo(matchArtifactsWith("free/x86/debug"))
     }
   }
