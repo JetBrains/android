@@ -18,7 +18,12 @@ package org.jetbrains.android.sdk;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -49,10 +54,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -174,14 +176,48 @@ public class AndroidTargetData {
       if (!(myTarget instanceof StudioEmbeddedRenderTarget)) {
         LOG.warn("Rendering will not use the StudioEmbeddedRenderTarget");
       }
-      AttributeDefinitionsImpl attrDefs = getAllAttrDefs(project);
-      if (attrDefs == null) {
-        return null;
-      }
-      myLayoutLibrary = LayoutLibraryLoader.load(myTarget, attrDefs.getEnumMap());
+      myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues());
     }
 
     return myLayoutLibrary;
+  }
+
+  /**
+   * The keys of the returned map are attr names. The values are maps defining numerical values of the corresponding enums or flags.
+   */
+  @NotNull
+  private Map<String, Map<String, Integer>> getFrameworkEnumValues() {
+    AbstractResourceRepository resources = getFrameworkResources(false);
+    if (resources == null) {
+      return Collections.emptyMap();
+    }
+
+    Map<String, Map<String, Integer>> result = new HashMap<>();
+    List<ResourceItem> items = resources.getResourceItems(ResourceNamespace.ANDROID, ResourceType.ATTR);
+    for (ResourceItem item: items) {
+      ResourceValue attr = item.getResourceValue();
+      if (attr instanceof AttrResourceValue) {
+        Map<String, Integer> valueMap = ((AttrResourceValue)attr).getAttributeValues();
+        if (valueMap != null && !valueMap.isEmpty()) {
+          result.put(attr.getName(), valueMap);
+        }
+      }
+    }
+
+    items = resources.getResourceItems(ResourceNamespace.ANDROID, ResourceType.STYLEABLE);
+    for (ResourceItem item: items) {
+      ResourceValue styleable = item.getResourceValue();
+      if (styleable instanceof StyleableResourceValue) {
+        List<AttrResourceValue> attrs = ((StyleableResourceValue)styleable).getAllAttributes();
+        for (AttrResourceValue attr: attrs) {
+          Map<String, Integer> valueMap = attr.getAttributeValues();
+          if (valueMap != null && !valueMap.isEmpty()) {
+            result.put(attr.getName(), valueMap);
+          }
+        }
+      }
+    }
+    return result;
   }
 
   public void clearLayoutBitmapCache(Module module) {
