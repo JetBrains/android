@@ -155,16 +155,16 @@ public class SourcesTableModelTest extends AndroidTestCase {
   }
 
   private void runAndWaitForUpdate(@NotNull Runnable action) {
-    AtomicBoolean refreshCalled = new AtomicBoolean();
-    myModel.setRefreshCallback(() -> assertTrue(refreshCalled.compareAndSet(false, true)));
+    AtomicBoolean loadingFinishedCalled = new AtomicBoolean();
+    myModel.setLoadingFinishedCallback(() -> assertTrue(loadingFinishedCalled.compareAndSet(false, true)));
     action.run();
     long startTime = System.currentTimeMillis();
-    while (!refreshCalled.get()) {
+    while (!loadingFinishedCalled.get()) {
       UIUtil.dispatchAllInvocationEvents();
       if (startTime + TimeUnit.SECONDS.toMillis(2) < System.currentTimeMillis()) {
         fail("timed out waiting for update to complete");
       }
     }
-    myModel.setRefreshCallback(() -> {});
+    myModel.setLoadingFinishedCallback(() -> {});
   }
 }
