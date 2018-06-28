@@ -109,8 +109,8 @@ class DestinationListTest {
     val surfaceSize = editor
       .navSurface
       .target().extentSize
-    assertTrue(
-      Point(surfaceSize.width / 2, surfaceSize.height / 2).distance(editor.navSurface.findDestination("first_screen").midPoint) < 2)
+    val distance = Point(surfaceSize.width / 2, surfaceSize.height / 2).distance(editor.navSurface.findDestination("first_screen").midPoint)
+    assertTrue(distance < 2, distance.toString())
     assertEquals(1.0, editor.navSurface.scale)
   }
 
