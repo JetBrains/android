@@ -51,12 +51,40 @@ import java.util.concurrent.TimeUnit;
  * A base class for {@link CallChartDetailsView} and {@link FlameChartDetailsView} details views.
  */
 abstract class ChartDetailsView extends CaptureDetailsView {
+  /**
+   * Component that contains everything, e.g chart, axis, scrollbar.
+   */
+  @NotNull protected final JPanel myPanel;
 
-  private static HTreeChart<CaptureNode> setUpChart(@NotNull CaptureModel.Details.Type type,
-                                                    @NotNull Range globalRange,
-                                                    @NotNull Range range,
-                                                    @Nullable CaptureNode node,
-                                                    @NotNull CpuProfilerStageView stageView) {
+  @NotNull protected final CpuProfilerStageView myStageView;
+  @NotNull protected final AspectObserver myObserver;
+
+  private ChartDetailsView(@NotNull CpuProfilerStageView stageView, @NotNull CaptureModel.ChartDetails chartDetails) {
+    myStageView = stageView;
+    myObserver = new AspectObserver();
+
+    if (chartDetails.getNode() == null) {
+      myPanel = getNoDataForThread();
+      return;
+    }
+
+    myPanel = new JPanel(new CardLayout());
+    myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
+  }
+
+  @NotNull
+  @Override
+  public JComponent getComponent() {
+    return myPanel;
+  }
+
+  @NotNull
+  protected HTreeChart<CaptureNode> createChart(@NotNull CaptureModel.ChartDetails chartDetails,
+                                                @NotNull Range globalRange,
+                                                @NotNull Range range) {
+    CaptureModel.Details.Type type = chartDetails.getType();
+    CaptureNode node = chartDetails.getNode();
+
     HTreeChart.Orientation orientation;
     if (type == CaptureModel.Details.Type.CALL_CHART) {
       orientation = HTreeChart.Orientation.TOP_DOWN;
@@ -73,18 +101,18 @@ abstract class ChartDetailsView extends CaptureDetailsView {
 
     if (node != null) {
       if (node.getData() instanceof AtraceNodeModel && type == CaptureModel.Details.Type.CALL_CHART) {
-        chart.addMouseMotionListener(new CpuTraceEventTooltipView(chart, stageView));
+        chart.addMouseMotionListener(new CpuTraceEventTooltipView(chart, myStageView));
       }
       else {
-        chart.addMouseMotionListener(new CpuChartTooltipView(chart, stageView));
+        chart.addMouseMotionListener(new CpuChartTooltipView(chart, myStageView));
       }
     }
 
-    if (stageView.getStage().getCapture() != null && stageView.getStage().getCapture().getType() != CpuProfiler.CpuProfilerType.ATRACE) {
-      CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
+    if (myStageView.getStage().getCapture() != null && myStageView.getStage().getCapture().getType() != CpuProfiler.CpuProfilerType.ATRACE) {
+      CodeNavigator navigator = myStageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
       CodeNavigationHandler handler = new CodeNavigationHandler(chart, navigator);
       chart.addMouseListener(handler);
-      stageView.getIdeComponents().createContextMenuInstaller().installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
+      myStageView.getIdeComponents().createContextMenuInstaller().installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
     }
     return chart;
   }
@@ -116,11 +144,6 @@ abstract class ChartDetailsView extends CaptureDetailsView {
 
   static final class CallChartDetailsView extends ChartDetailsView {
     /**
-     * Component that contains everything, e.g chart, axis, scrollbar.
-     */
-    @NotNull private final JPanel myPanel;
-
-    /**
      * The visual representation of the {@link #myCallChart}.
      */
     @NotNull private final HTreeChart<CaptureNode> myChart;
@@ -130,48 +153,47 @@ abstract class ChartDetailsView extends CaptureDetailsView {
      */
     @NotNull private final CaptureModel.CallChart myCallChart;
 
-    private AspectObserver myObserver;
-
     CallChartDetailsView(@NotNull CpuProfilerStageView stageView,
-                          @NotNull CaptureModel.CallChart callChart) {
+                         @NotNull CaptureModel.CallChart callChart) {
+      super(stageView, callChart);
       myCallChart = callChart;
       // Call Chart model always correlates to the entire capture. CallChartView shows the data corresponding to the selected range in
       // timeline. Users can navigate to other part within the capture by interacting with the call chart UI. When it happens, the timeline
       // selection should be automatically updated.
-      Range selectionRange = stageView.getTimeline().getSelectionRange();
       assert stageView.getStage().getCapture() != null;
-      Range captureRange = stageView.getStage().getCapture().getRange();
-      myChart = setUpChart(CaptureModel.Details.Type.CALL_CHART, captureRange, selectionRange,
-                           myCallChart.getNode(), stageView);
-
+      myChart = createChart(myCallChart,
+                            stageView.getStage().getCapture().getRange(),
+                            stageView.getTimeline().getSelectionRange());
       if (myCallChart.getNode() == null) {
-        myPanel = getNoDataForThread();
         return;
       }
 
+      myPanel.add(createChartPanel(), CARD_CONTENT);
+
+      myCallChart.getRange().addDependency(myObserver).onChange(Range.Aspect.RANGE, this::callChartRangeChanged);
+      callChartRangeChanged();
+    }
+
+    @NotNull
+    private JPanel createChartPanel() {
+      Range selectionRange = myStageView.getTimeline().getSelectionRange();
+      assert myStageView.getStage().getCapture() != null;
+      Range captureRange = myStageView.getStage().getCapture().getRange();
       // We use selectionRange here instead of nodeRange, because nodeRange synchronises with selectionRange and vice versa.
       // In other words, there is a constant ratio between them. And the horizontal scrollbar represents selection range within
       // capture range.
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(captureRange, selectionRange, TimeUnit.MICROSECONDS);
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
 
-      AxisComponent axis = createAxis(selectionRange, stageView.getTimeline().getDataRange());
+      AxisComponent axis = createAxis(selectionRange, myStageView.getTimeline().getDataRange());
 
-      JPanel contentPanel = new JPanel(new TabularLayout("*,Fit", "*,Fit"));
-      contentPanel.add(axis, new TabularLayout.Constraint(0, 0));
-      contentPanel.add(myChart, new TabularLayout.Constraint(0, 0));
-      contentPanel.add(new HTreeChartVerticalScrollBar<>(myChart), new TabularLayout.Constraint(0, 1));
-      contentPanel.add(horizontalScrollBar, new TabularLayout.Constraint(1, 0, 1, 2));
+      JPanel panel = new JPanel(new TabularLayout("*,Fit", "*,Fit"));
+      panel.add(axis, new TabularLayout.Constraint(0, 0));
+      panel.add(myChart, new TabularLayout.Constraint(0, 0));
+      panel.add(new HTreeChartVerticalScrollBar<>(myChart), new TabularLayout.Constraint(0, 1));
+      panel.add(horizontalScrollBar, new TabularLayout.Constraint(1, 0, 1, 2));
 
-      myPanel = new JPanel(new CardLayout());
-      myPanel.add(contentPanel, CARD_CONTENT);
-      myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
-
-      myObserver = new AspectObserver();
-
-      myCallChart.getRange().addDependency(myObserver).onChange(Range.Aspect.RANGE, this::callChartRangeChanged);
-
-      callChartRangeChanged();
+      return panel;
     }
 
     private void callChartRangeChanged() {
@@ -196,20 +218,9 @@ abstract class ChartDetailsView extends CaptureDetailsView {
       });
       return axis;
     }
-
-    @NotNull
-    @Override
-    public JComponent getComponent() {
-      return myPanel;
-    }
   }
 
   static final class FlameChartDetailsView extends ChartDetailsView {
-    /**
-     * Component that contains everything, e.g chart, axis, scrollbar.
-     */
-    @NotNull private final JPanel myPanel;
-
     /**
      * The visual representation of the {@link #myFlameChart}.
      */
@@ -225,9 +236,8 @@ abstract class ChartDetailsView extends CaptureDetailsView {
      */
     @NotNull private final Range myMasterRange;
 
-    @NotNull private final AspectObserver myObserver;
-
     FlameChartDetailsView(CpuProfilerStageView stageView, @NotNull CaptureModel.FlameChart flameChart) {
+      super(stageView, flameChart);
       // Flame Chart model always correlates to the selected range on the timeline, not necessarily the entire capture. Users cannot
       // navigate to other part within the capture by interacting with the flame chart UI (they can do so only from timeline UI).
       // Users can zoom-in and then view only part of the flame chart. Since a part of flame chart may not correspond to a continuous
@@ -235,40 +245,33 @@ abstract class ChartDetailsView extends CaptureDetailsView {
       // we create new Range object (myMasterRange) to represent the range visible to the user. We cannot just pass flameChart.getRange().
       myFlameChart = flameChart;
       myMasterRange = new Range(flameChart.getRange());
-      myChart = setUpChart(CaptureModel.Details.Type.FLAME_CHART, flameChart.getRange(), myMasterRange, myFlameChart.getNode(), stageView);
-      myObserver = new AspectObserver();
+      myChart = createChart(flameChart, flameChart.getRange(), myMasterRange);
 
       if (myFlameChart.getNode() == null) {
-        myPanel = getNoDataForThread();
         return;
       }
 
-      RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(flameChart.getRange(), myMasterRange, TimeUnit.MICROSECONDS);
-      horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
-
-      JPanel contentPanel = new JPanel(new TabularLayout("*,Fit", "*,Fit"));
-      contentPanel.add(myChart, new TabularLayout.Constraint(0, 0));
-      contentPanel.add(new HTreeChartVerticalScrollBar<>(myChart), new TabularLayout.Constraint(0, 1));
-      contentPanel.add(horizontalScrollBar, new TabularLayout.Constraint(1, 0, 1, 2));
-
-      myPanel = new JPanel(new CardLayout());
-      myPanel.add(contentPanel, CARD_CONTENT);
-      myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
-
+      myPanel.add(createChartPanel(), CARD_CONTENT);
       myFlameChart.getAspect().addDependency(myObserver).onChange(CaptureModel.FlameChart.Aspect.NODE, this::nodeChanged);
       nodeChanged();
+    }
+
+    @NotNull
+    private JPanel createChartPanel() {
+      RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(myFlameChart.getRange(), myMasterRange, TimeUnit.MICROSECONDS);
+      horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
+
+      JPanel panel = new JPanel(new TabularLayout("*,Fit", "*,Fit"));
+      panel.add(myChart, new TabularLayout.Constraint(0, 0));
+      panel.add(new HTreeChartVerticalScrollBar<>(myChart), new TabularLayout.Constraint(0, 1));
+      panel.add(horizontalScrollBar, new TabularLayout.Constraint(1, 0, 1, 2));
+      return panel;
     }
 
     private void nodeChanged() {
       switchCardLayout(myPanel, myFlameChart.getNode() == null);
       myChart.setHTree(myFlameChart.getNode());
       myMasterRange.set(myFlameChart.getRange());
-    }
-
-    @NotNull
-    @Override
-    JComponent getComponent() {
-      return myPanel;
     }
   }
 
