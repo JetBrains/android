@@ -43,6 +43,7 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @NotNull private final List<SigningConfig> mySigningConfigs = new ArrayList<>();
   @NotNull private final List<String> myFlavorDimensions = new ArrayList<>();
   @NotNull private final List<String> myVariantNames = new ArrayList<>();
+  @NotNull private final List<SyncIssue> mySyncIssues = new ArrayList<>();
 
   @NotNull private final String myName;
   @NotNull private final FileStructure myFileStructure;
@@ -105,6 +106,7 @@ public class AndroidProjectStub implements IdeAndroidProject {
 
   @Override
   public void addSyncIssues(@NotNull Collection<SyncIssue> syncIssues) {
+    mySyncIssues.addAll(syncIssues);
   }
 
   @Override
@@ -310,7 +312,7 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @Override
   @NotNull
   public Collection<SyncIssue> getSyncIssues() {
-    return Collections.emptyList();
+    return mySyncIssues;
   }
 
   @Override
@@ -384,5 +386,10 @@ public class AndroidProjectStub implements IdeAndroidProject {
   public void setVariantNames(@NotNull String... variantNames) {
     myVariantNames.clear();
     myVariantNames.addAll(Arrays.asList(variantNames));
+  }
+
+  public void setSyncIssues(@NotNull SyncIssue... syncIssues) {
+    mySyncIssues.clear();
+    mySyncIssues.addAll(Arrays.asList(syncIssues));
   }
 }

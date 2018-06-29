@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.model.java.IdeaJarLibraryDependencyFactory;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
@@ -52,10 +53,11 @@ public class IdeaJavaModuleModelFactory {
   @NotNull
   public JavaModuleModel create(@NotNull IdeaModule ideaModule,
                                 @Nullable ModuleExtendedModel javaModel,
+                                @NotNull Collection<SyncIssue> syncIssues,
                                 boolean androidModuleWithoutVariants) {
     Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies = getDependencies(ideaModule);
     return new JavaModuleModel(ideaModule.getName(), getContentRoots(ideaModule, javaModel), dependencies.first, dependencies.second,
-                               getArtifactsByConfiguration(javaModel), getCompilerOutput(javaModel),
+                               syncIssues, getArtifactsByConfiguration(javaModel), getCompilerOutput(javaModel),
                                ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(javaModel),
                                !androidModuleWithoutVariants && isBuildable(ideaModule.getGradleProject()), androidModuleWithoutVariants);
   }
