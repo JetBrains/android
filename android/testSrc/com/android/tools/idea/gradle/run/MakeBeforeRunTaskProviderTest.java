@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfiguration;
@@ -33,6 +34,7 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import org.apache.commons.io.FileUtils;
+import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.mockito.Mock;
@@ -229,8 +231,9 @@ public class MakeBeforeRunTaskProviderTest extends IdeaTestCase {
     GradleFacet gradleFacet = createAndAddGradleFacet(module);
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR + module.getName();
 
-    GradleModuleModel model = new GradleModuleModel(module.getName(), emptyList(), GRADLE_PATH_SEPARATOR + module.getName(),
-                                                    getBaseDirPath(getProject()), emptyList(), null, null);
+    GradleProject gradleProjectStub = new GradleProjectStub(emptyList(), GRADLE_PATH_SEPARATOR + module.getName(),
+                                                            getBaseDirPath(getProject()));
+    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null);
     gradleFacet.setGradleModuleModel(model);
   }
 
