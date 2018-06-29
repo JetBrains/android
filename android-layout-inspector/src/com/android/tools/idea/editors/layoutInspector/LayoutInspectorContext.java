@@ -83,14 +83,8 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   // Hidden from public usage until we get UX/PM input on displaying display list output.
   private static final boolean DUMP_DISPLAYLIST_ENABLED = Boolean.getBoolean("dump.displaylist.enabled");
 
-  @Nullable
-  private Client myClient;
-  @Nullable
-  private ClientWindow myWindow;
-  @Nullable
-  private ViewNode myRoot;
-  @Nullable
-  private BufferedImage myBufferedImage;
+  @NotNull
+  private LayoutInspectorModel myModel;
   @Nullable
   private ViewNodeActiveDisplay myPreview;
 
@@ -123,10 +117,12 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   }
 
   public LayoutInspectorContext(@NotNull LayoutFileData layoutParser, @NotNull Disposable parentDisposable) {
-    myRoot = layoutParser.getNode();
-    myBufferedImage = layoutParser.getBufferedImage();
+    ViewNode root = layoutParser.getNode();
+    BufferedImage image = layoutParser.getBufferedImage();
+    assert (root != null && image != null);
+    myModel = new LayoutInspectorModel(root, image);
 
-    myNodeTree = createNodeTree(getRoot());
+    myNodeTree = createNodeTree(myModel.getRoot());
 
     mySubviewList = new ObservableList<>();
 
@@ -162,7 +158,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
     if (isDumpDisplayListEnabled()) {
       myDumpDisplayListMenuItem.setVisible(true);
       myDumpDisplayListMenuItem.addActionListener(new LayoutInspectorContext.DumpDisplayListActionListener());
-      myDumpDisplayListMenuItem.setEnabled(isDeviceConnected());
+      myDumpDisplayListMenuItem.setEnabled(myModel.isConnected());
       myNodePopup.add(myDumpDisplayListMenuItem);
     }
 
@@ -172,7 +168,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
     if (StudioFlags.LAYOUT_INSPECTOR_SUB_VIEW_ENABLED.get()) {
       mySubtreePreviewMenuItem.setVisible(true);
       mySubtreePreviewMenuItem.addActionListener(new LayoutInspectorContext.RenderSubtreePreviewActionListener());
-      mySubtreePreviewMenuItem.setEnabled(isDeviceConnected());
+      mySubtreePreviewMenuItem.setEnabled(myModel.isConnected());
       myNodePopup.add(mySubtreePreviewMenuItem);
     }
 
@@ -217,30 +213,26 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
 
   @Override
   public void onViewNodeOver(@Nullable ViewNode node) {
-    if (myNodeTree == null) return;
     if (node == null) {
       myNodeTree.updateHoverPath(null);
     }
     else {
-      TreePath path = ViewNode.getPathFromParent(node, myRoot);
+      TreePath path = ViewNode.getPathFromParent(node, myModel.getRoot());
       myNodeTree.updateHoverPath(path);
     }
   }
 
   @Override
   public void onNodeSelected(@NotNull ViewNode node) {
-    if (myNodeTree == null) return;
-    TreePath path = ViewNode.getPathFromParent(node, myRoot);
+    TreePath path = ViewNode.getPathFromParent(node, myModel.getRoot());
     myNodeTree.scrollPathToVisible(path);
     myNodeTree.setSelectionPath(path);
   }
 
   @Override
   public void onNodeDoubleClicked(@NotNull ViewNode node) {
-    if (isDeviceConnected() && StudioFlags.LAYOUT_INSPECTOR_SUB_VIEW_ENABLED.get()) {
+    if (myModel.isConnected() && StudioFlags.LAYOUT_INSPECTOR_SUB_VIEW_ENABLED.get()) {
       showSubView(node);
-
-
     }
   }
 
@@ -284,29 +276,24 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
     return null;
   }
 
-  @Nullable
+  @NotNull
   public ViewNode getRoot() {
-    return myRoot;
+    return myModel.getRoot();
   }
 
-  @Nullable
+  @NotNull
   public BufferedImage getBufferedImage() {
-    return myBufferedImage;
+    return myModel.getBufferedImage();
   }
 
   public void setPreview(@NotNull ViewNodeActiveDisplay preview) {
     myPreview = preview;
   }
 
-  public void setSources(@Nullable Client client, @Nullable ClientWindow window) {
-    myClient = client;
-    myWindow = window;
-    myDumpDisplayListMenuItem.setEnabled(isDeviceConnected());
-    mySubtreePreviewMenuItem.setEnabled(isDeviceConnected());
-  }
-
-  private boolean isDeviceConnected() {
-    return myClient != null && myWindow != null;
+  public void setSources(@Nullable Client newClient, @Nullable ClientWindow newWindow) {
+    myModel = myModel.copy(myModel.getRoot(), myModel.getBufferedImage(), newClient, newWindow);
+    myDumpDisplayListMenuItem.setEnabled(myModel.isConnected());
+    mySubtreePreviewMenuItem.setEnabled(myModel.isConnected());
   }
 
   public static boolean isDumpDisplayListEnabled() {
@@ -319,9 +306,9 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
 
   @Override
   public void deviceDisconnected(@NonNull IDevice device) {
-    if (myClient == null) return;
+    if (myModel.getClient() == null) return;
 
-    IDevice currentDevice = myClient.getDevice();
+    IDevice currentDevice = myModel.getClient().getDevice();
     if (device.equals(currentDevice)) {
       setSources(null, null);
     }
@@ -335,7 +322,6 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
 
     @Override
     public void mousePressed(@NotNull MouseEvent event) {
-      if (myNodeTree == null) return;
       if (event.isPopupTrigger()) {
         TreePath path = myNodeTree.getPathForEvent(event);
         if (path == null) {
@@ -359,7 +345,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
         }
 
         // hide sub view menu from the root
-        mySubtreePreviewMenuItem.setVisible(!node.equals(myRoot));
+        mySubtreePreviewMenuItem.setVisible(!node.equals(myModel.getRoot()));
 
         myNodePopup.putClientProperty(KEY_VIEW_NODE, node);
 
@@ -383,7 +369,6 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
       if (myPreview != null) {
         myPreview.repaint();
       }
-      if (myNodeTree == null) return;
       myNodeTree.repaint();
     }
   }
@@ -391,7 +376,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   private class DumpDisplayListActionListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
-      if (!isDeviceConnected()) return;
+      if (!myModel.isConnected()) return;
 
       ViewNode node = (ViewNode)myNodePopup.getClientProperty(KEY_VIEW_NODE);
       if (node == null) {
@@ -400,9 +385,8 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
         return;
       }
 
-      if (myClient == null || myWindow == null) return;
       try {
-        HandleViewDebug.dumpDisplayList(myClient, myWindow.getTitle(), node.toString());
+        HandleViewDebug.dumpDisplayList(myModel.getClient(), myModel.getWindow().getTitle(), node.toString());
       }
       catch (IOException e1) {
         createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.dumpdisplay.notification.failure", e1.getMessage()),
@@ -415,13 +399,14 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
                          NotificationType.INFORMATION);
 
       UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
-               .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
-                                          .setType(LayoutInspectorEvent.LayoutInspectorEventType.DUMP_DISPLAYLIST)
-               ));
+                                         .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
+                                                                                      .setType(
+                                                                                        LayoutInspectorEvent.LayoutInspectorEventType.DUMP_DISPLAYLIST)
+                                         ));
     }
   }
 
-  private void createNotification(@NotNull String message, @NotNull NotificationType type) {
+  private static void createNotification(@NotNull String message, @NotNull NotificationType type) {
     Notifications.Bus.notify(new Notification(AndroidBundle.message("android.ddms.actions.layoutinspector.notification.group"),
                                               AndroidBundle.message("android.ddms.actions.layoutinspector.notification.title"),
                                               message, type, null));
@@ -430,14 +415,14 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   private class RenderSubtreePreviewActionListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
-      if (isDeviceConnected()) {
+      if (myModel.isConnected()) {
         showSubView((ViewNode)myNodePopup.getClientProperty(KEY_VIEW_NODE));
       }
     }
   }
 
   public void goBackSubView() {
-    assert(!mySubviewList.isEmpty());
+    assert (!mySubviewList.isEmpty());
     ViewNode lastNode = mySubviewList.get(mySubviewList.size() - 1);
     if (lastNode == null) return;
     updatePreview(lastNode);
@@ -452,9 +437,10 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   @VisibleForTesting
   public void showSubView(@NotNull ViewNode node) {
     UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
-             .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
-                                        .setType(LayoutInspectorEvent.LayoutInspectorEventType.RENDER_SUB_VIEW)
-             ));
+                                       .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
+                                                                                    .setType(
+                                                                                      LayoutInspectorEvent.LayoutInspectorEventType.RENDER_SUB_VIEW)
+                                       ));
 
     ViewNode root = getRoot();
     updatePreview(node);
@@ -462,21 +448,28 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   }
 
   private void updatePreview(@NotNull ViewNode node) {
-    if (myWindow == null) return;
+    if (!myModel.isConnected()) return;
 
-    byte[] bytes = myWindow.loadViewImage(node, 10, TimeUnit.SECONDS);
+    byte[] bytes = myModel.getWindow().loadViewImage(node, 10, TimeUnit.SECONDS);
 
     if (bytes == null) return;
 
+    BufferedImage newImage = null;
     try {
-      myBufferedImage = ImageIO.read(new ByteArrayInputStream(bytes));
+      newImage = ImageIO.read(new ByteArrayInputStream(bytes));
     }
     catch (IOException e) {
       getLogger().warn(e);
     }
 
-    myRoot = node;
-    myPreview.setPreview(myBufferedImage, node);
+    if (newImage == null) {
+      createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.update.notification.failure"),
+                         NotificationType.ERROR);
+      return;
+    }
+
+    myModel = myModel.copy(myModel.getRoot(), newImage, myModel.getClient(), myModel.getWindow());
+    myPreview.setPreview(myModel.getBufferedImage(), node);
     myNodeTree = createNodeTree(node);
     myPreview.repaint();
   }
