@@ -54,8 +54,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
-import static javax.swing.BoxLayout.X_AXIS;
-
 /**
  * A UI panel which wraps a console that prints output from Android's logging system.
  */
@@ -265,19 +263,6 @@ public class AndroidLogcatView implements Disposable {
   }
 
   @NotNull
-  public final JPanel createSearchComponent() {
-    final JPanel panel = new JPanel();
-    panel.add(createEditFiltersComboBox());
-
-    final JPanel searchComponent = new JPanel();
-    searchComponent.setLayout(new BoxLayout(searchComponent, X_AXIS));
-    searchComponent.add(myLogConsole.getSearchComponent());
-    searchComponent.add(panel);
-
-    return searchComponent;
-  }
-
-  @NotNull
   public Component createEditFiltersComboBox() {
     JComboBox<AndroidLogcatFilter> editFiltersCombo = new ComboBox<>();
     myFilterComboBoxModel = new DefaultComboBoxModel<>();
@@ -455,9 +440,9 @@ public class AndroidLogcatView implements Disposable {
 
   private void selectFilterByName(String name) {
     Optional<AndroidLogcatFilter> optionalFilter = IntStream.range(0, myFilterComboBoxModel.getSize())
-      .mapToObj(i -> myFilterComboBoxModel.getElementAt(i))
-      .filter(filter -> filter.getName().equals(name))
-      .findFirst();
+                                                            .mapToObj(i -> myFilterComboBoxModel.getElementAt(i))
+                                                            .filter(filter -> filter.getName().equals(name))
+                                                            .findFirst();
 
     optionalFilter.ifPresent(filter -> myFilterComboBoxModel.setSelectedItem(filter));
   }
