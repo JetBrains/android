@@ -64,8 +64,10 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
   public void run(@NotNull ProgressIndicator indicator) {
     LayoutInspectorCaptureOptions options = new LayoutInspectorCaptureOptions();
     options.setTitle(myWindow.getDisplayName());
+    ProtocolVersion version =
+      determineProtocolVersion(myClient.getDevice().getVersion().getApiLevel(), StudioFlags.LAYOUT_INSPECTOR_V2_PROTOCOL_ENABLED.get());
     options.setVersion(
-      determineProtocolVersion(myClient.getDevice().getVersion().getApiLevel(), StudioFlags.LAYOUT_INSPECTOR_V2_PROTOCOL_ENABLED.get()));
+      version);
 
     // Capture view hierarchy
     indicator.setText("Capturing View Hierarchy");
@@ -84,6 +86,7 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
                                                                                     .setType(
                                                                                       LayoutInspectorEvent.LayoutInspectorEventType.CAPTURE)
                                                                                     .setDurationInMs(captureDurationMs)
+                                                                                    .setVersion(version.ordinal() + 1)
                                                                                     .setDataSize(result.getError().isEmpty()
                                                                                                  ? result.getData().length
                                                                                                  : 0)));
