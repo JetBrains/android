@@ -15,216 +15,136 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
-import com.android.tools.adtui.FilterComponent;
-import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.flat.FlatSeparator;
-import com.android.tools.adtui.model.filter.Filter;
-import com.android.tools.adtui.model.filter.FilterHandler;
-import com.android.tools.adtui.model.filter.FilterResult;
-import com.android.tools.adtui.stdui.CommonTabbedPane;
-import com.android.tools.adtui.stdui.CommonToggleButton;
-import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profilers.JComboBoxView;
-import com.android.tools.profilers.ViewBinder;
-import com.android.tools.profilers.cpu.CpuCapture;
-import com.android.tools.profilers.cpu.CpuProfilerAspect;
-import com.android.tools.profilers.cpu.CpuProfilerStageView;
-import com.google.common.collect.ImmutableMap;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.android.tools.adtui.instructions.InstructionsPanel;
+import com.android.tools.adtui.instructions.NewRowInstruction;
+import com.android.tools.adtui.instructions.TextInstruction;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.profilers.ProfilerFonts;
+import com.android.tools.profilers.cpu.*;
+import com.android.tools.profilers.stacktrace.LoadingPanel;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
-import static com.android.tools.profilers.ProfilerLayout.*;
+import java.awt.event.*;
 
 public class CpuCaptureView {
-  // Note the order of the values in the map defines the order of the tabs in UI.
-  private static final Map<CaptureModel.Details.Type, String> DEFAULT_TAB_NAMES = ImmutableMap.of(
-    CaptureModel.Details.Type.CALL_CHART, "Call Chart",
-    CaptureModel.Details.Type.FLAME_CHART, "Flame Chart",
-    CaptureModel.Details.Type.TOP_DOWN, "Top Down",
-    CaptureModel.Details.Type.BOTTOM_UP, "Bottom Up");
-
-  // For Atrace captures names from this map will be used in place of default tab names.
-  private static final Map<CaptureModel.Details.Type, String> ATRACE_TAB_NAMES = ImmutableMap.of(
-    CaptureModel.Details.Type.CALL_CHART, "Trace Events");
-
-  // Some of the tab names may be replaced. This list defines the currently active tab names as
-  private final Map<CaptureModel.Details.Type, String> myTabs = new LinkedHashMap<>(DEFAULT_TAB_NAMES);
+  @NotNull
+  private final CpuProfilerStageView myStageView;
 
   @NotNull
-  private final CpuProfilerStageView myView;
+  private final CpuProfilerStage myStage;
 
+  @NotNull
   private final JPanel myPanel;
 
-  private final CommonTabbedPane myTabsPanel;
-
   @NotNull
-  private FilterComponent myFilterComponent;
+  private CapturePane myCapturePane;
 
-  // Intentionally local field, to prevent GC from cleaning it and removing weak listeners.
-  // Previously, we were creating a CaptureDetailsView temporarily and grabbing its UI
-  // component only. However, in the case of subclass TreeChartView that contains an
-  // AspectObserver, which fires events. If that gets cleaned up early, our UI loses some
-  // useful events.
   @SuppressWarnings("FieldCanBeLocal")
-  @Nullable
-  private CaptureDetailsView myDetailsView;
+  @NotNull
+  private final AspectObserver myObserver;
+
+  public CpuCaptureView(@NotNull CpuProfilerStageView stageView) {
+    myStageView = stageView;
+    myStage = stageView.getStage();
+    myPanel = new JPanel(new BorderLayout());
+    myObserver = new AspectObserver();
+    myCapturePane = createCapturePane();
+
+    myStage.getAspect().addDependency(myObserver)
+           .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails)
+           .onChange(CpuProfilerAspect.CAPTURE_STATE, this::updateCapturePane)
+           .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCapturePane);
+    updateCapturePane();
+  }
+
+  private void updateCaptureDetails() {
+    myCapturePane.updateView();
+  }
+
+  private void updateCapturePane() {
+    myPanel.removeAll();
+    myCapturePane = createCapturePane();
+    myPanel.add(myCapturePane, BorderLayout.CENTER);
+    myPanel.revalidate();
+  }
 
   @NotNull
-  private final ViewBinder<CpuProfilerStageView, CaptureModel.Details, CaptureDetailsView> myBinder;
-
-  public CpuCaptureView(@NotNull CpuProfilerStageView view) {
-    myView = view;
-    myTabsPanel = new CommonTabbedPane();
-    JComboBox<ClockType> clockTypeCombo = new ComboBox<>();
-    JComboBoxView clockTypes =
-      new JComboBoxView<>(clockTypeCombo, view.getStage().getAspect(), CpuProfilerAspect.CLOCK_TYPE,
-                          view.getStage()::getClockTypes, view.getStage()::getClockType, view.getStage()::setClockType);
-    clockTypes.bind();
-    clockTypeCombo.setRenderer(new ClockTypeCellRenderer());
-    CpuCapture capture = myView.getStage().getCapture();
-    clockTypeCombo.setEnabled(capture != null && capture.isDualClock());
-
-    if (capture != null && capture.getType() == CpuProfiler.CpuProfilerType.ATRACE) {
-      myTabs.putAll(ATRACE_TAB_NAMES);
-    }
-    for (String label : myTabs.values()) {
-      myTabsPanel.addTab(label, new JPanel(new BorderLayout()));
-    }
-    myTabsPanel.addChangeListener(event -> setCaptureDetailToTab());
-    myTabsPanel.setOpaque(false);
-    // TOOLBAR_HEIGHT - 1, so the bottom border of the parent is visible.
-    myPanel = new JPanel(new TabularLayout("*,Fit-", (TOOLBAR_HEIGHT - 1) + "px,*"));
-    JPanel toolbar = new JPanel(createToolbarLayout());
-    toolbar.add(clockTypeCombo);
-    toolbar.add(myView.getSelectionTimeLabel());
-    myFilterComponent = new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
-    if (view.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureFilterEnabled()) {
-      CommonToggleButton filterButton = FilterComponent.createFilterToggleButton();
-      toolbar.add(new FlatSeparator());
-      toolbar.add(filterButton);
-
-      myFilterComponent.getModel().setFilterHandler(new FilterHandler() {
-        @Override
-        @NotNull
-        protected FilterResult applyFilter(@NotNull Filter filter) {
-          myView.getStage().setCaptureFilter(filter);
-          // TODO: b/110904682 Show match count result for cpu profiler.
-          return new FilterResult(0, false);
-        }
-      });
-
-      myFilterComponent.setVisible(false);
-      myFilterComponent.setBorder(DEFAULT_BOTTOM_BORDER);
-      FilterComponent.configureKeyBindingAndFocusBehaviors(myPanel, myFilterComponent, filterButton);
+  private CapturePane createCapturePane() {
+    if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.PARSING) {
+      return new LoadingPane(myStageView);
     }
 
-    myPanel.add(toolbar, new TabularLayout.Constraint(0, 1));
-    myPanel.add(myTabsPanel, new TabularLayout.Constraint(0, 0, 2, 2));
-
-    myBinder = new ViewBinder<>();
-    myBinder.bind(CaptureModel.TopDown.class, TreeDetailsView.TopDownDetailsView::new);
-    myBinder.bind(CaptureModel.BottomUp.class, TreeDetailsView.BottomUpDetailsView::new);
-    myBinder.bind(CaptureModel.CallChart.class, ChartDetailsView.CallChartDetailsView::new);
-    myBinder.bind(CaptureModel.FlameChart.class, ChartDetailsView.FlameChartDetailsView::new);
-    updateView();
-  }
-
-  public void updateView() {
-    // Clear the content of all the tabs
-    for (Component tab : myTabsPanel.getComponents()) {
-      // In the constructor, we make sure to use JPanel as root components of the tabs.
-      assert tab instanceof JPanel;
-      ((JPanel)tab).removeAll();
-    }
-    JComponent filterComponent = myFilterComponent;
-    boolean searchHasFocus = filterComponent.isAncestorOf(KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner());
-    if (filterComponent.getParent() != null) {
-      filterComponent.getParent().remove(filterComponent);
-    }
-
-    CaptureModel.Details details = myView.getStage().getCaptureDetails();
-    if (details == null) {
-      return;
-    }
-
-    // Update the current selected tab
-    String detailsTypeString = myTabs.get(details.getType());
-    int currentTabIndex = myTabsPanel.getSelectedIndex();
-    if (currentTabIndex < 0 || !myTabsPanel.getTitleAt(currentTabIndex).equals(detailsTypeString)) {
-      for (int i = 0; i < myTabsPanel.getTabCount(); ++i) {
-        if (myTabsPanel.getTitleAt(i).equals(detailsTypeString)) {
-          myTabsPanel.setSelectedIndex(i);
-          break;
-        }
-      }
-    }
-
-    // Update selected tab content. As we need to update the content of the tabs dynamically,
-    // we use a JPanel (set on the constructor) to wrap the content of each tab's content.
-    // This is required because JBTabsImpl doesn't behave consistently when setting tab's component dynamically.
-    JPanel selectedTab = (JPanel)myTabsPanel.getSelectedComponent();
-    myDetailsView = myBinder.build(myView, details);
-    selectedTab.add(filterComponent, BorderLayout.NORTH);
-    selectedTab.add(myDetailsView.getComponent(), BorderLayout.CENTER);
-    // We're replacing the content by removing and adding a new component.
-    // JComponent#removeAll doc says that we should revalidate if it is already visible.
-    selectedTab.revalidate();
-
-    // the searchComponent gets re-added to the selected tab component after filtering changes, so reset the focus here.
-    if (searchHasFocus) {
-      myFilterComponent.requestFocusInWindow();
+    if (myStage.getCapture() == null) {
+      return new HelpTipPane(myStageView);
+    } else {
+      return new DetailsCapturePane(myStageView);
     }
   }
 
-  private void setCaptureDetailToTab() {
-    CaptureModel.Details.Type type = null;
-    if (myTabsPanel.getSelectedIndex() >= 0) {
-      String tabTitle = myTabsPanel.getTitleAt(myTabsPanel.getSelectedIndex());
-      for (Map.Entry<CaptureModel.Details.Type, String> entry : myTabs.entrySet()) {
-        if (tabTitle.equals(entry.getValue())) {
-          type = entry.getKey();
-        }
-      }
-    }
-    myView.getStage().setCaptureDetails(type);
-  }
-
-  private static Logger getLog() {
-    return Logger.getInstance(CpuCaptureView.class);
-  }
-
+  @NotNull
   public JComponent getComponent() {
     return myPanel;
   }
 
+  static class LoadingPane extends CapturePane {
+    private static final String LOADING_TEXT = "Parsing capture...";
 
-  private static class ClockTypeCellRenderer extends ListCellRendererWrapper<ClockType> {
+    @NotNull private final LoadingPanel myCaptureViewLoading;
+
+    LoadingPane(@NotNull CpuProfilerStageView stageView) {
+      super(stageView);
+      myCaptureViewLoading = stageView.getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
+      myCaptureViewLoading.setLoadingText(LOADING_TEXT);
+
+      addHierarchyListener(new HierarchyListener() {
+        @Override
+        public void hierarchyChanged(HierarchyEvent e) {
+          if ((e.getChangeFlags() & HierarchyEvent.DISPLAYABILITY_CHANGED) != 0 && !isDisplayable()) {
+            // LoadingPane was removed from the hierarchy, so stop the animations.
+            myCaptureViewLoading.stopLoading();
+          }
+        }
+      });
+
+      disableInteraction();
+      updateView();
+    }
+
     @Override
-    public void customize(JList list,
-                          ClockType value,
-                          int index,
-                          boolean selected,
-                          boolean hasFocus) {
-      switch (value) {
-        case GLOBAL:
-          setText("Wall Clock Time");
-          break;
-        case THREAD:
-          setText("Thread Time");
-          break;
-        default:
-          getLog().warn("Unexpected clock type received.");
-      }
+    void populateContent(@NotNull JPanel panel) {
+      myCaptureViewLoading.startLoading();
+      panel.add(myCaptureViewLoading.getComponent(), BorderLayout.CENTER);
+    }
+  }
+
+  /**
+   * A {@link CapturePane} that is used to display a help message when there is no selected capture.
+   */
+  static class HelpTipPane extends CapturePane {
+    HelpTipPane(@NotNull CpuProfilerStageView stageView) {
+      super(stageView);
+      disableInteraction();
+      updateView();
+    }
+
+    @Override
+    void populateContent(@NotNull JPanel panel) {
+      FontMetrics headerMetrics = SwingUtilities2.getFontMetrics(this, ProfilerFonts.H3_FONT);
+      FontMetrics bodyMetrics = SwingUtilities2.getFontMetrics(this, ProfilerFonts.STANDARD_FONT);
+      InstructionsPanel infoMessage = new InstructionsPanel.Builder(
+        new TextInstruction(headerMetrics, "Thread details unavailable"),
+        new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+        new TextInstruction(bodyMetrics, "Click Record to start capturing CPU activity"),
+        new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+        new TextInstruction(bodyMetrics, "or select a capture in the timeline."))
+        .setColors(JBColor.foreground(), null)
+        .build();
+
+      panel.add(infoMessage, BorderLayout.CENTER);
     }
   }
 }

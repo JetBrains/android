@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.capturedetails
 
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ART
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE
@@ -46,17 +47,20 @@ class CpuCaptureViewTest {
     cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, cpuService = cpuService)
   }
 
+  private lateinit var captureView: CpuCaptureView
   private lateinit var stageView: CpuProfilerStageView
 
   @Before
   fun setUp() {
     val profilersView = StudioProfilersView(cpuProfiler.stage.studioProfilers, FakeIdeProfilerComponents())
+
     stageView = CpuProfilerStageView(profilersView, cpuProfiler.stage)
+    captureView = CpuCaptureView(stageView)
   }
 
   @Test
   fun whenSelectingCallChartThereShouldBeInstanceOfTreeChartView() {
-    val stage = stageView.stage
+    val stage = cpuProfiler.stage
 
     cpuProfiler.apply {
       setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
@@ -65,13 +69,13 @@ class CpuCaptureViewTest {
 
     stage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP)
     assertThat(stage.captureDetails?.type).isEqualTo(CaptureModel.Details.Type.BOTTOM_UP)
-    ReferenceWalker(stageView).assertNotReachable(ChartDetailsView.CallChartDetailsView::class.java)
+    ReferenceWalker(captureView).assertNotReachable(ChartDetailsView.CallChartDetailsView::class.java)
 
     stage.setCaptureDetails(CaptureModel.Details.Type.CALL_CHART)
     assertThat(stage.captureDetails?.type).isEqualTo(CaptureModel.Details.Type.CALL_CHART)
-    ReferenceWalker(stageView).assertReachable(ChartDetailsView.CallChartDetailsView::class.java)
+    ReferenceWalker(captureView).assertReachable(ChartDetailsView.CallChartDetailsView::class.java)
 
-    val tabPane = TreeWalker(stageView.component).descendants().filterIsInstance<CommonTabbedPane>()[0]
+    val tabPane = TreeWalker(captureView.component).descendants().filterIsInstance<CommonTabbedPane>()[0]
     assertThat(tabPane.selectedIndex).isEqualTo(0)
     assertThat(tabPane.getTitleAt(0)).matches("Call Chart")
   }
@@ -83,9 +87,80 @@ class CpuCaptureViewTest {
       captureTrace(profilerType = ATRACE)
     }
 
-    val tabPane = TreeWalker(stageView.component).descendants().filterIsInstance(CommonTabbedPane::class.java)[0]
+    val tabPane = TreeWalker(captureView.component).descendants().filterIsInstance(CommonTabbedPane::class.java)[0]
     tabPane.selectedIndex = 0
-    ReferenceWalker(stageView).assertReachable(ChartDetailsView.CallChartDetailsView::class.java)
+    ReferenceWalker(captureView).assertReachable(ChartDetailsView.CallChartDetailsView::class.java)
     assertThat(tabPane.getTitleAt(0)).matches("Trace Events")
   }
+
+  @Test
+  fun interactionDisabledWhenHelpTipPane() {
+    val capturePane = CpuCaptureView.HelpTipPane(stageView)
+    val toolbar = TreeWalker(capturePane).descendants().filterIsInstance<CapturePane.Toolbar>().first()
+    val tab = TreeWalker(capturePane).descendants().filterIsInstance<CommonTabbedPane>().first()
+    assertThat(toolbar.isEnabled).isFalse()
+    assertThat(tab.isEnabled).isFalse()
+  }
+
+  @Test
+  fun interactionDisabledWhenLoadingPane() {
+    val capturePane = CpuCaptureView.LoadingPane(stageView)
+    val toolbar = TreeWalker(capturePane).descendants().filterIsInstance<CapturePane.Toolbar>().first()
+    val tab = TreeWalker(capturePane).descendants().filterIsInstance<CommonTabbedPane>().first()
+    assertThat(toolbar.isEnabled).isFalse()
+    assertThat(tab.isEnabled).isFalse()
+  }
+
+  @Test
+  fun showsHelpTipPaneWhenSelectingRangeWithNoCapture() {
+    stageView.timeline.apply {
+      dataRange.set(0.0, 200.0)
+      viewRange.set(0.0, 200.0)
+    }
+
+    cpuProfiler.apply {
+      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
+      captureTrace(id = 1, fromUs = 0, toUs = 100, profilerType = ART)
+    }
+
+    stageView.stage.selectionModel.apply {
+      // Simulates the selection creation
+      clear()
+      set(105.0, 110.0)
+    }
+    assertThat(getCapturePane()).isInstanceOf(CpuCaptureView.HelpTipPane::class.java)
+  }
+
+  @Test
+  fun showsDetailsPaneWhenSelectingCapture() {
+    cpuProfiler.apply {
+      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
+      captureTrace(profilerType = ART)
+    }
+
+    assertThat(getCapturePane()).isInstanceOf(DetailsCapturePane::class.java)
+  }
+
+  @Test
+  fun showsLoadingPaneWhenParsing() {
+    val observer = AspectObserver()
+    var parsingCalled = false
+    stageView.stage.aspect.addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_STATE) {
+      if (stageView.stage.captureState == CpuProfilerStage.CaptureState.PARSING) {
+        parsingCalled = true
+        assertThat(getCapturePane()).isInstanceOf(CpuCaptureView.LoadingPane::class.java)
+      }
+    }
+    assertThat(parsingCalled).isFalse()
+    cpuProfiler.apply {
+      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
+      captureTrace(profilerType = ART)
+    }
+    assertThat(parsingCalled).isTrue()
+  }
+
+  private fun getCapturePane() = TreeWalker(captureView.component)
+    .descendants()
+    .filterIsInstance<CapturePane>()
+    .first()
 }
