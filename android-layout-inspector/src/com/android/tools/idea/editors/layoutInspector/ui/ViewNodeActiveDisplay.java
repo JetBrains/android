@@ -144,8 +144,9 @@ public class ViewNodeActiveDisplay extends JComponent {
 
     // if size has changed, recalculate the the view node display boxes sizes/locations.
     if (mLastWidth != getWidth() || mLastHeight != getHeight() || updateBounds) {
-      float rootHeight = mRoot.getDisplayInfo().getHeight();
-      float rootWidth = mRoot.getDisplayInfo().getWidth();
+      DisplayInfo info = mRoot.getDisplayInfo();
+      float rootHeight = info.getHeight();
+      float rootWidth = info.getWidth();
 
       // on first draw, calculate scale to fit image into panel
       if (mLastHeight == 0 && mLastWidth == 0) {
@@ -158,7 +159,7 @@ public class ViewNodeActiveDisplay extends JComponent {
       mDrawShiftX = (int) (getWidth() - mZoomFactor * rootWidth) / 2;
       mDrawShiftY = (int) (getHeight() - mZoomFactor * rootHeight) / 2;
 
-      calculateNodeBounds(mRoot, 0, 0, 1, 1, mZoomFactor);
+      calculateNodeBounds(mRoot, info.getCopyAtOrigin(),0, 0, 1, 1, mZoomFactor);
       updateBounds = false;
     }
 
@@ -182,10 +183,9 @@ public class ViewNodeActiveDisplay extends JComponent {
   }
 
   private void calculateNodeBounds(
-    @NotNull ViewNode node, float leftShift, float topShift,
+    @NotNull ViewNode node, @NotNull DisplayInfo info, float leftShift, float topShift,
     float scaleX, float scaleY, float drawScale) {
 
-    DisplayInfo info = node.getDisplayInfo();
     float newScaleX = scaleX * info.getScaleX();
     float newScaleY = scaleY * info.getScaleY();
 
@@ -203,7 +203,7 @@ public class ViewNodeActiveDisplay extends JComponent {
 
     if (!node.isLeaf()) {
       for (ViewNode child : node.getChildren()) {
-        calculateNodeBounds(child, l, t, newScaleX, newScaleY, drawScale);
+        calculateNodeBounds(child, child.displayInfo, l, t, newScaleX, newScaleY, drawScale);
       }
     }
   }
