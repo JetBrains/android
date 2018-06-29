@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.java.model.GradlePluginModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
@@ -31,9 +32,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 
 import java.io.File;
+import java.util.Collection;
 
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static java.util.Collections.emptyList;
 
 public class GradleModuleSetup {
   @NotNull
@@ -63,7 +66,13 @@ public class GradleModuleSetup {
     BuildScriptClasspathModel classpathModel = models.findModel(BuildScriptClasspathModel.class);
     String gradleVersion = classpathModel != null ? classpathModel.getGradleVersion() : null;
 
-    return new GradleModuleModel(module.getName(), gradleProject, buildFilePath, gradleVersion);
+    return new GradleModuleModel(module.getName(), gradleProject, getGradlePlugins(models), buildFilePath, gradleVersion);
+  }
+
+  @NotNull
+  private static Collection<String> getGradlePlugins(@NotNull GradleModuleModels models) {
+    GradlePluginModel pluginModel = models.findModel(GradlePluginModel.class);
+    return pluginModel == null ? emptyList() : pluginModel.getGraldePluginList();
   }
 
   public void setUpModule(@NotNull Module module,
