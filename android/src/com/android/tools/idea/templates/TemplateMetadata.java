@@ -72,6 +72,7 @@ public class TemplateMetadata {
   public static final String ATTR_AIDL_OUT = "aidlOut";
   public static final String ATTR_DEBUG_KEYSTORE_SHA1 = "debugKeystoreSha1";
   public static final String ATTR_BUILD_TOOLS_VERSION = "buildToolsVersion";
+  public static final String ATTR_EXPLICIT_BUILD_TOOLS_VERSION = "explicitBuildToolsVersion";
   public static final String ATTR_GRADLE_PLUGIN_VERSION = "gradlePluginVersion";
   public static final String ATTR_GRADLE_VERSION = "gradleVersion";
   public static final String ATTR_JAVA_VERSION = "javaVersion";
