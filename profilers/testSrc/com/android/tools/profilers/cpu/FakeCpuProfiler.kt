@@ -22,6 +22,7 @@ import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.*
 import com.google.common.truth.Truth.assertThat
 import org.junit.rules.ExternalResource
+import java.util.concurrent.TimeUnit
 
 /**
  * A JUnit rule for simulating CPU profiler events.
@@ -71,20 +72,19 @@ class FakeCpuProfiler(val grpcChannel: FakeGrpcChannel,
     )
 
     stage.stopCapturing()
-    assertThat(stage.captureState).isEqualTo(CpuProfilerStage.CaptureState.IDLE)
   }
 
   /**
    * Simulates capturing a trace.
    *
    * @param id ID of the trace
-   * @param fromNs starting timestamp of the trace
-   * @param toNs ending timestamp of the trace
+   * @param fromUs starting timestamp of the trace
+   * @param toUs ending timestamp of the trace
    * @param profilerType the profiler type of the trace
    */
   fun captureTrace(id: Int = 0,
-                   fromNs: Long = 0,
-                   toNs: Long = 0,
+                   fromUs: Long = 0,
+                   toUs: Long = 0,
                    profilerType: CpuProfilerType = CpuProfilerType.ART) {
 
     // Change the selected configuration, so that startCapturing() will use the correct one.
@@ -104,8 +104,8 @@ class FakeCpuProfiler(val grpcChannel: FakeGrpcChannel,
                               .setTraceId(id)
                               .setProfilerType(profilerType)
                               .setTraceFilePath("fake_path_$id.trace")
-                              .setFromTimestamp(fromNs)
-                              .setToTimestamp(toNs)
+                              .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos(fromUs))
+                              .setToTimestamp(TimeUnit.MICROSECONDS.toNanos(toUs))
                               .build())
   }
 

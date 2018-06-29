@@ -18,7 +18,6 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.instructions.InstructionsPanel;
-import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
@@ -27,20 +26,16 @@ import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
-import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureView;
 import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
-import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
@@ -139,16 +134,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    */
   @NotNull private final JBSplitter mySplitter;
 
-  @NotNull private final LoadingPanel myCaptureViewLoading;
-
-  @Nullable private CpuCaptureView myCaptureView;
+  @NotNull private final CpuCaptureView myCaptureView;
 
   @NotNull private final CpuProfilingConfigurationView myProfilingConfigurationView;
-
-  /**
-   * Panel to let user know to take a capture.
-   */
-  @NotNull private final JPanel myHelpTipPanel;
 
   @NotNull private final RangeTooltipComponent myTooltipComponent;
 
@@ -159,14 +147,16 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     super(profilersView, stage);
     myStage = stage;
+    myCaptureView = new CpuCaptureView(this);
     ProfilerTimeline timeline = getTimeline();
     myImportedSelectedProcessLabel = new JLabel();
     stage.getAspect().addDependency(this)
          .onChange(CpuProfilerAspect.CAPTURE_STATE, this::updateCaptureState)
          .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCaptureSelection)
          .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection)
-         .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails)
          .onChange(CpuProfilerAspect.CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
+    stage.getStudioProfilers().addDependency(this)
+         .onChange(ProfilerAspect.MODE, this::updateCaptureViewVisibility);
 
     getTooltipBinder().bind(CpuUsageTooltip.class, CpuUsageTooltipView::new);
     getTooltipBinder().bind(CpuKernelTooltip.class, CpuKernelTooltipView::new);
@@ -234,9 +224,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     details.add(timeAxis, new TabularLayout.Constraint(3, 0));
     details.add(scrollbar, new TabularLayout.Constraint(4, 0));
 
-    myHelpTipPanel = new JPanel(new BorderLayout());
-    configureHelpTipPanel();
-
     // The first component in the splitter is the L2 components, the 2nd component is the L3 components.
     mySplitter = new JBSplitter(true);
     mySplitter.setFirstComponent(details);
@@ -261,9 +248,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myElapsedRecordingTime.setBorder(JBUI.Borders.emptyLeft(5));
     myElapsedRecordingTime.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
 
-    myCaptureViewLoading = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
-    myCaptureViewLoading.setLoadingText("Parsing capture...");
-
     updateCaptureState();
 
     CpuProfilerContextMenuInstaller.install(myStage, getIdeComponents(), myUsageView, getComponent());
@@ -277,11 +261,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   private void updateThreadSelection() {
     myThreads.updateThreadSelection();
-
-    if (myStage.getSelectedThread() != CaptureModel.NO_THREAD && myStage.isSelectionFailure()) {
-      // If the help tip info panel is already showing and the user clears thread selection, we'll leave the panel showing.
-      mySplitter.setSecondComponent(myHelpTipPanel);
-    }
   }
 
   private void addThreadsPanelToDetails(@NotNull TabularLayout detailsLayout, @NotNull JPanel detailsPanel) {
@@ -348,24 +327,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     detailsPanel.add(myCpus.getPanel(), new TabularLayout.Constraint(DETAILS_KERNEL_PANEL_ROW, 0));
   }
 
-  private void configureHelpTipPanel() {
-    FontMetrics headerMetrics = SwingUtilities2.getFontMetrics(myHelpTipPanel, ProfilerFonts.H3_FONT);
-    FontMetrics bodyMetrics = SwingUtilities2.getFontMetrics(myHelpTipPanel, ProfilerFonts.STANDARD_FONT);
-    InstructionsPanel infoMessage = new InstructionsPanel.Builder(
-      new TextInstruction(headerMetrics, "Thread details unavailable"),
-      new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      new TextInstruction(bodyMetrics, "Click Record to start capturing CPU activity"),
-      new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      new TextInstruction(bodyMetrics, "or select a capture in the timeline."))
-      .setColors(JBColor.foreground(), null)
-      .build();
-    myHelpTipPanel.add(infoMessage, BorderLayout.CENTER);
-  }
-
-  private void clearSelection() {
-    getStage().getStudioProfilers().getTimeline().getSelectionRange().clear();
-  }
-
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
     FontMetrics metrics = SwingUtilities2.getFontMetrics(parent, ProfilerFonts.H2_FONT);
@@ -415,7 +376,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   private void updateCaptureState() {
-    myCaptureViewLoading.stopLoading();
     myElapsedRecordingTime.setText("");
     switch (myStage.getCaptureState()) {
       case IDLE:
@@ -436,11 +396,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myProfilingConfigurationView.getComponent().setEnabled(false);
         break;
       case PARSING:
-        myCaptureViewLoading.startLoading();
-        mySplitter.setSecondComponent(myCaptureViewLoading.getComponent());
         break;
       case PARSING_FAILURE:
-        mySplitter.setSecondComponent(null);
         break;
       case STARTING:
         myCaptureButton.setEnabled(false);
@@ -448,7 +405,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myProfilingConfigurationView.getComponent().setEnabled(false);
         break;
       case START_FAILURE:
-        mySplitter.setSecondComponent(null);
         break;
       case STOPPING:
         myCaptureButton.setEnabled(false);
@@ -456,32 +412,19 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myProfilingConfigurationView.getComponent().setEnabled(false);
         break;
       case STOP_FAILURE:
-        mySplitter.setSecondComponent(null);
         break;
     }
   }
 
   private void updateCaptureSelection() {
     CpuCapture capture = myStage.getCapture();
+
     if (capture == null) {
-      // If the capture is still being parsed, the splitter second component should be myCaptureViewLoading
-      if (myStage.getCaptureState() != CpuProfilerStage.CaptureState.PARSING) {
-        if (myStage.isSelectionFailure()) {
-          mySplitter.setSecondComponent(myHelpTipPanel);
-        }
-        else {
-          mySplitter.setSecondComponent(null);
-        }
-      }
-      // Clear the selection if it exists
-      clearSelection();
-      myCaptureView = null;
+      return;
     }
-    else if ((myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE)
+    if ((myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE)
              || (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING)) {
-      // Capture has finished parsing. Create a CpuCaptureView to display it.
-      myCaptureView = new CpuCaptureView(this);
-      mySplitter.setSecondComponent(myCaptureView.getComponent());
+      // Capture has finished parsing.
       ensureCaptureInViewRange();
       if (capture.getType() == com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE) {
         if (myStage.isImportTraceMode()) {
@@ -502,16 +445,18 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
   }
 
+  private void updateCaptureViewVisibility() {
+    if (myStage.getProfilerMode() == ProfilerMode.EXPANDED) {
+      mySplitter.setSecondComponent(myCaptureView.getComponent());
+    } else {
+      mySplitter.setSecondComponent(null);
+    }
+  }
+
   private void updateCaptureElapsedTime() {
     if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
       long elapsedTimeUs = myStage.getCaptureElapsedTimeUs();
       myElapsedRecordingTime.setText(TimeFormatter.getSemiSimplifiedClockString(elapsedTimeUs));
-    }
-  }
-
-  private void updateCaptureDetails() {
-    if (myCaptureView != null) {
-      myCaptureView.updateView();
     }
   }
 
