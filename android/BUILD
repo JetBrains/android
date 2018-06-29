@@ -487,6 +487,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/1.3.9:jar",
         "//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/2.0.1:jar",
         "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.2.4:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.6.2:jar",
         "//prebuilts/tools/common/m2/repository/com/google/firebase/firebase-common-license/12.0.1:aar",
         "//prebuilts/tools/common/m2/repository/com/google/firebase/firebase-common/12.0.1:aar",
         "//prebuilts/tools/common/m2/repository/com/google/firebase/firebase-iid-license/12.0.1:aar",

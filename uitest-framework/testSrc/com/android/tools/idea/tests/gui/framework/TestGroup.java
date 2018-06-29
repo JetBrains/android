@@ -26,6 +26,7 @@ public enum TestGroup {
   EDITING,
   TEST_FRAMEWORK,
   QA,
+  QA_BAZEL,
   QA_UNRELIABLE,
   SANITY,
   SANITY_BAZEL,
