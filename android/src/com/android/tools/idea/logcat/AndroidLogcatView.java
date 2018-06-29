@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.logcat;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log.LogLevel;
 import com.android.tools.idea.ddms.DeviceContext;
-import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
@@ -36,7 +36,6 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.IdeBorderFactory;
@@ -63,8 +62,25 @@ import static javax.swing.BoxLayout.X_AXIS;
 public class AndroidLogcatView implements Disposable {
   public static final Key<AndroidLogcatView> ANDROID_LOGCAT_VIEW_KEY = Key.create("ANDROID_LOGCAT_VIEW_KEY");
 
+  static final AndroidLogcatFilter NO_FILTERS_ITEM = new AndroidLogcatFilter() {
+    @NotNull
+    @Override
+    public String getName() {
+      return NO_FILTERS;
+    }
+
+    @Override
+    public boolean isApplicable(@NotNull String message,
+                                @NotNull String tag,
+                                @NotNull String p,
+                                int processId,
+                                @NotNull LogLevel priority) {
+      return true;
+    }
+  };
+
   // TODO Refactor all this filter combo box stuff to its own class
-  private static final AndroidLogcatFilter EDIT_FILTER_CONFIGURATION_ITEM = new AndroidLogcatFilter() {
+  static final AndroidLogcatFilter EDIT_FILTER_CONFIGURATION_ITEM = new AndroidLogcatFilter() {
     @NotNull
     @Override
     public String getName() {
@@ -84,15 +100,7 @@ public class AndroidLogcatView implements Disposable {
   private final Project myProject;
   private final FormattedLogcatReceiver myLogcatReceiver;
   private final AndroidLogConsole myLogConsole;
-
-  /**
-   * A default filter which will always let everything through.
-   */
-  @NotNull
-  private final AndroidLogcatFilter myNoFilter;
-
   private final DeviceContext myDeviceContext;
-  private final String myToolWindowId;
   private final AndroidLogFilterModel myLogFilterModel;
 
   private volatile IDevice myDevice;
@@ -125,22 +133,27 @@ public class AndroidLogcatView implements Disposable {
   }
 
   @NotNull
+  public final AndroidLogConsole getLogConsole() {
+    return myLogConsole;
+  }
+
+  @NotNull
   DeviceContext getDeviceContext() {
     return myDeviceContext;
   }
 
+  @VisibleForTesting
   @NotNull
-  public final LogConsoleBase getLogConsole() {
-    return myLogConsole;
+  ListModel<AndroidLogcatFilter> getEditFiltersComboBoxModel() {
+    return myFilterComboBoxModel;
   }
 
   /**
    * Logcat view with device obtained from {@link DeviceContext}
    */
-  public AndroidLogcatView(@NotNull Project project, @NotNull DeviceContext deviceContext, @NotNull String toolWindowId) {
+  AndroidLogcatView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
     myDeviceContext = deviceContext;
     myProject = project;
-    myToolWindowId = toolWindowId;
 
     Disposer.register(myProject, this);
 
@@ -203,8 +216,6 @@ public class AndroidLogcatView implements Disposable {
         }
       };
     deviceContext.addListener(deviceSelectionListener, this);
-
-    myNoFilter = new DefaultAndroidLogcatFilter.Builder(NO_FILTERS).build();
 
     JComponent consoleComponent = myLogConsole.getComponent();
 
@@ -270,7 +281,7 @@ public class AndroidLogcatView implements Disposable {
   public Component createEditFiltersComboBox() {
     JComboBox<AndroidLogcatFilter> editFiltersCombo = new ComboBox<>();
     myFilterComboBoxModel = new DefaultComboBoxModel<>();
-    myFilterComboBoxModel.addElement(myNoFilter);
+    myFilterComboBoxModel.addElement(NO_FILTERS_ITEM);
     myFilterComboBoxModel.addElement(EDIT_FILTER_CONFIGURATION_ITEM);
 
     updateDefaultFilters(null);
@@ -337,8 +348,7 @@ public class AndroidLogcatView implements Disposable {
   }
 
   boolean isActive() {
-    ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(myToolWindowId);
-    return window.isVisible();
+    return ToolWindowManager.getInstance(myProject).getToolWindow("Logcat").isVisible();
   }
 
   public final void activate() {
@@ -395,21 +405,22 @@ public class AndroidLogcatView implements Disposable {
    * Update the list of filters which are provided by default (selected app and filters provided
    * by plugins). These show up in the top half of the filter pulldown.
    */
-  private void updateDefaultFilters(@Nullable ClientData client) {
-    int noFilterIndex = myFilterComboBoxModel.getIndexOf(myNoFilter);
+  @VisibleForTesting
+  void updateDefaultFilters(@Nullable ClientData client) {
+    int noFilterIndex = myFilterComboBoxModel.getIndexOf(NO_FILTERS_ITEM);
     for (int i = 0; i < noFilterIndex; i++) {
       myFilterComboBoxModel.removeElementAt(0);
     }
 
     int insertIndex = 0;
 
-    DefaultAndroidLogcatFilter.Builder selectedAppFilterBuilder = new DefaultAndroidLogcatFilter.Builder(SELECTED_APP_FILTER);
     if (client != null) {
-      selectedAppFilterBuilder.setPid(client.getPid());
+      AndroidLogcatFilter filter = new DefaultAndroidLogcatFilter.Builder(SELECTED_APP_FILTER)
+        .setPid(client.getPid())
+        .build();
+
+      myFilterComboBoxModel.insertElementAt(filter, insertIndex++);
     }
-    // Even if "client" is null, create a dummy "Selected app" filter as a placeholder which will
-    // be replaced when a client is eventually created.
-    myFilterComboBoxModel.insertElementAt(selectedAppFilterBuilder.build(), insertIndex++);
 
     for (LogcatFilterProvider filterProvider : LogcatFilterProvider.EP_NAME.getExtensions()) {
       AndroidLogcatFilter filter = filterProvider.getFilter(client);
