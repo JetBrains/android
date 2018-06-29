@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.gradle.tooling.model.DomainObjectSet;
@@ -61,8 +60,13 @@ public class GradleModuleModel implements ModuleModel {
                            @NotNull Collection<String> gradlePlugins,
                            @Nullable File buildFilePath,
                            @Nullable String gradleVersion) {
-    this(moduleName, getTaskNames(gradleProject), gradleProject.getPath(),
-         gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir(), gradlePlugins, buildFilePath, gradleVersion);
+    myModuleName = moduleName;
+    myTaskNames = getTaskNames(gradleProject);
+    myGradlePath = gradleProject.getPath();
+    myRootFolderPath = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir();
+    myGradlePlugins = ImmutableList.copyOf(gradlePlugins);
+    myBuildFilePath = buildFilePath;
+    myGradleVersion = gradleVersion;
   }
 
   @NotNull
@@ -78,23 +82,6 @@ public class GradleModuleModel implements ModuleModel {
       }
     }
     return taskNames;
-  }
-
-  @VisibleForTesting
-  public GradleModuleModel(@NotNull String moduleName,
-                           @NotNull List<String> taskNames,
-                           @NotNull String gradlePath,
-                           @NotNull File rootFolderPath,
-                           @NotNull Collection<String> gradlePlugins,
-                           @Nullable File buildFilePath,
-                           @Nullable String gradleVersion) {
-    myModuleName = moduleName;
-    myTaskNames = taskNames;
-    myGradlePath = gradlePath;
-    myRootFolderPath = rootFolderPath;
-    myGradlePlugins = ImmutableList.copyOf(gradlePlugins);
-    myBuildFilePath = buildFilePath;
-    myGradleVersion = gradleVersion;
   }
 
   @Override
