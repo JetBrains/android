@@ -31,6 +31,8 @@ import com.intellij.openapi.compiler.DummyCompileContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.CompilerProjectExtension;
+import com.intellij.openapi.roots.SourceFolder;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -153,7 +155,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     FileUtil.writeToFile(notModifiedSrc, "package com.google.example; public class NotModified {}");
 
     ApplicationManager.getApplication().runWriteAction(
-      () -> PsiTestUtil.addSourceRoot(myModule, VfsUtil.findFileByIoFile(srcDir, true)));
+      (Computable<SourceFolder>)() -> PsiTestUtil.addSourceRoot(myModule, VfsUtil.findFileByIoFile(srcDir, true)));
 
     JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
     for (File src : ImmutableList.of(rSrc, modifiedSrc, notModifiedSrc)) {
