@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
@@ -44,6 +45,7 @@ public class JavaModuleModel implements ModuleModel {
   @NotNull private final Collection<JavaModuleContentRoot> myContentRoots;
   @NotNull private final Collection<JavaModuleDependency> myJavaModuleDependencies;
   @NotNull private final Collection<JarLibraryDependency> myJarLibraryDependencies;
+  @NotNull private final Collection<SyncIssue> mySyncIssues;
   @NotNull private final Map<String, Set<File>> myArtifactsByConfiguration;
   @NotNull private final List<String> myConfigurations;
 
@@ -69,6 +71,7 @@ public class JavaModuleModel implements ModuleModel {
                          @NotNull Collection<JavaModuleContentRoot> contentRoots,
                          @NotNull Collection<JavaModuleDependency> javaModuleDependencies,
                          @NotNull Collection<JarLibraryDependency> jarLibraryDependencies,
+                         @NotNull Collection<SyncIssue> syncIssues,
                          @NotNull Map<String, Set<File>> artifactsByConfiguration,
                          @Nullable ExtIdeaCompilerOutput compilerOutput,
                          @Nullable File buildFolderPath,
@@ -79,6 +82,7 @@ public class JavaModuleModel implements ModuleModel {
     myContentRoots = contentRoots;
     myJavaModuleDependencies = javaModuleDependencies;
     myJarLibraryDependencies = jarLibraryDependencies;
+    mySyncIssues = syncIssues;
     myArtifactsByConfiguration = artifactsByConfiguration;
     myCompilerOutput = compilerOutput;
     myBuildFolderPath = buildFolderPath;
@@ -163,6 +167,11 @@ public class JavaModuleModel implements ModuleModel {
 
   public boolean isAndroidModuleWithoutVariants() {
     return myAndroidModuleWithoutVariants;
+  }
+
+  @NotNull
+  public Collection<SyncIssue> getSyncIssues() {
+    return mySyncIssues;
   }
 
   @Nullable
