@@ -35,12 +35,11 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
-import java.util.Collections;
-
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -82,7 +81,7 @@ public class BuildApkActionTest extends IdeaTestCase {
 
     myAction.actionPerformed(event);
 
-    verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.ALL), eq(Collections.emptyList()), any(OutputBuildAction.class));
+    verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.ALL), eq(emptyList()), any(OutputBuildAction.class));
   }
 
   public void testActionPerformedForDynamicApp() {
@@ -104,7 +103,7 @@ public class BuildApkActionTest extends IdeaTestCase {
     myAction.actionPerformed(event);
 
     Module[] allModules = {appModule, featureModule};
-    verify(myBuildInvoker).assemble(eq(allModules), eq(TestCompileType.ALL), eq(Collections.emptyList()), any(OutputBuildAction.class));
+    verify(myBuildInvoker).assemble(eq(allModules), eq(TestCompileType.ALL), eq(emptyList()), any(OutputBuildAction.class));
   }
 
   private static void setUpModuleAsAndroidModule(Module module, AndroidModuleModel androidModel, IdeAndroidProject ideAndroidProject) {
@@ -124,8 +123,8 @@ public class BuildApkActionTest extends IdeaTestCase {
     String gradlePath = GRADLE_PATH_SEPARATOR + module.getName();
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
 
-    GradleModuleModel model = new GradleModuleModel(module.getName(), Collections.emptyList(), gradlePath,
-                                                    getBaseDirPath(module.getProject()), null, null);
+    GradleModuleModel model = new GradleModuleModel(module.getName(), emptyList(), gradlePath, getBaseDirPath(module.getProject()),
+                                                    emptyList(), null, null);
     gradleFacet.setGradleModuleModel(model);
   }
 }

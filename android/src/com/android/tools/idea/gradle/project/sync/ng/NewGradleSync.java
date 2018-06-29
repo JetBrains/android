@@ -48,6 +48,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.createProjectSetupFromCacheTaskWithStartMessage;
@@ -227,7 +228,7 @@ public class NewGradleSync implements GradleSync {
         }
 
         File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
-        GradleModuleModel gradleModel = new GradleModuleModel(name, gradleProject, buildFilePath, null);
+        GradleModuleModel gradleModel = new GradleModuleModel(name, gradleProject, Collections.emptyList(), buildFilePath, null);
         newModels.addModel(GradleModuleModel.class, gradleModel);
 
         File moduleRootPath = gradleProject.getProjectDirectory();

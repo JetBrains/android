@@ -48,6 +48,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -228,8 +229,8 @@ public class MakeBeforeRunTaskProviderTest extends IdeaTestCase {
     GradleFacet gradleFacet = createAndAddGradleFacet(module);
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR + module.getName();
 
-    GradleModuleModel model = new GradleModuleModel(module.getName(), Collections.emptyList(), GRADLE_PATH_SEPARATOR + module.getName(),
-                                                    getBaseDirPath(getProject()), null, null);
+    GradleModuleModel model = new GradleModuleModel(module.getName(), emptyList(), GRADLE_PATH_SEPARATOR + module.getName(),
+                                                    getBaseDirPath(getProject()), emptyList(), null, null);
     gradleFacet.setGradleModuleModel(model);
   }
 

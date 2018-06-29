@@ -50,6 +50,7 @@ import static com.android.tools.idea.gradle.util.BuildMode.*;
 import static com.android.tools.idea.testing.Facets.*;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.module.Module.EMPTY_ARRAY;
+import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -238,7 +239,8 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     setUpModuleAsAndroidModule();
 
     File projectPath = getBaseDirPath(getProject());
-    ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, myModules, APK_FROM_BUNDLE, myTestCompileType);
+    ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, myModules, APK_FROM_BUNDLE,
+                                                                                 myTestCompileType);
     List<String> tasks = tasksPerProject.get(projectPath.toPath());
 
     assertThat(tasks).containsExactly(":testFindTasksToExecuteForApkFromBundle:apkFromBundleTask1");
@@ -324,8 +326,8 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR + module.getName();
 
     String gradlePath = GRADLE_PATH_SEPARATOR + module.getName();
-    GradleModuleModel model = new GradleModuleModel(module.getName(), Collections.emptyList(), gradlePath,
-                                                    getBaseDirPath(module.getProject()), null, null);
+    GradleModuleModel model = new GradleModuleModel(module.getName(), emptyList(), gradlePath, getBaseDirPath(module.getProject()),
+                                                    emptyList(), null, null);
     gradleFacet.setGradleModuleModel(model);
   }
 }

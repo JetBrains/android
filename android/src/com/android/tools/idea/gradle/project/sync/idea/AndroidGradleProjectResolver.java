@@ -87,6 +87,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isI
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
+import static java.util.Collections.emptyList;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleConfigPath;
 
 /**
@@ -244,7 +245,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     catch (UnsupportedOperationException ignore) {
     }
     File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
-    GradleModuleModel gradleModuleModel = new GradleModuleModel(moduleName, gradleProject, buildFilePath, gradleVersion);
+    GradleModuleModel gradleModuleModel = new GradleModuleModel(moduleName, gradleProject, emptyList(), buildFilePath, gradleVersion);
     ideModule.createChild(GRADLE_MODULE_MODEL, gradleModuleModel);
 
     if (nativeAndroidProject == null && (androidProject == null || androidProjectWithoutVariants)) {
@@ -302,7 +303,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     throws IllegalArgumentException, IllegalStateException {
     // Gradle doesn't support running tasks for included projects. Don't create task node if this module belongs to an included projects.
     if (resolverCtx.getModels().getIncludedBuilds().contains(gradleModule.getProject())) {
-      return Collections.emptyList();
+      return emptyList();
     }
     return nextResolver.populateModuleTasks(gradleModule, ideModule, ideProject);
   }
@@ -417,7 +418,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
       return args;
     }
-    return Collections.emptyList();
+    return emptyList();
   }
 
   @NotNull

@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ModelBuilderParameter;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.java.model.ArtifactModel;
+import com.android.java.model.GradlePluginModel;
 import com.android.java.model.JavaProject;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import org.gradle.tooling.BuildController;
@@ -58,6 +59,7 @@ public class SyncModuleModels implements GradleModuleModels {
 
   void populate(@NotNull GradleProject gradleProject, @NotNull BuildController controller) {
     addModel(GradleProject.class, gradleProject);
+    findAndAddModel(gradleProject, controller, GradlePluginModel.class);
     AndroidProject androidProject = findAndAddAndroidProject(gradleProject, controller);
     if (androidProject != null) {
       // "Native" projects also both AndroidProject and AndroidNativeProject

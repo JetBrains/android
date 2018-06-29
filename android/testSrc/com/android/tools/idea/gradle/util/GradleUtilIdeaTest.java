@@ -28,6 +28,7 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+import static java.util.Collections.emptyList;
 
 /**
  * Tests for {@link GradleUtil}.
@@ -59,7 +60,7 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
     String name = myModuleRootDir.getName();
     GradleProjectStub gradleProject = new GradleProjectStub(name, ":" + name, getBaseDirPath(getProject()), myBuildFile);
 
-    GradleModuleModel gradleModuleModel = new GradleModuleModel(myModule.getName(), gradleProject, myBuildFile, "2.2.1");
+    GradleModuleModel gradleModuleModel = new GradleModuleModel(myModule.getName(), gradleProject, emptyList(), myBuildFile, "2.2.1");
 
     GradleFacet facet = createAndAddGradleFacet(myModule);
     facet.setGradleModuleModel(gradleModuleModel);
