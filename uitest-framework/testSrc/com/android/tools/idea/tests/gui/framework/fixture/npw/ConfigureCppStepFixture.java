@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
+import com.android.tools.idea.npw.cpp.CppStandardType;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import org.jetbrains.annotations.NotNull;
@@ -27,14 +28,8 @@ public class ConfigureCppStepFixture<W extends AbstractWizardFixture> extends Ab
   }
 
   @NotNull
-  public ConfigureCppStepFixture<W> setExceptionsSupport(boolean select) {
-    selectCheckBoxWithText("Exceptions Support (-fexceptions)", select);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureCppStepFixture<W> setRuntimeInformationSupport(boolean select) {
-    selectCheckBoxWithText("Runtime Type Information Support (-frtti)", select);
+  public ConfigureCppStepFixture<W> selectToolchain(CppStandardType toolChain) {
+    findComboBoxWithLabel("C++ Standard").selectItem(toolChain.toString());
     return this;
   }
 }

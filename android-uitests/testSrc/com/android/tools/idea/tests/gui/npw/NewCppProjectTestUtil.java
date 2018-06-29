@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.CMakeOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.npw.cpp.CppStandardType;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -46,8 +47,8 @@ public class NewCppProjectTestUtil {
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(".*adb shell am start .*myapplication\\.MainActivity.*", Pattern.DOTALL);
   private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
 
-  protected static void createNewProjectWithCpp(boolean hasExceptionSupport, boolean hasRuntimeInformation, GuiTestRule guiTest) throws Exception {
-    createCppProject(hasExceptionSupport, hasRuntimeInformation, guiTest);
+  protected static void createNewProjectWithCpp(CppStandardType toolChain, GuiTestRule guiTest) throws Exception {
+    createCppProject(toolChain, guiTest);
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
@@ -87,13 +88,13 @@ public class NewCppProjectTestUtil {
                                     .moveBetween("cppFlags \"", "")
                                     .getCurrentLine();
 
-    String cppFlags = String.format("%s %s", hasRuntimeInformation ? "-frtti" : "",  hasExceptionSupport ? "-fexceptions" : "").trim();
+    String cppFlags = toolChain == CppStandardType.DEFAULT ? "" : toolChain.getCompilerFlag();
     Assert.assertEquals(String.format("cppFlags \"%s\"", cppFlags), gradleCppFlags.trim());
 
     runAppOnEmulator(ideFrame);
   }
 
-  protected static void createCppProject(boolean hasExceptionSupport, boolean hasRuntimeInformation, GuiTestRule guiTest) {
+  protected static void createCppProject(CppStandardType toolChain, GuiTestRule guiTest) {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
                                                       .createNewProject();
     if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
@@ -118,8 +119,7 @@ public class NewCppProjectTestUtil {
     }
 
     newProjectWizard.getConfigureCppStepFixture()
-                    .setExceptionsSupport(hasExceptionSupport)
-                    .setRuntimeInformationSupport(hasRuntimeInformation);
+                    .selectToolchain(toolChain);
 
     newProjectWizard.clickFinish();
 
