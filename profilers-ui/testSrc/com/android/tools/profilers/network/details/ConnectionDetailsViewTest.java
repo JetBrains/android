@@ -121,10 +121,10 @@ public class ConnectionDetailsViewTest {
 
     HttpData data =
       new HttpData.Builder(DEFAULT_DATA).setRequestPayloadId(TEST_REQUEST_PAYLOAD_ID).setResponseFields(RESPONSE_HEADERS).build();
-    assertThat(findTab(myView, RequestTabContent.class).findPayloadViewer()).isNull();
+    assertThat(HttpDataViewModel.findPayloadViewer(findTab(myView, RequestTabContent.class).findPayloadBody())).isNull();
 
     myView.setHttpData(data);
-    assertThat(findTab(myView, RequestTabContent.class).findPayloadViewer()).isNotNull();
+    assertThat(HttpDataViewModel.findPayloadViewer(findTab(myView, RequestTabContent.class).findPayloadBody())).isNotNull();
   }
 
   @Test
@@ -135,7 +135,41 @@ public class ConnectionDetailsViewTest {
     HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
 
     myView.setHttpData(data);
-    assertThat(findTab(myView, RequestTabContent.class).findPayloadViewer()).isNull();
+    assertThat(HttpDataViewModel.findPayloadViewer(findTab(myView, RequestTabContent.class).findPayloadBody())).isNull();
+  }
+
+  @Test
+  public void requestPayloadHasBothParsedViewAndRawDataView() {
+    myIdeProfilerServices.enableRequestPayload(true);
+    myView = new ConnectionDetailsView(myStageView);
+
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setRequestFields("Content-Type = application/x-www-form-urlencoded")
+                                                      .setResponseFields(RESPONSE_HEADERS).setRequestPayloadId(TEST_REQUEST_PAYLOAD_ID)
+                                                      .build();
+    myProfilerService.addFile(TEST_REQUEST_PAYLOAD_ID, ByteString.copyFromUtf8("a=1&b=2"));
+    myView.setHttpData(data);
+
+    JComponent payloadBody = findTab(myView, RequestTabContent.class).findPayloadBody();
+    assertThat(payloadBody).isNotNull();
+    assertThat(new TreeWalker(payloadBody).descendantStream().anyMatch(c -> c.getName().equals("View Parsed"))).isTrue();
+    assertThat(new TreeWalker(payloadBody).descendantStream().anyMatch(c -> c.getName().equals("View Source"))).isTrue();
+  }
+
+  @Test
+  public void responsePayloadHasBothParsedViewAndRawDataView() {
+    myIdeProfilerServices.enableRequestPayload(true);
+    myView = new ConnectionDetailsView(myStageView);
+
+    HttpData data =
+      new HttpData.Builder(DEFAULT_DATA).setResponseFields("null =  HTTP/1.1 302 Found\n Content-Type = application/x-www-form-urlencoded")
+                                        .setResponsePayloadId(TEST_RESPONSE_PAYLOAD_ID).build();
+    myProfilerService.addFile(TEST_RESPONSE_PAYLOAD_ID, ByteString.copyFromUtf8("a=1&b=2"));
+    myView.setHttpData(data);
+
+    JComponent payloadBody = findTab(myView, ResponseTabContent.class).findPayloadBody();
+    assertThat(payloadBody).isNotNull();
+    assertThat(new TreeWalker(payloadBody).descendantStream().anyMatch(c -> c.getName().equals("View Parsed"))).isTrue();
+    assertThat(new TreeWalker(payloadBody).descendantStream().anyMatch(c -> c.getName().equals("View Source"))).isTrue();
   }
 
   @Test
