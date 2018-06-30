@@ -26,12 +26,12 @@ import com.android.tools.profiler.proto.Profiler.TimeResponse;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -40,6 +40,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class MemoryProfiler extends StudioProfiler {
@@ -55,54 +57,9 @@ public class MemoryProfiler extends StudioProfiler {
     myProfilers.addDependency(myAspectObserver).onChange(ProfilerAspect.AGENT, this::agentStatusChanged);
 
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
-    sessionsManager.registerImportHandler("hprof", file -> {
-      long startTimestampEpochMs = System.currentTimeMillis();
-      long fileCreationTime = TimeUnit.MILLISECONDS.toNanos(startTimestampEpochMs);
-      try {
-        BasicFileAttributes attributes = Files.readAttributes(Paths.get(file.getPath()), BasicFileAttributes.class);
-        fileCreationTime = TimeUnit.MILLISECONDS.toNanos(attributes.creationTime().toMillis());
-      }
-      catch (IOException e) {
-        getLogger().info("File creation time not provided, using system time instead...");
-      }
 
-      byte[] bytes;
-      try {
-        bytes = Files.readAllBytes(Paths.get(file.getPath()));
-      }
-      catch (IOException e) {
-        getLogger().error("Importing Session Failed: can not read from file location...");
-        return;
-      }
-
-      // Heap dump and session share a time range of [dumpTimeStamp, dumpTimeStamp + 1) which contains dumpTimestamp as its only integer point.
-      Common.Session session = sessionsManager
-        .createImportedSession(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE, fileCreationTime, fileCreationTime + 1,
-                               startTimestampEpochMs);
-      // Bind the imported session with heap dump data through MemoryClient.
-      HeapDumpInfo heapDumpInfo = HeapDumpInfo.newBuilder()
-        .setFileName(file.getName())
-        .setStartTime(fileCreationTime)
-        .setEndTime(fileCreationTime + 1)
-        .build();
-      ImportHeapDumpRequest heapDumpRequest = ImportHeapDumpRequest.newBuilder()
-        .setSession(session)
-        .setData(ByteString.copyFrom(bytes))
-        .setInfo(heapDumpInfo)
-        .build();
-      ImportHeapDumpResponse response = myProfilers.getClient().getMemoryClient().importHeapDump(heapDumpRequest);
-      // Select the new session
-      if (response.getStatus() == ImportHeapDumpResponse.Status.SUCCESS) {
-        sessionsManager.update();
-        sessionsManager.setSession(session);
-      }
-      else {
-        Logger.getInstance(getClass()).error("Importing Session Failed: can not import heap dump...");
-      }
-
-      myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.MEMORY_CAPTURE,
-                                                                          SessionsManager.SessionCreationSource.MANUAL);
-    });
+    sessionsManager.registerImportHandler("hprof", this::importHprof);
+    sessionsManager.registerImportHandler("alloc", this::importLegacyAllocations);
 
     myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.MEMORY_CAPTURE,
                                               () -> {
@@ -186,6 +143,123 @@ public class MemoryProfiler extends StudioProfiler {
     catch (StatusRuntimeException e) {
       getLogger().info(e);
     }
+  }
+
+  private void importHprof(@NotNull File file) {
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    long startTimestampEpochMs = System.currentTimeMillis();
+    long fileCreationTime = TimeUnit.MILLISECONDS.toNanos(startTimestampEpochMs);
+    try {
+      BasicFileAttributes attributes = Files.readAttributes(Paths.get(file.getPath()), BasicFileAttributes.class);
+      fileCreationTime = TimeUnit.MILLISECONDS.toNanos(attributes.creationTime().toMillis());
+    }
+    catch (IOException e) {
+      getLogger().info("File creation time not provided, using system time instead...");
+    }
+
+    byte[] bytes;
+    try {
+      bytes = Files.readAllBytes(Paths.get(file.getPath()));
+    }
+    catch (IOException e) {
+      getLogger().error("Importing Session Failed: cannot read from file location...");
+      return;
+    }
+
+    // Heap dump and session share a time range of [dumpTimeStamp, dumpTimeStamp + 1) which contains dumpTimestamp as its only integer point.
+    Common.Session session = sessionsManager
+      .createImportedSession(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE, fileCreationTime, fileCreationTime + 1,
+                             startTimestampEpochMs);
+    // Bind the imported session with heap dump data through MemoryClient.
+    HeapDumpInfo heapDumpInfo = HeapDumpInfo.newBuilder()
+                                            .setFileName(file.getName())
+                                            .setStartTime(fileCreationTime)
+                                            .setEndTime(fileCreationTime + 1)
+                                            .build();
+    ImportHeapDumpRequest heapDumpRequest = ImportHeapDumpRequest.newBuilder()
+                                                                 .setSession(session)
+                                                                 .setData(ByteString.copyFrom(bytes))
+                                                                 .setInfo(heapDumpInfo)
+                                                                 .build();
+    ImportHeapDumpResponse response = myProfilers.getClient().getMemoryClient().importHeapDump(heapDumpRequest);
+    // Select the new session
+    if (response.getStatus() == ImportHeapDumpResponse.Status.SUCCESS) {
+      sessionsManager.update();
+      sessionsManager.setSession(session);
+    }
+    else {
+      Logger.getInstance(getClass()).error("Importing Session Failed: cannot import heap dump...");
+    }
+
+    myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.MEMORY_CAPTURE,
+                                                                        SessionsManager.SessionCreationSource.MANUAL);
+  }
+
+  private void importLegacyAllocations(@NotNull File file) {
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    long startTimestampEpochMs = System.currentTimeMillis();
+    long sessionStartTimeNs = TimeUnit.MILLISECONDS.toNanos(startTimestampEpochMs);
+    long sessionEndTimeNs = sessionStartTimeNs + 1;
+    byte[] bytes;
+    try {
+      bytes = Files.readAllBytes(Paths.get(file.getPath()));
+    }
+    catch (IOException e) {
+      getLogger().error("Importing Session Failed: cannot read from file location...");
+      return;
+    }
+
+    Common.Session session = sessionsManager
+      .createImportedSession(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE, sessionStartTimeNs, sessionEndTimeNs,
+                             startTimestampEpochMs);
+    AllocationsInfo info = AllocationsInfo.newBuilder()
+                                          .setStartTime(sessionStartTimeNs)
+                                          .setEndTime(sessionEndTimeNs)
+                                          .setLegacy(true)
+                                          .build();
+    ImportLegacyAllocationsRequest request = ImportLegacyAllocationsRequest.newBuilder()
+                                                                           .setSession(session)
+                                                                           .setInfo(info)
+                                                                           .setAllocations(LegacyAllocationEventsResponse.newBuilder().setStatus(LegacyAllocationEventsResponse.Status.NOT_READY))
+                                                                           .build();
+    ImportLegacyAllocationsResponse response = myProfilers.getClient().getMemoryClient().importLegacyAllocations(request);
+    // Select the new session
+    if (response.getStatus() == ImportLegacyAllocationsResponse.Status.SUCCESS) {
+      sessionsManager.update();
+      sessionsManager.setSession(session);
+    }
+    else {
+      Logger.getInstance(getClass()).error("Importing Session Failed: cannot import allocation records...");
+    }
+    myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.MEMORY_CAPTURE,
+                                                                        SessionsManager.SessionCreationSource.MANUAL);
+
+    ExecutorService executorService = Executors.newSingleThreadExecutor();
+    executorService.submit(() -> {
+      try {
+        LegacyAllocationConverter converter = new LegacyAllocationConverter();
+        converter.parseDump(bytes);
+        LegacyAllocationEventsResponse allocations = LegacyAllocationEventsResponse.newBuilder()
+                                                                                   .setStatus(LegacyAllocationEventsResponse.Status.SUCCESS)
+                                                                                   .addAllEvents(converter.getAllocationEvents(info.getStartTime(), info.getEndTime()))
+                                                                                   .build();
+        AllocationContextsResponse contexts = AllocationContextsResponse.newBuilder()
+                                                                        .addAllAllocatedClasses(converter.getClassNames())
+                                                                        .addAllAllocationStacks(converter.getAllocationStacks())
+                                                                        .build();
+        ImportLegacyAllocationsRequest updateRequest = request.toBuilder().setAllocations(allocations).setContexts(contexts).build();
+        myProfilers.getClient().getMemoryClient().importLegacyAllocations(updateRequest);
+      }
+      catch (Exception e) {
+        Logger.getInstance(getClass()).error("Importing Session Failed: cannot import allocation records...");
+
+        LegacyAllocationEventsResponse failedResponse = LegacyAllocationEventsResponse
+          .newBuilder().setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN).build();
+        ImportLegacyAllocationsRequest failedRequest = request.toBuilder().setAllocations(failedResponse).build();
+        myProfilers.getClient().getMemoryClient().importLegacyAllocations(failedRequest);
+      }
+    });
+    executorService.shutdown();
   }
 
   /**

@@ -15,9 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -128,6 +126,17 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
       builder.setInfo(myExplicitAllocationsInfo);
     }
     response.onNext(builder.build());
+    response.onCompleted();
+  }
+
+  @Override
+  public void importLegacyAllocations(ImportLegacyAllocationsRequest request,
+                                      StreamObserver<ImportLegacyAllocationsResponse> response) {
+    myExplicitAllocationsInfo = request.getInfo();
+    myAllocationEventsBuilder = request.getAllocations().toBuilder();
+    myAllocationContextBuilder = request.getContexts().toBuilder();
+    myMemoryData = MemoryData.newBuilder().addAllocationsInfo(request.getInfo()).build();
+    response.onNext(ImportLegacyAllocationsResponse.newBuilder().setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS).build());
     response.onCompleted();
   }
 

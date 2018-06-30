@@ -199,6 +199,26 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
+  public void importLegacyAllocations(ImportLegacyAllocationsRequest request,
+                                      StreamObserver<ImportLegacyAllocationsResponse> responseObserver) {
+    assert request.getInfo().getLegacy();
+    myStatsTable.insertOrReplaceAllocationsInfo(request.getSession(), request.getInfo());
+
+    AllocationContextsResponse contexts = request.getContexts();
+    LegacyAllocationEventsResponse allocations = request.getAllocations();
+    if (!contexts.equals(AllocationContextsResponse.getDefaultInstance())) {
+      myStatsTable
+        .insertLegacyAllocationContext(request.getSession(), contexts.getAllocatedClassesList(), contexts.getAllocationStacksList());
+    }
+    if (!allocations.equals(LegacyAllocationEventsResponse.getDefaultInstance())) {
+      myStatsTable.updateLegacyAllocationEvents(request.getSession(), request.getInfo().getStartTime(), allocations);
+    }
+
+    responseObserver.onNext(ImportLegacyAllocationsResponse.newBuilder().setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS).build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
                                           StreamObserver<AllocationContextsResponse> responseObserver) {
     responseObserver.onNext(myStatsTable.getLegacyAllocationContexts(request));
