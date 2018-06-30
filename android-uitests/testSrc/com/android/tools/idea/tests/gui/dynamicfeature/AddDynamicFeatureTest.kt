@@ -189,7 +189,6 @@ class AddDynamicFeatureTest {
    * 3. Open the "app" module build.gradle and check that play-services-maps was added with "api" dependency.
    * </pre>
    */
-  @RunIn(TestGroup.UNRELIABLE)  // b/79942260
   @Test
   @Throws(Exception::class)
   fun addMapsActivityToDynamicModule() {
