@@ -20,7 +20,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.profilers.LegacyAllocationConverter;
+import com.android.tools.profilers.memory.LegacyAllocationConverter;
 import com.android.tools.idea.profilers.LegacyAllocationTracker;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;

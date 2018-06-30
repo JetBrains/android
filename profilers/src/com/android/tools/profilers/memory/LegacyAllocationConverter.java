@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers;
+package com.android.tools.profilers.memory;
 
+import com.android.ddmlib.AllocationInfo;
+import com.android.ddmlib.AllocationsParser;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.ByteBuffer;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -91,7 +91,7 @@ public class LegacyAllocationConverter {
 
     private final int myCallStackId;
 
-    public Allocation(int classId, int size, int threadId, @NotNull int callStackId) {
+    public Allocation(int classId, int size, int threadId, int callStackId) {
       myClassId = classId;
       mySize = size;
       myThreadId = threadId;
@@ -140,9 +140,10 @@ public class LegacyAllocationConverter {
   }
 
   /**
-   * Prepares the converter to convert a new .alloc file.
+   * Clears the converter of any existing allocation events. This allows the converter to parse a new .alloc file that point to the
+   * same class and callstack caches.
    */
-  public void prepare() {
+  public void resetAllocations() {
     myAllocations.clear();
   }
 
@@ -168,5 +169,16 @@ public class LegacyAllocationConverter {
    */
   public List<AllocatedClass> getClassNames() {
     return myAllocatedClasses.values().stream().map(ClassName::getAllocatedClass).collect(Collectors.toList());
+  }
+
+  public void parseDump(@NotNull byte[] dumpData) {
+    resetAllocations();
+    AllocationInfo[] rawInfos = AllocationsParser.parse(ByteBuffer.wrap(dumpData));
+    for (AllocationInfo info : rawInfos) {
+      List<StackTraceElement> stackTraceElements = Arrays.asList(info.getStackTrace());
+      LegacyAllocationConverter.CallStack callStack = addCallStack(stackTraceElements);
+      int classId = addClassName(info.getAllocatedClass());
+      addAllocation(new LegacyAllocationConverter.Allocation(classId, info.getSize(), info.getThreadId(), callStack.hashCode()));
+    }
   }
 }
