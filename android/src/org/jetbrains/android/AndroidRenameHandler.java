@@ -1,7 +1,8 @@
 package org.jetbrains.android;
 
-import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceUrl;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -24,8 +25,10 @@ import com.intellij.refactoring.rename.RenameHandler;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
+import org.jetbrains.android.augment.AndroidLightField;
 import org.jetbrains.android.dom.converters.AndroidResourceReference;
 import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.dom.wrappers.ResourceFieldElementWrapper;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -156,7 +159,11 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       // Treat the resource reference as if the user renamed the R field instead
       PsiField[] resourceFields = AndroidResourceUtil.findResourceFields(facet, url.type.getName(), url.name, false);
       if (resourceFields.length == 1) {
-        RenameDialog.showRenameDialog(dataContext, new RenameDialog(project, resourceFields[0], null, editor));
+        PsiElement element = resourceFields[0];
+        if (StudioFlags.IN_MEMORY_R_CLASSES.get() && element instanceof AndroidLightField) {
+          element = new ResourceFieldElementWrapper((AndroidLightField)element);
+        }
+        RenameDialog.showRenameDialog(dataContext, new RenameDialog(project, element, null, editor));
       }
     }
   }
