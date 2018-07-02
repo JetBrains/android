@@ -29,6 +29,7 @@ import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import com.android.ide.common.rendering.api.AttributeFormat
+import com.android.ide.common.rendering.api.ResourceNamespace
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -48,7 +49,7 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, tag: String, parentTag:
   }
 
   fun addFlagsProperty(namespace: String, name: String, values: List<String>) {
-    val definition = AttributeDefinition(name, null, null, listOf(AttributeFormat.FLAGS))
+    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, name, null, null, listOf(AttributeFormat.FLAGS))
     values.forEach { definition.addValue(it) }
     _properties.put(namespace, name, makeFlagsProperty(namespace, definition))
   }

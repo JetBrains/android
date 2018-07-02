@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.editors;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.naveditor.property.fixtures.TextEditorFixture;
@@ -147,8 +148,8 @@ public class TextEditorTest extends PropertyTestCase {
 
   private NlProperty createCollapseParallaxProperty(@NotNull NlComponent component) {
     XmlName name = new XmlName(ATTR_COLLAPSE_PARALLAX_MULTIPLIER, AUTO_URI);
-    AttributeDefinition definition = new AttributeDefinition(
-      name.getLocalName(), DESIGN_LIB_ARTIFACT, null, ImmutableList.of(AttributeFormat.DIMENSION, AttributeFormat.FRACTION));
+    AttributeDefinition definition = new AttributeDefinition(ResourceNamespace.RES_AUTO, name.getLocalName(), DESIGN_LIB_ARTIFACT, null,
+                                                             ImmutableList.of(AttributeFormat.DIMENSION, AttributeFormat.FRACTION));
     return NlPropertyItem.create(name, definition, Collections.singletonList(component), myPropertiesManager);
   }
 }

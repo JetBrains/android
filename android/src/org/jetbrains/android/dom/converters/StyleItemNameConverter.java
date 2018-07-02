@@ -128,8 +128,8 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
     if (manager != null) {
       AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
       if (attrDefs != null) {
-        for (String name : attrDefs.getAttributeNames()) {
-          result.add(SdkConstants.PREFIX_ANDROID + name);
+        for (ResourceReference attr : attrDefs.getAttrs()) {
+          result.add(attr.getQualifiedName());
         }
       }
     }

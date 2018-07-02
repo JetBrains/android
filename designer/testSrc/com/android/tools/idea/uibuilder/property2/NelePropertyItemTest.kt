@@ -26,7 +26,7 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 
 internal const val EXPECTED_ID_TOOLTIP = """
-android:id:  Supply an identifier name for this view, to later retrieve it
+android:id: Supply an identifier name for this view, to later retrieve it
              with {@link android.view.View#findViewById View.findViewById()} or
              {@link android.app.Activity#findViewById Activity.findViewById()}.
              This must be a
@@ -63,7 +63,7 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(property.value).isEqualTo("@string/demo")
     assertThat(property.isReference).isTrue()
     assertThat(property.resolvedValue).isEqualTo("Demo String")
-    assertThat(property.tooltipForName).isEqualTo("android:text:  Text to display. ")
+    assertThat(property.tooltipForName).isEqualTo("android:text: Text to display.")
     assertThat(property.validate("Some")).isEmpty()
     assertThat(property.libraryName).isEmpty()
     assertThat(property.components).hasSize(1)
@@ -97,7 +97,7 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(design.rawValue).isEqualTo("@string/design")
     assertThat(design.isReference).isTrue()
     assertThat(design.resolvedValue).isEqualTo("Design Demo")
-    assertThat(design.tooltipForName).isEqualTo("tools:text:  Text to display. ")
+    assertThat(design.tooltipForName).isEqualTo("tools:text: Text to display.")
     assertThat(design.validate("Some")).isEmpty()
     assertThat(design.libraryName).isEmpty()
     assertThat(design.components).hasSize(1)

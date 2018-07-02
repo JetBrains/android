@@ -188,9 +188,23 @@ public class ResolutionUtils {
   @Nullable
   public static AttributeDefinition getAttributeDefinition(@NotNull Configuration configuration,
                                                            @NotNull StyleItemResourceValue itemResValue) {
-    return getAttributeDefinition(configuration.getModule(), configuration, getQualifiedItemAttrName(itemResValue));
+    ResourceReference attr = itemResValue.getAttr();
+    return attr == null ? null : getAttributeDefinition(configuration.getModule(), attr);
   }
 
+  @Nullable
+  public static AttributeDefinition getAttributeDefinition(@NotNull Module module, @NotNull ResourceReference attr) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null : String.format("Module %s is not an Android module", module.getName());
+
+    AttributeDefinitions definitions = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getAttributeDefinitions();
+    return definitions.getAttrDefinition(attr);
+  }
+
+  /**
+   * @deprecated Use {@link ##getAttributeDefinition(Module, ResourceReference)}.
+   */
+  @Deprecated
   @Nullable
   public static AttributeDefinition getAttributeDefinition(@NotNull Module module, @Nullable Configuration configuration,
                                                            @NotNull String name) {

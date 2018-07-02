@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.analytics;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.AndroidVersion;
@@ -432,11 +434,13 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     AttributeDefinitions systemAttributeDefinitions = mock(AttributeDefinitions.class);
     AttributeDefinitions localAttributeDefinitions = mock(AttributeDefinitions.class);
 
-    myElevationDefinition = new AttributeDefinition(ATTR_ELEVATION, null, null, Collections.emptySet());
-    myTextDefinition = new AttributeDefinition(ATTR_TEXT, null, null, Collections.emptySet());
-    myCustomDefinition = new AttributeDefinition(ATTR_CUSTOM_NAME, "com.acme:CustomLibrary", null, Collections.emptySet());
+    myElevationDefinition = new AttributeDefinition(ResourceNamespace.ANDROID, ATTR_ELEVATION, null, null, Collections.emptySet());
+    myTextDefinition = new AttributeDefinition(ResourceNamespace.ANDROID, ATTR_TEXT, null, null, Collections.emptySet());
+    myCustomDefinition =
+        new AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_CUSTOM_NAME, "com.acme:CustomLibrary", null, Collections.emptySet());
     myCollapseParallaxMultiplierDefinition =
-      new AttributeDefinition(ATTR_COLLAPSE_PARALLAX_MULTIPLIER, DESIGN_LIB_ARTIFACT, null, Collections.emptySet());
+        new AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_COLLAPSE_PARALLAX_MULTIPLIER, DESIGN_LIB_ARTIFACT, null,
+                                Collections.emptySet());
 
     myModel = mock(NlModel.class);
     when(myModel.getFacet()).thenReturn(myFacet);
@@ -450,12 +454,20 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     when(moduleResourceManagers.getSystemResourceManager()).thenReturn(systemResourceManager);
     when(localResourceManager.getAttributeDefinitions()).thenReturn(localAttributeDefinitions);
     when(systemResourceManager.getAttributeDefinitions()).thenReturn(systemAttributeDefinitions);
-    when(localAttributeDefinitions.getAttributeNames()).thenReturn(ImmutableSet.of(ATTR_COLLAPSE_PARALLAX_MULTIPLIER));
-    when(localAttributeDefinitions.getAttrDefByName(ATTR_COLLAPSE_PARALLAX_MULTIPLIER)).thenReturn(myCollapseParallaxMultiplierDefinition);
-    when(localAttributeDefinitions.getAttrDefByName(ATTR_CUSTOM_NAME)).thenReturn(myCustomDefinition);
-    when(systemAttributeDefinitions.getAttributeNames()).thenReturn(ImmutableSet.of(ATTR_TEXT, ATTR_ELEVATION));
-    when(systemAttributeDefinitions.getAttrDefByName(ATTR_ELEVATION)).thenReturn(myElevationDefinition);
-    when(systemAttributeDefinitions.getAttrDefByName(ATTR_TEXT)).thenReturn(myTextDefinition);
+    when(localAttributeDefinitions.getAttrs())
+        .thenReturn(ImmutableSet.of(ResourceReference.attr(ResourceNamespace.RES_AUTO, ATTR_COLLAPSE_PARALLAX_MULTIPLIER)));
+    when(localAttributeDefinitions.getAttrDefinition(ResourceReference.attr(ResourceNamespace.RES_AUTO, ATTR_COLLAPSE_PARALLAX_MULTIPLIER)))
+        .thenReturn(myCollapseParallaxMultiplierDefinition);
+    when(localAttributeDefinitions.getAttrDefinition(ResourceReference.attr(ResourceNamespace.RES_AUTO, ATTR_CUSTOM_NAME)))
+        .thenReturn(myCustomDefinition);
+    when(systemAttributeDefinitions.getAttrs())
+        .thenReturn(ImmutableSet.of(
+            ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_ELEVATION),
+            ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_TEXT)));
+    when(systemAttributeDefinitions.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_ELEVATION)))
+        .thenReturn(myElevationDefinition);
+    when(systemAttributeDefinitions.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_TEXT)))
+        .thenReturn(myTextDefinition);
   }
 
   private NlComponent getComponentMock(@NotNull String tagName) {

@@ -18,10 +18,7 @@ package org.jetbrains.android.sdk;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.ide.common.rendering.api.AttrResourceValue;
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleableResourceValue;
+import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
@@ -103,7 +100,7 @@ public class AndroidTargetData {
 
         XmlFile[] files = findXmlFiles(project, attrsPath, attrsManifestPath);
         if (files != null) {
-          myAttrDefs = new AttributeDefinitionsImpl(files);
+          myAttrDefs = new AttributeDefinitionsImpl(ResourceNamespace.ANDROID, files);
         }
       });
     }
@@ -292,8 +289,9 @@ public class AndroidTargetData {
     }
 
     @Override
-    protected boolean isAttributeAcceptable(@NotNull String name) {
-      return isResourcePublic(ResourceType.ATTR.getName(), name);
+    protected boolean isAttributeAcceptable(@NotNull ResourceReference attr) {
+      return attr.getNamespace().equals(ResourceNamespace.ANDROID) &&
+             isResourcePublic(ResourceType.ATTR.getName(), attr.getName());
     }
   }
 

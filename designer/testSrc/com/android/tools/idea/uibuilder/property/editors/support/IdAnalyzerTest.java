@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -288,7 +289,7 @@ public class IdAnalyzerTest extends LayoutTestCase {
   @NotNull
   private NlProperty createFrom(@NotNull String attributeName, @NotNull String namespace, @NotNull NlComponent... components) {
     return NlPropertyItem.create(new XmlName(attributeName, namespace),
-                                 new AttributeDefinition(attributeName),
+                                 new AttributeDefinition(ResourceNamespace.RES_AUTO, attributeName),
                                  Arrays.asList(components),
                                  myPropertiesManager);
   }

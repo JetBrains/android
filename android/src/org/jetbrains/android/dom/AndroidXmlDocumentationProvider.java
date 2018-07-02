@@ -421,7 +421,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
         }
       }
     }
-    final String docValue = definition.getDocValue(parentStyleable);
+    final String docValue = definition.getDocValueByParentStyleableName(parentStyleable);
 
     if (docValue != null && !docValue.isEmpty()) {
       if (builder.length() > 0) {

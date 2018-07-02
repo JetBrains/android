@@ -16,7 +16,8 @@
 package org.jetbrains.android.dom.attrs;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
-import com.intellij.openapi.util.text.StringUtil;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
@@ -25,75 +26,79 @@ import org.jetbrains.annotations.NotNull;
 import java.util.EnumSet;
 import java.util.Set;
 
+import static com.google.common.truth.Truth.assertThat;
+
 public class AttributeDefinitionsImplTest extends AndroidTestCase {
   private AttributeDefinitions myDefs;
-  private AttributeDefinitions mySystemDefs;
+
+  private AttributeDefinition attrDef(@NotNull ResourceReference attr) {
+    AttributeDefinition def = myDefs.getAttrDefinition(attr);
+    assertNotNull("Missing attribute definition for " + attr.getQualifiedName(), def);
+    return def;
+  }
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyFileToProject("dom/resources/attrs6.xml", "res/values/attrs.xml");
     myDefs = LocalResourceManager.getInstance(myModule).getAttributeDefinitions();
-    mySystemDefs = ModuleResourceManagers.getInstance(myFacet).getSystemResourceManager().getAttributeDefinitions();
     assertNotNull(myDefs);
   }
 
   public void testAttrGroup() {
-    assertEquals("Generic styles", myDefs.getAttrGroupByName("colorForeground"));
-    assertEquals("Generic styles", myDefs.getAttrGroupByName("colorForegroundInverse"));
-    assertEquals("Color palette", myDefs.getAttrGroupByName("colorPrimary"));
-    assertEquals("Other non-theme attributes.", myDefs.getAttrGroupByName("textColor"));
-    assertEquals("Other non-theme attributes.", myDefs.getAttrGroupByName("textColorHighlight"));
-  }
-
-  private void checkAttrDocForName(String attribute, String expectedDoc) {
-    String doc = localAttr(attribute).getDocValue(null);
-    assertEquals(expectedDoc, StringUtil.trim(doc));
+    assertEquals("Generic styles", myDefs.getAttrGroup(ResourceReference.attr(ResourceNamespace.RES_AUTO, "colorForeground")));
+    assertEquals("Generic styles", myDefs.getAttrGroup(ResourceReference.attr(ResourceNamespace.RES_AUTO, "colorForegroundInverse")));
+    assertEquals("Color palette", myDefs.getAttrGroup(ResourceReference.attr(ResourceNamespace.RES_AUTO, "colorPrimary")));
+    assertEquals("Other non-theme attributes", myDefs.getAttrGroup(ResourceReference.attr(ResourceNamespace.RES_AUTO, "textColor")));
+    assertEquals("Other non-theme attributes",
+                 myDefs.getAttrGroup(ResourceReference.attr(ResourceNamespace.RES_AUTO, "textColorHighlight")));
   }
 
   public void testAttrDoc() {
-    checkAttrDocForName("textColor", "Color of text (usually same as colorForeground).");
-    checkAttrDocForName("textColorHighlight", "Color of highlighted text.");
-    checkAttrDocForName("colorPrimary", "The primary branding color for the app. By default, this is the color applied to the\n" +
-                                        "         action bar background.");
-  }
-
-  private void checkAttrFormatForName(String attribute, Set<AttributeFormat> expectedFormat) {
-    assertEquals(expectedFormat, localAttr(attribute).getFormats());
+    assertEquals("Color of text (usually same as colorForeground).",
+                 attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "textColor")).getDocValue(null));
+    assertEquals("Color of highlighted text.",
+                 attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "textColorHighlight")).getDocValue(null));
+    assertEquals("The primary branding color for the app. By default, this is the color applied to the\n" +
+                 "             action bar background.",
+                 attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "colorPrimary")).getDocValue(null));
   }
 
   public void testAttrFormat() {
-    Set<AttributeFormat> format;
-    format = EnumSet.of(AttributeFormat.COLOR);
+    Set<AttributeFormat> expectedFormats = EnumSet.of(AttributeFormat.COLOR);
+    assertEquals(expectedFormats, attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "colorPrimary")).getFormats());
 
-    checkAttrFormatForName("colorPrimary", format);
-
-    format = EnumSet.of(AttributeFormat.COLOR, AttributeFormat.REFERENCE);
-    checkAttrFormatForName("textColor", format);
-    checkAttrFormatForName("textColorHighlight", format);
+    expectedFormats = EnumSet.of(AttributeFormat.COLOR, AttributeFormat.REFERENCE);
+    assertEquals(expectedFormats, attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "textColor")).getFormats());
+    assertEquals(expectedFormats, attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "textColorHighlight")).getFormats());
   }
 
   public void testParentStyleableName() {
-    assertTrue(localAttr("colorForeground").getParentStyleables().contains("Theme"));
-    assertTrue(localAttr("textColor").getParentStyleables().isEmpty());
+    assertThat(attrDef(ResourceReference.attr(ResourceNamespace.RES_AUTO, "colorForeground")).getParentStyleables()).contains(
+        ResourceReference.styleable(ResourceNamespace.RES_AUTO, "Theme"));
+    assertThat(attrDef(ResourceReference.attr(ResourceNamespace.RES_AUTO, "textColor")).getParentStyleables()).isEmpty();
 
-    assertTrue(systemAttr("background").getParentStyleables().contains("View"));
-    assertTrue(systemAttr("bufferType").getParentStyleables().contains("TextView"));
+    assertThat(attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "background")).getParentStyleables()).contains(
+        ResourceReference.styleable(ResourceNamespace.ANDROID, "View"));
+    assertThat(attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "bufferType")).getParentStyleables()).contains(
+        ResourceReference.styleable(ResourceNamespace.ANDROID, "TextView"));
   }
 
-  @NotNull
-  private AttributeDefinition localAttr(@NotNull String attrName) {
-    return attr(myDefs, attrName);
+  public void testStyleByName() {
+    assertThat(myDefs.getStyleableByName("Theme").getResourceReference())
+        .isEqualTo(ResourceReference.styleable(ResourceNamespace.RES_AUTO, "Theme"));
+    assertThat(myDefs.getStyleableByName("View").getResourceReference())
+        .isEqualTo(ResourceReference.styleable(ResourceNamespace.ANDROID, "View"));
   }
 
-  @NotNull
-  private AttributeDefinition systemAttr(@NotNull String attrName) {
-    return attr(mySystemDefs, attrName);
-  }
-
-  private static AttributeDefinition attr(@NotNull AttributeDefinitions defs, @NotNull String attrName) {
-    AttributeDefinition def = defs.getAttrDefByName(attrName);
-    assertNotNull("Missing attribute definition for " + attrName, def);
-    return def;
+  public void testAttrDefByName() {
+    assertThat(myDefs.getAttrDefByName("colorForeground").getResourceReference())
+        .isEqualTo(ResourceReference.attr(ResourceNamespace.RES_AUTO, "colorForeground"));
+    assertThat(myDefs.getAttrDefByName("android:background").getResourceReference())
+        .isEqualTo(ResourceReference.attr(ResourceNamespace.ANDROID, "background"));
+    assertThat(myDefs.getAttrDefByName("background")).isNull();
+    AttributeDefinitions frameworkDefs = ModuleResourceManagers.getInstance(myFacet).getSystemResourceManager().getAttributeDefinitions();
+    assertThat(frameworkDefs.getAttrDefByName("background").getResourceReference())
+        .isEqualTo(ResourceReference.attr(ResourceNamespace.ANDROID, "background"));
   }
 }

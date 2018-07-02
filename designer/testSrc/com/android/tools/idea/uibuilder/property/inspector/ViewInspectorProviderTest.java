@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.inspector.InspectorComponent;
@@ -130,7 +131,7 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
     assertThat(srcToolsEditor.getProperty().getNamespace()).isEqualTo(TOOLS_URI);
 
     // Simulate the addition of appcompat library:
-    AttributeDefinition srcCompatDefinition = new AttributeDefinition(ATTR_SRC_COMPAT);
+    AttributeDefinition srcCompatDefinition = new AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_SRC_COMPAT);
     properties.put(ATTR_SRC_COMPAT,
                    NlPropertyItem.create(new XmlName(ATTR_SRC_COMPAT, AUTO_URI), srcCompatDefinition, components, myPropertiesManager));
 
