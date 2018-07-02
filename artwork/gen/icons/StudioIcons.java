@@ -101,6 +101,7 @@ public class StudioIcons {
       public static final Icon PALETTE_DOWNLOAD_SELECTED = load("/studio/icons/layout-editor/extras/palette-download-selected.png"); // 16x16
       public static final Icon PALETTE_DOWNLOAD = load("/studio/icons/layout-editor/extras/palette-download.png"); // 16x16
       public static final Icon PIPETTE = load("/studio/icons/layout-editor/extras/pipette.png"); // 16x16
+      public static final Icon PIPETTE_LARGE = load("/studio/icons/layout-editor/extras/pipette_large.png"); // 24x24
       public static final Icon ROOT_INLINE_SELECTED = load("/studio/icons/layout-editor/extras/root-inline-selected.png"); // 16x16
       public static final Icon ROOT_INLINE = load("/studio/icons/layout-editor/extras/root-inline.png"); // 16x16
       public static final Icon VISIBILITY_GONE_INLINE_SELECTED = load("/studio/icons/layout-editor/extras/visibility-gone-inline-selected.png"); // 16x16
