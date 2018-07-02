@@ -26,7 +26,10 @@ import org.mockito.MockitoAnnotations.initMocks
 class SuggestionsViewIssueRendererTest {
   @Mock private lateinit var context: PsContext
   private var viewUsagePath = TestPath("/WITH_USAGE", "/WITH_USAGE", null, "href-dest")
-  private var quickFixPath = TestPath("/QUICK_FIX", "/QUICK_FIX", null, "quick-fix-href-dest")
+  private var quickFix = object: PsQuickFix {
+    override fun getHyperlinkDestination(context: PsContext): String? = "link"
+    override fun getHtml(context: PsContext): String = "html"
+  }
   private val testIssuePath = TestPath("/PATH")
   private val testIssueParentedPath = TestPath("/CHILD", testIssuePath)
 
@@ -35,8 +38,8 @@ class SuggestionsViewIssueRendererTest {
     initMocks(this)
   }
 
-  private fun createIssue(testIssuePath: PsPath, quickFixPath: PsPath? = null) : PsIssue =
-      PsGeneralIssue("TEXT", "DESCRIPTION", testIssuePath, PsIssueType.PROJECT_ANALYSIS, PsIssue.Severity.ERROR, quickFixPath)
+  private fun createIssue(testIssuePath: PsPath, quickFix: PsQuickFix? = null) : PsIssue =
+      PsGeneralIssue("TEXT", "DESCRIPTION", testIssuePath, PsIssueType.PROJECT_ANALYSIS, PsIssue.Severity.ERROR, quickFix)
 
   data class RenderResult(val header: String?, val details: String?)
 
@@ -85,7 +88,7 @@ class SuggestionsViewIssueRendererTest {
 
   @Test
   fun testRenderIssue_renderPathAndQuickFix() {
-    val testIssue = createIssue(testIssuePath, quickFixPath = quickFixPath)
+    val testIssue = createIssue(testIssuePath, quickFix = quickFix)
     val renderer = SuggestionsViewIssueRenderer(context, showParentPath = true)
     val result = renderIssue(renderer, testIssue)
     assertThat(result.header, equalTo("<b>/PATH : TEXT</b>"))

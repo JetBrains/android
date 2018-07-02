@@ -16,10 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.issues
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
-import com.android.tools.idea.gradle.structure.model.PsIssue
-import com.android.tools.idea.gradle.structure.model.PsIssueType
-import com.android.tools.idea.gradle.structure.model.PsPath
+import com.android.tools.idea.gradle.structure.model.*
 import org.hamcrest.CoreMatchers
 import org.junit.Assert.assertThat
 import org.junit.Before
@@ -32,13 +29,13 @@ class DependencyViewIssueRendererTest {
   private lateinit var context: PsContext
   private lateinit var testIssuePath: PsPath
   private lateinit var testIssue: PsGeneralIssue
-  private lateinit var quickFixPath: PsPath
+  private lateinit var quickFix: PsQuickFix
 
   @Before
   fun setUp() {
     initMocks(this)
     testIssuePath = createPath("/PATH")
-    quickFixPath = createPath("/QUICK_FIX")
+    quickFix = createFix("/QUICK_FIX")
     testIssue = PsGeneralIssue("TEXT", "DESCRIPTION", testIssuePath, PsIssueType.PROJECT_ANALYSIS, PsIssue.Severity.ERROR, null)
   }
 
@@ -56,6 +53,11 @@ class DependencyViewIssueRendererTest {
     override fun getParents(): List<PsPath> = listOf()
   }
 
+  private fun createFix(text: String): PsQuickFix = object : PsQuickFix {
+    override fun getHyperlinkDestination(context: PsContext): String? = throw UnsupportedOperationException()
+    override fun getHtml(context: PsContext): String = "<$text>"
+  }
+
   @Test
   fun testRenderIssue() {
     val renderer = DependencyViewIssueRenderer(context, false, false)
@@ -64,7 +66,7 @@ class DependencyViewIssueRendererTest {
 
   @Test
   fun testRenderIssue_quickFix() {
-    testIssue = testIssue.copy(quickFixPath = quickFixPath)
+    testIssue = testIssue.copy(quickFix = quickFix)
     val renderer = DependencyViewIssueRenderer(context, false, false)
     assertThat(renderIssue(renderer), CoreMatchers.`is`("TEXT </QUICK_FIX>"))
   }
@@ -77,7 +79,7 @@ class DependencyViewIssueRendererTest {
 
   @Test
   fun testRenderIssue_renderPathAndQuickFix() {
-    testIssue = testIssue.copy(quickFixPath = quickFixPath)
+    testIssue = testIssue.copy(quickFix = quickFix)
     val renderer = DependencyViewIssueRenderer(context, true, false)
     assertThat(renderIssue(renderer), CoreMatchers.`is`("</PATH>: TEXT </QUICK_FIX>"))
   }
@@ -96,7 +98,7 @@ class DependencyViewIssueRendererTest {
 
   @Test
   fun testRenderIssue_renderDescriptionAndQuickFix() {
-    testIssue = testIssue.copy(quickFixPath = quickFixPath)
+    testIssue = testIssue.copy(quickFix = quickFix)
     val renderer = DependencyViewIssueRenderer(context, false, true)
     assertThat(renderIssue(renderer), CoreMatchers.`is`("TEXT </QUICK_FIX><br/><br/>DESCRIPTION"))
   }
