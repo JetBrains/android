@@ -19,11 +19,9 @@ import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 
 interface PsLibraryDependency : PsBaseDependency {
-  val parent: PsModule
-
+  override val parent: PsModule
   val spec: PsArtifactDependencySpec
 
-  var isModified: Boolean
 }
 
 interface PsDeclaredLibraryDependency: PsLibraryDependency, PsDeclaredDependency {
