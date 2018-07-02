@@ -23,7 +23,7 @@ class ColorAdjustPanelTest : IdeaTestCase() {
 
   fun testChangeModelColorWillUpdateAllComponent() {
     val model = ColorPickerModel()
-    val panel = ColorAdjustPanel(model)
+    val panel = ColorAdjustPanel(model, FakeColorPipetteProvider())
     panel.size = Dimension(1000, 300)
 
     val indicator = panel.colorIndicator

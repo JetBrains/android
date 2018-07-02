@@ -35,6 +35,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPalette;
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider;
 import com.android.utils.HashCodes;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -371,7 +372,7 @@ public class AndroidAnnotatorUtil {
       JPanel panel = new ColorPickerBuilder()
           .setOriginalColor(currentColor)
           .addSaturationBrightnessComponent()
-          .addColorAdjustPanel()
+          .addColorAdjustPanel(new MaterialGraphicalColorPipetteProvider())
           .addColorValuePanel()
           .addSeparator()
           .addCustomComponent(model -> new MaterialColorPalette(model))

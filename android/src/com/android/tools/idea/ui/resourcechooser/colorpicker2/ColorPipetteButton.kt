@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
-import com.intellij.icons.AllIcons
 import java.awt.*
 import javax.swing.*
 
@@ -23,10 +22,10 @@ class ColorPipetteButton(private val colorPickerModel: ColorPickerModel, private
 
   init {
     isRolloverEnabled = true
-    // TODO: New pipette icon.
-    icon = AllIcons.Ide.Pipette
-    rolloverIcon = AllIcons.Ide.Pipette_rollover
-    pressedIcon = AllIcons.Ide.Pipette_rollover
+
+    icon = pipette.icon
+    rolloverIcon = pipette.rolloverIcon
+    pressedIcon = pipette.pressedIcon
 
     addActionListener { pipette.pick(MyCallback(colorPickerModel)) }
   }
