@@ -15,14 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property2.testutils
 
-import com.android.SdkConstants
-import com.android.ide.common.rendering.api.ResourceValueImpl
-import com.android.ide.common.rendering.api.StyleResourceValue
-import com.android.resources.ResourceType
 import com.android.tools.idea.common.property2.api.EnumValue
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.google.common.truth.Truth
-import com.intellij.openapi.diagnostic.Logger
 
 object EnumValueUtil {
   /**
@@ -64,24 +58,5 @@ object EnumValueUtil {
       Truth.assertThat(nextSectionIndex - startIndex).named("Expected Style Count").isAtLeast(Math.abs(expectedCount))
     }
     return if (nextSectionIndex < values.size) nextSectionIndex else -1
-  }
-
-  // Hack to set the libraryName field on the AppCompat styles added for this test.
-  // When AppCompat has its own namespace this can be removed.
-  fun patchLibraryNameOfAllAppCompatStyles(property: NelePropertyItem) {
-    val resolver = property.resolver ?: error("Resolver should not be null")
-    @Suppress("DEPRECATION")
-    val resources = resolver.projectResources[ResourceType.STYLE] ?: return
-    val libraryNameField = ResourceValueImpl::class.java.getDeclaredField("libraryName")
-    libraryNameField.isAccessible = true
-
-    for (style in resources.values) {
-      if (style is StyleResourceValue && style.name.contains("AppCompat")) {
-        libraryNameField.set(style, SdkConstants.APPCOMPAT_LIB_ARTIFACT)
-
-        // Temporary dump the styles generated in order to help with fixing b/80518128
-        Logger.getInstance(EnumValueUtil::class.java).warn("identified as AppCompat style: $style")
-      }
-    }
   }
 }

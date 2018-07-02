@@ -16,28 +16,13 @@
 package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants.*
-import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.EnumValueUtil
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.testFramework.PsiTestUtil
+import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
-
-private const val APPCOMPAT_TEXT_APPEARANCES = """
-<resources>
-    <style name="Base.TextAppearance.AppCompat" parent="android:TextAppearance"/>
-    <style name="TextAppearance.AppCompat" parent="Base.TextAppearance.AppCompat"/>
-    <style name="TextAppearance.AppCompat.Small"/>
-    <style name="TextAppearance.AppCompat.Medium"/>
-    <style name="TextAppearance.AppCompat.Large"/>
-    <style name="TextAppearance.AppCompat.Body1"/>
-    <style name="TextAppearance.AppCompat.Body2"/>
-    <style name="TextAppearance.AppCompat.Display1"/>
-    <style name="TextAppearance.AppCompat.Display2"/>
-    <style name="TextAppearance.AppCompat.Display3"/>
-    <style name="TextAppearance.AppCompat.Display4"/>
-</resources>"""
 
 private const val PROJECT_TEXT_APPEARANCES = """
 <resources>
@@ -54,10 +39,10 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
 
   fun testTextViewTextAppearanceWithAppCompat() {
     // setup
-    myFixture.addFileToProject("res/values/appcompat_styles.xml", APPCOMPAT_TEXT_APPEARANCES)
+    val testPath = AndroidTestBase.getModulePath("designer/testData/property/appcompat-aar")
+    PsiTestUtil.addLibrary(myModule, "appcompat.aar", testPath, "classes.jar", "res")
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE)
-    EnumValueUtil.patchLibraryNameOfAllAppCompatStyles(property)
 
     // test
     val support = TextAppearanceEnumSupport(property)
@@ -84,7 +69,6 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
         "Large",
         "Medium",
         "Small")
-    dumpStyles(values)
     var index = 0
     index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 2, expectedProjectValues, expectedProjectDisplayValues)
     index = EnumValueUtil.checkSection(values, index, APPCOMPAT_HEADER, 9, expectedAppCompatValues, expectedAppCompatDisplayValues)
@@ -125,10 +109,5 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
     index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 2, expectedProjectValues, expectedProjectDisplayValues)
     index = EnumValueUtil.checkSection(values, index, ANDROID_HEADER, 9, expectedAndroidValues, expectedAndroidDisplayValues)
     Truth.assertThat(index).isEqualTo(-1)
-  }
-
-  // Temporary dump the styles generated in order to help with fixing b/80518128
-  private fun dumpStyles(values: List<EnumValue>) {
-    values.forEach { Logger.getInstance(StyleEnumSupportTest::class.java).debug("enum: $it   header: ${it.header}") }
   }
 }
