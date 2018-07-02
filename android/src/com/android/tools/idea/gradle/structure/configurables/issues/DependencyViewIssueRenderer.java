@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.issues;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsPath;
+import com.android.tools.idea.gradle.structure.model.PsQuickFix;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,7 +42,7 @@ public class DependencyViewIssueRenderer implements IssueRenderer {
       buffer.append(": ");
     }
     buffer.append(issue.getText());
-    PsPath quickFixPath = issue.getQuickFixPath();
+    PsQuickFix quickFixPath = issue.getQuickFix();
     if (quickFixPath != null) {
       buffer.append(" ").append(quickFixPath.getHtml(myContext));
     }

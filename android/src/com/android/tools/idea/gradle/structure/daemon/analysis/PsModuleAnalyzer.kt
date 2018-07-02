@@ -35,9 +35,8 @@ abstract class PsModuleAnalyzer<T : PsModule> protected constructor(protected va
     val declaredVersion = declaredSpec.version
     if (declaredVersion != null && declaredVersion.endsWith("+")) {
       val message = "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds."
-      val issue = PsGeneralIssue(message, "", path, PROJECT_ANALYSIS, WARNING,
-                                 PsLibraryDependencyVersionQuickFixPath(dependency,
-                                                                        PsLibraryDependencyVersionQuickFixPath.DEFAULT_QUICK_FIX_TEXT))
+      // TODO(b/111058962): Replace "+" with the most recent version of the library.
+      val issue = PsGeneralIssue(message, "", path, PROJECT_ANALYSIS, WARNING, PsLibraryDependencyVersionQuickFixPath(dependency, "+"))
 
       issueCollection.add(issue)
     }

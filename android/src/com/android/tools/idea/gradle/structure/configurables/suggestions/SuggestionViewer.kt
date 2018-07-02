@@ -38,7 +38,7 @@ class SuggestionViewer(
     myText.text = renderer.renderIssue(issue)
     myText.addHyperlinkListener(hyperlinkListener)
 
-    val hyperlinkDestination = issue.quickFixPath?.getHyperlinkDestination(context)
+    val hyperlinkDestination = issue.quickFix?.getHyperlinkDestination(context)
     if (hyperlinkDestination != null) {
       myUpdateButton.addActionListener { _ -> hyperlinkListener.navigate(hyperlinkDestination) }
     }
