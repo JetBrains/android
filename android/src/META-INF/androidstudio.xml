@@ -41,10 +41,6 @@
       <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="Help.KeymapReference" />
     </action>
 
-    <action id="Android.InstantRunFeedback" class="com.android.tools.idea.fd.actions.SubmitFeedback">
-      <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="SendFeedback" />
-    </action>
-
     <action id="WelcomeScreen.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
             icon="AndroidIcons.SdkManager">
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
