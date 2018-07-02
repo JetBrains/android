@@ -108,9 +108,6 @@ public class CommandLineArgs {
       }
     }
 
-    // Disable SDK auto-download until studio can properly handle auto-download failures. See b/71642261.
-    args.add(createProjectProperty("android.builder.sdkDownload", false));
-
     if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
       // Don't put the R.java folder in the model. See GradleTaskExecutorImpl for the same flags passed at build time to not generate
       // those classes either.
