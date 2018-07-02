@@ -48,7 +48,7 @@ import static org.junit.Assert.assertNotNull;
 @RunWith(Parameterized.class)
 @Parameterized.UseParametersRunnerFactory(BuildSpecificGuiTestRunner.Factory.class)
 public class NlEditorTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final LayoutEditorGuiTestRule guiTest = new LayoutEditorGuiTestRule();
   @Rule public final ScreenshotsDuringTest movieRule = new ScreenshotsDuringTest();
 
   @Parameterized.Parameters(name="{0}")
