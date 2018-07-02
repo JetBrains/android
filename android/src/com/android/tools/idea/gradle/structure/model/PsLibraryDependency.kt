@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
-import com.android.tools.idea.gradle.structure.model.meta.SimpleProperty
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 
 interface PsLibraryDependency : PsBaseDependency {

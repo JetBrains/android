@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.intellij.openapi.ui.NamedConfigurable
 
+const val BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME = "Build Variants"
+const val BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME = "build_variants.place"
 class BuildVariantsPerspectiveConfigurable(context: PsContext) : BasePerspectiveConfigurable(context) {
   private val configurablesByGradlePath: Map<String, BaseNamedConfigurable<PsModule>> = HashMap()
 
@@ -28,8 +30,8 @@ class BuildVariantsPerspectiveConfigurable(context: PsContext) : BasePerspective
   override fun getConfigurable(module: PsModule): NamedConfigurable<out PsModule>? =
       if (module is PsAndroidModule) getConfigurable(module) else null
 
-  override fun getNavigationPathName() = "build_variants.place"
-  override fun getDisplayName() = "Build Variants"
+  override fun getNavigationPathName() = BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME
+  override fun getDisplayName() = BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME
 
   private fun getConfigurable(module: PsAndroidModule) =
       configurablesByGradlePath[module.gradlePath] ?: createConfigurable(module)

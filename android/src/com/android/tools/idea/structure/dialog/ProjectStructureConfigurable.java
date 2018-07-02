@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.structure.dialog;
 
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
@@ -22,14 +25,19 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.MasterDetailsComponent;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.wm.IdeFrame;
+import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFocusTraversalPolicy;
+import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.components.panels.Wrapper;
@@ -48,7 +56,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.EventListener;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.ui.navigation.Place.goFurther;
 import static com.intellij.util.ui.UIUtil.*;
 
@@ -56,8 +66,8 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   implements SearchableConfigurable, Place.Navigator, Configurable.NoMargin, Configurable.NoScroll {
 
   public static final DataKey<ProjectStructureConfigurable> KEY = DataKey.create("ProjectStructureConfiguration");
-  @NonNls private static final String CATEGORY = "category";
-  @NonNls private static final String CATEGORY_NAME = "categoryName";
+  @NonNls public static final String CATEGORY = "category";
+  @NonNls public static final String CATEGORY_NAME = "categoryName";
 
   @NonNls private static final String LAST_EDITED_PROPERTY = "project.structure.last.edited";
   @NonNls private static final String PROPORTION_PROPERTY = "project.structure.proportion";
@@ -509,5 +519,36 @@ public class ProjectStructureConfigurable extends BaseConfigurable
 
   public interface ProjectStructureChangeListener extends EventListener {
     void projectStructureChanged();
+  }
+
+  public void showPlace(@Nullable Place place) {
+    if (GradleSyncState.getInstance(myProject).isSyncInProgress()) {
+      IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(myProject);
+      if (ideFrame != null) {
+        StatusBarEx statusBar = (StatusBarEx)ideFrame.getStatusBar();
+        statusBar.notifyProgressByBalloon(MessageType.WARNING, "Project Structure is unavailable while sync is in progress.", null, null);
+      }
+      return;
+    }
+    AtomicBoolean needsSync = new AtomicBoolean();
+    ProjectStructureChangeListener changeListener = () -> needsSync.set(true);
+    add(changeListener);
+    try {
+      ((Runnable)() -> showDialog(() -> {
+        if (place != null) {
+          navigateTo(place, true);
+        }
+      })).run();
+    }
+    finally {
+      remove(changeListener);
+    }
+    if (needsSync.get()) {
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED);
+    }
+  }
+
+  public void show() {
+    showPlace(null);
   }
 }
