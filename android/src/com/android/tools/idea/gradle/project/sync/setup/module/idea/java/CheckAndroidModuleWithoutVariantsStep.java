@@ -37,12 +37,16 @@ public class CheckAndroidModuleWithoutVariantsStep extends JavaModuleSetupStep {
     Module module = context.getModule();
 
     if (gradleModel.isAndroidModuleWithoutVariants()) {
-      // See https://code.google.com/p/android/issues/detail?id=170722
-      GradleSyncMessages messages = GradleSyncMessages.getInstance(module.getProject());
-      String[] text =
-        {String.format("The module '%1$s' is an Android project without build variants, and cannot be built.", module.getName()),
-          "Please fix the module's configuration in the build.gradle file and sync the project again.",};
-      messages.report(new SyncMessage(PROJECT_STRUCTURE_ISSUES, ERROR, text));
+      // Only report an error if we have no SyncIssues, this error message is not very helpful and should only be used if we have no
+      // idea what went wrong.
+      if (gradleModel.getSyncIssues().isEmpty()) {
+        // See https://code.google.com/p/android/issues/detail?id=170722
+        GradleSyncMessages messages = GradleSyncMessages.getInstance(module.getProject());
+        String[] text =
+          {String.format("The module '%1$s' is an Android project without build variants, and cannot be built.", module.getName()),
+            "Please fix the module's configuration in the build.gradle file and sync the project again.",};
+        messages.report(new SyncMessage(PROJECT_STRUCTURE_ISSUES, ERROR, text));
+      }
       cleanUpAndroidModuleWithoutVariants(module, context.getIdeModelsProvider());
       // No need to setup source folders, dependencies, etc. Since the Android project does not have variants, and because this can
       // happen due to a project configuration error and there is a lot of module configuration missing, there is no point on even trying.
