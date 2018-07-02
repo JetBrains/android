@@ -27,15 +27,16 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.Messages.YES
 import com.intellij.util.IconUtil
 
+const val SIGNING_CONFIGS_DISPLAY_NAME = "Signing Configs"
 class SigningConfigsPanel(
   val treeModel: SigningConfigsTreeModel,
   psUiSettings: PsUISettings
 ) :
     ConfigurablesMasterDetailsPanel<PsSigningConfig>(
-        "Signing Configs",
-        "android.psd.signing_config",
-        treeModel,
-        psUiSettings
+      SIGNING_CONFIGS_DISPLAY_NAME,
+      "android.psd.signing_config",
+      treeModel,
+      psUiSettings
     ) {
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction("Remove Signing Config", "Removes a Signing Config", IconUtil.getRemoveIcon()) {
