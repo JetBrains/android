@@ -886,6 +886,7 @@ public class LayoutlibSceneManager extends SceneManager {
     Future<RenderResult> futureResult;
     synchronized (myRenderingTaskLock) {
       if (myRenderTask == null) {
+        getDesignSurface().updateErrorDisplay();
         return;
       }
       if (elapsedFrameTimeMs != -1) {
