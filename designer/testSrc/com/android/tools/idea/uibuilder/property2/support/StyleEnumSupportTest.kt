@@ -17,21 +17,13 @@ package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants.ATTR_STYLE
 import com.android.SdkConstants.BUTTON
-import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.EnumValueUtil.checkSection
-import com.android.tools.idea.uibuilder.property2.testutils.EnumValueUtil.patchLibraryNameOfAllAppCompatStyles
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.testFramework.PsiTestUtil
+import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
-
-private const val APPCOMPAT_STYLES = """
-<resources>
-    <style name="Base.Widget.AppCompat.Button" parent="android:Widget.Material.Button"/>
-    <style name="Widget.AppCompat.Button" parent="Base.Widget.AppCompat.Button"/>
-    <style name="Widget.AppCompat.Button.Colored"/>
-</resources>"""
 
 private const val PROJECT_STYLES = """
 <resources>
@@ -43,14 +35,14 @@ class StyleEnumSupportTest: AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    myFixture.addFileToProject("res/values/appcompat_styles.xml", APPCOMPAT_STYLES)
+    val testPath = AndroidTestBase.getModulePath("designer/testData/property/appcompat-aar")
+    PsiTestUtil.addLibrary(myModule, "appcompat.aar", testPath, "classes.jar", "res")
     myFixture.addFileToProject("res/values/project_styles.xml", PROJECT_STYLES)
   }
 
   fun testButtonStyles() {
     val util = SupportTestUtil(myFacet, myFixture, BUTTON)
     val property = util.makeProperty("", ATTR_STYLE, NelePropertyType.STYLE)
-    patchLibraryNameOfAllAppCompatStyles(property)
     val support = StyleEnumSupport(property)
 
     val values = support.values
@@ -69,15 +61,9 @@ class StyleEnumSupportTest: AndroidTestCase() {
         "Widget.Button.Small",
         "Widget.Button.Toggle")
     var index = 0
-    dumpStyles(values)
     index = checkSection(values, index, PROJECT_HEADER, 2, expectedProjectValues, expectedProjectDisplayValues)
     index = checkSection(values, index, APPCOMPAT_HEADER, 2, expectedAppCompatValues, expectedAppCompatDisplayValues)
     index = checkSection(values, index, ANDROID_HEADER, -40, expectedAndroidValues, expectedAndroidDisplayValues)
     assertThat(index).isEqualTo(-1)
-  }
-
-  // Temporary dump the styles generated in order to help with fixing b/80518128
-  private fun dumpStyles(values: List<EnumValue>) {
-    values.forEach { Logger.getInstance(StyleEnumSupportTest::class.java).debug("enum: $it   header: ${it.header}") }
   }
 }
