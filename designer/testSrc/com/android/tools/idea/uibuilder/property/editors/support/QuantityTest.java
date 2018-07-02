@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.common.property.NlProperty;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import com.android.ide.common.rendering.api.AttributeFormat;
@@ -85,7 +86,8 @@ public class QuantityTest {
   private static NlProperty mockProperty(@NotNull String attribute, @NotNull AttributeFormat format) {
     NlProperty property = Mockito.mock(NlProperty.class);
     Mockito.when(property.getName()).thenReturn(attribute);
-    Mockito.when(property.getDefinition()).thenReturn(new AttributeDefinition(attribute, null, null, Collections.singleton(format)));
+    Mockito.when(property.getDefinition()).thenReturn(
+        new AttributeDefinition(ResourceNamespace.RES_AUTO, attribute, null, null, Collections.singleton(format)));
     return property;
   }
 }

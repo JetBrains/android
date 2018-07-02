@@ -16,6 +16,8 @@
 package org.jetbrains.android.dom.attrs;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -28,38 +30,41 @@ import java.util.*;
  * @author yole
  */
 public class AttributeDefinition implements Cloneable {
-  private String myName;
-  private final List<String> myParentStyleables;
-  private final Set<AttributeFormat> myFormats;
-  private LinkedList<String> myValues;
-  /** Keys are names of styleables, values are doc strings for this attr in the context of the styleable. */
-  private final Map<String, String> myStyleable2DocValue;
+  @NotNull private final ResourceReference myAttr;
+  private boolean myQualifyName;
+  @NotNull private final List<ResourceReference> myParentStyleables;
+  @NotNull private final Set<AttributeFormat> myFormats;
+  private List<String> myValues;
+  /** Keys are styleables, values are doc strings for this attr in the context of the styleable. */
+  @NotNull private final Map<ResourceReference, String> myStyleable2DocValue;
   /** Keys are attr values, values are the corresponding doc strings. */
   private HashMap<String, String> myValueDoc;
   /** Mapping of flag/enum names to their int value. */
   private HashMap<String, Integer> myValueMappings;
   private String myGlobalDocValue;
   private String myAttrGroup;
-  private final String myLibraryName;
+  @Nullable private final String myLibraryName;
 
-  public AttributeDefinition(@NotNull String name) {
-    this(name, null, null, Collections.emptySet());
+  public AttributeDefinition(@NotNull ResourceNamespace namespace, @NotNull String name) {
+    this(namespace, name, null, null, Collections.emptySet());
   }
 
-  public AttributeDefinition(@NotNull String name,
+  public AttributeDefinition(@NotNull ResourceNamespace namespace,
+                             @NotNull String name,
                              @Nullable String libraryName,
-                             @Nullable String parentStyleableName,
+                             @Nullable ResourceReference parentStyleable,
                              @NotNull Collection<AttributeFormat> formats) {
-    myName = name;
+    assert name.indexOf(':') < 0;
+    myAttr = ResourceReference.attr(namespace, name);
     myLibraryName = libraryName;
-    myParentStyleables = parentStyleableName == null ? ContainerUtil.newSmartList() : ContainerUtil.newSmartList(parentStyleableName);
+    myParentStyleables = parentStyleable == null ? ContainerUtil.newSmartList() : ContainerUtil.newSmartList(parentStyleable);
     myFormats = formats.isEmpty() ? EnumSet.noneOf(AttributeFormat.class) : EnumSet.copyOf(formats);
     myStyleable2DocValue = new HashMap<>();
   }
 
   public void addValue(@NotNull String name) {
     if (myValues == null) {
-      myValues = new LinkedList<>();
+      myValues = new ArrayList<>();
     }
 
     myValues.add(name);
@@ -82,8 +87,14 @@ public class AttributeDefinition implements Cloneable {
   }
 
   @NotNull
+  public ResourceReference getResourceReference() {
+    return myAttr;
+  }
+
+  @NotNull
   public String getName() {
-    return myName;
+    //TODO(namespaces): Always return the non-qualified name when the callers are updated to handle that.
+    return myQualifyName ? myAttr.getQualifiedName() : myAttr.getName();
   }
 
   @Nullable
@@ -92,7 +103,7 @@ public class AttributeDefinition implements Cloneable {
   }
 
   @NotNull
-  public List<String> getParentStyleables() {
+  public List<ResourceReference> getParentStyleables() {
     return myParentStyleables;
   }
 
@@ -120,14 +131,28 @@ public class AttributeDefinition implements Cloneable {
   }
 
   @Nullable
-  public String getDocValue(@Nullable String parentStyleable) {
-    if (parentStyleable == null || !myStyleable2DocValue.containsKey(parentStyleable)) {
-      return myGlobalDocValue;
-    }
-    return myStyleable2DocValue.get(parentStyleable);
+  public String getDocValue(@Nullable ResourceReference parentStyleable) {
+    String doc = parentStyleable == null ? null : myStyleable2DocValue.get(parentStyleable);
+    return doc == null ? myGlobalDocValue : doc;
   }
 
-  public void addDocValue(@NotNull String docValue, @Nullable String parentStyleable) {
+  /**
+   * @deprecated Use {@link #getDocValue(ResourceReference)}
+   */
+  @Deprecated
+  @Nullable
+  public String getDocValueByParentStyleableName(@Nullable String parentStyleable) {
+    if (parentStyleable == null) {
+      return myGlobalDocValue;
+    }
+    String doc = myStyleable2DocValue.get(ResourceReference.styleable(ResourceNamespace.TODO(), parentStyleable));
+    if (doc == null) {
+      doc = myStyleable2DocValue.get(ResourceReference.styleable(ResourceNamespace.ANDROID, parentStyleable));
+    }
+    return doc == null ? myGlobalDocValue : doc;
+  }
+
+  public void addDocValue(@NotNull String docValue, @Nullable ResourceReference parentStyleable) {
     if (parentStyleable == null || myGlobalDocValue == null) {
       myGlobalDocValue = docValue;
     }
@@ -138,7 +163,7 @@ public class AttributeDefinition implements Cloneable {
 
   @Override
   public String toString() {
-    return myName + " [" + myFormats + ']';
+    return getName() + " [" + myFormats + ']';
   }
 
   public void addValueDoc(@NotNull String value, @NotNull String doc) {
@@ -151,33 +176,31 @@ public class AttributeDefinition implements Cloneable {
 
   @Nullable
   public String getValueDoc(@NotNull String value) {
-    return myValueDoc != null ? myValueDoc.get(value) : null;
+    return myValueDoc == null ? null : myValueDoc.get(value);
   }
 
   /**
-   * Checks whether attribute is deprecated by looking up "deprecated" in its documenting comment
+   * Checks whether attribute is deprecated by looking up "deprecated" in its documenting comment.
    */
   public boolean isAttributeDeprecated() {
-    final String doc = getDocValue(null);
-    return doc != null && StringUtil.containsIgnoreCase(doc, "deprecated");
+    return myGlobalDocValue != null && StringUtil.containsIgnoreCase(myGlobalDocValue, "deprecated");
   }
 
   public boolean isValueDeprecated(@NotNull String value) {
-    final String doc = getValueDoc(value);
+    String doc = getValueDoc(value);
     return doc != null && StringUtil.containsIgnoreCase(doc, "deprecated");
   }
 
   /**
-   * Returns a shallow copy of this attribute definition under a different name.
+   * Returns a shallow copy of this attribute definition for which the {@link #getName()} will return a qualified name.
    *
-   * @param name the name to give the new attribute definition
    * @return the new attribute definition
    */
   @NotNull
-  public AttributeDefinition cloneWithName(@NotNull String name) {
+  public AttributeDefinition cloneWithQualifiedName() {
     try {
       AttributeDefinition copy = (AttributeDefinition)super.clone();
-      copy.myName = name;
+      copy.myQualifyName = true;
       return copy;
     }
     catch (CloneNotSupportedException e) {

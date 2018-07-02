@@ -1,5 +1,6 @@
 package org.jetbrains.android.dom.attrs;
 
+import com.android.ide.common.rendering.api.ResourceReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -7,14 +8,28 @@ import java.util.Set;
 
 public interface AttributeDefinitions {
   @Nullable
+  StyleableDefinition getStyleableDefinition(@NotNull ResourceReference styleable);
+
+  /**
+   * @deprecated Use {@link #getStyleableDefinition(ResourceReference)}.
+   */
+  @Deprecated
+  @Nullable
   StyleableDefinition getStyleableByName(@NotNull String name);
 
   @NotNull
-  Set<String> getAttributeNames();
+  Set<ResourceReference> getAttrs();
 
+  @Nullable
+  AttributeDefinition getAttrDefinition(@NotNull ResourceReference attr);
+
+  /**
+   * @deprecated Use {@link #getAttrDefinition(ResourceReference)}.
+   */
+  @Deprecated
   @Nullable
   AttributeDefinition getAttrDefByName(@NotNull String name);
 
   @Nullable
-  String getAttrGroupByName(@NotNull String name);
+  String getAttrGroup(@NotNull ResourceReference attr);
 }

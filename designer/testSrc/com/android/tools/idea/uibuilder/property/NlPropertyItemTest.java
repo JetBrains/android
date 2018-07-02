@@ -291,7 +291,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
     NlPropertyItem text = createFrom(myTextView, ATTR_TEXT);
 
     assertThat(text.toString()).isEqualTo("@android:text");
-    assertThat(text.getTooltipText()).startsWith("@android:text:  Text to display.");
+    assertThat(text.getTooltipText()).isEqualTo("@android:text: Text to display.");
     assertThat(text.isEditable(1)).isTrue();
   }
 

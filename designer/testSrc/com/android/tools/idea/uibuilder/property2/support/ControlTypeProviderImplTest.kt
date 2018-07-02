@@ -28,6 +28,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import com.android.ide.common.rendering.api.AttributeFormat
+import com.android.ide.common.rendering.api.ResourceNamespace
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -44,7 +45,7 @@ class ControlTypeProviderImplTest {
   @Test
   fun testFlagEditorForFlagProperties() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
-    val definition = AttributeDefinition("definition", null, null, listOf(AttributeFormat.FLAGS))
+    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, "definition", null, null, listOf(AttributeFormat.FLAGS))
     val property = util.makeFlagsProperty(ANDROID_URI, definition)
     val enumSupportProvider = createEnumSupportProvider()
     val enumSupport = mock(EnumSupport::class.java)

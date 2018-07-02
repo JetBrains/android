@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants.*
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
@@ -126,7 +128,8 @@ class EnumSupportProviderImplTest: AndroidTestCase() {
 
   fun testFromAttributeDefinition() {
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
-    val definition = AttributeDefinition(ATTR_VISIBILITY, "", TEXT_VIEW, emptyList())
+    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_VISIBILITY, "",
+                                         ResourceReference.styleable(ResourceNamespace.RES_AUTO, TEXT_VIEW), emptyList())
     definition.addValue("visible")
     definition.addValue("invisible")
     definition.addValue("gone")

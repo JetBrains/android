@@ -1,4 +1,4 @@
-<html><body><B>myStyle</B><br/> My Style Documentation <br/><hr/><BR/>
+<html><body><B>myStyle</B><br/>My Style Documentation<br/><hr/><BR/>
 ?attr/myStyle => ?android:attr/textAppearance => @style/TextAppearance<BR/>
 <BR/>
 <hr><B>TextAppearance</B>:<BR/>

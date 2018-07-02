@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -372,7 +373,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   }
 
   @NotNull
-  public List<String> getParentStylables() {
+  public List<ResourceReference> getParentStyleables() {
     return myDefinition == null ? Collections.emptyList() : myDefinition.getParentStyleables();
   }
 

@@ -1,6 +1,6 @@
 package org.jetbrains.android.resourceManagers;
 
-import com.intellij.util.containers.HashSet;
+import com.android.ide.common.rendering.api.ResourceReference;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.StyleableDefinition;
@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -21,23 +22,31 @@ public abstract class FilteredAttributeDefinitions implements AttributeDefinitio
     myWrappee = wrappee;
   }
 
-  protected abstract boolean isAttributeAcceptable(@NotNull String name);
+  protected abstract boolean isAttributeAcceptable(@NotNull ResourceReference attr);
 
-  @Nullable
   @Override
+  @Nullable
+  public StyleableDefinition getStyleableDefinition(@NotNull ResourceReference styleable) {
+    StyleableDefinition styleableDef = myWrappee.getStyleableDefinition(styleable);
+    return styleableDef != null ? new MyStyleableDefinition(styleableDef) : null;
+  }
+
+  @Deprecated
+  @Override
+  @Nullable
   public StyleableDefinition getStyleableByName(@NotNull String name) {
-    final StyleableDefinition styleable = myWrappee.getStyleableByName(name);
+    StyleableDefinition styleable = myWrappee.getStyleableByName(name);
     return styleable != null ? new MyStyleableDefinition(styleable) : null;
   }
 
-  @NotNull
   @Override
-  public Set<String> getAttributeNames() {
-    final Set<String> result = new HashSet<String>();
+  @NotNull
+  public Set<ResourceReference> getAttrs() {
+    Set<ResourceReference> result = new HashSet<>();
 
-    for (String name : myWrappee.getAttributeNames()) {
-      if (isAttributeAcceptable(name)) {
-        result.add(name);
+    for (ResourceReference attrRef : myWrappee.getAttrs()) {
+      if (isAttributeAcceptable(attrRef)) {
+        result.add(attrRef);
       }
     }
     return result;
@@ -45,14 +54,23 @@ public abstract class FilteredAttributeDefinitions implements AttributeDefinitio
 
   @Nullable
   @Override
+  public AttributeDefinition getAttrDefinition(@NotNull ResourceReference attr) {
+    AttributeDefinition attribute = myWrappee.getAttrDefinition(attr);
+    return attribute != null && isAttributeAcceptable(attr) ? attribute : null;
+  }
+
+  @Deprecated
+  @Override
+  @Nullable
   public AttributeDefinition getAttrDefByName(@NotNull String name) {
-    return isAttributeAcceptable(name) ? myWrappee.getAttrDefByName(name) : null;
+    AttributeDefinition attribute = myWrappee.getAttrDefByName(name);
+    return attribute != null && isAttributeAcceptable(attribute.getResourceReference()) ? attribute : null;
   }
 
   @Nullable
   @Override
-  public String getAttrGroupByName(@NotNull String name) {
-    return myWrappee.getAttrGroupByName(name);
+  public String getAttrGroup(@NotNull ResourceReference attr) {
+    return myWrappee.getAttrGroup(attr);
   }
 
   private class MyStyleableDefinition implements StyleableDefinition {
@@ -62,11 +80,11 @@ public abstract class FilteredAttributeDefinitions implements AttributeDefinitio
       myWrappee = wrappee;
     }
 
-    @NotNull
     @Override
+    @NotNull
     public List<StyleableDefinition> getChildren() {
-      final List<StyleableDefinition> styleables = myWrappee.getChildren();
-      final List<StyleableDefinition> result = new ArrayList<StyleableDefinition>(styleables.size());
+      List<StyleableDefinition> styleables = myWrappee.getChildren();
+      List<StyleableDefinition> result = new ArrayList<>(styleables.size());
 
       for (StyleableDefinition styleable : styleables) {
         result.add(new MyStyleableDefinition(styleable));
@@ -74,19 +92,25 @@ public abstract class FilteredAttributeDefinitions implements AttributeDefinitio
       return result;
     }
 
-    @NotNull
     @Override
+    @NotNull
+    public ResourceReference getResourceReference() {
+      return myWrappee.getResourceReference();
+    }
+
+    @Override
+    @NotNull
     public String getName() {
       return myWrappee.getName();
     }
 
-    @NotNull
     @Override
+    @NotNull
     public List<AttributeDefinition> getAttributes() {
-      final List<AttributeDefinition> result = new ArrayList<AttributeDefinition>();
+      List<AttributeDefinition> result = new ArrayList<>();
 
       for (AttributeDefinition definition : myWrappee.getAttributes()) {
-        if (isAttributeAcceptable(definition.getName())) {
+        if (isAttributeAcceptable(definition.getResourceReference())) {
           result.add(definition);
         }
       }

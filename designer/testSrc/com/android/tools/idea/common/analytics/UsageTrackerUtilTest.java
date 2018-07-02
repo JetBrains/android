@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.analytics;
 
+ import com.android.ide.common.rendering.api.ResourceNamespace;
+ import com.android.ide.common.rendering.api.ResourceReference;
  import com.android.tools.idea.common.model.NlComponent;
  import com.android.tools.idea.common.model.NlLayoutType;
  import com.android.tools.idea.common.model.NlModel;
@@ -29,10 +31,6 @@ package com.android.tools.idea.common.analytics;
  import com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewGroup;
  import com.google.wireless.android.sdk.stats.SearchOption;
  import com.intellij.openapi.Disposable;
- import com.intellij.openapi.application.Application;
- import com.intellij.openapi.application.ApplicationManager;
- import com.intellij.openapi.components.ComponentManager;
- import com.intellij.openapi.components.impl.ComponentManagerImpl;
  import com.intellij.openapi.project.Project;
  import com.intellij.openapi.util.Disposer;
  import com.intellij.openapi.util.text.StringUtil;
@@ -42,13 +40,11 @@ package com.android.tools.idea.common.analytics;
  import org.jetbrains.android.dom.attrs.AttributeDefinition;
  import org.jetbrains.android.dom.attrs.AttributeDefinitions;
  import org.jetbrains.android.dom.attrs.StyleableDefinition;
- import org.jetbrains.android.facet.AndroidFacet;
  import org.jetbrains.android.resourceManagers.LocalResourceManager;
  import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
  import org.jetbrains.android.resourceManagers.SystemResourceManager;
  import org.jetbrains.annotations.NotNull;
  import org.jetbrains.annotations.Nullable;
- import org.mockito.ArgumentMatchers;
  import org.picocontainer.MutablePicoContainer;
 
  import java.io.InputStreamReader;
@@ -332,21 +328,23 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
 
     PropertiesManager propertiesManager = mock(PropertiesManager.class);
     return NlPropertyItem.create(new XmlName(propertyName, namespace),
-                                 new AttributeDefinition(propertyName, libraryName, null, emptyList()),
+                                 new AttributeDefinition(ResourceNamespace.RES_AUTO, propertyName, libraryName, null, emptyList()),
                                  Collections.singletonList(component),
                                  propertiesManager);
   }
 
   private void setUpApplicationAttributes() {
-    Attributes systemAttributes = new Attributes();
-    systemAttributes.add(new AttributeDefinition(ATTR_TEXT, null, null, emptyList()));
+    Attributes frameworkAttributes = new Attributes();
+    frameworkAttributes.add(new AttributeDefinition(ResourceNamespace.ANDROID, ATTR_TEXT, null, null, emptyList()));
 
     Attributes localAttributes = new Attributes();
-    localAttributes.add(new AttributeDefinition(ATTR_LAYOUT_COLLAPSE_MODE, DESIGN_COORDINATE, null, emptyList()));
-    localAttributes.add(new AttributeDefinition(ATTR_ACME_LAYOUT_MARGIN, ACME_LIB_COORDINATE, null, emptyList()));
+    localAttributes.add(
+        new AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_LAYOUT_COLLAPSE_MODE, DESIGN_COORDINATE, null, emptyList()));
+    localAttributes.add(
+        new AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_ACME_LAYOUT_MARGIN, ACME_LIB_COORDINATE, null, emptyList()));
 
     SystemResourceManager systemResourceManager = mock(SystemResourceManager.class);
-    when(systemResourceManager.getAttributeDefinitions()).thenReturn(systemAttributes);
+    when(systemResourceManager.getAttributeDefinitions()).thenReturn(frameworkAttributes);
 
     LocalResourceManager localResourceManager = mock(LocalResourceManager.class);
     when(localResourceManager.getAttributeDefinitions()).thenReturn(localAttributes);
@@ -379,34 +377,52 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
   }
 
   private static class Attributes implements AttributeDefinitions {
-    private Map<String, AttributeDefinition> myDefinitions = new HashMap<>();
+    private Map<ResourceReference, AttributeDefinition> myDefinitions = new HashMap<>();
 
     private void add(@NotNull AttributeDefinition definition) {
-      myDefinitions.put(definition.getName(), definition);
+      myDefinitions.put(definition.getResourceReference(), definition);
     }
 
     @Nullable
     @Override
+    public StyleableDefinition getStyleableDefinition(@NotNull ResourceReference styleable) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Deprecated
+    @Nullable
+    @Override
     public StyleableDefinition getStyleableByName(@NotNull String name) {
-      throw new IllegalAccessError();
+      throw new UnsupportedOperationException();
     }
 
     @NotNull
     @Override
-    public Set<String> getAttributeNames() {
+    public Set<ResourceReference> getAttrs() {
       return myDefinitions.keySet();
     }
 
     @Nullable
     @Override
+    public AttributeDefinition getAttrDefinition(@NotNull ResourceReference attr) {
+      return myDefinitions.get(attr);
+    }
+
+    @Deprecated
+    @Nullable
+    @Override
     public AttributeDefinition getAttrDefByName(@NotNull String name) {
-      return myDefinitions.get(name);
+      AttributeDefinition attribute = myDefinitions.get(ResourceReference.attr(ResourceNamespace.RES_AUTO, name));
+      if (attribute == null) {
+        attribute = myDefinitions.get(ResourceReference.attr(ResourceNamespace.ANDROID, name));
+      }
+      return attribute;
     }
 
     @Nullable
     @Override
-    public String getAttrGroupByName(@NotNull String name) {
-      throw new IllegalAccessError();
+    public String getAttrGroup(@NotNull ResourceReference attr) {
+      throw new UnsupportedOperationException();
     }
   }
 }

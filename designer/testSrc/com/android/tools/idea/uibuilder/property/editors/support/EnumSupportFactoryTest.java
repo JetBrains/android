@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
@@ -150,7 +151,7 @@ public class EnumSupportFactoryTest extends PropertyTestCase {
   private EnumSupport checkSupportedUsingFakeProperty(@NotNull NlComponent component,
                                                       @NotNull String propertyName,
                                                       @NotNull Class<? extends EnumSupport> expectedSupportClass) {
-    AttributeDefinition attribute = new AttributeDefinition(propertyName, null, null, Collections.emptyList());
+    AttributeDefinition attribute = new AttributeDefinition(ResourceNamespace.RES_AUTO, propertyName, null, null, Collections.emptyList());
 
     NlProperty property = mock(NlProperty.class);
     when(property.getName()).thenReturn(propertyName);

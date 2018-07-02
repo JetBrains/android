@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.common.property.NlProperty;
 import com.google.common.collect.ImmutableList;
@@ -48,7 +49,7 @@ public class IdEnumSupportTest {
   @Before
   public void setUp() {
     initMocks(this);
-    myDefinition = new AttributeDefinition("property", null, null, Collections.emptyList());
+    myDefinition = new AttributeDefinition(ResourceNamespace.RES_AUTO, "property", null, null, Collections.emptyList());
     when(myProperty.getResolver()).thenReturn(myResolver);
     when(myProperty.resolveValue(anyString())).thenAnswer(invocation -> invocation.getArguments()[0]);
     when(myProperty.getDefinition()).thenReturn(myDefinition);

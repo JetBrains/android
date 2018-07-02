@@ -15,33 +15,57 @@
  */
 package org.jetbrains.android.dom.attrs;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ToolsAttributeDefinitionsImpl implements AttributeDefinitions {
-  @Nullable
+  private static final Set<ResourceReference> ATTRIBUTE_REFERENCES =
+      ToolsAttributeUtil.getAttributeNames().stream()
+          .map(name -> ResourceReference.attr(ResourceNamespace.TOOLS, name)).collect( Collectors.toSet());
+
   @Override
+  @Nullable
+  public StyleableDefinition getStyleableDefinition(@NotNull ResourceReference styleable) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Deprecated
+  @Override
+  @Nullable
   public StyleableDefinition getStyleableByName(@NotNull String name) {
     throw new UnsupportedOperationException();
   }
 
-  @NotNull
   @Override
-  public Set<String> getAttributeNames() {
-    return ToolsAttributeUtil.getAttributeNames();
+  @NotNull
+  public Set<ResourceReference> getAttrs() {
+    return ATTRIBUTE_REFERENCES;
   }
 
-  @Nullable
   @Override
+  @Nullable
+  public AttributeDefinition getAttrDefinition(@NotNull ResourceReference attr) {
+    if (attr.getNamespace() != ResourceNamespace.TOOLS) {
+      return null;
+    }
+    return ToolsAttributeUtil.getAttrDefByName(attr.getName());
+  }
+
+  @Deprecated
+  @Override
+  @Nullable
   public AttributeDefinition getAttrDefByName(@NotNull String name) {
     return ToolsAttributeUtil.getAttrDefByName(name);
   }
 
-  @Nullable
   @Override
-  public String getAttrGroupByName(@NotNull String name) {
+  @Nullable
+  public String getAttrGroup(@NotNull ResourceReference attr) {
     return "Tools";
   }
 }

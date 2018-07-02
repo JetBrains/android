@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.android.dom;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.support.AndroidxName;
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
@@ -50,10 +51,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
-import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 /**
  * @author Eugene.Kudelevsky
@@ -301,41 +300,56 @@ public class AndroidDomUtil {
   @Nullable
   public static AttributeDefinition getAttributeDefinition(@NotNull AndroidFacet facet, @NotNull XmlAttribute attribute) {
     String localName = attribute.getLocalName();
-    String namespace = attribute.getNamespace();
-    boolean isFramework = namespace.equals(ANDROID_URI);
-    if (!isFramework && TOOLS_URI.equals(namespace)) {
-      // Treat tools namespace attributes as aliases for Android namespaces: see https://developer.android.com/studio/write/tool-attributes.html#design-time_view_attributes
-      isFramework = true;
 
-      // However, there are some attributes with other meanings: https://developer.android.com/studio/write/tool-attributes.html
-      // Filter some of these out such that they are not treated as the (unrelated but identically named) platform attributes
-      AttributeDefinition toolsAttr = TOOLS_ATTRIBUTE_DEFINITIONS.getAttrDefByName(localName);
-      if (toolsAttr != null) {
-        return toolsAttr;
+    ResourceNamespace namespace = null;
+    String namespaceUri = attribute.getNamespace();
+    if (!namespaceUri.isEmpty()) {
+      namespace = ResourceNamespace.fromNamespaceUri(namespaceUri);
+      if (namespace == null) {
+        return null;
       }
     }
 
-    AttributeDefinition definition = null;
-    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(isFramework ? SYSTEM_RESOURCE_PACKAGE : null);
-    if (manager != null) {
-      AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
-      if (attrDefs != null) {
-        definition = attrDefs.getAttrDefByName(localName);
-      }
-    }
+    if (namespace != null) {
+      if (namespace.equals(ResourceNamespace.TOOLS)) {
+        // Treat tools namespaceUri attributes as aliases for Android namespaces:
+        // see https://developer.android.com/studio/write/tool-attributes.html#design-time_view_attributes
+        namespace = ResourceNamespace.ANDROID;
 
-    if (definition == null) {
-      Module module = facet.getModule();
-      DataBindingProjectComponent dataBindingComponent = module.getProject().getComponent(DataBindingProjectComponent.class);
-      if (dataBindingComponent != null) {
-        Set<String> bindingAttributes = dataBindingComponent.getBindingAdapterAttributes(module).collect(Collectors.toSet());
-        if (bindingAttributes.contains(attribute.getName())) {
-          definition = new AttributeDefinition(localName);
+        // However, there are some attributes with other meanings: https://developer.android.com/studio/write/tool-attributes.html
+        // Filter some of these out such that they are not treated as the (unrelated but identically named) platform attributes
+        AttributeDefinition toolsAttr =
+            TOOLS_ATTRIBUTE_DEFINITIONS.getAttrDefinition(ResourceReference.attr(ResourceNamespace.TOOLS, localName));
+        if (toolsAttr != null) {
+          return toolsAttr;
+        }
+      }
+
+      ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(null);
+      if (manager != null) {
+        AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
+        if (attrDefs != null) {
+          AttributeDefinition definition = attrDefs.getAttrDefinition(ResourceReference.attr(namespace, localName));
+          if (definition != null) {
+            return definition;
+          }
         }
       }
     }
 
-    return definition;
+    Module module = facet.getModule();
+    DataBindingProjectComponent dataBindingComponent = module.getProject().getComponent(DataBindingProjectComponent.class);
+    if (dataBindingComponent != null) {
+      String attributeName = attribute.getName();
+      if (dataBindingComponent.getBindingAdapterAttributes(module).anyMatch(name -> name.equals(attributeName))) {
+        if (namespace == null) {
+          namespace = ResourceNamespace.RES_AUTO;
+        }
+        return new AttributeDefinition(namespace, localName);
+      }
+    }
+
+    return null;
   }
 
   @NotNull

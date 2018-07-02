@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.model;
 
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.Density;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
@@ -149,9 +150,8 @@ public class LayoutParamsManagerTest extends AndroidTestCase {
     assertThat(LayoutParamsManager.setAttribute(layoutParams, "notExistent", null, nlModelMock)).isFalse();
 
     // Test flag attribute
-    AttributeDefinition flagDefinition = new AttributeDefinition("flagAttribute", null, null, EnumSet.of(
-      AttributeFormat.FLAGS
-    ));
+    AttributeDefinition flagDefinition =
+        new AttributeDefinition(ResourceNamespace.RES_AUTO, "flagAttribute", null, null, EnumSet.of(AttributeFormat.FLAGS));
     flagDefinition.addValueMapping("value1", 0b001);
     flagDefinition.addValueMapping("value2", 0b010);
     flagDefinition.addValueMapping("value3", 0b111);

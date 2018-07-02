@@ -199,7 +199,7 @@ public class NlPropertiesTest extends PropertyTestCase {
 
     assertEquals("id", p.getName());
 
-    String expected = "@android:id:  Supply an identifier name for this view, to later retrieve it\n" +
+    String expected = "@android:id: Supply an identifier name for this view, to later retrieve it\n" +
                       "             with {@link android.view.View#findViewById View.findViewById()} or\n" +
                       "             {@link android.app.Activity#findViewById Activity.findViewById()}.\n" +
                       "             This must be a\n" +
@@ -207,7 +207,7 @@ public class NlPropertiesTest extends PropertyTestCase {
                       "             <code>@+</code> syntax to create a new ID resources.\n" +
                       "             For example: <code>android:id=\"@+id/my_id\"</code> which\n" +
                       "             allows you to later retrieve the view\n" +
-                      "             with <code>findViewById(R.id.my_id)</code>. ";
+                      "             with <code>findViewById(R.id.my_id)</code>.";
 
     assertEquals(expected, p.getTooltipText());
 
