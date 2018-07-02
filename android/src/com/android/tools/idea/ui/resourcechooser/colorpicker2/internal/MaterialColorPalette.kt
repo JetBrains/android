@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.ui.MaterialColors
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.HORIZONTAL_MARGIN_TO_PICKER_BORDER
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_BACKGROUND_COLOR
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_PREFERRED_WIDTH
 import com.intellij.ide.util.PropertiesComponent
@@ -32,21 +33,22 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.*
 
-private const val COLOR_BUTTON_NUMBER = 16
+private const val COLOR_BUTTON_ROW = 2
+private const val COLOR_BUTTON_COLUMN = 8
 
 private val PALETTE_PREFERRED_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 125)
-private val PALETTE_BORDER = JBUI.Borders.empty()
+private val PALETTE_BORDER = JBUI.Borders.empty(10, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 10, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
 
-private val COMBO_BOX_INSETS = JBUI.insets(0, 4, 4, 4)
+private val COMBO_BOX_PREFERRED_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 35)
+private val COMBO_BOX_BORDER = JBUI.Borders.empty(0, 4, 8, 4)
 
-private val COLOR_BUTTON_SIZE = JBUI.size(34)
-private val COLOR_BUTTON_BORDER = JBUI.Borders.empty(6)
-private val COLOR_BUTTON_INSETS = JBUI.insets(0)
+private val COLOR_BUTTON_PREFERRED_SIZE = JBUI.size(34)
+private val COLOR_BUTTON_BORDER = JBUI.Borders.empty(7)
 
 class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel() {
 
   @get:TestOnly
-  val colorButtons = Array(COLOR_BUTTON_NUMBER, {
+  val colorButtons = Array(COLOR_BUTTON_ROW * COLOR_BUTTON_COLUMN, {
     ColorButton().apply {
       background = PICKER_BACKGROUND_COLOR
       addActionListener { pickerModel.setColor(color, ColorPalette@this) }
@@ -54,34 +56,29 @@ class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel()
   })
 
   init {
-    layout = GridBagLayout()
+    layout = BoxLayout(this, BoxLayout.Y_AXIS)
     border = PALETTE_BORDER
     preferredSize = PALETTE_PREFERRED_SIZE
     background = PICKER_BACKGROUND_COLOR
 
-    // TODO: avoid using GridBagConstraints
-    val c = GridBagConstraints()
-    c.fill = GridBagConstraints.HORIZONTAL
-    c.gridwidth = 8
-    c.gridx = 0
-    c.gridy = 0
-    c.insets = COMBO_BOX_INSETS
+    val comboBoxPanel = JPanel(GridLayout(1, 1)).apply {
+      preferredSize = COMBO_BOX_PREFERRED_SIZE
+      border = COMBO_BOX_BORDER
+      background = PICKER_BACKGROUND_COLOR
+    }
     val boxModel = MyComboBoxModel(MaterialColors.Category.values())
     val box = CommonComboBox(boxModel)
     box.addActionListener { setColorSet(boxModel.selectedItem as MaterialColors.Category) }
-    add(box, c)
+    comboBoxPanel.add(box)
+    add(comboBoxPanel)
 
-    c.gridwidth = 1
-    c.gridx = 1
-    c.insets = COLOR_BUTTON_INSETS
-
-    // Add buttons for built-in color
-    val halfButtonNumber = COLOR_BUTTON_NUMBER / 2
-    for (colorIndex in 0 until COLOR_BUTTON_NUMBER) {
-      c.gridx = colorIndex % halfButtonNumber
-      c.gridy = 1 + colorIndex / halfButtonNumber
-      add(colorButtons[colorIndex], c)
+    // Add buttons for built-in colors
+    val colorButtonPanel = JPanel(GridLayout(COLOR_BUTTON_ROW, COLOR_BUTTON_COLUMN)).apply {
+      border = JBUI.Borders.empty()
+      background = PICKER_BACKGROUND_COLOR
+      colorButtons.forEach { add(it) }
     }
+    add(colorButtonPanel)
 
     val category = loadLastUsedColorCategory()
     box.selectedItem = category
@@ -124,7 +121,7 @@ class ColorButton(var color: Color = Color.WHITE): JButton() {
   var status = Status.NORMAL
 
   init {
-    preferredSize = COLOR_BUTTON_SIZE
+    preferredSize = COLOR_BUTTON_PREFERRED_SIZE
     border = COLOR_BUTTON_BORDER
     isRolloverEnabled = true
     hideActionText = true
