@@ -22,7 +22,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -32,10 +31,8 @@ import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -56,32 +53,7 @@ public class InstantRunConfigurable
   private JBCheckBox myShowToastCheckBox;
   private JBCheckBox myShowIrStatusNotifications;
 
-  private JBCheckBox myEnableRecorder;
-  private HyperlinkLabel myExtraInfoHyperlink;
-  private HyperlinkLabel myPrivacyPolicyLink;
-
-  private HyperlinkLabel myReenableLink;
-  private JPanel myHelpGooglePanel;
-  private JBLabel myHavingTroubleLabel;
-
   public InstantRunConfigurable() {
-    myExtraInfoHyperlink.setHtmlText("Learn more about <a href=\"more\">what is logged</a>,");
-    myExtraInfoHyperlink.addHyperlinkListener(e -> BrowserUtil.browse("https://developer.android.com/r/studio-ui/ir-flight-recorder.html"));
-
-    myPrivacyPolicyLink.setHtmlText("and our <a href=\"privacy\">privacy policy.</a>");
-    myPrivacyPolicyLink.addHyperlinkListener(e -> BrowserUtil.browse("https://www.google.com/policies/privacy/"));
-
-    myHelpGooglePanel.setBackground(UIUtil.getPanelBackground().brighter());
-    myHelpGooglePanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
-    myHavingTroubleLabel.setFont(JBUI.Fonts.label().asBold().biggerOn(1.2f));
-
-    myReenableLink.setHtmlText("<a href=\"reenable\">Re-enable and activate extra logging</a>");
-    myReenableLink.addHyperlinkListener(e -> {
-      myInstantRunCheckBox.setSelected(true);
-      enableIrOptions(true);
-      myEnableRecorder.setSelected(true);
-    });
-
     myInstantRunCheckBox.addActionListener(e -> enableIrOptions(myInstantRunCheckBox.isSelected()));
 
     myBuildConfiguration = InstantRunConfiguration.getInstance();
@@ -131,7 +103,6 @@ public class InstantRunConfigurable
     myRestartActivityCheckBox.setSelected(myBuildConfiguration.RESTART_ACTIVITY);
     myShowToastCheckBox.setSelected(myBuildConfiguration.SHOW_TOAST);
     myShowIrStatusNotifications.setSelected(myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS);
-    myEnableRecorder.setSelected(myBuildConfiguration.ENABLE_RECORDER);
   }
 
   @Override
@@ -155,7 +126,7 @@ public class InstantRunConfigurable
   }
 
   private boolean isEnableRecorder() {
-    return myEnableRecorder.isSelected();
+    return false;
   }
 
   private void createUIComponents() {
@@ -201,10 +172,6 @@ public class InstantRunConfigurable
     myRestartActivityCheckBox.setEnabled(enabled);
     myShowToastCheckBox.setEnabled(enabled);
     myShowIrStatusNotifications.setEnabled(enabled);
-    myEnableRecorder.setEnabled(enabled);
-    myExtraInfoHyperlink.setEnabled(enabled);
-
-    myHelpGooglePanel.setVisible(!enabled);
   }
 
   @Override
