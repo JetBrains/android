@@ -15,22 +15,18 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.google.common.collect.ImmutableList
-import org.junit.Before
-import org.junit.Test
-import org.mockito.Mock
-
-import java.util.Comparator
-
 import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.ERROR
 import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.WARNING
 import com.android.tools.idea.gradle.structure.model.PsIssueType.LIBRARY_UPDATES_AVAILABLE
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
+import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations.initMocks
+import java.util.*
 
 /**
  * Tests for [PsIssueCollection].
@@ -38,19 +34,17 @@ import org.mockito.MockitoAnnotations.initMocks
 class PsIssueCollectionTest {
   private lateinit var issueCollection: PsIssueCollection
   private lateinit var testPath: PsPath
-  @Mock
-  private val context: PsContext? = null
 
   @Before
   fun setUp() {
     initMocks(this)
-    issueCollection = PsIssueCollection(context!!)
+    issueCollection = PsIssueCollection()
     testPath = TestPath("test path")
   }
 
   @Test
   fun getTooltipText_empty() {
-    assertNull(PsIssueCollection.getTooltipText(ImmutableList.of(), true))
+    assertNull(getTooltipText(ImmutableList.of(), true))
   }
 
   @Test
@@ -60,7 +54,7 @@ class PsIssueCollectionTest {
     val expected = "<html><body>" +
                    "test path: Issue 01<br>" +
                    "</body></html>"
-    assertEquals(expected, PsIssueCollection.getTooltipText(issues, true))
+    assertEquals(expected, getTooltipText(issues, true))
   }
 
   @Test
@@ -70,7 +64,7 @@ class PsIssueCollectionTest {
     val expected = "<html><body>" +
                    "Issue 01<br>" +
                    "</body></html>"
-    assertEquals(expected, PsIssueCollection.getTooltipText(issues, false))
+    assertEquals(expected, getTooltipText(issues, false))
   }
 
   @Test
@@ -88,7 +82,7 @@ class PsIssueCollectionTest {
                    "<li>test path: Test Issue 02</li>" +
                    "<li>test path: Test Issue 03</li>" +
                    "</ul></body></html>"
-    assertEquals(expected, PsIssueCollection.getTooltipText(issues, true))
+    assertEquals(expected, getTooltipText(issues, true))
   }
 
   @Test
@@ -106,7 +100,7 @@ class PsIssueCollectionTest {
                    "<li>Test Issue 02</li>" +
                    "<li>Test Issue 03</li>" +
                    "</ul></body></html>"
-    assertEquals(expected, PsIssueCollection.getTooltipText(issues, false))
+    assertEquals(expected, getTooltipText(issues, false))
   }
 
   @Test
@@ -129,7 +123,7 @@ class PsIssueCollectionTest {
                    "<li>test path: Test Issue 02</li>" +
                    "<li>test path: Test Issue 03</li>" +
                    "</ul>5 more messages...<br></body></html>"
-    assertEquals(expected, PsIssueCollection.getTooltipText(issues, true))
+    assertEquals(expected, getTooltipText(issues, true))
   }
 
   @Test
@@ -152,7 +146,7 @@ class PsIssueCollectionTest {
                    "<li>Test Issue 02</li>" +
                    "<li>Test Issue 03</li>" +
                    "</ul>5 more messages...<br></body></html>"
-    assertEquals(expected, PsIssueCollection.getTooltipText(issues, false))
+    assertEquals(expected, getTooltipText(issues, false))
   }
 
   @Test
