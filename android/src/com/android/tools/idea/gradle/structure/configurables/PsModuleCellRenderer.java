@@ -28,7 +28,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.structure.model.PsIssueCollection.getTooltipText;
+import static com.android.tools.idea.gradle.structure.model.PsIssueCollectionKt.getTooltipText;
 import static com.intellij.ui.SimpleTextAttributes.*;
 import static com.intellij.util.ui.UIUtil.getTreeFont;
 

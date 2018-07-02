@@ -42,7 +42,7 @@ class PsAndroidModuleAnalyzerTest : DependencyTestCase() {
       val context = PsContextImpl(project, disposable, disableAnalysis = true)
       val mainModule = project.findModuleByName("mainModule") as PsAndroidModule
       val analyzer = PsAndroidModuleAnalyzer(context)
-      val messageCollection = PsIssueCollection(context)
+      val messageCollection = PsIssueCollection()
       analyzer.analyze(mainModule, messageCollection)
 
       val messages = messageCollection

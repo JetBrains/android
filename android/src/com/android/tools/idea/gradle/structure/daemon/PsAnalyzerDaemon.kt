@@ -42,7 +42,7 @@ private val LOG = Logger.getInstance(PsAnalyzerDaemon::class.java)
 class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon) : PsDaemon(context) {
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Analyzer", null)
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Analysis Results Updater", ANY_COMPONENT)
-  val issues: PsIssueCollection = PsIssueCollection(context)
+  val issues: PsIssueCollection = PsIssueCollection()
 
   private val modelAnalyzers: Map<Class<*>, PsModuleAnalyzer<out PsModule>> =
     analyzersMapOf(PsAndroidModuleAnalyzer(context), PsJavaModuleAnalyzer(context))

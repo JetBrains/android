@@ -42,7 +42,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.isMetaOrCtrlKeyPressed;
-import static com.android.tools.idea.gradle.structure.model.PsIssueCollection.getTooltipText;
+import static com.android.tools.idea.gradle.structure.model.PsIssueCollectionKt.getTooltipText;
 import static com.intellij.ui.SimpleTextAttributes.LINK_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
 import static java.awt.Cursor.*;
