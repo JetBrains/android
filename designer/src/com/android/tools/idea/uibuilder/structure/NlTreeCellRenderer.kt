@@ -73,7 +73,7 @@ class NlTreeCellRenderer(
     secondaryLabel.text = null
     primaryLabel.foreground = UIUtil.getListForeground(hasFocus)
 
-    if(value is String) {
+    if (value is String) {
       primaryLabel.text = value
       primaryLabel.font = otherFont
       return this
@@ -116,11 +116,19 @@ class NlTreeCellRenderer(
     else {
       ""
     }
-    toolTipText = getHiddenText(primaryLabelText, secondaryLabelText)
+    toolTipText = createTooltipText(value.tagName, primaryLabelText, secondaryLabelText)
     primaryLabel.text = primaryLabelText
     secondaryLabel.text = secondaryLabelText
     return this
   }
+
+  private fun createTooltipText(tagName: String, primaryLabelText: String, secondaryLabelText: String) =
+    """
+    <html>
+        ${tagName.substringAfterLast('.', tagName)}<br/>
+        ${getHiddenText(primaryLabelText, secondaryLabelText)}
+    </html>
+    """.trimIndent()
 
   /**
    * We only want to show the hidden part of the cell in the tooltip:
