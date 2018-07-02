@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.handlers.coordinator
 import com.android.SdkConstants
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.AndroidDpCoordinate
-import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.Scene
@@ -82,7 +81,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
     for (attribute in myAttributes) {
       val value = myComponent.nlComponent.getLiveAttribute(SdkConstants.AUTO_URI, attribute)
       if (value != null) {
-        myOriginalAttributes.put(attribute, value)
+        myOriginalAttributes[attribute] = value
       }
     }
   }
@@ -126,6 +125,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
     myComponent.isDragging = true
     myComponent.setPosition(x - myOffsetX, y - myOffsetY, false)
     myComponent.scene.repaint()
+    myChangedComponent = true
   }
 
   override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
