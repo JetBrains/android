@@ -41,6 +41,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.wm.IdeFocusManager
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Font
+import java.lang.ref.WeakReference
 import javax.swing.Icon
 
 /**
@@ -50,7 +51,7 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
   : AnAction("Convert view...") {
 
   private val myFacet: AndroidFacet = component.model.facet
-  private val mySurface = designSurface
+  private val mySurfaceRef: WeakReference<DesignSurface> = WeakReference(designSurface)
   private val myProject = component.model.project
   private val myNlComponent = component
   private val myAttributes = mutableListOf<AttributeProperties>()
@@ -102,7 +103,9 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
     val document = factory.createDocument(buildRangesAndGetString(myNlComponent, myAttributes))
     val editor = factory.createEditor(document, myProject, XmlFileType.INSTANCE, false) as EditorEx
 
-    val syntaxHighlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(XmlFileType.INSTANCE, myProject, mySurface.model?.virtualFile)
+    val syntaxHighlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(XmlFileType.INSTANCE,
+                                                                          myProject,
+                                                                          mySurfaceRef.get()?.model?.virtualFile)
     syntaxHighlighter?.let {
       editor.highlighter = LexerEditorHighlighter(it, EditorColorsManager.getInstance().globalScheme)
     }
