@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.util.ui.JBUI
@@ -58,8 +59,18 @@ private const val DURATION_COLOR_UPDATING = 33
 /**
  * The [ColorPipette] which picks up the color from monitor.
  */
-class GraphicalColorPipette(private val parent: JComponent) : ColorPipette {
+open class GraphicalColorPipette(private val parent: JComponent) : ColorPipette {
+  override val icon: Icon = AllIcons.Ide.Pipette
+
+  override val rolloverIcon: Icon = AllIcons.Ide.Pipette_rollover
+
+  override val pressedIcon: Icon = AllIcons.Ide.Pipette_rollover
+
   override fun pick(callback: ColorPipette.Callback) = PickerDialog(parent, callback).pick()
+}
+
+class GraphicalColorPipetteProvider : ColorPipetteProvider {
+  override fun createPipette(owner: JComponent): ColorPipette = GraphicalColorPipette(owner)
 }
 
 private class PickerDialog(val parent: JComponent, val callback: ColorPipette.Callback) : ImageObserver {

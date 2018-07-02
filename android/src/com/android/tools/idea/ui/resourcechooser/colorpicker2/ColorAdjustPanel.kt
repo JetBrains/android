@@ -36,10 +36,12 @@ private val HUE_SLIDER_BORDER = JBUI.Borders.empty(0, 16, 8, 16)
 
 private val ALPHA_SLIDER_BORDER = JBUI.Borders.empty(8, 16, 0, 16)
 
-class ColorAdjustPanel(private val model: ColorPickerModel) : JPanel(GridBagLayout()), ColorListener {
+class ColorAdjustPanel(private val model: ColorPickerModel,
+                       private val pipetteProvider: ColorPipetteProvider)
+  : JPanel(GridBagLayout()), ColorListener {
 
   private val pipetteButton by lazy {
-    val colorPipetteButton = ColorPipetteButton(model, GraphicalColorPipette(this@ColorAdjustPanel))
+    val colorPipetteButton = ColorPipetteButton(model, pipetteProvider.createPipette(this@ColorAdjustPanel))
     with (colorPipetteButton) {
       border = PIPETTE_BUTTON_BORDER
       background = PICKER_BACKGROUND_COLOR

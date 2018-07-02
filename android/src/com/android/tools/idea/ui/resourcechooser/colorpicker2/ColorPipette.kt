@@ -16,14 +16,42 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import java.awt.Color
+import javax.swing.Icon
 
 /**
  * Interface for implementing the color pipette.
+ *
  * @see ColorPipetteButton
  * @see GraphicalColorPipette
  */
 interface ColorPipette {
 
+  /**
+   * Icon of [ColorPipetteButton] with normal status
+   *
+   * @see [javax.swing.JButton.setIcon]
+   */
+  val icon: Icon
+
+  /**
+   * Icon of [ColorPipetteButton] with hover status
+   *
+   * @see [javax.swing.JButton.setRolloverIcon]
+   */
+  val rolloverIcon: Icon
+
+  /**
+   * Icon of [ColorPipetteButton] with pressed status
+   *
+   * @see [javax.swing.JButton.setPressedIcon]
+   */
+  val pressedIcon: Icon
+
+  /**
+   * This function is called when associated [ColorPipetteButton] is clicked.
+   *
+   * @param callback Callback to handle the event after calling this function
+   */
   fun pick(callback: Callback)
 
   interface Callback {
