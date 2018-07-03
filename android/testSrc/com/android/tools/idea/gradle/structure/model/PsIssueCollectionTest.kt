@@ -24,8 +24,6 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations.initMocks
 import java.util.*
 

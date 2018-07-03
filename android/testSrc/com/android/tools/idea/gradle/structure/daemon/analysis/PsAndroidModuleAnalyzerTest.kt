@@ -48,7 +48,7 @@ class PsAndroidModuleAnalyzerTest : DependencyTestCase() {
       val messages = messageCollection
         .values
         .filter {
-          val dependencyName = (it.path as? PsLibraryDependencyNavigationPath)?.toText(PsPath.TexType.PLAIN_TEXT).orEmpty()
+          val dependencyName = (it.path as? PsLibraryDependencyNavigationPath)?.toString().orEmpty()
           dependencyName.startsWith("com.example.")
         }
         .map { it.text to it.description!! }
