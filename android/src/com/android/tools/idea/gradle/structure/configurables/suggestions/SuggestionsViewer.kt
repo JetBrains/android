@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidat
 import com.android.tools.idea.gradle.structure.configurables.ui.createMergingUpdateQueue
 import com.android.tools.idea.gradle.structure.configurables.ui.enqueueTagged
 import com.android.tools.idea.gradle.structure.model.PsIssue
+import com.android.tools.idea.gradle.structure.model.PsPath
 import com.intellij.openapi.Disposable
 import java.util.*
 import java.util.Comparator.comparingInt
@@ -33,15 +34,15 @@ class SuggestionsViewer(
 
   val panel: JPanel get() = myMainPanel
 
-  fun display(issues: List<PsIssue>) {
+  fun display(issues: List<PsIssue>, scope: PsPath?) {
     val issuesBySeverity = issues.groupBy { it.severity }.toSortedMap(comparingInt { it.priority })
     updateQueue.enqueueTagged(this) {
-      renderIssues(issuesBySeverity)
+      renderIssues(issuesBySeverity, scope)
       revalidateAndRepaint(panel)
     }
   }
 
-  private fun renderIssues(issues: SortedMap<PsIssue.Severity, List<PsIssue>>) {
+  private fun renderIssues(issues: SortedMap<PsIssue.Severity, List<PsIssue>>, scope: PsPath?) {
     myEmptyIssuesLabel.isVisible = issues.isEmpty()
 
     for ((groupIndex, group) in groups.withIndex().reversed()) {
@@ -68,7 +69,7 @@ class SuggestionsViewer(
       val groupIssues = issues[group.severity].orEmpty()
       for ((rowIndex, issue) in groupIssues.withIndex()) {
         group.view.add(
-            SuggestionViewer(context, renderer, issue, isLast = rowIndex == groupIssues.size - 1).component)
+            SuggestionViewer(context, renderer, issue, scope, isLast = rowIndex == groupIssues.size - 1).component)
       }
     }
   }

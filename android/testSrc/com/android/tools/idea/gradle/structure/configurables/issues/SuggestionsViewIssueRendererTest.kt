@@ -43,8 +43,8 @@ class SuggestionsViewIssueRendererTest {
 
   data class RenderResult(val header: String?, val details: String?)
 
-  private fun renderIssue(renderer: IssueRenderer, psIssue: PsIssue) =
-      "<td[^>]*>.*</td><td[^>]*>(((?!<br/>).)*)(<br/>(.*))?</td>".toRegex().find(renderer.renderIssue(psIssue)).let {
+  private fun renderIssue(renderer: IssueRenderer, psIssue: PsIssue, scope: PsPath?) =
+      "<td[^>]*>.*</td><td[^>]*>(((?!<br/>).)*)(<br/>(.*))?</td>".toRegex().find(renderer.renderIssue(psIssue, scope)).let {
         val header = it?.groups?.get(1)?.value.orEmpty()
         val details = it?.groups?.get(4)?.value.orEmpty()
         RenderResult(header, details)
@@ -53,8 +53,8 @@ class SuggestionsViewIssueRendererTest {
   @Test
   fun testRenderIssue() {
     val testIssue = createIssue(testIssuePath)
-    val renderer = SuggestionsViewIssueRenderer(context, showParentPath = true)
-    val result = renderIssue(renderer, testIssue)
+    val renderer = SuggestionsViewIssueRenderer(context)
+    val result = renderIssue(renderer, testIssue, scope = null)
     assertThat(result.header, equalTo("<b>/PATH : TEXT</b>"))
     assertThat(result.details, equalTo(""))
   }
@@ -62,8 +62,8 @@ class SuggestionsViewIssueRendererTest {
   @Test
   fun testRenderIssue_withParent_noShowParentPath() {
     val testIssue = createIssue(testIssueParentedPath)
-    val renderer = SuggestionsViewIssueRenderer(context, showParentPath = false)
-    val result = renderIssue(renderer, testIssue)
+    val renderer = SuggestionsViewIssueRenderer(context)
+    val result = renderIssue(renderer, testIssue, scope = testIssueParentedPath.parents[0])
     assertThat(result.header, equalTo("<b>/CHILD : TEXT</b>"))
     assertThat(result.details, equalTo(""))
   }
@@ -71,8 +71,8 @@ class SuggestionsViewIssueRendererTest {
   @Test
   fun testRenderIssue_withParent_showParentPath() {
     val testIssue = createIssue(testIssueParentedPath)
-    val renderer = SuggestionsViewIssueRenderer(context, showParentPath = true)
-    val result = renderIssue(renderer, testIssue)
+    val renderer = SuggestionsViewIssueRenderer(context)
+    val result = renderIssue(renderer, testIssue, scope = null)
     assertThat(result.header, equalTo("""<b>/CHILD (<a href="null">/PATH</a>) : TEXT</b>"""))
     assertThat(result.details, equalTo(""))
   }
@@ -80,8 +80,8 @@ class SuggestionsViewIssueRendererTest {
   @Test
   fun testRenderIssue_viewUsage() {
     val testIssue = createIssue(viewUsagePath)
-    val renderer = SuggestionsViewIssueRenderer(context, showParentPath = true)
-    val result = renderIssue(renderer, testIssue)
+    val renderer = SuggestionsViewIssueRenderer(context)
+    val result = renderIssue(renderer, testIssue, scope = null)
     assertThat(result.header, equalTo("<b>/WITH_USAGE : TEXT</b>"))
     assertThat(result.details, equalTo("<a href='href-dest'>View usage</a>"))
   }
@@ -89,8 +89,8 @@ class SuggestionsViewIssueRendererTest {
   @Test
   fun testRenderIssue_renderPathAndQuickFix() {
     val testIssue = createIssue(testIssuePath, quickFix = quickFix)
-    val renderer = SuggestionsViewIssueRenderer(context, showParentPath = true)
-    val result = renderIssue(renderer, testIssue)
+    val renderer = SuggestionsViewIssueRenderer(context)
+    val result = renderIssue(renderer, testIssue, scope = null)
     assertThat(result.header, equalTo("<b>/PATH : TEXT</b>"))
     assertThat(result.details, equalTo(""))
   }

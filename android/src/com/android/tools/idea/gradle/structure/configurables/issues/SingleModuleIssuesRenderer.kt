@@ -17,20 +17,17 @@ package com.android.tools.idea.gradle.structure.configurables.issues
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsIssue
+import com.android.tools.idea.gradle.structure.model.PsPath
 
 class SingleModuleIssuesRenderer(context: PsContext) : DependencyViewIssuesRenderer(context) {
-  private val issueRenderer: IssueRenderer
+  private val issueRenderer = DependencyViewIssueRenderer(context, renderDescription = true)
 
-  init {
-    issueRenderer = DependencyViewIssueRenderer(context, false, true)
-  }
-
-  override fun render(issues: Collection<PsIssue>): String = buildString {
+  override fun render(issues: Collection<PsIssue>, scope: PsPath?): String = buildString {
     append("<html><body><ol>")
 
     for (issue in issues) {
       append("<li>")
-      issueRenderer.renderIssue(this, issue)
+      issueRenderer.renderIssue(this, issue, scope)
       append("</li>")
     }
 

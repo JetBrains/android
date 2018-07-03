@@ -120,9 +120,9 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     myInfoPanel.setIssuesViewer(myIssuesViewer);
   }
 
-  protected void displayIssues(@NotNull Collection<PsIssue> issues) {
+  protected void displayIssues(@NotNull Collection<PsIssue> issues, @Nullable PsPath scope) {
     assert myIssuesViewer != null;
-    myIssuesViewer.display(issues);
+    myIssuesViewer.display(issues, scope);
     myInfoPanel.revalidateAndRepaintPanel();
     ApplicationManager.getApplication().invokeLater(() -> myInfoScrollPane.getVerticalScrollBar().setValue(0));
   }

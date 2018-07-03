@@ -187,7 +187,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
             issues.addAll(myContext.getAnalyzerDaemon().getIssues().findIssues(dependency.getPath(), null));
           }
         }
-        displayIssues(issues);
+        displayIssues(issues, null);
       }
     });
   }
