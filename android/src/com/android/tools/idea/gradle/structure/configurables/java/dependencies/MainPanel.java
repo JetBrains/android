@@ -138,7 +138,7 @@ class MainPanel extends AbstractDependenciesPanel {
 
   private void updateIssues(@Nullable PsJavaDependency selected) {
     PsPath path = selected != null ? selected.getPath() : null;
-    displayIssues(myContext.getAnalyzerDaemon().getIssues().findIssues(path, null));
+    displayIssues(myContext.getAnalyzerDaemon().getIssues().findIssues(path, null), path);
   }
 
   @Override

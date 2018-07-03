@@ -17,7 +17,6 @@ import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurab
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
 import com.android.tools.idea.gradle.structure.configurables.ui.AbstractMainPanel
-import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsModulePath
@@ -75,14 +74,14 @@ class AndroidModuleSuggestionsConfigurable(
       is PsAllModulesFakeModule -> null
       else -> PsModulePath(module)
     }
-    val issueRenderer = SuggestionsViewIssueRenderer(context, showParentPath = psModulePath == null)
+    val issueRenderer = SuggestionsViewIssueRenderer(context)
     return SuggestionsForm(context, issueRenderer).apply {
-      renderIssues(getIssues(context, psModulePath))
+      renderIssues(getIssues(context, psModulePath), psModulePath)
 
       context.analyzerDaemon.add( {
         invokeLaterIfNeeded {
           if (!uiDisposed) {
-            renderIssues(getIssues(context, psModulePath))
+            renderIssues(getIssues(context, psModulePath), psModulePath)
           }
         }
       }, this)

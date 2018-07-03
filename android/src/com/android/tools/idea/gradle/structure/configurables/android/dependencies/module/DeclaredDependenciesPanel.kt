@@ -173,7 +173,7 @@ internal class DeclaredDependenciesPanel(
   }
 
   private fun updateIssues(selected: PsAndroidDependency?) {
-    displayIssues(context.analyzerDaemon.issues.findIssues(selected?.path, null))
+    displayIssues(context.analyzerDaemon.issues.findIssues(selected?.path, null), selected?.path)
   }
 
   fun selectDependency(dependency: String?) {

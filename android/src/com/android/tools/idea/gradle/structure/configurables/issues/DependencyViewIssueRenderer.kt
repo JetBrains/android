@@ -17,18 +17,19 @@ package com.android.tools.idea.gradle.structure.configurables.issues
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsIssue
+import com.android.tools.idea.gradle.structure.model.PsPath
 import com.intellij.openapi.util.text.StringUtil
 
 class DependencyViewIssueRenderer(
   private val context: PsContext,
-  private val renderPath: Boolean,
   private val renderDescription: Boolean
 ) : IssueRenderer {
 
-  override fun renderIssue(buffer: StringBuilder, issue: PsIssue) {
-    if (renderPath) {
-      buffer.append(issue.path.getHtml(context))
-      buffer.append(": ")
+  override fun renderIssue(buffer: StringBuilder, issue: PsIssue, scope: PsPath?) {
+    (issue.path.parents + issue.path).asReversed().takeWhile { it != scope }.asReversed().forEach { parentPath ->
+      val parentPathHref = parentPath.getHyperlinkDestination(context)
+      val parentPathText = parentPath.toText(PsPath.TexType.PLAIN_TEXT).makeTextWrappable()
+      buffer.append("<a href=\"$parentPathHref\">$parentPathText</a>: ")
     }
     buffer.append(issue.text)
     val quickFixPath = issue.quickFix
