@@ -47,7 +47,9 @@ public class IdeaSyncCachesInvalidatorTest extends AndroidGradleTestCase {
     assertFalse(dataNodeCaches.isCacheMissingModels(dataNodeCaches.getCachedProjectData()));
   }
 
-  public void testLibrariesFolderIsDeleted() {
+  public void testLibrariesFolderIsDeleted() throws Exception {
+    loadSimpleApplication();
+
     // Create .idea/libraries folder under project folder.
     File ideaFolderPath = new File(getBaseDirPath(getProject()), DIRECTORY_STORE_FOLDER);
     File librariesFolderPath = new File(ideaFolderPath, "libraries");
