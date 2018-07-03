@@ -79,9 +79,6 @@ public abstract class PaletteComponentHandler {
    */
   @NotNull
   public String getGradleCoordinateId(@NotNull String tagName) {
-    if (tagName.startsWith((ANDROIDX_PKG_PREFIX))) {
-      return getAndroidxCoordinate(tagName);
-    }
     if (tagName.startsWith(ANDROID_SUPPORT_V4_PKG)) {
       return SUPPORT_LIB_ARTIFACT;
     }
@@ -103,8 +100,35 @@ public abstract class PaletteComponentHandler {
     else if (tagName.startsWith(GOOGLE_PLAY_SERVICES_MAPS_PKG)) {
       return MAPS_ARTIFACT;
     }
-
-    return IN_PLATFORM;  }
+    else if (tagName.startsWith(CONSTRAINT_LAYOUT_PKG)) {
+      return CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_CONSTRAINT_LAYOUT_PKG)) {
+      return ANDROIDX_CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_RECYCLER_VIEW_PKG)) {
+      return ANDROIDX_RECYCLER_VIEW_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_CARD_VIEW_PKG)) {
+      return ANDROIDX_CARD_VIEW_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_GRID_LAYOUT_PKG)) {
+      return ANDROIDX_GRID_LAYOUT_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_LEANBACK_PKG)) {
+      return ANDROIDX_LEANBACK_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_CORE_PKG)) {
+      return ANDROIDX_SUPPORT_LIB_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_VIEWPAGER_PKG)) {
+      return ANDROIDX_VIEW_PAGER_LIB_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_APPCOMPAT_PKG)) {
+      return ANDROIDX_APPCOMPAT_LIB_ARTIFACT;
+    }
+    return IN_PLATFORM;
+  }
 
   /**
    * Returns the XML representation of a component.<br>
@@ -150,44 +174,5 @@ public abstract class PaletteComponentHandler {
   protected Icon loadBuiltinIcon(@NotNull String tagName) {
     Icon icon = AndroidDomElementDescriptorProvider.getIconForViewTag(getSimpleTagName(tagName));
     return icon != null ? icon : StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW;
-  }
-
-  @NotNull
-  private static String getAndroidxCoordinate(@NotNull String tagName) {
-    if (TEXT_INPUT_LAYOUT.newName().equals(tagName)) {
-      return ANDROIDX_MATERIAL_ARTIFACT;
-    }
-    if (FLOATING_ACTION_BUTTON.newName().equals(tagName)) {
-      return ANDROIDX_MATERIAL_ARTIFACT;
-    }
-    if (RECYCLER_VIEW.newName().equals(tagName)) {
-      return ANDROIDX_RECYCLER_VIEW_ARTIFACT;
-    }
-    if (CARD_VIEW.newName().equals(tagName)) {
-      return ANDROIDX_CARD_VIEW_ARTIFACT;
-    }
-    if (APP_BAR_LAYOUT.newName().equals(tagName)) {
-      return ANDROIDX_MATERIAL_ARTIFACT;
-    }
-    if (NAVIGATION_VIEW.newName().equals(tagName)) {
-      return ANDROIDX_MATERIAL_ARTIFACT;
-    }
-    if (BOTTOM_NAVIGATION_VIEW.newName().equals(tagName)) {
-      return ANDROIDX_MATERIAL_ARTIFACT;
-    }
-    if (TAB_LAYOUT.newName().equals(tagName)) {
-      return ANDROIDX_MATERIAL_ARTIFACT;
-    }
-    if (TAB_ITEM.newName().equals(tagName)) {
-      return ANDROIDX_MATERIAL_ARTIFACT;
-    }
-    if (GRID_LAYOUT_V7.newName().equals(tagName)) {
-      return ANDROIDX_GRID_LAYOUT_ARTIFACT;
-    }
-    if (CLASS_BROWSE_FRAGMENT.newName().equals(tagName)) {
-      return ANDROIDX_LEANBACK_ARTIFACT;
-    }
-
-    return ANDROIDX_CORE_UI_ARTIFACT;
   }
 }
