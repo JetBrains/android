@@ -860,21 +860,6 @@ java_test(
 
 # sanity test
 java_test(
-    name = "CreateNewProjectWithCpp4Test",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp4Test"],
-    tags = COMMON_TAGS + [
-        "no_psq",
-        "qa_sanity",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# sanity test
-java_test(
     name = "ChangeManifestTest",
     size = "large",
     data = COMMON_DATA + glob([
