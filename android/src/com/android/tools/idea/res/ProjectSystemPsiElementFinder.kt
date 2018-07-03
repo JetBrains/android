@@ -23,13 +23,15 @@ import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
 
-class ProjectSystemPsiElementFinder(private val project: Project) : PsiElementFinder() {
-
+/**
+ * Base class for [PsiElementFinder]s that aggregate results from finders chosen by the project system.
+ */
+abstract class ProjectSystemPsiElementFinder(private val project: Project) : PsiElementFinder() {
   companion object {
     @JvmField val LOG = logger<ProjectSystemPsiElementFinder>()
   }
 
-  private val finders: Collection<PsiElementFinder>
+  protected val finders: Collection<PsiElementFinder>
     get() {
       val projectSystem = project.getProjectSystem()
       return try {
@@ -41,7 +43,12 @@ class ProjectSystemPsiElementFinder(private val project: Project) : PsiElementFi
         emptyList()
       }
     }
+}
 
+/**
+ * [ProjectSystemPsiElementFinder] that handles classes, with a higher priority than the default finder.
+ */
+class ProjectSystemPsiClassFinder(project: Project) : ProjectSystemPsiElementFinder(project) {
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
     for (delegate in finders) {
       return delegate.findClass(qualifiedName, scope) ?: continue
@@ -57,6 +64,15 @@ class ProjectSystemPsiElementFinder(private val project: Project) : PsiElementFi
   override fun getClasses(psiPackage: PsiPackage, scope: GlobalSearchScope): Array<PsiClass> {
     return finders.flatMap { it.getClasses(psiPackage, scope).asIterable() }.toTypedArray()
   }
+}
+
+/**
+ * [ProjectSystemPsiElementFinder] that handles packages, with a lower priority than the default finder, meaning custom light packages are
+ * only used if there are no corresponding directories in the project.
+ */
+class ProjectSystemPsiPackageFinder(project: Project) : ProjectSystemPsiElementFinder(project) {
+  override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? = null
+  override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> = PsiClass.EMPTY_ARRAY
 
   override fun findPackage(qualifiedName: String): PsiPackage? {
     for (delegate in finders) {
