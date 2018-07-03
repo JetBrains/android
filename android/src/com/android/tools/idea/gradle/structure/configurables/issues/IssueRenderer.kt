@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.issues;
+package com.android.tools.idea.gradle.structure.configurables.issues
 
-import com.android.tools.idea.gradle.structure.model.PsIssue;
+import com.android.tools.idea.gradle.structure.model.PsIssue
 
-public interface IssueRenderer {
-  void renderIssue(StringBuilder buffer, PsIssue issue);
-
-  default String renderIssue(PsIssue issue) {
-    StringBuilder sb = new StringBuilder();
-    renderIssue(sb, issue);
-    return sb.toString();
-  }
+interface IssueRenderer {
+  fun renderIssue(buffer: StringBuilder, issue: PsIssue)
+  fun renderIssue(issue: PsIssue): String = buildString { renderIssue(this, issue) }
 }
