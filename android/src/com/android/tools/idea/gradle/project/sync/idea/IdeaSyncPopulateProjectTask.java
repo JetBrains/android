@@ -33,6 +33,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
@@ -120,7 +121,8 @@ public class IdeaSyncPopulateProjectTask {
       myDataManager.importData(projectInfo, project, true /* synchronous */);
     }
     catch (Throwable unexpected) {
-      String message = getRootCause(unexpected).getMessage();
+      String message = nullToEmpty(getRootCause(unexpected).getMessage());
+
       Logger.getInstance(getClass()).warn("Sync failed: " + message, unexpected);
 
       // See https://code.google.com/p/android/issues/detail?id=268806
