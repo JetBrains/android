@@ -68,8 +68,6 @@ import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.annotations.Contract
 import java.awt.Color
 import java.io.File
-import java.net.URI
-import java.net.URISyntaxException
 import java.util.*
 import kotlin.collections.HashSet
 
@@ -457,7 +455,12 @@ fun pickAnyLayoutFile(module: Module, facet: AndroidFacet): VirtualFile? {
  * Has to be called inside a read action.
  */
 val PsiElement.resourceNamespace: ResourceNamespace? get() {
-  return ResourceRepositoryManager.getOrCreateInstance(AndroidFacet.getInstance(this) ?: return null).namespace
+  val androidFacet = AndroidFacet.getInstance(this)
+  return if (androidFacet != null) {
+    ResourceRepositoryManager.getOrCreateInstance(androidFacet).namespace
+  } else {
+    ResourceNamespaceCache.getInstance(project).getNamespaceForUnknownResourceFile(containingFile.virtualFile ?: return null)
+  }
 }
 
 /** A pair of the current ("context") [ResourceNamespace] and a [ResourceNamespace.Resolver] for dealing with prefixes. */
