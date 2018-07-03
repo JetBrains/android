@@ -19,7 +19,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -105,10 +104,10 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
   }
 
   /**
-   * @return The list of matching samples given the {@code request} parameter, or {@code null} if there's a SQL-related error.
+   * @return The list of matching samples given the {@code request} parameter. This will be empty if there's a SQL-related error.
    */
-  @Nullable
-  public List<EnergyProfiler.EnergySample> findSamples(EnergyProfiler.EnergyRequest request) {
+  @NotNull
+  public List<EnergyProfiler.EnergySample> getSamples(@NotNull EnergyProfiler.EnergyRequest request) {
     try {
       ResultSet results = executeQuery(EventStatements.QUERY_SAMPLE, request.getSession().getSessionId(), request.getStartTimestamp(),
                                        request.getEndTimestamp());
@@ -117,7 +116,7 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
     catch (SQLException ex) {
       onError(ex);
     }
-    return null;
+    return new ArrayList<>();
   }
 
   /**
@@ -127,16 +126,16 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
    * <p>
    * For example, if I acquired a wakelock @ t = 1000 and released it @ t = 2000...
    * <p>
-   * findEvents(0, 500) -> returns nothing
-   * findEvents(0, 9999) -> returns acquire and release (both in range)
-   * findEvents(1500, 2500) -> returns acquire (before range) and release (in range)
-   * findEvents(500, 1500) -> returns acquire (in range)
-   * findEvents(1250, 1750) -> returns acquire (before range)
+   * getEvents(0, 500) -> returns nothing
+   * getEvents(0, 9999) -> returns acquire and release (both in range)
+   * getEvents(1500, 2500) -> returns acquire (before range) and release (in range)
+   * getEvents(500, 1500) -> returns acquire (in range)
+   * getEvents(1250, 1750) -> returns acquire (before range)
    *
-   * @return The list of matching events given the {@code request} parameter, or {@code null} if there's a SQL-related error.
+   * @return The list of matching events given the {@code request} parameter. This will be empty if there's a SQL-related error.
    */
-  @Nullable
-  public List<EnergyProfiler.EnergyEvent> findEvents(EnergyProfiler.EnergyRequest request) {
+  @NotNull
+  public List<EnergyProfiler.EnergyEvent> getEvents(@NotNull EnergyProfiler.EnergyRequest request) {
     try {
       ResultSet results = executeQuery(
         EventStatements.QUERY_EVENT,
@@ -153,16 +152,16 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
     catch (SQLException ex) {
       onError(ex);
     }
-    return null;
+    return new ArrayList<>();
   }
 
   /**
    * Return all events that share the same ID, making them an event group.
    *
-   * @return The list of matching events given the {@code request} parameter, or {@code null} if there's a SQL-related error.
+   * @return The list of matching events given the {@code request} parameter. This will be empty if there's a SQL-related error.
    */
-  @Nullable
-  public List<EnergyProfiler.EnergyEvent> findEventGroup(EnergyProfiler.EnergyEventGroupRequest request) {
+  @NotNull
+  public List<EnergyProfiler.EnergyEvent> getEventGroup(@NotNull EnergyProfiler.EnergyEventGroupRequest request) {
     try {
       ResultSet results = executeQuery(EventStatements.QUERY_EVENT_GROUP, request.getSession().getSessionId(), request.getEventId());
       return getEventsFromResultSet(results);
@@ -170,7 +169,7 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
     catch (SQLException ex) {
       onError(ex);
     }
-    return null;
+    return new ArrayList<>();
   }
 
   @NotNull
