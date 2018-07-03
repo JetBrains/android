@@ -28,11 +28,6 @@ import com.intellij.ui.navigation.Place
 data class PsLibraryDependencyNavigationPath(override val parent: PsModulePath, val dependency: String) : PsPath {
   constructor (dependency: PsLibraryDependency) : this(PsModulePath(dependency.parent), dependency.spec.compactNotation())
 
-  override fun toText(type: PsPath.TexType): String = when (type) {
-    PsPath.TexType.PLAIN_TEXT -> dependency
-    PsPath.TexType.FOR_COMPARE_TO -> "${parent.toText(PsPath.TexType.FOR_COMPARE_TO)}/$dependency"
-  }
-
   override fun getHyperlinkDestination(context: PsContext): String {
     val place = Place()
 
@@ -45,5 +40,5 @@ data class PsLibraryDependencyNavigationPath(override val parent: PsModulePath, 
     return GO_TO_PATH_TYPE + serialize(place)
   }
 
-  override fun toString(): String = toText(PsPath.TexType.FOR_COMPARE_TO)
+  override fun toString(): String = dependency
 }

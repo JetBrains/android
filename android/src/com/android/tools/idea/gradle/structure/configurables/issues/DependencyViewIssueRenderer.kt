@@ -29,7 +29,7 @@ class DependencyViewIssueRenderer(
   override fun renderIssue(buffer: StringBuilder, issue: PsIssue, scope: PsPath?) {
     (issue.path.parents + issue.path).asReversed().takeWhile { it != scope }.asReversed().forEach { parentPath ->
       val parentPathHref = parentPath.getHyperlinkDestination(context)
-      val parentPathText = parentPath.toText(PsPath.TexType.PLAIN_TEXT).makeTextWrappable()
+      val parentPathText = parentPath.toString().makeTextWrappable()
       buffer.append("<a href=\"$parentPathHref\">$parentPathText</a>: ")
     }
     buffer.append(issue.text)

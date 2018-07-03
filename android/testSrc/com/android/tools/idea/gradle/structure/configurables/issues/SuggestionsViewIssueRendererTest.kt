@@ -25,7 +25,7 @@ import org.mockito.MockitoAnnotations.initMocks
 
 class SuggestionsViewIssueRendererTest {
   @Mock private lateinit var context: PsContext
-  private var viewUsagePath = TestPath("/WITH_USAGE", "/WITH_USAGE", null, "href-dest")
+  private var viewUsagePath = TestPath("/WITH_USAGE", null, "href-dest")
   private var quickFix = object: PsQuickFix {
     override fun getHyperlinkDestination(context: PsContext): String? = "link"
     override fun getHtml(context: PsContext): String = "html"

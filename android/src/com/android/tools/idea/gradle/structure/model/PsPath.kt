@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 
-import com.android.tools.idea.gradle.structure.model.PsPath.TexType.FOR_COMPARE_TO
-
 /**
  * A UI independent reference to a place in a build configuration.
  */
@@ -31,15 +29,9 @@ interface PsPath : Comparable<PsPath> {
    */
   val parent: PsPath? get() = null
 
+  fun getHyperlinkDestination(context: PsContext): String? = null
 
-  fun toText(type: TexType): String
-  fun getHyperlinkDestination(context: PsContext): String?
-
-  override fun compareTo(other: PsPath): Int = toText(FOR_COMPARE_TO).compareTo(other.toText(FOR_COMPARE_TO))
-
-  enum class TexType {
-    PLAIN_TEXT, FOR_COMPARE_TO
-  }
+  override fun compareTo(other: PsPath): Int = compareValuesBy(this, other, { it.parent }, { it.toString() })
 }
   /**
    * Returns a list of parent context paths.

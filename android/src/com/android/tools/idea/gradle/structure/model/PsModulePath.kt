@@ -15,14 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.structure.configurables.PsContext
-
 data class PsModulePath(val moduleName: String) : PsPath {
   constructor (module: PsModule) : this(module.name)
-
-  override fun toText(type: PsPath.TexType): String = moduleName
-
-  override fun getHyperlinkDestination(context: PsContext): String? = null
-
-  override fun toString(): String = toText(PsPath.TexType.FOR_COMPARE_TO)
+  override fun toString(): String = moduleName
 }

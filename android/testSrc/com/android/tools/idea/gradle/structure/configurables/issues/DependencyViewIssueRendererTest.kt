@@ -40,12 +40,8 @@ class DependencyViewIssueRendererTest {
   }
 
   private fun createPath(text: String): PsPath = object : PsPath {
-    override fun toText(type: PsPath.TexType): String = when (type) {
-      PsPath.TexType.FOR_COMPARE_TO -> "FOR_COMPARE_$text"
-      PsPath.TexType.PLAIN_TEXT -> "PLAIN_TEXT_$text"
-    }
-
     override fun getHyperlinkDestination(context: PsContext): String? = "@$text"
+    override fun toString(): String = text
   }
 
   private fun createFix(text: String): PsQuickFix = object : PsQuickFix {
@@ -69,14 +65,14 @@ class DependencyViewIssueRendererTest {
   @Test
   fun testRenderIssue_renderPath() {
     val renderer = DependencyViewIssueRenderer(context, false)
-    assertThat(renderIssue(renderer, null), CoreMatchers.`is`("<a href=\"@/PATH\">PLAIN_TEXT_/PATH</a>: TEXT"))
+    assertThat(renderIssue(renderer, null), CoreMatchers.`is`("<a href=\"@/PATH\">/PATH</a>: TEXT"))
   }
 
   @Test
   fun testRenderIssue_renderPathAndQuickFix() {
     testIssue = testIssue.copy(quickFix = quickFix)
     val renderer = DependencyViewIssueRenderer(context, false)
-    assertThat(renderIssue(renderer, null), CoreMatchers.`is`("<a href=\"@/PATH\">PLAIN_TEXT_/PATH</a>: TEXT </QUICK_FIX>"))
+    assertThat(renderIssue(renderer, null), CoreMatchers.`is`("<a href=\"@/PATH\">/PATH</a>: TEXT </QUICK_FIX>"))
   }
 
   private fun renderIssue(renderer: IssueRenderer, scope: PsPath?): String {

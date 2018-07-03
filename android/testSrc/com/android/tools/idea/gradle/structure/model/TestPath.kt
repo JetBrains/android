@@ -16,29 +16,21 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.model.PsPath.TexType.FOR_COMPARE_TO
 
 data class TestPath(
-  val comparisonValue: String,
-  private val otherValue: String,
+  val text: String,
   override val parent: PsPath? = null,
   private val hyperlinkDestination: String? = null
 ) : PsPath {
-  constructor(path: String) : this(path, path)
-  constructor(path: String, parentPath: PsPath) : this(path, path, parentPath, null)
-
-  override fun toText(type: PsPath.TexType): String = when (type) {
-    FOR_COMPARE_TO -> comparisonValue
-    else -> otherValue
-  }
+  constructor(path: String, parentPath: PsPath) : this(path, parentPath, null)
 
   override fun getHyperlinkDestination(context: PsContext): String? = hyperlinkDestination
 
+  override fun toString(): String = text
+
   companion object {
     val EMPTY_PATH: PsPath = object : PsPath {
-      override fun toText(type: PsPath.TexType): String = ""
-      override fun getHyperlinkDestination(context: PsContext): String? = null
-      override fun toString(): String = "<Empty Path>"
+      override fun toString(): String = ""
     }
   }
 }

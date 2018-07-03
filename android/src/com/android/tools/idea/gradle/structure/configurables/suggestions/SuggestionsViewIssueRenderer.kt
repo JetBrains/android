@@ -26,7 +26,7 @@ class SuggestionsViewIssueRenderer(val context: PsContext) : IssueRenderer {
   override fun renderIssue(buffer: StringBuilder, issue: PsIssue, scope: PsPath?) {
     val issuePath = issue.path
     val issuePathHref = issuePath.getHyperlinkDestination(context)
-    val issuePathText = issuePath.toText(PsPath.TexType.PLAIN_TEXT).makeTextWrappable()
+    val issuePathText = issuePath.toString().makeTextWrappable()
     val issueText = issue.text.makeTextWrappable()
 
     buffer.append("<table width='100%'><tr><td width='32' valign='top'>")
@@ -36,7 +36,7 @@ class SuggestionsViewIssueRenderer(val context: PsContext) : IssueRenderer {
     buffer.append(issuePathText)
     issuePath.parents.asReversed().takeWhile { it != scope }.asReversed().forEach { parentPath ->
       val parentPathHref = parentPath.getHyperlinkDestination(context)
-      val parentPathText = parentPath.toText(PsPath.TexType.PLAIN_TEXT).makeTextWrappable()
+      val parentPathText = parentPath.toString().makeTextWrappable()
       buffer.append(" (<a href=\"$parentPathHref\">$parentPathText</a>)")
     }
     buffer.append(" : ")
