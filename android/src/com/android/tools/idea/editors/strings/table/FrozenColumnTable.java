@@ -40,6 +40,7 @@ public class FrozenColumnTable {
   private SubTable myFrozenTable;
   private SubTable myScrollableTable;
   private JScrollPane myScrollPane;
+  private int rowHeight;
   private int mySelectedRow;
   private int mySelectedColumn;
 
@@ -257,6 +258,14 @@ public class FrozenColumnTable {
   @NotNull
   public final Component getScrollPane() {
     return myScrollPane;
+  }
+
+  final int getRowHeight() {
+    return rowHeight;
+  }
+
+  final void setRowHeight(int rowHeight) {
+    this.rowHeight = rowHeight;
   }
 
   final void putInInputMap(@NotNull KeyStroke keyStroke, @SuppressWarnings("SameParameterValue") @NotNull Object actionMapKey) {
