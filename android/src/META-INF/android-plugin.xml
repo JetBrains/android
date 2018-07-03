@@ -1109,7 +1109,13 @@
 
     <codeInsight.unresolvedReferenceQuickFixProvider implementation="org.jetbrains.android.inspections.AndroidResourceQuickFixProvider"/>
     <lang.psiAugmentProvider implementation="org.jetbrains.android.augment.AndroidPsiAugmentProvider"/>
-    <java.elementFinder implementation="com.android.tools.idea.res.ProjectSystemPsiElementFinder" order="first, before java"/>
+
+    <!-- Finder for light R classes, runs before the default finder. -->
+    <java.elementFinder implementation="com.android.tools.idea.res.ProjectSystemPsiClassFinder" order="first, before java"/>
+
+    <!-- Finder for light packages, runs last. Light packages are only used if regular PsiPackages don't exist for light classes. -->
+    <java.elementFinder implementation="com.android.tools.idea.res.ProjectSystemPsiPackageFinder" order="last"/>
+
     <java.elementFinder implementation="com.android.tools.idea.res.AndroidInternalRClassFinder"/>
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidLightPackage$InstanceCache" />
     <projectService serviceImplementation="com.android.tools.idea.res.ProjectLightResourceClassService" />
