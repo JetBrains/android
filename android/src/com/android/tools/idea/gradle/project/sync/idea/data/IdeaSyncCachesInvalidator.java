@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data;
 
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.intellij.ide.caches.CachesInvalidator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -27,9 +28,12 @@ public class IdeaSyncCachesInvalidator extends CachesInvalidator {
   public void invalidateCaches() {
     Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
     for (Project project : openProjects) {
-      DataNodeCaches.getInstance(project).clearCaches();
-      // Remove contents in .idea/libraries to recover from any invalid library entries.
-      deleteLibrariesFolder(getBaseDirPath(project));
+      if (GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+        DataNodeCaches.getInstance(project).clearCaches();
+
+        // Remove contents in .idea/libraries to recover from any invalid library entries.
+        deleteLibrariesFolder(getBaseDirPath(project));
+      }
     }
   }
 }
