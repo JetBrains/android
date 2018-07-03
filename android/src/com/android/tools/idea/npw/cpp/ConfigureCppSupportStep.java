@@ -51,8 +51,6 @@ public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
   private JPanel myRootPanel;
   private JComboBox<CppStandardType> myCppStandardCombo;
   private JBLabel myIconLabel;
-  private JComboBox<RuntimeLibraryType> myRuntimeLibraryCombo;
-  private JBLabel myRuntimeLibraryLabel;
   private HyperlinkLabel myDocumentationLink;
 
   public ConfigureCppSupportStep(@NotNull NewProjectModel model) {
@@ -68,24 +66,16 @@ public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myRuntimeLibraryCombo.setModel(new CollectionComboBoxModel<>(Arrays.asList(RuntimeLibraryType.values())));
-    OptionalProperty<RuntimeLibraryType> runtimeLibrary = new OptionalValueProperty<>(RuntimeLibraryType.GABIXX);
-    myBindings.bindTwoWay(new SelectedItemProperty<>(myRuntimeLibraryCombo), runtimeLibrary);
-
     myCppStandardCombo.setModel(new CollectionComboBoxModel<>(Arrays.asList(CppStandardType.values())));
     OptionalProperty<CppStandardType> cppStandard = new OptionalValueProperty<>(CppStandardType.DEFAULT);
     myBindings.bindTwoWay(new SelectedItemProperty<>(myCppStandardCombo), cppStandard);
 
-    myListeners.listenAll(runtimeLibrary, cppStandard).withAndFire(() -> {
+    myListeners.listenAll(cppStandard).withAndFire(() -> {
       final ArrayList<Object> flags = new ArrayList<>();
       flags.add(cppStandard.getValueOr(CppStandardType.DEFAULT).getCompilerFlag());
 
       getModel().cppFlags().set(Joiner.on(' ').skipNulls().join(flags));
     });
-
-    // TODO: un-hide UI components once dsl support would be available
-    myRuntimeLibraryCombo.setVisible(false);
-    myRuntimeLibraryLabel.setVisible(false);
   }
 
   @NotNull
