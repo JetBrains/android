@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.issues.IssueRenderer
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsPath
+import com.android.tools.idea.gradle.structure.model.parents
 
 class SuggestionsViewIssueRenderer(val context: PsContext) : IssueRenderer {
 

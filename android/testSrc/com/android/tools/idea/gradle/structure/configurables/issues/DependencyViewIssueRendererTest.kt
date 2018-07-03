@@ -43,14 +43,9 @@ class DependencyViewIssueRendererTest {
     override fun toText(type: PsPath.TexType): String = when (type) {
       PsPath.TexType.FOR_COMPARE_TO -> "FOR_COMPARE_$text"
       PsPath.TexType.PLAIN_TEXT -> "PLAIN_TEXT_$text"
-      else -> throw AssertionError()
     }
 
     override fun getHyperlinkDestination(context: PsContext): String? = "@$text"
-
-    override fun getHtml(context: PsContext): String = "<$text>"
-
-    override fun getParents(): List<PsPath> = listOf()
   }
 
   private fun createFix(text: String): PsQuickFix = object : PsQuickFix {
