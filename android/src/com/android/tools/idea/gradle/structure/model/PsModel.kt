@@ -27,4 +27,6 @@ interface PsModel {
   val isDeclared: Boolean
 
   val icon: Icon? get() = null
+
+  val path: PsPath? get() = null
 }

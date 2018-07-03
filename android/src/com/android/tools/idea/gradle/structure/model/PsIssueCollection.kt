@@ -52,7 +52,7 @@ class PsIssueCollection {
       .orEmpty()
 
 
-  fun findIssues(path: PsPath, comparator: Comparator<PsIssue>?): List<PsIssue> =
+  fun findIssues(path: PsPath?, comparator: Comparator<PsIssue>?): List<PsIssue> =
     synchronized(lock) {
       myIssues.get(path).toList()
     }

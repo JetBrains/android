@@ -22,14 +22,13 @@ import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.WARNING
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath
 
 abstract class PsModuleAnalyzer<T : PsModule> protected constructor(protected val context: PsContext) : PsModelAnalyzer<T>() {
 
   protected fun analyzeDeclaredDependency(dependency: PsDeclaredLibraryDependency,
                                           issueCollection: PsIssueCollection) {
-    val path = PsLibraryDependencyNavigationPath(dependency)
+    val path = dependency.path
 
     val declaredSpec = dependency.spec
     val declaredVersion = declaredSpec.version

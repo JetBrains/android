@@ -199,6 +199,12 @@ class PsIssueCollectionTest {
   }
 
   @Test
+  fun findIssues_nullPath() {
+    issueCollection.add(PsGeneralIssue("", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING))
+    assertThat(issueCollection.findIssues(null, null)).isEmpty()
+  }
+
+  @Test
   fun add() {
     val testIssue = PsGeneralIssue("", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING)
     issueCollection.add(testIssue)

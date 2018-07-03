@@ -141,7 +141,7 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsDepende
       setFocusBorderAroundIcon(true);
 
       PsIssueCollection issueCollection = myContext.getAnalyzerDaemon().getIssues();
-      List<PsIssue> issues = issueCollection.findIssues(myDependency, IssuesByTypeAndTextComparator.INSTANCE);
+      List<PsIssue> issues = issueCollection.findIssues(myDependency.getPath(), IssuesByTypeAndTextComparator.INSTANCE);
 
       setToolTipText(getTooltipText(issues, false));
 

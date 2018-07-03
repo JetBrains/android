@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeL
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDependenciesPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.DeclaredDependenciesTableView
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
-import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
@@ -174,11 +173,7 @@ internal class DeclaredDependenciesPanel(
   }
 
   private fun updateIssues(selected: PsAndroidDependency?) {
-    var issues = emptyList<PsIssue>()
-    if (selected != null) {
-      issues = context.analyzerDaemon.issues.findIssues(selected, null)
-    }
-    displayIssues(issues)
+    displayIssues(context.analyzerDaemon.issues.findIssues(selected?.path, null))
   }
 
   fun selectDependency(dependency: String?) {
