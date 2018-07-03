@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.issues
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsPath
+import com.android.tools.idea.gradle.structure.model.parents
 import com.intellij.openapi.util.text.StringUtil
 
 class DependencyViewIssueRenderer(

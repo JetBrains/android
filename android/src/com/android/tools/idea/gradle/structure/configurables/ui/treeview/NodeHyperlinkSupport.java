@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
+import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
 import com.android.tools.idea.gradle.structure.model.PsModel;
@@ -180,7 +181,9 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
 
     PsIssueCollection issueCollection = myContext.getAnalyzerDaemon().getIssues();
     for (PsModel model : modelNode.getModels()) {
-      issues.addAll(issueCollection.findIssues(model, null));
+      if (model instanceof PsChildModel) {
+        issues.addAll(issueCollection.findIssues(model.getPath(), null));
+      }
     }
     if (comparator != null && issues.size() > 1) {
       Collections.sort(issues, comparator);

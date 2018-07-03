@@ -24,6 +24,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations.initMocks
 import java.util.*
@@ -151,28 +152,19 @@ class PsIssueCollectionTest {
 
   @Test
   fun findIssues_withModuleModel() {
-    val mockModule = mock(PsModule::class.java)
-    val issueA = PsGeneralIssue("a", PsModulePath(mockModule), PROJECT_ANALYSIS, WARNING)
+    val path = PsModulePath("module")
+    val issueA = PsGeneralIssue("a", path, PROJECT_ANALYSIS, WARNING)
     issueCollection.add(issueA)
     issueCollection.add(PsGeneralIssue("b", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING))
-    val issues = issueCollection.findIssues(mockModule, null)
+    val issues = issueCollection.findIssues(path, null)
     assertThat(issues).containsExactly(issueA)
   }
 
   @Test
-  fun findIssues_withUnknownType() {
+  fun findIssues_nullPath() {
     issueCollection.add(PsGeneralIssue("a", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING))
     issueCollection.add(PsGeneralIssue("b", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING))
-    val issues = issueCollection.findIssues(object : PsChildModel() {
-      override val parent: PsModel?
-        get() = null
-
-      override val name: String
-        get() = "test"
-
-      override val isDeclared: Boolean
-        get() = false
-    }, Comparator.comparing<PsIssue, String> { it.text })
+    val issues = issueCollection.findIssues(null, Comparator.comparing<PsIssue, String> { it.text })
     assertThat(issues).isEmpty()
   }
 
@@ -196,12 +188,6 @@ class PsIssueCollectionTest {
   fun findIssues_nomatch() {
     issueCollection.add(PsGeneralIssue("", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING))
     assertThat(issueCollection.findIssues(testPath, null)).isEmpty()
-  }
-
-  @Test
-  fun findIssues_nullPath() {
-    issueCollection.add(PsGeneralIssue("", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING))
-    assertThat(issueCollection.findIssues(null, null)).isEmpty()
   }
 
   @Test
