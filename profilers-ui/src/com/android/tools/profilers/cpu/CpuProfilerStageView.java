@@ -93,7 +93,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
   }
 
-  private static final String RECORD_TEXT = "Record";
+  @VisibleForTesting
+  static final String RECORD_TEXT = "Record";
   private static final String STOP_TEXT = "Stop";
 
   private static final int MONITOR_PANEL_ROW = 0;
@@ -105,8 +106,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   static final String ATRACE_BUFFER_OVERFLOW_TITLE = "System Trace Buffer Overflow Detected";
 
   @VisibleForTesting
-  static final String ATRACE_BUFFER_OVERFLOW_MESSAGE = "Your capture exceeded the buffer limit, some data may be missing. Consider recording a shorter trace.";
-
+  static final String ATRACE_BUFFER_OVERFLOW_MESSAGE = "Your capture exceeded the buffer limit, some data may be missing. " +
+                                                       "Consider recording a shorter trace.";
 
   /**
    * Default ratio of splitter. The splitter ratio adjust the first elements size relative to the bottom elements size.
@@ -126,9 +127,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   private final JButton myCaptureButton;
   /**
-   * Contains the status of the capture, e.g. "Starting record...", "Recording - XXmXXs", etc.
+   * Contains the elapsed time of the capture if there is a recording in progress.
    */
-  private final JLabel myCaptureStatus;
+  private final JLabel myElapsedRecordingTime;
   @NotNull private final CpuThreadsView myThreads;
   @NotNull private final CpuKernelsView myCpus;
 
@@ -255,10 +256,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       (int)myProfilingConfigurationView.getComponent().getPreferredSize().getHeight()));
     myCaptureButton.addActionListener(event -> myStage.toggleCapturing());
 
-    myCaptureStatus = new JLabel("");
-    myCaptureStatus.setFont(ProfilerFonts.STANDARD_FONT);
-    myCaptureStatus.setBorder(JBUI.Borders.emptyLeft(5));
-    myCaptureStatus.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
+    myElapsedRecordingTime = new JLabel("");
+    myElapsedRecordingTime.setFont(ProfilerFonts.STANDARD_FONT);
+    myElapsedRecordingTime.setBorder(JBUI.Borders.emptyLeft(5));
+    myElapsedRecordingTime.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
 
     myCaptureViewLoading = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
     myCaptureViewLoading.setLoadingText("Parsing capture...");
@@ -390,7 +391,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     toolbar.add(myProfilingConfigurationView.getComponent());
     toolbar.add(myCaptureButton);
-    toolbar.add(myCaptureStatus);
+    toolbar.add(myElapsedRecordingTime);
 
     SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
     sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, () -> myCaptureButton.setEnabled(shouldEnableCaptureButton()));
@@ -415,11 +416,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   private void updateCaptureState() {
     myCaptureViewLoading.stopLoading();
+    myElapsedRecordingTime.setText("");
     switch (myStage.getCaptureState()) {
       case IDLE:
         myCaptureButton.setEnabled(shouldEnableCaptureButton());
         myCaptureButton.setText(RECORD_TEXT);
-        myCaptureStatus.setText("");
         myCaptureButton.setToolTipText("Record a trace");
         myProfilingConfigurationView.getComponent().setEnabled(true);
         break;
@@ -431,7 +432,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
           myCaptureButton.setEnabled(shouldEnableCaptureButton());
         }
         myCaptureButton.setText(STOP_TEXT);
-        myCaptureStatus.setText("");
         myCaptureButton.setToolTipText("Stop recording");
         myProfilingConfigurationView.getComponent().setEnabled(false);
         break;
@@ -444,7 +444,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         break;
       case STARTING:
         myCaptureButton.setEnabled(false);
-        myCaptureStatus.setText("Starting record...");
         myCaptureButton.setToolTipText("");
         myProfilingConfigurationView.getComponent().setEnabled(false);
         break;
@@ -453,7 +452,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         break;
       case STOPPING:
         myCaptureButton.setEnabled(false);
-        myCaptureStatus.setText("Stopping record...");
         myCaptureButton.setToolTipText("");
         myProfilingConfigurationView.getComponent().setEnabled(false);
         break;
@@ -507,7 +505,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private void updateCaptureElapsedTime() {
     if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
       long elapsedTimeUs = myStage.getCaptureElapsedTimeUs();
-      myCaptureStatus.setText(TimeFormatter.getSemiSimplifiedClockString(elapsedTimeUs));
+      myElapsedRecordingTime.setText(TimeFormatter.getSemiSimplifiedClockString(elapsedTimeUs));
     }
   }
 
