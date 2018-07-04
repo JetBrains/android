@@ -38,10 +38,9 @@ import java.io.File
 val modulePath = File("/path/to/module")
 val sdkPath = File("/path/to/sdk")
 val buildPath = File(modulePath, "build")
-val libPath = File("/path/to/libraries")
 val outPath = File("/path/to/out")
 
-val testConverter = PathConverter(modulePath, sdkPath, libPath, outPath)
+val testConverter = PathConverter(modulePath, sdkPath, outPath)
 
 fun createNewAndroidProject(): AndroidProject {
   val aaptOptions = NewAaptOptions(AaptOptions.Namespacing.REQUIRED)
@@ -169,8 +168,8 @@ fun createNewAndroidLibraries(count: Int): Map<String, AndroidLibrary> {
     val artifactAddress = "android_library:$i@aar"
     androidLibraries[artifactAddress] = NewAndroidLibrary(
       File(outPath, "android_artifact_i$"),
-      listOf(File(libPath,  "local_jar_$i")),
-      File(libPath, "bundle_folder_$i"),
+      listOf(File(outPath,  "local_jar_$i")),
+      File(outPath, "bundle_folder_$i"),
       artifactAddress
     )
   }
