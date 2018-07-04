@@ -25,8 +25,7 @@ import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.Library
 
 data class NewGlobalLibraryMap(override val libraries: Map<String, Library>) : GlobalLibraryMap {
   constructor(globalLibraryMap: Level2GlobalLibraryMap) : this(
-    // cast to the same (but aliased) type is necessary because Kotlin cannot resolve otherwise
-    globalLibraryMap.libraries.mapValues { (it as Level2Library).toNew() }
+    globalLibraryMap.libraries.mapValues { it.value.toNew() }
   )
 
   constructor(androidLibraries: Map<String, Library>,
