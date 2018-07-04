@@ -60,7 +60,6 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   private SdkUpdaterConfigPanel myPanel;
   private Channel myCurrentChannel;
   private Runnable myChannelChangedCallback;
-  private List<PackageOperation.StatusChangeListener> myListeners = Lists.newArrayList();
 
   @NotNull
   @Override
@@ -221,7 +220,6 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
               PackageOperation installer = getRepoManager().getInProgressInstallOperation(remotePackage);
               if (installer != null) {
                 PackageOperation.StatusChangeListener listener = (installer1, progress) -> myPanel.getComponent().repaint();
-                myListeners.add(listener);
                 installer.registerStateChangeListener(listener);
               }
             }
