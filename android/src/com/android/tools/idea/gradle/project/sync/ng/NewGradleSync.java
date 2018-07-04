@@ -20,6 +20,7 @@ import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.java.model.JavaProject;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradlePerProjectExperimentalSettings;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -79,6 +80,10 @@ public class NewGradleSync implements GradleSync {
     // Since Gradle plugin don't have the concept of selected variant and we don't want to generate sources for all variants, we only
     // activate Compound Sync if Single Variant Sync is also enabled.
     return StudioFlags.COMPOUND_SYNC_ENABLED.get() && isEnabled(project) && isSingleVariantSync(project);
+  }
+
+  public static boolean isShippedSync(@NotNull Project project) {
+    return StudioFlags.SHIPPED_SYNC_ENABLED.get() && isEnabled(project) && GradleProjectInfo.getInstance(project).isNewProject();
   }
 
   public NewGradleSync(@NotNull Project project) {
@@ -151,49 +156,70 @@ public class NewGradleSync implements GradleSync {
 
   private void sync(@NotNull GradleSyncInvoker.Request request, @NotNull ProgressIndicator indicator,
                     @Nullable GradleSyncListener syncListener) {
-    if (request.useCachedGradleModels) {
-      // Use models from disk cache.
-      ProjectBuildFileChecksums buildFileChecksums = myBuildFileChecksumsLoader.loadFromDisk(myProject);
-      if (buildFileChecksums != null && buildFileChecksums.canUseCachedData()) {
-        CachedProjectModels projectModelsCache = myProjectModelsCacheLoader.loadFromDisk(myProject);
-        if (projectModelsCache != null) {
-          PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-          setupRequest.usingCachedGradleModels = true;
-          setupRequest.generateSourcesAfterSync = false;
-          setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
-          // @formatter:on
+    PostSyncProjectSetup.Request setupRequest = createPostSyncRequest(request);
 
-          setSkipAndroidPluginUpgrade(request, setupRequest);
-          // Create a new taskId when using cache
-          ExternalSystemTaskId taskId = createProjectSetupFromCacheTaskWithStartMessage(myProject);
-
-          try {
-            myResultHandler.onSyncSkipped(projectModelsCache, setupRequest, indicator, syncListener, taskId);
-            return;
-          }
-          catch (ModelNotFoundInCacheException e) {
-            Logger.getInstance(NewGradleSync.class).warn("Restoring project state from cache failed. Performing a Gradle Sync.", e);
-          }
-        }
-      }
+    if (trySyncWithCachedGradleModels(setupRequest, indicator, syncListener)) {
+      return;
     }
 
+    SyncExecutionCallback callback = myCallbackFactory.create();
+    callback.doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
+    if (request.variantOnlySyncOptions != null) {
+      callback.doWhenDone(() -> myResultHandler.onVariantOnlySyncFinished(callback, setupRequest, indicator, syncListener));
+    }
+    else {
+      callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, setupRequest, indicator, syncListener));
+    }
+    mySyncExecutor.syncProject(indicator, callback, request.variantOnlySyncOptions);
+  }
+
+  /**
+   * Returns true if loading of cached models was successful, false otherwise
+   */
+  private boolean trySyncWithCachedGradleModels(@NotNull PostSyncProjectSetup.Request setupRequest, @NotNull ProgressIndicator indicator,
+                                                @Nullable GradleSyncListener syncListener) {
+    if (!setupRequest.usingCachedGradleModels) {
+      return false;
+    }
+    // Use models from the disk cache.
+    ProjectBuildFileChecksums buildFileChecksums = myBuildFileChecksumsLoader.loadFromDisk(myProject);
+
+    if (buildFileChecksums == null || !buildFileChecksums.canUseCachedData()) {
+      return false;
+    }
+
+    CachedProjectModels projectModelsCache = myProjectModelsCacheLoader.loadFromDisk(myProject);
+
+    if (projectModelsCache == null) {
+      return false;
+    }
+
+    setupRequest.generateSourcesAfterSync = false; // TODO investigate why it is not false already
+    setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
+
+    ExternalSystemTaskId taskId = createProjectSetupFromCacheTaskWithStartMessage(myProject);
+
+    try {
+      myResultHandler.onSyncSkipped(projectModelsCache, setupRequest, indicator, syncListener, taskId);
+    }
+    catch (ModelNotFoundInCacheException e) {
+      Logger.getInstance(NewGradleSync.class).warn("Restoring project state from cache failed. Performing a Gradle Sync.", e);
+      return false;
+    }
+
+    return true;
+  }
+
+  private static PostSyncProjectSetup.Request createPostSyncRequest(@NotNull GradleSyncInvoker.Request request) {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+
+    setupRequest.usingCachedGradleModels = request.useCachedGradleModels;
     setupRequest.generateSourcesAfterSync = request.generateSourcesOnSuccess;
     setupRequest.cleanProjectAfterSync = request.cleanProject;
     setSkipAndroidPluginUpgrade(request, setupRequest);
 
-    SyncExecutionCallback callback = myCallbackFactory.create();
-    callback.doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
-    if (request.myVariantOnlySyncOptions != null) {
-      callback.doWhenDone(() -> myResultHandler.onVariantOnlySyncFinished(callback, setupRequest, indicator, syncListener));
-      mySyncExecutor.syncProject(indicator, callback, request.myVariantOnlySyncOptions);
-    }
-    else {
-      callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, setupRequest, indicator, syncListener));
-      mySyncExecutor.syncProject(indicator, callback);
-    }
-  }
+    return setupRequest;
+   }
 
   private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,
                                                   @NotNull PostSyncProjectSetup.Request setupRequest) {
