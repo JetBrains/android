@@ -22,6 +22,7 @@ import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROP
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableList
+import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -132,7 +133,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   private var loadingPanel: JBLoadingPanel = JBLoadingPanel(BorderLayout(), surface)
 
   @VisibleForTesting
-  var searchField = SearchTextField()
+  lateinit var searchField: SearchTextField
 
   private var _mainPanel: JPanel? = null
 
@@ -146,18 +147,27 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   lateinit var blankDestinationButton: ActionButtonWithText
 
   init {
-    val listener = ResourceNotificationManager.ResourceChangeListener { _ -> _mainPanel = null }
+    val resourceListener = ResourceNotificationManager.ResourceChangeListener { _ -> _mainPanel = null }
     val notificationManager = ResourceNotificationManager.getInstance(surface.project)
     val facet = surface.model!!.facet
-    notificationManager.addListener(listener, facet, null, null)
-    Disposer.register(surface, Disposable { notificationManager.removeListener(listener, facet, null, null) })
-    // leading space is required so text doesn't overlap magnifying glass
-    searchField.textEditor.emptyText.text = "   Search existing destinations"
+    notificationManager.addListener(resourceListener, facet, null, null)
+
+    val lafListener = { _: LafManager -> _mainPanel = null }
+    LafManager.getInstance().addLafManagerListener(lafListener)
+
+    Disposer.register(surface, Disposable {
+      notificationManager.removeListener(resourceListener, facet, null, null)
+      LafManager.getInstance().removeLafManagerListener(lafListener)
+    })
   }
 
   private var neverShown = true
 
   private fun createSelectionPanel(): JPanel {
+    searchField = SearchTextField()
+    // leading space is required so text doesn't overlap magnifying glass
+    searchField.textEditor.emptyText.text = "   Search existing destinations"
+
     val listModel = FilteringListModel<Destination>(CollectionListModel<Destination>(destinations))
 
     listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.toLowerCase()) }
