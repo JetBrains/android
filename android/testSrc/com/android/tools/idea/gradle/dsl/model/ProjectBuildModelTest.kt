@@ -19,6 +19,9 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtilCore
+import junit.framework.TestCase
 import org.gradle.internal.impldep.org.hamcrest.CoreMatchers.hasItems
 import org.gradle.internal.impldep.org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -270,5 +273,19 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
                          }
                        }""".trimIndent()
     verifyFileContents(mySubModuleBuildFile, expected)
+  }
+
+  @Test
+  fun testGetModelFromVirtualFile() {
+    val text = """android {
+                    compileSdkVersion "28"
+                  }""".trimIndent()
+    writeToBuildFile(text)
+
+    val pbm = ProjectBuildModel.get(myProject)
+    val file = LocalFileSystem.getInstance().findFileByIoFile(myBuildFile)!!
+    val buildModel = pbm.getModuleBuildModel(file)
+    assertNotNull(buildModel)
+    verifyPropertyModel(buildModel.android().compileSdkVersion(), STRING_TYPE, "28", STRING, REGULAR, 0)
   }
 }

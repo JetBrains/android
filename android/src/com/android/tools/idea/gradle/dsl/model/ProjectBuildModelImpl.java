@@ -82,20 +82,19 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   @Nullable
   public GradleBuildModel getModuleBuildModel(@NotNull Module module) {
     VirtualFile file = getGradleBuildFile(module);
-    if (file == null) {
-      return null;
-    }
-    GradleBuildFile dslFile = myBuildModelContext.getOrCreateBuildFile(file);
-    return new GradleBuildModelImpl(dslFile);
+    return file == null ? null : getModuleBuildModel(file);
   }
 
   @Override
   @Nullable
   public GradleBuildModel getModuleBuildModel(@NotNull File modulePath) {
     VirtualFile file = getGradleBuildFile(modulePath);
-    if (file == null) {
-      return null;
-    }
+    return file == null ? null : getModuleBuildModel(file);
+  }
+
+  @Override
+  @NotNull
+  public GradleBuildModel getModuleBuildModel(@NotNull VirtualFile file) {
     GradleBuildFile dslFile = myBuildModelContext.getOrCreateBuildFile(file);
     return new GradleBuildModelImpl(dslFile);
   }
