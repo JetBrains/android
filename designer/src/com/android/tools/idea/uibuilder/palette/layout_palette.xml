@@ -299,6 +299,8 @@
   <group name="Layouts">
     <item tag="android.support.constraint.ConstraintLayout" suggested="true"
           materialReference="https://material.io/guidelines/layout/principles.html"/>
+    <item tag="androidx.constraintlayout.widget.ConstraintLayout" suggested="true"
+          materialReference="https://material.io/guidelines/layout/principles.html"/>
     <item tag="android.support.constraint.Guideline"
           title="Guideline (horizontal)"
           suggested="true"
@@ -306,6 +308,19 @@
       <xml>
         <![CDATA[
             <android.support.constraint.Guideline
+              android:orientation="horizontal"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="androidx.constraintlayout.widget.Guideline"
+          title="Guideline (horizontal)"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_GUIDE">
+      <xml>
+        <![CDATA[
+            <androidx.constraintlayout.widget.Guideline
               android:orientation="horizontal"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content" />
@@ -320,6 +335,20 @@
       <xml>
         <![CDATA[
             <android.support.constraint.Guideline
+              android:orientation="vertical"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="androidx.constraintlayout.widget.Guideline"
+          title="Guideline (vertical)"
+          suggested="true"
+          id="VerticalGuideline2"
+          icon="StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE">
+      <xml>
+        <![CDATA[
+            <androidx.constraintlayout.widget.Guideline
               android:orientation="vertical"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content" />
