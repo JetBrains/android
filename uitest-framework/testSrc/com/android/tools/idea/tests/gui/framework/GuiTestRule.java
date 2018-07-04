@@ -97,15 +97,9 @@ public class GuiTestRule implements TestRule {
       }
     }
   };
-  private List<TestRule> myAdditionalRules = new ArrayList<>();
 
   public GuiTestRule withLeakCheck() {
     myLeakCheck.setEnabled(true);
-    return this;
-  }
-
-  public GuiTestRule around(@NotNull TestRule rule) {
-    myAdditionalRules.add(rule);
     return this;
   }
 
@@ -129,10 +123,6 @@ public class GuiTestRule implements TestRule {
     // Perf logging currently writes data to the Bazel-specific TEST_UNDECLARED_OUTPUTS_DIR. Skipp logging if running outside of Bazel.
     if (TestUtils.runningFromBazel()) {
       chain = chain.around(new GuiPerfLogger(description));
-    }
-
-    for (TestRule additionalRule : myAdditionalRules) {
-      chain = chain.around(additionalRule);
     }
 
     return chain.apply(base, description);

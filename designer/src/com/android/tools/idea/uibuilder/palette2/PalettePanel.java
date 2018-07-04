@@ -65,7 +65,6 @@ import java.awt.dnd.DnDConstants;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -94,7 +93,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   private final ActionGroup myActionGroup;
   private final KeyListener myFilterKeyListener;
 
-  @NotNull private WeakReference<DesignSurface> myDesignSurface = new WeakReference<>(null);
+  private DesignSurface myDesignSurface;
   private NlLayoutType myLayoutType;
   private Runnable myCloseAutoHideCallback;
   private StartFilteringListener myStartFilteringCallback;
@@ -137,7 +136,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     myCategoryList.addKeyListener(keyListener);
     myCategoryList.setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 0, 0, 1));
 
-    PreviewProvider provider = new PreviewProvider(() -> myDesignSurface.get(), myDependencyManager);
+    PreviewProvider provider = new PreviewProvider(() -> myDesignSurface, myDependencyManager);
     Disposer.register(this, provider);
     myItemList.setModel(myDataModel.getItemListModel());
     myItemList.setTransferHandler(new ItemTransferHandler(provider, myItemList::getSelectedValue));
@@ -379,7 +378,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
         myItemList.setSelectedIndex(0);
       }
     }
-    myDesignSurface = new WeakReference<>(designSurface);
+    myDesignSurface = designSurface;
   }
 
   private void setCategoryListVisible(boolean visible) {
@@ -480,7 +479,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       if (myStopFilteringCallback != null) {
         myStopFilteringCallback.run();
       }
-      NlUsageTrackerManager.getInstance(myDesignSurface.get()).logDropFromPalette(
+      NlUsageTrackerManager.getInstance(myDesignSurface).logDropFromPalette(
         component.getTag(), component.getRepresentation(), getGroupName(), myDataModel.getMatchCount());
     }
 
@@ -530,11 +529,10 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       if (item == null) {
         return false;
       }
-      DesignSurface surface = myDesignSurface.get();
-      if (surface == null) {
+      if (myDesignSurface == null) {
         return false;
       }
-      NlModel model = surface.getModel();
+      NlModel model = myDesignSurface.getModel();
       if (model == null) {
         return false;
       }
@@ -542,7 +540,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       if (roots.isEmpty()) {
         return false;
       }
-      SceneView sceneView = surface.getCurrentSceneView();
+      SceneView sceneView = myDesignSurface.getCurrentSceneView();
       if (sceneView == null) {
         return false;
       }
@@ -550,7 +548,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       DnDTransferItem dndItem = new DnDTransferItem(dndComponent);
       InsertType insertType = model.determineInsertType(DragType.COPY, dndItem, checkOnly /* preview */);
 
-      List<NlComponent> toAdd = model.createComponents(dndItem, insertType, surface);
+      List<NlComponent> toAdd = model.createComponents(dndItem, insertType, myDesignSurface);
 
       NlComponent root = roots.get(0);
       if (!model.canAddComponents(toAdd, root, null, checkOnly)) {
@@ -558,8 +556,8 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       }
       if (!checkOnly) {
         model.addComponents(toAdd, root, null, insertType, sceneView.getSurface());
-        surface.getSelectionModel().setSelection(toAdd);
-        surface.getLayeredPane().requestFocus();
+        myDesignSurface.getSelectionModel().setSelection(toAdd);
+        myDesignSurface.getLayeredPane().requestFocus();
       }
       return true;
     }
