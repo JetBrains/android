@@ -29,9 +29,10 @@ import java.io.File
 interface AndroidProject {
   // TODO: add Properties from model.AndroidProject
 
-  /** Represents a possible type of the project.
+  /**
+   * Represents a possible type of the project.
    *
-   * Contains [oldValue] integer which is used to protobuf serialization.
+   * Contains [oldValue] integer which is used for protobuf serialization.
    */
   enum class ProjectType(val oldValue: Int) {
     APP(OldAndroidProject.PROJECT_TYPE_APP),
@@ -80,7 +81,8 @@ interface AndroidProject {
   val signingConfigs: Collection<SigningConfig>
   /** Indicates whether project is namespace aware or not. */
   val aaptOptions: AaptOptions
-  /** Issues found during sync.
+  /**
+   * Issues found during sync.
    *
    * Populated only if the system property [PROPERTY_BUILD_MODEL_ONLY] has been set to `true`. FIXME(comment is wrong?)
    */
@@ -93,7 +95,8 @@ interface AndroidProject {
   val rootFolder: File
   /** True if this is the base feature split. */
   val isBaseSplit: Boolean
-  /** The list of dynamic features.
+  /**
+   * The list of dynamic features.
    *
    * Each value is a Gradle path. Only valid for base splits.
    */
