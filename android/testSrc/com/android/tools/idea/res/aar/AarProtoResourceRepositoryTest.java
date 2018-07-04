@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res.aar;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
@@ -580,10 +581,11 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
       ResourceNamespace namespace = ResourceNamespace.fromPackageName(LIBRARY_PACKAGE);
       long start = System.currentTimeMillis();
       AarSourceResourceRepository
-        fromSources = AarSourceResourceRepository.createForTest(new File(myAarFolder, "res"), namespace, LIBRARY_NAME);
+        fromSources = AarSourceResourceRepository.createForTest(new File(myAarFolder, SdkConstants.FD_RES), namespace, LIBRARY_NAME);
       loadTimeFromSources += System.currentTimeMillis() - start;
       start = System.currentTimeMillis();
-      AarProtoResourceRepository fromResApk = AarProtoResourceRepository.createIfProtoAar(myAarFolder, LIBRARY_NAME);
+      AarProtoResourceRepository fromResApk =
+        AarProtoResourceRepository.createProtoRepository(new File(myAarFolder, SdkConstants.FN_RESOURCE_STATIC_LIBRARY), LIBRARY_NAME);
       loadTimeFromResApk += System.currentTimeMillis() - start;
       assertEquals(LIBRARY_NAME, fromResApk.getLibraryName());
       assertEquals(namespace, fromResApk.getNamespace());

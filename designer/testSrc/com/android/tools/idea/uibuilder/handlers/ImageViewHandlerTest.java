@@ -43,12 +43,12 @@ public class ImageViewHandlerTest extends LayoutTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myFixture.addFileToProject("AndroidManifest.xml", MANIFEST_SOURCE);
-    myModel = createModel();
-
     myTestProjectSystem = new TestProjectSystem(getProject(), Collections.emptyList());
     PlatformTestUtil.registerExtension(Extensions.getArea(getProject()), ProjectSystemUtil.getEP_NAME(),
                                        myTestProjectSystem, getTestRootDisposable());
+
+    myFixture.addFileToProject("AndroidManifest.xml", MANIFEST_SOURCE);
+    myModel = createModel();
 
     MergedManifest manifest = MergedManifest.get(myModel.getModule());
     String pkg = StringUtil.notNullize(manifest.getPackage());

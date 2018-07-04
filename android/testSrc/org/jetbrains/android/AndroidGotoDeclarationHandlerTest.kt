@@ -193,7 +193,7 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
   }
 
   open fun testGotoAarResourceFromCode_libRClass() {
-    addAarDependency()
+    addAarDependencyToMyModule()
 
     assertEquals("values/styles.xml:2:\n" +
                  "  <style name=\"LibStyle\"></style>\n" +
@@ -291,7 +291,21 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
            ?: PsiElement.EMPTY_ARRAY
   }
 
-  protected open fun addAarDependency() {
+  protected abstract fun addAarDependencyToMyModule()
+}
+
+class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHandlerTestBase() {
+
+  override fun setUp() {
+    super.setUp()
+    copyRJavaToGeneratedSources()
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.copyFileToProject("Manifest.java", "gen/p1/p2/Manifest.java")
+      myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java")
+    }
+  }
+
+  override fun addAarDependencyToMyModule() {
     addAarDependency(myModule, "aarLib", "com.example.aarLib") { resDir ->
       resDir.resolve("values/styles.xml").writeText(
         """
@@ -310,22 +324,6 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     val appResources = ResourceRepositoryManager.getAppResources(myFacet)
     assertSize(1, appResources.getResourceItems(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "LibStyle"))
     assertSize(1, appResources.getResourceItems(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "libAttr"))
-  }
-}
-
-class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHandlerTestBase() {
-
-  override fun setUp() {
-    super.setUp()
-    copyRJavaToGeneratedSources()
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyFileToProject("Manifest.java", "gen/p1/p2/Manifest.java")
-      myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java")
-    }
-  }
-
-  override fun addAarDependency() {
-    super.addAarDependency()
 
     if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
       myFixture.addFileToProject(
@@ -374,7 +372,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
   }
 
   fun testGotoAarResourceFromCode_ownRClass() {
-    addAarDependency()
+    addAarDependencyToMyModule()
 
     assertEquals("values/styles.xml:3:\n" +
                  "  <style name=\"LibStyle\" parent=\"ParentStyle\"></style>\n" +
@@ -426,7 +424,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
   }
 
   fun testGotoAarResourceFromAarXml() = with(myFixture) {
-    addAarDependency()
+    addAarDependencyToMyModule()
 
     configureFromExistingVirtualFile(
       addFileToProject(
@@ -452,7 +450,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
   }
 
   fun testGotoFrameworkResourceFromFrameworkXml() = with(myFixture) {
-    addAarDependency()
+    addAarDependencyToMyModule()
 
     configureFromExistingVirtualFile(
       addFileToProject(
@@ -490,7 +488,6 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
 }
 
 class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandlerTestBase() {
-
   override fun setUp() {
     super.setUp()
     StudioFlags.IN_MEMORY_R_CLASSES.override(true)
@@ -532,48 +529,12 @@ class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandle
     assertEmpty(getDeclarationsFrom(file.virtualFile))
   }
 
+  override fun addAarDependencyToMyModule() {
+    TODO("not implemented") // TODO(b/110082720): implement support for source attachments.
+  }
+
   fun testGotoAarResourceFromCode_ownRClass() {
-    addAarDependency()
-
-    assertEmpty(
-      describeElements(
-        getDeclarationsFrom(
-          myFixture.addFileToProject(
-            "src/p1/p2/GotoAarStyle.java",
-            // language=java
-            """
-            package p1.p2;
-
-            public class GotoAarStyle {
-                public void f() {
-                    int id1 = R.style.Lib${caret}Style;
-                }
-            }
-            """.trimIndent()
-          ).virtualFile
-        )
-      )
-    )
-
-    assertEmpty(
-      describeElements(
-        getDeclarationsFrom(
-          myFixture.addFileToProject(
-            "src/p1/p2/GotoAarStyleableAttr.java",
-            // language=java
-            """
-            package p1.p2;
-
-            public class GotoAarStyleableAttr {
-                public void f() {
-                    int id1 = R.style.lib${caret}Attr;
-                }
-            }
-            """.trimIndent()
-          ).virtualFile
-        )
-      )
-    )
+    // TODO(b/110082720): implement support for source attachments.
   }
 
   override fun testGotoAarResourceFromCode_libRClass() {

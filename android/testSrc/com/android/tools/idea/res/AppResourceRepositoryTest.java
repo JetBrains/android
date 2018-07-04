@@ -21,10 +21,9 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
-import com.android.ide.common.resources.usage.ResourceUsageModel;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.stubs.android.ClassFieldStub;
+import com.android.tools.idea.res.aar.AarProtoResourceRepository;
 import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -45,8 +44,10 @@ import org.junit.Assert;
 import java.io.File;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.idea.res.ResourcesTestsUtil.addBinaryAarDependency;
 import static com.google.common.truth.Truth.assertThat;
 
 public class AppResourceRepositoryTest extends AndroidTestCase {
@@ -297,6 +298,24 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
                                  new ResourceReference(localLibNamespace, ResourceType.STRING, "this_namespace"),
                                  new ResourceReference(localLibNamespace, ResourceType.STRING, "app_name"),
                                  true);
+  }
+
+  public void testComputeLibraries() {
+    addBinaryAarDependency(myModule);
+    enableNamespacing("p1.p2");
+
+    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
+    List<ResourceItem> items = appResources.getResourceItems(ResourceNamespace.fromPackageName("com.example.mylibrary"),
+                                                              ResourceType.STRING,
+                                                              "my_aar_string");
+    List<AbstractResourceRepository> repositories = new ArrayList<>();
+    appResources.getLeafResourceRepositories(repositories);
+    assertThat(repositories).hasSize(3);
+    assertThat(repositories.stream().map(Object::getClass).collect(Collectors.toSet())).containsExactly(
+      ResourceFolderRepository.class, AarProtoResourceRepository.class, SampleDataResourceRepository.class);
+
+    assertThat(items).hasSize(1);
+    assertThat(items.get(0).getResourceValue().getValue()).isEqualTo("This string came from an AARv2");
   }
 
   private static void checkCrossNamespaceReference(LocalResourceRepository repo,
