@@ -351,7 +351,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     }
 
     if (isNewDataSource()) {
-      myManager.processAddOrRemove(myDataSource, true);
+      myManager.addDataSource(myDataSource);
     }
   }
 
