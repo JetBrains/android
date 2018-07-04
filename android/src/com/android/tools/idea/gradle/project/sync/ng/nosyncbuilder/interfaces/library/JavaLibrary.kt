@@ -25,6 +25,6 @@ interface JavaLibrary : Library {
 
   fun toProto(converter: PathConverter) = LibraryProto.JavaLibrary.newBuilder()
     .setLibrary(LibraryProto.Library.newBuilder().setArtifactAddress(artifactAddress))
-    .setArtifact(converter.fileToProto(artifact, PathConverter.DirType.OUT))
+    .setArtifact(converter.fileToProto(artifact, PathConverter.DirType.OFFLINE_REPO))
     .build()!!
 }
