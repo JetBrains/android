@@ -34,9 +34,9 @@ import java.util.*
 import javax.swing.Icon
 
 abstract class PsModule protected constructor(
-  override val parent: PsProject,
-  open val gradlePath: String?
+  override val parent: PsProject
 ) : PsChildModel() {
+  abstract val gradlePath: String?
   final override var name: String = "" ; private set
   override val path: PsPath? get() = PsModulePath(name)
   var parsedModel: GradleBuildModel? = null ; private set
@@ -58,7 +58,7 @@ abstract class PsModule protected constructor(
   /**
    * <All Modules> constructor.
    */
-  protected constructor(name: String, parent: PsProject) : this(parent, null) {
+  protected constructor(name: String, parent: PsProject) : this(parent) {
     init(name, null)
   }
 
