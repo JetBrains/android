@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -25,6 +27,7 @@ import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ui.UIUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -32,9 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.mock;
@@ -273,5 +274,69 @@ public final class NlComponentTest extends AndroidTestCase {
     component = new NlComponent(mock(NlModel.class), tag, mock(SmartPsiElementPointer.class));
     component.setMixin(mixin);
     assertEquals("componentId", component.getId());
+  }
+
+  public void testNamespaceTransfer() {
+    @Language("XML")
+    String editText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<layout>\n" +
+                      "<RelativeLayout\n" +
+                      "  xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "  xmlns:tools123=\"http://schemas.android.com/tools\">" +
+                      "  <Button\n" +
+                      "         android:id=\"@+id/editText\"\n" +
+                      "         android:layout_width=\"wrap_content\"\n" +
+                      "         android:layout_height=\"wrap_content\"\n" +
+                      "         android:ems=\"10\"\n" +
+                      "         android:inputType=\"textEmailAddress\"\n" +
+                      "         android:orientation=\"vertical\"\n" +
+                      "         tools123:layout_editor_absoluteX=\"32dp\"\n" +
+                      "         tools123:layout_editor_absoluteY=\"43dp\"\n/>" +
+                      "</RelativeLayout>\n" +
+                      "</layout>\n";
+
+    XmlTag textViewXmlTag = createTagFromXml(
+      "<TextView" +
+      " xmlns:android=\"" + ANDROID_URI + "\"" +
+      " xmlns:tools=\"" + TOOLS_URI + "\"" +
+      " android:text=\"Initial\"" +
+      " tools:text=\"ToolText\"" +
+      " android:layout_width=\"wrap_content\"" +
+      " android:layout_height=\"wrap_content\" />");
+    NlComponent textView = createComponent(textViewXmlTag);
+
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
+    XmlTag relativeLayoutTag = xmlFile.getRootTag().getSubTags()[0];
+    NlComponent relativeLayout = createComponent(relativeLayoutTag);
+    when(myModel.getFile()).thenReturn(xmlFile);
+    when(myModel.getProject()).thenReturn(getProject());
+    NlWriteCommandAction.run(relativeLayout, "addTextView", () -> textView.addTags(relativeLayout, null, InsertType.PASTE));
+    UIUtil.dispatchAllInvocationEvents();
+
+    @Language("XML")
+    String expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
+                      "\n" +
+                      "    <RelativeLayout>\n" +
+                      "\n" +
+                      "        <Button\n" +
+                      "            android:id=\"@+id/editText\"\n" +
+                      "            android:layout_width=\"wrap_content\"\n" +
+                      "            android:layout_height=\"wrap_content\"\n" +
+                      "            android:ems=\"10\"\n" +
+                      "            android:inputType=\"textEmailAddress\"\n" +
+                      "            android:orientation=\"vertical\"\n" +
+                      "            tools123:layout_editor_absoluteX=\"32dp\"\n" +
+                      "            tools123:layout_editor_absoluteY=\"43dp\" />\n" +
+                      "\n" +
+                      "        <TextView\n" +
+                      "            android:layout_width=\"wrap_content\"\n" +
+                      "            android:layout_height=\"wrap_content\"\n" +
+                      "            android:text=\"Initial\"\n" +
+                      "            tools123:text=\"ToolText\" />\n" +
+                      "    </RelativeLayout>\n" +
+                      "</layout>\n";
+    assertEquals(expected, xmlFile.getText());
   }
 }
