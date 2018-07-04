@@ -18,34 +18,43 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 import com.android.repository.Revision;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.issues.FixBuildToolsProcessor;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.hyperlink.FixBuildToolsVersionHyperlink.setBuildToolsVersion;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 public class InstallBuildToolsHyperlink extends NotificationHyperlink {
   @NotNull private final String myVersion;
-  @Nullable private final VirtualFile myBuildFile;
+  @NotNull private final List<VirtualFile> myBuildFiles;
+  /**
+   * Whether or not to remove the buildToolsVersion line from Gradle files, if false we update them to myVersion instead.
+   */
+  private final boolean myRemoveBuildTools;
 
-  public InstallBuildToolsHyperlink(@NotNull String version, @Nullable VirtualFile buildFile) {
-    super("install.build.tools", getText(version, buildFile));
-    myBuildFile = buildFile;
+  public InstallBuildToolsHyperlink(@NotNull String version) {
+    this(version, ImmutableList.of(), false);
+  }
+
+  public InstallBuildToolsHyperlink(@NotNull String version, @NotNull List<VirtualFile> buildFiles, boolean removeBuildTools) {
+    super("install.build.tools", getText(version, !buildFiles.isEmpty()));
+    myBuildFiles = buildFiles;
     myVersion = version;
+    myRemoveBuildTools = removeBuildTools;
   }
 
   @NotNull
-  private static String getText(@NotNull String version, @Nullable VirtualFile buildFile) {
+  private static String getText(@NotNull String version, boolean hasBuildFiles) {
     String msg = String.format("Install Build Tools %1$s", version);
-    if (buildFile != null) {
+    if (hasBuildFiles) {
       msg += ", update version in build file and sync project";
     }
     else {
@@ -61,8 +70,10 @@ public class InstallBuildToolsHyperlink extends NotificationHyperlink {
     requested.add(DetailsTypes.getBuildToolsPath(minBuildToolsRev));
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
     if (dialog != null && dialog.showAndGet()) {
-      if (myBuildFile != null) {
-        setBuildToolsVersion(project, myBuildFile, myVersion, true);
+      if (!myBuildFiles.isEmpty()) {
+        FixBuildToolsProcessor processor = new FixBuildToolsProcessor(project, myBuildFiles, myVersion, true, myRemoveBuildTools);
+        processor.setPreviewUsages(true);
+        processor.run();
       }
       else {
         // TODO Change for plugin changed trigger if created
