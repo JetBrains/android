@@ -15,18 +15,12 @@
  */
 package com.android.tools.profilers.cpu.capturedetails
 
-import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.CommonTabbedPane
-import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ART
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE
 import com.android.tools.profilers.*
-import com.android.tools.profilers.cpu.CpuProfilerStage
-import com.android.tools.profilers.cpu.CpuProfilerStageView
-import com.android.tools.profilers.cpu.CpuProfilerTestUtils
-import com.android.tools.profilers.cpu.FakeCpuService
+import com.android.tools.profilers.cpu.*
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -34,95 +28,64 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class CpuCaptureViewTest {
-  private val TRACE_PATH = "tools/adt/idea/profilers-ui/testData/valid_trace.trace"
-  private val ATRACE_TRACE_PATH = "tools/adt/idea/profilers-ui/testData/cputraces/atrace_processid_1.ctrace"
+  @JvmField
+  @Rule
+  val grpcChannel: FakeGrpcChannel
 
-  private val myProfilerService = FakeProfilerService()
+  @JvmField
+  @Rule
+  val cpuProfiler: FakeCpuProfiler
 
-  private val myCpuService = FakeCpuService()
+  init {
+    val cpuService = FakeCpuService()
+    grpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", cpuService, FakeProfilerService(),
+                                  FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
-  private val myTimer = FakeTimer()
+    cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, cpuService = cpuService)
+  }
 
-  @get:Rule
-  val myGrpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", myCpuService, myProfilerService,
-                                      FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
-
-  private lateinit var myStageView: CpuProfilerStageView
-
-  private lateinit var myStage: CpuProfilerStage
+  private lateinit var stageView: CpuProfilerStageView
 
   @Before
   fun setUp() {
-    val services = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(myGrpcChannel.client, services, myTimer)
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
-
-    myStage = CpuProfilerStage(profilers)
-    myStage.studioProfilers.stage = myStage
-
-    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
-    myStageView = CpuProfilerStageView(profilersView, myStage)
+    val profilersView = StudioProfilersView(cpuProfiler.stage.studioProfilers, FakeIdeProfilerComponents())
+    stageView = CpuProfilerStageView(profilersView, cpuProfiler.stage)
   }
 
   @Test
   fun whenSelectingCallChartThereShouldBeInstanceOfTreeChartView() {
-    val stage = myStageView.stage
+    val stage = stageView.stage
 
-    myCpuService.apply {
-      profilerType = ART
-      setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TRACE_PATH)))
+    cpuProfiler.apply {
+      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
+      captureTrace(profilerType = ART)
     }
 
-    stage.apply {
-      setAndSelectCapture(1)
-      selectedThread = stage.capture!!.mainThreadId
-      setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP)
-    }
+    stage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP)
+    assertThat(stage.captureDetails?.type).isEqualTo(CaptureModel.Details.Type.BOTTOM_UP)
+    ReferenceWalker(stageView).assertNotReachable(ChartDetailsView.CallChartDetailsView::class.java)
 
-    ReferenceWalker(myStageView).assertNotReachable(ChartDetailsView.CallChartDetailsView::class.java)
     stage.setCaptureDetails(CaptureModel.Details.Type.CALL_CHART)
     assertThat(stage.captureDetails?.type).isEqualTo(CaptureModel.Details.Type.CALL_CHART)
-    ReferenceWalker(myStageView).assertReachable(ChartDetailsView.CallChartDetailsView::class.java)
-    val tabPane = TreeWalker(myStageView.component).descendants().filterIsInstance<CommonTabbedPane>()[0]
-    tabPane.selectedIndex = 0
+    ReferenceWalker(stageView).assertReachable(ChartDetailsView.CallChartDetailsView::class.java)
+
+    val tabPane = TreeWalker(stageView.component).descendants().filterIsInstance<CommonTabbedPane>()[0]
+    assertThat(tabPane.selectedIndex).isEqualTo(0)
     assertThat(tabPane.getTitleAt(0)).matches("Call Chart")
   }
 
   @Test
   fun testTraceEventTitleForATrace() {
-    // Add a trace for Atrace captures. This is required to work around a framework design loop see b/77597839.
-    val traceInfo = CpuProfiler.TraceInfo.newBuilder()
-      .setTraceId(0)
-      .setTraceFilePath(ATRACE_TRACE_PATH)
-      .setProfilerType(ATRACE)
-      .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos(0))
-      .setToTimestamp(TimeUnit.MICROSECONDS.toNanos(800))
-    myCpuService.apply {
-      addTraceInfo(traceInfo.build())
-      addTraceInfo(traceInfo.setTraceId(1).setTraceFilePath(TRACE_PATH).setProfilerType(ART).build())
-      setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
+    cpuProfiler.apply {
+      setTrace(CpuProfilerUITestUtils.ATRACE_PID1_PATH)
+      captureTrace(profilerType = ATRACE)
     }
 
-    val stage = myStageView.stage
-    // One second must be enough for new devices (and processes) to be picked up
-    //Change to an atrace capture because the tab name changes
-    myCpuService.apply {
-      profilerType = ATRACE
-      setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_TRACE_PATH)))
-    }
-
-    stage.apply {
-      setAndSelectCapture(0)
-      selectedThread = stage.capture!!.mainThreadId
-    }
-
-    val tabPane = TreeWalker(myStageView.component).descendants().filterIsInstance(CommonTabbedPane::class.java)[0]
+    val tabPane = TreeWalker(stageView.component).descendants().filterIsInstance(CommonTabbedPane::class.java)[0]
     tabPane.selectedIndex = 0
-    ReferenceWalker(myStageView).assertReachable(ChartDetailsView.CallChartDetailsView::class.java)
+    ReferenceWalker(stageView).assertReachable(ChartDetailsView.CallChartDetailsView::class.java)
     assertThat(tabPane.getTitleAt(0)).matches("Trace Events")
   }
 }
