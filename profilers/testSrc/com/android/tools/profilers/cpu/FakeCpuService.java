@@ -243,6 +243,11 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
         }
         catch (IOException | ExecutionException | InterruptedException ignored) {
         }
+        if (myCapture == null) {
+          responseObserver.onNext(CpuProfiler.GetTraceInfoResponse.getDefaultInstance());
+          responseObserver.onCompleted();
+          return;
+        }
       }
       boolean traceWithinRange = !myCapture.getRange().getIntersection(requestRange).isEmpty();
       if (traceWithinRange) {

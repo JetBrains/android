@@ -59,7 +59,7 @@ public class EventMonitorViewTest {
   }
 
   @Test
-  public void testDisabledMonitorMessage() throws Exception {
+  public void testDisabledMonitorMessage() {
     // First verify the enabled hierarchy is correct.
     Component[] children = myMonitorView.getComponent().getComponents();
     assertEquals(2, children.length);
@@ -70,12 +70,9 @@ public class EventMonitorViewTest {
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
 
     children = myMonitorView.getComponent().getComponents();
-    assertEquals(2, children.length);
+    assertEquals(1, children.length);
     assertTrue(children[0] instanceof JLabel);
     JLabel label = (JLabel)children[0];
     assertEquals(myMonitorView.getDisabledMessage(), label.getText());
-
-    // TODO: verify content on HyperLinkLabel? There is no public API to get that at the moment.
-    assertTrue(children[1] instanceof HyperlinkLabel);
   }
 }
