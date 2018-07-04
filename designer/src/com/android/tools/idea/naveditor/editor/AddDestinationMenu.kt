@@ -221,7 +221,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     }
     blankDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar",  JBDimension(0, 45))
     val buttonPanel = AdtSecondaryPanel(BorderLayout())
-    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 7), DottedBorder(JBUI.emptyInsets(), NavColorSet.FRAME_COLOR))
+    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 7), DottedBorder(JBUI.emptyInsets(), NavColorSet.SUBDUED_FRAME_COLOR))
     buttonPanel.add(blankDestinationButton, BorderLayout.CENTER)
     searchField.addDocumentListener(
         object : DocumentAdapter() {
