@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.structure.configurables.java.dependencies.J
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
+import com.android.tools.idea.structure.dialog.TrackedConfigurable
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.ui.NamedConfigurable
 import org.jetbrains.annotations.Nls
 import javax.swing.JComponent
@@ -30,12 +32,14 @@ const val DEPENDENCIES_VIEW = "DependenciesView"
 const val DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME = "Dependencies"
 const val DEPENDENCIES_PERSPECTIVE_PLACE_NAME = "dependencies.place"
 
-class DependenciesPerspectiveConfigurable(context: PsContext) : BasePerspectiveConfigurable(context) {
-  private val myConfigurablesByGradlePath = mutableMapOf<String, AbstractDependenciesConfigurable<out PsModule>>()
+class DependenciesPerspectiveConfigurable(context: PsContext)
+  : BasePerspectiveConfigurable(context), TrackedConfigurable {
 
+  private val myConfigurablesByGradlePath = mutableMapOf<String, AbstractDependenciesConfigurable<out PsModule>>()
   private val myExtraTopModules = mutableListOf<PsModule>()
   private val myExtraTopConfigurables = mutableMapOf<PsModule, AbstractDependenciesConfigurable<out PsModule>>()
 
+  override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_DEPENDENCIES
   override fun getId(): String = "android.psd.dependencies"
 
   @Nls

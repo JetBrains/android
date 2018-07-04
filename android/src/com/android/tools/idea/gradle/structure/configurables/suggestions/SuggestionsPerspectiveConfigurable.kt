@@ -21,14 +21,19 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.structure.dialog.TrackedConfigurable
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import javax.swing.JComponent
 
-class SuggestionsPerspectiveConfigurable(context: PsContext) : AbstractCounterDisplayConfigurable(context) {
+class SuggestionsPerspectiveConfigurable(context: PsContext)
+  : AbstractCounterDisplayConfigurable(context), TrackedConfigurable {
   private val configurablesByGradlePath: Map<String, BaseNamedConfigurable<PsModule>> = HashMap()
   private var extraTopModules: MutableList<PsModule>? = null
   private var messageCount: Int = 0
+
+  override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_SUGGESTIONS
 
   override fun getId(): String = "android.psd.suggestions"
 
