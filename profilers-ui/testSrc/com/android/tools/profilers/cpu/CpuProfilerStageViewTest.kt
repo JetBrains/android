@@ -249,7 +249,9 @@ class CpuProfilerStageViewTest {
     myStage.studioProfilers.sessionsManager.endCurrentSession()
 
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
-    val recordButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first { it.text == "Record" }
+    val recordButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first {
+      it.text == CpuProfilerStageView.RECORD_TEXT
+    }
     // When creating the stage view, the record button should be disabled as the current session is dead.
     assertThat(recordButton.isEnabled).isFalse()
 
@@ -270,6 +272,32 @@ class CpuProfilerStageViewTest {
 
     // Even after parsing the capture, the record button should remain disabled.
     assertThat(recordButton.isEnabled).isFalse()
+  }
+
+  @Test
+  fun stoppingAndStartingDisableRecordButton() {
+    val stageView = CpuProfilerStageView(myProfilersView, myStage)
+    val recordButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first {
+      it.text == CpuProfilerStageView.RECORD_TEXT
+    }
+    // Capture Status label is the last child component of the tooltip, which is also the parent of the record button. If this test starts
+    // to fail after a layout change, you will probably need to change the component index to get the capture status label from the toolbar.
+    val captureStatus = recordButton.parent.getComponent(recordButton.parent.componentCount - 1) as JLabel
+    captureStatus.text = "any dummy text"
+
+    myStage.captureState = CpuProfilerStage.CaptureState.STARTING
+    // Setting the state to STARTING should disable the recording button and clear the text of the capture status label
+    assertThat(recordButton.isEnabled).isFalse()
+    assertThat(captureStatus.text).isEmpty()
+
+    myStage.captureState = CpuProfilerStage.CaptureState.IDLE
+    assertThat(recordButton.isEnabled).isTrue() // Check the record button is now enabled again
+    captureStatus.text = "any dummy text"
+
+    myStage.captureState = CpuProfilerStage.CaptureState.STOPPING
+    // Setting the state to STOPPING should disable the recording button and clear the text of the capture status label
+    assertThat(recordButton.isEnabled).isFalse()
+    assertThat(captureStatus.text).isEmpty()
   }
 
   /**
