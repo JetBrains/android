@@ -31,8 +31,8 @@ import javax.swing.Icon
 
 class PsAndroidModule(
   parent: PsProject,
-  gradlePath: String
-) : PsModule(parent, gradlePath) {
+  override val gradlePath: String
+) : PsModule(parent) {
   var resolvedModel: AndroidModuleModel? = null; private set
   override var projectType: PsModuleType = PsModuleType.UNKNOWN; private set
   var isLibrary: Boolean = false; private set
