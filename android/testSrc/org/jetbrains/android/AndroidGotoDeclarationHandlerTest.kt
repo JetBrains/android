@@ -579,8 +579,4 @@ class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandle
   override fun testGotoAarResourceFromCode_libRClass() {
     // TODO(b/110082720): implement support for source attachments.
   }
-
-  override fun testGotoPermission() {
-    // TODO(b/77801019): start generating the Manifest class in memory, so that this test passes.
-  }
 }
