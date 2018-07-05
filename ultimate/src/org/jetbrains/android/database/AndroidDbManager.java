@@ -2,7 +2,7 @@ package org.jetbrains.android.database;
 
 import com.intellij.database.dialects.DatabaseDialectEx;
 import com.intellij.database.dialects.SqliteDialect;
-import com.intellij.database.psi.BasicDbPsiManager;
+import com.intellij.database.psi.BasicDataSourceManager;
 import com.intellij.database.util.DbSqlUtil;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
+public class AndroidDbManager extends BasicDataSourceManager<AndroidDataSource> {
   public static final String NOTIFICATION_GROUP_ID = "Android Data Source Manager";
 
   private final AndroidDataSourceStorage myStorage;
