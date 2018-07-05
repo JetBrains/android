@@ -17,9 +17,9 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.sdklib.AndroidTargetHash
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
 import java.io.File
@@ -83,6 +83,18 @@ fun parseHashString(context: Any?, text: String) =
   if (text.isEmpty()) ParsedValue.NotSet.annotated()
   else AndroidTargetHash.getPlatformVersion(text)?.let { ParsedValue.Set.Parsed(text, DslText.Literal).annotated() }
        ?: ParsedValue.Set.Parsed(text, DslText.Literal).annotateWithError("Invalid hash string")
+
+fun parseGradleVersion(context: Any?, text: String): Annotated<ParsedValue<GradleVersion>> =
+  if (text == "")
+    ParsedValue.NotSet.annotated()
+  else
+    try {
+      ParsedValue.Set.Parsed(GradleVersion.parse(text), DslText.Literal).annotated()
+    }
+    catch (ex: IllegalArgumentException) {
+      ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
+        .annotateWithError("'$text' is not a valid version specification")
+    }
 
 fun parseReferenceOnly(context: Any?, text: String): Annotated<ParsedValue<Unit>> =
   if (text == "")

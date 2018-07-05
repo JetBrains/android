@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.helpers
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
@@ -157,6 +158,16 @@ class InputParsersTest {
     assertEquals("android-26".asParsed().annotated(), parseHashString(null, "android-26"))
     assertEquals("android-P".asParsed().annotated(), parseHashString(null, "android-P"))
     assertEquals("P".asParsed().annotateWithError("Invalid hash string"), parseHashString(null, "P"))
+  }
+
+  @Test
+  fun gradleVersion_empty() {
+    assertEquals(ParsedValue.NotSet.annotated(), parseGradleVersion(null, ""))
+  }
+
+  @Test
+  fun gradleVersion() {
+    assertEquals(GradleVersion(1, 1, 1).asParsed().annotated(), parseGradleVersion(null, "1.1.1"))
   }
 
   @Test
