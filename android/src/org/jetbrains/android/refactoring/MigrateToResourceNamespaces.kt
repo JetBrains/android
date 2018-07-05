@@ -66,7 +66,6 @@ import com.intellij.util.xml.WrappingConverter
 import org.jetbrains.android.dom.converters.AndroidResourceReference
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 import org.jetbrains.android.dom.converters.StyleItemNameConverter
-import org.jetbrains.android.dom.layout.LayoutElement
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
@@ -295,23 +294,23 @@ class MigrateToResourceNamespacesProcessor(
     xmlFile.accept(object : XmlRecursiveElementVisitor() {
       override fun visitXmlTag(tag: XmlTag) {
         val domElement = domManager.getDomElement(tag)
-
-        when (domElement) {
-          is LayoutElement -> {
-            for (attribute in tag.attributes) {
-              if (attribute.namespace == AUTO_URI) {
-                result += XmlAttributeUsageInfo(attribute)
-              }
-            }
-          }
-          is GenericDomValue<*> -> handleGenericDomValue(domElement, tag)
+        if (domElement is GenericDomValue<*>) {
+          handleGenericDomValue(domElement, tag)
         }
 
         super.visitXmlTag(tag)
       }
 
       override fun visitXmlAttribute(attribute: XmlAttribute) {
-        handleGenericDomValue(domManager.getDomElement(attribute) as? GenericDomValue<*> ?: return, attribute)
+        val domElement = domManager.getDomElement(attribute)
+        if (domElement is GenericDomValue<*>) {
+          // This attribute is part of our DOM definition, including the dynamic extensions from AttributeProcessingUtil. Check if the
+          // attribute itself and its value need to be rewritten.
+          if (attribute.namespace == AUTO_URI) {
+            result += XmlAttributeUsageInfo(attribute)
+          }
+          handleGenericDomValue(domElement, attribute)
+        }
         super.visitXmlAttribute(attribute)
       }
 
