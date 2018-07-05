@@ -1721,10 +1721,13 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     DependenciesModel depModel = model.dependencies();
 
     depModel.addArtifact("implementation", "junit:junit:${jUnitVersion}");
+    ArtifactDependencyModel artModel = depModel.artifacts().get(0);
+    verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "junit:junit:2", STRING, REGULAR, 1);
+    verifyPropertyModel(artModel.version().getResultModel(), INTEGER_TYPE, 2, INTEGER, REGULAR, 0);
 
     applyChangesAndReparse(model);
     depModel = model.dependencies();
-    ArtifactDependencyModel artModel = depModel.artifacts().get(0);
+    artModel = depModel.artifacts().get(0);
     verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "junit:junit:2", STRING, REGULAR, 1);
     verifyPropertyModel(artModel.version().getResultModel(), INTEGER_TYPE, 2, INTEGER, REGULAR, 0);
   }
@@ -1838,6 +1841,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertSize(0, buildModel.dependencies().all());
   }
 
+  @Test
   public void testFollowMultipleReferences() throws IOException {
     String text = "ext.dep = 'a:b:1.0'\n" +
                   "ext.other = dep\n" +
