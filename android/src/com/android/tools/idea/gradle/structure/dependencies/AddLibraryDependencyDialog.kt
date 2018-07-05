@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.structure.dependencies
 
 import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil.isEmpty
@@ -39,7 +41,7 @@ class AddLibraryDependencyDialog(module: PsModule) : AbstractAddDependenciesDial
     val scopesPanel = scopesPanel
     val scopesNames = scopesPanel.selectedScopeNames
 
-    module.addLibraryDependency(library, scopesNames)
+    module.addLibraryDependency(ParsedValue.Set.Parsed(library, DslText.Literal), scopesNames)
   }
 
   override fun getSplitterProportionKey(): String = "psd.add.library.dependency.main.horizontal.splitter.proportion"

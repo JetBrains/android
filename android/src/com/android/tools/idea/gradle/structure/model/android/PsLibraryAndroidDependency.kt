@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.level2.Library
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
