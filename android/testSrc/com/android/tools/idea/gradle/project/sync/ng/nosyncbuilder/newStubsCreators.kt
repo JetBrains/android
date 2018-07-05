@@ -117,6 +117,7 @@ fun createNewVariant(): Variant {
     "app",
     mapOf(),
     listOf(),
+    listOf(),
     mapOf(),
     true,
     "com.google.application.id",

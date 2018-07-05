@@ -34,7 +34,7 @@ open class LegacyProductFlavor(private val variantConfig: VariantConfig) : Produ
   override fun getMinSdkVersion(): ApiVersion? = variantConfig.minSdkVersion?.toLegacy()
   override fun getVersionCode(): Int? = variantConfig.versionCode
   override fun getResValues(): Map<String, OldClassField> = variantConfig.resValues.mapValues { LegacyClassField(it.value) }
-  override fun getProguardFiles(): Collection<File> = listOf() // FIXME(qumeric) variantConfig.proguardFiles
+  override fun getProguardFiles(): Collection<File> = variantConfig.proguardFiles
   override fun getConsumerProguardFiles(): Collection<File> = variantConfig.consumerProguardFiles
   override fun getTargetSdkVersion(): ApiVersion? = variantConfig.targetSdkVersion?.toLegacy()
   override fun getResourceConfigurations(): Collection<String> = variantConfig.resourceConfigurations

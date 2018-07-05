@@ -25,6 +25,18 @@ interface VariantConfig {
   val name: String
   /** Map of generated res values where the key is the res name. */
   val resValues: Map<String, ClassField>
+
+  /**
+   * Specifies the ProGuard configuration files that the plugin should use.
+   *
+   * There are two ProGuard rules files that ship with the Android plugin and are used by default:
+   *  - ``proguard-android.txt``
+   *  - ``proguard-android-optimize.txt``
+   *
+   * The only difference between them is that in the second one optimisations are enabled.
+   * You can use ``getDefaultProguardFile(filename: String)`` to return the full path of the files.
+   */
+  val proguardFiles: Collection<File>
   /** The collection of proguard rule files for consumers of the library to use. */
   val consumerProguardFiles: Collection<File>
   /**
@@ -58,6 +70,7 @@ interface VariantConfig {
     val minimalProto = VariantProto.VariantConfig.newBuilder()
       .setName(name)
       .putAllResValues(resValues.mapValues { it.value.toProto() })
+      .addAllProguardFiles(proguardFiles.map { converter.fileToProto(it) })
       .addAllConsumerProguardFiles(consumerProguardFiles.map { converter.fileToProto(it) })
       .putAllManifestPlaceholders(manifestPlaceholders)
       .setDebuggable(isDebuggable)
