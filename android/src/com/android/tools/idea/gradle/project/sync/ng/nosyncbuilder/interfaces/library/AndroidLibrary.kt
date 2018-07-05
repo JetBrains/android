@@ -24,7 +24,7 @@ interface AndroidLibrary : Library {
   val artifact: File
   /** The list of local Jar files that are included in the dependency. */
   val localJars: Collection<File>
-  /** The location of the unzipped bundle folder. */
+  /** The location of the unzipped AAR folder. */
   val bundleFolder: File
 
   fun toProto(converter: PathConverter) = LibraryProto.AndroidLibrary.newBuilder()
