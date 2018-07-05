@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc
 typealias OldAaptOptions = com.android.builder.model.AaptOptions
 typealias OldAaptOptionsNamespacing = com.android.builder.model.AaptOptions.Namespacing
 typealias OldAndroidProject = com.android.builder.model.AndroidProject
+typealias OldAndroidLibrary = com.android.builder.model.AndroidLibrary
+typealias OldJavaLibrary = com.android.builder.model.JavaLibrary
 typealias OldVariant = com.android.builder.model.Variant
 typealias OldBaseArtifact = com.android.builder.model.BaseArtifact
 typealias OldAndroidArtifact = com.android.builder.model.AndroidArtifact

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.variant
 
-import com.android.ide.common.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.ArtifactSourceProvider
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.Dependencies
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.JavaArtifact
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldJavaArtifact
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.VariantProto
 import java.io.File
@@ -34,11 +34,11 @@ data class NewJavaArtifact(
   // ^ BaseArtifact values ^
   override val mockablePlatformJar: File?
 ) : JavaArtifact {
-  constructor(oldJavaArtifact: IdeJavaArtifact, artifactSourceProviderFactory: NewArtifactSourceProviderFactory) : this(
+  constructor(oldJavaArtifact: OldJavaArtifact, artifactSourceProviderFactory: NewArtifactSourceProviderFactory) : this(
     oldJavaArtifact.name,
     oldJavaArtifact.compileTaskName,
     oldJavaArtifact.assembleTaskName,
-    NewDependencies(oldJavaArtifact.level2Dependencies, listOf()),
+    NewDependencies(oldJavaArtifact.getLevel2Dependencies(), listOf()),
     artifactSourceProviderFactory.build(oldJavaArtifact),
     oldJavaArtifact.ideSetupTaskNames.toList(),
     oldJavaArtifact.mockablePlatformJar
