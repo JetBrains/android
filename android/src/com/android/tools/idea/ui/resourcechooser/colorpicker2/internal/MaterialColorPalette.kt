@@ -25,6 +25,7 @@ import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_BACKGROUND_
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_PREFERRED_WIDTH
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.TestOnly
@@ -44,6 +45,11 @@ private val COMBO_BOX_BORDER = JBUI.Borders.empty(0, 4, 8, 4)
 
 private val COLOR_BUTTON_PREFERRED_SIZE = JBUI.size(34)
 private val COLOR_BUTTON_BORDER = JBUI.Borders.empty(7)
+/**
+ * The border of color block which provides the constraint to background color.
+ */
+private val COLOR_BUTTON_INNER_BORDER = JBColor(Color(0, 0, 0, 26), Color(255, 255, 255, 26))
+private const val COLOR_BUTTON_ROUND_CORNER_ARC = 5
 
 class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel() {
 
@@ -174,10 +180,17 @@ class ColorButton(var color: Color = Color.WHITE): JButton() {
       g.color = if (status == Status.HOVER) focusColor else focusColor.darker()
       g2d.fillRoundRect(l, t, w, h, 7, 7)
     }
-    g.color = color
-    g2d.fillRoundRect(insets.left, insets.top, width - insets.left - insets.right, height - insets.top - insets.bottom, 5, 5)
-    g.color = originalColor
 
+    val left = insets.left
+    val top = insets.top
+    val brickWidth = width - insets.left - insets.right
+    val brickHeight = height - insets.top - insets.bottom
+    g.color = color
+    g2d.fillRoundRect(left, top, brickWidth, brickHeight, COLOR_BUTTON_ROUND_CORNER_ARC, COLOR_BUTTON_ROUND_CORNER_ARC)
+    g.color = COLOR_BUTTON_INNER_BORDER
+    g2d.drawRoundRect(left, top, brickWidth, brickHeight, COLOR_BUTTON_ROUND_CORNER_ARC, COLOR_BUTTON_ROUND_CORNER_ARC)
+
+    g.color = originalColor
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, originalAntialiasing)
   }
 }
