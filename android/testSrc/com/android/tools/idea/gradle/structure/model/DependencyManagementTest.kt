@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
 import com.android.tools.idea.gradle.structure.model.android.*
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
 import com.intellij.openapi.project.Project
 import org.hamcrest.CoreMatchers.*
@@ -72,6 +74,32 @@ class DependencyManagementTest : DependencyTestCase() {
 
       val module1 = jLibModule.dependencies.findModuleDependencies(":jModuleL")
       assertThat(module1.testDeclaredScopes(), hasItems("implementation"))
+    }
+  }
+
+  fun testParsedDependencies_variables() {
+    run {
+      val libModule = project.findModuleByName("mainModule") as PsAndroidModule
+      val lib306 = libModule.dependencies.findLibraryDependency("com.example.jlib:lib3:0.6")
+      assertThat(lib306.testDeclaredScopes(), equalTo(listOf("freeImplementation")))
+      val depLib306 = lib306!![0]
+      assertThat<ParsedValue<String>>(depLib306.version, equalTo(ParsedValue.Set.Parsed("0.6", DslText.Reference("var06"))))
+    }
+    run {
+      val libModule = project.findModuleByName("jModuleK") as PsJavaModule
+      val lib3091 = libModule.dependencies.findLibraryDependency("com.example.jlib:lib3:0.9.1")
+      assertThat(lib3091.testDeclaredScopes(), equalTo(listOf("implementation")))
+      val depLib3091 = lib3091!![0]
+      assertThat(depLib3091.spec.compactNotation(), equalTo("com.example.jlib:lib3:0.9.1"))
+      // TODO(b/111174250): Assert values of not yet existing properties.
+    }
+    run {
+      val libModule = project.findModuleByName("jModuleL") as PsJavaModule
+      val lib310 = libModule.dependencies.findLibraryDependency("com.example.jlib:lib3:1.0")
+      assertThat(lib310.testDeclaredScopes(), equalTo(listOf("implementation")))
+      val depLib310 = lib310!![0]
+      assertThat(depLib310.spec.compactNotation(), equalTo("com.example.jlib:lib3:1.0"))
+      // TODO(b/111174250): Assert values of not yet existing properties.
     }
   }
 
