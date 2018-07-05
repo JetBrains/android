@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
@@ -25,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 
 public class FileDependencyModelImpl extends DependencyModelImpl implements FileDependencyModel {
   @NonNls public static final String FILES = "files";
@@ -51,6 +54,7 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
     GradleNameElement name = GradleNameElement.create(configurationName);
     GradleDslMethodCall methodCall = new GradleDslMethodCall(parent, name, FILES);
     GradleDslLiteral fileDslLiteral = new GradleDslLiteral(methodCall, name);
+    fileDslLiteral.setElementType(REGULAR);
     fileDslLiteral.setValue(file);
     methodCall.addNewArgument(fileDslLiteral);
     parent.setNewElement(methodCall);
