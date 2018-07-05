@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer
 import com.android.tools.idea.gradle.structure.configurables.ui.ChooseModuleDialog;
 import com.android.tools.idea.gradle.structure.configurables.ui.EmptyPanel;
 import com.android.tools.idea.gradle.structure.dependencies.AddLibraryDependencyDialog;
+import com.android.tools.idea.gradle.structure.dependencies.AddLibraryDependencyDialogKt;
 import com.android.tools.idea.gradle.structure.dependencies.AddModuleDependencyDialog;
 import com.android.tools.idea.gradle.structure.model.*;
 import com.android.tools.idea.structure.dialog.Header;
@@ -280,7 +281,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
   private class AddLibraryDependencyAction extends AbstractAddDependencyAction {
     AddLibraryDependencyAction() {
-      super(AddLibraryDependencyDialog.TITLE, "Library Dependency", LIBRARY_ICON, 1);
+      super(AddLibraryDependencyDialogKt.ADD_LIBRARY_DEPENDENCY_DIALOG_TITLE, "Library Dependency", LIBRARY_ICON, 1);
     }
 
     @Override
