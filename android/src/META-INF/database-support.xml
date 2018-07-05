@@ -19,7 +19,7 @@
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <database.dbPsiManager implementation="org.jetbrains.android.database.AndroidDbManager" order="first"/>
+    <database.dataSourceManager implementation="org.jetbrains.android.database.AndroidDbManager" order="first"/>
     <projectService serviceInterface="org.jetbrains.android.database.AndroidDataSourceStorage"
                     serviceImplementation="org.jetbrains.android.database.AndroidDataSourceStorage"/>
     <applicationService serviceInterface="org.jetbrains.android.database.AndroidRemoteDataBaseManager"
