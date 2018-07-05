@@ -44,7 +44,6 @@ class DestinationClassEditorTest : NavTestCase() {
 
     assertContainsElements(choices,
         "none" displayFor null,
-        "android.app.DialogFragment" displayFor "android.app.DialogFragment",
         "mytest.navtest.BlankFragment" displayFor "mytest.navtest.BlankFragment")
     assertDoesntContain(choices, "mytest.navtest.MainActivity" displayFor "mytest.navtest.MainActivity")
 
@@ -58,7 +57,6 @@ class DestinationClassEditorTest : NavTestCase() {
 
     assertContainsElements(choices,
         "none" displayFor null,
-        "android.app.ListActivity" displayFor "android.app.ListActivity",
         "mytest.navtest.MainActivity" displayFor "mytest.navtest.MainActivity")
     assertDoesntContain(choices, "mytest.navtest.BlankFragment" displayFor "mytest.navtest.BlankFragment")
   }
@@ -80,6 +78,41 @@ class DestinationClassEditorTest : NavTestCase() {
     }
     assertEquals("@layout/activity_main", model.find("f1")?.getAttribute(TOOLS_URI, ATTR_LAYOUT))
   }
+
+  fun testNavHostFragment() {
+    val relativePath = "src/mytest/navtest/NavHostFragmentChild.java"
+    val fileText = """
+      .package mytest.navtest;
+      .import androidx.navigation.fragment.NavHostFragment;
+      .
+      .public class NavHostFragmentChild extends NavHostFragment {
+      .}
+      """.trimMargin(".")
+
+    myFixture.addFileToProject(relativePath, fileText)
+
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+        activity("activity1")
+      }
+    }
+
+    val property = mock(NlProperty::class.java)
+    `when`(property.components).thenReturn(listOf(model.find("f1")))
+
+    val choices = EnumEditorFixture.create(::DestinationClassEditor).use {
+      it.setProperty(property)
+        .showPopup()
+        .choices
+    }
+
+    assertContainsElements(choices,
+                           "none" displayFor null,
+                           "mytest.navtest.BlankFragment" displayFor "mytest.navtest.BlankFragment")
+    assertDoesntContain(choices, "mytest.navtest.NavHostFragmentChild" displayFor "mytest.navtest.NavHostFragmentChild")
+  }
+
 
   private infix fun String.displayFor(value: String?) = ValueWithDisplayString(this, value)
 }
