@@ -16,12 +16,14 @@
 
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.variant
 
+import com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST
+import com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST
 import com.android.builder.model.BuildTypeContainer
-import com.android.ide.common.gradle.model.IdeVariant
+import com.android.ide.common.gradle.model.level2.IdeDependencies
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.*
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldAndroidProject
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.toNew
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.*
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.VariantProto
 
 data class NewVariant(
@@ -33,20 +35,20 @@ data class NewVariant(
   override val variantConfig: VariantConfig,
   override val testedTargetVariants: Collection<TestedTargetVariant>
 ) : Variant {
-  constructor(oldSelectedVariant: IdeVariant, oldAndroidProject: OldAndroidProject) : this(
+  constructor(oldSelectedVariant: OldVariant, oldAndroidProject: OldAndroidProject) : this(
     oldSelectedVariant,
     NewArtifactSourceProviderFactory(oldAndroidProject, oldSelectedVariant),
     findIsDebuggable(oldAndroidProject.buildTypes, oldSelectedVariant.buildType)!!
   )
 
-  constructor(oldSelectedVariant: IdeVariant,
+  constructor(oldSelectedVariant: OldVariant,
               artifactSourceProviderFactory: NewArtifactSourceProviderFactory,
               isDebuggable: Boolean) : this(
     oldSelectedVariant.name,
     oldSelectedVariant.displayName,
     NewAndroidArtifact(oldSelectedVariant.mainArtifact, artifactSourceProviderFactory),
-    oldSelectedVariant.androidTestArtifact?.toNew(artifactSourceProviderFactory),
-    oldSelectedVariant.unitTestArtifact?.toNew(artifactSourceProviderFactory),
+    oldSelectedVariant.getAndroidTestArtifact()?.toNew(artifactSourceProviderFactory),
+    oldSelectedVariant.getUnitTestArtifact()?.toNew(artifactSourceProviderFactory),
     NewVariantConfig(oldSelectedVariant.mergedFlavor, isDebuggable),
     oldSelectedVariant.testedTargetVariants.map { NewTestedTargetVariant(it) }
   )
@@ -73,3 +75,10 @@ private fun findIsDebuggable(buildTypes: Collection<BuildTypeContainer>, name: S
   }
   return null
 }
+
+fun OldVariant.getAndroidTestArtifact(): OldAndroidArtifact? = extraAndroidArtifacts.firstOrNull { it.isTestArtifact() }
+fun OldVariant.getUnitTestArtifact(): OldJavaArtifact? = extraJavaArtifacts.firstOrNull { it.isTestArtifact() }
+
+fun OldBaseArtifact.isTestArtifact(): Boolean = listOf(ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST).contains(name)
+// TODO(qumeric) use Version.ANDROID_GRADLE_PLUGIN_VERSION or similar when issues with PSQ will be resolved
+fun OldBaseArtifact.getLevel2Dependencies(): IdeDependencies = IdeDependenciesFactory().create(this, GradleVersion.parse("3.0"))
