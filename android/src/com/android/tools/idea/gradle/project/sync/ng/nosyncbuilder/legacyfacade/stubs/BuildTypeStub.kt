@@ -27,7 +27,7 @@ import java.io.File
 data class BuildTypeStub(
   private val name: String,
   private val resValues: Map<String, OldClassField>,
-  //private val proguardFiles: Collection<File>, FIXME(qumeric)
+  private val proguardFiles: Collection<File>,
   private val consumerProguardFiles: Collection<File>,
   private val manifestPlaceholders: Map<String, Any>,
   private val isDebuggable: Boolean
@@ -35,7 +35,7 @@ data class BuildTypeStub(
   constructor(variantConfig: VariantConfig): this(
     BUILD_TYPE_NAME,
     variantConfig.resValues.mapValues { LegacyClassField(it.value) },
-    //variantConfig.proguardFiles,
+    variantConfig.proguardFiles,
     variantConfig.consumerProguardFiles,
     variantConfig.manifestPlaceholders,
     variantConfig.isDebuggable
@@ -43,7 +43,7 @@ data class BuildTypeStub(
 
   override fun getName(): String = name
   override fun getResValues(): Map<String, OldClassField> = resValues
-  override fun getProguardFiles(): Collection<File> = listOf()//proguardFiles
+  override fun getProguardFiles(): Collection<File> = proguardFiles
   override fun getConsumerProguardFiles(): Collection<File> = consumerProguardFiles
   override fun getManifestPlaceholders(): Map<String, Any> = manifestPlaceholders
   override fun isDebuggable(): Boolean = isDebuggable
