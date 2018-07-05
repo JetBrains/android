@@ -98,7 +98,7 @@ class MorphComponentAction(component: NlComponent)
     morphDialog.setTagNameChangeConsumer { newName ->
       myNewName = newName
     }
-    createMorphPopup(morphDialog).showInFocusCenter()
+    createMorphPopup(morphDialog).showCenteredInCurrentWindow(myProject)
     IdeFocusManager.getInstance(myProject).requestFocus(morphDialog.preferredFocusComponent, true)
   }
 
