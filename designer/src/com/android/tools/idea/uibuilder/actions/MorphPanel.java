@@ -33,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
@@ -179,7 +178,7 @@ public class MorphPanel extends JPanel {
    * @return The component that should e focused when this panel is shown
    */
   @NotNull
-  public Component getPreferredFocusComponent() {
+  public JComponent getPreferredFocusComponent() {
     return myNewTagText;
   }
 
