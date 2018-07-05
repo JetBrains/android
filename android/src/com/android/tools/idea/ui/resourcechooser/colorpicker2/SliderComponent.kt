@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.android.annotations.VisibleForTesting
+import com.intellij.ui.JBColor
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.JBUI
 
@@ -24,18 +25,20 @@ import java.awt.*
 import java.awt.event.*
 import kotlin.math.max
 
-private val DEFAULT_HORIZONTAL_MARGIN = JBUI.scale(5)
+private val DEFAULT_HORIZONTAL_PADDING = JBUI.scale(5)
+private val DEFAULT_VERTICAL_PADDING = JBUI.scale(5)
 
-private val KNOB_COLOR = Color(153, 51, 0)
-private val KNOB_SHADOW_COLOR = Color(0, 0, 0, 70)
-private const val KNOB_HALF_WIDTH = 6
-private const val KNOB_HALF_HEIGHT = 6
-private const val KNOB_SHADOW_DISTANCE = 1
+private val KNOB_COLOR = Color(255, 255, 255)
+private val KNOB_BORDER_COLOR = JBColor(Color(100, 100, 100), Color(64, 64, 64))
+private val KNOB_BORDER_STROKE = BasicStroke(1.5f)
+private const val KNOB_WIDTH = 5
 
 abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
 
-  protected var myLeftMargin = DEFAULT_HORIZONTAL_MARGIN
-  protected var myRightMargin = DEFAULT_HORIZONTAL_MARGIN
+  protected val leftPadding = DEFAULT_HORIZONTAL_PADDING
+  protected val rightPadding = DEFAULT_HORIZONTAL_PADDING
+  protected val topPadding = DEFAULT_VERTICAL_PADDING
+  protected val bottomPadding = DEFAULT_VERTICAL_PADDING
 
   private var _knobPosition: Int = 0
   var knobPosition: Int
@@ -62,7 +65,7 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
    * @return size of slider, must be positive value or zero.
    */
   @VisibleForTesting
-  val sliderWidth get() = max(0, width - myLeftMargin - myRightMargin)
+  val sliderWidth get() = max(0, width - leftPadding - rightPadding)
 
   init {
     this.addMouseMotionListener(object : MouseAdapter() {
@@ -101,7 +104,7 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
   }
 
   private fun processMouse(e: MouseEvent) {
-    val knobPosition = Math.max(0, Math.min(e.x - myLeftMargin, sliderWidth))
+    val knobPosition = Math.max(0, Math.min(e.x - leftPadding, sliderWidth))
     value = knobPositionToValue(knobPosition)
 
     repaint()
@@ -129,27 +132,30 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
   override fun paintComponent(g: Graphics) {
     val g2d = g as Graphics2D
     paintSlider(g2d)
-    drawKnob(g2d, myLeftMargin + valueToKnobPosition(value), JBUI.scale(7))
+    drawKnob(g2d, leftPadding + valueToKnobPosition(value))
   }
 
   protected abstract fun paintSlider(g2d: Graphics2D)
 
-  private fun drawKnob(g2d: Graphics2D, x: Int, y: Int) {
+  private fun drawKnob(g2d: Graphics2D, x: Int) {
+    val originalAntialiasing = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING)
+    val originalStroke = g2d.stroke
+
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
-    val shadowOffset = +JBUI.scale(KNOB_SHADOW_DISTANCE)
-    myPolygonToDraw.reset()
-    myPolygonToDraw.addPoint(x - JBUI.scale(KNOB_HALF_WIDTH) + shadowOffset, y - JBUI.scale(KNOB_HALF_HEIGHT) + shadowOffset)
-    myPolygonToDraw.addPoint(x + JBUI.scale(KNOB_HALF_WIDTH) + shadowOffset, y - JBUI.scale(KNOB_HALF_HEIGHT) + shadowOffset)
-    myPolygonToDraw.addPoint(x + shadowOffset, y + JBUI.scale(KNOB_HALF_HEIGHT) + shadowOffset)
-    g2d.color = KNOB_SHADOW_COLOR
-    g2d.fill(myPolygonToDraw)
+    val knobLeft = x - KNOB_WIDTH / 2
+    val knobTop = topPadding / 2
+    val knobWidth = KNOB_WIDTH
+    val knobHeight = height - (topPadding + bottomPadding) / 2
+    val knobCornerArc = 5
 
-    myPolygonToDraw.reset()
-    myPolygonToDraw.addPoint(x - JBUI.scale(KNOB_HALF_WIDTH), y - JBUI.scale(KNOB_HALF_HEIGHT))
-    myPolygonToDraw.addPoint(x + JBUI.scale(KNOB_HALF_WIDTH), y - JBUI.scale(KNOB_HALF_HEIGHT))
-    myPolygonToDraw.addPoint(x, y + JBUI.scale(KNOB_HALF_HEIGHT))
     g2d.color = KNOB_COLOR
-    g2d.fill(myPolygonToDraw)
+    g2d.fillRoundRect(knobLeft, knobTop, knobWidth, knobHeight, knobCornerArc, knobCornerArc)
+    g2d.color = KNOB_BORDER_COLOR
+    g2d.stroke = KNOB_BORDER_STROKE
+    g2d.drawRoundRect(knobLeft, knobTop, knobWidth, knobHeight, knobCornerArc, knobCornerArc)
+
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, originalAntialiasing)
+    g2d.stroke = originalStroke
   }
 }
