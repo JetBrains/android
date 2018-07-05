@@ -29,6 +29,8 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.rendering.imagepool.ImagePool;
+import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
@@ -149,7 +151,7 @@ public class RenderService implements Disposable {
 
   private final Object myCredential = new Object();
 
-  private final ImagePool myImagePool = new ImagePool();
+  private final ImagePool myImagePool = ImagePoolFactory.createImagePool();
 
   /**
    * @return the {@linkplain RenderService} for the given facet.

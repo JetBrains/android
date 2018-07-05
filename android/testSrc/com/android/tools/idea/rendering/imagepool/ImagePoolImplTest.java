@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering.imagepool;
 
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import org.junit.After;
@@ -30,8 +30,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.junit.Assert.*;
 
 @SuppressWarnings("UndesirableClassUsage")
-public class ImagePoolTest {
-  private ImagePool myPool;
+public class ImagePoolImplTest {
+  private ImagePoolImpl myPool;
 
   // Try to force a gc round
   private static void gc() {
@@ -51,7 +51,8 @@ public class ImagePoolTest {
       g.fillRect(0, 0, 25, 50);
       g.setColor(Color.BLUE);
       g.fillRect(25, 0, 50, 50);
-    } finally {
+    }
+    finally {
       g.dispose();
     }
 
@@ -60,7 +61,14 @@ public class ImagePoolTest {
 
   @Before
   public void before() {
-    myPool = new ImagePool();
+    myPool = new ImagePoolImpl(new int[]{50, 500, 1000, 1500, 2000, 5000}, (w, h) -> (type) -> {
+      // Images below 1k, do not pool
+      if (w * h < 1000) {
+        return 0;
+      }
+
+      return 50_000_000 / (w * h);
+    });;
   }
 
   @After
@@ -74,10 +82,10 @@ public class ImagePoolTest {
     CountDownLatch countDown2 = new CountDownLatch(1);
     AtomicBoolean secondImageFreed = new AtomicBoolean(false);
 
-    ImagePool.ImageImpl image1 = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, (image) -> countDown1.countDown());
+    ImagePoolImpl.ImageImpl image1 = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, (image) -> countDown1.countDown());
     image1.drawFrom(getSampleImage());
     BufferedImage internalPtr = image1.myBuffer;
-    ImagePool.ImageImpl image2 = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, (image) -> {
+    ImagePoolImpl.ImageImpl image2 = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, (image) -> {
       countDown2.countDown();
       secondImageFreed.set(true);
     });
@@ -101,7 +109,7 @@ public class ImagePoolTest {
     gc();
     countDown2.await(3, TimeUnit.SECONDS);
 
-    ImagePool.ImageImpl tmpImage = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB_PRE, null);
+    ImagePoolImpl.ImageImpl tmpImage = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB_PRE, null);
     assertEquals(50, tmpImage.getWidth());
     assertEquals(50, tmpImage.getHeight());
     assertEquals(BufferedImage.TYPE_INT_ARGB_PRE, tmpImage.myBuffer.getType());
@@ -111,18 +119,19 @@ public class ImagePoolTest {
     assertEquals(50, tmpImage.getHeight());
     assertEquals(BufferedImage.TYPE_INT_ARGB, tmpImage.myBuffer.getType());
 
-    tmpImage =  myPool.create(50, 51, BufferedImage.TYPE_INT_ARGB, null);
+    tmpImage = myPool.create(50, 51, BufferedImage.TYPE_INT_ARGB, null);
     assertEquals(50, tmpImage.getWidth());
     assertEquals(51, tmpImage.getHeight());
     assertEquals(BufferedImage.TYPE_INT_ARGB, tmpImage.myBuffer.getType());
 
+    //noinspection UnusedAssignment
     tmpImage = null;
     gc();
   }
 
   @Test
-  public void testManualFree() throws InterruptedException {
-    ImagePool.ImageImpl image = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null);
+  public void testManualFree() {
+    ImagePoolImpl.ImageImpl image = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null);
     BufferedImage internalPtr = image.myBuffer;
 
     assertNotEquals(internalPtr, myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
@@ -146,7 +155,7 @@ public class ImagePoolTest {
   public void testDefaultPooling() throws InterruptedException {
     // Small images won't be pooled
     CountDownLatch countDown = new CountDownLatch(1);
-    ImagePool.ImageImpl image1 = myPool.create(10, 10, BufferedImage.TYPE_INT_ARGB, (b) -> countDown.countDown());
+    ImagePoolImpl.ImageImpl image1 = myPool.create(10, 10, BufferedImage.TYPE_INT_ARGB, (b) -> countDown.countDown());
 
     BufferedImage internalPtr = image1.myBuffer;
     //noinspection UnusedAssignment
@@ -160,7 +169,7 @@ public class ImagePoolTest {
   public void testImageCopy() throws IOException {
     BufferedImage original = getSampleImage();
 
-    ImagePool.ImageImpl image = (ImagePool.ImageImpl)myPool.copyOf(original);
+    ImagePoolImpl.ImageImpl image = (ImagePoolImpl.ImageImpl)myPool.copyOf(original);
     assertNotEquals(original, image.myBuffer);
 
     BufferedImage copy = new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB);
@@ -178,9 +187,11 @@ public class ImagePoolTest {
     ImageDiffUtil.assertImageSimilar("pooledimage", original.getSubimage(0, 0, 25, 50), copy, 0.0);
 
     try {
+      //noinspection UnusedAssignment
       copy = image.getCopy(0, 0, 25, 150);
       fail("IndexOutOfBoundsException expected for height out of bounds");
-    } catch (IndexOutOfBoundsException e) {
+    }
+    catch (IndexOutOfBoundsException ignored) {
     }
   }
 

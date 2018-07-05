@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.util.PropertiesMap;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
