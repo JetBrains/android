@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
+import com.intellij.ui.JBColor
 import java.awt.*
 import javax.swing.JComponent
+
+private val BORDER = JBColor(Color(0, 0, 0, 26), Color(255, 255, 255, 26))
+private val BORDER_STROKE = BasicStroke(2f)
 
 class ColorIndicator(color: Color = DEFAULT_PICKER_COLOR) : JComponent() {
 
@@ -27,11 +31,25 @@ class ColorIndicator(color: Color = DEFAULT_PICKER_COLOR) : JComponent() {
     }
 
   override fun paintComponent(g: Graphics) {
-    (g as Graphics2D).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+    val originalAntialiasing = (g as Graphics2D).getRenderingHint(RenderingHints.KEY_ANTIALIASING)
+    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
     val originalColor = g.color
+    val originalStroke = g.stroke
+
+    val left = insets.left
+    val top = insets.top
+    val circleWidth = width - insets.left - insets.right
+    val circleHeight = height - insets.top - insets.bottom
     g.color = color
-    g.fillOval(0 + insets.left, 0 + insets.top, width - insets.left - insets.right, height - insets.top - insets.bottom)
+    g.fillOval(left, top, circleWidth, circleHeight)
+
+    g.stroke = BORDER_STROKE
+    g.color = BORDER
+    g.drawOval(left, top, circleWidth, circleHeight)
+
     g.color = originalColor
+    g.stroke = originalStroke
+    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, originalAntialiasing)
   }
 }
