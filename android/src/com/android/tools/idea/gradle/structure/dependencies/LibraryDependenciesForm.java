@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.ArtifactReposito
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
 import com.intellij.openapi.Disposable;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,21 +28,10 @@ import java.util.List;
 
 import static com.google.common.base.Strings.emptyToNull;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
-import static com.intellij.util.ui.UIUtil.getTextFieldBorder;
 
-class LibraryDependenciesForm implements Disposable {
+public class LibraryDependenciesForm extends LibraryDependenciesFormUi implements Disposable {
   @NotNull private final ArtifactRepositorySearchForm mySearchForm;
-
-  private JPanel myMainPanel;
-  private JBLabel myLibraryLabel;
-  private JPanel mySearchPanelHost;
-
   LibraryDependenciesForm(@NotNull PsModule module) {
-    myLibraryLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), JBUI.Borders.empty(2)));
-    myLibraryLabel.setBackground(getTextFieldBackground());
-    myLibraryLabel.setText(" ");
-
     List<ArtifactRepository> repositories = module.getArtifactRepositories();
 
     mySearchForm = new ArtifactRepositorySearchForm(repositories);
