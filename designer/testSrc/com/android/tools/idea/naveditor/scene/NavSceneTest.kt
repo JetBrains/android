@@ -1261,8 +1261,8 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testCustomDestination() {
-    val relativePath = "src/mytest/navtest/Frag.java"
-    val fileText = "package com.example.mmoro.myapplication;\n" +
+    val relativePath = "src/mytest/navtest/MyTestNavigator.java"
+    val fileText = "package myTest.navtest;\n" +
                  "\n" +
                  "import android.os.Bundle;\n" +
                  "import android.support.annotation.NonNull;\n" +

@@ -23,20 +23,15 @@ import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.common.property.editors.NlComponentEditor
-import com.android.tools.idea.naveditor.model.destinationType
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.AndroidGotoRelatedProvider
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.dom.navigation.NavigationSchema.NAV_HOST_FRAGMENT
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 
 // TODO: ideally this wouldn't be a separate editor, and EnumEditor could just get the EnumSupport from the property itself.
@@ -76,27 +71,17 @@ class DestinationClassEditor(listener: NlEditingListener, comboBox: CustomComboB
 
   override fun getEnumSupport(property: NlProperty): EnumSupport = SubclassEnumSupport(property)
 
-  private class SubclassEnumSupport(property : NlProperty) : EnumSupport(property) {
+  private class SubclassEnumSupport(property: NlProperty) : EnumSupport(property) {
     override fun getAllValues(): MutableList<ValueWithDisplayString> {
       val component = myProperty.components[0]
-      val targetType = component.destinationType
-      val project = component.model.project
-      val psiFacade = JavaPsiFacade.getInstance(project)
-      val allScope = GlobalSearchScope.allScope(project)
       val result = mutableListOf<ValueWithDisplayString>()
-      for ((key, value) in NavigationSchema.DESTINATION_SUPERCLASS_TO_TYPE) {
-        if (value != targetType) {
-          continue
-        }
-        val psiClass = psiFacade.findClass(key, allScope) ?: continue
-        for (inheritor in ClassInheritorsSearch.search(psiClass, allScope, true)) {
-          val qname = inheritor.qualifiedName
-          if (inheritor.supers.map { it.qualifiedName }.plus(qname).contains(NAV_HOST_FRAGMENT)) {
-            continue
-          }
-          result.add(ValueWithDisplayString(qname, qname))
-        }
+      val schema = NavigationSchema.get(component.model.facet)
+
+      for (inheritor in schema.getDestinationClasses(component.tagName)) {
+        val qName = inheritor.qualifiedName ?: continue
+        result.add(ValueWithDisplayString(qName, qName))
       }
+
       return result
     }
   }
