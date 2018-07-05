@@ -1,4 +1,19 @@
-package com.android.tools.idea.rendering;
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.rendering.imagepool;
 
 import com.android.annotations.VisibleForTesting;
 import com.google.common.base.FinalizablePhantomReference;
@@ -12,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.awt.image.ImageObserver;
 import java.awt.image.WritableRaster;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
@@ -30,34 +44,7 @@ import java.util.function.Function;
  * Once the {@link Image} is not being referenced anymore, it will be automatically returned to the pool.
  */
 @SuppressWarnings("ALL")
-public class ImagePool {
-  public static final Image NULL_POOLED_IMAGE = new Image() {
-
-    @Override
-    public int getWidth() {
-      return 0;
-    }
-
-    @Override
-    public int getHeight() {
-      return 0;
-    }
-
-    @Override
-    public void drawImageTo(@NotNull Graphics g, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2) {}
-
-    @Override
-    public void paint(Consumer<Graphics2D> command) {}
-
-    @Override
-    @Nullable
-    public BufferedImage getCopy(@Nullable GraphicsConfiguration gc, int x, int y, int w, int h) {
-      return null;
-    }
-
-    @Override
-    public void dispose() {}
-  };
+class ImagePoolImpl implements ImagePool {
   private static final boolean DEBUG = false;
   private static final Bucket NULL_BUCKET = new Bucket(0, 0, 0);
   private final int[] myBucketSizes;
@@ -68,7 +55,7 @@ public class ImagePool {
   private final Set<Reference<?>> myReferences = Sets.newConcurrentHashSet();
 
   /**
-   * Constructs a new {@link ImagePool} with a custom queue sizing policy. The passed bucketSizingPolicy will be called
+   * Constructs a new {@link ImagePoolImpl} with a custom queue sizing policy. The passed bucketSizingPolicy will be called
    * every time that a new cache is needed for a given (width, height) -> (imageType).
    * The return value from calling that function will be the size of the EvictingQueue used for caching the pooled
    * images.
@@ -79,7 +66,7 @@ public class ImagePool {
    * @param bucketSizingPolicy Function that returns the maximum size for a given bucket. The bucket is defined by width, height and image
    *                           type. If the returned size is 0, no pooling will be done for that bucket size.
    */
-  public ImagePool(@NotNull int[] bucketSizes, @NotNull BiFunction<Integer, Integer, Function<Integer, Integer>> bucketSizingPolicy) {
+  ImagePoolImpl(@NotNull int[] bucketSizes, @NotNull BiFunction<Integer, Integer, Function<Integer, Integer>> bucketSizingPolicy) {
     if (DEBUG) {
       System.out.println("New ImagePool");
     }
@@ -102,17 +89,6 @@ public class ImagePool {
       .append('-')
       .append(type)
       .toString();
-  }
-
-  public ImagePool() {
-    this(new int[]{50, 500, 1000, 1500, 2000, 5000}, (w, h) -> (type) -> {
-      // Images below 1k, do not pool
-      if (w * h < 1000) {
-        return 0;
-      }
-
-      return 50_000_000 / (w * h);
-    });
   }
 
   /**
@@ -212,11 +188,15 @@ public class ImagePool {
       }
       //noinspection UndesirableClassUsage
       image = new BufferedImage(Math.max(bucket.myMinWidth, w), Math.max(bucket.myMinHeight, h), type);
+      // Set acceleration priority to 0.9 out of 1.0. We reserve 1.0 for the shared buffers
+      // that we paint to screen.
+      image.setAccelerationPriority(0.9f);
     }
 
     ImageImpl pooledImage = new ImageImpl(w, h, image);
     final BufferedImage imagePointer = image;
-    FinalizablePhantomReference<Image> reference = new FinalizablePhantomReference<Image>(pooledImage, myFinalizableReferenceQueue) {
+    FinalizablePhantomReference<ImagePool.Image> reference =
+      new FinalizablePhantomReference<ImagePool.Image>(pooledImage, myFinalizableReferenceQueue) {
       @Override
       public void finalizeReferent() {
         // This method might be called twice if the user has manually called the free() method. The second call will have no effect.
@@ -265,7 +245,7 @@ public class ImagePool {
    * Returns a new image of width w and height h.
    */
   @NotNull
-  public Image create(final int w, final int h, final int type) {
+  public ImagePool.Image create(final int w, final int h, final int type) {
     return create(w, h, type, null);
   }
 
@@ -273,9 +253,9 @@ public class ImagePool {
    * Returns a pooled image with a copy of the passed {@link BufferedImage}
    */
   @NotNull
-  public Image copyOf(@Nullable BufferedImage origin) {
+  public ImagePool.Image copyOf(@Nullable BufferedImage origin) {
     if (origin == null) {
-      return NULL_POOLED_IMAGE;
+      return ImagePool.NULL_POOLED_IMAGE;
     }
 
     int w = origin.getWidth();
@@ -298,100 +278,8 @@ public class ImagePool {
     myPool.clear();
   }
 
-  /**
-   * Interface that represents an image from the pool. Clients can not access the inner BufferedImage directly and
-   * can only get copies of it.
-   */
-  public interface Image {
-    /**
-     * Returns the width of the image
-     */
-    int getWidth();
-
-    /**
-     * Returns the height of the image
-     */
-    int getHeight();
-
-    /**
-     * Draws the current image to the given {@link Graphics} context.
-     * See {@link Graphics#drawImage(java.awt.Image, int, int, int, int, int, int, int, int, ImageObserver)}
-     */
-    void drawImageTo(@NotNull Graphics g, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2);
-
-    /**
-     * Allows painting into the {@link Image}. The passed {@link Graphics2D} context will be disposed right after this call finishes so
-     * do not keep a reference to it.
-     */
-    void paint(Consumer<Graphics2D> command);
-
-    /**
-     * Draws the current image to the given {@link Graphics} context.
-     * See {@link Graphics#drawImage(java.awt.Image, int, int, int, int, ImageObserver)}
-     */
-    default void drawImageTo(@NotNull Graphics g, int x, int y, int w, int h) {
-      drawImageTo(g, x, y, x + w, y + h, 0, 0, getWidth(), getHeight());
-    }
-
-    /**
-     * Draws the current image to the given {@link BufferedImage}. If the passed destination buffer size does not match the pooled image
-     * width an height, the image will be scaled.
-     */
-    default void drawImageTo(@NotNull BufferedImage destination) {
-      Graphics g = destination.getGraphics();
-      try {
-        drawImageTo(g, 0, 0, destination.getWidth(), destination.getHeight());
-      }
-      finally {
-        g.dispose();
-      }
-    }
-
-    /**
-     * Returns a {@link BufferedImage} with a copy of a sub-image of the pooled image. If you pass the
-     * optional {@link GraphicsConfiguration}, the returned copy will be compatible with that configuration.
-     */
-    @SuppressWarnings("SameParameterValue")
-    @Nullable
-    BufferedImage getCopy(@Nullable GraphicsConfiguration gc, int x, int y, int w, int h);
-
-    /**
-     * Returns a {@link BufferedImage} with a copy of a sub-image of the pooled image.
-     */
-    @Nullable
-    default BufferedImage getCopy(int x, int y, int w, int h) {
-      return getCopy(null, 0, 0, w, h);
-    }
-
-    /**
-     * Returns a {@link BufferedImage} with a copy of the pooled image. The copy will be compatible with the given
-     * {@link GraphicsConfiguration}.
-     * If the original image is large, and you plan to paint to screen, use this method to obtain the copy.
-     */
-    @Nullable
-    default BufferedImage getCopy(@NotNull GraphicsConfiguration gc) {
-      return getCopy(gc, 0, 0, getWidth(), getHeight());
-    }
-
-    /**
-     * Returns a {@link BufferedImage} with a copy of the pooled image
-     */
-    @Nullable
-    default BufferedImage getCopy() {
-      return getCopy(null, 0, 0, getWidth(), getHeight());
-    }
-
-    /**
-     * Manually disposes the current image. After calling this method, the image can not be used anymore.
-     * <p>
-     * This method does not need to be called directly as the images will be eventually collected anyway. However, using this method, you can
-     * speed up the collection process to avoid generating extra images.
-     */
-    void dispose();
-  }
-
-  public static class ImageImpl implements Image {
-    private FinalizablePhantomReference<Image> myOwnReference = null;
+  public static class ImageImpl implements ImagePool.Image {
+    private FinalizablePhantomReference<ImagePool.Image> myOwnReference = null;
 
     @VisibleForTesting
     @Nullable
