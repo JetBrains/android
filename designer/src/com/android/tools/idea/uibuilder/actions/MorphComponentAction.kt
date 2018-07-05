@@ -25,7 +25,6 @@ import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.openapi.wm.IdeFocusManager
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -75,7 +74,7 @@ class MorphComponentAction(component: NlComponent)
 
   private fun createMorphPopup(morphPanel: MorphPanel): JBPopup {
     val popup = JBPopupFactory.getInstance()
-      .createComponentPopupBuilder(morphPanel, null)
+      .createComponentPopupBuilder(morphPanel, morphPanel.preferredFocusComponent)
       .setMovable(true)
       .setFocusable(true)
       .setRequestFocus(true)
@@ -99,7 +98,6 @@ class MorphComponentAction(component: NlComponent)
       myNewName = newName
     }
     createMorphPopup(morphDialog).showCenteredInCurrentWindow(myProject)
-    IdeFocusManager.getInstance(myProject).requestFocus(morphDialog.preferredFocusComponent, true)
   }
 
   override fun actionPerformed(e: AnActionEvent?) = showMorphPopup()
