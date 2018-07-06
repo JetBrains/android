@@ -20,27 +20,27 @@ import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.CompilerOutputModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRootsModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.BaseSetup;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class VariantOnlySyncModuleSetup {
-  @NotNull private final AndroidModuleSetupStep[] mySetupSteps;
-
+public class VariantOnlySyncModuleSetup extends BaseSetup<AndroidModuleSetupStep, AndroidModuleModel> {
   public VariantOnlySyncModuleSetup() {
     this(new ContentRootsModuleSetupStep(), new DependenciesAndroidModuleSetupStep(), new CompilerOutputModuleSetupStep());
   }
 
   @VisibleForTesting
   public VariantOnlySyncModuleSetup(@NotNull AndroidModuleSetupStep... setupSteps) {
-    mySetupSteps = setupSteps;
+    super(setupSteps);
   }
 
-  public void setUpModule(@NotNull ModuleSetupContext context, @Nullable AndroidModuleModel androidModel) {
-    for (AndroidModuleSetupStep step : mySetupSteps) {
-      if (step.invokeOnBuildVariantChange()) {
-        step.setUpModule(context, androidModel);
-      }
-    }
+  @Override
+  protected boolean shouldRunSyncStep(@NotNull AndroidModuleSetupStep step, boolean syncSkipped) {
+    return step.invokeOnBuildVariantChange();
+  }
+
+  public void setUpModule(@NotNull ModuleSetupContext context, @Nullable AndroidModuleModel model) {
+    super.setUpModule(context, model, false);
   }
 }

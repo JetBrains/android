@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.network.details;
 
-import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
@@ -34,8 +33,6 @@ import static com.android.tools.profilers.network.details.TabUiUtils.SECTION_TIT
  * Tab which shows a response's headers and payload.
  */
 final class ResponseTabContent extends TabContent {
-
-  private static final String ID_BODY_COMPONENT = "BODY_COMPONENT";
 
   private final IdeProfilerComponents myComponents;
   private final NetworkConnectionsModel myModel;
@@ -71,12 +68,7 @@ final class ResponseTabContent extends TabContent {
     HttpDataViewModel httpDataViewModel = new HttpDataViewModel(myModel, data);
     JComponent headersComponent = httpDataViewModel.createHeaderComponent(ConnectionType.RESPONSE);
     myPanel.add(TabUiUtils.createHideablePanel(SECTION_TITLE_HEADERS, headersComponent, null));
-
-    String bodyTitle = httpDataViewModel.getBodyTitle(ConnectionType.RESPONSE);
-    JComponent bodyComponent = httpDataViewModel.createBodyComponent(myComponents, ConnectionType.RESPONSE);
-    bodyComponent.setName(ID_BODY_COMPONENT);
-    HideablePanel bodyPanel = TabUiUtils.createHideablePanel(bodyTitle, bodyComponent, null);
-    myPanel.add(bodyPanel);
+    myPanel.add(httpDataViewModel.createBodyComponent(myComponents, ConnectionType.RESPONSE));
   }
 
   @Override
@@ -86,8 +78,7 @@ final class ResponseTabContent extends TabContent {
 
   @Nullable
   @VisibleForTesting
-  JComponent findPayloadViewer() {
-    JComponent bodyComponent = TabUiUtils.findComponentWithUniqueName(myPanel, ID_BODY_COMPONENT);
-    return HttpDataViewModel.findPayloadViewer(bodyComponent);
+  JComponent findPayloadBody() {
+    return TabUiUtils.findComponentWithUniqueName(myPanel, ConnectionType.RESPONSE.getBodyComponentId());
   }
 }

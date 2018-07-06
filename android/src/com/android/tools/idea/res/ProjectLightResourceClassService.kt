@@ -42,6 +42,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
+import java.io.IOException
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.read
@@ -182,11 +183,16 @@ class ProjectLightResourceClassService(
         /** Check aarLocationsCache again, see [kotlin.concurrent.write]. */
         aarLocationsCache ?: run {
           Multimaps.index(findAllAarsLibraries(project).values) { aarLibrary ->
-            aarLibrary
-              ?.manifestFile
-              ?.toFile()
-              ?.let(AndroidManifestUtils::getPackageNameFromManifestFile)
-            ?: ""
+            val fromManifest = try {
+              aarLibrary
+                ?.manifestFile
+                ?.toFile()
+                ?.let(AndroidManifestUtils::getPackageNameFromManifestFile)
+            }
+            catch (e: IOException) {
+              null
+            }
+            fromManifest ?: ""
           }.also {
             aarLocationsCache = it
           }
@@ -194,6 +200,7 @@ class ProjectLightResourceClassService(
       }
     }
   }
+
   private fun clearCaches() {
     aarLocationsLock.write {
       aarLocationsCache = null

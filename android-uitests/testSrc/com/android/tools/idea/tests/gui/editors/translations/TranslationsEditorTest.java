@@ -55,6 +55,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
 
@@ -201,7 +202,6 @@ public final class TranslationsEditorTest {
     assertFalse(editor.getCurrentFileContents().contains("hello_world"));
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/110711267
   @Test
   public void removeKeyWithSafeDeleteProcessor() throws Exception {
     importSimpleApplication();
@@ -218,7 +218,11 @@ public final class TranslationsEditorTest {
                        .deleteAnyway();
 
     translationsEditor.finishLoading();
-    assertEquals(Arrays.asList("app_name", "action_settings", "some_id", "cancel", "app_name"), table.columnAt(KEY_COLUMN));
+
+    // After refactoring, key order from repository is not deterministic, so just compare without order
+    List<String> actual = table.columnAt(KEY_COLUMN);
+    actual.sort(null);
+    assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "some_id"), actual);
 
     editor.open(myStringsXmlPath);
     assertFalse(editor.getCurrentFileContents().contains("hello_world"));

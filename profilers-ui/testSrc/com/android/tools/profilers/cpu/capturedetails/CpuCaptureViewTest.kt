@@ -89,10 +89,10 @@ class CpuCaptureViewTest {
     stage.selectedThread = stage.capture!!.mainThreadId
     stage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP)
 
-    ReferenceWalker(myStageView).assertNotReachable(CpuCaptureView.CallChartView::class.java)
+    ReferenceWalker(myStageView).assertNotReachable(ChartDetailsView.CallChartDetailsView::class.java)
     stage.setCaptureDetails(CaptureModel.Details.Type.CALL_CHART)
     assertThat(stage.captureDetails?.type).isEqualTo(CaptureModel.Details.Type.CALL_CHART)
-    ReferenceWalker(myStageView).assertReachable(CpuCaptureView.CallChartView::class.java)
+    ReferenceWalker(myStageView).assertReachable(ChartDetailsView.CallChartDetailsView::class.java)
     var tabPane = TreeWalker(myStageView.component).descendants().filterIsInstance(CommonTabbedPane::class.java)[0]
     tabPane.selectedIndex = 0
     assertThat(tabPane.getTitleAt(0)).matches("Call Chart")
@@ -105,7 +105,7 @@ class CpuCaptureViewTest {
     stage.selectedThread = stage.capture!!.mainThreadId
     tabPane = TreeWalker(myStageView.component).descendants().filterIsInstance(CommonTabbedPane::class.java)[0]
     tabPane.selectedIndex = 0
-    ReferenceWalker(myStageView).assertReachable(CpuCaptureView.CallChartView::class.java)
+    ReferenceWalker(myStageView).assertReachable(ChartDetailsView.CallChartDetailsView::class.java)
     assertThat(tabPane.getTitleAt(0)).matches("Trace Events")
   }
 }

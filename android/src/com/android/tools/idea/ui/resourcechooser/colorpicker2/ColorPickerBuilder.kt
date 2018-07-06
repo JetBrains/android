@@ -44,7 +44,10 @@ class ColorPickerBuilder {
 
   fun addSaturationBrightnessComponent() = apply { componentsToBuild.add(SaturationBrightnessComponent(model)) }
 
-  fun addColorAdjustPanel() = apply { componentsToBuild.add(ColorAdjustPanel(model)) }
+  @JvmOverloads
+  fun addColorAdjustPanel(colorPipetteProvider: ColorPipetteProvider = GraphicalColorPipetteProvider()) = apply {
+    componentsToBuild.add(ColorAdjustPanel(model, colorPipetteProvider))
+  }
 
   fun addColorValuePanel() = apply { componentsToBuild.add(ColorValuePanel(model)) }
 

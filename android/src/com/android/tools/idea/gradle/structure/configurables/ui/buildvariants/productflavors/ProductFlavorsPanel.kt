@@ -29,11 +29,12 @@ import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.util.IconUtil
 import javax.swing.tree.TreePath
 
+const val PRODUCT_FLAVORS_DISPLAY_NAME: String = "Flavors"
 class ProductFlavorsPanel(
   val treeModel: ProductFlavorsTreeModel,
   uiSettings: PsUISettings
 ) : ConfigurablesMasterDetailsPanel<PsProductFlavor>(
-  "Flavors",
+  PRODUCT_FLAVORS_DISPLAY_NAME,
   "android.psd.product_flavor",
   treeModel, uiSettings
 ) {

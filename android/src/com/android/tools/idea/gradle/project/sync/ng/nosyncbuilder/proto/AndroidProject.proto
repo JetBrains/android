@@ -34,8 +34,8 @@ message AndroidProject {
 message AaptOptions {
     enum Namespacing {
         NAMESPACING_UNSPECIFIED = 0;
-        DISABLED = 2;
-        REQUIRED = 3;
+        DISABLED = 1;
+        REQUIRED = 2;
     }
     optional Namespacing namespacing = 1; // required
 }

@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.CMakeOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.npw.cpp.CppStandardType;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -73,7 +74,7 @@ public class AddRemoveCppDependencyTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void addRemoveCppDependency() throws Exception {
-    createCppProject(false, false, guiTest);
+    createCppProject(CppStandardType.DEFAULT, guiTest);
 
     IdeFrameFixture ideFixture = guiTest.ideFrame();
 

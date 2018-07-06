@@ -46,15 +46,18 @@ public class CaptureModelTest {
 
   private CaptureModel myModel;
 
+  private CpuProfilerStage myStage;
+
   @Before
   public void setUp() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    CpuProfilerStage stage = new CpuProfilerStage(profilers);
-    stage.getStudioProfilers().setStage(stage);
-    myModel = new CaptureModel(stage);
+    myStage = new CpuProfilerStage(profilers);
+    myStage.getStudioProfilers().setStage(myStage);
+    myStage.enter();
+    myModel = new CaptureModel(myStage);
   }
 
   /**
@@ -132,6 +135,37 @@ public class CaptureModelTest {
     checkChildrenFilterType(node.getChildAt(1), CaptureNode.FilterType.MATCH, CaptureNode.FilterType.MATCH);
     // mainPackage.main -> otherPackage.method2
     checkChildrenFilterType(node.getChildAt(2), CaptureNode.FilterType.UNMATCH, CaptureNode.FilterType.UNMATCH);
+  }
+
+  @Test
+  public void testDetailsFeatureTracking() {
+    FakeFeatureTracker tracker = (FakeFeatureTracker)myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
+
+    assertThat(tracker.getLastCaptureDetailsType()).isNull();
+
+    myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);
+    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureModel.Details.Type.CALL_CHART);
+
+    myModel.setDetails(CaptureModel.Details.Type.FLAME_CHART);
+    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureModel.Details.Type.FLAME_CHART);
+
+    myModel.setDetails(CaptureModel.Details.Type.TOP_DOWN);
+    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureModel.Details.Type.TOP_DOWN);
+
+    myModel.setDetails(CaptureModel.Details.Type.BOTTOM_UP);
+    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureModel.Details.Type.BOTTOM_UP);
+  }
+
+  @Test
+  public void detailsFeatureTrackingIgnoresEventWithTheSameType() {
+    FakeFeatureTracker tracker = (FakeFeatureTracker)myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
+
+    myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);
+    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureModel.Details.Type.CALL_CHART);
+
+    tracker.resetLastCaptureDetailsType();
+    myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);
+    assertThat(tracker.getLastCaptureDetailsType()).isNull();
   }
 
   private static void checkChildrenFilterType(CaptureNode node, CaptureNode.FilterType... filterTypes) {

@@ -57,6 +57,22 @@
           </section>
         </stepElement>
       </step>
+      <step label="Optimize Project Sync">
+        <stepElement>
+          <section>
+            <![CDATA[
+           For projects that configure multiple build variants, you can now optimize project syncs to run only on the build variant you
+           currently have selected.
+
+           <br><br>
+           If the IDE doesn't prompt you to enable this optimization, enable it manually by navigating to
+           <b>Settings/Preferences &gt; Experimental &gt; Gradle</b> and checking the box next to <b>Only resolve selected variants</b>.
+           <a href="https://d.android.com/studio/preview/features?utm_source=android-studio&utm_medium=studio-assistant#single_variant_sync">
+           Learn more</a></li>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
     </tutorial>
   </feature>
 </tutorialBundle>

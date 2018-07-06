@@ -36,6 +36,8 @@ import java.util.Map;
 
 public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigurable {
   public static final String DEPENDENCIES_VIEW = "DependenciesView";
+  public static final String DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME = "Dependencies";
+  public static final String DEPENDENCIES_PERSPECTIVE_PLACE_NAME = "dependencies.place";
   @NotNull private final Map<String, AbstractDependenciesConfigurable<? extends PsModule>> myConfigurablesByGradlePath = Maps.newHashMap();
 
   @NotNull private final List<PsModule> myExtraTopModules = Lists.newArrayListWithExpectedSize(2);
@@ -99,7 +101,7 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
   @Override
   @NotNull
   protected String getNavigationPathName() {
-    return "dependencies.place";
+    return DEPENDENCIES_PERSPECTIVE_PLACE_NAME;
   }
 
   @Override
@@ -117,6 +119,6 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
   @Override
   @Nls
   public String getDisplayName() {
-    return "Dependencies";
+    return DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME;
   }
 }

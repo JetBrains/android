@@ -23,6 +23,7 @@ import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
 import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
 import org.jetbrains.annotations.NotNull;
@@ -79,6 +80,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
    * The times that the usage data of API-initiated tracing has been recorded.
    */
   private int myApiTracingUsageCount = 0;
+
+  /**
+   * The last {@link CaptureModel.Details} passed to the tracker.
+   */
+  @Nullable private CaptureModel.Details.Type myLastCaptureDetailsType = null;
 
   @Override
   public void trackEnterStage(@NotNull Class<? extends Stage> stage) {
@@ -233,22 +239,31 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackSelectCaptureTopDown() {
-
+    myLastCaptureDetailsType = CaptureModel.Details.Type.TOP_DOWN;
   }
 
   @Override
   public void trackSelectCaptureBottomUp() {
-
+    myLastCaptureDetailsType = CaptureModel.Details.Type.BOTTOM_UP;
   }
 
   @Override
   public void trackSelectCaptureFlameChart() {
-
+    myLastCaptureDetailsType = CaptureModel.Details.Type.FLAME_CHART;
   }
 
   @Override
   public void trackSelectCaptureCallChart() {
+    myLastCaptureDetailsType = CaptureModel.Details.Type.CALL_CHART;
+  }
 
+  public void resetLastCaptureDetailsType() {
+    myLastCaptureDetailsType = null;
+  }
+
+  @Nullable
+  public CaptureModel.Details.Type getLastCaptureDetailsType() {
+    return myLastCaptureDetailsType;
   }
 
   @Override

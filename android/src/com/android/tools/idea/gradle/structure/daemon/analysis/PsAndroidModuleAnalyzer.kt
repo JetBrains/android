@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSI
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.ReverseDependency
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings.nullToEmpty
 import com.google.common.collect.ArrayListMultimap
@@ -59,7 +58,7 @@ class PsAndroidModuleAnalyzer(context: PsContext) : PsModuleAnalyzer<PsAndroidMo
                                           issuesByData: ArrayListMultimap<String, SyncIssue>,
                                           issueCollection: PsIssueCollection) {
     model.dependencies.forEachLibraryDependency { dependency ->
-      val path = PsLibraryDependencyNavigationPath(dependency)
+      val path = dependency.path
 
       val issueKey = dependency.spec.group + GRADLE_PATH_SEPARATOR + dependency.spec.name
       val librarySyncIssues = issuesByData.get(issueKey)
@@ -109,7 +108,7 @@ class PsAndroidModuleAnalyzer(context: PsContext) : PsModuleAnalyzer<PsAndroidMo
 
   private data class PathSpaceAndPromotedTo(val path: PsPath, val spec: PsArtifactDependencySpec, val promotedTo: PsArtifactDependencySpec) {
     constructor (declaration: ReverseDependency.Declared, promotedTo: PsArtifactDependencySpec) : this(
-      PsLibraryDependencyNavigationPath(declaration.dependency),
+      declaration.dependency.path,
       declaration.spec, promotedTo)
   }
 

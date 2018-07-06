@@ -257,8 +257,7 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
       }
 
       case ID: {
-        ResourceValue resourceValue = new ResourceValueImpl(getNamespace(), resourceType, resourceName, "", getLibraryName());
-        return new AarValueResourceItem(resourceValue, configuration, visibility);
+        return createResourceItem(resourceType, resourceName, configuration, visibility, "");
       }
 
       case VALUE_NOT_SET:

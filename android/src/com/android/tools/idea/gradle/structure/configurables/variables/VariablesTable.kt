@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
@@ -216,6 +217,9 @@ class VariablesTable(private val project: Project, private val context: PsContex
           super.focusLost(e)
         }
       })
+      textBox.border = BorderFactory.createMatteBorder(editorInsets.top, editorInsets.left, editorInsets.bottom, editorInsets.right,
+                                                       this@VariablesTable.selectionBackground)
+      textBox.componentPopupMenu = null
     }
 
     override fun isCellEditable(e: EventObject?): Boolean {
@@ -258,6 +262,13 @@ class VariablesTable(private val project: Project, private val context: PsContex
       panel.add(textBox)
       panel.background = table.selectionBackground
       textBox.text = value as String
+
+      panel.addFocusListener(object : FocusAdapter() {
+        override fun focusGained(e: FocusEvent?) {
+          val focusManager = IdeFocusManager.findInstanceByComponent(panel)
+          focusManager.requestFocus(textBox, true)
+        }
+      })
       return panel
     }
 

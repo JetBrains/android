@@ -184,10 +184,10 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
         Set<PsIssue> issues = Sets.newHashSet();
         for (AbstractDependencyNode<? extends PsAndroidDependency> node : selection) {
           for (PsAndroidDependency dependency : node.getModels()) {
-            issues.addAll(myContext.getAnalyzerDaemon().getIssues().findIssues(dependency, null));
+            issues.addAll(myContext.getAnalyzerDaemon().getIssues().findIssues(dependency.getPath(), null));
           }
         }
-        displayIssues(issues);
+        displayIssues(issues, null);
       }
     });
   }

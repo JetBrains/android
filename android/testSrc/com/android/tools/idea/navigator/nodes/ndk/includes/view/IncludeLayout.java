@@ -16,10 +16,8 @@
 package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
-import com.android.builder.model.NativeFolder;
 import com.android.builder.model.NativeSettings;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
@@ -150,7 +148,6 @@ public class IncludeLayout {
     String settingName = artifactName + "-settings";
 
     List<NativeFile> nativeFiles = new ArrayList<>();
-    List<NativeFolder> nativeFolders= new ArrayList<>();
     for (String file : files) {
       File sourceFile = new File(this.sourcesRoot, file);
       nativeFiles.add(new NativeFile() {
@@ -172,25 +169,6 @@ public class IncludeLayout {
         }
       });
       createFile(sourceFile);
-      nativeFolders.add(new NativeFolder() {
-        @NonNull
-        @Override
-        public File getFolderPath() {
-          return sourceFile.getParentFile();
-        }
-
-        @NonNull
-        @Override
-        public Map<String, String> getPerLanguageSettings() {
-          throw new RuntimeException();
-        }
-
-        @Nullable
-        @Override
-        public File getWorkingDirectory() {
-          throw new RuntimeException();
-        }
-      });
     }
 
     this.settings.put(settingName, new NativeSettings() {
@@ -230,12 +208,6 @@ public class IncludeLayout {
       @Override
       public String getAssembleTaskName() {
         throw new RuntimeException();
-      }
-
-      @NonNull
-      @Override
-      public Collection<NativeFolder> getSourceFolders() {
-        return nativeFolders;
       }
 
       @NonNull

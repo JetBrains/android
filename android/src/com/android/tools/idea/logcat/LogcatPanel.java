@@ -36,7 +36,7 @@ public final class LogcatPanel extends JBLoadingPanel {
 
     DeviceContext context = new DeviceContext();
     myDevicePanel = new DevicePanel(project, context);
-    myLogcatView = new AndroidLogcatView(project, context, "Logcat");
+    myLogcatView = new AndroidLogcatView(project, context);
 
     add(new DeviceAndSearchPanel(myDevicePanel, myLogcatView), BorderLayout.NORTH);
     add(createCenterComponent(project), BorderLayout.CENTER);

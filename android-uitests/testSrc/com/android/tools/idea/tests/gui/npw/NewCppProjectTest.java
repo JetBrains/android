@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+import com.android.tools.idea.npw.cpp.CppStandardType;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -41,7 +42,7 @@ public class NewCppProjectTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/110443122 @RunIn(TestGroup.PROJECT_WIZARD)
   @Test
   public void noWarningsInNewProjectWithCpp() {
-    NewCppProjectTestUtil.createCppProject(false, false, guiTest);
+    NewCppProjectTestUtil.createCppProject(CppStandardType.DEFAULT, guiTest);
 
     String inspectionResults = guiTest.ideFrame()
       .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")

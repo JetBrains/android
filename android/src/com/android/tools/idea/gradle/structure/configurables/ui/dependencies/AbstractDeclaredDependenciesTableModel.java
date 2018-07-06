@@ -32,7 +32,7 @@ import java.awt.*;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
-import static com.android.tools.idea.gradle.structure.model.PsIssueCollection.getTooltipText;
+import static com.android.tools.idea.gradle.structure.model.PsIssueCollectionKt.getTooltipText;
 import static com.intellij.ui.SimpleTextAttributes.*;
 
 /**
@@ -141,7 +141,7 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsDepende
       setFocusBorderAroundIcon(true);
 
       PsIssueCollection issueCollection = myContext.getAnalyzerDaemon().getIssues();
-      List<PsIssue> issues = issueCollection.findIssues(myDependency, IssuesByTypeAndTextComparator.INSTANCE);
+      List<PsIssue> issues = issueCollection.findIssues(myDependency.getPath(), IssuesByTypeAndTextComparator.INSTANCE);
 
       setToolTipText(getTooltipText(issues, false));
 

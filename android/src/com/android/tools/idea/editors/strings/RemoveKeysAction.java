@@ -83,13 +83,13 @@ final class RemoveKeysAction extends AnAction {
     }
 
     if (callback.mySafeDeleteCheckBoxSelected) {
-      SafeDeleteProcessor.createInstance(project, null, keys, dialog.isSearchInComments(), dialog.isSearchForTextOccurences(), true).run();
+      SafeDeleteProcessor.createInstance(project, () -> myPanel.reloadData(), keys, dialog.isSearchInComments(),
+                                         dialog.isSearchForTextOccurences(), true).run();
     }
     else {
       DeleteHandler.deletePsiElement(keys, project, false);
+      myPanel.reloadData();
     }
-
-    myPanel.reloadData();
   }
 
   private static final class MySafeDeleteDialog extends SafeDeleteDialog {

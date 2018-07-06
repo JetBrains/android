@@ -19,13 +19,14 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.issues.IssueRenderer
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsPath
+import com.android.tools.idea.gradle.structure.model.parents
 
-class SuggestionsViewIssueRenderer(val context: PsContext, val showParentPath: Boolean) : IssueRenderer {
+class SuggestionsViewIssueRenderer(val context: PsContext) : IssueRenderer {
 
-  override fun renderIssue(buffer: StringBuilder, issue: PsIssue) {
+  override fun renderIssue(buffer: StringBuilder, issue: PsIssue, scope: PsPath?) {
     val issuePath = issue.path
     val issuePathHref = issuePath.getHyperlinkDestination(context)
-    val issuePathText = issuePath.toText(PsPath.TexType.PLAIN_TEXT).makeTextWrappable()
+    val issuePathText = issuePath.toString().makeTextWrappable()
     val issueText = issue.text.makeTextWrappable()
 
     buffer.append("<table width='100%'><tr><td width='32' valign='top'>")
@@ -33,12 +34,10 @@ class SuggestionsViewIssueRenderer(val context: PsContext, val showParentPath: B
     buffer.append("</td><td valign='top'>")
     buffer.append("<b>")
     buffer.append(issuePathText)
-    if (showParentPath) {
-      issuePath.parents.forEach { parentPath ->
-        val parentPathHref = parentPath.getHyperlinkDestination(context)
-        val parentPathText = parentPath.toText(PsPath.TexType.PLAIN_TEXT).makeTextWrappable()
-        buffer.append(" (<a href=\"$parentPathHref\">$parentPathText</a>)")
-      }
+    issuePath.parents.asReversed().takeWhile { it != scope }.asReversed().forEach { parentPath ->
+      val parentPathHref = parentPath.getHyperlinkDestination(context)
+      val parentPathText = parentPath.toString().makeTextWrappable()
+      buffer.append(" (<a href=\"$parentPathHref\">$parentPathText</a>)")
     }
     buffer.append(" : ")
     buffer.append(issueText)
@@ -48,7 +47,4 @@ class SuggestionsViewIssueRenderer(val context: PsContext, val showParentPath: B
     }
     buffer.append("</td></tr></table>")
   }
-
-  /** Replaces '/' with "/&zero-width-space;" unless "/>" to make long paths wrappable. */
-  private fun String.makeTextWrappable() = replace("(?<=\\<)/", "/&#x200b;")
 }

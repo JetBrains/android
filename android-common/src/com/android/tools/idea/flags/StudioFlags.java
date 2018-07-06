@@ -264,6 +264,12 @@ public final class StudioFlags {
     "Changing the value of this flag requires restarting Android Studio.",
     true);
 
+  public static final Flag<Boolean> SELECT_DEVICE_COMBO_BOX_ACTION_VISIBLE = Flag.create(
+    RUNDEBUG_GROUP,
+    "select.device.combo.box.action.visible",
+    "Show the Select Device combo box action",
+    "Show the Select Device combo box action next to the Select Run/Debug Configuration one in the toolbar",
+    false);
 
   private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle Project System");
   public static final Flag<Boolean> FIX_ANDROID_RUN_CONFIGURATIONS_ENABLED = Flag.create(

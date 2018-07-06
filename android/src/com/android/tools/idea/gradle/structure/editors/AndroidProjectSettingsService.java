@@ -17,8 +17,18 @@ package com.android.tools.idea.gradle.structure.editors;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.BuildVariantsPerspectiveConfigurableKt;
+import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.ModulesPerspectiveConfigurableKt;
+import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.BuildVariantsPanelKt;
+import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.buildtypes.BuildTypesPanelKt;
+import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors.ProductFlavorsPanelKt;
+import com.android.tools.idea.gradle.structure.configurables.ui.modules.ModulePanelKt;
+import com.android.tools.idea.gradle.structure.configurables.ui.modules.SigningConfigsPanelKt;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.compiler.actions.ArtifactAwareProjectSettingsService;
 import com.intellij.ide.projectView.impl.ModuleGroup;
 import com.intellij.openapi.module.Module;
@@ -30,6 +40,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.ui.configuration.IdeaProjectSettingsService;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.packaging.artifacts.Artifact;
+import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -85,10 +96,23 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
     }
   }
 
+  private void showNewPsd(@NotNull Place place) {
+    ProjectStructureConfigurable.getInstance(myProject).showPlace(place);
+  }
+
   @Override
   public void openModuleSettings(Module module) {
     if (isGradleProjectInAndroidStudio()) {
-      AndroidProjectStructureConfigurable.getInstance(myProject).showDialogAndSelect(module);
+      if (StudioFlags.NEW_PSD_ENABLED.get()) {
+        showNewPsd(
+          new Place()
+            .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_DISPLAY_NAME)
+            .putPath(ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_PLACE_NAME, module.getName())
+        );
+      }
+      else {
+        AndroidProjectStructureConfigurable.getInstance(myProject).showDialogAndSelect(module);
+      }
     }
     else {
       myDelegate.openModuleSettings(module);
@@ -96,38 +120,103 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
   }
 
   public void openSigningConfiguration(@NotNull Module module) {
-    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
-    configurable.showDialogAndOpenSigningConfiguration(module);
+    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+      showNewPsd(
+        new Place()
+          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_DISPLAY_NAME)
+          .putPath(ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_PLACE_NAME, module.getName())
+          .putPath(ModulePanelKt.MODULE_PLACE_NAME, SigningConfigsPanelKt.SIGNING_CONFIGS_DISPLAY_NAME)
+      );
+    }
+    else {
+      AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
+      configurable.showDialogAndOpenSigningConfiguration(module);
+    }
   }
 
   public void openSdkSettings() {
-    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
-    configurable.showDialogAndSelectSdksPage();
+    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+      showNewPsd(
+        new Place()
+          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, "SDK Location")
+      );
+    }
+    else {
+      AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
+      configurable.showDialogAndSelectSdksPage();
+    }
   }
 
   public void chooseJdkLocation() {
-    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
-    configurable.showDialogAndChooseJdkLocation();
+    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+      showNewPsd(
+        new Place()
+          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, "SDK Location")
+      );
+    }
+    else {
+      AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
+      configurable.showDialogAndChooseJdkLocation();
+    }
   }
 
   public void openAndSelectDependency(@NotNull Module module, @NotNull GradleCoordinate dependency) {
-    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
-    configurable.showDialogAndSelectDependency(module, dependency);
+    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+      showNewPsd(
+        new Place()
+          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurable.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
+          .putPath(DependenciesPerspectiveConfigurable.DEPENDENCIES_PERSPECTIVE_PLACE_NAME, module.getName())
+          .putPath(String.format("dependencies.%s.place", module.getName()), dependency.toString())
+      );
+    }
+    else {
+      AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
+      configurable.showDialogAndSelectDependency(module, dependency);
+    }
   }
 
   public void openAndSelectBuildTypesEditor(@NotNull Module module) {
-    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
-    configurable.showDialogAndSelectBuildTypesEditor(module);
+    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+        showNewPsd(
+          new Place()
+            .putPath(ProjectStructureConfigurable.CATEGORY_NAME, BuildVariantsPerspectiveConfigurableKt.BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME)
+            .putPath(BuildVariantsPerspectiveConfigurableKt.BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME, module.getName())
+            .putPath(BuildVariantsPanelKt.BUILD_VARIANTS_PLACE_NAME, BuildTypesPanelKt.BUILD_TYPES_DISPLAY_NAME)
+        );
+    }
+    else {
+      AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
+      configurable.showDialogAndSelectBuildTypesEditor(module);
+    }
   }
 
   public void openAndSelectFlavorsEditor(@NotNull Module module) {
-    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
-    configurable.showDialogAndSelectFlavorsEditor(module);
+    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+        showNewPsd(
+          new Place()
+            .putPath(ProjectStructureConfigurable.CATEGORY_NAME, BuildVariantsPerspectiveConfigurableKt.BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME)
+            .putPath(BuildVariantsPerspectiveConfigurableKt.BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME, module.getName())
+            .putPath(BuildVariantsPanelKt.BUILD_VARIANTS_PLACE_NAME, ProductFlavorsPanelKt.PRODUCT_FLAVORS_DISPLAY_NAME)
+        );
+    }
+    else {
+      AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
+      configurable.showDialogAndSelectFlavorsEditor(module);
+    }
   }
 
   public void openAndSelectDependenciesEditor(@NotNull Module module) {
-    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
-    configurable.showDialogAndSelectDependenciesEditor(module);
+    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+      showNewPsd(
+        new Place()
+          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurable.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
+          .putPath(DependenciesPerspectiveConfigurable.DEPENDENCIES_PERSPECTIVE_PLACE_NAME, module.getName())
+      );
+    }
+    else {
+      AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
+      configurable.showDialogAndSelectDependenciesEditor(module);
+    }
   }
 
   @Override
@@ -213,7 +302,16 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
     if (isGradleProjectInAndroidStudio()) {
       Module module = ModuleManager.getInstance(myProject).findModuleByName(moduleToSelect);
       assert module != null;
-      AndroidProjectStructureConfigurable.getInstance(myProject).showDialogAndSelect(module);
+      if (StudioFlags.NEW_PSD_ENABLED.get()) {
+        showNewPsd(
+          new Place()
+            .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_DISPLAY_NAME)
+            .putPath(ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_PLACE_NAME, module.getName())
+        );
+      }
+      else {
+        AndroidProjectStructureConfigurable.getInstance(myProject).showDialogAndSelect(module);
+      }
     }
     else {
       myDelegate.showModuleConfigurationDialog(moduleToSelect, editorNameToSelect);

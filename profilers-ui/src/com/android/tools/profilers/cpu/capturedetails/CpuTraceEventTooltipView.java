@@ -28,7 +28,6 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
-import com.android.tools.profilers.cpu.capturedetails.CpuChartTooltipViewBase;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

@@ -31,7 +31,7 @@ import static com.android.tools.idea.flags.StudioFlags.NPW_FIRST_RUN_WIZARD;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-@RunIn(TestGroup.UNRELIABLE) // b/79945618  @RunIn(TestGroup.PROJECT_WIZARD)
+@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner.class)
 public class FirstRunWizardCancelTest {
 

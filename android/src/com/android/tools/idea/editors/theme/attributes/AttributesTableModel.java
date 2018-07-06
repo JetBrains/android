@@ -299,7 +299,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       }
 
       EditedStyleItem item = myAttributes.get(myRowIndex);
-      ResourceValue resourceValue = resolver.resolveResValue((ResourceValue)item.getSelectedValue());
+      ResourceValue resourceValue = resolver.resolveResValue(item.getSelectedValue());
       if (resourceValue == null) {
         LOG.error("Unable to resolve " + item.getValue());
         return null;
