@@ -32,7 +32,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="module" module-name="intellij.android.adt-testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="library" name="com.android.tools:annotations:26.1.2" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
   </component>
