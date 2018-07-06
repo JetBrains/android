@@ -15,60 +15,86 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 class AsyncDevicesGetter {
-  private SwingWorker<Collection<AvdInfo>, Void> myAvdsGetter;
-  private Collection<AvdInfo> myAvds;
+  private final Worker<Collection<String>> myConnectedDeviceNamesWorker = new Worker<>();
+  private final Worker<Collection<AvdInfo>> myAvdsWorker = new Worker<>();
 
   @NotNull
-  List<Object> get() {
-    getAvds();
+  List<Device> get(@NotNull Project project) {
+    Supplier<SwingWorker<Collection<String>, Void>> supplier = () -> new ConnectedDeviceNamesWorkerDelegate(project);
+    Collection<String> connectedDeviceNames = myConnectedDeviceNamesWorker.get(supplier, Collections.emptySet());
 
-    return myAvds.stream()
-                 .map(AvdManagerConnection::getAvdDisplayName)
-                 .collect(Collectors.toList());
+    return myAvdsWorker.get(AvdsWorkerDelegate::new, Collections.emptyList()).stream()
+                       .map(avd -> new Device(connectedDeviceNames.contains(avd.getName()), AvdManagerConnection.getAvdDisplayName(avd)))
+                       .collect(Collectors.toList());
   }
 
-  private void getAvds() {
-    if (myAvdsGetter == null) {
-      myAvdsGetter = new AvdsGetter();
-      myAvdsGetter.execute();
+  private static final class ConnectedDeviceNamesWorkerDelegate extends SwingWorker<Collection<String>, Void> {
+    private final Project myProject;
 
-      myAvds = Collections.emptyList();
-      return;
+    private ConnectedDeviceNamesWorkerDelegate(@NotNull Project project) {
+      myProject = project;
     }
 
-    if (!myAvdsGetter.isDone()) {
-      return;
+    @NotNull
+    @Override
+    protected Collection<String> doInBackground() {
+      return getDevices().stream()
+                         .filter(IDevice::isEmulator)
+                         .map(IDevice::getAvdName)
+                         .collect(Collectors.toSet());
     }
 
-    try {
-      myAvds = myAvdsGetter.get();
-    }
-    catch (InterruptedException exception) {
-      // This should never happen. The worker is done and can no longer be interrupted.
-      assert false;
-    }
-    catch (ExecutionException exception) {
-      Logger.getInstance(AsyncDevicesGetter.class).warn(exception);
-    }
+    @NotNull
+    private Collection<IDevice> getDevices() {
+      File adb = AndroidSdkUtils.getAdb(myProject);
 
-    myAvdsGetter = new AvdsGetter();
-    myAvdsGetter.execute();
+      if (adb == null) {
+        return Collections.emptyList();
+      }
+
+      Future<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb);
+
+      if (!future.isDone()) {
+        return Collections.emptyList();
+      }
+
+      try {
+        return Arrays.asList(future.get().getDevices());
+      }
+      catch (InterruptedException exception) {
+        // This should never happen. The future is done and can no longer be interrupted.
+        throw new AssertionError(exception);
+      }
+      catch (ExecutionException exception) {
+        Logger.getInstance(ConnectedDeviceNamesWorkerDelegate.class).warn(exception);
+        return Collections.emptyList();
+      }
+    }
   }
 
-  private static final class AvdsGetter extends SwingWorker<Collection<AvdInfo>, Void> {
+  private static final class AvdsWorkerDelegate extends SwingWorker<Collection<AvdInfo>, Void> {
     @NotNull
     @Override
     protected Collection<AvdInfo> doInBackground() {
