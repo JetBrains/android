@@ -19,9 +19,11 @@ import com.android.builder.model.*
 import com.android.ide.common.gradle.model.UnusedModelMethodException
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.androidproject.AndroidProject
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.Variant
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldAaptOptions
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldAndroidProject
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldSigningConfig
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.stubs.BuildTypeContainerStub
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.stubs.BuildTypeStub
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.stubs.LintOptionsStub
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.stubs.ProductFlavorContainerStub
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.*
 import java.io.File
 
 open class LegacyAndroidProject(private val androidProject: AndroidProject, private val variant: Variant) : OldAndroidProject {
@@ -80,3 +82,35 @@ open class LegacyAndroidProject(private val androidProject: AndroidProject, priv
 
 }
 
+class LegacyAndroidProjectStub(
+  private val androidProject: AndroidProject,
+  private val variant: Variant
+) : LegacyAndroidProject(androidProject, variant) {
+  override fun getAaptOptions(): OldAaptOptions = LegacyAaptOptionsStub(androidProject.aaptOptions)
+  override fun getSigningConfigs(): Collection<OldSigningConfig> = androidProject.signingConfigs.map { LegacySigningConfigStub(it) }
+  override fun getLintOptions(): LintOptions = LintOptionsStub()
+  override fun getVariants(): Collection<com.android.builder.model.Variant> = listOf(LegacyVariantStub(variant))
+
+  override fun getDefaultConfig(): ProductFlavorContainer = ProductFlavorContainerStub(
+    LegacyProductFlavorStub(variant.variantConfig),
+    LegacySourceProvider(variant.mainArtifact.mergedSourceProvider.defaultSourceSet),
+    listOfNotNull(variant.androidTestArtifact?.toSourceProviderContainerForDefaultConfig(),
+                  variant.unitTestArtifact?.toSourceProviderContainerForDefaultConfig())
+  )
+
+  override fun getBuildTypes(): Collection<BuildTypeContainer> = listOf(BuildTypeContainerStub(
+    BuildTypeStub(variant.variantConfig),
+    LegacySourceProvider(variant.mainArtifact.mergedSourceProvider.buildTypeSourceSet),
+    listOfNotNull(variant.androidTestArtifact?.toSourceProviderContainerForBuildType(),
+                  variant.unitTestArtifact?.toSourceProviderContainerForBuildType())
+  ))
+
+  override fun getProductFlavors(): Collection<ProductFlavorContainer> = listOf()
+  override fun getBuildToolsVersion(): String = "buildToolsVersion" // TODO(qumeric) Get actual value instead
+  override fun getFlavorDimensions(): Collection<String> = listOf()
+  override fun getNativeToolchains(): Collection<NativeToolchain> = listOf() // TODO(qumeric): remove when native libraries are supported
+  override fun getResourcePrefix(): String? = null
+  override fun getPluginGeneration(): Int = com.android.builder.model.AndroidProject.GENERATION_ORIGINAL
+  @Deprecated("use sync issues instead", ReplaceWith("getSyncIssues()"))
+  override fun getUnresolvedDependencies(): Collection<String> = listOf()
+}

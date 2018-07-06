@@ -20,6 +20,7 @@ import com.android.builder.model.ProductFlavor
 import com.android.builder.model.VectorDrawablesOptions
 import com.android.ide.common.gradle.model.UnusedModelMethodException
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.VariantConfig
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.stubs.VectorDrawablesOptionsStub
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldClassField
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldSigningConfig
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.toLegacy
@@ -33,6 +34,7 @@ open class LegacyProductFlavor(private val variantConfig: VariantConfig) : Produ
   override fun getMinSdkVersion(): ApiVersion? = variantConfig.minSdkVersion?.toLegacy()
   override fun getVersionCode(): Int? = variantConfig.versionCode
   override fun getResValues(): Map<String, OldClassField> = variantConfig.resValues.mapValues { LegacyClassField(it.value) }
+  override fun getProguardFiles(): Collection<File> = listOf() // FIXME(qumeric) variantConfig.proguardFiles
   override fun getConsumerProguardFiles(): Collection<File> = variantConfig.consumerProguardFiles
   override fun getTargetSdkVersion(): ApiVersion? = variantConfig.targetSdkVersion?.toLegacy()
   override fun getResourceConfigurations(): Collection<String> = variantConfig.resourceConfigurations
@@ -42,7 +44,6 @@ open class LegacyProductFlavor(private val variantConfig: VariantConfig) : Produ
   override fun getApplicationIdSuffix(): String? = throw UnusedModelMethodException("getApplicationIdSuffix")
   override fun getVersionNameSuffix(): String? = throw UnusedModelMethodException("getVersionNameSuffix")
   override fun getMultiDexEnabled(): Boolean? = throw UnusedModelMethodException("getMultiDexEnabled")
-  override fun getProguardFiles(): Collection<File> = throw UnusedModelMethodException("getProguardFiles")
   override fun getTestInstrumentationRunnerArguments(): Map<String, String> =
     throw UnusedModelMethodException("getTestInstrumentationRunnerArguments")
 
@@ -70,9 +71,24 @@ open class LegacyProductFlavor(private val variantConfig: VariantConfig) : Produ
                                     "minSdkVersion=$minSdkVersion," +
                                     "versionCode=$versionCode," +
                                     "resValues=$resValues," +
+                                    "proguardFiles=$proguardFiles," +
                                     "consumerProguardFiles=$consumerProguardFiles," +
                                     "targetSdkVersion=$targetSdkVersion," +
                                     "resourceConfigurations=$resourceConfigurations" +
                                     "}"
 }
 
+class LegacyProductFlavorStub(private val variantConfig: VariantConfig) : LegacyProductFlavor(variantConfig) {
+  override fun getResValues(): Map<String, OldClassField> = variantConfig.resValues.mapValues { LegacyClassField(it.value) }
+
+  override fun getTestInstrumentationRunnerArguments(): Map<String, String> = mapOf()
+  override fun getTestApplicationId(): String? = null
+  override fun getTestInstrumentationRunner(): String? = null
+  override fun getSigningConfig(): OldSigningConfig? = null
+  override fun getApplicationIdSuffix(): String? = null
+  override fun getVersionNameSuffix(): String? = null
+  override fun getMultiDexEnabled(): Boolean? = false
+  override fun getDimension(): String? = null
+  override fun getVectorDrawables(): VectorDrawablesOptions = VectorDrawablesOptionsStub()
+  override fun getMaxSdkVersion(): Int? = null
+}

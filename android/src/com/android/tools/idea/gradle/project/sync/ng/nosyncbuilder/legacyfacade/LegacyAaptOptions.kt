@@ -30,3 +30,10 @@ open class LegacyAaptOptions(private val aaptOptions: AaptOptions) : OldAaptOpti
 
   override fun toString(): String = "LegacyAaptOptions{namespacing=$namespacing}"
 }
+
+class LegacyAaptOptionsStub(aaptOptions: AaptOptions) : LegacyAaptOptions(aaptOptions) {
+  override fun getIgnoreAssets(): String? = null
+  override fun getNoCompress(): Collection<String>? = null
+  override fun getFailOnMissingConfigEntry(): Boolean = false
+  override fun getAdditionalParameters(): List<String> = listOf()
+}
