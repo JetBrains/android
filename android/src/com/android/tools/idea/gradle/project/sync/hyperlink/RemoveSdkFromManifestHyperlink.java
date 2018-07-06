@@ -79,20 +79,20 @@ public class RemoveSdkFromManifestHyperlink extends NotificationHyperlink {
         for (UsesSdk usesSdk : manifest.getUsesSdks()) {
           try {
             minSdkInManifest = Integer.parseInt(nullToEmpty(usesSdk.getMinSdkVersion().getStringValue()));
-            XmlElement element = usesSdk.getMinSdkVersion().getXmlElement();
-            if (element != null) {
-              runWriteCommandAction(project, () -> {
-                element.delete();
-                // Remove usesSdk if it's empty after removing minSdkVersion.
-                if (usesSdk.getXmlTag().getAttributes().length == 0) {
-                  usesSdk.getXmlTag().delete();
-                }
-                FileDocumentManager.getInstance().saveAllDocuments();
-              });
-            }
           }
           catch (NumberFormatException ignored) {
             // Invalid value, use default value.
+          }
+          XmlElement element = usesSdk.getMinSdkVersion().getXmlElement();
+          if (element != null) {
+            runWriteCommandAction(project, () -> {
+              element.delete();
+              // Remove usesSdk if it's empty after removing minSdkVersion.
+              if (usesSdk.getXmlTag().getAttributes().length == 0) {
+                usesSdk.getXmlTag().delete();
+              }
+              FileDocumentManager.getInstance().saveAllDocuments();
+            });
           }
         }
 
