@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -25,7 +24,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.BaseRefactoringProcessor;
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
 import com.intellij.usageView.UsageInfo;
-import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,22 +34,35 @@ import java.util.stream.Collectors;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
-public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
-  @NotNull private final List<VirtualFile> myBuildFiles;
-  @NotNull private final String myVersion;
-  private final boolean myRequestSync;
-  private final boolean myRemoveBuildTools;
+public class AddRepoProcessor extends BaseRefactoringProcessor {
+  public enum Repository {
+    GOOGLE("Google");
 
-  public FixBuildToolsProcessor(@NotNull Project project,
-                                 @NotNull List<VirtualFile> buildFiles,
-                                 @NotNull String version,
-                                 boolean requestSync,
-                                 boolean removeBuildTools) {
+    @NotNull
+    private final String myName;
+
+    Repository(@NotNull String name) {
+      myName = name;
+    }
+
+    @NotNull
+    public String getDisplayName() {
+      return myName;
+    }
+  }
+
+  @NotNull private final List<VirtualFile> myBuildFiles;
+  @NotNull private final Repository myRepository;
+  private final boolean myRequestSync;
+
+  public AddRepoProcessor(@NotNull Project project,
+                          @NotNull List<VirtualFile> buildFiles,
+                          @NotNull Repository repository,
+                          boolean requestSync) {
     super(project);
     myBuildFiles = buildFiles;
-    myVersion = version;
     myRequestSync = requestSync;
-    myRemoveBuildTools = removeBuildTools;
+    myRepository = repository;
   }
 
   @NotNull
@@ -60,7 +71,9 @@ public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
     return new UsageViewDescriptorAdapter() {
       @Override
       public String getCodeReferencesText(int usagesCount, int filesCount) {
-        return "Values to " + (myRemoveBuildTools ? "remove " : "update ") + UsageViewBundle.getReferencesString(usagesCount, filesCount);
+        return String
+          .format("File%s to add %s repository to (%d file%s found)", (filesCount == 1 ? "" : "s"), myRepository.getDisplayName(),
+                  filesCount, (filesCount == 1 ? "" : "s"));
       }
 
       @NotNull
@@ -71,7 +84,7 @@ public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
 
       @Override
       public String getProcessedElementsHeader() {
-        return (myRemoveBuildTools ? "Remove" : "Update") + " Android Build Tools Versions";
+        return "Add " + myRepository.getDisplayName() + " repository";
       }
     };
   }
@@ -82,21 +95,19 @@ public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
     ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
 
     List<UsageInfo> usages = new ArrayList<>();
+
     for (VirtualFile file : myBuildFiles) {
       if (!file.isValid() || !file.isWritable()) {
         continue;
       }
-      AndroidModel android = projectBuildModel.getModuleBuildModel(file).android();
-      ResolvedPropertyModel buildToolsVersion = android.buildToolsVersion();
-      if (myVersion.equals(buildToolsVersion.toString())) {
-        continue;
-      }
-
-      PsiElement element = buildToolsVersion.getFullExpressionPsiElement();
-      if (element != null) {
-        usages.add(new UsageInfo(element));
+      GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(file);
+      PsiElement psiElement = buildModel.getPsiElement();
+      // Make sure its a PsiFile to get the correct preview
+      if (psiElement != null) {
+        usages.add(new UsageInfo(psiElement));
       }
     }
+
     return usages.toArray(UsageInfo.EMPTY_ARRAY);
   }
 
@@ -106,15 +117,19 @@ public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
 
     List<PsiElement> elements = Arrays.stream(usages).map(usage -> usage.getElement()).collect(Collectors.toList());
     for (VirtualFile file : myBuildFiles) {
-      AndroidModel android = projectBuildModel.getModuleBuildModel(file).android();
-      ResolvedPropertyModel buildToolsVersion = android.buildToolsVersion();
-      PsiElement element = buildToolsVersion.getFullExpressionPsiElement();
-      if (element != null && elements.contains(element)) {
-        if (myRemoveBuildTools) {
-          buildToolsVersion.delete();
-        }
-        else {
-          buildToolsVersion.setValue(myVersion);
+      GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(file);
+      PsiElement filePsiElement = buildModel.getPsiElement();
+      if (filePsiElement != null && elements.contains(filePsiElement)) {
+        switch (myRepository) {
+          case GOOGLE:
+            buildModel.repositories().addGoogleMavenRepository(myProject);
+            PsiElement buildScriptElement = buildModel.buildscript().getPsiElement();
+            if (buildScriptElement != null) {
+              buildModel.buildscript().repositories().addGoogleMavenRepository(myProject);
+            }
+            break;
+          default:
+            throw new IllegalStateException("No handle for requested repository: " + myRepository.name());
         }
       }
     }
@@ -129,6 +144,6 @@ public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
   @NotNull
   @Override
   protected String getCommandName() {
-    return (myRemoveBuildTools ? "Remove" : "Update") + " Android Build Tools Version";
+    return "Add " + myRepository.getDisplayName() + " repository";
   }
 }

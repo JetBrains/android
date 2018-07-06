@@ -66,15 +66,16 @@ public final class AndroidProjectKeys {
   public static final Key<JavaModuleModel> JAVA_MODULE_MODEL = Key.create(JavaModuleModel.class, NDK_MODEL.getProcessingWeight() + 10);
 
   @NotNull
+  public static final Key<SyncIssuesModel> SYNC_ISSUES = Key.create(SyncIssuesModel.class, JAVA_MODULE_MODEL.getProcessingWeight() + 10);
+
+  @NotNull
   public static final Key<ProjectCleanupModel>
-    PROJECT_CLEANUP_MODEL = Key.create(ProjectCleanupModel.class, JAVA_MODULE_MODEL.getProcessingWeight() + 10);
+    PROJECT_CLEANUP_MODEL = Key.create(ProjectCleanupModel.class, SYNC_ISSUES.getProcessingWeight() + 10);
 
   @NotNull
   public static final Key<ImportedModule> IMPORTED_MODULE =
     Key.create(ImportedModule.class, PROJECT_CLEANUP_MODEL.getProcessingWeight() + 10);
 
-  @NotNull
-  public static final Key<SyncIssuesModel> SYNC_ISSUES = Key.create(SyncIssuesModel.class, IMPORTED_MODULE.getProcessingWeight() + 10);
 
   private AndroidProjectKeys() {
   }

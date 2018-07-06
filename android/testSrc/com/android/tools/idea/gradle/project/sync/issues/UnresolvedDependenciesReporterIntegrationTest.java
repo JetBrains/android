@@ -141,15 +141,14 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
 
-    myReporter.report(mySyncIssue, appModule, null);
+    myReporter.report(mySyncIssue, appModule, getGradleBuildFile(appModule));
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
 
     NotificationData message = messages.get(0);
     assertEquals("Unresolved dependencies", message.getTitle());
-    assertEquals("Failed to resolve: com.android.support:appcompat-v7:24.1.1\nAffected Modules: app",
-                 message.getMessage());
+    assertThat(message.getMessage()).contains("Failed to resolve: com.android.support:appcompat-v7:24.1.1\nAffected Modules:");
 
     List<NotificationHyperlink> quickFixes = mySyncMessagesStub.getNotificationUpdate().getFixes();
     int expectedSize = IdeInfo.getInstance().isAndroidStudio() ? 2 : 1;
@@ -159,7 +158,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     assertThat(quickFix).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
     AddGoogleMavenRepositoryHyperlink addQuickFix = (AddGoogleMavenRepositoryHyperlink)quickFix;
     // Confirm that the repository will be added to project build file (b/68657672)
-    assertThat(addQuickFix.getBuildFile()).isEqualTo(GradleBuildModel.get(getProject()).getVirtualFile());
+    assertSize(1, addQuickFix.getBuildFiles());
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
       quickFix = quickFixes.get(1);
@@ -234,8 +233,8 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     NotificationHyperlink quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
     AddGoogleMavenRepositoryHyperlink addQuickFix = (AddGoogleMavenRepositoryHyperlink)quickFix;
-    // Confirm that the build file was not assigned (this causes the hyperlink to search for it)
-    assertThat(addQuickFix.getBuildFile()).isNull();
+    // Confirm that the build file was found
+    assertSize(1, addQuickFix.getBuildFiles());
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
       quickFix = quickFixes.get(1);

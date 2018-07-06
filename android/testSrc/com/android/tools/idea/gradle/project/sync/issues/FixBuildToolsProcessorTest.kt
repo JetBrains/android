@@ -33,7 +33,7 @@ class FixBuildToolsProcessorTest : AndroidGradleTestCase() {
     val processor = FixBuildToolsProcessor(project, ImmutableList.of(), "77.7.7", false, true)
     val usageDescriptor = processor.createUsageViewDescriptor(UsageInfo.EMPTY_ARRAY)
     assertEquals("Values to remove " + UsageViewBundle.getReferencesString(1, 1), usageDescriptor.getCodeReferencesText(1, 1))
-    assertEquals("Remove Build Tools Versions", usageDescriptor.processedElementsHeader)
+    assertEquals("Remove Android Build Tools Versions", usageDescriptor.processedElementsHeader)
   }
 
   @Test
@@ -41,7 +41,7 @@ class FixBuildToolsProcessorTest : AndroidGradleTestCase() {
     val processor = FixBuildToolsProcessor(project, ImmutableList.of(), "77.7.7", false, false)
     val usageDescriptor = processor.createUsageViewDescriptor(UsageInfo.EMPTY_ARRAY)
     assertEquals("Values to update " + UsageViewBundle.getReferencesString(1, 1), usageDescriptor.getCodeReferencesText(1, 1))
-    assertEquals("Update Build Tools Versions", usageDescriptor.processedElementsHeader)
+    assertEquals("Update Android Build Tools Versions", usageDescriptor.processedElementsHeader)
   }
 
   @Test
