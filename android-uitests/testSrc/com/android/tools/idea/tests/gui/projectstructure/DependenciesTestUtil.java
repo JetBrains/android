@@ -192,7 +192,8 @@ public class DependenciesTestUtil {
     dialog.clickOk();
   }
 
-  private static String getUiHierarchy(IdeFrameFixture ideFrame) {
+  @NotNull
+  private static String getUiHierarchy(@NotNull IdeFrameFixture ideFrame) {
     try(
       ByteArrayOutputStream outputBuffer = new ByteArrayOutputStream();
       PrintStream printBuffer = new PrintStream(outputBuffer)

@@ -34,7 +34,7 @@ import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(GuiTestRemoteRunner.class)
-public class TransitiveJavaDependenciesResolveTest {
+public class JavaDepTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
