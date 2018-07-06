@@ -38,7 +38,7 @@ internal class LibraryDependenciesForm (module: PsModule) : LibraryDependenciesF
   init {
     val repositories = module.getArtifactRepositories()
 
-    searchForm = ArtifactRepositorySearchForm(repositories)
+    searchForm = ArtifactRepositorySearchForm(module.variables, repositories)
     searchForm.add(SelectionChangeListener { selectedLibrary ->
       selected = selectedLibrary ?: ParsedValue.NotSet
       myLibraryLabel.clear()
