@@ -248,27 +248,34 @@ public final class StudioFlags {
     "Enable new Color Picker in layout Editor",
     false);
 
-  private static final FlagGroup RUNDEBUG_GROUP = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
+  private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
-    RUNDEBUG_GROUP, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
+    RUNDEBUG, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
     "When running or debugging an Android process, output the logcat output of the process in the console window.",
     true);
   public static final Flag<Boolean> RUNDEBUG_USE_AIA_SDK_LIBRARY = Flag.create(
-    RUNDEBUG_GROUP, "instantapps.sdklib.enabled", "Use external SDK library to launch Instant Apps",
+    RUNDEBUG, "instantapps.sdklib.enabled", "Use external SDK library to launch Instant Apps",
     "When provisioning devices and launching Instant Apps, use the AIA SDK library JAR to perform these functions if available",
     true);
 
   public static final Flag<Boolean> RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED = Flag.create(
-    RUNDEBUG_GROUP, "android.bundle.build.enabled", "Enable the Build Bundle action",
+    RUNDEBUG, "android.bundle.build.enabled", "Enable the Build Bundle action",
     "If enabled, the \"Build Bundle(s)\" menu item is enabled. " +
     "Changing the value of this flag requires restarting Android Studio.",
     true);
 
   public static final Flag<Boolean> SELECT_DEVICE_COMBO_BOX_ACTION_VISIBLE = Flag.create(
-    RUNDEBUG_GROUP,
+    RUNDEBUG,
     "select.device.combo.box.action.visible",
     "Show the Select Device combo box action",
     "Show the Select Device combo box action next to the Select Run/Debug Configuration one in the toolbar",
+    false);
+
+  public static final Flag<Boolean> JVMTI_REFRESH = Flag.create(
+    RUNDEBUG,
+    "jvmti.refresh",
+    "Application refresh with JVMTI",
+    "Use JVMTI to support application refresh. This implies incremental deployment",
     false);
 
   private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle Project System");
