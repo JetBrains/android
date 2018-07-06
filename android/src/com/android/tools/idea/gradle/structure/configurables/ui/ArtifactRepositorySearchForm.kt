@@ -16,14 +16,18 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
-import com.android.tools.idea.gradle.structure.model.meta.DslText
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.annotations.VisibleForTesting
+import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
+import com.android.tools.idea.gradle.structure.model.helpers.parseGradleVersion
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearch
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.text.StringUtil.isNotEmpty
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
@@ -45,7 +49,10 @@ import javax.swing.event.DocumentEvent
 private const val SEARCHING_EMPTY_TEXT = "Searching..."
 private const val NOTHING_TO_SHOW_EMPTY_TEXT = "Nothing to show"
 
-class ArtifactRepositorySearchForm(repositories: List<ArtifactRepository>) : ArtifactRepositorySearchFormUi() {
+class ArtifactRepositorySearchForm(
+  val variables: PsVariablesScope,
+  repositories: List<ArtifactRepository>
+) : ArtifactRepositorySearchFormUi() {
   private val repositorySearch: ArtifactRepositorySearch = ArtifactRepositorySearch(repositories)
   private val resultsTable: TableView<FoundArtifact>
   private val versionsPanel: AvailableVersionsPanel
@@ -54,10 +61,10 @@ class ArtifactRepositorySearchForm(repositories: List<ArtifactRepository>) : Art
   private val artifactName: String get() = myArtifactNameTextField.text.trim { it <= ' ' }
   private val groupId: String? get() = myGroupIdTextField.text.trim { it <= ' ' }.nullize()
 
-  val selection: FoundArtifact? get() = resultsTable.selection.singleOrNull()
+  private val selectedArtifact: FoundArtifact? get() = resultsTable.selection.singleOrNull()
   val panel: JPanel get() = myPanel
   val preferredFocusedComponent: JComponent get() = myArtifactNameTextField
-  var searchErrors: List<Exception> = listOf() ; private set
+  var searchErrors: List<Exception> = listOf(); private set
 
   init {
     myArtifactNameTextField.document.addDocumentListener(object : DocumentAdapter() {
@@ -94,13 +101,13 @@ class ArtifactRepositorySearchForm(repositories: List<ArtifactRepository>) : Art
     versionsPanel = AvailableVersionsPanel(Consumer { this.notifyVersionSelectionChanged(it) })
 
     resultsTable.selectionModel.addListSelectionListener {
-      val artifact = selection
+      val artifact = selectedArtifact
 
       if (artifact != null) {
-        versionsPanel.setVersions(artifact.versions)
+        versionsPanel.setVersions(prepareArtifactVersionChoices(artifact, variables))
       }
       else {
-        notifyVersionSelectionChanged(null)
+        notifyVersionSelectionChanged(ParsedValue.NotSet)
       }
     }
 
@@ -113,20 +120,14 @@ class ArtifactRepositorySearchForm(repositories: List<ArtifactRepository>) : Art
     TableSpeedSearch(resultsTable)
   }
 
-  private fun notifyVersionSelectionChanged(version: String?) {
-    val selected = selection?.let { selection ->
-      val groupId = selection.groupId
-      val name = selection.name
-      val adjustedVersion = version ?: selection.versions.firstOrNull()?.toString() ?: ""
-
-      buildString {
-        append(groupId + GRADLE_PATH_SEPARATOR + name)
-        if (isNotEmpty(adjustedVersion)) {
-          append(GRADLE_PATH_SEPARATOR + adjustedVersion)
-        }
+  private fun notifyVersionSelectionChanged(version: ParsedValue<GradleVersion>) {
+    val selectedLibrary = selectedArtifact?.let { selectedArtifact ->
+      when (version) {
+        ParsedValue.NotSet -> ParsedValue.NotSet
+        is ParsedValue.Set.Parsed -> versionToLibrary(selectedArtifact, version)
       }
-    }
-    eventDispatcher.selectionChanged(ParsedValue.Set.Parsed(selected, DslText.Literal))
+    } ?: ParsedValue.NotSet
+    eventDispatcher.selectionChanged(selectedLibrary)
   }
 
   private fun performSearch() {
@@ -197,6 +198,68 @@ class ArtifactRepositorySearchForm(repositories: List<ArtifactRepository>) : Art
         column("Group ID", preferredWidthTextSample = "abcdefghijklmno") { it.groupId },
         column("Artifact Name", preferredWidthTextSample = "abcdefg") { it.name },
         column("Repository") { it.repositoryName })
+    }
+  }
+}
+
+@VisibleForTesting
+fun prepareArtifactVersionChoices(
+  artifact: FoundArtifact,
+  variablesScope: PsVariablesScope
+): List<ParsedValue.Set.Parsed<GradleVersion>> {
+  val versionPropertyContext = object : ModelPropertyContext<GradleVersion> {
+    override fun parse(value: String): Annotated<ParsedValue<GradleVersion>> = parseGradleVersion(null, value)
+    override fun format(value: GradleVersion): String = value.toString()
+
+    override fun getKnownValues(): ListenableFuture<KnownValues<GradleVersion>> =
+      Futures.immediateFuture(object : KnownValues<GradleVersion> {
+        override val literals: List<ValueDescriptor<GradleVersion>> = artifact.versions.map { ValueDescriptor(it) }
+        override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<GradleVersion>>): Boolean =
+          throw UnsupportedOperationException()
+      })
+  }
+  val versions = artifact.versions.map { ParsedValue.Set.Parsed(it, DslText.Literal) }
+  val suitableVariables =
+    variablesScope
+      .getAvailableVariablesFor(versionPropertyContext)
+      .filter { VariableMatchingStrategy.WELL_KNOWN_VALUE.matches(it.value, artifact.versions.toSet()) }
+      .map { it.value }
+  return (versions + suitableVariables).sortedByDescending { it.value }
+}
+
+
+@VisibleForTesting
+fun versionToLibrary(
+  artifact: FoundArtifact,
+  version: ParsedValue.Set.Parsed<GradleVersion>
+): ParsedValue<String> {
+  val artifactGroupId = artifact.groupId
+  val artifactName = artifact.name
+
+  fun makeCompactNotation(version: String) =
+    buildString(artifactGroupId.length + artifactName.length + version.length + 2 * GRADLE_PATH_SEPARATOR.length) {
+      append(artifactGroupId)
+      append(GRADLE_PATH_SEPARATOR)
+      append(artifactName)
+      append(GRADLE_PATH_SEPARATOR)
+      append(version)
+    }
+
+  val compactNotationResolved = makeCompactNotation(version = version.value?.toString().orEmpty())
+
+  fun makeInterpolatedCompactNotation(versionReference: String) =
+    ParsedValue.Set.Parsed(compactNotationResolved, DslText.InterpolatedString(makeCompactNotation(version = versionReference)))
+
+  return version.dslText.let {
+    when (it) {
+      is DslText.Literal -> ParsedValue.Set.Parsed(compactNotationResolved, DslText.Literal)
+    // References.
+      is DslText.Reference -> makeInterpolatedCompactNotation(versionReference = "\${${it.text}}")
+      is DslText.OtherUnparsedDslText -> makeInterpolatedCompactNotation(versionReference = "\${${it.text}}")
+    // Technically the following case should return:
+    //     makeReferenceSelection(it.text)
+    // but since it is not expecting to happen we throw an exception.
+      is DslText.InterpolatedString -> throw IllegalStateException()
     }
   }
 }
