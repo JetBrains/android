@@ -597,7 +597,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public void forceUserRequestedRefresh() {
     for (SceneManager sceneManager : myModelToSceneManagers.values()) {
       LayoutlibSceneManager layoutlibSceneManager = (LayoutlibSceneManager) sceneManager;
-      layoutlibSceneManager.requestUserInitatedRender();
+      layoutlibSceneManager.requestUserInitiatedRender();
     }
   }
 

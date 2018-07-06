@@ -252,7 +252,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
          ThemeEditorUtils.resolveItemFromParents(style, MaterialColors.PRIMARY_MATERIAL_ATTR, !ThemeEditorUtils.isAppCompatTheme(style));
 
       final Project project = myContext.getProject();
-      Color primaryColor = ResourceHelper.resolveColor(styleResourceResolver, (ResourceValue)primaryColorResourceValue, project);
+      Color primaryColor = ResourceHelper.resolveColor(styleResourceResolver, primaryColorResourceValue, project);
 
       ChooseResourceDialog dialog = ThemeEditorUtils.getResourceDialog(myItem, myContext, getAllowedResourceTypes());
 

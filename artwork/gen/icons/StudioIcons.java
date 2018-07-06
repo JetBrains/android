@@ -100,6 +100,8 @@ public class StudioIcons {
       public static final Icon DOWNLOAD_OVERLAY_LEGACY_LARGE = load("/studio/icons/layout-editor/extras/download-overlay-legacy_large.png"); // 24x24
       public static final Icon PALETTE_DOWNLOAD_SELECTED = load("/studio/icons/layout-editor/extras/palette-download-selected.png"); // 16x16
       public static final Icon PALETTE_DOWNLOAD = load("/studio/icons/layout-editor/extras/palette-download.png"); // 16x16
+      public static final Icon PIPETTE = load("/studio/icons/layout-editor/extras/pipette.png"); // 16x16
+      public static final Icon PIPETTE_LARGE = load("/studio/icons/layout-editor/extras/pipette_large.png"); // 24x24
       public static final Icon ROOT_INLINE_SELECTED = load("/studio/icons/layout-editor/extras/root-inline-selected.png"); // 16x16
       public static final Icon ROOT_INLINE = load("/studio/icons/layout-editor/extras/root-inline.png"); // 16x16
       public static final Icon VISIBILITY_GONE_INLINE_SELECTED = load("/studio/icons/layout-editor/extras/visibility-gone-inline-selected.png"); // 16x16
@@ -172,8 +174,8 @@ public class StudioIcons {
       public static final Icon MENU = load("/studio/icons/layout-editor/palette/menu.png"); // 16x16
       public static final Icon MERGE = load("/studio/icons/layout-editor/palette/merge.png"); // 16x16
       public static final Icon MULTI_AUTO_COMPLETE_TEXT_VIEW = load("/studio/icons/layout-editor/palette/multi-auto-complete-text-view.png"); // 16x16      
-      public static final Icon NAVIGATION_VIEW = load("/studio/icons/layout-editor/palette/navigation-view.png"); // 16x16
       public static final Icon NAV_HOST_FRAGMENT = load("/studio/icons/layout-editor/palette/nav-host-fragment.png"); // 16x16
+      public static final Icon NAVIGATION_VIEW = load("/studio/icons/layout-editor/palette/navigation-view.png"); // 16x16
       public static final Icon NESTED_SCROLL_VIEW = load("/studio/icons/layout-editor/palette/nested-scroll-view.png"); // 16x16
       public static final Icon NUMBER_DECIMAL_TEXTFIELD = load("/studio/icons/layout-editor/palette/number-decimal-textfield.png"); // 16x16
       public static final Icon NUMBER_PICKER = load("/studio/icons/layout-editor/palette/number-picker.png"); // 16x16
@@ -238,6 +240,7 @@ public class StudioIcons {
       public static final Icon FAVORITES_HOVER = load("/studio/icons/layout-editor/properties/favorites-hover.png"); // 16x16
       public static final Icon FAVORITES_SELECTED = load("/studio/icons/layout-editor/properties/favorites-selected.png"); // 16x16
       public static final Icon FAVORITES = load("/studio/icons/layout-editor/properties/favorites.png"); // 16x16
+      public static final Icon FLAG = load("/studio/icons/layout-editor/properties/flag.png"); // 14x14
       public static final Icon MODIFY_NAV = load("/studio/icons/layout-editor/properties/modify-nav.png"); // 16x16
       public static final Icon MODIFY_TEXT = load("/studio/icons/layout-editor/properties/modify-text.png"); // 16x16
       public static final Icon MODIFY_THEME = load("/studio/icons/layout-editor/properties/modify-theme.png"); // 16x16

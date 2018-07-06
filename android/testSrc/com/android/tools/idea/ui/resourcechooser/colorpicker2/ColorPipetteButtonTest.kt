@@ -43,18 +43,3 @@ class ColorPipetteButtonTest {
     assertEquals(Color.YELLOW, model.color)
   }
 }
-
-private class FakeColorPipette: ColorPipette {
-
-  lateinit var pickedColor: Color
-  var shouldSucceed = true
-
-  override fun pick(callback: ColorPipette.Callback) {
-    if (shouldSucceed) {
-      callback.picked(pickedColor)
-    }
-    else {
-      callback.cancel()
-    }
-  }
-}

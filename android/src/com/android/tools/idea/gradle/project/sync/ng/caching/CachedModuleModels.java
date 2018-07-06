@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng.caching;
 
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;

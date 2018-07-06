@@ -165,7 +165,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
         return r.mySource.getUrl();
       }
     }});
-    myLoadingFinishedCallback = finishLoading;
+    setLoadingFinishedCallback(finishLoading);
     myLoadingStartedCallback = startLoading;
   }
 
@@ -212,7 +212,9 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
         }
         setItems(items);
         myLoadingFinishedCallback.run();
-        myRefreshCallback.run();
+        if (force) {
+          myRefreshCallback.run();
+        }
       }, myModalityState);
     });
   }
@@ -373,6 +375,11 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
    */
   public void setRefreshCallback(@NotNull Runnable refreshCallback) {
     myRefreshCallback = refreshCallback;
+  }
+
+  @VisibleForTesting
+  void setLoadingFinishedCallback(@NotNull Runnable loadingFinishedCallback) {
+    myLoadingFinishedCallback = loadingFinishedCallback;
   }
 
   public boolean isEditable() {

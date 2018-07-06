@@ -25,6 +25,7 @@ import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.logcat.AndroidLogcatService.LogcatListener;
 import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
 import com.android.tools.idea.logcat.output.LogcatOutputSettings;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.process.ProcessHandler;
@@ -50,8 +51,7 @@ import java.util.function.BiConsumer;
  * destroyProcess kills the processes (typically by a stop button in the UI). If all the processes die, then this handler terminates as
  * well.
  */
-public class AndroidProcessHandler extends ProcessHandler implements AndroidDebugBridge.IDeviceChangeListener,
-                                                                     AndroidDebugBridge.IClientChangeListener {
+public class AndroidProcessHandler extends ProcessHandler {
   private static final Logger LOG = Logger.getInstance(AndroidProcessHandler.class);
 
   // If the client is not present on the monitored devices after this time, then it is assumed to have died.
@@ -60,51 +60,82 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
 
   private static final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
 
+  /**
+   * Ensures that ADB callbacks and addTargetDevice don't race with each other.
+   */
+  @NotNull private final Object deviceClientLock;
+
   // identifier for the running application, same as packageId unless android:process attribute is set
   @NotNull private final String myApplicationId;
-  private final boolean myMonitoringRemoteProcess;
 
+  @GuardedBy("deviceClientLock")
   @NotNull private final Set<String> myDevices;
+  @GuardedBy("deviceClientLock")
   @NotNull private final Set<Client> myClients;
   @NotNull private final LogcatOutputCapture myLogcatOutputCapture;
 
+  @GuardedBy("deviceClientLock")
   private long myDeviceAdded;
+
   private boolean myNoKill;
 
-  public AndroidProcessHandler(@NotNull String applicationId) {
-    this(applicationId, true);
-  }
+  @NotNull private final AndroidDebugBridge.IDeviceChangeListener deviceChangeListener;
+  @NotNull private final AndroidDebugBridge.IClientChangeListener clientChangeListener;
 
-  public AndroidProcessHandler(@NotNull String applicationId, boolean monitorRemoteProcess) {
+  private AndroidProcessHandler(@NotNull String applicationId) {
+    deviceClientLock = new Object();
+
     myApplicationId = applicationId;
     myDevices = Sets.newConcurrentHashSet();
-    myClients = Sets.newHashSet();
+    myClients = Sets.newConcurrentHashSet();
     myLogcatOutputCapture = new LogcatOutputCapture(applicationId);
 
-    myMonitoringRemoteProcess = monitorRemoteProcess;
-    if (myMonitoringRemoteProcess) {
-      AndroidDebugBridge.addClientChangeListener(this);
-      AndroidDebugBridge.addDeviceChangeListener(this);
+    deviceChangeListener = new DeviceChangeListener();
+    clientChangeListener = new ClientChangeListener();
+  }
+
+  /**
+   * Requests that this object should start listening for AndroidDebugBridge
+   * client and device changes. This method should be called before
+   * {@link #addTargetDevice} to prevent a race condition where a device or
+   * client update occurs between {@code addTargetDevice}'s end and this
+   * method's start.
+   */
+  private void addListenersToAdb() {
+    AndroidDebugBridge.addClientChangeListener(clientChangeListener);
+    AndroidDebugBridge.addDeviceChangeListener(deviceChangeListener);
+  }
+
+  /**
+   * Adds a device to listen to from ADB. This should ideally be called after
+   * {@link #addListenersToAdb} to avoid a race condition where a device or client
+   * update occurs between this method's return and the entry to
+   * {@link #addListenersToAdb}.
+   */
+  public void addTargetDevice(@NotNull final IDevice device) {
+    synchronized (deviceClientLock) {
+      myDevices.add(device.getSerialNumber());
+
+      setMinDeviceApiLevel(device.getVersion());
+      if (!addClientIfAvailable(device)) {
+        notifyTextAvailable("Client not ready yet..", ProcessOutputTypes.STDOUT);
+      }
+      LOG.info("Adding device " + device.getName() + " to monitor for launched app: " + myApplicationId);
+      myDeviceAdded = System.currentTimeMillis();
     }
   }
 
-  public void addTargetDevice(@NotNull final IDevice device) {
-    myDevices.add(device.getSerialNumber());
-
-    setMinDeviceApiLevel(device.getVersion());
-
+  @GuardedBy("deviceClientLock")
+  private boolean addClientIfAvailable(@NotNull IDevice device) {
     Client client = device.getClient(myApplicationId);
     if (client != null) {
       addClient(client);
+      return true;
     }
-    else {
-      notifyTextAvailable("Client not ready yet..", ProcessOutputTypes.STDOUT);
-    }
-
-    LOG.info("Adding device " + device.getName() + " to monitor for launched app: " + myApplicationId);
-    myDeviceAdded = System.currentTimeMillis();
+    return false;
   }
 
+  @GuardedBy("deviceClientLock")
   private void addClient(@NotNull final Client client) {
     if (!myClients.add(client)) {
       return;
@@ -121,6 +152,11 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
     if (apiLevel == null || apiLevel.compareTo(deviceVersion) > 0) {
       putUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL, deviceVersion);
     }
+  }
+
+  @GuardedBy("deviceClientLock")
+  private boolean isListeningToDevices() {
+    return !myDevices.isEmpty();
   }
 
   @Override
@@ -162,7 +198,12 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
     }
 
     for (IDevice device : bridge.getDevices()) {
-      if (myDevices.contains(device.getSerialNumber())) {
+      boolean deviceIsContained;
+      synchronized (deviceClientLock) {
+        deviceIsContained = myDevices.contains(device.getSerialNumber());
+      }
+
+      if (deviceIsContained) {
         // Workaround https://code.google.com/p/android/issues/detail?id=199342
         // Sometimes, just calling client.kill() could end up with the app dying and then coming back up
         // Very likely, this is because of how cold swap restarts the process (maybe it is using some persistent pending intents?)
@@ -186,94 +227,26 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
   }
 
   private void cleanup() {
-    myDevices.clear();
-    myClients.clear();
+    synchronized (deviceClientLock) {
+      myDevices.clear();
+      myClients.clear();
+    }
     myLogcatOutputCapture.stopAll();
 
-    if (myMonitoringRemoteProcess) {
-      AndroidDebugBridge.removeClientChangeListener(this);
-      AndroidDebugBridge.removeDeviceChangeListener(this);
-    }
+    AndroidDebugBridge.removeClientChangeListener(clientChangeListener);
+    AndroidDebugBridge.removeDeviceChangeListener(deviceChangeListener);
   }
 
-  @Override
-  public void deviceConnected(@NotNull IDevice device) {
-  }
-
-  @Override
-  public void deviceDisconnected(@NotNull IDevice device) {
-    if (!myDevices.contains(device.getSerialNumber())) {
-      return;
-    }
-
-    print("Device " + device.getName() + "disconnected, monitoring stopped.");
-    stopMonitoring(device);
-  }
 
   private void stopMonitoring(@NotNull IDevice device) {
     myLogcatOutputCapture.stopCapture(device);
 
-    myDevices.remove(device.getSerialNumber());
+    synchronized (deviceClientLock) {
+      myDevices.remove(device.getSerialNumber());
 
-    if (myDevices.isEmpty()) {
-      detachProcess();
-    }
-  }
-
-  @Override
-  public void deviceChanged(@NotNull IDevice device, int changeMask) {
-    if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != IDevice.CHANGE_CLIENT_LIST) {
-      return;
-    }
-
-    if (!myDevices.contains(device.getSerialNumber())) {
-      return;
-    }
-
-    Client client = device.getClient(myApplicationId);
-    if (client != null) {
-      addClient(client);
-      return;
-    }
-
-    // sometimes, the application crashes before TIMEOUT_MS. So if we already knew of the app, and it is not there anymore, then assume
-    // it got killed
-    if (!myClients.isEmpty()) {
-      for (Client c : myClients) {
-        if (device.equals(c.getDevice())) {
-          stopMonitoring(device);
-          print("Application terminated.");
-          return;
-        }
+      if (myDevices.isEmpty()) {
+        detachProcess();
       }
-    }
-
-    if ((System.currentTimeMillis() - myDeviceAdded) > TIMEOUT_MS) {
-      print("Timed out waiting for process to appear on " + device.getName());
-      stopMonitoring(device);
-    }
-    else {
-      print("Waiting for process to come online");
-    }
-  }
-
-  @Override
-  public void clientChanged(@NotNull Client client, int changeMask) {
-    if ((changeMask & Client.CHANGE_NAME) != Client.CHANGE_NAME) {
-      return;
-    }
-
-    if (!myDevices.contains(client.getDevice().getSerialNumber())) {
-      return;
-    }
-
-    if (isMatchingClient(client)) {
-      addClient(client);
-    }
-
-    if (isMatchingClient(client) && !client.isValid()) {
-      print("Process " + client.getClientData().getPid() + " is not valid anymore!");
-      stopMonitoring(client.getDevice());
     }
   }
 
@@ -292,8 +265,10 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
   @NotNull
   public List<IDevice> getDevices() {
     Set<IDevice> devices = Sets.newHashSet();
-    for (Client client : myClients) {
-      devices.add(client.getDevice());
+    synchronized (deviceClientLock) {
+      for (Client client : myClients) {
+        devices.add(client.getDevice());
+      }
     }
 
     return Lists.newArrayList(devices);
@@ -303,18 +278,23 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
   public Client getClient(@NotNull IDevice device) {
     String serial = device.getSerialNumber();
 
-    for (Client client : myClients) {
-      if (StringUtil.equals(client.getDevice().getSerialNumber(), serial)) {
-        return client;
+    synchronized (deviceClientLock) {
+      for (Client client : myClients) {
+        if (StringUtil.equals(client.getDevice().getSerialNumber(), serial)) {
+          return client;
+        }
       }
     }
 
     return null;
   }
 
+  // TODO this method isn't used anywhere. Should we remove it? b/111081195
   @NotNull
   public Set<Client> getClients() {
-    return myClients;
+    synchronized (deviceClientLock) {
+      return new HashSet<>(myClients);
+    }
   }
 
   private void print(@NotNull String s) {
@@ -322,8 +302,10 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
   }
 
   public void reset() {
-    myDevices.clear();
-    myClients.clear();
+    synchronized (deviceClientLock) {
+      myDevices.clear();
+      myClients.clear();
+    }
     myLogcatOutputCapture.stopAll();
   }
 
@@ -443,6 +425,134 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
       for (Map.Entry<IDevice, LogcatListener> entry : listeners) {
         AndroidLogcatService.getInstance().removeListener(entry.getKey(), entry.getValue());
       }
+    }
+  }
+
+  @VisibleForTesting
+  protected void clientChanged(@NotNull Client client, int changeMask) {
+    clientChangeListener.clientChanged(client, changeMask);
+  }
+
+  private class DeviceChangeListener implements AndroidDebugBridge.IDeviceChangeListener {
+    @Override
+    public void deviceConnected(@NotNull IDevice device) {
+    }
+
+    @Override
+    public void deviceDisconnected(@NotNull IDevice device) {
+      synchronized (deviceClientLock) {
+        print("Device " + device.getName() + "disconnected, monitoring stopped.");
+        stopMonitoring(device);
+      }
+    }
+
+    @Override
+    public void deviceChanged(@NotNull IDevice device, int changeMask) {
+      synchronized (deviceClientLock) {
+        if (!isListeningToDevices()) {
+          return;
+        }
+
+        if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != IDevice.CHANGE_CLIENT_LIST) {
+          return;
+        }
+
+        if (!myDevices.contains(device.getSerialNumber())) {
+          return;
+        }
+
+        if (addClientIfAvailable(device)) {
+          return;
+        }
+        // else: client not available.
+
+        // sometimes, the application crashes before TIMEOUT_MS. So if we already knew of the app, and it is not there anymore, then assume
+        // it got killed
+        if (!myClients.isEmpty()) {
+          LOG.debug("Non-empty list of clients for {}. Stopping monitoring of clients since they're dead", myApplicationId);
+          for (Client c : myClients) {
+            if (device.equals(c.getDevice())) {
+              stopMonitoring(device);
+              print("Application terminated.");
+              return;
+            }
+          }
+        }
+
+        if ((System.currentTimeMillis() - myDeviceAdded) > TIMEOUT_MS) {
+          print("Timed out waiting for process to appear on " + device.getName());
+          stopMonitoring(device);
+        }
+        else {
+          print("Waiting for process to come online");
+        }
+      }
+    }
+  }
+
+  private class ClientChangeListener implements AndroidDebugBridge.IClientChangeListener {
+    @Override
+    public void clientChanged(@NotNull Client client, int changeMask) {
+      synchronized (deviceClientLock) {
+        if (!isListeningToDevices()) {
+          return;
+        }
+
+        if ((changeMask & Client.CHANGE_NAME) != Client.CHANGE_NAME) {
+          return;
+        }
+
+        if (!myDevices.contains(client.getDevice().getSerialNumber())) {
+          return;
+        }
+
+        if (isMatchingClient(client)) {
+          LOG.debug("Adding client for {}", myApplicationId);
+          addClient(client);
+        }
+
+        if (isMatchingClient(client) && !client.isValid()) {
+          print("Process " + client.getClientData().getPid() + " is not valid anymore!");
+          stopMonitoring(client.getDevice());
+        }
+      }
+    }
+  }
+
+  public static class Builder {
+    private String applicationId;
+
+    /**
+     * By default, we want to add listeners to ADB
+     */
+    private boolean shouldAddListeners = true;
+
+    @NotNull
+    public Builder setApplicationId(@NotNull String appId) {
+      applicationId = appId;
+      return this;
+    }
+
+    @NotNull
+    public Builder monitorRemoteProcesses(boolean shouldMonitorRemoteProcesses) {
+      shouldAddListeners = shouldMonitorRemoteProcesses;
+      return this;
+    }
+
+    /**
+     * @throws IllegalStateException if setApplicationId was not called
+     */
+    @NotNull
+    public AndroidProcessHandler build() {
+      if (applicationId == null) {
+        throw new IllegalStateException("applicationId not set");
+      }
+
+      AndroidProcessHandler handler = new AndroidProcessHandler(applicationId);
+      if (shouldAddListeners) {
+        handler.addListenersToAdb();
+      }
+      return handler;
     }
   }
 }

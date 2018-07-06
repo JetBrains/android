@@ -109,7 +109,7 @@ public class ColorUtils {
 
     Set<StyleItemResourceValue> contrastItems = getContrastItems(context, styleAttributeName);
     for (StyleItemResourceValue contrastItem : contrastItems) {
-      StateList stateList = ResourceHelper.resolveStateList(styleResourceResolver, (ResourceValue)contrastItem, project);
+      StateList stateList = ResourceHelper.resolveStateList(styleResourceResolver, contrastItem, project);
       if (stateList != null) {
         List<StateListState> disabledStates = stateList.getDisabledStates();
         for (StateListState stateListState : stateList.getStates()) {
@@ -133,7 +133,7 @@ public class ColorUtils {
         }
       }
       else {
-        Color resolvedColor = ResourceHelper.resolveColor(styleResourceResolver, (ResourceValue)contrastItem, project);
+        Color resolvedColor = ResourceHelper.resolveColor(styleResourceResolver, contrastItem, project);
         if (resolvedColor != null) {
           contrastColorsBuilder.put("<b>" + contrastItem.getAttrName() + "</b>", resolvedColor);
         }

@@ -57,9 +57,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
   protected fun resolveReferenceUnderCaret(): PsiElement? {
     // We cannot use myFixture.elementAtCaret or TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED because JavaTargetElementEvaluator doesn't
     // consider synthetic PSI elements as "acceptable" and just returns null instead, so it wouldn't test much.
-    val rReference = TargetElementUtil.findReference(myFixture.editor)!!
-    val resolve = rReference.resolve()
-    return resolve
+    return TargetElementUtil.findReference(myFixture.editor)!!.resolve()
   }
 
   class SingleModule : LightClassesTestBase() {
@@ -225,7 +223,29 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       )
     }
 
-    fun testTopLevelClassCompletion() {
+    /**
+     * Regression test for b/110776676. p1.p2 is potentially special, because it contains the R class, p1.p2.util is a regular package that
+     * contains a regular class. We need to make sure the parent of p1.p2.util `equals` to p1.p2 from the facade, otherwise various tree
+     * views get confused.
+     */
+    fun testPackageParent() {
+      myFixture.addFileToProject(
+        "/src/p1/p2/util/Util.java",
+        // language=java
+        """
+        package p1.p2.util;
+
+        public class Util {}
+        """.trimIndent()
+      )
+
+      val utilPackage = myFixture.javaFacade.findPackage("p1.p2.util")!!
+      assertThat(utilPackage.parentPackage).isEqualTo(myFixture.javaFacade.findPackage("p1.p2"))
+    }
+
+    // TODO(b/111110952): fix this.
+    @Suppress("unused")
+    fun ignore_testTopLevelClassCompletion() {
       val activity = myFixture.addFileToProject(
         "/src/p1/p2/MainActivity.java",
         // language=java

@@ -182,7 +182,7 @@ public class ViewNodeActiveDisplay extends JComponent {
   }
 
   private void calculateNodeBounds(
-    @NotNull ViewNode node, float leftShift, float topshift,
+    @NotNull ViewNode node, float leftShift, float topShift,
     float scaleX, float scaleY, float drawScale) {
 
     DisplayInfo info = node.getDisplayInfo();
@@ -192,7 +192,7 @@ public class ViewNodeActiveDisplay extends JComponent {
     float l =
       leftShift + (info.getLeft() + info.getTranslateX()) * scaleX + info.getWidth() * (scaleX - newScaleX) / 2;
     float t =
-      topshift + (info.getTop() + info.getTranslateX()) * scaleY + info.getHeight() * (scaleY - newScaleY) / 2;
+      topShift + (info.getTop() + info.getTranslateX()) * scaleY + info.getHeight() * (scaleY - newScaleY) / 2;
 
     node.getPreviewBox().setBounds(
       (int)(l * drawScale),
@@ -202,10 +202,8 @@ public class ViewNodeActiveDisplay extends JComponent {
     );
 
     if (!node.isLeaf()) {
-      float shiftX = l - info.getScaleX();
-      float shiftY = t - info.getScaleY();
       for (ViewNode child : node.getChildren()) {
-        calculateNodeBounds(child, shiftX, shiftY, newScaleX, newScaleY, drawScale);
+        calculateNodeBounds(child, l, t, newScaleX, newScaleY, drawScale);
       }
     }
   }

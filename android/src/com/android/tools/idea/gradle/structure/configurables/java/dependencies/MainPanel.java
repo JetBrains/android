@@ -22,7 +22,10 @@ import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer
 import com.android.tools.idea.gradle.structure.configurables.issues.SingleModuleIssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.DeclaredDependenciesTableView;
-import com.android.tools.idea.gradle.structure.model.*;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
+import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaDependency;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.intellij.openapi.util.ActionCallback;
@@ -38,7 +41,6 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.util.Collections;
-import java.util.List;
 
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
@@ -135,11 +137,8 @@ class MainPanel extends AbstractDependenciesPanel {
   }
 
   private void updateIssues(@Nullable PsJavaDependency selected) {
-    List<PsIssue> issues = Collections.emptyList();
-    if (selected != null) {
-      issues = myContext.getAnalyzerDaemon().getIssues().findIssues(selected, null);
-    }
-    displayIssues(issues);
+    PsPath path = selected != null ? selected.getPath() : null;
+    displayIssues(myContext.getAnalyzerDaemon().getIssues().findIssues(path, null), path);
   }
 
   @Override

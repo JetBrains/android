@@ -60,7 +60,6 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   private SdkUpdaterConfigPanel myPanel;
   private Channel myCurrentChannel;
   private Runnable myChannelChangedCallback;
-  private List<PackageOperation.StatusChangeListener> myListeners = Lists.newArrayList();
 
   @NotNull
   @Override
@@ -83,17 +82,14 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Nullable
   @Override
   public JComponent createComponent() {
-    myChannelChangedCallback = new Runnable() {
-      @Override
-      public void run() {
-        Channel channel = StudioSettingsController.getInstance().getChannel();
-        if (myCurrentChannel == null) {
-          myCurrentChannel = channel;
-        }
-        if (!Objects.equal(channel, myCurrentChannel)) {
-          myCurrentChannel = channel;
-          myPanel.refresh();
-        }
+    myChannelChangedCallback = () -> {
+      Channel channel = StudioSettingsController.getInstance().getChannel();
+      if (myCurrentChannel == null) {
+        myCurrentChannel = channel;
+      }
+      if (!Objects.equal(channel, myCurrentChannel)) {
+        myCurrentChannel = channel;
+        myPanel.refresh(true);
       }
     };
     myPanel =
@@ -143,6 +139,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
 
   @Override
   public void apply() throws ConfigurationException {
+    boolean sourcesModified = myPanel.areSourcesModified();
     myPanel.saveSources();
 
     HtmlBuilder message = new HtmlBuilder();
@@ -223,14 +220,13 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
               PackageOperation installer = getRepoManager().getInProgressInstallOperation(remotePackage);
               if (installer != null) {
                 PackageOperation.StatusChangeListener listener = (installer1, progress) -> myPanel.getComponent().repaint();
-                myListeners.add(listener);
                 installer.registerStateChangeListener(listener);
               }
             }
           }
         }
 
-        myPanel.refresh();
+        myPanel.refresh(sourcesModified);
       }
       else {
         throw new ConfigurationException("Installation was canceled.");

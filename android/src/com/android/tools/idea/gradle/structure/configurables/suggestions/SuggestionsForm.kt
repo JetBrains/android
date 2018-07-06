@@ -17,6 +17,7 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
+import com.android.tools.idea.gradle.structure.model.PsPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
@@ -36,7 +37,7 @@ class SuggestionsForm(
 
   init {
     setViewComponent(issuesViewer.panel)
-    renderIssues(listOf())
+    renderIssues(listOf(), scope = null)
 
     context.project.forEachModule(Consumer { module ->
       module.addDependencyChangedListener(this) { dependencyChanged() }
@@ -59,9 +60,9 @@ class SuggestionsForm(
     myLoadingLabel.isVisible = context.analyzerDaemon.isRunning || context.libraryUpdateCheckerDaemon.isRunning
   }
 
-  internal fun renderIssues(issues: List<PsIssue>) {
+  internal fun renderIssues(issues: List<PsIssue>, scope: PsPath?) {
     if (Disposer.isDisposed(this)) return
-    issuesViewer.display(issues.sortedWith(IssuesByTypeAndTextComparator.INSTANCE))
+    issuesViewer.display(issues.sortedWith(IssuesByTypeAndTextComparator.INSTANCE), scope)
     updateLoading()
   }
 

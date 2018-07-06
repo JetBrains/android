@@ -557,7 +557,7 @@ public class ThemeEditorUtils {
   public static JBColor getGoodContrastPreviewBackground(@NotNull ConfiguredThemeEditorStyle theme,
                                                          @NotNull ResourceResolver resourceResolver) {
     StyleItemResourceValue themeColorBackgroundItem = resolveItemFromParents(theme, "colorBackground", true);
-    ResourceValue backgroundResourceValue = resourceResolver.resolveResValue((ResourceValue)themeColorBackgroundItem);
+    ResourceValue backgroundResourceValue = resourceResolver.resolveResValue(themeColorBackgroundItem);
     if (backgroundResourceValue != null) {
       String colorBackgroundValue = backgroundResourceValue.getValue();
       Color colorBackground = ResourceHelper.parseColor(colorBackgroundValue);

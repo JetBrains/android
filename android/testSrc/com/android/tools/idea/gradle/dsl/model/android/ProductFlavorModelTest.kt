@@ -2251,4 +2251,28 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val defaultConfig = android.defaultConfig()
     assertEquals("targetSdkVersion", 19, defaultConfig.targetSdkVersion())
   }
+
+  @Test
+  fun testEnsureSdkVersionUsesApplicationSyntax() {
+    val text = ""
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+    val defaultConfig = buildModel.android().defaultConfig()
+
+    defaultConfig.minSdkVersion().setValue(18)
+    defaultConfig.maxSdkVersion().setValue(24)
+    defaultConfig.targetSdkVersion().setValue(24)
+
+    applyChangesAndReparse(buildModel)
+
+    val expected = """
+                   android {
+                     defaultConfig {
+                       minSdkVersion 18
+                       maxSdkVersion 24
+                       targetSdkVersion 24
+                     }
+                   }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
 }

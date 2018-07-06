@@ -510,19 +510,25 @@ public class SdkUpdaterConfigPanel implements Disposable {
   /**
    * Revalidates and refreshes our packages. Notifies platform and tools components of the start and end, so they can update their UIs.
    */
-  public void refresh() {
+  public void refresh(boolean forceRemoteReload) {
     validate();
-
-    myPlatformComponentsPanel.startLoading();
-    myToolComponentsPanel.startLoading();
 
     // TODO: make progress runner handle invokes?
     Project[] projects = ProjectManager.getInstance().getOpenProjects();
     StudioProgressRunner progressRunner =
       new StudioProgressRunner(false, false, "Loading SDK", projects.length == 0 ? null : projects[0]);
-    myConfigurable.getRepoManager()
-      .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
-            progressRunner, myDownloader, mySettings, false);
+    if (forceRemoteReload) {
+      myPlatformComponentsPanel.startLoading();
+      myToolComponentsPanel.startLoading();
+      myConfigurable.getRepoManager()
+                    .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
+                          progressRunner, myDownloader, mySettings, false);
+    }
+    else {
+      myConfigurable.getRepoManager()
+                    .load(0, ImmutableList.of(myLocalUpdater), null, null,
+                          progressRunner, null, mySettings, false);
+    }
   }
 
   /**
@@ -599,7 +605,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
    * Resets our state back to what it was before the user made any changes.
    */
   public void reset() {
-    refresh();
+    refresh(true);
     Collection<File> sdkLocations = getSdkLocations();
     if (getSdkLocations().size() == 1) {
       mySdkLocationTextField.setText(sdkLocations.iterator().next().getPath());
@@ -617,10 +623,17 @@ public class SdkUpdaterConfigPanel implements Disposable {
   }
 
   /**
+   * Checks whether there have been any changes made to {@link RepositorySource}s via UI.
+   */
+  public boolean areSourcesModified() {
+    return myUpdateSitesPanel.isModified();
+  }
+
+  /**
    * Create our UI components that need custom creation.
    */
   private void createUIComponents() {
-    myUpdateSitesPanel = new UpdateSitesPanel(this::refresh);
+    myUpdateSitesPanel = new UpdateSitesPanel(() -> refresh(true));
   }
 
   /**

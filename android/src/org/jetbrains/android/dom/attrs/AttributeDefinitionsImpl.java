@@ -42,7 +42,6 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
   private final Map<String, AttributeDefinition> myAttrs = new HashMap<>();
   private final Map<String, StyleableDefinitionImpl> myStyleables = new HashMap<>();
 
-  private final Map<String, Map<String, Integer>> myEnumMap = new HashMap<>();
   private final AttributeDefinitions mySystemAttributeDefinitions;
 
   public AttributeDefinitionsImpl(@NotNull XmlFile... files) {
@@ -234,14 +233,8 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       if (strIntValue != null) {
         try {
           // Integer.decode cannot handle "ffffffff", see JDK issue 6624867
-          int intValue = (int) (long) Long.decode(strIntValue);
+          int intValue = Long.decode(strIntValue).intValue();
           def.addValueMapping(valueName, intValue);
-          Map<String, Integer> value2Int = myEnumMap.get(def.getName());
-          if (value2Int == null) {
-            value2Int = new HashMap<>();
-            myEnumMap.put(def.getName(), value2Int);
-          }
-          value2Int.put(valueName, intValue);
         }
         catch (NumberFormatException ignored) {
         }
@@ -328,13 +321,5 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       return null;
     }
     return myAttrs.get(name).getAttrGroup();
-  }
-
-  /**
-   * The keys of the returned map are attr names. The values are maps defining numerical values of the corresponding attr.
-   */
-  @NotNull
-  public Map<String, Map<String, Integer>> getEnumMap() {
-    return myEnumMap;
   }
 }

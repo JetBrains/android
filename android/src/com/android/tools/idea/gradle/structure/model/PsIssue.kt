@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.intellij.icons.AllIcons.Actions.Download
 import com.intellij.icons.AllIcons.General.*
 import com.intellij.ui.JBColor.*
@@ -28,7 +29,7 @@ interface PsIssue {
   val severity: Severity
 
   val description: String?
-  val quickFixPath: PsPath?
+  val quickFix: PsQuickFix?
 
   enum class Severity constructor(val text: String, val pluralText: String, val icon: Icon, val color: Color, val priority: Int) {
     ERROR("Error", "Errors", BalloonError, RED, 0),
@@ -38,17 +39,21 @@ interface PsIssue {
   }
 }
 
+interface PsQuickFix {
+  fun getHyperlinkDestination(context: PsContext): String?
+  fun getHtml(context: PsContext): String
+}
+
 data class PsGeneralIssue(
   override val text: String,
   override val description: String?,
   override val path: PsPath,
   override val type: PsIssueType,
   override val severity: PsIssue.Severity,
-  override val quickFixPath: PsPath? = null
+  override val quickFix: PsQuickFix? = null
 ) : PsIssue {
-  constructor (text: String, path: PsPath, type: PsIssueType, severity: PsIssue.Severity, quickFixPath: PsPath? = null) :
-    this(text, null, path, type, severity, quickFixPath)
+  constructor (text: String, path: PsPath, type: PsIssueType, severity: PsIssue.Severity, quickFix: PsQuickFix? = null) :
+    this(text, null, path, type, severity, quickFix)
 
   override fun toString(): String = "${severity.name}: $text"
 }
-

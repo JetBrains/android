@@ -122,6 +122,14 @@ public class GradleProjectInfo {
   }
 
   /**
+   * Indicates whether the project has Gradle facets.
+   * e.g. this is used to check if an opened Gradle project has already been imported or not yet.
+   */
+  public boolean hasGradleFacets() {
+      return myFacetManager.hasFacets(GradleFacet.getFacetTypeId());
+  }
+
+  /**
    * Indicates whether the project has a build.gradle file in the project's root folder.
    *
    * @return {@code true} if the project has a build.gradle file in the project's root folder; {@code false} otherwise.

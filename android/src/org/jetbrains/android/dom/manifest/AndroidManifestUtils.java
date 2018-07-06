@@ -17,6 +17,7 @@ package org.jetbrains.android.dom.manifest;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.res.aar.ProtoXmlPullParser;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
@@ -124,13 +125,13 @@ public class AndroidManifestUtils {
     return CachedValuesManager.getManager(androidFacet.getModule().getProject()).getCachedValue(androidFacet, () -> {
       // TODO(b/110188226): read the merged manifest
       Manifest manifest = androidFacet.getManifest();
-      if (manifest != null) {
-        String packageName = manifest.getPackage().getValue();
-        if (!StringUtil.isEmptyOrSpaces(packageName)) {
-          return CachedValueProvider.Result.create(packageName, manifest.getXmlTag());
-        }
+      if (manifest == null) {
+        // TODO(b/110188226): implement a ModificationTracker for the set of existing manifest files.
+        // For now we just recompute every time, which is safer than never recomputing.
+        return CachedValueProvider.Result.create(null, ModificationTracker.EVER_CHANGED);
       }
-      return null;
+      String packageName = manifest.getPackage().getValue();
+      return CachedValueProvider.Result.create(StringUtil.nullize(packageName, true), manifest.getXmlTag());
     });
   }
 

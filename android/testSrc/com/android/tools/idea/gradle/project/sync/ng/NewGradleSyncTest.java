@@ -224,7 +224,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
   public void testSyncWithVariantOnlySuccessfulSync() {
     // Simulate successful sync.
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
-    request.variantOnlySyncOptions = mock(VariantOnlySyncOptions.class);
+    request.myVariantOnlySyncOptions = mock(VariantOnlySyncOptions.class);
 
     myCallback.setDone(mock(VariantOnlyProjectModels.class), mock(ExternalSystemTaskId.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
@@ -240,7 +240,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
   public void testSyncWithVariantOnlyFailedSync() {
     // Simulate failed sync.
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
-    request.variantOnlySyncOptions = mock(VariantOnlySyncOptions.class);
+    request.myVariantOnlySyncOptions = mock(VariantOnlySyncOptions.class);
 
     myCallback.setRejected(new Throwable("Test error"));
     when(myCallbackFactory.create()).thenReturn(myCallback);
@@ -252,4 +252,6 @@ public class NewGradleSyncTest extends IdeaTestCase {
     verify(myResultHandler, never()).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener));
     verify(myResultHandler).onSyncFailed(myCallback, mySyncListener);
   }
+
+
 }

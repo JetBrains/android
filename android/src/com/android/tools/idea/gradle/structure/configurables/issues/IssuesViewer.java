@@ -18,11 +18,13 @@ package com.android.tools.idea.gradle.structure.configurables.issues;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.CollapsiblePanel;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
+import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -61,7 +63,7 @@ public class IssuesViewer {
     myRenderer = renderer;
   }
 
-  public void display(@NotNull Collection<PsIssue> issues) {
+  public void display(@NotNull Collection<PsIssue> issues, @Nullable PsPath scope) {
     if (issues.isEmpty()) {
       if (myShowEmptyText) {
         myEmptyIssuesLabel.setVisible(true);
@@ -103,7 +105,7 @@ public class IssuesViewer {
     PsIssue.Severity severity = severities.get(currentIssueIndex);
     List<PsIssue> group = issuesBySeverity.get(severity);
     updateTitle(((CollapsiblePanel)myIssuesPanel4), severity, group);
-    renderIssues(group, myIssuesView4);
+    renderIssues(group, scope, myIssuesView4);
 
     currentIssueIndex--;
     if (currentIssueIndex < 0) {
@@ -117,7 +119,7 @@ public class IssuesViewer {
     severity = severities.get(currentIssueIndex);
     group = issuesBySeverity.get(severity);
     updateTitle(((CollapsiblePanel)myIssuesPanel3), severity, group);
-    renderIssues(group, myIssuesView3);
+    renderIssues(group, scope, myIssuesView3);
 
     currentIssueIndex--;
     if (currentIssueIndex < 0) {
@@ -130,7 +132,7 @@ public class IssuesViewer {
     severity = severities.get(currentIssueIndex);
     group = issuesBySeverity.get(severity);
     updateTitle(((CollapsiblePanel)myIssuesPanel2), severity, group);
-    renderIssues(group, myIssuesView2);
+    renderIssues(group, scope, myIssuesView2);
 
     currentIssueIndex--;
     if (currentIssueIndex < 0) {
@@ -142,13 +144,13 @@ public class IssuesViewer {
     severity = severities.get(currentIssueIndex);
     group = issuesBySeverity.get(severity);
     updateTitle(((CollapsiblePanel)myIssuesPanel1), severity, group);
-    renderIssues(group, myIssuesView1);
+    renderIssues(group, scope, myIssuesView1);
 
     revalidateAndRepaintPanels();
   }
 
-  private void renderIssues(@NotNull List<PsIssue> group, @NotNull JEditorPane view) {
-    view.setText(myRenderer.render(group));
+  private void renderIssues(@NotNull List<PsIssue> group, @Nullable PsPath scope, @NotNull JEditorPane view) {
+    view.setText(myRenderer.render(group, scope));
     view.setCaretPosition(0);
   }
 

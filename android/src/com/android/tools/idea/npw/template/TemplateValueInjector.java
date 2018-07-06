@@ -73,6 +73,7 @@ import java.util.Map;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
+import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion;
 import static com.android.tools.idea.npw.model.JavaToKotlinHandler.getJavaToKotlinConversionProvider;
 import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
@@ -170,7 +171,7 @@ public final class TemplateValueInjector {
     if (target != null) { // this is a preview release
       BuildToolInfo info = target.getBuildToolInfo();
       if (info != null) {
-        myTemplateValues.put(ATTR_BUILD_TOOLS_VERSION, info.getRevision().toString());
+        addBuildToolVersion(project, info.getRevision());
       }
     }
     addGradleVersions(project);
@@ -292,8 +293,8 @@ public final class TemplateValueInjector {
 
     final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     ProgressIndicator progress = new StudioLoggerProgressIndicator(ConfigureAndroidModuleStep.class);
-    Revision buildToolRevision = getRecommendedBuildToolsRevision(sdkHandler, progress, isInstantApp);
-    myTemplateValues.put(ATTR_BUILD_TOOLS_VERSION, buildToolRevision.toString());
+
+    addBuildToolVersion(project, getRecommendedBuildToolsRevision(sdkHandler, progress, isInstantApp));
 
     File sdkLocation = sdkHandler.getLocation();
     if (sdkLocation != null) {
@@ -382,7 +383,7 @@ public final class TemplateValueInjector {
   }
 
   public void addGradleVersions(@Nullable Project project) {
-    myTemplateValues.put(ATTR_GRADLE_PLUGIN_VERSION, determineGradlePluginVersion(project));
+    myTemplateValues.put(ATTR_GRADLE_PLUGIN_VERSION, determineGradlePluginVersion(project).toString());
     myTemplateValues.put(ATTR_GRADLE_VERSION, SdkConstants.GRADLE_LATEST_VERSION);
   }
 
@@ -404,6 +405,12 @@ public final class TemplateValueInjector {
     // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
     final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
     myTemplateValues.put(ATTR_KOTLIN_VERSION, provider.getKotlinVersion());
+  }
+
+  private void addBuildToolVersion(@Nullable Project project, @NotNull Revision buildToolRevision) {
+    GradleVersion gradlePluginVersion = determineGradlePluginVersion(project);
+    myTemplateValues.put(ATTR_BUILD_TOOLS_VERSION, buildToolRevision.toString());
+    myTemplateValues.put(ATTR_EXPLICIT_BUILD_TOOLS_VERSION, needsExplicitBuildToolsVersion(gradlePluginVersion, buildToolRevision));
   }
 
   private static void addDebugKeyStore(@NotNull Map<String, Object> templateValues, @Nullable AndroidFacet facet) {
@@ -435,20 +442,20 @@ public final class TemplateValueInjector {
    * @param project If {@code null} (ie we are creating a new project) returns the recommended gradle version.
    */
   @NotNull
-  private static String determineGradlePluginVersion(@Nullable Project project) {
-    String defaultGradleVersion = AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion();
+  private static GradleVersion determineGradlePluginVersion(@Nullable Project project) {
+    GradleVersion defaultGradleVersion = GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
     if (project == null) {
       return defaultGradleVersion;
     }
 
     GradleVersion versionInUse = GradleUtil.getAndroidGradleModelVersionInUse(project);
     if (versionInUse != null) {
-      return versionInUse.toString();
+      return versionInUse;
     }
 
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(project);
     GradleVersion pluginVersion = (androidPluginInfo == null) ? null : androidPluginInfo.getPluginVersion();
-    return (pluginVersion == null) ? defaultGradleVersion : pluginVersion.toString();
+    return (pluginVersion == null) ? defaultGradleVersion : pluginVersion;
   }
 
   private static Logger getLog() {

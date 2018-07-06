@@ -125,7 +125,9 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     // Prepare
     myExecuteShellCommandLatch = new CountDownLatch(2);
 
-    AndroidProcessHandler processHandler = new AndroidProcessHandler(APPLICATION_ID, false);
+    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder()
+      .setApplicationId(APPLICATION_ID)
+      .build();
     Collection<String> text = new ArrayList<>();
 
     processHandler.addProcessListener(new ProcessAdapter() {
@@ -155,7 +157,11 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     // Prepare
     myExecuteShellCommandLatch = new CountDownLatch(2);
     StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.override(false);
-    AndroidProcessHandler processHandler = new AndroidProcessHandler(APPLICATION_ID, false);
+
+    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder()
+      .setApplicationId(APPLICATION_ID)
+      .build();
+
     List<ProcessEvent> events = new ArrayList<>();
     processHandler.addProcessListener(new ProcessAdapter() {
       @Override
@@ -181,7 +187,11 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
 
     LogcatOutputSettings.getInstance().setRunOutputEnabled(false);
     LogcatOutputSettings.getInstance().setDebugOutputEnabled(false);
-    AndroidProcessHandler processHandler = new AndroidProcessHandler(APPLICATION_ID, false);
+
+    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder()
+      .setApplicationId(APPLICATION_ID)
+      .build();
+
     List<ProcessEvent> events = new ArrayList<>();
     processHandler.addProcessListener(new ProcessAdapter() {
       @Override

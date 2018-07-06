@@ -25,15 +25,17 @@ import trebuchet.io.StreamingLineReader
 import trebuchet.io.StreamingReader
 import trebuchet.model.fragments.ModelFragment
 import trebuchet.util.contains
+import java.util.regex.Pattern
 
 class FtraceImporter(val feedback: ImportFeedback) : Importer {
     var foundHeader = false
-    val state = FtraceImporterState(feedback)
+    var state = FtraceImporterState(feedback)
     val parser = FtraceLine.Parser(state.stringCache)
 
     // Create captured lambads here to avoid extra kotlin-generated overhead
     private val lineReaderCallback: (DataSlice) -> Unit = this::handleLine
-    private val ftraceParserCallback: (FtraceLine) -> Unit = state::importLine
+    private var ftraceParserCallback: (FtraceLine) -> Unit = state::importLine
+    private val coreStartedRegex = Pattern.compile("^#+ CPU \\d buffer started #+")
 
     override fun import(stream: StreamingReader): ModelFragment? {
         val lineReader = StreamingLineReader(1024, stream)
@@ -43,7 +45,22 @@ class FtraceImporter(val feedback: ImportFeedback) : Importer {
     }
 
     fun handleLine(line: DataSlice) {
-        if (line[0] == '#'.toByte()) {
+        // This should never happen. However due to the dereference below we guard against it so we don't throw out of bounds exceptions.
+        if (line.buffer.size < 2) {
+            return
+        }
+        // The format of the line buffer should be either a series of comments, or a tracer line. Null and empty are handled
+        // at a higher level.
+        if (line[1] == '#'.toByte() && coreStartedRegex.matcher(line.toString()).matches()) {
+            // Fix inconsistencies in traces due to circular buffering.
+            //
+            //  The circular buffers are kept per CPU, so it is not guaranteed that the
+            //  beginning of a slice is overwritten before the end. To work around this, we
+            //  throw away the prefix of the trace where not all CPUs have events yet.
+            state = FtraceImporterState(feedback)
+            ftraceParserCallback = state::importLine
+        }
+        else if (line[0] == '#'.toByte()) {
             foundHeader = true
         } else if (foundHeader) {
             try {

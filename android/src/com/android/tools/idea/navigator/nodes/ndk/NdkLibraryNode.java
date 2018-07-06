@@ -17,7 +17,6 @@ package com.android.tools.idea.navigator.nodes.ndk;
 
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
-import com.android.builder.model.NativeFolder;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -119,13 +118,7 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
   @NotNull
   private static List<VirtualFile> getSourceFolders(@NotNull NativeArtifact artifact) {
     List<File> sourceFolders = new ArrayList<>();
-    for (File headerRoot : artifact.getExportedHeaders()) {
-      sourceFolders.add(headerRoot);
-    }
-    for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
-      sourceFolders.add(sourceFolder.getFolderPath());
-    }
-
+    sourceFolders.addAll(artifact.getExportedHeaders());
     return convertToVirtualFiles(sourceFolders);
   }
 

@@ -16,15 +16,14 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
-import com.android.tools.idea.gradle.structure.model.meta.SimpleProperty
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
+import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
 
 interface PsLibraryDependency : PsBaseDependency {
-  val parent: PsModule
-
+  override val parent: PsModule
   val spec: PsArtifactDependencySpec
 
-  var isModified: Boolean
+  override val path: PsLibraryDependencyNavigationPath get() = PsLibraryDependencyNavigationPath(this)
 }
 
 interface PsDeclaredLibraryDependency: PsLibraryDependency, PsDeclaredDependency {

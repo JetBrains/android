@@ -20,6 +20,7 @@ import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
+import com.android.tools.idea.npw.cpp.CppStandardType;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -95,7 +96,7 @@ public class CreateNewProjectWithCpp2Test {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void createNewProjectWithCpp2() throws Exception {
-    createNewProjectWithCpp(true, false, guiTest);
+    createNewProjectWithCpp(CppStandardType.CXX11, guiTest);
   }
 
   @After

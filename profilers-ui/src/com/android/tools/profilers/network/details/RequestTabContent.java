@@ -15,36 +15,23 @@
  */
 package com.android.tools.profilers.network.details;
 
-import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profilers.network.details.HttpDataViewModel.ConnectionType;
 import com.android.tools.profilers.network.httpdata.HttpData;
-import com.android.tools.profilers.network.httpdata.Payload;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 
 /**
  * Tab which shows a request's headers and payload.
  */
 final class RequestTabContent extends TabContent {
 
-  private static final String ID_BODY_COMPONENT = "REQUEST_PAYLOAD_COMPONENT";
   // Use Application Headers as title because the infrastructure added headers of HttpURLConnection
   // may be missed if users do not set.
   private static final String HEADERS_TITLE = "Application Headers";
@@ -84,59 +71,7 @@ final class RequestTabContent extends TabContent {
 
     JComponent headersComponent = httpDataViewModel.createHeaderComponent(ConnectionType.REQUEST);
     myPanel.add(TabUiUtils.createHideablePanel(HEADERS_TITLE, headersComponent, null));
-
-    Payload requestPayload = Payload.newRequestPayload(myModel, data);
-    JComponent bodyComponent = httpDataViewModel.createBodyComponent(myComponents, ConnectionType.REQUEST);
-    bodyComponent.setName(ID_BODY_COMPONENT);
-    JComponent northEastComponent = null;
-    HttpData.ContentType contentType = data.getRequestHeader().getContentType();
-    String contentToParse = "";
-    if (contentType.isFormData()) {
-      contentToParse = requestPayload.getBytes().toStringUtf8();
-    }
-
-    if (!contentToParse.isEmpty()) {
-      final CardLayout cardLayout = new CardLayout();
-      final JPanel payloadPanel = new JPanel(cardLayout);
-      String cardViewParsed = "View Parsed";
-      String cardViewSource = "View Source";
-
-      final Map<String, String> parsedContent = new LinkedHashMap<>();
-      Stream<String[]> parsedContentStream = Arrays.stream(contentToParse.trim().split("&")).map(s -> s.split("=", 2));
-      parsedContentStream.forEach(a -> parsedContent.put(a[0], a.length > 1 ? a[1] : ""));
-      payloadPanel.add(TabUiUtils.createStyledMapComponent(parsedContent), cardViewParsed);
-      payloadPanel.add(bodyComponent, cardViewSource);
-      bodyComponent = payloadPanel;
-
-      final JLabel toggleLabel = new JLabel(cardViewSource);
-      northEastComponent = toggleLabel;
-      Color toggleHoverColor = AdtUiUtils.overlayColor(toggleLabel.getBackground().getRGB(), toggleLabel.getForeground().getRGB(), 0.9f);
-      Color toggleDefaultColor = AdtUiUtils.overlayColor(toggleLabel.getBackground().getRGB(), toggleHoverColor.getRGB(), 0.6f);
-      toggleLabel.setForeground(toggleDefaultColor);
-      toggleLabel.setFont(STANDARD_FONT);
-      toggleLabel.setBorder(new JBEmptyBorder(0, 10, 0, 5));
-      toggleLabel.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-          toggleLabel.setText(cardViewSource.equals(toggleLabel.getText()) ? cardViewParsed : cardViewSource);
-          cardLayout.next(payloadPanel);
-        }
-
-        @Override
-        public void mouseEntered(MouseEvent e) {
-          toggleLabel.setForeground(toggleHoverColor);
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-          toggleLabel.setForeground(toggleDefaultColor);
-        }
-      });
-    }
-
-    HideablePanel bodyPanel =
-      TabUiUtils.createHideablePanel(httpDataViewModel.getBodyTitle(ConnectionType.REQUEST), bodyComponent, northEastComponent);
-    myPanel.add(bodyPanel);
+    myPanel.add(httpDataViewModel.createBodyComponent(myComponents, ConnectionType.REQUEST));
   }
 
   @Override
@@ -146,8 +81,7 @@ final class RequestTabContent extends TabContent {
 
   @Nullable
   @VisibleForTesting
-  JComponent findPayloadViewer() {
-    JComponent bodyComponent = TabUiUtils.findComponentWithUniqueName(myPanel, ID_BODY_COMPONENT);
-    return HttpDataViewModel.findPayloadViewer(bodyComponent);
+  JComponent findPayloadBody() {
+    return TabUiUtils.findComponentWithUniqueName(myPanel, ConnectionType.REQUEST.getBodyComponentId());
   }
 }

@@ -72,7 +72,7 @@ class DestinationClassEditorTest : NavTestCase() {
     }
     val property = SimpleProperty(ATTR_NAME, listOf(model.find("f1")!!), ANDROID_URI, null)
 
-    EnumEditorFixture.create({_, combo -> DestinationClassEditor(DestinationClassEditor.Listener, combo)}).use {
+    EnumEditorFixture.create { _, combo -> DestinationClassEditor(DestinationClassEditor.Listener, combo)}.use {
       it.setProperty(property)
         .gainFocus()
         .setSelectedModelItem(ValueWithDisplayString("mytest.navtest.MainActivity", "mytest.navtest.MainActivity"))

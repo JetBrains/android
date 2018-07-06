@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.naveditor
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.RunIn
+import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture
 import com.intellij.openapi.application.ApplicationManager
@@ -84,6 +86,7 @@ class DestinationListTest {
     assertEquals(listOf("new_fragment"), destinationListFixture.components.map { it.id })
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/110924391
   @Test
   @Throws(Exception::class)
   fun testSelectComponent() {
@@ -106,8 +109,8 @@ class DestinationListTest {
     val surfaceSize = editor
       .navSurface
       .target().extentSize
-    assertTrue(
-      Point(surfaceSize.width / 2, surfaceSize.height / 2).distance(editor.navSurface.findDestination("first_screen").midPoint) < 2)
+    val distance = Point(surfaceSize.width / 2, surfaceSize.height / 2).distance(editor.navSurface.findDestination("first_screen").midPoint)
+    assertTrue(distance < 2, distance.toString())
     assertEquals(1.0, editor.navSurface.scale)
   }
 

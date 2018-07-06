@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-interface PsBaseDependency {
-  val name: String
+interface PsBaseDependency : PsModel {
   val joinedConfigurationNames: String
   fun toText(type: PsDependency.TextType): String
 }

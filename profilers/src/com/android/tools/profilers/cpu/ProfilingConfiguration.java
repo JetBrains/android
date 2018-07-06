@@ -30,8 +30,6 @@ public class ProfilingConfiguration {
 
   public static final int DEFAULT_SAMPLING_INTERVAL_US = 1000;
 
-  public static final String ATRACE = "Trace System Calls";
-
   /**
    * Name to identify the profiling preference. It should be displayed in the preferences list.
    */

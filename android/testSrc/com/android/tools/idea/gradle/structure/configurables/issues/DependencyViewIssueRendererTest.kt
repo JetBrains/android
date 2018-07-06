@@ -16,10 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.issues
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
-import com.android.tools.idea.gradle.structure.model.PsIssue
-import com.android.tools.idea.gradle.structure.model.PsIssueType
-import com.android.tools.idea.gradle.structure.model.PsPath
+import com.android.tools.idea.gradle.structure.model.*
 import org.hamcrest.CoreMatchers
 import org.junit.Assert.assertThat
 import org.junit.Before
@@ -32,72 +29,68 @@ class DependencyViewIssueRendererTest {
   private lateinit var context: PsContext
   private lateinit var testIssuePath: PsPath
   private lateinit var testIssue: PsGeneralIssue
-  private lateinit var quickFixPath: PsPath
+  private lateinit var quickFix: PsQuickFix
 
   @Before
   fun setUp() {
     initMocks(this)
     testIssuePath = createPath("/PATH")
-    quickFixPath = createPath("/QUICK_FIX")
+    quickFix = createFix("/QUICK_FIX")
     testIssue = PsGeneralIssue("TEXT", "DESCRIPTION", testIssuePath, PsIssueType.PROJECT_ANALYSIS, PsIssue.Severity.ERROR, null)
   }
 
   private fun createPath(text: String): PsPath = object : PsPath {
-    override fun toText(type: PsPath.TexType): String = when (type) {
-      PsPath.TexType.FOR_COMPARE_TO -> "FOR_COMPARE_$text"
-      PsPath.TexType.PLAIN_TEXT -> "PLAIN_TEXT_$text"
-      else -> throw AssertionError()
-    }
+    override fun getHyperlinkDestination(context: PsContext): String? = "@$text"
+    override fun toString(): String = text
+  }
 
+  private fun createFix(text: String): PsQuickFix = object : PsQuickFix {
     override fun getHyperlinkDestination(context: PsContext): String? = throw UnsupportedOperationException()
-
     override fun getHtml(context: PsContext): String = "<$text>"
-
-    override fun getParents(): List<PsPath> = listOf()
   }
 
   @Test
   fun testRenderIssue() {
-    val renderer = DependencyViewIssueRenderer(context, false, false)
-    assertThat(renderIssue(renderer), CoreMatchers.`is`("TEXT"))
+    val renderer = DependencyViewIssueRenderer(context, false)
+    assertThat(renderIssue(renderer, testIssuePath), CoreMatchers.`is`("TEXT"))
   }
 
   @Test
   fun testRenderIssue_quickFix() {
-    testIssue = testIssue.copy(quickFixPath = quickFixPath)
-    val renderer = DependencyViewIssueRenderer(context, false, false)
-    assertThat(renderIssue(renderer), CoreMatchers.`is`("TEXT </QUICK_FIX>"))
+    testIssue = testIssue.copy(quickFix = quickFix)
+    val renderer = DependencyViewIssueRenderer(context, false)
+    assertThat(renderIssue(renderer, testIssuePath), CoreMatchers.`is`("TEXT </QUICK_FIX>"))
   }
 
   @Test
   fun testRenderIssue_renderPath() {
-    val renderer = DependencyViewIssueRenderer(context, true, false)
-    assertThat(renderIssue(renderer), CoreMatchers.`is`("</PATH>: TEXT"))
+    val renderer = DependencyViewIssueRenderer(context, false)
+    assertThat(renderIssue(renderer, null), CoreMatchers.`is`("<a href=\"@/PATH\">/PATH</a>: TEXT"))
   }
 
   @Test
   fun testRenderIssue_renderPathAndQuickFix() {
-    testIssue = testIssue.copy(quickFixPath = quickFixPath)
-    val renderer = DependencyViewIssueRenderer(context, true, false)
-    assertThat(renderIssue(renderer), CoreMatchers.`is`("</PATH>: TEXT </QUICK_FIX>"))
+    testIssue = testIssue.copy(quickFix = quickFix)
+    val renderer = DependencyViewIssueRenderer(context, false)
+    assertThat(renderIssue(renderer, null), CoreMatchers.`is`("<a href=\"@/PATH\">/PATH</a>: TEXT </QUICK_FIX>"))
   }
 
-  private fun renderIssue(renderer: IssueRenderer): String {
+  private fun renderIssue(renderer: IssueRenderer, scope: PsPath?): String {
     val sb = StringBuilder()
-    renderer.renderIssue(sb, testIssue)
+    renderer.renderIssue(sb, testIssue, scope)
     return sb.toString()
   }
 
   @Test
   fun testRenderIssue_renderDescription() {
-    val renderer = DependencyViewIssueRenderer(context, false, true)
-    assertThat(renderIssue(renderer), CoreMatchers.`is`("TEXT<br/><br/>DESCRIPTION"))
+    val renderer = DependencyViewIssueRenderer(context, true)
+    assertThat(renderIssue(renderer, testIssuePath), CoreMatchers.`is`("TEXT<br/><br/>DESCRIPTION"))
   }
 
   @Test
   fun testRenderIssue_renderDescriptionAndQuickFix() {
-    testIssue = testIssue.copy(quickFixPath = quickFixPath)
-    val renderer = DependencyViewIssueRenderer(context, false, true)
-    assertThat(renderIssue(renderer), CoreMatchers.`is`("TEXT </QUICK_FIX><br/><br/>DESCRIPTION"))
+    testIssue = testIssue.copy(quickFix = quickFix)
+    val renderer = DependencyViewIssueRenderer(context, true)
+    assertThat(renderIssue(renderer, testIssuePath), CoreMatchers.`is`("TEXT </QUICK_FIX><br/><br/>DESCRIPTION"))
   }
 }

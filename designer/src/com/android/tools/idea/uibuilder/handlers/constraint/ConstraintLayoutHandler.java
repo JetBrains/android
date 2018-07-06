@@ -156,12 +156,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   @Override
   @NotNull
-  public String getGradleCoordinateId(@NotNull String tagName) {
-    return CONSTRAINT_LAYOUT_LIB_ARTIFACT;
-  }
-
-  @Override
-  @NotNull
   public Map<String, Map<String, String>> getEnumPropertyValues(@SuppressWarnings("unused") @NotNull NlComponent component) {
     Map<String, String> values = ImmutableMap.of("0dp", "match_constraint", VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT);
     return ImmutableMap.of(ATTR_LAYOUT_WIDTH, values,

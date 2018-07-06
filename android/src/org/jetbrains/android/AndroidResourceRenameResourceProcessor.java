@@ -22,6 +22,7 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.*;
 import com.android.tools.lint.detector.api.Lint;
@@ -37,6 +38,7 @@ import com.intellij.openapi.command.undo.DocumentReference;
 import com.intellij.openapi.command.undo.DocumentReferenceManager;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -65,10 +67,12 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.MultiMap;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
+import org.jetbrains.android.augment.AndroidLightField;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
+import org.jetbrains.android.dom.wrappers.ResourceFieldElementWrapper;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
@@ -106,35 +110,39 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   @Override
   public boolean canProcessElement(@NotNull final PsiElement element) {
     return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
-      final PsiElement element1 = LazyValueResourceElementWrapper.computeLazyElement(element);
-      if (element1 == null) {
+      final PsiElement computedElement = LazyValueResourceElementWrapper.computeLazyElement(element);
+      if (computedElement == null) {
         return false;
       }
 
-      if (element1 instanceof PsiFile) {
-        return AndroidFacet.getInstance(element1) != null && AndroidResourceUtil.isInResourceSubdirectory((PsiFile)element1, null);
+      if (computedElement instanceof PsiFile) {
+        return AndroidFacet.getInstance(computedElement) != null
+               && AndroidResourceUtil.isInResourceSubdirectory((PsiFile)computedElement, null);
       }
-      else if (element1 instanceof PsiField) {
-        PsiField field = (PsiField)element1;
+      else if (computedElement instanceof PsiField) {
+        PsiField field = (PsiField)computedElement;
         if (AndroidResourceUtil.isResourceField(field)) {
           return !AndroidResourceUtil.findResourcesByField(field).isEmpty();
         }
       }
-      else if (element1 instanceof XmlAttributeValue) {
-        LocalResourceManager manager = LocalResourceManager.getInstance(element1);
+      else if (computedElement instanceof ResourceFieldElementWrapper) {
+        return true;
+      }
+      else if (computedElement instanceof XmlAttributeValue) {
+        LocalResourceManager manager = LocalResourceManager.getInstance(computedElement);
         if (manager != null) {
-          if (AndroidResourceUtil.isIdDeclaration((XmlAttributeValue)element1)) {
+          if (AndroidResourceUtil.isIdDeclaration((XmlAttributeValue)computedElement)) {
             return true;
           }
           // then it is value resource
-          XmlTag tag = PsiTreeUtil.getParentOfType(element1, XmlTag.class);
+          XmlTag tag = PsiTreeUtil.getParentOfType(computedElement, XmlTag.class);
           return tag != null &&
                  DomManager.getDomManager(tag.getProject()).getDomElement(tag) instanceof ResourceElement &&
                  manager.getValueResourceType(tag) != null;
         }
       }
-      else if (element1 instanceof PsiClass) {
-        PsiClass cls = (PsiClass)element1;
+      else if (computedElement instanceof PsiClass) {
+        PsiClass cls = (PsiClass)computedElement;
         if (AndroidDomUtil.isInheritor(cls, CLASS_VIEW)) {
           return true;
         }
@@ -143,37 +151,50 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     });
   }
 
+  @Nullable
+  @Override
+  public PsiElement substituteElementToRename(@NotNull PsiElement element, @Nullable Editor editor) {
+    if (StudioFlags.IN_MEMORY_R_CLASSES.get() && element instanceof AndroidLightField) {
+      return new ResourceFieldElementWrapper((AndroidLightField)element);
+    }
+
+    return super.substituteElementToRename(element, editor);
+  }
+
   @Override
   public void prepareRenaming(@NotNull PsiElement element, @NotNull String newName, @NotNull Map<PsiElement, String> allRenames) {
-    final PsiElement element1 = LazyValueResourceElementWrapper.computeLazyElement(element);
-    if (element1 == null) {
+    final PsiElement computedElement = LazyValueResourceElementWrapper.computeLazyElement(element);
+    if (computedElement == null) {
       return;
     }
 
     // TODO: support renaming alternative value resources
 
-    AndroidFacet facet = AndroidFacet.getInstance(element1);
+    AndroidFacet facet = AndroidFacet.getInstance(computedElement);
     assert facet != null;
-    if (element1 instanceof PsiFile) {
-      prepareResourceFileRenaming((PsiFile)element1, newName, allRenames, facet);
+    if (computedElement instanceof PsiFile) {
+      prepareResourceFileRenaming((PsiFile)computedElement, newName, allRenames, facet);
     }
-    else if (element1 instanceof PsiClass) {
-      PsiClass cls = (PsiClass)element1;
+    else if (computedElement instanceof PsiClass) {
+      PsiClass cls = (PsiClass)computedElement;
       if (AndroidDomUtil.isInheritor(cls, CLASS_VIEW)) {
         prepareCustomViewRenaming(cls, newName, allRenames, facet);
       }
     }
-    else if (element1 instanceof XmlAttributeValue) {
-      XmlAttributeValue value = (XmlAttributeValue)element1;
+    else if (computedElement instanceof XmlAttributeValue) {
+      XmlAttributeValue value = (XmlAttributeValue)computedElement;
       if (AndroidResourceUtil.isIdDeclaration(value)) {
         prepareIdRenaming(value, newName, allRenames, facet);
       }
       else {
-        prepareValueResourceRenaming(element1, newName, allRenames, facet);
+        prepareValueResourceRenaming(computedElement, newName, allRenames, facet);
       }
     }
-    else if (element1 instanceof PsiField) {
-      prepareResourceFieldRenaming((PsiField)element1, newName, allRenames);
+    else if (computedElement instanceof PsiField) {
+      prepareResourceFieldRenaming((PsiField)computedElement, newName, allRenames);
+    }
+    else if (computedElement instanceof ResourceFieldElementWrapper) {
+      prepareResourceFieldRenaming(((ResourceFieldElementWrapper)computedElement).getWrappee(), newName, allRenames);
     }
   }
 
@@ -485,11 +506,23 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     }
   }
 
+  @NotNull
+  @Override
+  public Collection<PsiReference> findReferences(@NotNull PsiElement element, boolean searchInCommentsAndStrings) {
+    if (element instanceof ResourceFieldElementWrapper) {
+      element = ((ResourceFieldElementWrapper)element).getWrappee();
+    }
+    return super.findReferences(element, searchInCommentsAndStrings);
+  }
+
   @Override
   public void renameElement(@NotNull PsiElement element, @NotNull final String newName, @NotNull UsageInfo[] usages, @Nullable RefactoringElementListener listener)
     throws IncorrectOperationException {
     if (element instanceof PsiField) {
       new RenameJavaVariableProcessor().renameElement(element, newName, usages, listener);
+    }
+    else if (element instanceof ResourceFieldElementWrapper) {
+      new RenameJavaVariableProcessor().renameElement(((ResourceFieldElementWrapper)element).getWrappee(), newName, usages, listener);
     }
     else {
       if (element instanceof PsiNamedElement) {

@@ -17,30 +17,20 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.BaseSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkFacetModuleSetupStep;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class NdkModuleSetup {
-  @NotNull private final NdkModuleSetupStep[] mySetupSteps;
-
+public class NdkModuleSetup extends BaseSetup<NdkModuleSetupStep, NdkModuleModel> {
   public NdkModuleSetup() {
     this(new NdkFacetModuleSetupStep(), new ContentRootModuleSetupStep());
   }
 
   @VisibleForTesting
   NdkModuleSetup(@NotNull NdkModuleSetupStep... setupSteps) {
-    mySetupSteps = setupSteps;
-  }
-
-  public void setUpModule(@NotNull ModuleSetupContext context, @Nullable NdkModuleModel ndkModuleModel, boolean syncSkipped) {
-    for (NdkModuleSetupStep step : mySetupSteps) {
-      if (syncSkipped && !step.invokeOnSkippedSync()) {
-        continue;
-      }
-      step.setUpModule(context, ndkModuleModel);
-    }
+    super(setupSteps);
   }
 }

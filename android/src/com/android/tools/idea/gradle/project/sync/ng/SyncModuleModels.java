@@ -20,6 +20,7 @@ import com.android.builder.model.ModelBuilderParameter;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaProject;
+import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.model.BuildIdentifier;

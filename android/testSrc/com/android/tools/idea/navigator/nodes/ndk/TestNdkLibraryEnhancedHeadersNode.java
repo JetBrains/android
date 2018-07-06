@@ -16,7 +16,6 @@
 package com.android.tools.idea.navigator.nodes.ndk;
 
 import com.android.builder.model.NativeArtifact;
-import com.android.builder.model.NativeFolder;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeLayout;
 import com.android.tools.tests.LeakCheckerRule;
 import com.google.common.collect.Lists;
@@ -25,8 +24,6 @@ import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.junit.ClassRule;
@@ -161,10 +158,6 @@ public class TestNdkLibraryEnhancedHeadersNode extends IdeaTestCase {
 
   private static List<VirtualFile> getSourceFolders(@NotNull NativeArtifact artifact) {
     List<File> sourceFolders = new ArrayList<>(artifact.getExportedHeaders());
-    for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
-      sourceFolders.add(sourceFolder.getFolderPath());
-    }
-
     return convertToVirtualFiles(sourceFolders);
   }
 
@@ -201,11 +194,6 @@ public class TestNdkLibraryEnhancedHeadersNode extends IdeaTestCase {
     List<? extends AbstractTreeNode> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
     AbstractTreeNode child = children.get(0);
-    List<VirtualFile> sourceFolders = getSourceFolders(layout.getNativeIncludes().myArtifacts.get(0));
-    assertThat(sourceFolders).hasSize(3);
-    for (VirtualFile folder : sourceFolders) {
-      assertThat(node.contains(folder)).isTrue();
-    }
     assertThat(child.toString()).isEqualTo("includes");
     List<? extends AbstractTreeNode> children2 = new ArrayList<>(child.getChildren());
     assertThat(children2).hasSize(2);
@@ -213,11 +201,6 @@ public class TestNdkLibraryEnhancedHeadersNode extends IdeaTestCase {
     PsiFileNode child2child2 = (PsiFileNode)children2.get(1);
     assertThat(child2child1.getVirtualFile().getName()).isEqualTo("bar.h");
     assertThat(child2child2.getVirtualFile().getName()).isEqualTo("foo.h");
-    PsiDirectory[] folders = node.getFolders();
-    assertThat(folders.length).isEqualTo(3);
-    assertThat(folders[0].getName()).isEqualTo("sub1");
-    assertThat(folders[1].getName()).isEqualTo("sub1");
-    assertThat(folders[2].getName()).isEqualTo("sub2");
     assertThat(node.getSortKey()).isEqualTo("native-library-typenative-library-name");
     assertThat(node.getTypeSortKey()).isEqualTo("native-library-typenative-library-name");
   }
@@ -298,14 +281,6 @@ public class TestNdkLibraryEnhancedHeadersNode extends IdeaTestCase {
     assertThatNodeIs(children2.get(5), "includes/my-sdk1/foo1.h");
     assertThatNodeIs(children2.get(6), "includes/my-sdk2/bar2.h");
     assertThatNodeIs(children2.get(7), "includes/my-sdk2/foo2.h");
-    PsiDirectory[] folders = node.getFolders();
-    assertThat(folders.length).isEqualTo(6);
-    assertThat(folders[0].getName()).isEqualTo("sub1a");
-    assertThat(folders[1].getName()).isEqualTo("sub1a");
-    assertThat(folders[2].getName()).isEqualTo("sub1b");
-    assertThat(folders[3].getName()).isEqualTo("sub2x");
-    assertThat(folders[4].getName()).isEqualTo("sub2x");
-    assertThat(folders[5].getName()).isEqualTo("sub2x");
   }
 
   private void assertThatNodeIs(AbstractTreeNode node, String name) {

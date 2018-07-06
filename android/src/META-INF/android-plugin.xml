@@ -100,6 +100,10 @@
       <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="before"/>
     </group>
 
+    <action id="SelectDeviceComboBox" class="com.android.tools.idea.run.deployment.SelectDeviceComboBoxAction">
+      <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="after"/>
+    </action>
+
     <action id="MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleProject"/>
     </action>
@@ -1105,7 +1109,13 @@
 
     <codeInsight.unresolvedReferenceQuickFixProvider implementation="org.jetbrains.android.inspections.AndroidResourceQuickFixProvider"/>
     <lang.psiAugmentProvider implementation="org.jetbrains.android.augment.AndroidPsiAugmentProvider"/>
-    <java.elementFinder implementation="com.android.tools.idea.res.ProjectSystemPsiElementFinder" order="first, before java"/>
+
+    <!-- Finder for light R classes, runs before the default finder. -->
+    <java.elementFinder implementation="com.android.tools.idea.res.ProjectSystemPsiClassFinder" order="first, before java"/>
+
+    <!-- Finder for light packages, runs last. Light packages are only used if regular PsiPackages don't exist for light classes. -->
+    <java.elementFinder implementation="com.android.tools.idea.res.ProjectSystemPsiPackageFinder" order="last"/>
+
     <java.elementFinder implementation="com.android.tools.idea.res.AndroidInternalRClassFinder"/>
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidLightPackage$InstanceCache" />
     <projectService serviceImplementation="com.android.tools.idea.res.ProjectLightResourceClassService" />
@@ -1204,6 +1214,9 @@
 
     <usageGroupingRuleProvider implementation="org.jetbrains.android.refactoring.ResourcePackageGroupingRuleProvider" />
     <projectService serviceImplementation="com.android.tools.idea.stats.ToolWindowTrackerService" />
+
+    <projectImportProvider implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectImportProvider"/>
+    <projectImportBuilder implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectImportProvider$AndroidGradleImportBuilder"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">

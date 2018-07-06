@@ -91,13 +91,13 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   @NotNull
   public ResolvedPropertyModel maxSdkVersion() {
-    return getModelForProperty(MAX_SDK_VERSION);
+    return getModelForProperty(MAX_SDK_VERSION, true);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel minSdkVersion() {
-    return getModelForProperty(MIN_SDK_VERSION);
+    return getModelForProperty(MIN_SDK_VERSION, true);
   }
 
   @Override
@@ -149,7 +149,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   @NotNull
   public ResolvedPropertyModel targetSdkVersion() {
-    return getModelForProperty(TARGET_SDK_VERSION);
+    return getModelForProperty(TARGET_SDK_VERSION, true);
   }
 
   @Override

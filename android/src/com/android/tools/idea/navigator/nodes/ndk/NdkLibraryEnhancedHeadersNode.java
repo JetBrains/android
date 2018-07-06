@@ -18,9 +18,7 @@ package com.android.tools.idea.navigator.nodes.ndk;
 
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
-import com.android.builder.model.NativeFolder;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
-import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.NativeIncludes;
 import com.google.common.collect.Iterables;
@@ -122,9 +120,6 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
   @NotNull
   private static List<VirtualFile> getSourceFolders(@NotNull NativeArtifact artifact) {
     List<File> sourceFolders = new ArrayList<>(artifact.getExportedHeaders());
-    for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
-      sourceFolders.add(sourceFolder.getFolderPath());
-    }
 
     return convertToVirtualFiles(sourceFolders);
   }

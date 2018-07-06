@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManager;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
@@ -46,6 +45,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
+
+import java.util.List;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.ng.GradleSyncProgress.notifyProgress;
@@ -86,6 +87,15 @@ class SyncExecutor {
     mySelectedVariantCollector = selectedVariantCollector;
   }
 
+  @NotNull
+  List<SyncModuleModels> fetchGradleModels(ProgressIndicator indicator) {
+    GradleExecutionSettings executionSettings = findGradleExecutionSettings();
+    Function<ProjectConnection, SyncProjectModels> syncFunction =
+      connection -> doFetchModels(connection, executionSettings, indicator, createId(myProject), null);
+    SyncProjectModels models = myHelper.execute(getBaseDirPath(myProject).getPath(), executionSettings, syncFunction);
+    return models.getModuleModels();
+  }
+
   void syncProject(@NotNull ProgressIndicator indicator,
                    @NotNull SyncExecutionCallback callback) {
     syncProject(indicator, callback, null /* full gradle sync*/);
@@ -100,11 +110,7 @@ class SyncExecutor {
 
     // TODO: Handle sync cancellation.
 
-    GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(myProject);
-    // We try to avoid passing JVM arguments, to share Gradle daemons between Gradle sync and Gradle build.
-    // If JVM arguments from Gradle sync are different than the ones from Gradle build, Gradle won't reuse daemons. This is bad because
-    // daemons are expensive (memory-wise) and slow to start.
-    executionSettings.withArguments(myCommandLineArgs.get(myProject)).withVmOptions(emptyList());
+    GradleExecutionSettings executionSettings = findGradleExecutionSettings();
 
     Function<ProjectConnection, Void> syncFunction = connection -> {
       syncProject(connection, executionSettings, indicator, callback, options);
@@ -117,6 +123,16 @@ class SyncExecutor {
     catch (Throwable e) {
       callback.setRejected(e);
     }
+  }
+
+  @NotNull
+  private GradleExecutionSettings findGradleExecutionSettings() {
+    GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(myProject);
+    // We try to avoid passing JVM arguments, to share Gradle daemons between Gradle sync and Gradle build.
+    // If JVM arguments from Gradle sync are different than the ones from Gradle build, Gradle won't reuse daemons. This is bad because
+    // daemons are expensive (memory-wise) and slow to start.
+    executionSettings.withArguments(myCommandLineArgs.get(myProject)).withVmOptions(emptyList());
+    return executionSettings;
   }
 
   private void syncProject(@NotNull ProjectConnection connection,
@@ -155,28 +171,38 @@ class SyncExecutor {
     buildOutputReader.close();
   }
 
-  void executeFullSync(@NotNull ProjectConnection connection,
-                       @NotNull GradleExecutionSettings executionSettings,
-                       @NotNull ProgressIndicator indicator,
-                       @NotNull ExternalSystemTaskId id,
-                       @NotNull BuildOutputInstantReaderImpl buildOutputReader,
-                       @NotNull SyncExecutionCallback callback) {
+  private void executeFullSync(@NotNull ProjectConnection connection,
+                               @NotNull GradleExecutionSettings executionSettings,
+                               @NotNull ProgressIndicator indicator,
+                               @NotNull ExternalSystemTaskId id,
+                               @NotNull BuildOutputInstantReaderImpl buildOutputReader,
+                               @NotNull SyncExecutionCallback callback) {
+    SyncProjectModels projectModels = doFetchModels(connection, executionSettings, indicator, id, buildOutputReader);
+    callback.setDone(projectModels, id);
+  }
+
+  @NotNull
+  private SyncProjectModels doFetchModels(@NotNull ProjectConnection connection,
+                                          @NotNull GradleExecutionSettings executionSettings,
+                                          @NotNull ProgressIndicator indicator,
+                                          @NotNull ExternalSystemTaskId id,
+                                          @Nullable BuildOutputInstantReaderImpl buildOutputReader) {
     SyncAction syncAction = createSyncAction();
     BuildActionExecuter<SyncProjectModels> executor = connection.action(syncAction);
 
     prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader), connection);
     CancellationTokenSource cancellationTokenSource = newCancellationTokenSource();
     executor.withCancellationToken(cancellationTokenSource.token());
-    callback.setDone(executor.run(), id);
+    return executor.run();
   }
 
-  void executeVariantOnlySync(@NotNull ProjectConnection connection,
-                              @NotNull GradleExecutionSettings executionSettings,
-                              @NotNull ProgressIndicator indicator,
-                              @NotNull ExternalSystemTaskId id,
-                              @NotNull BuildOutputInstantReaderImpl buildOutputReader,
-                              @NotNull SyncExecutionCallback callback,
-                              @NotNull VariantOnlySyncOptions options) {
+  private static void executeVariantOnlySync(@NotNull ProjectConnection connection,
+                                             @NotNull GradleExecutionSettings executionSettings,
+                                             @NotNull ProgressIndicator indicator,
+                                             @NotNull ExternalSystemTaskId id,
+                                             @NotNull BuildOutputInstantReaderImpl buildOutputReader,
+                                             @NotNull SyncExecutionCallback callback,
+                                             @NotNull VariantOnlySyncOptions options) {
     VariantOnlySyncAction syncAction = new VariantOnlySyncAction(options);
     BuildActionExecuter<VariantOnlyProjectModels> executor = connection.action(syncAction);
     prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader), connection);
@@ -204,11 +230,11 @@ class SyncExecutor {
   static class GradleSyncNotificationListener extends ExternalSystemTaskNotificationListenerAdapter {
     @NotNull private final ProgressIndicator myIndicator;
     @NotNull private final ExternalSystemTaskId myTaskId;
-    @NotNull private final BuildOutputInstantReaderImpl myOutputReader;
+    @Nullable private final BuildOutputInstantReaderImpl myOutputReader;
 
     GradleSyncNotificationListener(@NotNull ExternalSystemTaskId taskId,
                                    @NotNull ProgressIndicator indicator,
-                                   @NotNull BuildOutputInstantReaderImpl outputReader) {
+                                   @Nullable BuildOutputInstantReaderImpl outputReader) {
       myIndicator = indicator;
       myTaskId = taskId;
       myOutputReader = outputReader;
@@ -221,7 +247,9 @@ class SyncExecutor {
         return;
       }
       ServiceManager.getService(project, SyncViewManager.class).onEvent(new OutputBuildEventImpl(id, text, stdOut));
-      myOutputReader.append(text);
+      if (myOutputReader != null) {
+        myOutputReader.append(text);
+      }
     }
 
     @Override
@@ -239,7 +267,7 @@ class SyncExecutor {
 
     @Override
     public void onEnd(@NotNull ExternalSystemTaskId id) {
-      myOutputReader.close();
+      closeOutputReader();
     }
 
     @Override
@@ -251,7 +279,13 @@ class SyncExecutor {
         FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, currentTimeMillis(), "cancelled", new SkippedResultImpl());
         ServiceManager.getService(project, SyncViewManager.class).onEvent(event);
       }
-      myOutputReader.close();
+      closeOutputReader();
+    }
+
+    private void closeOutputReader() {
+      if (myOutputReader != null) {
+        myOutputReader.close();
+      }
     }
   }
 }
