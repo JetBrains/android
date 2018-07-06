@@ -17,9 +17,12 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade
 
 import com.android.builder.model.AndroidArtifactOutput
 import com.android.builder.model.NativeLibrary
+import com.android.builder.model.level2.DependencyGraphs
 import com.android.ide.common.gradle.model.UnusedModelMethodException
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.AndroidArtifact
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.ClassField
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.library.LegacyDependencyGraphsStub
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.stubs.DependenciesStub
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.*
 import java.io.File
 
@@ -40,8 +43,7 @@ open class LegacyAndroidArtifact(
   override fun getBundleTaskName(): String? = androidArtifact.bundleTaskName
   override fun getApkFromBundleTaskName(): String? = androidArtifact.apkFromBundleTaskName
   override fun getInstrumentedTestTaskName(): String? = androidArtifact.instrumentedTestTaskName
-
-  override fun getNativeLibraries(): Collection<NativeLibrary> = TODO("getNativeLibraries")
+  override fun getNativeLibraries(): Collection<NativeLibrary> = listOf() // TODO support native libraries
 
   override fun getBuildConfigFields(): Map<String, OldClassField> = throw UnusedModelMethodException("getBuildConfigFields")
   @Deprecated("use post-build model", ReplaceWith("getVariantsBuildOutput()", "com.android.builder.model.ProjectBuildOutput"))
@@ -64,3 +66,15 @@ open class LegacyAndroidArtifact(
                                     "}"
 }
 
+
+class LegacyAndroidArtifactStub(private val androidArtifact: AndroidArtifact, resValues: Map<String, ClassField>)
+  : LegacyAndroidArtifact(androidArtifact, resValues) {
+  override fun getTestOptions(): OldTestOptions? = androidArtifact.testOptions?.toLegacyStub()
+  override fun getDependencyGraphs(): DependencyGraphs = LegacyDependencyGraphsStub(
+    androidArtifact.dependencies)
+  override fun getDependencies(): OldDependencies = DependenciesStub()
+  @Deprecated("use dependencies instead", ReplaceWith("getDependencies()"))
+  override fun getCompileDependencies(): OldDependencies = dependencies
+
+  override fun getBuildConfigFields(): Map<String, OldClassField> = mapOf()
+}

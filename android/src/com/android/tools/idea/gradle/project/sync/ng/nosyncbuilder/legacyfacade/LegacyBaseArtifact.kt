@@ -19,7 +19,7 @@ import com.android.builder.model.SourceProvider
 import com.android.builder.model.level2.DependencyGraphs
 import com.android.ide.common.gradle.model.UnusedModelMethodException
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.BaseArtifact
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.Dependencies
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.library.LegacyDependencyGraphs
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldBaseArtifact
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldDependencies
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.toSourceProvider
@@ -36,20 +36,12 @@ open class LegacyBaseArtifact(private val baseArtifact: BaseArtifact) : OldBaseA
   override fun getGeneratedSourceFolders(): Collection<File> = baseArtifact.mergedSourceProvider.generatedSourceFolders
   override fun getVariantSourceProvider(): SourceProvider? = baseArtifact.mergedSourceProvider.variantSourceSet?.toSourceProvider()
   override fun getMultiFlavorSourceProvider(): SourceProvider? = baseArtifact.mergedSourceProvider.multiFlavorSourceSet?.toSourceProvider()
+  override fun getDependencyGraphs(): DependencyGraphs = LegacyDependencyGraphs(baseArtifact.dependencies)
 
-  // This is hard (or even impossible) to create OldDependencies or DependencyGraphs from the new BaseArtifact.
-  // Fortunately, this is not required because only level2 dependencies are used in the IDE.
-  // This method is used by custom IdeDependenciesFactory implementation which assembles level2 dependencies from the new BaseArtifact.
-  // This is hacky but allows to avoid a lot of duplication code.
-  val newDependencies: Dependencies = baseArtifact.dependencies
-
-  @Deprecated("Use new dependencies", ReplaceWith("newDependencies"))
+  @Deprecated("Use new dependencies", ReplaceWith("getDependencyGraphs"))
   override fun getDependencies(): OldDependencies = throw UnusedModelMethodException("getDependencies")
 
-  @Deprecated("Use new dependencies", ReplaceWith("newDependencies"))
-  override fun getDependencyGraphs(): DependencyGraphs = throw UnusedModelMethodException("getDependencyGraphs")
-
-  @Deprecated("Use new dependencies", ReplaceWith("newDependencies"))
+  @Deprecated("Use new dependencies", ReplaceWith("getDependencyGraphs"))
   override fun getCompileDependencies(): OldDependencies = throw UnusedModelMethodException("getCompileDependencies")
 
   override fun toString(): String = "LegacyBaseArtifact{" +
@@ -62,7 +54,7 @@ open class LegacyBaseArtifact(private val baseArtifact: BaseArtifact) : OldBaseA
                                     "ideSetupTaskNames=$ideSetupTaskNames," +
                                     "generatedSourceFolders=$generatedSourceFolders," +
                                     "variantSourceProvider=$variantSourceProvider," +
-                                    "dependencies=$dependencies" +
+                                    "multiFlavorSourceProvider=$multiFlavorSourceProvider" +
+                                    "dependencyGraphs=$dependencyGraphs" +
                                     "}"
 }
-
