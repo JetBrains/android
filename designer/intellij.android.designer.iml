@@ -32,7 +32,7 @@
     <orderEntry type="library" name="sherpa-solver" level="project" />
     <orderEntry type="library" name="com.android.tools.analytics-library:shared:26.1.2" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="module" module-name="intellij.android.project-system" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />

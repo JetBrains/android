@@ -37,7 +37,7 @@
     <orderEntry type="module" module-name="intellij.androidStudio.main" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.debugger" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.adt-testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
   </component>
 </module>
