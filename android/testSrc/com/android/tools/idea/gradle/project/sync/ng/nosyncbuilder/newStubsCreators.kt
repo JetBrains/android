@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder
 
+import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.androidproject.AaptOptions
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.androidproject.AndroidProject
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.javaproject.JavaProject
@@ -32,6 +33,10 @@ import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.jav
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.javaproject.NewJavaProject
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.javaproject.NewJavaSourceSet
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.javaproject.TEST_SOURCE_SET
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.gradleproject.NewGradleProject
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.gradleproject.NewGradleScript
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.gradleproject.NewGradleTask
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.gradleproject.NewProjectIdentifier
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewAndroidLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewGlobalLibraryMap
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewJavaLibrary
@@ -226,3 +231,30 @@ fun createNewModuleLibraries(count: Int): Map<String, ModuleDependency> {
 }
 
 fun createNativeLibraries(): Map<String, NativeLibrary> = TODO("not implemented yet")
+
+const val GRADLE_PROJECT_NAME = "gradleProjectName"
+
+fun createNewGradleProject(): NewGradleProject = NewGradleProject(
+  buildScript = NewGradleScript(File(modulePath, FN_BUILD_GRADLE)),
+  buildDirectory = File(modulePath, "build"),
+  projectDirectory = modulePath,
+  tasks = createNewGradleTasks(2),
+  name = GRADLE_PROJECT_NAME,
+  projectIdentifier = NewProjectIdentifier(":$GRADLE_PROJECT_NAME", modulePath),
+  description = null
+).apply {
+  tasks.forEach { (it as NewGradleTask).project = this }
+}
+
+const val GRADLE_TASK_NAME = "gradleTaskName"
+
+fun createNewGradleTasks(count: Int): List<NewGradleTask> = (1..count).map {
+  NewGradleTask(
+    name = "$GRADLE_TASK_NAME$it",
+    displayName = "task '$GRADLE_TASK_NAME$it'",
+    path = ":$GRADLE_PROJECT_NAME:module$it",
+    isPublic = true,
+    group = null,
+    description = null
+  )
+}
