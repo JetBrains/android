@@ -16,63 +16,63 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.issues.AddRepoProcessor;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
+import java.util.List;
+
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.android.tools.idea.gradle.project.sync.issues.AddRepoProcessor.Repository.GOOGLE;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 /**
  * Hyperlink to add {@code google()} to the repositories in buildscript block of project build.gradle file.
  */
 public class AddGoogleMavenRepositoryHyperlink extends NotificationHyperlink {
-  @Nullable private final VirtualFile myBuildFile;
+  @NotNull private final List<VirtualFile> myBuildFiles;
   private final boolean mySyncAfterFix;
 
-  public AddGoogleMavenRepositoryHyperlink() {
-    this(null, true);
+  public AddGoogleMavenRepositoryHyperlink(@NotNull Project project) {
+    this(getBuildFileForPlugin(project), true);
   }
 
-  public AddGoogleMavenRepositoryHyperlink(@NotNull VirtualFile buildFile) {
-    this(buildFile, true);
+  public AddGoogleMavenRepositoryHyperlink(@NotNull List<VirtualFile> buildFiles) {
+    this(buildFiles, true);
   }
 
   @VisibleForTesting
-  public AddGoogleMavenRepositoryHyperlink(@Nullable VirtualFile buildFile, boolean syncAfterFix) {
-    super("add.google.maven.repository", getText(buildFile, syncAfterFix));
-    myBuildFile = buildFile;
+  public AddGoogleMavenRepositoryHyperlink(@NotNull List<VirtualFile> buildFiles, boolean syncAfterFix) {
+    super("add.google.maven.repository", getText(buildFiles.isEmpty(), syncAfterFix));
+    myBuildFiles = buildFiles;
     mySyncAfterFix = syncAfterFix;
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    GradleBuildModel buildModel;
-    if (myBuildFile != null) {
-      buildModel = parseBuildFile(myBuildFile, project);
+    List<VirtualFile> files = myBuildFiles;
+    if (files.isEmpty()) {
+      files.addAll(getBuildFileForPlugin(project));
+    }
+    if (!myBuildFiles.isEmpty()) {
+      AddRepoProcessor processor = new AddRepoProcessor(project, myBuildFiles, GOOGLE, mySyncAfterFix);
+      processor.setPreviewUsages(true);
+      processor.run();
     }
     else {
-      buildModel = getBuildModelForPlugin(project);
-    }
-    if (buildModel != null) {
-      addGoogleMavenRepository(buildModel);
-    }
-    if (mySyncAfterFix) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+      // TODO: Add message dialog
     }
   }
 
   @NotNull
-  private static String getText(@Nullable VirtualFile buildFile, boolean syncAfterFix) {
+  private static String getText(boolean buildFileFound, boolean syncAfterFix) {
     String text = "Add Google Maven repository";
-    if (buildFile == null) {
+    if (buildFileFound) {
       text += " (if needed)";
     }
     if (syncAfterFix) {
@@ -81,26 +81,9 @@ public class AddGoogleMavenRepositoryHyperlink extends NotificationHyperlink {
     return text;
   }
 
-  @Nullable
-  public VirtualFile getBuildFile() {
-    return myBuildFile;
-  }
-
-  /**
-   * Add Google Maven Repository to the given buildModel
-   * @param buildModel
-   */
-  private static void addGoogleMavenRepository(@NotNull GradleBuildModel buildModel) {
-    Project project = buildModel.getProject();
-    buildModel.repositories().addGoogleMavenRepository(project);
-    buildModel.buildscript().repositories().addGoogleMavenRepository(project);
-    runWriteCommandAction(project, buildModel::applyChanges);
-    GradleBuildModel buildModelProject = GradleBuildModel.get(project);
-    // Also add to project's buildscript
-    if (buildModelProject != null) {
-      buildModelProject.buildscript().repositories().addGoogleMavenRepository(project);
-      runWriteCommandAction(project, buildModelProject::applyChanges);
-    }
+  @NotNull
+  public List<VirtualFile> getBuildFiles() {
+    return myBuildFiles;
   }
 
   /**
@@ -108,20 +91,17 @@ public class AddGoogleMavenRepositoryHyperlink extends NotificationHyperlink {
    * @param project
    * @return
    */
-  @Nullable
-  public static GradleBuildModel getBuildModelForPlugin(Project project) {
+  @NotNull
+  public static List<VirtualFile> getBuildFileForPlugin(@NotNull Project project) {
     // Get Android Plugin info from the project, if plugin info can not be found, use project build.gradle file instead
     AndroidPluginInfo result = searchInBuildFilesOnly(project);
-    GradleBuildModel gradleBuildModel = null;
     if (result != null) {
       VirtualFile buildFile = result.getPluginBuildFile();
       if (buildFile != null) {
-        gradleBuildModel = parseBuildFile(buildFile, project);
+        return ImmutableList.of(buildFile);
       }
     }
-    if (gradleBuildModel == null) {
-      gradleBuildModel = GradleBuildModel.get(project);
-    }
-    return gradleBuildModel;
+    VirtualFile buildFile = getGradleBuildFile(getBaseDirPath(project));
+    return (buildFile == null) ? ImmutableList.of() : ImmutableList.of(buildFile);
   }
 }

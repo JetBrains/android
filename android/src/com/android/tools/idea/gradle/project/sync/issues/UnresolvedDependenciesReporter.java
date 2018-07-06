@@ -25,13 +25,13 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.*;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.components.ServiceManager;
@@ -61,8 +61,6 @@ import static com.android.tools.idea.sdk.StudioSdkUtil.reloadRemoteSdkWithModalP
 public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssueReporter {
   private static final String UNRESOLVED_DEPENDENCIES_GROUP = "Unresolved dependencies";
 
-  private DependencyPositionFinder myDependencyPositionFinder = new DependencyPositionFinder();
-
   @NotNull
   public static UnresolvedDependenciesReporter getInstance() {
     return ServiceManager.getService(UnresolvedDependenciesReporter.class);
@@ -85,7 +83,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
                                                        @NotNull List<SyncIssue> syncIssues,
                                                        @NotNull List<Module> affectedModules,
                                                        @NotNull Map<Module, VirtualFile> buildFileMap) {
-    assert !syncIssues.isEmpty();
+    assert !syncIssues.isEmpty() && !affectedModules.isEmpty();
     SyncIssue issue = syncIssues.get(0);
     String dependency = issue.getData();
 
@@ -114,6 +112,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
     }
     else {
       GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
+      List<VirtualFile> buildFiles = affectedModules.stream().map(m -> buildFileMap.get(m)).collect(Collectors.toList());
       Module module = affectedModules.get(0);
 
       RepoPackage constraintPackage = null;
@@ -131,8 +130,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
         quickFixes.add(new InstallArtifactHyperlink(constraintPackage.getPath()));
       }
       else if (dependency.startsWith("com.android.support")) {
-        // TODO: Add support to add to multiple build files.
-        addGoogleMavenRepositoryHyperlink(module, buildFileMap.get(module), quickFixes);
+        addGoogleMavenRepositoryHyperlink(project, buildFiles, quickFixes);
       }
       else if (dependency.startsWith("com.google.android")) {
         quickFixes.add(new InstallRepositoryHyperlink(GOOGLE, dependency));
@@ -227,41 +225,50 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
   }
 
   /**
-   * Append a quick fix to add Google Maven repository to solve a dependency in a module in a list of fixes if needed.
+   * Append a quick fix to add Google Maven repository to solve dependencies in a module in a list of fixes if needed.
    *
-   * @param module    Module that has a dependency on the repository.
-   * @param buildFile Build file where the dependency is.
+   * @param project    the project
+   * @param buildFiles Build files where the dependencies are.
    * @param fixes     List of hyperlinks in which the quickfix will be added if the repository is not already used.
    */
-  private static void addGoogleMavenRepositoryHyperlink(@NotNull Module module,
-                                                        @Nullable VirtualFile buildFile,
+  private static void addGoogleMavenRepositoryHyperlink(@NotNull Project project,
+                                                        @NotNull List<VirtualFile> buildFiles,
                                                         @NotNull List<NotificationHyperlink> fixes) {
-    Project project = module.getProject();
     if (!project.isInitialized()) {
       // No way to tell if the project contains the Google repository, add quick fix anyway (it will do nothing if it already has it)
-      fixes.add(new AddGoogleMavenRepositoryHyperlink());
+      fixes.add(new AddGoogleMavenRepositoryHyperlink(project));
       return;
     }
-    if (buildFile != null) {
-      GradleBuildModel moduleBuildModel = GradleBuildModel.parseBuildFile(buildFile, project, module.getName());
-      if (moduleBuildModel.repositories().hasGoogleMavenRepository()) {
-        // Module already has Google repository, no need to add it
+
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
+
+    // Check modules
+    List<VirtualFile> filesToFix = new ArrayList<>();
+    for (VirtualFile file : buildFiles) {
+      if (file != null && file.isValid()) {
+        GradleBuildModel moduleModel = projectBuildModel.getModuleBuildModel(file);
+
+        if (!moduleModel.repositories().hasGoogleMavenRepository()) {
+          filesToFix.add(file);
+        }
+      }
+    }
+
+    if (filesToFix.isEmpty()) {
+      // All modules already have it
+      return;
+    }
+
+    // Check project
+    GradleBuildModel buildModel = projectBuildModel.getProjectBuildModel();
+    if (buildModel != null) {
+      if (!buildModel.repositories().hasGoogleMavenRepository()) {
+        fixes.add(new AddGoogleMavenRepositoryHyperlink(ImmutableList.of(buildModel.getVirtualFile())));
         return;
       }
     }
-    GradleBuildModel projectBuildModel = GradleBuildModel.get(project);
-    if (projectBuildModel != null) {
-      if (projectBuildModel.repositories().hasGoogleMavenRepository()) {
-        // Project already has Google repository, no need to to add it
-        return;
-      }
-      fixes.add(new AddGoogleMavenRepositoryHyperlink(projectBuildModel.getVirtualFile()));
-    }
-    else {
-      // Cannot tell if project has Google repository, add to module build file if available
-      if (buildFile != null) {
-        fixes.add(new AddGoogleMavenRepositoryHyperlink(buildFile));
-      }
-    }
+
+    // Add to all modules
+    fixes.add(new AddGoogleMavenRepositoryHyperlink(filesToFix));
   }
 }
