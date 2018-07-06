@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property2
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.common.property2.impl.support.SimpleControlTypeProvider
-import com.android.tools.idea.common.property2.impl.ui.registerKeyAction
+import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesView

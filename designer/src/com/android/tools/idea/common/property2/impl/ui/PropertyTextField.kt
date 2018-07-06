@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.property2.impl.ui
 
+import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
