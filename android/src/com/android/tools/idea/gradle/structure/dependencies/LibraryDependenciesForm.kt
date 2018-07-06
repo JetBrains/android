@@ -17,20 +17,22 @@ package com.android.tools.idea.gradle.structure.dependencies
 
 import com.android.tools.idea.gradle.structure.configurables.ui.ArtifactRepositorySearchForm
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderTo
+import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.google.common.base.Strings.emptyToNull
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.text.StringUtil.isEmpty
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
 internal class LibraryDependenciesForm (module: PsModule) : LibraryDependenciesFormUi(), Disposable {
   private val searchForm: ArtifactRepositorySearchForm
+  private var selected: ParsedValue<String> = ParsedValue.NotSet
 
   val preferredFocusedComponent: JComponent get() = searchForm.preferredFocusedComponent
   val panel: JPanel get() = myMainPanel
-  val selectedLibrary: String? get() = emptyToNull(myLibraryLabel.text.trim { it <= ' ' })
+  val selectedLibrary: ParsedValue<String> get() = selected
   val searchErrors: List<Exception> get() = searchForm.searchErrors
 
   init {
@@ -38,9 +40,10 @@ internal class LibraryDependenciesForm (module: PsModule) : LibraryDependenciesF
 
     searchForm = ArtifactRepositorySearchForm(repositories)
     searchForm.add(SelectionChangeListener { selectedLibrary ->
-      myLibraryLabel.text = if (isEmpty(selectedLibrary)) " " else selectedLibrary
+      selected = selectedLibrary ?: ParsedValue.NotSet
+      myLibraryLabel.clear()
+      selectedLibrary?.renderTo(myLibraryLabel.toRenderer(), { toString() }, mapOf())
     }, this)
-
     mySearchPanelHost.add(searchForm.panel, BorderLayout.CENTER)
   }
 
