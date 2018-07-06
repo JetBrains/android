@@ -16,11 +16,9 @@
 package com.android.tools.idea.gradle.structure.dependencies
 
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.text.StringUtil.isEmpty
 import com.intellij.util.text.nullize
 import java.net.UnknownHostException
 import javax.swing.JComponent
@@ -36,12 +34,15 @@ class AddLibraryDependencyDialog(module: PsModule) : AbstractAddDependenciesDial
   }
 
   override fun addNewDependencies() {
-    val library = libraryDependenciesForm!!.selectedLibrary!!
+    val library = libraryDependenciesForm!!.selectedLibrary
 
     val scopesPanel = scopesPanel
     val scopesNames = scopesPanel.selectedScopeNames
 
-    module.addLibraryDependency(ParsedValue.Set.Parsed(library, DslText.Literal), scopesNames)
+    when (library) {
+      is ParsedValue.Set.Parsed -> module.addLibraryDependency(library, scopesNames)
+      else -> throw IllegalStateException()
+    }
   }
 
   override fun getSplitterProportionKey(): String = "psd.add.library.dependency.main.horizontal.splitter.proportion"
@@ -81,7 +82,7 @@ class AddLibraryDependencyDialog(module: PsModule) : AbstractAddDependenciesDial
     }
 
     val selectedLibrary = libraryDependenciesForm!!.selectedLibrary
-    return if (isEmpty(selectedLibrary)) {
+    return if (selectedLibrary == ParsedValue.NotSet) {
       ValidationInfo("Please specify the library to add as dependency", libraryDependenciesForm!!.preferredFocusedComponent)
     }
     else scopesPanel.validateInput()

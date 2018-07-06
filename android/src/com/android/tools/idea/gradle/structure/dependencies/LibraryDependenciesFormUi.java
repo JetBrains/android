@@ -15,23 +15,21 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies;
 
-import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 
 import javax.swing.*;
-
-import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
-import static com.intellij.util.ui.UIUtil.getTextFieldBorder;
 
 class LibraryDependenciesFormUi {
 
   protected JPanel myMainPanel;
-  protected JBLabel myLibraryLabel;
+  protected SimpleColoredComponent myLibraryLabel;
   protected JPanel mySearchPanelHost;
 
   LibraryDependenciesFormUi() {
-    myLibraryLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), JBUI.Borders.empty(2)));
-    myLibraryLabel.setBackground(getTextFieldBackground());
-    myLibraryLabel.setText(" ");
+    myLibraryLabel.setBorder(UIUtil.getTextFieldBorder());
+    myLibraryLabel.setIpad(JBUI.emptyInsets());
+    myLibraryLabel.clear();
   }
 }

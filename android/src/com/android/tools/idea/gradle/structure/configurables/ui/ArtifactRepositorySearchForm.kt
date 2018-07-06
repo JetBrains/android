@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearch
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
@@ -47,7 +49,7 @@ class ArtifactRepositorySearchForm(repositories: List<ArtifactRepository>) : Art
   private val repositorySearch: ArtifactRepositorySearch = ArtifactRepositorySearch(repositories)
   private val resultsTable: TableView<FoundArtifact>
   private val versionsPanel: AvailableVersionsPanel
-  private val eventDispatcher = SelectionChangeEventDispatcher<String>()
+  private val eventDispatcher = SelectionChangeEventDispatcher<ParsedValue<String>>()
 
   private val artifactName: String get() = myArtifactNameTextField.text.trim { it <= ' ' }
   private val groupId: String? get() = myGroupIdTextField.text.trim { it <= ' ' }.nullize()
@@ -124,7 +126,7 @@ class ArtifactRepositorySearchForm(repositories: List<ArtifactRepository>) : Art
         }
       }
     }
-    eventDispatcher.selectionChanged(selected)
+    eventDispatcher.selectionChanged(ParsedValue.Set.Parsed(selected, DslText.Literal))
   }
 
   private fun performSearch() {
@@ -172,7 +174,7 @@ class ArtifactRepositorySearchForm(repositories: List<ArtifactRepository>) : Art
     versionsPanel.setEmptyText(NOTHING_TO_SHOW_EMPTY_TEXT)
   }
 
-  fun add(listener: SelectionChangeListener<String>, parentDisposable: Disposable) {
+  fun add(listener: SelectionChangeListener<ParsedValue<String>>, parentDisposable: Disposable) {
     eventDispatcher.addListener(listener, parentDisposable)
   }
 
