@@ -11,7 +11,7 @@
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" />
     <orderEntry type="module" module-name="intellij.android.designer" />
     <orderEntry type="module" module-name="intellij.android.profilersAndroid" />
-    <orderEntry type="module" module-name="intellij.android.android-debuggers" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.project-system-gradle" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.debuggers" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="RUNTIME" />
   </component>
 </module>

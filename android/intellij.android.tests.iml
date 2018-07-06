@@ -61,13 +61,13 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="Mocks" level="project" />
     <orderEntry type="module" module-name="android.sdktools.usb-devices" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.android-lang" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.project-system" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.project-system-tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.lang" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.jps.build" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.adt-testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.apkanalyzer" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.android-adb" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="netty-codec-http" level="project" />

@@ -106,10 +106,10 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="intellij.android.project-system" />
-    <orderEntry type="module" module-name="intellij.android.android-lang" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.lang" />
     <orderEntry type="module" module-name="android.sdktools.usb-devices" />
-    <orderEntry type="module" module-name="intellij.android.android-adb" />
+    <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
