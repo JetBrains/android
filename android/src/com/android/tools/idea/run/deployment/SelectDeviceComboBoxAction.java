@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
+import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
@@ -26,8 +27,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -35,8 +36,8 @@ final class SelectDeviceComboBoxAction extends ComboBoxAction {
   private final Supplier<Boolean> mySelectDeviceComboBoxActionVisible;
   private final AsyncDevicesGetter myDevicesGetter;
 
-  private List<Object> myDevices;
-  private Object mySelectedDevice;
+  private List<Device> myDevices;
+  private Device mySelectedDevice;
 
   @SuppressWarnings("unused")
   private SelectDeviceComboBoxAction() {
@@ -47,21 +48,19 @@ final class SelectDeviceComboBoxAction extends ComboBoxAction {
   SelectDeviceComboBoxAction(@NotNull Supplier<Boolean> selectDeviceComboBoxActionVisible, @NotNull AsyncDevicesGetter devicesGetter) {
     mySelectDeviceComboBoxActionVisible = selectDeviceComboBoxActionVisible;
     myDevicesGetter = devicesGetter;
-
-    myDevices = Collections.emptyList();
   }
 
   @VisibleForTesting
-  Object getDevices() {
+  List<Device> getDevices() {
     return myDevices;
   }
 
   @VisibleForTesting
-  Object getSelectedDevice() {
+  Device getSelectedDevice() {
     return mySelectedDevice;
   }
 
-  void setSelectedDevice(@NotNull Object selectedDevice) {
+  void setSelectedDevice(@NotNull Device selectedDevice) {
     mySelectedDevice = selectedDevice;
   }
 
@@ -126,6 +125,12 @@ final class SelectDeviceComboBoxAction extends ComboBoxAction {
 
   @Override
   public void update(@NotNull AnActionEvent event) {
+    Project project = event.getProject();
+
+    if (project == null) {
+      return;
+    }
+
     Presentation presentation = event.getPresentation();
 
     if (!mySelectDeviceComboBoxActionVisible.get()) {
@@ -134,19 +139,35 @@ final class SelectDeviceComboBoxAction extends ComboBoxAction {
     }
 
     presentation.setVisible(true);
-    myDevices = myDevicesGetter.get();
+    myDevices = myDevicesGetter.get(project);
 
     if (myDevices.isEmpty()) {
       mySelectedDevice = null;
+
+      presentation.setIcon(null);
       presentation.setText("No devices");
 
       return;
     }
 
-    if (mySelectedDevice == null || !myDevices.contains(mySelectedDevice)) {
+    updateSelectedDevice();
+
+    presentation.setIcon(mySelectedDevice.getIcon());
+    presentation.setText(mySelectedDevice.getName());
+  }
+
+  private void updateSelectedDevice() {
+    if (mySelectedDevice == null) {
       mySelectedDevice = myDevices.get(0);
+      return;
     }
 
-    presentation.setText(mySelectedDevice.toString());
+    Object selectedName = mySelectedDevice.getName();
+
+    Optional<Device> selectedDevice = myDevices.stream()
+                                               .filter(device -> device.getName().equals(selectedName))
+                                               .findFirst();
+
+    mySelectedDevice = selectedDevice.orElseGet(() -> myDevices.get(0));
   }
 }
