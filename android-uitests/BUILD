@@ -929,11 +929,11 @@ java_test(
 
 # fast test
 java_test(
-    name = "MultiJavaLibrariesDependencyTest",
+    name = "JavaLibsDepTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.MultiJavaLibrariesDependencyTest"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.JavaLibsDepTest"],
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
@@ -944,11 +944,11 @@ java_test(
 
 # fast test
 java_test(
-    name = "TransitiveDependenciesTest",
+    name = "AndroidLibsDepTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.TransitiveDependenciesTest"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AndroidLibsDepTest"],
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
@@ -959,12 +959,12 @@ java_test(
 
 # fast test
 java_test(
-    name = "TransitiveJavaDependenciesResolveTest",
+    name = "JavaDepTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.6.2:jar",
     ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.TransitiveJavaDependenciesResolveTest"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.JavaDepTest"],
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
@@ -975,12 +975,12 @@ java_test(
 
 # fast test
 java_test(
-    name = "TransitiveDependenciesResolveTest",
+    name = "AndroidDepTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.6.2:jar",
     ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.TransitiveDependenciesResolveTest"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AndroidDepTest"],
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
