@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -199,6 +200,7 @@ public class GradleProjectImporter {
     GradleProjectInfo projectInfo = GradleProjectInfo.getInstance(newProject);
     projectInfo.setNewProject(request.isNewProject);
     projectInfo.setImportedProject(true);
+    projectInfo.setExtraInfo(request.extraInfo);
 
     myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel, openProject);
 
@@ -222,6 +224,7 @@ public class GradleProjectImporter {
 
     @Nullable public Project project;
     @Nullable public LanguageLevel javaLanguageLevel;
+    @Nullable public NewProjectExtraInfo extraInfo;
 
     public boolean generateSourcesOnSuccess = true;
     public boolean isNewProject;
