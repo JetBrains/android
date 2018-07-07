@@ -22,7 +22,6 @@ import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStatsService;
-import com.android.tools.idea.stats.RunStatsServiceImpl;
 import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;

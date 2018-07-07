@@ -25,7 +25,6 @@ import com.android.tools.idea.run.DeviceSelectionUtils;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStatsService;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.wireless.android.sdk.stats.StudioRunEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
