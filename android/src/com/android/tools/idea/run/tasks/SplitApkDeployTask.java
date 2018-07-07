@@ -26,7 +26,6 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStatsService;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.wireless.android.sdk.stats.StudioRunEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;

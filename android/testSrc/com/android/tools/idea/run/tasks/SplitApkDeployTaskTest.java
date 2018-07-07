@@ -20,7 +20,6 @@ import com.android.ddmlib.InstallException;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStatsService;
-import com.android.tools.idea.stats.RunStatsServiceImpl;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;

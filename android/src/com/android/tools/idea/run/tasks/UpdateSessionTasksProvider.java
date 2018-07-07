@@ -22,9 +22,7 @@ import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionException;
-import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
