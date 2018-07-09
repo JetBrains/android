@@ -25,13 +25,13 @@ import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
@@ -80,8 +80,12 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
     String compileTarget = androidProject.getCompileTarget();
     Sdk sdk = myAndroidSdks.findSuitableAndroidSdk(compileTarget);
     if (sdk == null) {
-      sdk = ApplicationManager.getApplication()
-                              .runWriteAction((Computable<Sdk>)() -> myAndroidSdks.tryToCreate(androidSdkHomePath, compileTarget));
+      sdk = new WriteAction<Sdk>() {
+        @Override
+        protected void run(@NotNull Result<Sdk> result) {
+           result.setResult(myAndroidSdks.tryToCreate(androidSdkHomePath, compileTarget));
+        }
+      }.execute().getResultObject();
 
       if (sdk == null) {
         // If SDK was not created, this might be an add-on.
