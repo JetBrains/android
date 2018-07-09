@@ -106,9 +106,14 @@ abstract class RenderedComboBox<T>(
   fun setKnownValues(knownValues: List<T>) {
     beingLoaded = true
     try {
+      val prevItemCount = itemsModel.size
       val selectedItem = itemsModel.selectedItem
       itemsModel.removeAllElements()
       knownValues.forEach { itemsModel.addElement(it) }
+      if (isPopupVisible &&prevItemCount == 0) {
+        hidePopup()
+        showPopup()
+      }
       itemsModel.selectedItem = selectedItem
     }
     finally {
