@@ -49,7 +49,6 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 
-@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner.class)
 public class NewProjectTest {
 

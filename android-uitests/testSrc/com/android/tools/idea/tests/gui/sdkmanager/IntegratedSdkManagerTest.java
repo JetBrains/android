@@ -33,7 +33,6 @@ import org.junit.runner.RunWith;
 import java.io.File;
 
 @RunWith(GuiTestRemoteRunner.class)
-@RunIn(TestGroup.PROJECT_WIZARD)
 public class IntegratedSdkManagerTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

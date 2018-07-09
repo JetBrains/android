@@ -32,7 +32,7 @@ import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.UNRELIABLE) // b/77269009 @RunIn(TestGroup.PROJECT_SUPPORT)
+@RunIn(TestGroup.UNRELIABLE) // b/77269009
 @RunWith(GuiTestRemoteRunner.class)
 public class GradleRenameModuleTest {
 

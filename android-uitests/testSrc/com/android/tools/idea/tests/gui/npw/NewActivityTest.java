@@ -40,7 +40,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.text.StringUtil.getOccurrenceCount;
 import static org.junit.Assert.assertEquals;
 
-@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner.class)
 public class NewActivityTest {
   private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleapplication/MyActivity.java";
