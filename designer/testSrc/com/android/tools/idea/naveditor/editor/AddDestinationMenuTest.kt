@@ -77,14 +77,11 @@ class AddDestinationMenuTest : NavTestCase() {
     surface.model = model
     _menu = AddDestinationMenu(surface)
     _panel = menu.mainPanel
-    // We kick of a worker thread to load the destinations and then update the list in the ui thread, so we have to wait and dispatch
+    // We kick off a worker thread to load the destinations and then update the list in the ui thread, so we have to wait and dispatch
     // events until it's set.
-    for (i in 0..10) {
+    while (true) {
       if (!_menu!!.destinationsList.isEmpty) {
         break
-      }
-      if (i == 10) {
-        fail("Failed to create destination list")
       }
       Thread.sleep(10L)
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
