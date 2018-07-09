@@ -18,13 +18,14 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testGuiFramework.framework.BetweenRestarts
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import com.intellij.testGuiFramework.framework.restartIdeBetween
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 
+@Ignore("b/123769563")
 @RunWith(GuiTestRemoteRunner::class)
-@RunIn(TestGroup.TEST_FRAMEWORK)
 class RestartIdeTest {
 
   @JvmField @Rule val guiTest = GuiTestRule()
