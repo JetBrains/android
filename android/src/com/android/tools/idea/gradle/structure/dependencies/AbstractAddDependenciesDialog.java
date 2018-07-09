@@ -46,7 +46,6 @@ public abstract class AbstractAddDependenciesDialog extends DialogWrapper {
     super(module.getParent().getIdeProject());
     myModule = module;
     init();
-    getContentPanel().setBorder(createEmptyBorder());
   }
 
   @Override
