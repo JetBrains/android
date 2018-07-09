@@ -27,11 +27,12 @@ import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.collect.ImmutableMap;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.regex.Pattern;
+import java.util.*;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -139,6 +140,24 @@ public class CaptureModelTest {
   }
 
   @Test
+  public void testEmptyFilter() {
+    CaptureNode root = createFilterTestTree();
+
+    CpuThreadInfo info = new CpuThreadInfo(101, "main");
+    TraceParser parser = new FakeTraceParser(new Range(0, 30),
+                                             new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
+                                               .put(info, root)
+                                               .build(), false);
+    CpuCapture capture = new CpuCapture(parser, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
+    myModel.setCapture(capture);
+    myModel.setThread(101);
+    myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);
+    myModel.setFilter(Filter.EMPTY_FILTER);
+    getDescendants(((CaptureModel.CallChart)myModel.getDetails()).getNode())
+      .forEach(n -> assertThat(n.getFilterType()).isEqualTo(CaptureNode.FilterType.MATCH));
+  }
+
+  @Test
   public void testDetailsFeatureTracking() {
     FakeFeatureTracker tracker = (FakeFeatureTracker)myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
 
@@ -190,5 +209,18 @@ public class CaptureModelTest {
     node.setEndThread(end);
 
     return node;
+  }
+
+  @NotNull
+  private static List<CaptureNode> getDescendants(@NotNull CaptureNode node) {
+    List<CaptureNode> descendants = new ArrayList<>();
+    descendants.add(node);
+
+    int head = 0;
+    while (head < descendants.size()) {
+      CaptureNode curNode = descendants.get(head++);
+      descendants.addAll(curNode.getChildren());
+    }
+    return  descendants;
   }
 }

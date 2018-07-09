@@ -239,7 +239,7 @@ public class CaptureModel {
     if (!matches && allChildrenUnmatch) {
       node.setFilterType(CaptureNode.FilterType.UNMATCH);
     }
-    else if (nodeExactMatch && myFilter != null) {
+    else if (nodeExactMatch && !myFilter.isEmpty()) {
       node.setFilterType(CaptureNode.FilterType.EXACT_MATCH);
     }
     else {

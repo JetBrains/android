@@ -24,9 +24,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
-import static com.android.tools.profilers.cpu.CaptureNode.FilterType.UNINITIALIZED;
+import static com.android.tools.profilers.cpu.CaptureNode.FilterType.MATCH;
 
 public class CaptureNode implements HNode<CaptureNode> {
 
@@ -65,7 +64,7 @@ public class CaptureNode implements HNode<CaptureNode> {
    * see {@link FilterType}.
    */
   @NotNull
-  private FilterType myFilterType = UNINITIALIZED;
+  private FilterType myFilterType;
 
   /**
    * The shortest distance from the root.
@@ -78,6 +77,7 @@ public class CaptureNode implements HNode<CaptureNode> {
   public CaptureNode(@NotNull CaptureNodeModel model) {
     myChildren = new ArrayList<>();
     myClockType = ClockType.GLOBAL;
+    myFilterType = MATCH;
     myDepth = 0;
     myData = model;
   }
@@ -206,13 +206,7 @@ public class CaptureNode implements HNode<CaptureNode> {
 
   public enum FilterType {
     /**
-     * Set by default, to avoid issues with a nullable value being queried as non-null. However,
-     * expected to get overwritten by {@link #setFilterType(FilterType)}.
-     */
-    UNINITIALIZED,
-
-    /**
-     * This {@link CaptureNode} matches to the filter, i.e {@link #matchesToFilter(String)} is true.
+     * This {@link CaptureNode} matches to the filter, i.e {@link #matchesToFilter(Filter)} is true.
      */
     EXACT_MATCH,
 
