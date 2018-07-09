@@ -20,8 +20,10 @@ import com.android.annotations.Nullable;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallRepositoryHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -339,5 +341,22 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     NotificationData message = messages.get(0);
     assertEquals("Unresolved dependencies", message.getTitle());
     assertThat(message.getMessage()).contains("Failed to resolve: com.google.android.gms.play-services:9.4.0\nAffected Modules:");
+  }
+
+  public void testGetModuleLink() throws Exception {
+    loadSimpleApplication();
+    Module appModule = myModules.getAppModule();
+    VirtualFile appFile = getGradleBuildFile(appModule);
+
+    Project project = getProject();
+    ProjectBuildModel buildModel = ProjectBuildModel.get(project);
+
+    SyncIssue issue = mock(SyncIssue.class);
+    when(issue.getData()).thenReturn("com.google.guava:guava:19.0");
+
+    List<SyncIssue> syncIssues = ImmutableList.of(issue);
+    OpenFileHyperlink link = myReporter.createModuleLink(getProject(), appModule, buildModel, syncIssues, appFile);
+    assertThat(link.getLineNumber()).isEqualTo(28);
+    assertThat(link.getFilePath()).isEqualTo(appFile.getPath());
   }
 }
