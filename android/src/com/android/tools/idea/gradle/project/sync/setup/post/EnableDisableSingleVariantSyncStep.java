@@ -105,8 +105,8 @@ public class EnableDisableSingleVariantSyncStep {
                      PATH_IN_SETTINGS;
     int userAcceptsEnable = invokeAndWaitIfNeeded(
       () -> MessageDialogBuilder.yesNo("Experimental Gradle Sync Feature", message)
-                                .yesText("YES")
-                                .noText("NO")
+                                .yesText(Messages.YES_BUTTON)
+                                .noText(Messages.NO_BUTTON)
                                 .doNotAsk(myDoNotAskOption).show());
     if (userAcceptsEnable == Messages.YES) {
       settings.USE_SINGLE_VARIANT_SYNC = true;
