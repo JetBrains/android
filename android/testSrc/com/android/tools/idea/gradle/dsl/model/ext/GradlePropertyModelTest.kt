@@ -1479,7 +1479,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
     val buildModel = gradleBuildModel
     val propertyModel = buildModel.ext().findProperty("prop1")
-    verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{prop1}", STRING, REGULAR, 1)
+    verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{prop1}", STRING, REGULAR, 0)
   }
 
   @Test
@@ -1491,7 +1491,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
     val buildModel = gradleBuildModel
     val propertyModel = buildModel.ext().findProperty("prop1")
-    verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
+    verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 0)
   }
 
   @Test
@@ -3743,5 +3743,17 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
   private fun checkContainsValue(models: Collection<GradlePropertyModel>, model: GradlePropertyModel) {
     val result = models.any { areModelsEqual(it, model) }
     assertTrue("checkContainsValue", result)
+  }
+
+  @Test
+  fun testAddVariableCycle() {
+    val text = ""
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val newProperty = buildModel.ext().findProperty("var")
+    newProperty.setValue(ReferenceTo("var"))
+
+    verifyPropertyModel(newProperty, STRING_TYPE, "var", REFERENCE, REGULAR, 0)
   }
 }
