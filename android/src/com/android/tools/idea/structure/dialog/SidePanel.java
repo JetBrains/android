@@ -76,7 +76,7 @@ public class SidePanel extends JPanel {
 
       @Override
       public String getTooltipFor(Place place) {
-        return getTextFor(place);
+        return null;
       }
 
       @Override
