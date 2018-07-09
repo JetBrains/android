@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.naveditor;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -57,12 +56,12 @@ public class NavNlEditorTest {
 
   @Before
   public void setUp() {
-    StudioFlags.ENABLE_NAV_EDITOR.override(true);
+    NavTestSetupKt.beforeNavTest();
   }
 
   @After
   public void tearDown() {
-    StudioFlags.ENABLE_NAV_EDITOR.clearOverride();
+    NavTestSetupKt.afterNavTest();
   }
 
   @Test
