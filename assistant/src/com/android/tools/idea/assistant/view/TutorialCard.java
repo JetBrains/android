@@ -92,8 +92,6 @@ public class TutorialCard extends CardViewPanel {
       add(new StepByStepFooter(), BorderLayout.SOUTH);
     }
     redraw();
-    // reset the scroll bars after render see b/77530149
-    SwingUtilities.invokeLater(() -> initScrollValues());
   }
 
   /**
@@ -188,6 +186,9 @@ public class TutorialCard extends CardViewPanel {
     myContentsScroller.setOpaque(false);
     myContentsScroller.getViewport().setOpaque(false);
     myContentsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+    // reset the scroll bars after render see b/77530149
+    SwingUtilities.invokeLater(() -> initScrollValues());
   }
 
   private static class TutorialDescription extends JTextPane {
