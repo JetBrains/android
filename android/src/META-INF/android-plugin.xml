@@ -276,7 +276,6 @@
       <add-to-group group-id="RefactoringMenu"/>
     </action>
 
-    <action id="Android.TraceViewSearch" text="TraceView Search" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find"/>
     <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferSupportAnnotationsAction">
       <add-to-group group-id="InspectCodeGroup" anchor="after" relative-to-action="InferNullity"/>
     </action>
@@ -481,9 +480,6 @@
 
     <fileTypeFactory implementation="org.jetbrains.android.fileTypes.AndroidFileTypeFactory"/>
     <fileTypeFactory implementation="com.android.tools.idea.lang.databinding.DbFileTypeFactory" />
-    <fileTypeFactory implementation="com.android.tools.idea.editors.hprof.HprofFileTypeFactory" />
-    <fileTypeFactory implementation="com.android.tools.idea.editors.allocations.AllocationsFileTypeFactory" />
-    <fileTypeFactory implementation="com.android.tools.idea.editors.vmtrace.VmTraceFileTypeFactory" />
 
     <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbParserDefinition" />
     <lang.syntaxHighlighterFactory language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbSyntaxHighlighterFactory" />
@@ -970,18 +966,12 @@
     <xml.elementDescriptorProvider implementation="org.jetbrains.android.dom.AndroidDomElementDescriptorProvider" order="first"/>
     <xml.tagNameProvider implementation="org.jetbrains.android.dom.AndroidLayoutXmlTagNameProvider" order="first" />
 
-    <facet.toolWindow id="Android Monitor"
-                      facetIdList="android"
-                      anchor="bottom"
-                      icon="AndroidIcons.AndroidToolWindow"
-                      conditionClass="com.android.tools.idea.monitor.AndroidMonitorCondition"
-                      factoryClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"/>
     <facet.toolWindow id="Logcat"
                       facetIdList="android"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.LOGCAT"
-                      conditionClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"
-                      factoryClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"/>
+                      conditionClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"
+                      factoryClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"/>
     <facet.toolWindow id="Build Variants"
                       facetIdList="android,android-gradle"
                       anchor="left"
@@ -1290,10 +1280,6 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
-    <captureType implementation="com.android.tools.idea.editors.hprof.HprofCaptureType"/>
-    <captureType implementation="com.android.tools.idea.editors.allocations.AllocationCaptureType"/>
-    <captureType implementation="com.android.tools.idea.editors.systeminfo.SystemInfoCaptureType"/>
-    <captureType implementation="com.android.tools.idea.editors.vmtrace.VmTraceCaptureType"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.module.NewAndroidModuleDescriptionProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.instantapp.NewInstantAppModuleDescriptionProvider"/>

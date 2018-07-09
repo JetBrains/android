@@ -18,7 +18,7 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.logcat.AndroidLogcatView;
-import com.android.tools.idea.monitor.AndroidToolWindowFactory;
+import com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.application.ApplicationManager;
@@ -56,7 +56,7 @@ public class ClearLogcatTask implements LaunchTask {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidToolWindowFactory.getToolWindowId());
+        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidLogcatToolWindowFactory.getToolWindowId());
         if (toolWindow == null) {
           return;
         }

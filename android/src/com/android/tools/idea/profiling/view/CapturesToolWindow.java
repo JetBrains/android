@@ -16,7 +16,6 @@
 package com.android.tools.idea.profiling.view;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.ddms.hprof.RunHprofConvAndSaveAsAction;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.android.tools.idea.profiling.view.nodes.CaptureNode;
@@ -110,8 +109,6 @@ public class CapturesToolWindow
     group.add(new RevealFileAction());
     group.add(new RenameCaptureFileAction(myTree));
     group.add(new DeleteAction());
-    group.addSeparator();
-    group.add(new RunHprofConvAndSaveAsAction());
 
     return group;
   }

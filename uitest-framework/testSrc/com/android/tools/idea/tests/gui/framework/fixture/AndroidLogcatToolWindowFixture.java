@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.ddmlib.Client;
 import com.android.tools.idea.logcat.AndroidLogConsole;
-import com.android.tools.idea.monitor.AndroidToolWindowFactory;
+import com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.project.Project;
@@ -36,11 +36,11 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class AndroidToolWindowFixture extends ToolWindowFixture {
+public class AndroidLogcatToolWindowFixture extends ToolWindowFixture {
   @NotNull private final ProcessListFixture myProcessListFixture;
 
-  public AndroidToolWindowFixture(@NotNull Project project, final @NotNull Robot robot) {
-    super(AndroidToolWindowFactory.getToolWindowId(), project, robot);
+  public AndroidLogcatToolWindowFixture(@NotNull Project project, final @NotNull Robot robot) {
+    super(AndroidLogcatToolWindowFactory.getToolWindowId(), project, robot);
     show();
 
     final JPanel contentPanel = getContentPanel();
@@ -60,13 +60,13 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
   }
 
   @NotNull
-  public AndroidToolWindowFixture selectProcess(@NotNull String packageName) {
+  public AndroidLogcatToolWindowFixture selectProcess(@NotNull String packageName) {
     myProcessListFixture.waitForProcess(packageName).selectItem(packageName);
     return this;
   }
 
   @NotNull
-  public AndroidToolWindowFixture selectDevicesTab() {
+  public AndroidLogcatToolWindowFixture selectDevicesTab() {
     show();
     selectTab("logcat");
     return this;
