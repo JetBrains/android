@@ -69,17 +69,4 @@ class CpuUsageNormalModeViewTest {
     val usageView = CpuUsageView.NormalModeView(stage)
     Truth.assertThat(TreeWalker(usageView).descendants().filterIsInstance(LineChart::class.java)).hasSize(1)
   }
-
-  @Test
-  fun doubleClickShouldClearTheSelection() {
-    val timeline = stage.studioProfilers.timeline
-    val usageView = CpuUsageView.NormalModeView(stage)
-
-    usageView.setSize(100, 100)
-
-    timeline.selectionRange.set(0.0, 10.0)
-    Truth.assertThat(timeline.selectionRange.isEmpty).isFalse()
-    FakeUi(usageView).mouse.doubleClick(0, 0)
-    Truth.assertThat(timeline.selectionRange.isEmpty).isTrue()
-  }
 }

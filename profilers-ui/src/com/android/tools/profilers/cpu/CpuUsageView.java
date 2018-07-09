@@ -95,15 +95,6 @@ abstract class CpuUsageView extends JBPanel {
     NormalModeView(@NotNull CpuProfilerStage stage) {
       super(stage);
 
-      myOverlayComponent.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-          if (e.getClickCount() == 2 && !e.isConsumed()) {
-            myStage.getStudioProfilers().getTimeline().getSelectionRange().clear();
-          }
-        }
-      });
-
       // Order is important
       add(createAxisPanel(), new TabularLayout.Constraint(0, 0));
       add(createLegendPanel(), new TabularLayout.Constraint(0, 0));
