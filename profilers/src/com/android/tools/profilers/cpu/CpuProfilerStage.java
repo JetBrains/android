@@ -172,12 +172,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     PARSING_FAILURE,
     // Waiting for the service to respond a start capturing call
     STARTING,
-    // An attempt to start capture has failed
-    START_FAILURE,
     // Waiting for the service to respond a stop capturing call
     STOPPING,
-    // An attempt to stop capture has failed
-    STOP_FAILURE,
   }
 
   @NotNull
@@ -580,12 +576,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     else {
       getLogger().warn("Unable to start tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
-      setCaptureState(CaptureState.START_FAILURE);
       getStudioProfilers().getIdeServices()
                           .showErrorBalloon(CAPTURE_START_FAILURE_BALLOON_TITLE, CAPTURE_START_FAILURE_BALLOON_TEXT, CPU_BUG_TEMPLATE_URL,
                                             REPORT_A_BUG_TEXT);
-      // START_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
+      // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
+      setCapture(null);
     }
   }
 
@@ -662,12 +658,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     if (!response.getStatus().equals(CpuProfilingAppStopResponse.Status.SUCCESS)) {
       getLogger().warn("Unable to stop tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
-      setCaptureState(CaptureState.STOP_FAILURE);
       getStudioProfilers().getIdeServices()
                           .showErrorBalloon(CAPTURE_STOP_FAILURE_BALLOON_TITLE, CAPTURE_STOP_FAILURE_BALLOON_TEXT, CPU_BUG_TEMPLATE_URL,
                                             REPORT_A_BUG_TEXT);
-      // STOP_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
+      // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
+      setCapture(null);
       captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE);
       getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
     }
