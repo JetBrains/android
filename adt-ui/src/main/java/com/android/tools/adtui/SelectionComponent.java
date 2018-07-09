@@ -122,6 +122,11 @@ public final class SelectionComponent extends AnimatedComponent {
       @Override
       public void mousePressed(MouseEvent e) {
         if (SwingUtilities.isLeftMouseButton(e)) {
+          // Always clear selection on double click.
+          if (e.getClickCount() == 2 && !e.isConsumed()) {
+            myModel.clear();
+            return;
+          }
           requestFocusInWindow();
           myMode = getModeAtCurrentPosition(e.getX(), e.getY());
           if (myMode == Mode.CREATE) {
