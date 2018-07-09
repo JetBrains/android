@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.issues;
+package com.android.tools.idea.gradle.project.sync.issues.processor;
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -56,7 +56,7 @@ public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   @Override
-  protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
+  public UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
     return new UsageViewDescriptorAdapter() {
       @Override
       public String getCodeReferencesText(int usagesCount, int filesCount) {
@@ -78,7 +78,7 @@ public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   @Override
-  protected UsageInfo[] findUsages() {
+  public UsageInfo[] findUsages() {
     ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
 
     List<UsageInfo> usages = new ArrayList<>();
@@ -101,7 +101,7 @@ public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
   }
 
   @Override
-  protected void performRefactoring(@NotNull UsageInfo[] usages) {
+  public void performRefactoring(@NotNull UsageInfo[] usages) {
     ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
 
     List<PsiElement> elements = Arrays.stream(usages).map(usage -> usage.getElement()).collect(Collectors.toList());
@@ -128,7 +128,7 @@ public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   @Override
-  protected String getCommandName() {
+  public String getCommandName() {
     return (myRemoveBuildTools ? "Remove" : "Update") + " Android Build Tools Version";
   }
 }
