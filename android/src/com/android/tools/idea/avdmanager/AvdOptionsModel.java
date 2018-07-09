@@ -37,6 +37,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
@@ -772,10 +773,18 @@ public final class AvdOptionsModel extends WizardModel {
       }
     }
 
+    final String sdCardFinal = sdCard;
     AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
-    myCreatedAvd = connection.createOrUpdateAvd(
-      myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(),
-      isCircular, sdCard, skinFile, hardwareProperties, false, myRemovePreviousAvd.get());
+
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(
+      () -> {
+        myCreatedAvd = connection.createOrUpdateAvd(
+          myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(),
+          isCircular, sdCardFinal, skinFile, hardwareProperties, false, myRemovePreviousAvd.get());
+      },
+      "Creating Android Virtual Device", false, null
+    );
+
     if (myCreatedAvd == null) {
       ApplicationManager.getApplication().invokeAndWait(() -> Messages.showErrorDialog(
         (Project)null, "An error occurred while creating the AVD. See idea.log for details.", "Error Creating AVD"), ModalityState.any());
