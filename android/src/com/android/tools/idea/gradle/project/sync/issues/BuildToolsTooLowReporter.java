@@ -16,13 +16,19 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowErrorHandler;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +52,19 @@ class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
   @Override
   int getSupportedIssueType() {
     return TYPE_BUILD_TOOLS_TOO_LOW;
+  }
+
+  @Override
+  protected OpenFileHyperlink createModuleLink(@NotNull Project project,
+                                               @NotNull Module module,
+                                               @NotNull ProjectBuildModel projectBuildModel,
+                                               @NotNull List<SyncIssue> syncIssues,
+                                               @NotNull VirtualFile buildFile) {
+    GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(buildFile);
+    PsiElement element = buildModel.android().buildToolsVersion().getPsiElement();
+    int lineNumber = getLineNumberForElement(project, element);
+
+    return new OpenFileHyperlink(buildFile.getPath(), module.getName(), lineNumber, -1);
   }
 
   @Nullable
