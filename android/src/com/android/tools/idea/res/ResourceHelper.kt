@@ -52,6 +52,9 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.JdkOrderEntry
+import com.intellij.openapi.roots.LibraryOrderEntry
+import com.intellij.openapi.roots.impl.DirectoryIndex
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -459,7 +462,15 @@ val PsiElement.resourceNamespace: ResourceNamespace? get() {
   return if (androidFacet != null) {
     ResourceRepositoryManager.getOrCreateInstance(androidFacet).namespace
   } else {
-    ResourceNamespaceCache.getInstance(project).getNamespaceForUnknownResourceFile(containingFile.virtualFile ?: return null)
+    // The file doesn't belong to any known Android module, let's check if it's part of the SDK or an AAR.
+    val directoryIndex = DirectoryIndex.getInstance(project)
+    val orderEntries = directoryIndex.getOrderEntries(directoryIndex.getInfoForFile(containingFile.virtualFile ?: return null))
+    when {
+      orderEntries.any { it is JdkOrderEntry } -> ResourceNamespace.ANDROID
+      // TODO(b/110082720): Handle sources for namespaced libraries and return the correct namespace here.
+      orderEntries.any { it is LibraryOrderEntry } -> ResourceNamespace.RES_AUTO
+      else -> null
+    }
   }
 }
 
