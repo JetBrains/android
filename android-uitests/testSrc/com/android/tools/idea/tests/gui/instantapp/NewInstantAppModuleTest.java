@@ -25,8 +25,6 @@ import static org.junit.Assert.assertNotNull;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureAndroidModuleStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
@@ -49,7 +47,6 @@ import org.junit.runner.RunWith;
 /**
  * Test that newly created Instant App modules do not have errors in them
  */
-@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner.class)
 public class NewInstantAppModuleTest {
   private static final String SAVED_COMPANY_DOMAIN = "SAVED_COMPANY_DOMAIN";

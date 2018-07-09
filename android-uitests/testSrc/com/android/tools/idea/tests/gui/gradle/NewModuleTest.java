@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
@@ -36,7 +34,6 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests, that newly generated modules work, even with older gradle plugin versions.
  */
-@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner.class)
 public class NewModuleTest {
 

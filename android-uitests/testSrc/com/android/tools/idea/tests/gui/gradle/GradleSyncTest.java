@@ -90,7 +90,6 @@ import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.*;
 
-@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRemoteRunner.class)
 public class GradleSyncTest {
   @Nullable private File myBackupProperties;

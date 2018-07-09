@@ -37,7 +37,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner::class)
 class AddDynamicFeatureTest {
   @Rule

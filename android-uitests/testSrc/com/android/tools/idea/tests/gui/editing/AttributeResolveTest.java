@@ -34,7 +34,6 @@ import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.junit.Assert.assertEquals;
 
-@RunIn(TestGroup.EDITING)
 @RunWith(GuiTestRemoteRunner.class)
 public class AttributeResolveTest {
 

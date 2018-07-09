@@ -32,7 +32,7 @@ import com.android.tools.idea.flags.StudioFlags.NPW_OFFLINE_REPO_CHECKBOX
 import com.google.common.base.Charsets.UTF_8
 import com.google.common.truth.Truth.assertThat
 
-@RunIn(TestGroup.UNRELIABLE)  // b/113298184 @RunIn(TestGroup.PROJECT_WIZARD)
+@RunIn(TestGroup.UNRELIABLE)  // b/113298184
 @RunWith(GuiTestRemoteRunner::class)
 class OfflineRepoTest {
   @JvmField @Rule
