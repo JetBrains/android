@@ -425,4 +425,16 @@ public class NavigationSchema implements Disposable {
 
     return false;
   }
+
+  public Boolean isFragmentTag(@NotNull String tag) {
+    return getDestinationType(tag) == FRAGMENT;
+  }
+
+  public Boolean isActivityTag(@NotNull String tag) {
+    return getDestinationType(tag) == ACTIVITY;
+  }
+
+  public Boolean isNavigationTag(@NotNull String tag) {
+    return getDestinationType(tag) == NAVIGATION;
+  }
 }

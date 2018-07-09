@@ -57,7 +57,6 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.NAVIGATION;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.OTHER;
 
 /**
@@ -145,7 +144,7 @@ public class NavSceneManager extends SceneManager {
         break;
     }
 
-    NavigationSchema.DestinationType type = getSchema().getDestinationType(nlComponent.getTagName());
+    NavigationSchema.DestinationType type = NavComponentHelperKt.getDestinationType(nlComponent);
     if (type != null) {
       sceneComponent.setTargetProvider(sceneComponent.getNlComponent() == getDesignSurface().getCurrentNavigation()
                                        ? myNavigationTargetProvider
@@ -196,8 +195,8 @@ public class NavSceneManager extends SceneManager {
 
   @Override
   protected void postUpdateFromComponent(@NotNull SceneComponent sceneComponent) {
-    NavigationSchema.DestinationType type = getSchema().getDestinationType(sceneComponent.getNlComponent().getTagName());
-    if (type == NAVIGATION && sceneComponent.getNlComponent() == getDesignSurface().getCurrentNavigation()) {
+    NlComponent nlComponent = sceneComponent.getNlComponent();
+    if (NavComponentHelperKt.isNavigation(nlComponent) && nlComponent == getDesignSurface().getCurrentNavigation()) {
       layoutAll(sceneComponent);
       updateRootBounds(sceneComponent);
     }

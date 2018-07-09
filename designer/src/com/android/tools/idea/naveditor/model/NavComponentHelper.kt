@@ -125,10 +125,13 @@ val NlComponent.isAction: Boolean
   get() = tagName == NavigationSchema.TAG_ACTION
 
 val NlComponent.isFragment: Boolean
-  get() = destinationType == NavigationSchema.DestinationType.FRAGMENT
+  get() = model.schema.isFragmentTag(tagName)
+
+val NlComponent.isActivity: Boolean
+  get() = model.schema.isActivityTag(tagName)
 
 val NlComponent.isNavigation: Boolean
-  get() = destinationType == NavigationSchema.DestinationType.NAVIGATION
+  get() = model.schema.isNavigationTag(tagName)
 
 val NlComponent.isInclude: Boolean
   get() = tagName == TAG_INCLUDE
