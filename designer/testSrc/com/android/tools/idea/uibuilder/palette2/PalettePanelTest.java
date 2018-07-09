@@ -430,7 +430,7 @@ public class PalettePanelTest extends LayoutTestCase {
     myModel = createModel().build();
     DesignSurface surface = myModel.getSurface();
     LayoutTestUtilities.createScreen(myModel);
-    when(surface.getLayoutType()).thenReturn(layoutType);
+    doReturn(layoutType).when(surface).getLayoutType();
     myPanel.setToolContext(myModel.getSurface());
     return surface;
   }

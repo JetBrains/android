@@ -15,14 +15,12 @@ package com.android.tools.idea.naveditor
 
 import com.android.SdkConstants
 import com.android.SdkConstants.*
-import com.android.SdkConstants.ATTR_GRAPH
 import com.android.SdkConstants.TAG_ACTION
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionManager
@@ -30,7 +28,6 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.google.common.collect.ImmutableList
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.*
@@ -73,12 +70,10 @@ object NavModelBuilderUtil {
       `when`(surface.scrollPosition).thenAnswer { Point(0, 0) }
       `when`(surface.interactionManager).thenReturn(InteractionManager(surface))
 
-      val selectionModel = mock(SelectionModel::class.java)
-      `when`<ImmutableList<NlComponent>>(selectionModel.selection).thenReturn(ImmutableList.of<NlComponent>())
-
       val sceneView = mock(SceneView::class.java)
       `when`<NlModel>(sceneView.model).thenReturn(model)
       `when`<Configuration>(sceneView.configuration).thenReturn(model.configuration)
+      val selectionModel = surface.selectionModel
       `when`(sceneView.selectionModel).thenReturn(selectionModel)
       `when`<DesignSurface>(sceneView.surface).thenReturn(surface)
 
@@ -156,7 +151,11 @@ object NavModelBuilderUtil {
       label?.let { withAttribute(ANDROID_URI, ATTR_LABEL, it) }
     }
 
-    fun action(id: String, destination: String? = null, popUpTo: String? = null, inclusive: Boolean = false, f: ActionComponentDescriptor.() -> Unit = {}) {
+    fun action(id: String,
+               destination: String? = null,
+               popUpTo: String? = null,
+               inclusive: Boolean = false,
+               f: ActionComponentDescriptor.() -> Unit = {}) {
       val action = ActionComponentDescriptor(id, destination, popUpTo, inclusive)
       addChild(action, null)
       action.apply(f)

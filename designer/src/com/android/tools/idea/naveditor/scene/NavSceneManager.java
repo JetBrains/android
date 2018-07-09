@@ -212,7 +212,7 @@ public class NavSceneManager extends SceneManager {
 
     @NavCoordinate Rectangle rootBounds;
 
-    if(isEmpty()) {
+    if (isEmpty()) {
       rootBounds = new Rectangle(0, 0, extentWidth, extentHeight);
     }
     else {

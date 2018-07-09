@@ -182,25 +182,6 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     }
   }
 
-  @Nullable
-  private static NlComponent findSharedParent(@NotNull List<NlComponent> newSelection) {
-    NlComponent parent = null;
-    for (NlComponent selected : newSelection) {
-      if (parent == null) {
-        parent = selected.getParent();
-        if (newSelection.size() == 1 && selected.isRoot() && (parent == null || parent.isRoot())) {
-          // If you select a root layout, offer selection actions on it as well
-          return selected;
-        }
-      }
-      else if (parent != selected.getParent()) {
-        parent = null;
-        break;
-      }
-    }
-    return parent;
-  }
-
   private void updateActions(@NotNull List<NlComponent> newSelection) {
     SceneView screenView = mySurface.getCurrentSceneView();
     if (screenView == null) {
@@ -210,10 +191,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     // TODO: Perform caching
     myDynamicGroup.removeAll();
 
-    NlComponent parent = findSharedParent(newSelection);
-    if (parent != null) {
-      mySurface.getActionManager().addActions(myDynamicGroup, null, parent, newSelection, true);
-    }
+    mySurface.getActionManager().addActions(myDynamicGroup, null, newSelection, true);
     updateBottomActionBarBorder();
     myCenterToolbar.clearPresentationCache();
   }

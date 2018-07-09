@@ -173,7 +173,6 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
   override fun addActions(
     group: DefaultActionGroup,
     component: NlComponent?,
-    parent: NlComponent?,
     newSelection: List<NlComponent>,
     toolbar: Boolean
   ) {

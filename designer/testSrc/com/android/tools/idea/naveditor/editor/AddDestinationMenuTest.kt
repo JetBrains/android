@@ -167,7 +167,7 @@ class AddDestinationMenuTest : NavTestCase() {
 
   fun testCaching() {
     val group = DefaultActionGroup()
-    surface.actionManager.addActions(group, null, null, listOf<NlComponent>(), true)
+    surface.actionManager.addActions(group, null, listOf<NlComponent>(), true)
     val addDestinationMenu = group.getChildren(null)[0] as AddDestinationMenu
     val panel = addDestinationMenu.mainPanel
     // get it again and check that it's the same instance

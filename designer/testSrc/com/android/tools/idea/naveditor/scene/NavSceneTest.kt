@@ -634,10 +634,8 @@ class NavSceneTest : NavTestCase() {
     scene.sceneManager.layout(false)
 
     val list = DisplayList()
-    val view = model.surface.currentSceneView!!
-    `when`(view.scale).thenReturn(1.0)
-    val transform = SceneContext.get(view)
-    scene.layout(0, SceneContext.get(model.surface.currentSceneView))
+    val transform = SceneContext.get(model.surface.currentSceneView)
+    scene.layout(0, transform)
     scene.mouseHover(transform, 150, 30)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
@@ -721,10 +719,8 @@ class NavSceneTest : NavTestCase() {
     scene.sceneManager.layout(false)
 
     val list = DisplayList()
-    val view = model.surface.currentSceneView!!
-    `when`(view.scale).thenReturn(1.0)
-    val transform = SceneContext.get(view)
-    scene.layout(0, SceneContext.get(model.surface.currentSceneView))
+    val transform = SceneContext.get(model.surface.currentSceneView)
+    scene.layout(0, transform)
 
     // If rectangle extends from (20, 20) to (173, 276), then the handle should be at (173, 148)
     // Hover over a point to the right of that so that we're over the handle but not the rectangle
@@ -762,9 +758,6 @@ class NavSceneTest : NavTestCase() {
     scene.sceneManager.layout(false)
 
     val list = DisplayList()
-    val view = surface.currentSceneView!!
-    `when`(view.scale).thenReturn(1.0)
-    val transform = SceneContext.get(view)
     val sceneContext = SceneContext.get(surface.currentSceneView)
 
     scene.layout(0, sceneContext)
@@ -800,7 +793,7 @@ class NavSceneTest : NavTestCase() {
         "DrawFilledCircle,7,478x464,ff1886f7,2:2:0\n" +
         "DrawActionHandleDrag,478,464\n" +
         "\n" +
-        "UNClip\n", list.generateSortedDisplayList(transform)
+        "UNClip\n", list.generateSortedDisplayList(sceneContext)
     )
 
   }
