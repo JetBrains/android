@@ -26,6 +26,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.*;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
@@ -39,6 +40,7 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,6 +71,25 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
   @Override
   int getSupportedIssueType() {
     return TYPE_UNRESOLVED_DEPENDENCY;
+  }
+
+  @Override
+  protected OpenFileHyperlink createModuleLink(@NotNull Project project,
+                                               @NotNull Module module,
+                                               @NotNull ProjectBuildModel projectBuildModel,
+                                               @NotNull List<SyncIssue> syncIssues,
+                                               @NotNull VirtualFile buildFile) {
+    assert !syncIssues.isEmpty();
+    // Get the dependency
+    String dependency = syncIssues.get(0).getData();
+    GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(buildFile);
+    ArtifactDependencyModel dependencyModel =
+      buildModel.dependencies().artifacts().stream().filter(artifact -> artifact.compactNotation().equals(dependency)).findFirst()
+                .orElse(null);
+    PsiElement element = dependencyModel == null ? null : dependencyModel.getPsiElement();
+    int lineNumber = getLineNumberForElement(project, element);
+
+    return new OpenFileHyperlink(buildFile.getPath(), module.getName(), lineNumber, -1);
   }
 
   @Nullable
@@ -229,7 +250,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
    *
    * @param project    the project
    * @param buildFiles Build files where the dependencies are.
-   * @param fixes     List of hyperlinks in which the quickfix will be added if the repository is not already used.
+   * @param fixes      List of hyperlinks in which the quickfix will be added if the repository is not already used.
    */
   private static void addGoogleMavenRepositoryHyperlink(@NotNull Project project,
                                                         @NotNull List<VirtualFile> buildFiles,

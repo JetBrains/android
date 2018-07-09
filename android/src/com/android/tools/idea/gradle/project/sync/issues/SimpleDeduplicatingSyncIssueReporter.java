@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -24,11 +25,16 @@ import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -105,13 +111,15 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
       .updateNotification(notification, notification.getMessage(), getCustomLinks(project, syncIssues, affectedModules, buildFileMap));
     String message = notification.getMessage();
 
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
+
     // Add links to each of the affected modules
     if (shouldIncludeModuleLinks() && !affectedModules.isEmpty()) {
       builder.append("\nAffected Modules: ");
       for (Iterator<Module> it = affectedModules.iterator(); it.hasNext(); ) {
         Module m = it.next();
         if (m != null) {
-          createModuleLink(project, notification, builder, m, buildFileMap.get(m));
+          doCreateModuleLink(project, notification, builder, m, projectBuildModel, syncIssues, buildFileMap.get(m));
           if (it.hasNext()) {
             builder.append(", ");
           }
@@ -124,20 +132,41 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     messages.report(notification);
   }
 
-  private static void createModuleLink(@NotNull Project project,
-                                       @NotNull NotificationData notification,
-                                       @NotNull StringBuilder builder,
-                                       @NotNull Module module,
-                                       @Nullable VirtualFile buildFile) {
+  protected void doCreateModuleLink(@NotNull Project project,
+                                    @NotNull NotificationData notification,
+                                    @NotNull StringBuilder builder,
+                                    @NotNull Module module,
+                                    @NotNull ProjectBuildModel projectBuildModel,
+                                    @NotNull List<SyncIssue> syncIssues,
+                                    @Nullable VirtualFile buildFile) {
     if (buildFile == null) {
       // No build file found, just include the name of the module.
       builder.append(module.getName());
     }
     else {
-      OpenFileHyperlink link = new OpenFileHyperlink(buildFile.getPath(), module.getName(), -1, -1);
+      OpenFileHyperlink link = createModuleLink(project, module, projectBuildModel, syncIssues, buildFile);
       builder.append(link.toHtml());
       notification.setListener(link.getUrl(), new QuickFixNotificationListener(project, link));
     }
+  }
+
+
+  /**
+   * Creates the module link for this SyncIssue, this allows subclasses to link to specific files relevant to the issue. It defaults to
+   * simply linking to the module build file.
+   *
+   * @param project the project.
+   * @param module  the module this link should be created for.
+   * @param projectBuildModel build model for this project, this prevent each link from having to create their own.
+   * @param syncIssues list of all the sync issues in this group, this list will contain at least one element.
+   * @param buildFile the build file for the provided module.
+   */
+  protected OpenFileHyperlink createModuleLink(@NotNull Project project,
+                                               @NotNull Module module,
+                                               @NotNull ProjectBuildModel projectBuildModel,
+                                               @NotNull List<SyncIssue> syncIssues,
+                                               @NotNull VirtualFile buildFile) {
+    return new OpenFileHyperlink(buildFile.getPath(), module.getName(), -1, -1);
   }
 
   /**
@@ -205,5 +234,18 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
       data.setNavigatable(new OpenFileDescriptor(project, position.file, position.line, position.column));
     }
     return data;
+  }
+
+  public static int getLineNumberForElement(@NotNull Project project,
+                                            @Nullable PsiElement element) {
+    return ApplicationManager.getApplication().runReadAction((Computable<Integer>)() -> {
+      if (element != null) {
+        Document document = PsiDocumentManager.getInstance(project).getDocument(element.getContainingFile());
+        if (document != null) {
+          return document.getLineNumber(element.getTextOffset());
+        }
+      }
+      return -1;
+    });
   }
 }
