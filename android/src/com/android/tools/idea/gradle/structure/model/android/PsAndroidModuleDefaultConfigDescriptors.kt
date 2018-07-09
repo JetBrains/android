@@ -150,7 +150,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
   )
 
   val proGuardFiles: ListProperty<PsAndroidModuleDefaultConfig, File> = listProperty(
-    "Proguard Files",
+    "ProGuard Files",
     resolvedValueGetter = { proguardFiles.toList() },
     parsedPropertyGetter = { proguardFiles() },
     getter = { asFile() },

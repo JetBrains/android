@@ -216,7 +216,7 @@ open class PsBuildType(
     )
 
     val proGuardFiles: ListProperty<PsBuildType, File> = listProperty(
-      "Proguard Files",
+      "ProGuard Files",
       resolvedValueGetter = { proguardFiles.toList() },
       parsedPropertyGetter = { proguardFiles() },
       getter = { asFile() },

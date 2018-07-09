@@ -193,7 +193,7 @@ open class PsProductFlavor(
     )
 
     val proGuardFiles: ListProperty<PsProductFlavor, File> = listProperty(
-      "Proguard Files",
+      "ProGuard Files",
       resolvedValueGetter = { proguardFiles.toList() },
       parsedPropertyGetter = { proguardFiles() },
       getter = { asFile() },
