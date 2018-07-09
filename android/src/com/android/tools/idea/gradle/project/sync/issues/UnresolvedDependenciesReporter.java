@@ -150,7 +150,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
       else if (constraintPackage != null) {
         quickFixes.add(new InstallArtifactHyperlink(constraintPackage.getPath()));
       }
-      else if (dependency.startsWith("com.android.support")) {
+      else if (dependency.startsWith("com.android.support") || dependency.startsWith("androidx.")) {
         addGoogleMavenRepositoryHyperlink(project, buildFiles, quickFixes);
       }
       else if (dependency.startsWith("com.google.android")) {

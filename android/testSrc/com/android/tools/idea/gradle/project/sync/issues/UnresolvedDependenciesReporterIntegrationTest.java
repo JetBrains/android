@@ -351,12 +351,29 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     Project project = getProject();
     ProjectBuildModel buildModel = ProjectBuildModel.get(project);
 
-    SyncIssue issue = mock(SyncIssue.class);
-    when(issue.getData()).thenReturn("com.google.guava:guava:19.0");
+    when(mySyncIssue.getData()).thenReturn("com.google.guava:guava:19.0");
 
-    List<SyncIssue> syncIssues = ImmutableList.of(issue);
+    List<SyncIssue> syncIssues = ImmutableList.of(mySyncIssue);
     OpenFileHyperlink link = myReporter.createModuleLink(getProject(), appModule, buildModel, syncIssues, appFile);
     assertThat(link.getLineNumber()).isEqualTo(28);
     assertThat(link.getFilePath()).isEqualTo(appFile.getPath());
+  }
+
+  public void testAndroidXGoogleHyperlink() throws Exception {
+    loadSimpleApplication();
+    Module appModule = myModules.getAppModule();
+    VirtualFile appFile = getGradleBuildFile(appModule);
+
+    when(mySyncIssue.getData()).thenReturn("androidx.room:room-compiler:2.0.0-alpha1");
+
+    myReporter.report(mySyncIssue, appModule, appFile);
+
+    List<NotificationData> messages = mySyncMessagesStub.getNotifications();
+    assertSize(1, messages);
+
+    List<NotificationHyperlink> links = mySyncMessagesStub.getNotificationUpdate().getFixes();
+    assertSize(2, links);
+    assertThat(links.get(0)).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
+    assertThat(links.get(1)).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
   }
 }
