@@ -1367,17 +1367,18 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void startCapturingFailureShowsErrorBalloon() {
+  public void startCapturingFailureShowsErrorBalloon() throws InterruptedException, ExecutionException, IOException {
+    myStage.setCapture(CpuProfilerTestUtils.getValidCapture());
     // Start a failing capture
     myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.FAILURE);
     // Sequence of states that should happen after starting a capture and failing to do so
     Iterator<CpuProfilerStage.CaptureState> captureStates = Iterators.forArray(CpuProfilerStage.CaptureState.STARTING,
-                                                                               CpuProfilerStage.CaptureState.START_FAILURE,
                                                                                CpuProfilerStage.CaptureState.IDLE);
     // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
     AspectObserver observer = new AspectObserver();
     myStage.getAspect().addDependency(observer).onChange(
       CpuProfilerAspect.CAPTURE_STATE, () -> assertThat(myStage.getCaptureState()).isEqualTo(captureStates.next()));
+    assertThat(myStage.getCapture()).isNotNull();
     startCapturing();
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
@@ -1386,10 +1387,13 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.CAPTURE_START_FAILURE_BALLOON_TEXT);
     assertThat(myServices.getBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
     assertThat(myServices.getBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
+
+    assertThat(myStage.getCapture()).isNull();
   }
 
   @Test
-  public void stopCapturingFailureShowsErrorBalloon() {
+  public void stopCapturingFailureShowsErrorBalloon() throws InterruptedException, ExecutionException, IOException {
+    myStage.setCapture(CpuProfilerTestUtils.getValidCapture());
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                CpuProfiler.CpuProfilerType.ART,
@@ -1401,19 +1405,22 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Sequence of states that should happen after stopping a capture and failing to do so
     Iterator<CpuProfilerStage.CaptureState> captureStates = Iterators.forArray(CpuProfilerStage.CaptureState.STOPPING,
-                                                                               CpuProfilerStage.CaptureState.STOP_FAILURE,
                                                                                CpuProfilerStage.CaptureState.IDLE);
     // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
     AspectObserver observer = new AspectObserver();
     myStage.getAspect().addDependency(observer).onChange(
       CpuProfilerAspect.CAPTURE_STATE, () -> assertThat(myStage.getCaptureState()).isEqualTo(captureStates.next()));
+    assertThat(myStage.getCapture()).isNotNull();
     stopCapturing();
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+
     assertThat(myServices.getBalloonTitle()).isEqualTo(CpuProfilerStage.CAPTURE_STOP_FAILURE_BALLOON_TITLE);
     assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.CAPTURE_STOP_FAILURE_BALLOON_TEXT);
     assertThat(myServices.getBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
     assertThat(myServices.getBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
+
+    assertThat(myStage.getCapture()).isNull();
   }
 
   @Test
