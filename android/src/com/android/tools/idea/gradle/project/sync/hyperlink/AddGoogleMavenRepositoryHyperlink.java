@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.project.sync.issues.AddRepoProcessor;
+import com.android.tools.idea.gradle.project.sync.issues.processor.AddRepoProcessor;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
@@ -28,7 +28,7 @@ import java.util.List;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly;
-import static com.android.tools.idea.gradle.project.sync.issues.AddRepoProcessor.Repository.GOOGLE;
+import static com.android.tools.idea.gradle.project.sync.issues.processor.AddRepoProcessor.Repository.GOOGLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 /**

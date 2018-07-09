@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 import com.android.repository.Revision;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.issues.FixBuildToolsProcessor;
+import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;

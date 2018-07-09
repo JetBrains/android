@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import com.android.tools.idea.gradle.project.sync.issues.FixBuildToolsProcessor;
+import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
