@@ -368,7 +368,7 @@ public class NavDesignSurface extends DesignSurface {
     }
     String tagName = component.getTagName();
     String id;
-    if (getSceneManager().getSchema().getDestinationType(tagName) == NavigationSchema.DestinationType.NAVIGATION) {
+    if (getSceneManager().getSchema().isNavigationTag(tagName)) {
       if (tagName.equals(TAG_INCLUDE)) {
         id = component.getAttribute(SdkConstants.AUTO_URI, ATTR_GRAPH);
         if (id == null) {

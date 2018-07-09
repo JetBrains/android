@@ -23,6 +23,7 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.naveditor.model.idPath
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isInclude
+import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
@@ -107,8 +108,7 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
       return false
     }
     reload(component.nlComponent.model.file)
-    val type = schema.getDestinationType(component.nlComponent.tagName)
-    if (type == NavigationSchema.DestinationType.NAVIGATION && component.parent == null) {
+    if (component.nlComponent.isNavigation && component.parent == null) {
       return true
     }
 

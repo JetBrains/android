@@ -31,7 +31,6 @@ import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import icons.StudioIcons.NavEditor.ExistingDestinations.ACTIVITY
 import icons.StudioIcons.NavEditor.ExistingDestinations.DESTINATION
-import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.Image
 import java.awt.image.BufferedImage
 
@@ -74,7 +73,7 @@ sealed class Destination {
           return@lazy result
         }
       }
-      val isActivity = model.schema.getDestinationType(tag) == NavigationSchema.DestinationType.ACTIVITY
+      val isActivity = model.schema.isActivityTag(tag)
       
       return@lazy iconToImage(if (isActivity) ACTIVITY else DESTINATION)
     }

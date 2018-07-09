@@ -19,7 +19,6 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.destinationType
 import com.android.tools.idea.naveditor.model.schema
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
-import org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.NAVIGATION
 
 const val TYPE_EDITOR_PROPERTY_LABEL = "Type"
 
