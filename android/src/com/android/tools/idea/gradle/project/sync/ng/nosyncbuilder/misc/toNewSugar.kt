@@ -23,6 +23,7 @@ import com.android.ide.common.gradle.model.level2.IdeJavaLibrary
 import com.android.ide.common.gradle.model.level2.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.Library
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.Dependencies
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.javaproject.NewJavaSourceSet
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewAndroidLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewJavaLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewModuleDependency
@@ -34,6 +35,7 @@ fun OldAndroidArtifact.toNew(aspFactory: NewArtifactSourceProviderFactory) = New
 fun OldJavaArtifact.toNew(aspFactory: NewArtifactSourceProviderFactory) = NewJavaArtifact(this, aspFactory)
 fun OldApiVersion.toNew() = NewApiVersion(this)
 fun OldTestOptions.toNew() = NewTestOptions(this)
+fun OldJavaSourceSet.toNew() = NewJavaSourceSet(this)
 fun SourceProvider.toAndroidSourceSet() = NewAndroidSourceSet(this)
 
 fun Level2Library.toNew(): Library = when (this.type) {

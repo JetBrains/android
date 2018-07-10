@@ -17,17 +17,19 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.l
 
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.LibraryProto
 
-/** Represents a dependency on another module.*/
+/** Represents a dependency on another module. */
 interface ModuleDependency : Library {
   val buildId: String
   /** The gradle path. */
   val projectPath: String
-  val variant: String
+  /** Variant name for Android modules, null otherwise. */
+  val variant: String?
 
-  fun toProto() = LibraryProto.ModuleDependency.newBuilder()
+  fun toProto(): LibraryProto.ModuleDependency = LibraryProto.ModuleDependency.newBuilder()
     .setLibrary(LibraryProto.Library.newBuilder().setArtifactAddress(artifactAddress))
     .setBuildId(buildId)
     .setProjectPath(projectPath)
-    .setVariant(variant)
-    .build()!!
+    .also {
+      variant?.run { it.variant = this }
+    }.build()
 }
