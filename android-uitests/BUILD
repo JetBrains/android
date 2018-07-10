@@ -312,13 +312,17 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+# fast test
 java_test(
     name = "LintTest",
     data = COMMON_DATA + glob([
         "testData/LintTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.lint.LintTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",  # b/110178024
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
