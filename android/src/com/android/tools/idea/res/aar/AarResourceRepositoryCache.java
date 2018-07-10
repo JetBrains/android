@@ -79,6 +79,7 @@ public final class AarResourceRepositoryCache {
     T aarRepository = CacheUtils.getAndUnwrap(cache, file, factory);
 
     if (!Objects.equals(libraryName, aarRepository.getLibraryName())) {
+      assert false : "Library name mismatch: " + libraryName + " vs " + aarRepository.getLibraryName();
       Logger logger = Logger.getInstance(AarResourceRepositoryCache.class);
       logger.error(new Exception("Library name mismatch: " + libraryName + " vs " + aarRepository.getLibraryName()));
     }
