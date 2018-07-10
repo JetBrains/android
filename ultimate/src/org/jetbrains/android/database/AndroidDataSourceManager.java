@@ -20,12 +20,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidDbManager extends BasicDataSourceManager<AndroidDataSource> {
+public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidDataSource> {
   public static final String NOTIFICATION_GROUP_ID = "Android Data Source Manager";
 
   private final AndroidDataSourceStorage myStorage;
 
-  public AndroidDbManager(@NotNull Project project, @NotNull AndroidDataSourceStorage storage) {
+  public AndroidDataSourceManager(@NotNull Project project, @NotNull AndroidDataSourceStorage storage) {
     super(project, storage.getDataSources());
     myStorage = storage;
   }
