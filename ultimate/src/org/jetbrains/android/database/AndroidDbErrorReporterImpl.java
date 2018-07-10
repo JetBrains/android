@@ -14,7 +14,7 @@ class AndroidDbErrorReporterImpl extends AndroidDbErrorReporter {
   private final AndroidDataSource myDataSource;
   private final boolean myUpload;
 
-  public AndroidDbErrorReporterImpl(@NotNull Project project, @NotNull AndroidDataSource dataSource, boolean upload) {
+  AndroidDbErrorReporterImpl(@NotNull Project project, @NotNull AndroidDataSource dataSource, boolean upload) {
     myProject = project;
     myDataSource = dataSource;
     myUpload = upload;
@@ -24,7 +24,7 @@ class AndroidDbErrorReporterImpl extends AndroidDbErrorReporter {
   public synchronized void reportError(@NotNull String message) {
     super.reportError(message);
     final Notification notification = new Notification(
-      AndroidDbManager.NOTIFICATION_GROUP_ID, "Data Source Synchronization Error",
+      AndroidDataSourceManager.NOTIFICATION_GROUP_ID, "Data Source Synchronization Error",
       "Cannot " + (myUpload ? "upload" : "synchronize") + " '" + myDataSource.getName() + "': " + message,
       NotificationType.ERROR);
     Notifications.Bus.notify(notification, myProject);
