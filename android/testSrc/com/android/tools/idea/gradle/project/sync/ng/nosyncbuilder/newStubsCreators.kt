@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder
 
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.androidproject.AaptOptions
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.androidproject.AndroidProject
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.javaproject.JavaProject
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.AndroidLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.JavaLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.ModuleDependency
@@ -27,12 +28,15 @@ import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConv
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.androidproject.NewAaptOptions
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.androidproject.NewAndroidProject
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.androidproject.NewJavaCompileOptions
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.javaproject.MAIN_SOURCE_SET
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.javaproject.NewJavaProject
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.javaproject.NewJavaSourceSet
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.javaproject.TEST_SOURCE_SET
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewAndroidLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewGlobalLibraryMap
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewJavaLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewModuleDependency
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.variant.*
-import org.gradle.internal.impldep.org.bouncycastle.math.raw.Nat
 import java.io.File
 
 val modulePath = File("/path/to/module")
@@ -63,6 +67,14 @@ fun createNewAndroidProject(): AndroidProject {
     signingConfigs = listOf() // TODO add flag for signing configs
   )
 }
+
+fun createNewJavaProject(): JavaProject = NewJavaProject(
+  name = "javaProject",
+  mainSourceSet = createNewJavaSourceSet(MAIN_SOURCE_SET),
+  testSourceSet = createNewJavaSourceSet(TEST_SOURCE_SET),
+  extraSourceSets = listOf(),
+  javaLanguageLevel = "1.7"
+)
 
 fun createNewVariant(): Variant {
   val instantRun = NewInstantRun(
@@ -154,6 +166,16 @@ fun createNewAndroidSourceSet(name: String) = NewAndroidSourceSet(
   listOf(File(buildPath,"${name}assetsDirectory")),
   listOf(File(buildPath,"${name}jniLibsDirectory")),
   listOf(File(buildPath,"${name}shadersDirectory"))
+)
+
+fun createNewJavaSourceSet(name: String) = NewJavaSourceSet(
+  name,
+  listOf(File(buildPath, "${name}SourceDirectory")),
+  listOf(File(buildPath, "${name}ResourceDirectory")),
+  File(buildPath, "${name}ClassesOutputDirectory"),
+  File(buildPath, "${name}ResourcesOutputDirectory"),
+  createNewJavaLibraries(3).values.toList(),
+  createNewModuleLibraries(2).values.toList()
 )
 
 fun createNewGlobalLibraryMap() = NewGlobalLibraryMap(
