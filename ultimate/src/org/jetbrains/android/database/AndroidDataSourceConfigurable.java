@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurable<AndroidDbManager, AndroidDataSource> implements Disposable {
+public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurable<AndroidDataSourceManager, AndroidDataSource> implements Disposable {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSourcePropertiesDialog");
   private static final String[] DEFAULT_EXTERNAL_DB_PATTERNS = new String[]{"files/"};
 
@@ -67,7 +67,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
 
   private final AndroidDataSource myTempDataSource;
 
-  protected AndroidDataSourceConfigurable(@NotNull AndroidDbManager manager, @NotNull Project project, @NotNull AndroidDataSource dataSource) {
+  protected AndroidDataSourceConfigurable(@NotNull AndroidDataSourceManager manager, @NotNull Project project, @NotNull AndroidDataSource dataSource) {
     super(manager, dataSource, project);
     myTempDataSource = dataSource.copy();
     myDeviceListener = new AndroidDebugBridge.IDeviceChangeListener() {
