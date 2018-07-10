@@ -143,6 +143,5 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="intellij.android.deploy" />
   </component>
 </module>

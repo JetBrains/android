@@ -137,10 +137,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   @NotNull
   @VisibleForTesting
   List<LaunchTask> getDeployTasks(@NotNull final IDevice device, @NotNull final String packageName) throws ApkProvisionException {
-    if (StudioFlags.JVMTI_REFRESH.get()) {
-      return ImmutableList.of(new UnifiedDeployTask(myApkProvider.getApks(device)));
-    }
-
     if (myInstantRunBuildAnalyzer != null) {
       return myInstantRunBuildAnalyzer.getDeployTasks(device, myLaunchOptions);
     }
