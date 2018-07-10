@@ -21,7 +21,6 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
-import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
@@ -29,10 +28,8 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.PsiFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -140,17 +137,12 @@ public class PreviewProviderTest extends LayoutTestCase {
       super(project);
     }
 
-    @Nullable
+
     @Override
-    public RenderTask createTask(@NotNull AndroidFacet facet,
-                                 @Nullable PsiFile psiFile,
-                                 @NotNull Configuration configuration,
-                                 @NotNull RenderLogger logger,
-                                 @Nullable ILayoutPullParserFactory parserFactory) {
-      RenderTask task = super.createTask(facet, psiFile, configuration, logger, parserFactory);
-      assert task != null;
-      task.disableSecurityManager();
-      return task;
+    @NotNull
+    public RenderTaskBuilder taskBuilder(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
+      return super.taskBuilder(facet, configuration)
+        .disableSecurityManager();
     }
   }
 }
