@@ -78,7 +78,7 @@ public class AndroidAnyAttributeDescriptor implements XmlAttributeDescriptor {
 
   @NotNull
   @Override
-  public Object[] getDependences() {
-    return myParentDescriptor.getDependences();
+  public Object[] getDependencies() {
+    return this.getDependencies();
   }
 }
