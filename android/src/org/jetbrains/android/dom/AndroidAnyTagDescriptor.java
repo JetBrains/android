@@ -100,6 +100,6 @@ public class AndroidAnyTagDescriptor implements XmlElementDescriptor {
   @NotNull
   @Override
   public Object[] getDependencies() {
-    return this.getDependencies();
+    return myParentDescriptor.getDependencies();
   }
 }
