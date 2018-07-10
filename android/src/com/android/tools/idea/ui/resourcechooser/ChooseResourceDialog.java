@@ -1549,7 +1549,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         // Without this, selecting different tables (e.g. keep arrow down pressed) causes the splitter
         // to keep recomputing the allocations based on the preferred sizes of the children instead
         // of sticking with the current proportion
-        myComponent.skipNextLayouting();
+        myComponent.skipNextLayout();
       }
       CardLayout layout = (CardLayout)myPreviewPanel.getLayout();
       myTablePanel.select(item);
