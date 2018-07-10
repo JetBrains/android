@@ -26,6 +26,7 @@ class ColorValuePanelTest : IdeaTestCase() {
     val panel = ColorValuePanel(model)
     panel.setSize(300, 300)
 
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.BYTE
     panel.currentColorFormat = ColorValuePanel.ColorFormat.RGB
     model.setColor(Color.YELLOW)
 
@@ -49,6 +50,7 @@ class ColorValuePanelTest : IdeaTestCase() {
     val panel = ColorValuePanel(model)
     panel.setSize(300, 300)
 
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.BYTE
     panel.currentColorFormat = ColorValuePanel.ColorFormat.HSB
     val argb = (0x12 shl 24) or (0x00FFFFFF and Color.HSBtoRGB(0.3f, 0.4f, 0.5f))
     val color = Color(argb, true)
@@ -68,11 +70,42 @@ class ColorValuePanelTest : IdeaTestCase() {
     assertEquals(Integer.toHexString(color.rgb).toUpperCase(), panel.hexField.text)
   }
 
+  fun testChangeAlphaModeFromByteToPercentage() {
+    val model = ColorPickerModel()
+    val panel = ColorValuePanel(model)
+    panel.setSize(300, 300)
+
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.BYTE
+    model.setColor(Color.YELLOW)
+
+    assertEquals(Color.YELLOW.alpha.toString(), panel.alphaField.text)
+
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.PERCENTAGE
+    assertEquals((Color.YELLOW.alpha * 100f / 0xFF).roundToInt().toString(), panel.alphaField.text)
+  }
+
+  fun testChangeAlphaModeFromPercentageToByte() {
+    val model = ColorPickerModel()
+    val panel = ColorValuePanel(model)
+    panel.setSize(300, 300)
+
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.PERCENTAGE
+    val color = Color(0x80 shl 24, true)
+    model.setColor(color)
+
+    assertEquals("50", panel.alphaField.text)
+
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.BYTE
+
+    assertEquals(color.alpha.toString(), panel.alphaField.text)
+  }
+
   fun testChangeModelWillUpdatePanelInRGBMode() {
     val model = ColorPickerModel()
     val panel = ColorValuePanel(model)
     panel.setSize(300, 300)
 
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.BYTE
     panel.currentColorFormat = ColorValuePanel.ColorFormat.RGB
 
     model.setColor(Color.YELLOW)
@@ -91,11 +124,12 @@ class ColorValuePanelTest : IdeaTestCase() {
     assertEquals("70405060", panel.hexField.text)
   }
 
-  fun testChangeFieldsInARGBMode() {
+  fun testChangeFieldsInRGBMode() {
     val model = ColorPickerModel()
     val panel = ColorValuePanel(model)
     panel.setSize(300, 300)
 
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.BYTE
     panel.currentColorFormat = ColorValuePanel.ColorFormat.RGB
 
     panel.colorField1.text = "200"
@@ -121,6 +155,7 @@ class ColorValuePanelTest : IdeaTestCase() {
     val panel = ColorValuePanel(model)
     panel.setSize(300, 300)
 
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.BYTE
     panel.currentColorFormat = ColorValuePanel.ColorFormat.RGB
     panel.hexField.text = "10ABCDEF"
     panel.updateAlarm.flush()
@@ -143,6 +178,7 @@ class ColorValuePanelTest : IdeaTestCase() {
     val panel = ColorValuePanel(model)
     panel.setSize(300, 300)
 
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.BYTE
     panel.currentColorFormat = ColorValuePanel.ColorFormat.HSB
 
     model.setColor(Color.YELLOW)
@@ -168,6 +204,7 @@ class ColorValuePanelTest : IdeaTestCase() {
     val panel = ColorValuePanel(model)
     panel.setSize(300, 300)
 
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.BYTE
     panel.currentColorFormat = ColorValuePanel.ColorFormat.HSB
 
     panel.colorField1.text = "180"
@@ -188,6 +225,7 @@ class ColorValuePanelTest : IdeaTestCase() {
     val panel = ColorValuePanel(model)
     panel.setSize(300, 300)
 
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.BYTE
     panel.currentColorFormat = ColorValuePanel.ColorFormat.HSB
     panel.hexField.text = "10ABCDEF"
     panel.updateAlarm.flush()
@@ -205,5 +243,57 @@ class ColorValuePanelTest : IdeaTestCase() {
     assertEquals(saturation, panel.colorField2.text)
     assertEquals(brightness, panel.colorField3.text)
     assertEquals(alpha, panel.alphaField.text)
+  }
+
+  fun testChangeAlphaFieldsInByteMode() {
+    val model = ColorPickerModel()
+    val panel = ColorValuePanel(model)
+    panel.setSize(300, 300)
+
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.BYTE
+    model.setColor(Color(0xFF, 0xFF, 0xFF, 0xFF), null)
+
+    panel.alphaField.text = "200"
+    panel.updateAlarm.flush()
+
+    assertEquals(200, model.color.alpha)
+  }
+
+  fun testChangeAlphaFieldsInPercentageMode() {
+    val model = ColorPickerModel()
+    val panel = ColorValuePanel(model)
+    panel.setSize(300, 300)
+
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.PERCENTAGE
+    model.setColor(Color(0xFF, 0xFF, 0xFF, 0xFF), null)
+
+    panel.alphaField.text = "50"
+    panel.updateAlarm.flush()
+
+    assertEquals(0x80, model.color.alpha)
+  }
+
+  fun testChangeHexFieldWhenAlphaIsByteMode() {
+    val model = ColorPickerModel()
+    val panel = ColorValuePanel(model)
+    panel.setSize(300, 300)
+
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.BYTE
+    panel.hexField.text = "10ABCDEF"
+    panel.updateAlarm.flush()
+
+    assertEquals("16", panel.alphaField.text)
+  }
+
+  fun testChangeHexFieldWhenAlphaIsPercentageMode() {
+    val model = ColorPickerModel()
+    val panel = ColorValuePanel(model)
+    panel.setSize(300, 300)
+
+    panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.BYTE
+    panel.hexField.text = "80ABCDEF"
+    panel.updateAlarm.flush()
+
+    assertEquals("128", panel.alphaField.text)
   }
 }

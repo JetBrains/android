@@ -22,16 +22,14 @@ import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
 import org.jetbrains.annotations.TestOnly
 import java.awt.*
-import java.awt.event.FocusAdapter
-import java.awt.event.FocusEvent
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
+import java.awt.event.*
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.AttributeSet
 import javax.swing.text.PlainDocument
 import kotlin.math.roundToInt
+import kotlin.properties.Delegates
 
 private val PANEL_BORDER = JBUI.Borders.empty(0, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 0, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
 
@@ -43,22 +41,18 @@ private val COLOR_RANGE = 0..255
 private val HUE_RANGE = 0..360
 private val PERCENT_RANGE = 0..100
 
-private const val BORDER_CORNER_ARC = 7
-
-private const val HOVER_BORDER_LEFT = 0
-private const val HOVER_BORDER_TOP = 0
-private const val HOVER_BORDER_WIDTH = 1
-private val HOVER_BORDER_STROKE = BasicStroke(1f)
-private val HOVER_BORDER_COLOR = Color.GRAY.brighter()
-
-private const val PRESSED_BORDER_LEFT = 1
-private const val PRESSED_BORDER_TOP = 1
-private const val PRESSED_BORDER_WIDTH = 2
-private val PRESSED_BORDER_STROKE = BasicStroke(1.2f)
-private val PRESSED_BORDER_COLOR = Color.GRAY
-
 class ColorValuePanel(private val model: ColorPickerModel)
   : JPanel(GridBagLayout()), DocumentListener, ColorListener {
+
+  enum class AlphaFormat {
+    BYTE,
+    PERCENTAGE;
+
+    fun next() : AlphaFormat = when (this) {
+      BYTE -> PERCENTAGE
+      PERCENTAGE -> BYTE
+    }
+  }
 
   enum class ColorFormat {
     RGB,
@@ -78,9 +72,12 @@ class ColorValuePanel(private val model: ColorPickerModel)
 
   @get:TestOnly
   val alphaField = ColorValueField()
+  private val alphaHexDocument = DigitColorDocument(alphaField, COLOR_RANGE).apply { addDocumentListener(this@ColorValuePanel) }
+  private val alphaPercentageDocument = DigitColorDocument(alphaField, PERCENT_RANGE).apply { addDocumentListener(this@ColorValuePanel) }
   @get:TestOnly
   val hexField = ColorValueField(hex = true)
 
+  private val alphaLabel = ColorLabel()
   private val colorLabel1 = ColorLabel()
   private val colorLabel2 = ColorLabel()
   private val colorLabel3 = ColorLabel()
@@ -99,12 +96,16 @@ class ColorValuePanel(private val model: ColorPickerModel)
   private val brightnessDocument = DigitColorDocument(colorField3, PERCENT_RANGE).apply { addDocumentListener(this@ColorValuePanel) }
 
   @VisibleForTesting
-  var currentColorFormat = ColorFormat.RGB
-    set(value) {
-      field = value
-      updateColorFormat()
-      repaint()
-    }
+  var currentAlphaFormat by Delegates.observable(AlphaFormat.BYTE) { _, _, _ ->
+    updateAlphaFormat()
+    repaint()
+  }
+
+  @VisibleForTesting
+  var currentColorFormat by Delegates.observable(ColorFormat.RGB) { _, _, _ ->
+    updateColorFormat()
+    repaint()
+  }
 
   init {
     border = PANEL_BORDER
@@ -117,11 +118,9 @@ class ColorValuePanel(private val model: ColorPickerModel)
     c.weightx = 0.12
     c.gridx = 0
     c.gridy = 0
-    add(ColorLabel("A"), c)
+    add(createAlphaLabel(), c)
     c.gridy = 1
     add(alphaField, c)
-    alphaField.document = DigitColorDocument(alphaField, COLOR_RANGE)
-    alphaField.document.addDocumentListener(this)
 
     c.weightx = 0.36
     c.gridwidth = 3
@@ -152,76 +151,54 @@ class ColorValuePanel(private val model: ColorPickerModel)
     hexField.document = HexColorDocument(hexField)
     hexField.document.addDocumentListener(this)
 
+    updateAlphaFormat()
     updateColorFormat()
 
     model.addListener(this)
   }
 
-  private fun createFormatLabels() = ColorFormatLabels()
-
-  private enum class MouseStatus { NORMAL, HOVER, PRESSED }
-
-  private inner class ColorFormatLabels : JPanel(GridLayout(1, 3)) {
-
-    private var mouseStatus = MouseStatus.NORMAL
-      set(value) {
-        field = value
-        repaint()
-      }
+  private fun createAlphaLabel() = object : ButtonPanel() {
 
     init {
-      border = BorderFactory.createEmptyBorder()
-      background = PICKER_BACKGROUND_COLOR
+      layout = GridLayout(1, 1)
+      add(alphaLabel)
+    }
+
+    override fun clicked(e: MouseEvent?) {
+      currentAlphaFormat = currentAlphaFormat.next()
+    }
+  }
+
+  private fun createFormatLabels() = object : ButtonPanel() {
+
+    init {
+      layout = GridLayout(1, 3)
       add(colorLabel1)
       add(colorLabel2)
       add(colorLabel3)
-
-      addMouseListener(object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent?) {
-          currentColorFormat = currentColorFormat.next()
-        }
-
-        override fun mouseEntered(e: MouseEvent?) {
-          mouseStatus = MouseStatus.HOVER
-        }
-
-        override fun mouseExited(e: MouseEvent?) {
-          mouseStatus = MouseStatus.NORMAL
-        }
-
-        override fun mousePressed(e: MouseEvent?) {
-          mouseStatus = MouseStatus.PRESSED
-        }
-
-        override fun mouseReleased(e: MouseEvent?) {
-          mouseStatus = if (mouseStatus == MouseStatus.PRESSED) MouseStatus.HOVER else MouseStatus.NORMAL
-        }
-      })
     }
 
-    override fun paintBorder(g: Graphics) {
-      g as? Graphics2D ?: return
-      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-      val originalStroke = g.stroke
-      when (mouseStatus) {
-        MouseStatus.HOVER -> {
-          g.stroke = HOVER_BORDER_STROKE
-          g.color = HOVER_BORDER_COLOR
-          g.drawRoundRect(HOVER_BORDER_LEFT,HOVER_BORDER_TOP,
-                          width - HOVER_BORDER_WIDTH, height - HOVER_BORDER_WIDTH,
-                          BORDER_CORNER_ARC, BORDER_CORNER_ARC)
-        }
-        MouseStatus.PRESSED -> {
-          g.stroke = PRESSED_BORDER_STROKE
-          g.color = PRESSED_BORDER_COLOR
-          g.drawRoundRect(PRESSED_BORDER_LEFT, PRESSED_BORDER_TOP,
-                          width - PRESSED_BORDER_WIDTH, height - PRESSED_BORDER_WIDTH,
-                          BORDER_CORNER_ARC, BORDER_CORNER_ARC)
-        }
-        else -> return
+    override fun clicked(e: MouseEvent?) {
+      currentColorFormat = currentColorFormat.next()
+    }
+  }
+
+  private fun updateAlphaFormat() {
+    when (currentAlphaFormat) {
+      AlphaFormat.BYTE -> {
+        alphaLabel.text = "A"
+        alphaField.document = alphaHexDocument
+        alphaField.text = model.alpha.toString()
       }
-      g.stroke = originalStroke
+      AlphaFormat.PERCENTAGE -> {
+        alphaLabel.text = "A%"
+        alphaField.document = alphaPercentageDocument
+        alphaField.text = (model.alpha * 100f / 0xFF).roundToInt().toString()
+      }
     }
+    // change the text in document trigger the listener, but it doesn't to update the color in Model in this case.
+    updateAlarm.cancelAllRequests()
+    repaint()
   }
 
   private fun updateColorFormat() {
@@ -238,13 +215,11 @@ class ColorValuePanel(private val model: ColorPickerModel)
         colorField1.text = model.red.toString()
         colorField2.text = model.green.toString()
         colorField3.text = model.blue.toString()
-
-        // Add listener after setting value, so the document listener won't be triggered.
       }
       ColorFormat.HSB -> {
-        colorLabel1.text = "H"
-        colorLabel2.text = "S"
-        colorLabel3.text = "B"
+        colorLabel1.text = "H°"
+        colorLabel2.text = "S%"
+        colorLabel3.text = "B%"
 
         colorField1.document = hueDocument
         colorField2.document = saturationDocument
@@ -263,7 +238,12 @@ class ColorValuePanel(private val model: ColorPickerModel)
   override fun colorChanged(color: Color, source: Any?) = updateTextField(color, source)
 
   private fun updateTextField(color: Color, source: Any?) {
-    alphaField.setTextIfNeeded(color.alpha.toString(), source)
+    if (currentAlphaFormat == AlphaFormat.BYTE) {
+      alphaField.setTextIfNeeded(color.alpha.toString(), source)
+    }
+    else {
+      alphaField.setTextIfNeeded((color.alpha * 100f / 0xFF).roundToInt().toString(), source)
+    }
     if (currentColorFormat == ColorFormat.RGB) {
       colorField1.setTextIfNeeded(color.red.toString(), source)
       colorField2.setTextIfNeeded(color.green.toString(), source)
@@ -298,26 +278,104 @@ class ColorValuePanel(private val model: ColorPickerModel)
   }
 
   private fun updateColorToColorModel(src: JTextField?) {
-    val color = when {
-      src == hexField -> convertHexToColor(hexField.text)
-      currentColorFormat == ColorFormat.RGB -> {
-        val a = alphaField.colorValue
-        val r = colorField1.colorValue
-        val g = colorField2.colorValue
-        val b = colorField3.colorValue
-        Color(r, g, b, a)
+    val color = if (src == hexField) {
+      convertHexToColor(hexField.text)
+    }
+    else {
+      val a = if (currentAlphaFormat == AlphaFormat.BYTE) alphaField.colorValue else (alphaField.colorValue * 0xFF / 100f).roundToInt()
+      when (currentColorFormat) {
+        ColorFormat.RGB -> {
+          val r = colorField1.colorValue
+          val g = colorField2.colorValue
+          val b = colorField3.colorValue
+          Color(r, g, b, a)
+        }
+        ColorFormat.HSB -> {
+          val h = colorField1.colorValue / 360f
+          val s = colorField2.colorValue / 100f
+          val b = colorField3.colorValue / 100f
+          Color((a shl 24) or (0x00FFFFFF and Color.HSBtoRGB(h, s, b)), true)
+        }
       }
-      currentColorFormat == ColorFormat.HSB -> {
-        val a = alphaField.colorValue
-        val h = colorField1.colorValue / 360f
-        val s = colorField2.colorValue / 100f
-        val b = colorField3.colorValue / 100f
-        Color((a shl 24) or (0x00FFFFFF and Color.HSBtoRGB(h, s, b)), true)
+    }
+    model.setColor(color, this)
+  }
+}
+
+private const val HOVER_BORDER_LEFT = 0
+private const val HOVER_BORDER_TOP = 0
+private const val HOVER_BORDER_WIDTH = 1
+private val HOVER_BORDER_STROKE = BasicStroke(1f)
+private val HOVER_BORDER_COLOR = Color.GRAY.brighter()
+
+private const val PRESSED_BORDER_LEFT = 1
+private const val PRESSED_BORDER_TOP = 1
+private const val PRESSED_BORDER_WIDTH = 2
+private val PRESSED_BORDER_STROKE = BasicStroke(1.2f)
+private val PRESSED_BORDER_COLOR = Color.GRAY
+
+private const val BORDER_CORNER_ARC = 7
+
+private abstract class ButtonPanel : JPanel() {
+
+  private enum class MouseStatus { NORMAL, HOVER, PRESSED }
+
+  private var mouseStatus by Delegates.observable(MouseStatus.NORMAL) { _, _, _ ->
+    repaint()
+  }
+
+  private val mouseAdapter = object : MouseAdapter() {
+    override fun mouseClicked(e: MouseEvent?) = clicked(e)
+
+    override fun mouseEntered(e: MouseEvent?) {
+      mouseStatus = MouseStatus.HOVER
+    }
+
+    override fun mouseExited(e: MouseEvent?) {
+      mouseStatus = MouseStatus.NORMAL
+    }
+
+    override fun mousePressed(e: MouseEvent?) {
+      mouseStatus = MouseStatus.PRESSED
+    }
+
+    override fun mouseReleased(e: MouseEvent?) {
+      mouseStatus = if (mouseStatus == MouseStatus.PRESSED) MouseStatus.HOVER else MouseStatus.NORMAL
+    }
+  }
+
+  init {
+    border = BorderFactory.createEmptyBorder()
+    background = PICKER_BACKGROUND_COLOR
+    addMouseListener(mouseAdapter)
+  }
+
+  final override fun addMouseListener(l: MouseListener?) = super.addMouseListener(l)
+
+  abstract fun clicked(e: MouseEvent?)
+
+  override fun paintBorder(g: Graphics) {
+    g as? Graphics2D ?: return
+    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+    val originalStroke = g.stroke
+    when (mouseStatus) {
+      MouseStatus.HOVER -> {
+        g.stroke = HOVER_BORDER_STROKE
+        g.color = HOVER_BORDER_COLOR
+        g.drawRoundRect(HOVER_BORDER_LEFT,HOVER_BORDER_TOP,
+                        width - HOVER_BORDER_WIDTH, height - HOVER_BORDER_WIDTH,
+                        BORDER_CORNER_ARC, BORDER_CORNER_ARC)
+      }
+      MouseStatus.PRESSED -> {
+        g.stroke = PRESSED_BORDER_STROKE
+        g.color = PRESSED_BORDER_COLOR
+        g.drawRoundRect(PRESSED_BORDER_LEFT, PRESSED_BORDER_TOP,
+                        width - PRESSED_BORDER_WIDTH, height - PRESSED_BORDER_WIDTH,
+                        BORDER_CORNER_ARC, BORDER_CORNER_ARC)
       }
       else -> return
     }
-
-    model.setColor(color, this)
+    g.stroke = originalStroke
   }
 }
 
@@ -327,6 +385,7 @@ private class ColorLabel(text: String = ""): JLabel(text, SwingConstants.CENTER)
   }
 }
 
+@VisibleForTesting
 class ColorValueField(private val hex: Boolean = false): JTextField(if (hex) 8 else 3) {
 
   init {
