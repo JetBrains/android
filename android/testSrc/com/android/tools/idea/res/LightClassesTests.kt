@@ -22,7 +22,6 @@ import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.light.LightElement
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
@@ -73,13 +72,6 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         </resources>
         """.trimIndent()
       )
-    }
-
-    fun testFindClass() {
-      val javaPsiFacade = JavaPsiFacade.getInstance(project)
-      assertThat(javaPsiFacade.findClass("p1.p2.R", myModule.moduleScope)).named("module R class").isNotNull()
-      assertThat(javaPsiFacade.findClass("p1.p2.R.string", myModule.moduleScope)).named("existing subclass").isNotNull()
-      assertThat(javaPsiFacade.findClass("p1.p2.R.color", myModule.moduleScope)).named("non-existing subclass").isNull()
     }
 
     fun testTopLevelClassCompletion() {
@@ -243,9 +235,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       assertThat(utilPackage.parentPackage).isEqualTo(myFixture.javaFacade.findPackage("p1.p2"))
     }
 
-    // TODO(b/111110952): fix this.
-    @Suppress("unused")
-    fun ignore_testTopLevelClassCompletion() {
+    fun testTopLevelClassCompletion() {
       val activity = myFixture.addFileToProject(
         "/src/p1/p2/MainActivity.java",
         // language=java
