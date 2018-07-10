@@ -1105,6 +1105,8 @@
     <!-- Finder for light packages, runs last. Light packages are only used if regular PsiPackages don't exist for light classes. -->
     <java.elementFinder implementation="com.android.tools.idea.res.ProjectSystemPsiPackageFinder" order="last"/>
 
+    <resolveScopeEnlarger implementation="org.jetbrains.android.AndroidResolveScopeEnlarger" />
+
     <java.elementFinder implementation="com.android.tools.idea.res.AndroidInternalRClassFinder"/>
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidLightPackage$InstanceCache" />
     <projectService serviceImplementation="com.android.tools.idea.res.ProjectLightResourceClassService" />

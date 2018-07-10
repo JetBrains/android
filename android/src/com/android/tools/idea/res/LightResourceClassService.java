@@ -15,18 +15,22 @@
  */
 package com.android.tools.idea.res;
 
+import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.Collection;
 
 /** A service for storing and finding light R classes. */
 public interface LightResourceClassService {
   @NotNull
-  List<PsiClass> getLightRClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope);
+  Collection<? extends PsiClass> getLightRClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope);
+
+  @NotNull
+  Collection<? extends PsiClass> getLightRClassesAccessibleFromModule(@NotNull Module module);
 
   @Nullable
   PsiPackage findRClassPackage(@NotNull String qualifiedName);

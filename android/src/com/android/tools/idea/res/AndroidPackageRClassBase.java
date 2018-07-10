@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
  * @see org.jetbrains.android.augment.ResourceTypeClassBase
  */
 public abstract class AndroidPackageRClassBase extends AndroidClassWithOnlyInnerClassesBase {
-  public AndroidPackageRClassBase(@NotNull PsiManager psiManager, @NotNull String packageName) {
-    super(SdkConstants.R_CLASS, packageName, psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
+  public AndroidPackageRClassBase(@NotNull PsiManager psiManager) {
+    super(SdkConstants.R_CLASS, psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
   }
 }

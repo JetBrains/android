@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Objects;
-import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 /**
  * Cache of AAR resource repositories. This class is thread-safe.
@@ -75,8 +75,8 @@ public final class AarResourceRepositoryCache {
   private static <T extends AarSourceResourceRepository> T getRepository(@NotNull File file,
                                                                          @Nullable String libraryName,
                                                                          @NotNull Cache<File, T> cache,
-                                                                         @NotNull Callable<T> factory) {
-    T aarRepository = CacheUtils.getAndUnwrap(cache, file, factory);
+                                                                         @NotNull Supplier<T> factory) {
+    T aarRepository = CacheUtils.getAndUnwrap(cache, file, factory::get);
 
     if (!Objects.equals(libraryName, aarRepository.getLibraryName())) {
       assert false : "Library name mismatch: " + libraryName + " vs " + aarRepository.getLibraryName();
