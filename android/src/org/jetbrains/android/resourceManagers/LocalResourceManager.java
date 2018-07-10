@@ -293,14 +293,4 @@ public class LocalResourceManager extends ResourceManager {
 
     return targets;
   }
-
-  /**
-   * @deprecated Use {@link #findResourcesByFieldName(ResourceNamespace, String, String)}.
-   * Preserved temporarily for compatibility with the Kotlin plugin.
-   */
-  @Deprecated
-  @NotNull
-  public List<PsiElement> findResourcesByFieldName(@NotNull String resClassName, @NotNull String fieldName) {
-    return findResourcesByFieldName(getResourceNamespace(), resClassName, fieldName);
-  }
 }

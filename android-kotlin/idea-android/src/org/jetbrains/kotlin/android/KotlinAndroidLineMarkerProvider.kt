@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.android
 
 import com.android.SdkConstants
 import com.android.resources.ResourceType
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.codeHighlighting.Pass
 import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
 import com.intellij.codeInsight.daemon.LineMarkerInfo
@@ -79,6 +80,9 @@ class KotlinAndroidLineMarkerProvider : LineMarkerProvider {
 
     private fun KtClass.collectGoToRelatedLayoutItems(androidFacet: AndroidFacet): List<GotoRelatedItem> {
         val resources = mutableSetOf<PsiFile>()
+        val repositoryManager = ResourceRepositoryManager.getOrCreateInstance(androidFacet)
+        val namespace = repositoryManager.namespace
+
         accept(object: KtVisitorVoid() {
             override fun visitKtElement(element: KtElement) {
                 element.acceptChildren(this)
@@ -99,7 +103,7 @@ class KotlinAndroidLineMarkerProvider : LineMarkerProvider {
                 val files = ModuleResourceManagers
                         .getInstance(androidFacet)
                         .localResourceManager
-                        .findResourcesByFieldName(resClassName, info.fieldName)
+                        .findResourcesByFieldName(namespace, resClassName, info.fieldName)
                         .filterIsInstance<PsiFile>()
 
                 resources.addAll(files)
