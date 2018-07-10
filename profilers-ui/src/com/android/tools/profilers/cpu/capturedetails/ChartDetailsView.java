@@ -59,7 +59,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
   @NotNull protected final CpuProfilerStageView myStageView;
   @NotNull protected final AspectObserver myObserver;
 
-  private ChartDetailsView(@NotNull CpuProfilerStageView stageView, @NotNull CaptureModel.ChartDetails chartDetails) {
+  private ChartDetailsView(@NotNull CpuProfilerStageView stageView, @NotNull CaptureDetails.ChartDetails chartDetails) {
     myStageView = stageView;
     myObserver = new AspectObserver();
 
@@ -79,14 +79,14 @@ abstract class ChartDetailsView extends CaptureDetailsView {
   }
 
   @NotNull
-  protected HTreeChart<CaptureNode> createChart(@NotNull CaptureModel.ChartDetails chartDetails,
+  protected HTreeChart<CaptureNode> createChart(@NotNull CaptureDetails.ChartDetails chartDetails,
                                                 @NotNull Range globalRange,
                                                 @NotNull Range range) {
-    CaptureModel.Details.Type type = chartDetails.getType();
+    CaptureDetails.Type type = chartDetails.getType();
     CaptureNode node = chartDetails.getNode();
 
     HTreeChart.Orientation orientation;
-    if (type == CaptureModel.Details.Type.CALL_CHART) {
+    if (type == CaptureDetails.Type.CALL_CHART) {
       orientation = HTreeChart.Orientation.TOP_DOWN;
     }
     else {
@@ -100,7 +100,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
       .build();
 
     if (node != null) {
-      if (node.getData() instanceof AtraceNodeModel && type == CaptureModel.Details.Type.CALL_CHART) {
+      if (node.getData() instanceof AtraceNodeModel && type == CaptureDetails.Type.CALL_CHART) {
         chart.addMouseMotionListener(new CpuTraceEventTooltipView(chart, myStageView));
       }
       else {
@@ -151,10 +151,10 @@ abstract class ChartDetailsView extends CaptureDetailsView {
     /**
      * The call chart details that needs to be rendered.
      */
-    @NotNull private final CaptureModel.CallChart myCallChart;
+    @NotNull private final CaptureDetails.CallChart myCallChart;
 
     CallChartDetailsView(@NotNull CpuProfilerStageView stageView,
-                         @NotNull CaptureModel.CallChart callChart) {
+                         @NotNull CaptureDetails.CallChart callChart) {
       super(stageView, callChart);
       myCallChart = callChart;
       // Call Chart model always correlates to the entire capture. CallChartView shows the data corresponding to the selected range in
@@ -229,14 +229,14 @@ abstract class ChartDetailsView extends CaptureDetailsView {
     /**
      * The flame chart details that needs to be rendered.
      */
-    @NotNull private final CaptureModel.FlameChart myFlameChart;
+    @NotNull private final CaptureDetails.FlameChart myFlameChart;
 
     /**
      * The range that is visible to the user. When the user zooms in/out or pans this range will be changed.
      */
     @NotNull private final Range myMasterRange;
 
-    FlameChartDetailsView(CpuProfilerStageView stageView, @NotNull CaptureModel.FlameChart flameChart) {
+    FlameChartDetailsView(CpuProfilerStageView stageView, @NotNull CaptureDetails.FlameChart flameChart) {
       super(stageView, flameChart);
       // Flame Chart model always correlates to the selected range on the timeline, not necessarily the entire capture. Users cannot
       // navigate to other part within the capture by interacting with the flame chart UI (they can do so only from timeline UI).
@@ -252,7 +252,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
       }
 
       myPanel.add(createChartPanel(), CARD_CONTENT);
-      myFlameChart.getAspect().addDependency(myObserver).onChange(CaptureModel.FlameChart.Aspect.NODE, this::nodeChanged);
+      myFlameChart.getAspect().addDependency(myObserver).onChange(CaptureDetails.FlameChart.Aspect.NODE, this::nodeChanged);
       nodeChanged();
     }
 

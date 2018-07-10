@@ -33,7 +33,7 @@ import static com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_WIDTH
 import static com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_HISTORY_SIZE;
 
 /**
- * A {@link CapturePane} that renders the selected {@link CaptureModel.Details}.
+ * A {@link CapturePane} that renders the selected {@link CaptureDetails}.
  */
 class DetailsCapturePane extends CapturePane {
   // Intentionally local field, to prevent GC from cleaning it and removing weak listeners.
@@ -49,15 +49,15 @@ class DetailsCapturePane extends CapturePane {
   private final FilterComponent myFilterComponent;
 
   @NotNull
-  private final ViewBinder<CpuProfilerStageView, CaptureModel.Details, CaptureDetailsView> myBinder;
+  private final ViewBinder<CpuProfilerStageView, CaptureDetails, CaptureDetailsView> myBinder;
 
   DetailsCapturePane(@NotNull CpuProfilerStageView view) {
     super(view);
     myBinder = new ViewBinder<>();
-    myBinder.bind(CaptureModel.TopDown.class, TreeDetailsView.TopDownDetailsView::new);
-    myBinder.bind(CaptureModel.BottomUp.class, TreeDetailsView.BottomUpDetailsView::new);
-    myBinder.bind(CaptureModel.CallChart.class, ChartDetailsView.CallChartDetailsView::new);
-    myBinder.bind(CaptureModel.FlameChart.class, ChartDetailsView.FlameChartDetailsView::new);
+    myBinder.bind(CaptureDetails.TopDown.class, TreeDetailsView.TopDownDetailsView::new);
+    myBinder.bind(CaptureDetails.BottomUp.class, TreeDetailsView.BottomUpDetailsView::new);
+    myBinder.bind(CaptureDetails.CallChart.class, ChartDetailsView.CallChartDetailsView::new);
+    myBinder.bind(CaptureDetails.FlameChart.class, ChartDetailsView.FlameChartDetailsView::new);
 
     myTabsPanel.addChangeListener(event -> setCaptureDetailToTab());
 
@@ -86,7 +86,7 @@ class DetailsCapturePane extends CapturePane {
       myFilterComponent.getParent().remove(myFilterComponent);
     }
 
-    CaptureModel.Details details = myStageView.getStage().getCaptureDetails();
+    CaptureDetails details = myStageView.getStage().getCaptureDetails();
     if (details == null) {
       return;
     }
@@ -103,11 +103,11 @@ class DetailsCapturePane extends CapturePane {
 
   private void setCaptureDetailToTab() {
     String tabTitle = myTabsPanel.getTitleAt(myTabsPanel.getSelectedIndex());
-    CaptureModel.Details.Type type = myTabs.entrySet().stream()
-                                           .filter(e -> tabTitle.equals(e.getValue()))
-                                           .map(e -> e.getKey())
-                                           .findFirst()
-                                           .orElse(null);
+    CaptureDetails.Type type = myTabs.entrySet().stream()
+                                     .filter(e -> tabTitle.equals(e.getValue()))
+                                     .map(e -> e.getKey())
+                                     .findFirst()
+                                     .orElse(null);
     myStageView.getStage().setCaptureDetails(type);
   }
 }

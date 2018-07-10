@@ -46,18 +46,18 @@ import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
  */
 abstract class CapturePane extends JPanel {
   // Note the order of the values in the map defines the order of the tabs in UI.
-  private static final Map<CaptureModel.Details.Type, String> DEFAULT_TAB_NAMES = ImmutableMap.of(
-    CaptureModel.Details.Type.CALL_CHART, "Call Chart",
-    CaptureModel.Details.Type.FLAME_CHART, "Flame Chart",
-    CaptureModel.Details.Type.TOP_DOWN, "Top Down",
-    CaptureModel.Details.Type.BOTTOM_UP, "Bottom Up");
+  private static final Map<CaptureDetails.Type, String> DEFAULT_TAB_NAMES = ImmutableMap.of(
+    CaptureDetails.Type.CALL_CHART, "Call Chart",
+    CaptureDetails.Type.FLAME_CHART, "Flame Chart",
+    CaptureDetails.Type.TOP_DOWN, "Top Down",
+    CaptureDetails.Type.BOTTOM_UP, "Bottom Up");
 
   // For Atrace captures names from this map will be used in place of default tab names.
-  private static final Map<CaptureModel.Details.Type, String> ATRACE_TAB_NAMES = ImmutableMap.of(
-    CaptureModel.Details.Type.CALL_CHART, "Trace Events");
+  private static final Map<CaptureDetails.Type, String> ATRACE_TAB_NAMES = ImmutableMap.of(
+    CaptureDetails.Type.CALL_CHART, "Trace Events");
 
   // Some of the tab names may be replaced. This list defines the currently active tab names as
-  protected final Map<CaptureModel.Details.Type, String> myTabs = new LinkedHashMap<>(DEFAULT_TAB_NAMES);
+  protected final Map<CaptureDetails.Type, String> myTabs = new LinkedHashMap<>(DEFAULT_TAB_NAMES);
 
   @NotNull protected final CpuProfilerStageView myStageView;
 
@@ -96,7 +96,7 @@ abstract class CapturePane extends JPanel {
       ((JPanel)tab).removeAll();
     }
 
-    CaptureModel.Details details = myStageView.getStage().getCaptureDetails();
+    CaptureDetails details = myStageView.getStage().getCaptureDetails();
     if (details != null) {
       // Update the current selected tab
       String detailsTypeString = myTabs.get(details.getType());

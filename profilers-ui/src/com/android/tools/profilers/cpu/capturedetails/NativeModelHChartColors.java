@@ -53,12 +53,12 @@ public class NativeModelHChartColors {
            method.getFullName().startsWith("dalvik-jit-code-cache");
   }
 
-  static Color getFillColor(@NotNull CaptureNodeModel model, CaptureModel.Details.Type chartType, boolean isUnmatched, boolean isFocused) {
+  static Color getFillColor(@NotNull CaptureNodeModel model, CaptureDetails.Type chartType, boolean isUnmatched, boolean isFocused) {
     validateModel(model);
 
     // TODO(b/68014311): Define colors for each type of model and differentiate user code properly
     Color color;
-    if (chartType == CaptureModel.Details.Type.CALL_CHART) {
+    if (chartType == CaptureDetails.Type.CALL_CHART) {
       if (isUserFunction(model)) {
         color = isFocused ? ProfilerColors.CPU_CALLCHART_APP_HOVER : ProfilerColors.CPU_CALLCHART_APP;
       }

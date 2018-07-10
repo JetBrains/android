@@ -117,9 +117,9 @@ public class CaptureModelTest {
     CpuCapture capture = new CpuCapture(parser, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
     myModel.setCapture(capture);
     myModel.setThread(101);
-    myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);
+    myModel.setDetails(CaptureDetails.Type.CALL_CHART);
     myModel.setFilter(new Filter("myPackage"));
-    CaptureNode node = ((CaptureModel.CallChart)myModel.getDetails()).getNode();
+    CaptureNode node = ((CaptureDetails.CallChart)myModel.getDetails()).getNode();
     // mainPackage.main
     assertThat(node.getFilterType()).isEqualTo(CaptureNode.FilterType.MATCH);
 
@@ -151,9 +151,9 @@ public class CaptureModelTest {
     CpuCapture capture = new CpuCapture(parser, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
     myModel.setCapture(capture);
     myModel.setThread(101);
-    myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);
+    myModel.setDetails(CaptureDetails.Type.CALL_CHART);
     myModel.setFilter(Filter.EMPTY_FILTER);
-    getDescendants(((CaptureModel.CallChart)myModel.getDetails()).getNode())
+    getDescendants(((CaptureDetails.CallChart)myModel.getDetails()).getNode())
       .forEach(n -> assertThat(n.getFilterType()).isEqualTo(CaptureNode.FilterType.MATCH));
   }
 
@@ -163,28 +163,28 @@ public class CaptureModelTest {
 
     assertThat(tracker.getLastCaptureDetailsType()).isNull();
 
-    myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);
-    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureModel.Details.Type.CALL_CHART);
+    myModel.setDetails(CaptureDetails.Type.CALL_CHART);
+    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureDetails.Type.CALL_CHART);
 
-    myModel.setDetails(CaptureModel.Details.Type.FLAME_CHART);
-    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureModel.Details.Type.FLAME_CHART);
+    myModel.setDetails(CaptureDetails.Type.FLAME_CHART);
+    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureDetails.Type.FLAME_CHART);
 
-    myModel.setDetails(CaptureModel.Details.Type.TOP_DOWN);
-    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureModel.Details.Type.TOP_DOWN);
+    myModel.setDetails(CaptureDetails.Type.TOP_DOWN);
+    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureDetails.Type.TOP_DOWN);
 
-    myModel.setDetails(CaptureModel.Details.Type.BOTTOM_UP);
-    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureModel.Details.Type.BOTTOM_UP);
+    myModel.setDetails(CaptureDetails.Type.BOTTOM_UP);
+    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureDetails.Type.BOTTOM_UP);
   }
 
   @Test
   public void detailsFeatureTrackingIgnoresEventWithTheSameType() {
     FakeFeatureTracker tracker = (FakeFeatureTracker)myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
 
-    myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);
-    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureModel.Details.Type.CALL_CHART);
+    myModel.setDetails(CaptureDetails.Type.CALL_CHART);
+    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureDetails.Type.CALL_CHART);
 
     tracker.resetLastCaptureDetailsType();
-    myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);
+    myModel.setDetails(CaptureDetails.Type.CALL_CHART);
     assertThat(tracker.getLastCaptureDetailsType()).isNull();
   }
 
