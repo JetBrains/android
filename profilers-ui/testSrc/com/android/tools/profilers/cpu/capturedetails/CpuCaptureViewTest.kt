@@ -67,12 +67,12 @@ class CpuCaptureViewTest {
       captureTrace(profilerType = ART)
     }
 
-    stage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP)
-    assertThat(stage.captureDetails?.type).isEqualTo(CaptureModel.Details.Type.BOTTOM_UP)
+    stage.setCaptureDetails(CaptureDetails.Type.BOTTOM_UP)
+    assertThat(stage.captureDetails?.type).isEqualTo(CaptureDetails.Type.BOTTOM_UP)
     ReferenceWalker(captureView).assertNotReachable(ChartDetailsView.CallChartDetailsView::class.java)
 
-    stage.setCaptureDetails(CaptureModel.Details.Type.CALL_CHART)
-    assertThat(stage.captureDetails?.type).isEqualTo(CaptureModel.Details.Type.CALL_CHART)
+    stage.setCaptureDetails(CaptureDetails.Type.CALL_CHART)
+    assertThat(stage.captureDetails?.type).isEqualTo(CaptureDetails.Type.CALL_CHART)
     ReferenceWalker(captureView).assertReachable(ChartDetailsView.CallChartDetailsView::class.java)
 
     val tabPane = TreeWalker(captureView.component).descendants().filterIsInstance<CommonTabbedPane>()[0]

@@ -35,6 +35,7 @@ import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
+import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -104,9 +105,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   /**
    * Default capture details to be set after stopping a capture.
-   * {@link CaptureModel.Details.Type#CALL_CHART} is used by default because it's useful and fast to compute.
+   * {@link CaptureDetails.Type#CALL_CHART} is used by default because it's useful and fast to compute.
    */
-  private static final CaptureModel.Details.Type DEFAULT_CAPTURE_DETAILS = CaptureModel.Details.Type.CALL_CHART;
+  private static final CaptureDetails.Type DEFAULT_CAPTURE_DETAILS = CaptureDetails.Type.CALL_CHART;
 
   private final CpuThreadsModel myThreadsStates;
   private final CpuKernelModel myCpuKernelModel;
@@ -1063,7 +1064,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private void trackFilterUsage(@NotNull Filter filter) {
     FilterMetadata filterMetadata = new FilterMetadata();
     FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
-    CaptureModel.Details details = getCaptureDetails();
+    CaptureDetails details = getCaptureDetails();
     assert details != null;
     switch (details.getType()) {
       case TOP_DOWN:
@@ -1127,12 +1128,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return capture;
   }
 
-  public void setCaptureDetails(@Nullable CaptureModel.Details.Type type) {
+  public void setCaptureDetails(@Nullable CaptureDetails.Type type) {
     myCaptureModel.setDetails(type);
   }
 
   @Nullable
-  public CaptureModel.Details getCaptureDetails() {
+  public CaptureDetails getCaptureDetails() {
     return myCaptureModel.getDetails();
   }
 

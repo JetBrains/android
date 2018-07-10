@@ -35,14 +35,14 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
   private static final int MARGIN_PX = 3; // Padding on left and right of node label
 
   @NotNull
-  private CaptureModel.Details.Type myType;
+  private CaptureDetails.Type myType;
 
   @NotNull
   private TextFitsPredicate myTextFitsPredicate;
 
   @VisibleForTesting
-  CaptureNodeHRenderer(@NotNull CaptureModel.Details.Type type, @NotNull TextFitsPredicate textFitPredicate) {
-    if (type != CaptureModel.Details.Type.CALL_CHART && type != CaptureModel.Details.Type.FLAME_CHART) {
+  CaptureNodeHRenderer(@NotNull CaptureDetails.Type type, @NotNull TextFitsPredicate textFitPredicate) {
+    if (type != CaptureDetails.Type.CALL_CHART && type != CaptureDetails.Type.FLAME_CHART) {
       throw new IllegalStateException("Chart type not supported and can't be rendered.");
     }
     myType = type;
@@ -51,10 +51,10 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
 
   @VisibleForTesting
   public CaptureNodeHRenderer() {
-    this(CaptureModel.Details.Type.CALL_CHART);
+    this(CaptureDetails.Type.CALL_CHART);
   }
 
-  public CaptureNodeHRenderer(@NotNull CaptureModel.Details.Type type) {
+  public CaptureNodeHRenderer(@NotNull CaptureDetails.Type type) {
     this(type, (text, metrics, width) -> metrics.stringWidth(text) <= width);
   }
 
