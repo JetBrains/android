@@ -193,7 +193,9 @@ public class ThumbnailManager extends AndroidFacetScopedService {
                                   @NotNull XmlFile file,
                                   @NotNull Configuration configuration,
                                   RenderService renderService) {
-    RenderTask task = renderService.createTask(facet, file, configuration);
+    RenderTask task = renderService.taskBuilder(facet, configuration)
+      .withPsiFile(file)
+      .build();
     if (task != null) {
       task.setDecorations(false);
     }

@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.assetstudio;
 
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.util.PathString;
-import com.android.ide.common.util.PathStringUtil;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.concurrent.FutureUtils;
 import com.android.tools.idea.configurations.Configuration;
@@ -78,7 +77,10 @@ public class DrawableRenderer implements Disposable {
       try {
         Configuration configuration = ThemeEditorUtils.getConfigurationForModule(module);
         RenderService service = RenderService.getInstance(module.getProject());
-        RenderTask renderTask = service.createTask(facet, null, configuration, logger, myParserFactory);
+        RenderTask renderTask = service.taskBuilder(facet, configuration)
+                                 .withLogger(logger)
+                                 .withParserFactory(myParserFactory)
+                                 .build();
         assert renderTask != null;
         renderTask.getLayoutlibCallback().setLogger(logger);
         if (logger.hasProblems()) {

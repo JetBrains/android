@@ -96,7 +96,7 @@ public class RenderTask {
   @Nullable private RenderSession myRenderSession;
   @NotNull private final IImageFactory myCachingImageFactory = new CachingImageFactory();
   @Nullable private IImageFactory myImageFactoryDelegate;
-  private boolean isSecurityManagerEnabled = true;
+  private final boolean isSecurityManagerEnabled;
   @NotNull private CrashReporter myCrashReporter;
   private final List<ListenableFuture<?>> myRunningFutures = new LinkedList<>();
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
@@ -114,7 +114,14 @@ public class RenderTask {
              @NotNull Object credential,
              @NotNull CrashReporter crashReporter,
              @NotNull ImagePool imagePool,
-             @Nullable ILayoutPullParserFactory parserFactory) {
+             @Nullable ILayoutPullParserFactory parserFactory,
+             boolean isSecurityManagerEnabled) {
+    this.isSecurityManagerEnabled = isSecurityManagerEnabled;
+
+    if (!isSecurityManagerEnabled) {
+      LOG.debug("Security manager was disabled");
+    }
+
     myLogger = logger;
     myCredential = credential;
     myCrashReporter = crashReporter;
@@ -960,18 +967,6 @@ public class RenderTask {
   @VisibleForTesting
   void setCrashReporter(@NotNull CrashReporter crashReporter) {
     myCrashReporter = crashReporter;
-  }
-
-  /**
-   * Bazel has its own security manager. We allow rendering tests to disable the security manager by calling this method.
-   */
-  @VisibleForTesting
-  public void disableSecurityManager() {
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      throw new IllegalStateException("This method can only be called in unit test mode");
-    }
-    LOG.debug("Security manager was disabled");
-    isSecurityManagerEnabled = false;
   }
 
   /**

@@ -765,8 +765,8 @@ public class LayoutlibSceneManager extends SceneManager {
       if (myRenderTask != null && !myRenderTask.isDisposed()) {
         myRenderTask.dispose();
       }
-      myRenderTask = renderService.createTask(facet, getModel().getFile(), configuration);
-      setupRenderTask(myRenderTask);
+      RenderService.RenderTaskBuilder builder = renderService.taskBuilder(facet, configuration).withPsiFile(getModel().getFile());
+      myRenderTask = setupRenderTaskBuilder(builder).build();
       if (myRenderTask != null) {
         myRenderTask.getLayoutlibCallback()
           .setAdaptiveIconMaskPath(getDesignSurface().getAdaptiveIconShape().getPathDescription());
@@ -817,7 +817,9 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @VisibleForTesting
-  protected void setupRenderTask(@Nullable RenderTask task) {
+  @NotNull
+  protected RenderService.RenderTaskBuilder setupRenderTaskBuilder(@NotNull RenderService.RenderTaskBuilder taskBuilder) {
+    return taskBuilder;
   }
 
   /**
