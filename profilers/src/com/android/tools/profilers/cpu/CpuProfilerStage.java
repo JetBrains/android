@@ -210,11 +210,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private final CpuCaptureParser myCaptureParser;
 
   /**
-   * State to track if an invalid (excluding "cancel") selection has been made.
-   */
-  private boolean mySelectionFailure;
-
-  /**
    * Used to navigate across {@link CpuCapture}. The iterator navigates through trace IDs of captures generated in the current session.
    * It's responsibility of the stage to notify to populate the iterator initially with the trace IDs already created before the stage
    * creation, and notifying the iterator about newly parsed captures.
@@ -349,13 +344,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       selectionModel.addListener(new SelectionListener() {
         @Override
         public void selectionCreated() {
-          mySelectionFailure = false;
           getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectRange();
         }
 
         @Override
         public void selectionCleared() {
-          mySelectionFailure = false;
           if (myCaptureModel.getCapture() != null) {
             // when we switch from a session into another session of import trace mode, we first create a new stage, and then the selection
             // on timeline is cleared which would trigger this method in the new stage, but at that point myCaptureModel.getCapture()
@@ -366,7 +359,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
         @Override
         public void selectionCreationFailure() {
-          mySelectionFailure = false;
           if (myCaptureModel.getCapture() != null) {
             setAndSelectCapture(myCaptureModel.getCapture());
           }
@@ -377,20 +369,17 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       selectionModel.addListener(new SelectionListener() {
         @Override
         public void selectionCreated() {
-          mySelectionFailure = false;
           getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectRange();
           selectionChanged();
         }
 
         @Override
         public void selectionCleared() {
-          mySelectionFailure = false;
           selectionChanged();
         }
 
         @Override
         public void selectionCreationFailure() {
-          mySelectionFailure = true;
           selectionChanged();
         }
       });
@@ -456,10 +445,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @NotNull
   public CpuProfilerConfigModel getProfilerConfigModel() {
     return myProfilerConfigModel;
-  }
-
-  public boolean isSelectionFailure() {
-    return mySelectionFailure;
   }
 
   @Override
@@ -1005,7 +990,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myCaptureModel.setThread(id);
     Range range = getStudioProfilers().getTimeline().getSelectionRange();
     if (range.isEmpty()) {
-      mySelectionFailure = true;
       myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
       setProfilerMode(ProfilerMode.EXPANDED);
     }
