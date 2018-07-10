@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
@@ -62,24 +60,10 @@ public class SyncIssuesReporter {
   }
 
   public void report(@NotNull List<Module> modules) {
-    Map<Module, List<SyncIssue>> issuesByModule = new LinkedHashMap<>();
-
-    for (Module module : modules) {
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
-      if (androidModuleModel != null) {
-        Collection<SyncIssue> androidSyncIssues = androidModuleModel.getSyncIssues();
-        if (androidSyncIssues != null) {
-          issuesByModule.computeIfAbsent(module, m -> new ArrayList<>()).addAll(androidSyncIssues);
-        }
-      }
-
-      JavaModuleModel javaModuleModel = JavaModuleModel.get(module);
-      if (javaModuleModel != null) {
-        issuesByModule.computeIfAbsent(module, m -> new ArrayList<>()).addAll(javaModuleModel.getSyncIssues());
-      }
+    if (modules.isEmpty()) {
+      return;
     }
-
-    report(issuesByModule);
+    report(SyncIssueRegister.getInstance(modules.get(0).getProject()).getSyncIssueMap());
   }
 
   /**
