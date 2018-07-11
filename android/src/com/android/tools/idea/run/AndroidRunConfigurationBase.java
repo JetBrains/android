@@ -587,7 +587,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return currentTargetProvider.requiresRuntimePrompt() &&
              ((ShowChooserTargetProvider)currentTargetProvider)
                .getCachedDeployTarget(executor, facet, getDeviceCount(debug), getDeployTargetContext().getDeployTargetStates(),
-                                      getUniqueID()) != null;
+                                      getUniqueID()) == null;
     }
     return currentTargetProvider.requiresRuntimePrompt();
   }
