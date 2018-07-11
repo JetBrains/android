@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.rendering.Locale;
+import com.google.common.primitives.Ints;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -126,54 +127,36 @@ public final class StringResourceTable extends FrozenColumnTable {
       return;
     }
 
-    OptionalInt optionalWidth = getKeyColumnPreferredWidth();
-
-    if (optionalWidth.isPresent()) {
-      getColumn(StringResourceTableModel.KEY_COLUMN).setPreferredWidth(optionalWidth.getAsInt());
-    }
-
-    optionalWidth = getDefaultValueAndLocaleColumnPreferredWidths();
-
-    if (optionalWidth.isPresent()) {
-      int width = optionalWidth.getAsInt();
-
-      IntStream.range(convertColumnIndexToView(StringResourceTableModel.DEFAULT_VALUE_COLUMN), getColumnCount())
-               .mapToObj(this::getColumn)
-               .forEach(column -> column.setPreferredWidth(width));
-    }
+    IntStream.range(0, getColumnCount())
+             .forEach(viewColumnIndex -> getColumn(viewColumnIndex).setPreferredWidth(getPreferredColumnWidth(viewColumnIndex)));
 
     myColumnPreferredWidthsSet = true;
   }
 
-  @NotNull
-  @VisibleForTesting
-  public OptionalInt getKeyColumnPreferredWidth() {
-    return IntStream.range(0, getModel().getRowCount())
-                    .map(this::getPreferredKeyWidth)
-                    .max();
+  private int getPreferredColumnWidth(int viewColumnIndex) {
+    int headerWidth = getPreferredHeaderWidth(viewColumnIndex);
+
+    OptionalInt optionalMaxCellWidth = IntStream.range(0, getRowCount())
+                                                .map(viewRowIndex -> getPreferredCellWidth(viewRowIndex, viewColumnIndex))
+                                                .max();
+
+    int minColumnWidth = JBUI.scale(20);
+    return Ints.constrainToRange(Math.max(headerWidth, optionalMaxCellWidth.orElse(minColumnWidth)), minColumnWidth, JBUI.scale(200));
   }
 
-  private int getPreferredKeyWidth(int modelRowIndex) {
-    TableCellRenderer renderer = getCellRendererUsingModelIndices(modelRowIndex, StringResourceTableModel.KEY_COLUMN);
-    Object key = getModel().getValueAt(modelRowIndex, StringResourceTableModel.KEY_COLUMN);
-    int viewRowIndex = convertRowIndexToView(modelRowIndex);
-    int viewColumnIndex = convertColumnIndexToView(StringResourceTableModel.KEY_COLUMN);
+  private int getPreferredHeaderWidth(int viewColumnIndex) {
+    TableCellRenderer renderer = getColumn(viewColumnIndex).getHeaderRenderer();
 
-    return getPreferredWidth(renderer, key, viewRowIndex, viewColumnIndex);
+    if (renderer == null) {
+      renderer = getDefaultTableHeaderRenderer();
+    }
+
+    return getPreferredWidth(renderer, getColumnName(viewColumnIndex), -1, viewColumnIndex);
   }
 
-  @NotNull
-  @VisibleForTesting
-  public OptionalInt getDefaultValueAndLocaleColumnPreferredWidths() {
-    return IntStream.range(convertColumnIndexToView(StringResourceTableModel.DEFAULT_VALUE_COLUMN), getColumnCount())
-                    .map(column -> getPreferredWidth(getHeaderRenderer(column), getColumnName(column), -1, column))
-                    .max();
-  }
-
-  @NotNull
-  private TableCellRenderer getHeaderRenderer(int column) {
-    TableCellRenderer renderer = getColumn(column).getHeaderRenderer();
-    return renderer == null ? getDefaultTableHeaderRenderer() : renderer;
+  private int getPreferredCellWidth(int viewRowIndex, int viewColumnIndex) {
+    TableCellRenderer renderer = getCellRenderer(viewRowIndex, viewColumnIndex);
+    return getPreferredWidth(renderer, getValueAt(viewRowIndex, viewColumnIndex), viewRowIndex, viewColumnIndex);
   }
 
   @Override

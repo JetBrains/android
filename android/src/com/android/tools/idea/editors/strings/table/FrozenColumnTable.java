@@ -218,16 +218,14 @@ public class FrozenColumnTable {
   }
 
   @NotNull
-  final TableCellRenderer getCellRendererUsingModelIndices(int modelRowIndex,
-                                                           @SuppressWarnings("SameParameterValue") int modelColumnIndex) {
-    int viewRowIndex = convertRowIndexToView(modelRowIndex);
-    int viewColumnIndex = convertColumnIndexToView(modelColumnIndex);
+  final TableCellRenderer getCellRenderer(int viewRowIndex, int viewColumnIndex) {
+    int count = myFrozenTable.getColumnCount();
 
-    if (modelColumnIndex < myFrozenColumnCount) {
+    if (viewColumnIndex < count) {
       return myFrozenTable.getCellRenderer(viewRowIndex, viewColumnIndex);
     }
 
-    return myScrollableTable.getCellRenderer(viewRowIndex, viewColumnIndex - myFrozenTable.getColumnCount());
+    return myScrollableTable.getCellRenderer(viewRowIndex, viewColumnIndex - count);
   }
 
   final int getPreferredWidth(@NotNull TableCellRenderer renderer, @NotNull Object value, int viewRowIndex, int viewColumnIndex) {
@@ -381,21 +379,6 @@ public class FrozenColumnTable {
 
   public final int getSelectedColumnCount() {
     return myFrozenTable.getSelectedColumnCount() + myScrollableTable.getSelectedColumnCount();
-  }
-
-  final int convertRowIndexToView(int modelRowIndex) {
-    int index = myFrozenTable.convertRowIndexToView(modelRowIndex);
-    assert index == myScrollableTable.convertRowIndexToView(modelRowIndex);
-
-    return index;
-  }
-
-  final int convertColumnIndexToView(int modelColumnIndex) {
-    if (modelColumnIndex < myFrozenColumnCount) {
-      return myFrozenTable.convertColumnIndexToView(modelColumnIndex);
-    }
-
-    return myFrozenTable.getColumnCount() + myScrollableTable.convertColumnIndexToView(modelColumnIndex - myFrozenColumnCount);
   }
 
   public final int getRowCount() {
