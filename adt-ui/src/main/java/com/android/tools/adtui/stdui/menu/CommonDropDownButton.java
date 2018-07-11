@@ -15,13 +15,16 @@
  */
 package com.android.tools.adtui.stdui.menu;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.intellij.ui.PopupMenuListenerAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -61,12 +64,19 @@ public class CommonDropDownButton extends CommonToggleButton implements Property
         CommonDropDownButton menu = CommonDropDownButton.this;
         if (menu.isSelected()) {
           myAction.actionPerformed(event);
-          populateAndShowPopup();
+          populatePopup();
+          myPopup.show(menu, 0, menu.getHeight());
         }
       }
     });
 
     addPropertyChangeListenerRecursive(myAction);
+  }
+
+  @VisibleForTesting
+  @NotNull
+  JPopupMenu getPopup() {
+    return myPopup;
   }
 
   @Override
@@ -75,7 +85,7 @@ public class CommonDropDownButton extends CommonToggleButton implements Property
     return myAction;
   }
 
-  private void populateAndShowPopup() {
+  private void populatePopup() {
     myPopup.removeAll();
     List<CommonAction> actions = myAction.getChildrenActions();
     for (CommonAction action : actions) {
@@ -96,10 +106,11 @@ public class CommonDropDownButton extends CommonToggleButton implements Property
       }
     }
 
-    myPopup.show(this, 0, this.getHeight());
+    myPopup.pack();
   }
 
-  private void populateMenuRecursive(CommonMenu parent, List<CommonAction> actions) {
+  private void populateMenuRecursive(@NotNull JMenu parent, @NotNull List<CommonAction> actions) {
+    parent.removeAll();
     for (CommonAction action : actions) {
       if (action instanceof CommonAction.SeparatorAction) {
         parent.addSeparator();
@@ -115,9 +126,6 @@ public class CommonDropDownButton extends CommonToggleButton implements Property
         }
         menu.setFont(getFont());
         parent.add(menu);
-
-        // Close and repopulate the dropdown if any of the descendant actions have changed.
-        action.addPropertyChangeListener(this);
       }
     }
   }
@@ -132,11 +140,6 @@ public class CommonDropDownButton extends CommonToggleButton implements Property
   public void propertyChange(@NotNull PropertyChangeEvent event) {
     switch (event.getPropertyName()) {
       case CommonAction.CHILDREN_ACTION_CHANGED:
-        // First hide the popup if it is showing.
-        if (myPopup.isShowing()) {
-          myPopup.setVisible(false);
-        }
-
         // Unregister the listeners on the old list of actions
         List<CommonAction> oldValues = (List<CommonAction>)event.getOldValue();
         oldValues.forEach(action -> removePropertyChangeListenerRecursive(action));
@@ -145,7 +148,28 @@ public class CommonDropDownButton extends CommonToggleButton implements Property
         List<CommonAction> newValues = (List<CommonAction>)event.getNewValue();
         newValues.forEach(action -> addPropertyChangeListenerRecursive(action));
 
-        // TODO restore popup if it is showing.
+        // Refresh the popup menu with the new menu item collections.
+        if (event.getSource() instanceof CommonAction) {
+          CommonAction sourceAction = (CommonAction)event.getSource();
+          // Special case for changes in the top-level popup.
+          if (sourceAction == myAction) {
+            populatePopup();
+          }
+          else {
+            // Find the popup menu that needs to be refresh based on the current event.
+            JMenuItem sourceMenuItem = findMenuRecursive(myPopup, sourceAction);
+            // TODO - currently this does not handle changing menu type. e.g. A leaf menu turning into a menu with children, or vice versa.
+            if (sourceMenuItem instanceof JMenu) {
+              JMenu sourceMenu = (JMenu)sourceMenuItem;
+              populateMenuRecursive(sourceMenu, newValues);
+              JPopupMenu sourcePopup = sourceMenu.getPopupMenu();
+              if (sourcePopup.isShowing()) {
+                // This currently causes a flicker. It might be worth investigating if there is a better way.
+                sourcePopup.pack();
+              }
+            }
+          }
+        }
         break;
       case Action.NAME:
       case Action.SMALL_ICON:
@@ -156,6 +180,31 @@ public class CommonDropDownButton extends CommonToggleButton implements Property
       default:
         break;
     }
+  }
+
+  /**
+   * @return The {@link CommonMenu} within the popup menu hierarchy that matches |targetAction|. Null if it is not found.
+   */
+  @VisibleForTesting
+  @Nullable
+  JMenuItem findMenuRecursive(@NotNull JPopupMenu popup, @NotNull CommonAction targetAction) {
+    for (Component component : popup.getComponents()) {
+      if (component instanceof JMenuItem) {
+        JMenuItem jmenuItem = (JMenuItem)component;
+        if (jmenuItem.getAction() == targetAction) {
+          return jmenuItem;
+        }
+
+        if (jmenuItem instanceof JMenu) {
+          JMenuItem matchedChildMenuItem = findMenuRecursive(((JMenu)jmenuItem).getPopupMenu(), targetAction);
+          if (matchedChildMenuItem != null) {
+            return matchedChildMenuItem;
+          }
+        }
+      }
+    }
+
+    return null;
   }
 
   private void addPropertyChangeListenerRecursive(@NotNull CommonAction action) {
