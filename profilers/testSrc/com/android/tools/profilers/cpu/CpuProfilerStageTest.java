@@ -1170,6 +1170,12 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
 
     startCapturingSuccess();
+
+    // Increment 3 seconds on data range to simulate this time has passed
+    Range dataRange = myStage.getStudioProfilers().getTimeline().getDataRange();
+    long elapsedTimeUs = TimeUnit.SECONDS.toMicros(3);
+    dataRange.setMax(dataRange.getMax() + elapsedTimeUs);
+
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.FAILURE);
     stopCapturing();
     CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
@@ -1180,10 +1186,11 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
     assertThat(metadataConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     assertThat(metadataConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilerMode.SAMPLED);
-    // Trace was not generated, so trace size, parsing time, recording duration and capture duration should be 0 (unset)
+    // Capture duration is calculated from the elapsed time since recording has started.
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(elapsedTimeUs);
+    // Trace was not generated, so trace size, parsing time and recording duration should be 0 (unset)
     assertThat(metadata.getParsingTimeMs()).isEqualTo(0);
     assertThat(metadata.getRecordDurationMs()).isEqualTo(0);
-    assertThat(metadata.getCaptureDurationMs()).isEqualTo(0);
     assertThat(metadata.getTraceFileSizeBytes()).isEqualTo(0);
   }
 
@@ -1201,7 +1208,12 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
 
     startCapturingSuccess();
+    // Increment 3 seconds on data range to simulate this time has passed
+    Range dataRange = myStage.getStudioProfilers().getTimeline().getDataRange();
+    long elapsedTimeUs = TimeUnit.SECONDS.toMicros(3);
+    dataRange.setMax(dataRange.getMax() + elapsedTimeUs);
     stopCapturing();
+
     CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
     assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
     ProfilingConfiguration metadataConfig = metadata.getProfilingConfiguration();
@@ -1211,10 +1223,11 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(metadataConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilerMode.SAMPLED);
     // Trace was generated, so trace size should be greater than 0
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
-    // Trace was not parsed correctly, so parsing time, recording duration and capture duration should be 0 (unset)
+    // Capture duration is calculated from the elapsed time since recording has started.
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(elapsedTimeUs);
+    // Trace was not parsed correctly, so parsing time and recording duration should be 0 (unset)
     assertThat(metadata.getParsingTimeMs()).isEqualTo(0);
     assertThat(metadata.getRecordDurationMs()).isEqualTo(0);
-    assertThat(metadata.getCaptureDurationMs()).isEqualTo(0);
   }
 
   @Test
@@ -1233,7 +1246,12 @@ public class CpuProfilerStageTest extends AspectObserver {
     myServices.setShouldParseLongTraces(false);
 
     startCapturingSuccess();
+    // Increment 3 seconds on data range to simulate this time has passed
+    Range dataRange = myStage.getStudioProfilers().getTimeline().getDataRange();
+    long elapsedTimeUs = TimeUnit.SECONDS.toMicros(3);
+    dataRange.setMax(dataRange.getMax() + elapsedTimeUs);
     stopCapturing();
+
     CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
     assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
     // Profiling Configurations should remain the same.
@@ -1244,10 +1262,11 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(metadataConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilerMode.SAMPLED);
     // Trace was generated, so trace size should be greater than 0
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
-    // Trace was not parsed at all, so parsing time, recording duration and capture duration should be 0 (unset)
+    // Capture duration is calculated from the elapsed time since recording has started.
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(elapsedTimeUs);
+    // Trace was not parsed at all, so parsing time and recording duration should be 0 (unset)
     assertThat(metadata.getParsingTimeMs()).isEqualTo(0);
     assertThat(metadata.getRecordDurationMs()).isEqualTo(0);
-    assertThat(metadata.getCaptureDurationMs()).isEqualTo(0);
   }
 
   @Test
@@ -1356,7 +1375,6 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getTraceIdsIterator().hasNext()).isTrue();
     assertThat(myStage.getTraceIdsIterator().hasPrevious()).isTrue();
   }
-
 
   @Test
   public void testHasUserUsedCapture() {

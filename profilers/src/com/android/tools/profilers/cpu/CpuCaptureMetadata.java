@@ -40,6 +40,9 @@ public class CpuCaptureMetadata {
 
   /**
    * Duration (in milliseconds) of the capture, from the time user pressed "Start recording" to the time they pressed "Stop".
+   * If {@link #myStatus} is {@link CaptureStatus#SUCCESS}, the duration is calculated from the capture itself, from the precise start/stop
+   * timestamps. Otherwise, the duration is actually an estimate as it's calculated by checking the device time when the user clicks start
+   * and when they click stop.
    */
   private long myCaptureDurationMs;
 
