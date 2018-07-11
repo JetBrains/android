@@ -63,12 +63,13 @@ sealed class Destination {
       val model = parent.model
       if (layoutFile != null) {
         val future = ThumbnailManager.getInstance(model.facet).getThumbnail(layoutFile, model.configuration)
-        if (future != null) {
+        // TODO: wait for rendering nicely
+        val image = future.get()
+        if (image != null) {
           val scale = (DESTINATION as? JBUI.RasterJBIcon)?.getScale(JBUI.ScaleType.PIX_SCALE) ?: 1.0
           val result = BufferedImage((73 * scale).toInt(), (94 * scale).toInt(), BufferedImage.TYPE_INT_ARGB)
           DESTINATION.paintIcon(null, result.graphics, 0, 0)
-          // TODO: wait for rendering nicely
-          result.graphics.drawImage(future.get(), (THUMBNAIL_X * scale).toInt(), (THUMBNAIL_Y * scale).toInt(),
+          result.graphics.drawImage(image, (THUMBNAIL_X * scale).toInt(), (THUMBNAIL_Y * scale).toInt(),
                                     (THUMBNAIL_WIDTH * scale).toInt(), (THUMBNAIL_HEIGHT * scale).toInt(), null)
           return@lazy result
         }
