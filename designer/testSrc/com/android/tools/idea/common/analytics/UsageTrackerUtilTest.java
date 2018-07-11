@@ -60,7 +60,6 @@ package com.android.tools.idea.common.analytics;
  import static com.google.common.truth.Truth.assertThat;
  import static com.google.wireless.android.sdk.stats.AndroidAttribute.AttributeNamespace.*;
  import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.*;
- import static java.util.Collections.emptyList;
  import static org.mockito.ArgumentMatchers.any;
  import static org.mockito.ArgumentMatchers.isNotNull;
  import static org.mockito.ArgumentMatchers.notNull;
@@ -328,20 +327,18 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
 
     PropertiesManager propertiesManager = mock(PropertiesManager.class);
     return NlPropertyItem.create(new XmlName(propertyName, namespace),
-                                 new AttributeDefinition(ResourceNamespace.RES_AUTO, propertyName, libraryName, null, emptyList()),
+                                 new AttributeDefinition(ResourceNamespace.RES_AUTO, propertyName, libraryName, null),
                                  Collections.singletonList(component),
                                  propertiesManager);
   }
 
   private void setUpApplicationAttributes() {
     Attributes frameworkAttributes = new Attributes();
-    frameworkAttributes.add(new AttributeDefinition(ResourceNamespace.ANDROID, ATTR_TEXT, null, null, emptyList()));
+    frameworkAttributes.add(new AttributeDefinition(ResourceNamespace.ANDROID, ATTR_TEXT));
 
     Attributes localAttributes = new Attributes();
-    localAttributes.add(
-        new AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_LAYOUT_COLLAPSE_MODE, DESIGN_COORDINATE, null, emptyList()));
-    localAttributes.add(
-        new AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_ACME_LAYOUT_MARGIN, ACME_LIB_COORDINATE, null, emptyList()));
+    localAttributes.add(new AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_LAYOUT_COLLAPSE_MODE, DESIGN_COORDINATE, null));
+    localAttributes.add(new AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_ACME_LAYOUT_MARGIN, ACME_LIB_COORDINATE, null));
 
     SystemResourceManager systemResourceManager = mock(SystemResourceManager.class);
     when(systemResourceManager.getAttributeDefinitions()).thenReturn(frameworkAttributes);

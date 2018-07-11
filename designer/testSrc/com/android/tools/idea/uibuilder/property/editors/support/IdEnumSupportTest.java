@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.common.property.NlProperty;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +50,7 @@ public class IdEnumSupportTest {
   @Before
   public void setUp() {
     initMocks(this);
-    myDefinition = new AttributeDefinition(ResourceNamespace.RES_AUTO, "property", null, null, Collections.emptyList());
+    myDefinition = new AttributeDefinition(ResourceNamespace.RES_AUTO, "property");
     when(myProperty.getResolver()).thenReturn(myResolver);
     when(myProperty.resolveValue(anyString())).thenAnswer(invocation -> invocation.getArguments()[0]);
     when(myProperty.getDefinition()).thenReturn(myDefinition);
@@ -66,7 +67,7 @@ public class IdEnumSupportTest {
 
   @Test
   public void testFindPossibleValuesFromConstraintLayoutProperty() {
-    myDefinition.addValue(SdkConstants.ATTR_PARENT);
+    myDefinition.setValueMappings(ImmutableMap.of(SdkConstants.ATTR_PARENT, 1));
     when(myIdAnalyzer.findIds()).thenReturn(ImmutableList.of("id1", "id2"));
     assertThat(mySupport.getAllValues()).containsExactly(
       new ValueWithDisplayString("id1", "@+id/id1"),
@@ -76,7 +77,7 @@ public class IdEnumSupportTest {
 
   @Test
   public void testFindPossibleValuesFromConstraintLayoutPropertyAndExistingParentId() {
-    myDefinition.addValue(SdkConstants.ATTR_PARENT);
+    myDefinition.setValueMappings(ImmutableMap.of(SdkConstants.ATTR_PARENT, 1));
     when(myIdAnalyzer.findIds()).thenReturn(ImmutableList.of("id1", "id2", "parent"));
     assertThat(mySupport.getAllValues()).containsExactly(
       new ValueWithDisplayString("id1", "@+id/id1"),
@@ -105,14 +106,14 @@ public class IdEnumSupportTest {
 
   @Test
   public void testCreateValueFromConstraintLayoutProperty() {
-    myDefinition.addValue(SdkConstants.ATTR_PARENT);
+    myDefinition.setValueMappings(ImmutableMap.of(SdkConstants.ATTR_PARENT, 1));
     assertThat(mySupport.createValue("parent"))
       .isEqualTo(new ValueWithDisplayString("parent", "parent"));
   }
 
   @Test
   public void testCreateValueFromConstraintLayoutPropertyOfExistingParentId() {
-    myDefinition.addValue(SdkConstants.ATTR_PARENT);
+    myDefinition.setValueMappings(ImmutableMap.of(SdkConstants.ATTR_PARENT, 1));
     assertThat(mySupport.createValue("@+id/parent"))
       .isEqualTo(new ValueWithDisplayString("@+id/parent", "@+id/parent"));
   }

@@ -400,7 +400,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     sb.append(namespaceToPrefix(myNamespace));
     sb.append(myName);
     if (myDefinition != null) {
-      String value = myDefinition.getDocValue(null);
+      String value = myDefinition.getDescription(null);
 
       if (value != null) {
         sb.append(": ");

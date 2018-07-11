@@ -434,13 +434,12 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     AttributeDefinitions systemAttributeDefinitions = mock(AttributeDefinitions.class);
     AttributeDefinitions localAttributeDefinitions = mock(AttributeDefinitions.class);
 
-    myElevationDefinition = new AttributeDefinition(ResourceNamespace.ANDROID, ATTR_ELEVATION, null, null, Collections.emptySet());
-    myTextDefinition = new AttributeDefinition(ResourceNamespace.ANDROID, ATTR_TEXT, null, null, Collections.emptySet());
+    myElevationDefinition = new AttributeDefinition(ResourceNamespace.ANDROID, ATTR_ELEVATION);
+    myTextDefinition = new AttributeDefinition(ResourceNamespace.ANDROID, ATTR_TEXT);
     myCustomDefinition =
-        new AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_CUSTOM_NAME, "com.acme:CustomLibrary", null, Collections.emptySet());
+        new AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_CUSTOM_NAME, "com.acme:CustomLibrary", null);
     myCollapseParallaxMultiplierDefinition =
-        new AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_COLLAPSE_PARALLAX_MULTIPLIER, DESIGN_LIB_ARTIFACT, null,
-                                Collections.emptySet());
+        new AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_COLLAPSE_PARALLAX_MULTIPLIER, DESIGN_LIB_ARTIFACT, null);
 
     myModel = mock(NlModel.class);
     when(myModel.getFacet()).thenReturn(myFacet);

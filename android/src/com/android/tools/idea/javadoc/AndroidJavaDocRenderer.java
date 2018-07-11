@@ -122,7 +122,7 @@ public class AndroidJavaDocRenderer {
   @NotNull
   private static String renderAttributeDoc(@NotNull Module module, @Nullable Configuration configuration, @NotNull String name) {
     AttributeDefinition def = ResolutionUtils.getAttributeDefinition(module, configuration, name);
-    String doc = (def == null) ? null : def.getDocValue(null);
+    String doc = (def == null) ? null : def.getDescription(null);
     HtmlBuilder builder = new HtmlBuilder();
     builder.openHtmlBody();
     builder.beginBold();

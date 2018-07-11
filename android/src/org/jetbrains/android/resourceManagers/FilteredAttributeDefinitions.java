@@ -82,18 +82,6 @@ public abstract class FilteredAttributeDefinitions implements AttributeDefinitio
 
     @Override
     @NotNull
-    public List<StyleableDefinition> getChildren() {
-      List<StyleableDefinition> styleables = myWrappee.getChildren();
-      List<StyleableDefinition> result = new ArrayList<>(styleables.size());
-
-      for (StyleableDefinition styleable : styleables) {
-        result.add(new MyStyleableDefinition(styleable));
-      }
-      return result;
-    }
-
-    @Override
-    @NotNull
     public ResourceReference getResourceReference() {
       return myWrappee.getResourceReference();
     }

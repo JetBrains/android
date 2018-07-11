@@ -128,11 +128,8 @@ class EnumSupportProviderImplTest: AndroidTestCase() {
 
   fun testFromAttributeDefinition() {
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
-    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_VISIBILITY, "",
-                                         ResourceReference.styleable(ResourceNamespace.RES_AUTO, TEXT_VIEW), emptyList())
-    definition.addValue("visible")
-    definition.addValue("invisible")
-    definition.addValue("gone")
+    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_VISIBILITY)
+    definition.setValueMappings(mapOf("visible" to 1, "invisible" to 2, "gone" to 3))
     val property = util.makeProperty(ANDROID_URI, definition)
     val provider = NeleEnumSupportProvider()
     val enumSupport = provider(property) ?: error("No EnumSupport Found")

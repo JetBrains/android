@@ -63,7 +63,7 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
     mySelectedValue = selectedValue;
 
     AttributeDefinition attrDef = ResolutionUtils.getAttributeDefinition(sourceTheme.getConfiguration(), mySelectedValue.myValue);
-    String attrGroup = (attrDef == null) ? null : attrDef.getAttrGroup();
+    String attrGroup = (attrDef == null) ? null : attrDef.getGroupName();
     myAttrGroup = (attrGroup == null) ? "Other non-theme attributes." : attrGroup;
   }
 
@@ -172,7 +172,7 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
 
   public boolean isDeprecated() {
     AttributeDefinition def = ResolutionUtils.getAttributeDefinition(mySourceTheme.getConfiguration(), getSelectedValue());
-    String doc = (def == null) ? null : def.getDocValue(null);
+    String doc = (def == null) ? null : def.getDescription(null);
     return (doc != null && StringUtil.containsIgnoreCase(doc, DEPRECATED));
   }
 

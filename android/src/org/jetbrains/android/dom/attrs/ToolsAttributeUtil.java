@@ -138,9 +138,6 @@ public class ToolsAttributeUtil {
     }
 
     Collection<AttributeFormat> formats = ATTRIBUTES.get(name);
-    AttributeDefinition def = new AttributeDefinition(ResourceNamespace.TOOLS, name);
-    def.addFormats(formats);
-
-    return def;
+    return new AttributeDefinition(ResourceNamespace.TOOLS, name, null, formats);
   }
 }

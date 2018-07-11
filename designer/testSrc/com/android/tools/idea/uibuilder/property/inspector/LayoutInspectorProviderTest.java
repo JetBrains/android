@@ -150,8 +150,7 @@ public class LayoutInspectorProviderTest extends PropertyTestCase {
   }
 
   private void addFakeProperty(@NotNull Map<String, NlProperty> map, @NotNull String propertyName, @NotNull List<NlComponent> components) {
-    AttributeDefinition definition =
-        new AttributeDefinition(ResourceNamespace.RES_AUTO, propertyName, null, null, Collections.emptyList());
+    AttributeDefinition definition = new AttributeDefinition(ResourceNamespace.RES_AUTO, propertyName);
     NlProperty property = NlPropertyItem.create(new XmlName(propertyName), definition, components, myPropertiesManager);
     map.put(propertyName, property);
   }

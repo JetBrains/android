@@ -25,7 +25,9 @@ import org.jetbrains.android.dom.converters.StaticEnumConverter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.SdkConstants.*;
 
@@ -79,10 +81,12 @@ public class NlDesignProperties {
     ResolvingConverter converter = ToolsAttributeUtil.getConverter(definition);
     // TODO: Figure out how to provide the correct reference editor depending on the converter.
     if (converter instanceof StaticEnumConverter) {
-      Collection variants = converter.getVariants(null);
+      Collection<?> variants = converter.getVariants(null);
+      Map<String, Integer> values = new HashMap<>();
       for (Object variant : variants) {
-        definition.addValue(variant.toString());
+        values.put(variant.toString(), null);
       }
+      definition.setValueMappings(values);
     }
     return definition;
   }

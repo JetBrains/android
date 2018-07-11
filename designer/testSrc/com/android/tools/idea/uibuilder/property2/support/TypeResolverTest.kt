@@ -54,7 +54,7 @@ class TypeResolverTest {
   }
 
   private fun resolve(name: String, format: AttributeFormat): NelePropertyType {
-    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, name, null, null, setOf(format))
+    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, name, null, setOf(format))
     return TypeResolver.resolveType(name, definition)
   }
 }

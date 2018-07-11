@@ -40,6 +40,8 @@ import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.attrs.AttributeDefinitions
 import com.android.ide.common.rendering.api.AttributeFormat
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.awt.EventQueue
 import java.util.*
@@ -104,16 +106,17 @@ class NelePropertiesProvider(private val model: NelePropertiesModel) {
 
       for (desc in descriptors) {
         val name = desc.name
-        val namespace = getNamespace(desc, tag)
+        val namespaceUri = getNamespace(desc, tag)
         // Exclude the framework attributes that were added after the current min API level.
-        if (NS_RESOURCES == namespace && apiLookup != null &&
+        if (NS_RESOURCES == namespaceUri && apiLookup != null &&
             apiLookup.getFieldVersion("android/R\$attr", name) > minApi) {
           continue
         }
-        val attrDefs = if (NS_RESOURCES == namespace) systemAttrDefs else localAttrDefs
-        val attrDef = attrDefs?.getAttrDefByName(name)
-        val property = createProperty(namespace, name, attrDef, components)
-        properties.put(namespace, name, property)
+        val attrDefs = if (NS_RESOURCES == namespaceUri) systemAttrDefs else localAttrDefs
+        val namespace = ResourceNamespace.fromNamespaceUri(namespaceUri)
+        val attrDef = namespace?.let { attrDefs?.getAttrDefinition(ResourceReference.attr(it, name)) }
+        val property = createProperty(namespaceUri, name, attrDef, components)
+        properties.put(namespaceUri, name, property)
       }
 
       val tagClass = elementDescriptor.declaration as? PsiClass

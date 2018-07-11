@@ -17,7 +17,6 @@ package org.jetbrains.android.dom.attrs;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.resources.ResourceType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -27,34 +26,12 @@ import java.util.List;
 /**
  * @author yole, coyote
  */
-public class StyleableDefinitionImpl implements StyleableDefinition {
+public final class StyleableDefinitionImpl implements StyleableDefinition {
   @NotNull private final ResourceReference myStyleable;
-  @NotNull private final List<StyleableDefinition> myParents = new ArrayList<>();
   @NotNull private final List<AttributeDefinition> myAttributes = new ArrayList<>();
-  @NotNull private final List<StyleableDefinition> myChildren = new ArrayList<>();
 
   public StyleableDefinitionImpl(@NotNull ResourceNamespace namespace, @NotNull String name) {
-    assert name.indexOf(':') < 0;
     myStyleable = ResourceReference.styleable(namespace, name);
-  }
-
-  public void addChild(@NotNull StyleableDefinition child) {
-    myChildren.add(child);
-  }
-
-  public void addParent(@NotNull StyleableDefinition parent) {
-    myParents.add(parent);
-  }
-
-  @NotNull
-  public List<StyleableDefinition> getParents() {
-    return myParents;
-  }
-
-  @Override
-  @NotNull
-  public List<StyleableDefinition> getChildren() {
-    return myChildren;
   }
 
   @Override
@@ -71,6 +48,7 @@ public class StyleableDefinitionImpl implements StyleableDefinition {
 
   public void addAttribute(@NotNull AttributeDefinition attrDef) {
     myAttributes.add(attrDef);
+    attrDef.addParent(myStyleable);
   }
 
   @Override

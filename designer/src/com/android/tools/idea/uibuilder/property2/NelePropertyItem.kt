@@ -206,7 +206,7 @@ open class NelePropertyItem(
     val sb = StringBuilder(100)
     sb.append(findNamespacePrefix())
     sb.append(name)
-    val value = definition?.getDocValue(null) ?: ""
+    val value = definition?.getDescription(null) ?: ""
     if (value.isNotEmpty()) {
       sb.append(": ")
       sb.append(value)
