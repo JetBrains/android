@@ -48,17 +48,15 @@ class SqliteEditorProvider : FileEditorProvider, DumbAware {
     }
   }
 
-/* TODO(b/111279467): fails to compile after IDEA 182.2371.4 merge
-  override fun readState(sourceElement: Element, project: Project, file: VirtualFile): FileEditorState {
+  override fun readState(sourceElement: Element?, project: Project, file: VirtualFile): FileEditorState {
     return SqliteEditorState.readState(sourceElement)
   }
-*/
 
   override fun getEditorTypeId(): String = SQLITE_EDITOR_ID
 
   override fun getPolicy(): FileEditorPolicy = FileEditorPolicy.PLACE_BEFORE_DEFAULT_EDITOR
 
   companion object {
-    private val SQLITE_EDITOR_ID = "android-sqlite-editor-id"
+    private const val SQLITE_EDITOR_ID = "android-sqlite-editor-id"
   }
 }
