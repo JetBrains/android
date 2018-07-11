@@ -55,10 +55,14 @@ class SqliteEditorState(val deviceFileId: DeviceFileId) : FileEditorState {
     private const val DEVICE_ID_ATTR_NAME = "device-id"
     private const val DEVICE_PATH_ATTR_NAME = "device-path"
 
-    fun readState(sourceElement: Element): SqliteEditorState {
-      val entryInfo = DeviceFileId(
+    fun readState(sourceElement: Element?): SqliteEditorState {
+      val entryInfo = if (sourceElement == null) {
+        DeviceFileId.UNKNOWN
+      } else {
+        DeviceFileId(
           sourceElement.getAttributeValue(DEVICE_ID_ATTR_NAME, ""),
           sourceElement.getAttributeValue(DEVICE_PATH_ATTR_NAME, ""))
+      }
       return SqliteEditorState(entryInfo)
     }
   }
