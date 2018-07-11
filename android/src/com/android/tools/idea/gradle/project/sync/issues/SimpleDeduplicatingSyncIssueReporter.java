@@ -132,7 +132,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     messages.report(notification);
   }
 
-  protected void doCreateModuleLink(@NotNull Project project,
+  private void doCreateModuleLink(@NotNull Project project,
                                     @NotNull NotificationData notification,
                                     @NotNull StringBuilder builder,
                                     @NotNull Module module,
