@@ -17,6 +17,7 @@ package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.adtui.stdui.CommonComboBox
+import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
@@ -61,20 +62,19 @@ class PropertyComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Bo
 
 private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Boolean)
   : CommonComboBox<EnumValue, ComboBoxPropertyEditorModel>(model) {
+  private val textField = editor.editorComponent as CommonTextField<*>
 
   init {
-    renderer
     registerKeyAction({ model.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
     registerKeyAction({ model.escapeKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "escape")
     if (asTableCellEditor) {
       putClientProperty("JComboBox.isTableCellEditor", true)
     }
 
-    val editor = editor.editorComponent as JTextField
-    editor.registerKeyAction({ model.enterKeyPressed(currentValue) }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
-    editor.registerKeyAction({ model.escapeKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape")
-    editor.registerKeyAction({ model.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
-    editor.registerKeyAction({ model.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
+    textField.registerKeyAction({ enter() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
+    textField.registerKeyAction({ escape() }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape")
+    textField.registerKeyAction({ model.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
+    textField.registerKeyAction({ model.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
 
     addFocusListener(EditorFocusListener(model, { currentValue }))
     addPopupMenuListener(
@@ -105,6 +105,17 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
       })
   }
 
+  private fun enter() {
+    textField.enterInLookup()
+    model.enterKeyPressed(currentValue)
+  }
+
+  private fun escape() {
+    if (!textField.escapeInLookup()) {
+      model.escapeKeyPressed()
+    }
+  }
+
   private val currentValue: String
     get() = if (isEditable) editor.item.toString() else model.selectedItem?.toString() ?: ""
 
@@ -121,12 +132,12 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
 
   override fun setForeground(color: Color?) {
     super.setForeground(color)
-    editor?.editorComponent?.foreground = color
+    textField.foreground = color
   }
 
   override fun setBackground(color: Color?) {
     super.setBackground(color)
-    editor?.editorComponent?.background = color
+    textField.background = color
   }
 
   override fun getToolTipText(): String? = model.tooltip
