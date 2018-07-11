@@ -120,7 +120,8 @@ object CommonControlPortfolio {
     try {
       UIManager.setLookAndFeel(laf)
       JBColor.setDark(UIUtil.isUnderDarcula())
-    } catch (ex: Exception) {
+    }
+    catch (ex: Exception) {
       ex.printStackTrace()
     }
   }
@@ -164,15 +165,14 @@ object CommonControlPortfolio {
     for (i in 0 until width) {
       if (i % 2 == 0) {
         val action = CommonAction(text, icon)
-        action.setAction(
-            {
-              action.isSelected = !action.isSelected
-              label.text = String.format("Clicked: %s", action)
-              label.text = String.format("Clicked: %s", action)
-            }
-        )
+        action.setAction {
+          action.isSelected = !action.isSelected
+          label.text = String.format("Clicked: %s", action)
+          label.text = String.format("Clicked: %s", action)
+        }
         model.addChildrenActions(action, CommonAction.SeparatorAction())
-      } else {
+      }
+      else {
         val action = CommonAction(text, icon)
         populateCommonActionRecursive(action, text, icon, width, depth - 1, label)
         model.addChildrenActions(action)
@@ -186,14 +186,13 @@ object CommonControlPortfolio {
     for (i in 0 until width) {
       if (i % 2 == 0 || depth - 1 == 0) {
         val action = CommonAction(text, icon)
-        action.setAction(
-            {
-              action.isSelected = !action.isSelected
-              label.text = String.format("Clicked: %s", action)
-            }
-        )
+        action.setAction {
+          action.isSelected = !action.isSelected
+          label.text = String.format("Clicked: %s", action)
+        }
         parent.addChildrenActions(action, CommonAction.SeparatorAction())
-      } else {
+      }
+      else {
         val action = CommonAction(text, icon)
         populateCommonActionRecursive(action, text, icon, width, depth - 1, label)
         parent.addChildrenActions(action)
@@ -203,12 +202,51 @@ object CommonControlPortfolio {
 }
 
 class TestEditingSupport: EditingSupport {
-  override val validation = fun (editedValue: String): Pair<EditingErrorCategory, String> {
-    return when(editedValue) {
+  override val validation = fun(editedValue: String): Pair<EditingErrorCategory, String> {
+    return when (editedValue) {
       "Error" -> Pair(EditingErrorCategory.ERROR, "Error is not a valid value")
       "Warning" -> Pair(EditingErrorCategory.WARNING, "Be careful about warnings")
       else -> EDITOR_NO_ERROR
     }
+  }
+
+  override val completion = fun(): List<String> {
+    return listOf("@string/almond",
+                  "@string/app_name",
+                  "@string/app_name1",
+                  "@string/app_name2",
+                  "@string/app_name3",
+                  "@string/app_name4",
+                  "@string/app_name5",
+                  "@string/app_name6",
+                  "@string/app_name7",
+                  "@string/app_name8",
+                  "@string/app_name9",
+                  "@string/app_name10",
+                  "@string/app_name11",
+                  "@string/app_name12",
+                  "@string/app_name13",
+                  "@string/app_name14",
+                  "@string/app_name15",
+                  "@string/app_name16",
+                  "@string/app_name17",
+                  "@string/app_name18",
+                  "@string/app_name19",
+                  "@string/app_name20",
+                  "@string/app_name21",
+                  "@string/app_name22",
+                  "@string/app_name23",
+                  "@string/app_name24",
+                  "@string/app_name25",
+                  "@string/app_name26",
+                  "@string/app_name27",
+                  "@string/app_name28",
+                  "@string/app_name29",
+                  "@string/app_name30",
+                  "@string/appelsin",
+                  "@string/apricot",
+                  "@android:string/paste_as_plain_text",
+                  "@android:string/hello")
   }
 }
 
