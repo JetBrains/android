@@ -30,8 +30,8 @@ class PsVariable(
   private val resolvedProperty: ResolvedPropertyModel,
   val model: PsModel,
   val scopePsVariables: PsVariablesScope) {
-  val valueType = property.valueType
-  val resolvedValueType = resolvedProperty.valueType
+  val valueType get() = property.valueType
+  val resolvedValueType get() = resolvedProperty.valueType
 
   fun <T> getUnresolvedValue(type: TypeReference<T>): T? {
     return property.getRawValue(type)

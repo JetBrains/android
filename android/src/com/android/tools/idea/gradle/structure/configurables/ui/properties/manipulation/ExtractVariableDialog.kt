@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.helpers.ExtractVariableWorker
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.ValidationInfo
 import javax.swing.JComponent
 
 class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyCore<PropertyT>>(
@@ -63,6 +64,9 @@ class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyC
     form.setValueEditor(editor.component)
     form.myScopeField.selectedItem = scope
   }
+
+  override fun doValidate(): ValidationInfo? =
+    worker.validate(name)?.let { ValidationInfo(it, true) }
 
   override fun doCancelAction() {
     super.doCancelAction()
