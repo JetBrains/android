@@ -77,40 +77,4 @@ public final class TableUtils {
       return "";
     }
   }
-
-  public static void selectCellAt(@NotNull JTable table, int row, int column) {
-    table.setRowSelectionInterval(row, row);
-    table.setColumnSelectionInterval(column, column);
-  }
-
-  /**
-   * This method sets a {@ocde table}'s column headers to use the target {@code border}.
-   *
-   * This should only be called after a table's columns are initialized.
-   */
-  // TODO: Move this to adtui, and share this code with ColumnTreeBuilder.
-  public static void setTableHeaderBorder(@NotNull JTable table, @NotNull Border border) {
-    TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
-    for (int i = 0; i < table.getColumnModel().getColumnCount(); i++) {
-      TableColumn column = table.getColumnModel().getColumn(i);
-      column.setHeaderRenderer(new DefaultTableCellRenderer() {
-        @Override
-        public Component getTableCellRendererComponent(JTable table,
-                                                       Object value,
-                                                       boolean isSelected,
-                                                       boolean hasFocus,
-                                                       int row,
-                                                       int column) {
-          Component c = headerRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-          if (c instanceof JLabel) {
-            ((JLabel)c).setHorizontalAlignment(SwingConstants.LEFT);
-          }
-          if (c instanceof JComponent) {
-            ((JComponent)c).setBorder(border);
-          }
-          return c;
-        }
-      });
-    }
-  }
 }
