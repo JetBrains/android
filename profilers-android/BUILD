@@ -47,5 +47,6 @@ iml_module(
         "//tools/adt/idea/native-symbolizer[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module]",
     ],
 )
