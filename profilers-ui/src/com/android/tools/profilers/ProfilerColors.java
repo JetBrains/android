@@ -36,6 +36,8 @@ public class ProfilerColors {
 
   public static final Color SESSION_DIVIDER_COLOR = new JBColor(0xD8D6D6, 0x2F3031);
 
+  public static final Color AXIS_MARKER_COLOR = Gray._150.withAlpha(50);
+
   public static final Color CPU_USAGE = new JBColor(0xa7e0d7, 0x397060);
 
   public static final Color CPU_USAGE_CAPTURED = new JBColor(0x19AF9A, 0x43CAA2);
@@ -119,7 +121,7 @@ public class ProfilerColors {
 
   public static final Color TRANSPARENT_COLOR = new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0));
 
-  public static final Color CPU_AXIS_GUIDE_COLOR = Gray._150.withAlpha(50);
+  public static final Color CPU_AXIS_GUIDE_COLOR = AXIS_MARKER_COLOR;
 
   public static final Color CPU_CAPTURE_STATUS = new JBColor(0x545454, 0xCACACA);
 
@@ -194,8 +196,6 @@ public class ProfilerColors {
   public static final Color NETWORK_RADIO_LOW = new JBColor(0x99BFFF, 0x4B6690);
 
   public static final Color NETWORK_RADIO_HIGH = new JBColor(0x335A9A, 0x669FFF);
-
-  public static final Color NETWORK_TABLE_AXIS = CPU_AXIS_GUIDE_COLOR;
 
   public static final Color NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER = new JBColor(0xD3D3D3, 0x565656);
 
