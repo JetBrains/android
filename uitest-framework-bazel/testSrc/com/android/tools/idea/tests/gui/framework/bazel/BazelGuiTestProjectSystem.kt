@@ -63,10 +63,9 @@ class BazelGuiTestProjectSystem : GuiTestProjectSystem {
     val workspaceFile = File(targetTestDirectory, "WORKSPACE")
     workspaceFile.writeText(injectRuntimeVariables(workspaceFile.readText()))
 
-    val outputUserRoot = File(PathManager.getHomePath(), "androidStudio/bazel-output").absolutePath
     val gccPath = getGccPath()
     File(targetTestDirectory, ".bazelrc")
-      .appendLine("startup --host_javabase=${getJdkPath()} --output_user_root=$outputUserRoot")
+      .appendLine("startup --host_javabase=${getJdkPath()}")
       .appendLine("info --action_env=CC=$gccPath")
       .appendLine("build --action_env=CC=$gccPath")
   }
