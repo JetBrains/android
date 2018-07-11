@@ -219,7 +219,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
           }
 
           // Return the doc of the value if searching for an enum value, otherwise return the doc of the enum itself
-          return StringUtil.trim(isXmlValue ? attributeDefinition.getValueDoc(value) : attributeDefinition.getDocValue(null));
+          return StringUtil.trim(isXmlValue ? attributeDefinition.getValueDescription(value) : attributeDefinition.getDescription(null));
         }
       }
 
@@ -229,7 +229,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
         if (attributeDefinition == null) {
           return null;
         }
-        return StringUtil.trim(attributeDefinition.getValueDoc(value));
+        return StringUtil.trim(attributeDefinition.getValueDescription(value));
       }
     }
     return null;
@@ -421,7 +421,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
         }
       }
     }
-    final String docValue = definition.getDocValueByParentStyleableName(parentStyleable);
+    final String docValue = definition.getDescriptionByParentStyleableName(parentStyleable);
 
     if (docValue != null && !docValue.isEmpty()) {
       if (builder.length() > 0) {

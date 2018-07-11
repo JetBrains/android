@@ -502,7 +502,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     boolean deprecated = false;
     String doc = null;
     if (myAttributeDefinition != null) {
-      doc = myAttributeDefinition.getValueDoc(value);
+      doc = myAttributeDefinition.getValueDescription(value);
       deprecated = myAttributeDefinition.isValueDeprecated(value);
     }
 

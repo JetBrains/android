@@ -151,7 +151,7 @@ public class EnumSupportFactoryTest extends PropertyTestCase {
   private EnumSupport checkSupportedUsingFakeProperty(@NotNull NlComponent component,
                                                       @NotNull String propertyName,
                                                       @NotNull Class<? extends EnumSupport> expectedSupportClass) {
-    AttributeDefinition attribute = new AttributeDefinition(ResourceNamespace.RES_AUTO, propertyName, null, null, Collections.emptyList());
+    AttributeDefinition attribute = new AttributeDefinition(ResourceNamespace.RES_AUTO, propertyName);
 
     NlProperty property = mock(NlProperty.class);
     when(property.getName()).thenReturn(propertyName);

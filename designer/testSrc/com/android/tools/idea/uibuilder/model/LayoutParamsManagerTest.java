@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.Density;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import com.android.ide.common.rendering.api.AttributeFormat;
@@ -151,10 +152,8 @@ public class LayoutParamsManagerTest extends AndroidTestCase {
 
     // Test flag attribute
     AttributeDefinition flagDefinition =
-        new AttributeDefinition(ResourceNamespace.RES_AUTO, "flagAttribute", null, null, EnumSet.of(AttributeFormat.FLAGS));
-    flagDefinition.addValueMapping("value1", 0b001);
-    flagDefinition.addValueMapping("value2", 0b010);
-    flagDefinition.addValueMapping("value3", 0b111);
+        new AttributeDefinition(ResourceNamespace.RES_AUTO, "flagAttribute", null, EnumSet.of(AttributeFormat.FLAGS));
+    flagDefinition.setValueMappings(ImmutableMap.of("value1", 0b001, "value2", 0b010, "value3", 0b111));
 
     assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", "invalidValue", nlModelMock)).isFalse();
     assertThat(layoutParams.flagAttribute).isEqualTo(987); // Invalid value so no change expected

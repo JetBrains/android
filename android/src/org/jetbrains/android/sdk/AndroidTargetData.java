@@ -62,7 +62,7 @@ public class AndroidTargetData {
   private final AndroidSdkData mySdkData;
   private final IAndroidTarget myTarget;
 
-  private volatile AttributeDefinitionsImpl myAttrDefs;
+  private volatile AttributeDefinitions myAttrDefs;
   private volatile LayoutLibrary myLayoutLibrary;
 
   private final Object myPublicResourceCacheLock = new Object();
@@ -84,7 +84,7 @@ public class AndroidTargetData {
    */
   @Nullable
   public AttributeDefinitions getPublicAttrDefs(@NotNull Project project) {
-    AttributeDefinitionsImpl attrDefs = getAllAttrDefs(project);
+    AttributeDefinitions attrDefs = getAllAttrDefs(project);
     return attrDefs != null ? new PublicAttributeDefinitions(attrDefs) : null;
   }
 
@@ -92,7 +92,7 @@ public class AndroidTargetData {
    * Returns all attributes
    */
   @Nullable
-  public AttributeDefinitionsImpl getAllAttrDefs(@NotNull Project project) {
+  public AttributeDefinitions getAllAttrDefs(@NotNull Project project) {
     if (myAttrDefs == null) {
       ApplicationManager.getApplication().runReadAction(() -> {
         String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES));
@@ -100,7 +100,7 @@ public class AndroidTargetData {
 
         XmlFile[] files = findXmlFiles(project, attrsPath, attrsManifestPath);
         if (files != null) {
-          myAttrDefs = new AttributeDefinitionsImpl(ResourceNamespace.ANDROID, files);
+          myAttrDefs = AttributeDefinitionsImpl.parseFrameworkFiles(files);
         }
       });
     }

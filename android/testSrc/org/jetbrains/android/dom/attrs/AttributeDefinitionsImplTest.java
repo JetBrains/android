@@ -46,22 +46,22 @@ public class AttributeDefinitionsImplTest extends AndroidTestCase {
   }
 
   public void testAttrGroup() {
-    assertEquals("Generic styles", myDefs.getAttrGroup(ResourceReference.attr(ResourceNamespace.RES_AUTO, "colorForeground")));
-    assertEquals("Generic styles", myDefs.getAttrGroup(ResourceReference.attr(ResourceNamespace.RES_AUTO, "colorForegroundInverse")));
-    assertEquals("Color palette", myDefs.getAttrGroup(ResourceReference.attr(ResourceNamespace.RES_AUTO, "colorPrimary")));
-    assertEquals("Other non-theme attributes", myDefs.getAttrGroup(ResourceReference.attr(ResourceNamespace.RES_AUTO, "textColor")));
+    assertEquals("Generic styles", myDefs.getAttrGroup(ResourceReference.attr(ResourceNamespace.ANDROID, "colorForeground")));
+    assertEquals("Generic styles", myDefs.getAttrGroup(ResourceReference.attr(ResourceNamespace.ANDROID, "colorForegroundInverse")));
+    assertEquals("Color palette", myDefs.getAttrGroup(ResourceReference.attr(ResourceNamespace.ANDROID, "colorPrimary")));
+    assertEquals("Other non-theme attributes", myDefs.getAttrGroup(ResourceReference.attr(ResourceNamespace.ANDROID, "textColor")));
     assertEquals("Other non-theme attributes",
-                 myDefs.getAttrGroup(ResourceReference.attr(ResourceNamespace.RES_AUTO, "textColorHighlight")));
+                 myDefs.getAttrGroup(ResourceReference.attr(ResourceNamespace.ANDROID, "textColorHighlight")));
   }
 
   public void testAttrDoc() {
     assertEquals("Color of text (usually same as colorForeground).",
-                 attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "textColor")).getDocValue(null));
+                 attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "textColor")).getDescription(null));
     assertEquals("Color of highlighted text.",
-                 attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "textColorHighlight")).getDocValue(null));
+                 attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "textColorHighlight")).getDescription(null));
     assertEquals("The primary branding color for the app. By default, this is the color applied to the\n" +
                  "             action bar background.",
-                 attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "colorPrimary")).getDocValue(null));
+                 attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "colorPrimary")).getDescription(null));
   }
 
   public void testAttrFormat() {

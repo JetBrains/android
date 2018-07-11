@@ -26,7 +26,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
-import java.util.Collections;
+import java.util.EnumSet;
 
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
@@ -87,7 +87,7 @@ public class QuantityTest {
     NlProperty property = Mockito.mock(NlProperty.class);
     Mockito.when(property.getName()).thenReturn(attribute);
     Mockito.when(property.getDefinition()).thenReturn(
-        new AttributeDefinition(ResourceNamespace.RES_AUTO, attribute, null, null, Collections.singleton(format)));
+        new AttributeDefinition(ResourceNamespace.RES_AUTO, attribute, null, EnumSet.of(format)));
     return property;
   }
 }

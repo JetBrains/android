@@ -6,6 +6,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
+/**
+ * Information about attr and styleable resources in an easy to consume form.
+ */
 public interface AttributeDefinitions {
   @Nullable
   StyleableDefinition getStyleableDefinition(@NotNull ResourceReference styleable);

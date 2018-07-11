@@ -21,14 +21,12 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Multimap;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.dom.resources.Attr;
@@ -43,10 +41,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class LocalResourceManager extends ResourceManager {
   private AttributeDefinitions myAttrDefs;
@@ -119,12 +114,8 @@ public class LocalResourceManager extends ResourceManager {
   public AttributeDefinitions getAttributeDefinitions() {
     if (myAttrDefs == null) {
       ResourceManager systemResourceManager = ModuleResourceManagers.getInstance(myFacet).getSystemResourceManager();
-      AttributeDefinitions systemAttributeDefinitions =
-          systemResourceManager == null ? null : systemResourceManager.getAttributeDefinitions();
-      ApplicationManager.getApplication().runReadAction(() -> {
-        myAttrDefs = new AttributeDefinitionsImpl(systemAttributeDefinitions,
-                                                  findValueResourcesByLibraryName());
-      });
+      AttributeDefinitions frameworkAttributes = systemResourceManager == null ? null : systemResourceManager.getAttributeDefinitions();
+      myAttrDefs = AttributeDefinitionsImpl.create(frameworkAttributes, getResourceRepository());
     }
     return myAttrDefs;
   }

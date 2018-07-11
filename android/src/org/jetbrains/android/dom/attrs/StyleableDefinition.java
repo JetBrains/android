@@ -6,12 +6,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
+ * Information about an styleable resource.
+ *
  * @author Eugene.Kudelevsky
  */
 public interface StyleableDefinition {
-  @NotNull
-  List<StyleableDefinition> getChildren();
-
   @NotNull
   ResourceReference getResourceReference();
 

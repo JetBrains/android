@@ -45,7 +45,7 @@ class ControlTypeProviderImplTest {
   @Test
   fun testFlagEditorForFlagProperties() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
-    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, "definition", null, null, listOf(AttributeFormat.FLAGS))
+    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, "definition", null, listOf(AttributeFormat.FLAGS))
     val property = util.makeFlagsProperty(ANDROID_URI, definition)
     val enumSupportProvider = createEnumSupportProvider()
     val enumSupport = mock(EnumSupport::class.java)

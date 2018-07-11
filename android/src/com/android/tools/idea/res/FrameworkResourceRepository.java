@@ -273,7 +273,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
             // Not all <eat-comment> sections are actually attribute headers, some are comments.
             // We identify these by looking at the comment length; category comments are short, and descriptive comments are longer.
-            if (newAttrGroup != null && newAttrGroup.length() <= ATTR_GROUP_MAX_CHARACTERS) {
+            if (newAttrGroup != null && newAttrGroup.length() <= ATTR_GROUP_MAX_CHARACTERS && !newAttrGroup.startsWith("TODO:")) {
               groupName = newAttrGroup;
             }
             break;

@@ -52,8 +52,10 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, tag: String, parentTag:
   }
 
   fun addFlagsProperty(namespace: String, name: String, values: List<String>) {
-    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, name, null, null, listOf(AttributeFormat.FLAGS))
-    values.forEach { definition.addValue(it) }
+    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, name, null, listOf(AttributeFormat.FLAGS))
+    val valueMappings = HashMap<String, Int?>()
+    values.forEach { valueMappings[it] = null }
+    definition.setValueMappings(valueMappings)
     _properties.put(namespace, name, makeFlagsProperty(namespace, definition))
   }
 
