@@ -24,7 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile
  * Provides a build-system-agnostic interface to the build system. Instances of this interface
  * contain methods that apply to a specific [Module].
  */
-interface AndroidModuleSystem {
+interface AndroidModuleSystem: ClassFileFinder {
   /**
    * Requests information about the folder layout for the module. This can be used to determine
    * where files of various types should be written.
