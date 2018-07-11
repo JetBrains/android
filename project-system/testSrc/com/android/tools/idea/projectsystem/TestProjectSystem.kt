@@ -100,6 +100,8 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
       override fun getInstantRunSupport(): CapabilityStatus {
         return CapabilityNotSupported()
       }
+
+      override fun findClassFile(fqcn: String): VirtualFile? = null
     }
   }
 

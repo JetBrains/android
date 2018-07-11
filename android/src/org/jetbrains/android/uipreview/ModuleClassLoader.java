@@ -10,7 +10,7 @@ import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.ClassJarProvider;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -23,8 +23,6 @@ import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.CompilerModuleExtension;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
@@ -176,7 +174,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
       }
       throw new ClassNotFoundException(name);
     }
-    Class<?> aClass = loadClassFromModuleOrDependency(module, name, new HashSet<>());
+    Class<?> aClass = loadClassFromModuleOrDependency(module, name);
 
     if (aClass == null) {
       aClass = loadClassFromJar(name);
@@ -226,70 +224,18 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   @Nullable
-  private Class<?> loadClassFromModuleOrDependency(Module module, String name, Set<Module> visited) {
-    if (!visited.add(module)) {
-      return null;
-    }
-
+  private Class<?> loadClassFromModuleOrDependency(Module module, String name) {
     if (module.isDisposed()) {
       return null;
     }
 
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format("loadClassFromModuleOrDependency(%s, %s)", anonymize(module), anonymizeClassName(name)));
-    }
-
-    Class<?> aClass = loadClassFromModule(module, name);
-    if (aClass != null) {
-      return aClass;
-    }
-
-    for (Module depModule : ModuleRootManager.getInstance(module).getDependencies(false)) {
-      aClass = loadClassFromModuleOrDependency(depModule, name, visited);
-      if (aClass != null) {
-        return aClass;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  private Class<?> loadClassFromModule(Module module, String name) {
-    if (module.isDisposed()) {
-      return null;
-    }
-
-    final CompilerModuleExtension extension = CompilerModuleExtension.getInstance(module);
-    if (extension == null) {
-      return null;
-    }
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format("loadClassFromModule(%s, %s)", anonymize(module), anonymizeClassName(name)));
-    }
-    VirtualFile vOutFolder = extension.getCompilerOutputPath();
-    VirtualFile classFile = null;
-    if (vOutFolder != null) {
-      classFile = ClassJarProvider.findClassFileInPath(vOutFolder, name);
-    }
+    VirtualFile classFile = ProjectSystemUtil.getModuleSystem(module).findClassFile(name);
 
     if (classFile == null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.requiresAndroidModel()) {
-        AndroidModel androidModel = facet.getConfiguration().getModel();
-        if (androidModel != null) {
-          classFile = androidModel.getClassJarProvider().findModuleClassFile(name, module);
-        }
-      }
+      return null;
     }
 
-    if (classFile != null) {
-      return loadClassFile(name, classFile);
-    }
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("  Class not found");
-    }
-    return null;
+    return loadClassFile(name, classFile);
   }
 
   /**

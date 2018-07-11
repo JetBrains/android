@@ -27,25 +27,10 @@ import java.util.List;
 import static com.android.SdkConstants.DOT_CLASS;
 
 /**
- * Build-system abstraction for finding class files from build output, or external library jar files.
+ * Build-system abstraction for finding external library jar files.
  * Searches the scope of a build system as needed.
  */
-public abstract class ClassJarProvider {
-
-  @Nullable
-  public abstract VirtualFile findModuleClassFile(@NotNull String className, @NotNull Module module);
-
-  @Nullable
-  public static VirtualFile findClassFileInPath(@NotNull VirtualFile parent, @NotNull String className) {
-    if (!parent.exists()) {
-      return null;
-    }
-    String[] relative = className.split("\\.");
-    relative[relative.length - 1] = relative[relative.length - 1] + DOT_CLASS;
-    VirtualFile file = VfsUtil.findRelativeFile(parent, relative);
-    return (file != null && file.exists()) ? file : null;
-  }
-
+public interface ClassJarProvider {
   @NotNull
-  public abstract List<File> getModuleExternalLibraries(@NotNull Module module);
+  List<File> getModuleExternalLibraries(@NotNull Module module);
 }
