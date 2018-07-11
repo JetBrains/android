@@ -1180,11 +1180,11 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
     assertThat(metadataConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     assertThat(metadataConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilerMode.SAMPLED);
-    // Trace was not generated, so trace size, parsing time, recording duration and capture duration should be -1
-    assertThat(metadata.getParsingTimeMs()).isEqualTo(-1);
-    assertThat(metadata.getRecordDurationMs()).isEqualTo(-1);
-    assertThat(metadata.getCaptureDurationMs()).isEqualTo(-1);
-    assertThat(metadata.getTraceFileSizeBytes()).isEqualTo(-1);
+    // Trace was not generated, so trace size, parsing time, recording duration and capture duration should be 0 (unset)
+    assertThat(metadata.getParsingTimeMs()).isEqualTo(0);
+    assertThat(metadata.getRecordDurationMs()).isEqualTo(0);
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(0);
+    assertThat(metadata.getTraceFileSizeBytes()).isEqualTo(0);
   }
 
   @Test
@@ -1211,10 +1211,10 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(metadataConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilerMode.SAMPLED);
     // Trace was generated, so trace size should be greater than 0
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
-    // Trace was not parsed correctly, so parsing time, recording duration and capture duration should be -1
-    assertThat(metadata.getParsingTimeMs()).isEqualTo(-1);
-    assertThat(metadata.getRecordDurationMs()).isEqualTo(-1);
-    assertThat(metadata.getCaptureDurationMs()).isEqualTo(-1);
+    // Trace was not parsed correctly, so parsing time, recording duration and capture duration should be 0 (unset)
+    assertThat(metadata.getParsingTimeMs()).isEqualTo(0);
+    assertThat(metadata.getRecordDurationMs()).isEqualTo(0);
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(0);
   }
 
   @Test
@@ -1244,10 +1244,10 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(metadataConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilerMode.SAMPLED);
     // Trace was generated, so trace size should be greater than 0
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
-    // Trace was not parsed at all, so parsing time, recording duration and capture duration should be -1
-    assertThat(metadata.getParsingTimeMs()).isEqualTo(-1);
-    assertThat(metadata.getRecordDurationMs()).isEqualTo(-1);
-    assertThat(metadata.getCaptureDurationMs()).isEqualTo(-1);
+    // Trace was not parsed at all, so parsing time, recording duration and capture duration should be 0 (unset)
+    assertThat(metadata.getParsingTimeMs()).isEqualTo(0);
+    assertThat(metadata.getRecordDurationMs()).isEqualTo(0);
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(0);
   }
 
   @Test
