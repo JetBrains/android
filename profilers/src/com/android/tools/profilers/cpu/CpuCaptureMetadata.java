@@ -40,25 +40,21 @@ public class CpuCaptureMetadata {
 
   /**
    * Duration (in milliseconds) of the capture, from the time user pressed "Start recording" to the time they pressed "Stop".
-   * -1 if {@link #myStatus} is not equals to {@link CaptureStatus#SUCCESS}.
    */
   private long myCaptureDurationMs;
 
   /**
    * Duration (in milliseconds) from the first trace data timestamp to the last one.
-   * -1 if {@link #myStatus} is not equals to {@link CaptureStatus#SUCCESS}.
    */
   private long myRecordDurationMs;
 
   /**
    * Size (in bytes) of the trace file parsed into capture.
-   * -1 if {@link #myStatus} is equals to {@link CaptureStatus#STOP_CAPTURING_FAILURE}.
    */
   private int myTraceFileSizeBytes;
 
   /**
    * How much time (in milliseconds) taken to parse the trace file.
-   * -1 if {@link #myStatus} is not equals to {@link CaptureStatus#SUCCESS}.
    */
   private long myParsingTimeMs;
 
@@ -69,10 +65,6 @@ public class CpuCaptureMetadata {
 
   public CpuCaptureMetadata(@NotNull ProfilingConfiguration configuration) {
     myProfilingConfiguration = configuration;
-    myCaptureDurationMs = -1;
-    myRecordDurationMs = -1;
-    myParsingTimeMs = -1;
-    myTraceFileSizeBytes = -1;
   }
 
   public CaptureStatus getStatus() {
