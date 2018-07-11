@@ -19,6 +19,7 @@ import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeJavaArtifact;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
@@ -191,10 +192,11 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   private static Set<VirtualFile> getGeneratedSources(@Nullable AndroidModuleModel androidModuleModel) {
     Set<VirtualFile> sources = new HashSet<>();
     if (androidModuleModel != null) {
-      List<File> files = new ArrayList<>(androidModuleModel.getMainArtifact().getGeneratedSourceFolders());
+      List<File> files = new ArrayList<>(GradleUtil.getGeneratedSourceFoldersToUse(androidModuleModel.getMainArtifact(),
+                                                                                   androidModuleModel));
       IdeAndroidArtifact androidTestArtifact = androidModuleModel.getArtifactForAndroidTest();
       if (androidTestArtifact != null) {
-        files.addAll(androidTestArtifact.getGeneratedSourceFolders());
+        files.addAll(GradleUtil.getGeneratedSourceFoldersToUse(androidTestArtifact, androidModuleModel));
       }
       IdeJavaArtifact unitTestArtifact = androidModuleModel.getSelectedVariant().getUnitTestArtifact();
       if (unitTestArtifact != null) {
