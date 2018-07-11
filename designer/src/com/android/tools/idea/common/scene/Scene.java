@@ -27,12 +27,12 @@ import com.android.tools.idea.common.scene.target.*;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget;
 import com.android.tools.idea.naveditor.scene.targets.ScreenHeaderTarget;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
 import com.android.tools.idea.uibuilder.handlers.coordinator.CoordinatorSnapTarget;
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeAnchorTarget;
@@ -727,7 +727,7 @@ public class Scene implements SelectionListener, Disposable {
        *  - live render is enabled, and
        *  - we are displaying the design surface
        */
-      boolean renderOnLayout = StudioFlags.NELE_LIVE_RENDER.get();
+      boolean renderOnLayout = RenderSettings.getDefault().getUseLiveRendering();
       renderOnLayout &= (myDesignSurface instanceof NlDesignSurface) &&
                         ((NlDesignSurface)myDesignSurface).getSceneMode() != SceneMode.BLUEPRINT_ONLY;
 

@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.api.IImageFactory;
 import com.intellij.reference.SoftReference;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
@@ -26,13 +27,23 @@ import java.awt.image.BufferedImage;
 class CachingImageFactory implements IImageFactory {
   private SoftReference<BufferedImage> myCachedImageReference;
 
+  private final IImageFactory myDelegate;
+  private int myCachedWidth;
+  private int myCachedHeight;
+
+  CachingImageFactory(IImageFactory delegate) {
+    myDelegate = delegate;
+  }
+
   @Override
   public BufferedImage getImage(int width, int height) {
     BufferedImage cached = myCachedImageReference != null ? myCachedImageReference.get() : null;
 
     // This can cause flicker; see steps listed in http://b.android.com/208984
-    if (cached == null || cached.getWidth() != width || cached.getHeight() != height) {
-      cached = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    if (cached == null || myCachedWidth != width || myCachedHeight != height) {
+      cached = myDelegate.getImage(width, height);
+      myCachedWidth = width;
+      myCachedHeight = height;
       myCachedImageReference = new SoftReference<>(cached);
     }
 
