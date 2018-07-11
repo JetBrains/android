@@ -17,6 +17,7 @@ package com.android.tools.idea.flags;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradlePerProjectExperimentalSettings;
+import com.android.tools.idea.rendering.RenderSettings;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
@@ -29,10 +30,12 @@ import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
+import java.util.Hashtable;
 
 public class ExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   @NotNull private final GradleExperimentalSettings mySettings;
   @NotNull private final GradlePerProjectExperimentalSettings myPerProjectSettings;
+  @NotNull private final RenderSettings myRenderSettings;
 
   private JPanel myPanel;
   private JSpinner myModuleNumberSpinner;
@@ -40,19 +43,31 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myUseL2DependenciesCheckBox;
   private JCheckBox myUseSingleVariantSyncCheckbox;
   private JCheckBox myEnableNavEditorCheckbox;
+  private JSlider myLayoutEditorQualitySlider;
 
   @SuppressWarnings("unused") // called by IDE
   public ExperimentalSettingsConfigurable(@NotNull Project project) {
-    this(GradleExperimentalSettings.getInstance(), GradlePerProjectExperimentalSettings.getInstance(project));
+    this(GradleExperimentalSettings.getInstance(), GradlePerProjectExperimentalSettings.getInstance(project), RenderSettings.getDefault());
   }
 
   @VisibleForTesting
   ExperimentalSettingsConfigurable(@NotNull GradleExperimentalSettings settings,
-                                   @NotNull GradlePerProjectExperimentalSettings perProjectSettings) {
+                                   @NotNull GradlePerProjectExperimentalSettings perProjectSettings,
+                                   @NotNull RenderSettings renderSettings) {
     mySettings = settings;
     myPerProjectSettings = perProjectSettings;
+    myRenderSettings = renderSettings;
     // TODO make visible once Gradle Sync switches to L2 dependencies
     myUseL2DependenciesCheckBox.setVisible(false);
+
+    Hashtable qualityLabels = new Hashtable();
+    qualityLabels.put(new Integer(0), new JLabel("Fastests"));
+    qualityLabels.put(new Integer(100), new JLabel("Slowest"));
+    myLayoutEditorQualitySlider.setLabelTable(qualityLabels);
+    myLayoutEditorQualitySlider.setPaintLabels(true);
+    myLayoutEditorQualitySlider.setPaintTicks(true);
+    myLayoutEditorQualitySlider.setMajorTickSpacing(25);
+
     reset();
   }
 
@@ -91,11 +106,16 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     if (mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync() ||
         mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
         StudioFlags.ENABLE_NAV_EDITOR.get() != enableNavEditor() ||
-        myPerProjectSettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync()) {
+        myPerProjectSettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
+        (int)(myRenderSettings.getQuality() * 100) != getQualitySetting()) {
       return true;
     }
     Integer value = getMaxModuleCountForSourceGen();
     return value != null && mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN != value;
+  }
+
+  private int getQualitySetting() {
+    return myLayoutEditorQualitySlider.getValue();
   }
 
   @Override
@@ -110,6 +130,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     }
 
     StudioFlags.ENABLE_NAV_EDITOR.override(enableNavEditor());
+
+    myRenderSettings.setQuality(getQualitySetting() / 100f);
   }
 
   @VisibleForTesting
@@ -164,6 +186,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     myUseSingleVariantSyncCheckbox.setSelected(myPerProjectSettings.USE_SINGLE_VARIANT_SYNC);
     myEnableNavEditorCheckbox.setSelected(StudioFlags.ENABLE_NAV_EDITOR.get());
+    myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
   }
 
   private void createUIComponents() {

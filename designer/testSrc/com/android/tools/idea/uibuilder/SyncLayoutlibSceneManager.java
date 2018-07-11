@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -44,7 +45,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   private ViewEditor myCustomViewEditor;
 
   public SyncLayoutlibSceneManager(@NotNull SyncNlModel model) {
-    super(model, model.getSurface(), EdtExecutorService.getInstance());
+    super(model, model.getSurface(), RenderSettings.getDefault(), EdtExecutorService.getInstance());
     myDefaultProperties = new HashMap<>();
   }
 

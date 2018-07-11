@@ -17,6 +17,7 @@ package com.android.tools.idea.flags;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradlePerProjectExperimentalSettings;
+import com.android.tools.idea.rendering.RenderSettings;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
@@ -37,7 +38,7 @@ public class ExperimentalSettingsConfigurableTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    myConfigurable = new ExperimentalSettingsConfigurable(mySettings, myPerProjectSettings);
+    myConfigurable = new ExperimentalSettingsConfigurable(mySettings, myPerProjectSettings, new RenderSettings());
   }
 
   public void testIsModified() {

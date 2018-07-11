@@ -68,11 +68,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
  * or more device renderings, etc
  */
 public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility {
-
-  @NotNull private static SceneMode
-    ourDefaultSceneMode = SceneMode.Companion.loadPreferredMode();
-
-  @NotNull private SceneMode mySceneMode = ourDefaultSceneMode;
+  @NotNull private SceneMode mySceneMode = SceneMode.Companion.loadPreferredMode();
   @SwingCoordinate private int myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
   @SwingCoordinate private int myScreenY = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y;
   private boolean myIsCanvasResizing = false;
@@ -126,12 +122,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public void setScreenMode(@NotNull SceneMode sceneMode, boolean setAsDefault) {
 
     if (setAsDefault) {
-      if (ourDefaultSceneMode != sceneMode) {
-        //noinspection AssignmentToStaticFieldFromInstanceMethod
-        ourDefaultSceneMode = sceneMode;
-
-        SceneMode.Companion.savePreferredMode(sceneMode);
-      }
+      SceneMode.Companion.savePreferredMode(sceneMode);
     }
 
     if (sceneMode != mySceneMode) {
