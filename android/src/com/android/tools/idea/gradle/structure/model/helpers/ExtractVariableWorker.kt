@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.helpers
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.model.PsVariable
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
@@ -53,6 +54,14 @@ class ExtractVariableWorker<PropertyT : Any, out ModelPropertyCoreT : ModelPrope
 
   fun cancel() {
     variable?.delete()
+  }
+
+  fun validate(currentName: String): String? {
+    return when {
+      currentName.isBlank() -> "Variable name is required."
+      variable?.valueType == GradlePropertyModel.ValueType.NONE -> "Cannot bind a variable to an empty value."
+      else -> null
+    }
   }
 
   fun commit(currentName: String) {
