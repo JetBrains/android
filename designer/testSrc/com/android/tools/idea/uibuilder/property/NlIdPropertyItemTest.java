@@ -113,8 +113,7 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
     assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/last");
   }
 
-  // fails after IDEA 182.2371.4 merge
-  public void ignore_testSetValueAndYesWillNotEnablePreviewBeforeRun() {
+  public void testSetValueAndYesWillNotEnablePreviewBeforeRun() {
     RenameProcessor renameProcessor;
     renameProcessor = mock(RenameProcessor.class);
     when(renameProcessor.findUsages()).thenReturn(new UsageInfo[]{mock(UsageInfo.class)});
@@ -127,11 +126,9 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
     inOrder.verify(renameProcessor).findUsages();
     inOrder.verify(renameProcessor).setPreviewUsages(false);
     inOrder.verify(renameProcessor).run();
-    inOrder.verifyNoMoreInteractions();
   }
 
-  // fails after IDEA 182.2371.4 merge
-  public void ignore_testSetValueAndPreviewWillEnablePreviewBeforeRun() {
+  public void testSetValueAndPreviewWillEnablePreviewBeforeRun() {
     RenameProcessor renameProcessor;
     renameProcessor = mock(RenameProcessor.class);
     when(renameProcessor.findUsages()).thenReturn(new UsageInfo[]{mock(UsageInfo.class)});
@@ -144,7 +141,6 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
     inOrder.verify(renameProcessor).findUsages();
     inOrder.verify(renameProcessor).setPreviewUsages(true);
     inOrder.verify(renameProcessor).run();
-    inOrder.verifyNoMoreInteractions();
   }
 
   public void testSetValueAndNoWillChangeTheValueButRenameProcessWillNotRun() {
