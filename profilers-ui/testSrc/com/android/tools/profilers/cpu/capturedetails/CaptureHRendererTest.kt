@@ -23,9 +23,7 @@ import com.intellij.ui.Graphics2DDelegate
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.fail
 import org.junit.Test
-import java.awt.Color
-import java.awt.FontMetrics
-import java.awt.Shape
+import java.awt.*
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
 
@@ -145,30 +143,36 @@ class CaptureNodeHRendererTest {
   }
 
   @Test
-  fun testFilterRenderStyle() {
-    val simpleNode = CaptureNode(SyscallModel("write"))
+  fun testFilterRenderStyles() {
     val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART)
-
     val fakeGraphics = TestGraphics2D()
+
+    val simpleNode = CaptureNode(SyscallModel("write"))
+
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.MATCH
     renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), Rectangle2D.Float(), false)
-    assertThat(fakeGraphics.paint).isEqualTo(Color.BLACK)
-    assertThat(fakeGraphics.font.isBold).isFalse()
+    assertThat(fakeGraphics.lastTextInfo!!.paint).isEqualTo(Color.BLACK)
+    assertThat(fakeGraphics.lastTextInfo!!.isBold).isFalse()
 
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.UNMATCH
     renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), Rectangle2D.Float(), false)
-    assertThat(fakeGraphics.paint).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(Color.BLACK))
-    assertThat(fakeGraphics.font.isBold).isFalse()
+    assertThat(fakeGraphics.lastTextInfo!!.paint).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(Color.BLACK))
+    assertThat(fakeGraphics.lastTextInfo!!.isBold).isFalse()
 
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.EXACT_MATCH
     renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), Rectangle2D.Float(), false)
-    assertThat(fakeGraphics.paint).isEqualTo(Color.BLACK)
-    // TODO: refactor CaptureNodeHRenderer#render to check font is Bold for EXACT_MATCHES
+    assertThat(fakeGraphics.lastTextInfo!!.paint).isEqualTo(Color.BLACK)
+    assertThat(fakeGraphics.lastTextInfo!!.isBold).isTrue()
 
-    // TODO: refactor CaptureNodeHRenderer#render to cover the case of null filter type
+    // Make sure that, when we render a non-exact match after an EXACT_MATCH, that the bold state is cleared
+    fakeGraphics.paint = Color.RED
+    simpleNode.filterType = CaptureNode.FilterType.MATCH
+    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), Rectangle2D.Float(), false)
+    assertThat(fakeGraphics.lastTextInfo!!.paint).isEqualTo(Color.BLACK)
+    assertThat(fakeGraphics.lastTextInfo!!.isBold).isFalse()
   }
 
   @Test
@@ -301,7 +305,7 @@ class CaptureNodeHRendererTest {
     for (text in expectedTexts) {
       textFitPredicate.fittingLength = prevTextLength - 1
       renderer.render(graphics, node, Rectangle2D.Float(), Rectangle2D.Float(), false)
-      assertThat(graphics.drawnString).isEqualTo(text)
+      assertThat(graphics.lastTextInfo!!.text).isEqualTo(text)
       prevTextLength = text.length
     }
   }
@@ -362,11 +366,13 @@ class CaptureNodeHRendererTest {
   }
 
   private class TestGraphics2D : Graphics2DDelegate(UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()) {
-    var drawnString: String? = null
+    class TextInfo(val text: String, val isBold: Boolean, val paint: Paint)
+
+    var lastTextInfo: TextInfo? = null
     val fillShapes: MutableList<Shape> = ArrayList()
 
     override fun drawString(s: String, x: Float, y: Float) {
-      drawnString = s
+      lastTextInfo = TextInfo(s, font.isBold, paint)
     }
 
     override fun fill(s: Shape) {
