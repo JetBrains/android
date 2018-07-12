@@ -272,11 +272,11 @@ public class NewActivityTest {
     assertEquals(ProjectViewPane.ID, guiTest.ideFrame().getProjectView().getCurrentViewId());
 
     // Verify that Android stays on Android
-    verifyNewActivityProjectPane(AndroidProjectViewPane.ID, "Android", true);
+    verifyNewActivityProjectPane(true, true);
 
     // Now when new activity is cancelled
-    verifyNewActivityProjectPane(ProjectViewPane.ID, "Project", false);
-    verifyNewActivityProjectPane(AndroidProjectViewPane.ID, "Android", false);
+    verifyNewActivityProjectPane(false, false);
+    verifyNewActivityProjectPane(true, false);
   }
 
   // Note: This should be called only when the last open file was a Java/Kotlin file
@@ -293,9 +293,14 @@ public class NewActivityTest {
     assertThat(myConfigActivity.getTextFieldValue(ActivityTextField.TITLE)).isEqualTo(title);
   }
 
-  private void verifyNewActivityProjectPane(@NotNull String viewId, @NotNull String name, boolean finish) {
+  private void verifyNewActivityProjectPane(boolean startWithAndroidPane, boolean finish) {
     // Change to viewId
-    guiTest.ideFrame().getProjectView().selectPane(name);
+    if (startWithAndroidPane) {
+      guiTest.ideFrame().getProjectView().selectAndroidPane();
+    }
+    else {
+      guiTest.ideFrame().getProjectView().selectProjectPane();
+    }
     myEditor = guiTest.ideFrame().getEditor();
     myEditor.open(PROVIDED_ACTIVITY);
 
@@ -315,6 +320,7 @@ public class NewActivityTest {
     }
 
     // Make sure it is still the same
+    String viewId = startWithAndroidPane ? AndroidProjectViewPane.ID : ProjectViewPane.ID;
     assertEquals(viewId, guiTest.ideFrame().getProjectView().getCurrentViewId());
   }
 

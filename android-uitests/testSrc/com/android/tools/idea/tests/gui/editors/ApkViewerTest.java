@@ -72,7 +72,7 @@ public class ApkViewerTest {
       .waitForBuildToFinish(BuildMode.ASSEMBLE, Wait.seconds(180))
       .getProjectView();
 
-    PaneFixture paneFixture = projectView.selectPane("Project");
+    PaneFixture paneFixture = projectView.selectProjectPane();
     paneFixture.expand();
     paneFixture.clickPath(SIMPLE_APP, APP, BUILD, OUTPUTS, APK, DEBUG);
 
