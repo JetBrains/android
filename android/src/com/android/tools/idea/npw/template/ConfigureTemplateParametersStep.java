@@ -27,6 +27,7 @@ import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.npw.template.components.*;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.Expression;
@@ -81,6 +82,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   private final List<NamedModuleTemplate> myTemplates;
 
   private final BindingsManager myBindings = new BindingsManager();
+  private final ListenerManager myListeners = new ListenerManager();
   private final LoadingCache<File, Optional<Icon>> myThumbnailsCache = IconLoader.createLoadingCache();
   private final Map<Parameter, RowEntry> myParameterRows = Maps.newHashMap();
   private final Map<Parameter, Object> myUserValues = Maps.newHashMap();
@@ -302,6 +304,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       StringProperty packageName = (StringProperty)rowEntry.getProperty();
       assert packageName != null;
       myBindings.bindTwoWay(packageName, getModel().packageName());
+      // Model.packageName is used for parameter evaluation, but updated asynchronously. Do new evaluation when value changes.
+      myListeners.listen(getModel().packageName(), sender -> enqueueEvaluateParameters());
       return rowEntry;
     }
 
@@ -521,6 +525,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   @Override
   public void dispose() {
     myBindings.releaseAll();
+    myListeners.releaseAll();
     myThumbnailsCache.invalidateAll();
   }
 
