@@ -11,5 +11,6 @@
     <orderEntry type="module" module-name="intellij.platform.annotations.java5" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
+    <orderEntry type="module" module-name="android.sdktools.deployer" />
   </component>
 </module>
