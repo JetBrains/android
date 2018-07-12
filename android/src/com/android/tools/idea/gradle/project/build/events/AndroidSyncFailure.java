@@ -16,48 +16,54 @@
 package com.android.tools.idea.gradle.project.build.events;
 
 import com.intellij.build.events.Failure;
-import com.intellij.build.events.FailureResult;
-import com.intellij.build.events.MessageEvent;
-import com.intellij.build.events.MessageEventResult;
 import com.intellij.notification.Notification;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent.convertCategory;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 
-public class AndroidSyncIssueEventResult implements MessageEventResult, FailureResult {
+public class AndroidSyncFailure implements Failure {
+  @NotNull private final Notification myNotification;
+  @NotNull private final NotificationData myNotificationData;
 
-  @NotNull private final List<Failure> myFailures;
-  @NotNull private final MessageEvent.Kind myKind;
-  @NotNull private final String myDetails;
-
-  public AndroidSyncIssueEventResult(@NotNull NotificationData notificationData) {
-    myFailures = Collections.singletonList(new AndroidSyncFailure(notificationData));
-    myKind = convertCategory(notificationData.getNotificationCategory());
-    myDetails = notificationData.getMessage();
+  public AndroidSyncFailure(@NotNull NotificationData notificationData) {
+    myNotificationData = notificationData;
+    myNotification = new Notification(GRADLE_SYSTEM_ID.getReadableName() + " sync", notificationData.getTitle(),
+                                      notificationData.getMessage(),
+                                      notificationData.getNotificationCategory().getNotificationType(),
+                                      notificationData.getListener());
   }
 
   @NotNull
   @Override
-  public List<? extends Failure> getFailures() {
-    return myFailures;
+  public String getMessage() {
+    return myNotificationData.getTitle();
   }
 
   @NotNull
   @Override
-  public MessageEvent.Kind getKind() {
-    return myKind;
+  public String getDescription() {
+    return myNotificationData.getMessage();
+  }
+
+  @Override
+  public List<? extends Failure> getCauses() {
+    return null;
   }
 
   @NotNull
   @Override
-  public String getDetails() {
-    return myDetails;
+  public Notification getNotification() {
+    return myNotification;
+  }
+
+  @Nullable
+  @Override
+  public Navigatable getNavigatable() {
+    return myNotificationData.getNavigatable();
   }
 }
