@@ -354,7 +354,7 @@ class AttachedToolWindow<T> implements Disposable {
   @NotNull
   private JComponent createActionPanel(boolean includeSearchButton, @NotNull List<AnAction> additionalActions) {
     Dimension buttonSize = myDefinition.getButtonSize();
-    int border = buttonSize.equals(NAVBAR_MINIMUM_BUTTON_SIZE) ? 4 : 3;
+    int border = buttonSize.equals(NAVBAR_MINIMUM_BUTTON_SIZE) ? 4 : 2;
     JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
     actionPanel.setOpaque(false);
     actionPanel.setBorder(JBUI.Borders.empty(border, 0));
@@ -599,10 +599,7 @@ class AttachedToolWindow<T> implements Disposable {
 
   private class GearAction extends AnAction {
     public GearAction() {
-      super("More Options");
-      Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(AllIcons.General.Gear);
-      presentation.setHoveredIcon(AllIcons.General.GearHover);
+      super("More Options", null, AllIcons.General.GearPlain);
     }
 
     @Override
@@ -621,24 +618,7 @@ class AttachedToolWindow<T> implements Disposable {
 
   private class HideAction extends AnAction {
     public HideAction() {
-      super(UIBundle.message("tool.window.hide.action.name"));
-      update(getTemplatePresentation());
-    }
-
-    @Override
-    public void update(@NotNull AnActionEvent event) {
-      update(event.getPresentation());
-    }
-
-    private void update(@NotNull Presentation presentation) {
-      if (isLeft()) {
-        presentation.setIcon(AllIcons.General.HideLeftPart);
-        presentation.setHoveredIcon(AllIcons.General.HideLeftPartHover);
-      }
-      else {
-        presentation.setIcon(AllIcons.General.HideRightPart);
-        presentation.setHoveredIcon(AllIcons.General.HideRightPartHover);
-      }
+      super(UIBundle.message("tool.window.hide.action.name"), null, AllIcons.General.HideToolWindow);
     }
 
     @Override
