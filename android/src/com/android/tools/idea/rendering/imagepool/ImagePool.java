@@ -21,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
-import java.awt.image.WritableRaster;
 import java.util.function.Consumer;
 
 /**
@@ -71,10 +70,19 @@ public interface ImagePool {
   @NotNull
   public Image copyOf(@Nullable BufferedImage origin);
 
+  @Nullable
+  Stats getStats();
+
   /**
    * Disposes the image pool
    */
   public void dispose();
+
+  interface Stats {
+    long totalBytesAllocated();
+
+    long totalBytesInUse();
+  }
 
   /**
    * Interface that represents an image from the pool. Clients can not access the inner BufferedImage directly and

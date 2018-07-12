@@ -38,6 +38,12 @@ public class ImagePoolFactory {
       return origin != null ? NonPooledImage.copyOf(origin) : ImagePool.NULL_POOLED_IMAGE;
     }
 
+    @Nullable
+    @Override
+    public Stats getStats() {
+      return null;
+    }
+
     @Override
     public void dispose() {
     }
