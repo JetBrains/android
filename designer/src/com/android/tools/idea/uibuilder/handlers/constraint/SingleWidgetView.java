@@ -109,8 +109,8 @@ public class SingleWidgetView extends JPanel {
 
     mTopMargin = new MarginWidget(TOP_MARGIN_WIDGET);
     mLeftMargin = new MarginWidget(LEFT_MARGIN_WIDGET);
-    mRightMargin = new MarginWidget(BOTTOM_MARGIN_WIDGET);
-    mBottomMargin = new MarginWidget(RIGHT_MARGIN_WIDGET);
+    mRightMargin = new MarginWidget(RIGHT_MARGIN_WIDGET);
+    mBottomMargin = new MarginWidget(BOTTOM_MARGIN_WIDGET);
     mTopMargin.setToolTipText("Top Margin");
     mLeftMargin.setToolTipText("Left Margin");
     mRightMargin.setToolTipText("Right Margin");
