@@ -201,6 +201,18 @@ class NodeNameParserTest {
   }
 
   @Test
+  fun testStartsWithOperatorRemovesTemplateInfo() {
+    (NodeNameParser.parseNodeName("MyNamespace::operatorManager<Type>()",
+                                  false) as CppFunctionModel).apply {
+      expect(name = "operatorManager",
+             fullName = "MyNamespace::operatorManager",
+             id = "MyNamespace::operatorManager[]",
+             classOrNamespace = "MyNamespace",
+             parameters = emptyList())
+    }
+  }
+
+  @Test
   fun testJavaMethodsParsing() {
     var model = NodeNameParser.parseNodeName("java.util.String.toString", true)
     assertThat(model).isInstanceOf(JavaMethodModel::class.java)
