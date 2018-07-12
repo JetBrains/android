@@ -299,7 +299,7 @@ public final class StudioFlags {
     "Turns on the new infrastructure for \"Gradle Sync\", resulting in faster Sync executions.", false);
   public static final Flag<Boolean> NEW_PSD_ENABLED = Flag.create(
     GRADLE_IDE, "new.psd", "Enable new \"Project Structure\" dialog",
-    "Turns on the new \"Project Structure\" dialog.", false);
+    "Turns on the new \"Project Structure\" dialog.", true);
   public static final Flag<Boolean> SINGLE_VARIANT_SYNC_ENABLED = Flag.create(
     GRADLE_IDE, "single.variant.sync", "Enable new \"Single-Variant Sync\"",
     "Turns on Single-Variant Sync.", false);
