@@ -15,22 +15,15 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.google.common.util.concurrent.FutureCallback;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
-abstract class Device {
-  final String myName;
-
-  Device(@NotNull String name) {
-    myName = name;
+final class DefaultCallback<T> implements FutureCallback<T> {
+  @Override
+  public void onSuccess(@NotNull T result) {
   }
 
-  @NotNull
-  abstract Icon getIcon();
-
-  @NotNull
-  final String getName() {
-    return myName;
+  @Override
+  public void onFailure(@NotNull Throwable throwable) {
   }
 }

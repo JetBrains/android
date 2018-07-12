@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
@@ -34,14 +35,14 @@ import java.util.stream.Collectors;
 
 final class SelectDeviceComboBoxAction extends ComboBoxAction {
   private final Supplier<Boolean> mySelectDeviceComboBoxActionVisible;
-  private final AsyncDevicesGetter myDevicesGetter;
 
+  private AsyncDevicesGetter myDevicesGetter;
   private List<Device> myDevices;
   private Device mySelectedDevice;
 
   @SuppressWarnings("unused")
   private SelectDeviceComboBoxAction() {
-    this(() -> StudioFlags.SELECT_DEVICE_COMBO_BOX_ACTION_VISIBLE.get(), new AsyncDevicesGetter());
+    this(() -> StudioFlags.SELECT_DEVICE_COMBO_BOX_ACTION_VISIBLE.get(), new AsyncDevicesGetter(ApplicationManager.getApplication()));
   }
 
   @VisibleForTesting
