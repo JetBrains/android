@@ -136,6 +136,7 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
 
     // Draw text
     Font font = g.getFont();
+    Font restoreFont = font;
     if (captureNode.getFilterType() == CaptureNode.FilterType.MATCH) {
       g.setPaint(Color.BLACK);
     }
@@ -155,7 +156,7 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     float textPositionY = (float)(drawingArea.getY() + fontMetrics.getAscent());
     g.drawString(text, textPositionX, textPositionY);
 
-    g.setFont(font);
+    g.setFont(restoreFont);
   }
 
   /**
