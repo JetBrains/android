@@ -20,6 +20,8 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -27,47 +29,61 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 class AsyncDevicesGetter {
-  private final Worker<Collection<String>> myConnectedDeviceNamesWorker = new Worker<>();
-  private final Worker<Collection<AvdInfo>> myAvdsWorker = new Worker<>();
+  private final Worker<Collection<AvdInfo>> myVirtualDevicesWorker;
+  private final Worker<Collection<IDevice>> myConnectedDevicesWorker;
+  private final DeviceNamePropertiesFetcher myDevicePropertiesFetcher;
+
+  AsyncDevicesGetter(@NotNull Disposable parent) {
+    myVirtualDevicesWorker = new Worker<>();
+    myConnectedDevicesWorker = new Worker<>();
+    myDevicePropertiesFetcher = new DeviceNamePropertiesFetcher(new DefaultCallback<>(), parent);
+  }
 
   @NotNull
   List<Device> get(@NotNull Project project) {
-    Supplier<SwingWorker<Collection<String>, Void>> supplier = () -> new ConnectedDeviceNamesWorkerDelegate(project);
-    Collection<String> connectedDeviceNames = myConnectedDeviceNamesWorker.get(supplier, Collections.emptySet());
+    Collection<AvdInfo> virtualDevices = myVirtualDevicesWorker.get(VirtualDevicesWorkerDelegate::new, Collections.emptyList());
 
-    return myAvdsWorker.get(AvdsWorkerDelegate::new, Collections.emptyList()).stream()
-                       .map(avd -> new Device(connectedDeviceNames.contains(avd.getName()), AvdManagerConnection.getAvdDisplayName(avd)))
-                       .collect(Collectors.toList());
+    Supplier<SwingWorker<Collection<IDevice>, Void>> supplier = () -> new ConnectedDevicesWorkerDelegate(project);
+    Collection<IDevice> connectedDevices = new ArrayList<>(myConnectedDevicesWorker.get(supplier, Collections.emptyList()));
+
+    List<Device> devices = new ArrayList<>(virtualDevices.size() + connectedDevices.size());
+
+    virtualDevices.stream()
+                  .map(virtualDevice -> VirtualDevice.newVirtualDevice(virtualDevice, connectedDevices))
+                  .forEach(devices::add);
+
+    connectedDevices.stream()
+                    .map(connectedDevice -> myDevicePropertiesFetcher.get(connectedDevice))
+                    .map(PhysicalDevice::new)
+                    .forEach(devices::add);
+
+    return devices;
   }
 
-  private static final class ConnectedDeviceNamesWorkerDelegate extends SwingWorker<Collection<String>, Void> {
+  private static final class VirtualDevicesWorkerDelegate extends SwingWorker<Collection<AvdInfo>, Void> {
+    @NotNull
+    @Override
+    protected Collection<AvdInfo> doInBackground() {
+      return AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true);
+    }
+  }
+
+  private static final class ConnectedDevicesWorkerDelegate extends SwingWorker<Collection<IDevice>, Void> {
     private final Project myProject;
 
-    private ConnectedDeviceNamesWorkerDelegate(@NotNull Project project) {
+    private ConnectedDevicesWorkerDelegate(@NotNull Project project) {
       myProject = project;
     }
 
     @NotNull
     @Override
-    protected Collection<String> doInBackground() {
-      return getDevices().stream()
-                         .filter(IDevice::isEmulator)
-                         .map(IDevice::getAvdName)
-                         .collect(Collectors.toSet());
-    }
-
-    @NotNull
-    private Collection<IDevice> getDevices() {
+    protected Collection<IDevice> doInBackground() {
       File adb = AndroidSdkUtils.getAdb(myProject);
 
       if (adb == null) {
@@ -88,17 +104,9 @@ class AsyncDevicesGetter {
         throw new AssertionError(exception);
       }
       catch (ExecutionException exception) {
-        Logger.getInstance(ConnectedDeviceNamesWorkerDelegate.class).warn(exception);
+        Logger.getInstance(ConnectedDevicesWorkerDelegate.class).warn(exception);
         return Collections.emptyList();
       }
-    }
-  }
-
-  private static final class AvdsWorkerDelegate extends SwingWorker<Collection<AvdInfo>, Void> {
-    @NotNull
-    @Override
-    protected Collection<AvdInfo> doInBackground() {
-      return AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true);
     }
   }
 }
