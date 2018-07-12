@@ -12,5 +12,6 @@ iml_module(
         "//tools/idea/platform/annotations:intellij.platform.annotations.java5[module]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
+        "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
     ],
 )
