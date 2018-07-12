@@ -18,8 +18,6 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
-import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -30,6 +28,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnch
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +41,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -54,6 +52,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   private static final String HORIZONTAL_TOOL_TIP_TEXT = "Horizontal Bias";
   private static final String VERTICAL_TOOL_TIP_TEXT = "Vertical Bias";
   private static final Color mSliderColor = new JBColor(0xC9C9C9, 0x242627);
+  private static final JBDimension PANEL_DIMENSION = JBUI.size(200, 216);
   @NotNull private final SingleWidgetView mMain;
   private final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
   private final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
@@ -66,7 +65,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   public final static String VERTICAL_BIAS_SLIDER = "verticalBiasSlider";
   public final static String HORIZONTAL_BIAS_SLIDER = "horizontalBiasSlider";
   private final static int DELAY_BEFORE_COMMIT = 400; // ms
-  @Nullable private final Timer myTimer = new Timer(DELAY_BEFORE_COMMIT, (c) -> {
+  @NotNull private final Timer myTimer = new Timer(DELAY_BEFORE_COMMIT, (c) -> {
     if (myModification != null) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
@@ -103,10 +102,10 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
 
   public WidgetConstraintPanel(@NotNull List<NlComponent> components) {
     super(new GridBagLayout());
-    setBorder(JBUI.Borders.empty(WidgetSliderUI.thumbSize, 0, 0, WidgetSliderUI.thumbSize));
+    setBorder(JBUI.Borders.emptyTop(WidgetSliderUI.THUMB_SIZE.height));
     ColorSet colorSet = new InspectorColorSet();
     mMain = new SingleWidgetView(this, colorSet);
-    setPreferredSize(new Dimension(JBUI.scale(200), JBUI.scale(216)));
+    setPreferredSize(PANEL_DIMENSION);
     mVerticalSlider.setMajorTickSpacing(50);
     mHorizontalSlider.setMajorTickSpacing(50);
     mHorizontalSlider.setToolTipText(HORIZONTAL_TOOL_TIP_TEXT);
@@ -341,7 +340,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
       }
       horizontalBias = source.getLiveAttribute(sherpaNamespace, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS);
 
-      float bias = parseFloat(horizontalBias, 0.5f);
+      float bias = parseFloat(horizontalBias);
       mHorizontalSlider.setValue((int)(bias * 100));
     }
 
@@ -352,7 +351,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
       }
       verticalBias = source.getLiveAttribute(sherpaNamespace, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS);
 
-      float bias = parseFloat(verticalBias, 0.5f);
+      float bias = parseFloat(verticalBias);
       mVerticalSlider.setValue(100 - (int)(bias * 100));
     }
 
@@ -369,16 +368,15 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     mConfiguringUI = false;
   }
 
-  private static float parseFloat(@Nullable String string, float defaultValue) {
+  private static float parseFloat(@Nullable String string) {
     if (string != null && !string.isEmpty()) {
       try {
         return Float.parseFloat(string);
       }
-      catch (NumberFormatException e) {
-        return defaultValue;
+      catch (NumberFormatException ignore) {
       }
     }
-    return defaultValue;
+    return 0.5f;
   }
 
 
@@ -701,9 +699,11 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   /*-----------------------------------------------------------------------*/
 
   static class WidgetSliderUI extends BasicSliderUI {
-    static final int thumbSize = 18;
-    @NotNull private static Font sSmallFont = new Font("Helvetica", Font.PLAIN, 10);
-    ColorSet mColorSet;
+    private static final JBDimension THUMB_SIZE = JBUI.size(18);
+    private static final int TRACK_THICKNESS = JBUI.scale(5);
+    private static final int ARC_SIZE = JBUI.scale(5);
+    @NotNull private static Font SMALL_FONT = new Font("Helvetica", Font.PLAIN, JBUI.scaleFontSize(10));
+    private ColorSet mColorSet;
 
     WidgetSliderUI(JSlider s, ColorSet colorSet) {
       super(s);
@@ -713,21 +713,21 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     @NotNull
     @Override
     protected Dimension getThumbSize() {
-      return new Dimension(thumbSize, thumbSize);
+      return THUMB_SIZE;
     }
 
     @Override
     public void paintTrack(Graphics g) {
       if (slider.isEnabled()) {
         g.setColor(slider.getForeground());
-        int trackThickness = 5;
-        if (slider.getOrientation() == JSlider.VERTICAL) {
+        int trackThickness = TRACK_THICKNESS;
+        if (slider.getOrientation() == SwingConstants.VERTICAL) {
           int offset = trackRect.width / 2 - trackThickness / 2;
-          g.fillRoundRect(trackRect.x + offset, trackRect.y, trackThickness, trackRect.height, 5, 5);
+          g.fillRoundRect(trackRect.x + offset, trackRect.y, trackThickness, trackRect.height, ARC_SIZE, ARC_SIZE);
         }
         else {
           int offset = trackRect.height / 2 - trackThickness / 2;
-          g.fillRoundRect(trackRect.x, trackRect.y + offset, trackRect.width, trackThickness, 5, 5);
+          g.fillRoundRect(trackRect.x, trackRect.y + offset, trackRect.width, trackThickness, ARC_SIZE, ARC_SIZE);
         }
       }
     }
@@ -745,7 +745,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     @NotNull
     @Override
     protected Color getFocusColor() {
-      return new Color(0, 0, 0, 0);
+      return JBColor.BLACK;
     }
 
     @Override
@@ -770,7 +770,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
       g.setColor(mColorSet.getInspectorStrokeColor());
       int x = thumbRect.x + thumbRect.width / 2;
       int y = thumbRect.y + thumbRect.height / 2;
-      g.setFont(sSmallFont);
+      g.setFont(SMALL_FONT);
       FontMetrics fm = g.getFontMetrics();
       Rectangle2D bounds = fm.getStringBounds(percentText, g);
       double tw = bounds.getWidth();

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel;
 import com.android.tools.adtui.stdui.CommonComboBox;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -42,7 +42,7 @@ public class MarginWidget extends CommonComboBox<String, DefaultCommonComboBoxMo
     super(new DefaultCommonComboBoxModel<>(str[0], Arrays.asList(str)));
     getModel().setEditable(true);
     JTextField textField = (JTextField)getEditor().getEditorComponent();
-    textField.setFont(textField.getFont().deriveFont(12f));
+    textField.setFont(textField.getFont().deriveFont((float)JBUI.scaleFontSize(12f)));
     initComboBox(name);
     setName(name);
   }
