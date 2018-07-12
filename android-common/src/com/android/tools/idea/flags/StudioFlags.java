@@ -222,6 +222,11 @@ public final class StudioFlags {
     "Enable the use of androidx dependencies by default when the old support library is not present",
     true);
 
+  public static final Flag<Boolean> NELE_RENDER_DIAGNOSTICS = Flag.create(
+    NELE, "diagnostics", "Enable rendering on-screen stats",
+    "If enabled, the surface displays some debug information to diagnose performance",
+    false);
+
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",

@@ -24,6 +24,8 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS;
+
 /**
  * View of a device/screen/layout.
  * This is actually painted by {@link ScreenViewLayer}.
@@ -56,6 +58,10 @@ public class ScreenView extends ScreenViewBase {
     builder.add(sceneLayer);
     if (getSceneManager().getModel().getType().isSupportedByDesigner()) {
       builder.add(new CanvasResizeLayer(getSurface(), this));
+    }
+
+    if (NELE_RENDER_DIAGNOSTICS.get()) {
+      builder.add(new DiagnosticsLayer(getSurface()));
     }
     return builder.build();
   }

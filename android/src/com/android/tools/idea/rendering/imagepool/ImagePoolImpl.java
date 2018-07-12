@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -53,6 +54,21 @@ class ImagePoolImpl implements ImagePool {
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   private final FinalizableReferenceQueue myFinalizableReferenceQueue = new FinalizableReferenceQueue();
   private final Set<Reference<?>> myReferences = Sets.newConcurrentHashSet();
+
+  private final LongAdder myTotalAllocatedBytes = new LongAdder();
+  private final LongAdder myTotalInUseBytes = new LongAdder();
+
+  private final Stats myStats = new Stats() {
+    @Override
+    public long totalBytesAllocated() {
+      return myTotalAllocatedBytes.sum();
+    }
+
+    @Override
+    public long totalBytesInUse() {
+      return myTotalInUseBytes.sum();
+    }
+  };
 
   /**
    * Constructs a new {@link ImagePoolImpl} with a custom queue sizing policy. The passed bucketSizingPolicy will be called
@@ -163,14 +179,15 @@ class ImagePoolImpl implements ImagePool {
         imageRef = bucket.remove();
       }
 
+      long totalSize = image.getWidth() * image.getHeight();
       if (DEBUG) {
-        long totalSize = image.getWidth() * image.getHeight();
         double wasted = (totalSize - w * h);
         System.out.printf("  Re-used image %dx%d - %d\n  pool buffer %dx%d\n  wasted %d%%\n",
                           w, h, type,
                           image.getWidth(), image.getHeight(),
                           (int)((wasted / totalSize) * 100));
       }
+      myTotalInUseBytes.add(totalSize * 4);
       // Clear the image
       if (image.getRaster().getDataBuffer().getDataType() == java.awt.image.DataBuffer.TYPE_INT) {
         Arrays.fill(((DataBufferInt)image.getRaster().getDataBuffer()).getData(), 0);
@@ -186,11 +203,17 @@ class ImagePoolImpl implements ImagePool {
       if (DEBUG) {
         System.out.printf("  New image %dx%d - %d\n", w, h, type);
       }
+      int newImageWidth = Math.max(bucket.myMinWidth, w);
+      int newImageHeight = Math.max(bucket.myMinHeight, h);
       //noinspection UndesirableClassUsage
-      image = new BufferedImage(Math.max(bucket.myMinWidth, w), Math.max(bucket.myMinHeight, h), type);
+      image = new BufferedImage(newImageWidth, newImageHeight, type);
       // Set acceleration priority to 0.9 out of 1.0. We reserve 1.0 for the shared buffers
       // that we paint to screen.
       image.setAccelerationPriority(0.9f);
+      long estimatedSize = newImageWidth * newImageHeight * 4;
+      myTotalAllocatedBytes.add(estimatedSize);
+      myTotalInUseBytes.add(estimatedSize);
+
     }
 
     ImageImpl pooledImage = new ImageImpl(w, h, image);
@@ -207,6 +230,14 @@ class ImagePoolImpl implements ImagePool {
             System.out.printf("%s image (%dx%d-%d) in bucket (%dx%d)\n",
                               accepted ? "Released" : "Rejected",
                               w, h, type, bucket.myMinWidth, bucket.myMinHeight);
+          }
+
+          long estimatedSize = imagePointer.getWidth() * imagePointer.getHeight() * 4;
+          if (!accepted) {
+            myTotalAllocatedBytes.add(-estimatedSize);
+          }
+          else {
+            myTotalInUseBytes.add(-estimatedSize);
           }
           if (freedCallback != null) {
             freedCallback.accept(imagePointer);
@@ -266,6 +297,12 @@ class ImagePoolImpl implements ImagePool {
     image.drawFrom(origin);
 
     return image;
+  }
+
+  @Nullable
+  @Override
+  public Stats getStats() {
+    return myStats;
   }
 
   /**

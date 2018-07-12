@@ -47,7 +47,8 @@ enum class SceneMode(val displayName: String,
     val SCREEN_MODE_PROPERTY = "NlScreenMode"
 
     fun loadPreferredMode(): SceneMode {
-      val modeName = PropertiesComponent.getInstance().getValue(SCREEN_MODE_PROPERTY, DEFAULT_SCREEN_MODE.name)
+      val modeName = PropertiesComponent.getInstance()?.getValue(SCREEN_MODE_PROPERTY, DEFAULT_SCREEN_MODE.name)
+                     ?: return DEFAULT_SCREEN_MODE // In unit testing we might not have the PropertiesComponent
       return try {
         valueOf(modeName)
       }

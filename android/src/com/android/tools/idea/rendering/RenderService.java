@@ -408,6 +408,11 @@ public class RenderService implements Disposable {
     return null;
   }
 
+  @NotNull
+  public ImagePool getSharedImagePool() {
+    return myImagePool;
+  }
+
   /** This is the View.MeasureSpec mode shift */
   private static final int MEASURE_SPEC_MODE_SHIFT = 30;
 
