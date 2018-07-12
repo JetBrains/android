@@ -16,8 +16,10 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.repository.api.*;
+import com.android.repository.impl.meta.Archive;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.util.InstallerUtil;
+import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
@@ -26,7 +28,9 @@ import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
+import com.android.utils.Pair;
 import com.google.common.base.Objects;
 import com.google.common.collect.*;
 import com.intellij.icons.AllIcons;
@@ -36,27 +40,37 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.options.ex.Settings;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.AncestorListenerAdapter;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.AncestorEvent;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.File;
+import java.util.*;
 
 /**
  * Configurable for the Android SDK Manager.
- * TODO(jbakermalone): implement the searchable interface more completely. Unfortunately it seems that this involves not using forms
- * for the UI?
+ * TODO(jbakermalone): implement the searchable interface more completely.
  */
 public class SdkUpdaterConfigurable implements SearchableConfigurable {
+  /**
+   * Very rough zip decompression estimate for informational/UI purposes only. Better for it to be a bit higher than average,
+   * but not too much. Most of the SDK component files are binary, which should yield 2x-3x compression rate
+   * on average - at least this is the assumption we are making here.
+   *
+   * TODO: The need for this will disappear should we revise the packages XML schema and add installation size for a given
+   * platform there.
+   */
+  private static final int ESTIMATED_ZIP_DECOMPRESSION_RATE = 4;
+
   private SdkUpdaterConfigPanel myPanel;
   private Channel myCurrentChannel;
   private Runnable myChannelChangedCallback;
@@ -142,8 +156,6 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     boolean sourcesModified = myPanel.areSourcesModified();
     myPanel.saveSources();
 
-    HtmlBuilder message = new HtmlBuilder();
-    message.openHtmlBody();
     final List<LocalPackage> toDelete = Lists.newArrayList();
     final Map<RemotePackage, UpdatablePackage> requestedPackages = Maps.newHashMap();
     for (PackageNodeModel model : myPanel.getStates()) {
@@ -159,20 +171,34 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       }
     }
     boolean found = false;
+    long spaceToBeFreedUp = 0;
+    long patchesDownloadSize = 0, fullInstallationsDownloadSize = 0;
+    HtmlBuilder messageToDelete = new HtmlBuilder();
     if (!toDelete.isEmpty()) {
       found = true;
-      message.add("The following components will be deleted: \n");
-      message.beginList();
-      for (LocalPackage item : toDelete) {
-        message.listItem().add(item.getDisplayName()).add(", Revision: ")
-          .add(item.getVersion().toString());
+      messageToDelete.add("The following components will be deleted: \n");
+      messageToDelete.beginList();
+
+      try {
+        spaceToBeFreedUp = ProgressManager.getInstance().runProcessWithProgressSynchronously(
+          () -> getLocalInstallationSize(toDelete),
+          "Gathering Package Information", true, null);
       }
-      message.endList();
+      catch (ProcessCanceledException e) {
+        throw new ConfigurationException("Installation was canceled.");
+      }
+      for (LocalPackage item : toDelete) {
+        messageToDelete.listItem()
+                       .add(item.getDisplayName()).add(", Revision: ")
+                       .add(item.getVersion().toString());
+      }
+      messageToDelete.endList();
     }
+    HtmlBuilder messageToInstall = new HtmlBuilder();
     if (!requestedPackages.isEmpty()) {
       found = true;
-      message.add("The following components will be installed: \n");
-      message.beginList();
+      messageToInstall.add("The following components will be installed: \n");
+      messageToInstall.beginList();
       Multimap<RemotePackage, RemotePackage> dependencies = HashMultimap.create();
       ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
       RepositoryPackages packages = getRepoManager().getPackages();
@@ -185,9 +211,17 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
         for (RemotePackage dependency : packageDependencies) {
           dependencies.put(dependency, item);
         }
-        message.listItem().add(String.format("%1$s %2$s %3$s", item.getDisplayName(),
+        messageToInstall.listItem().add(String.format("%1$s %2$s %3$s", item.getDisplayName(),
                                              item.getTypeDetails() instanceof DetailsTypes.ApiDetailsType ? "revision" : "version",
                                              item.getVersion()));
+
+        Pair<Long, Boolean> itemDownloadSize = calculateDownloadSizeForPackage(item, packages);
+        if (itemDownloadSize.getSecond()) {
+          patchesDownloadSize += itemDownloadSize.getFirst();
+        }
+        else {
+          fullInstallationsDownloadSize += itemDownloadSize.getFirst();
+        }
       }
       for (RemotePackage dependency : dependencies.keySet()) {
         if (requestedPackages.containsKey(dependency)) {
@@ -196,20 +230,39 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
         Set<RemotePackage> requests = Sets.newHashSet(dependencies.get(dependency));
         requests.remove(dependency);
         if (!requests.isEmpty()) {
-          message.listItem().add(dependency.getDisplayName())
+          messageToInstall.listItem().add(dependency.getDisplayName())
             .add(" (Required by ");
           Iterator<RemotePackage> requestIterator = requests.iterator();
-          message.add(requestIterator.next().getDisplayName());
+          messageToInstall.add(requestIterator.next().getDisplayName());
           while (requestIterator.hasNext()) {
-            message.add(", ").add(requestIterator.next().getDisplayName());
+            messageToInstall.add(", ").add(requestIterator.next().getDisplayName());
           }
-          message.add(")");
+          messageToInstall.add(")");
+          Pair<Long, Boolean> itemDownloadSize = calculateDownloadSizeForPackage(dependency, packages);
+          if (itemDownloadSize.getSecond()) {
+            patchesDownloadSize += itemDownloadSize.getFirst();
+          }
+          else {
+            fullInstallationsDownloadSize += itemDownloadSize.getFirst();
+          }
         }
       }
-      message.endList();
+      messageToInstall.endList();
     }
-    message.closeHtmlBody();
+
     if (found) {
+      Pair<HtmlBuilder, HtmlBuilder> diskUsageMessages = getDiskUsageMessages(fullInstallationsDownloadSize, patchesDownloadSize,
+                                                                              spaceToBeFreedUp);
+      // Now form the summary message ordering the constituents properly.
+      HtmlBuilder message = new HtmlBuilder();
+      message.openHtmlBody();
+      if (diskUsageMessages.getSecond() != null) {
+        message.addHtml(diskUsageMessages.getSecond().getHtml());
+      }
+      message.addHtml(messageToDelete.getHtml());
+      message.addHtml(messageToInstall.getHtml());
+      message.addHtml(diskUsageMessages.getFirst().getHtml());
+      message.closeHtmlBody();
       if (confirmChange(message)) {
         if (!requestedPackages.isEmpty() || !toDelete.isEmpty()) {
           ModelWizardDialog dialog =
@@ -238,12 +291,111 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     }
   }
 
+  private static long getLocalInstallationSize(@NotNull Collection<LocalPackage> localPackages) {
+    long size = 0;
+    for (LocalPackage item : localPackages) {
+      if (item != null) {
+        // TODO: Consider adding installation size to the package manifest.
+        for (File f : FileUtils.getAllFiles(item.getLocation())) {
+          size += f.length();
+        }
+      }
+    }
+    return size;
+  }
+
+  /**
+   * Attempts to calculate the download size based on package's archive metadata.
+   *
+   * @param remotePackage the package to calculate the download size for.
+   * @param packages loaded repository packages obtained from the SDK handler.
+   * @return A pair of long and boolean, where the first element denotes the calculated size,
+   * and the second indicates whether it's a patch installation.
+   */
+  private static Pair<Long, Boolean> calculateDownloadSizeForPackage(@NotNull RemotePackage remotePackage,
+                                                                     @NotNull RepositoryPackages packages) {
+    LocalPackage localPackage = packages.getLocalPackages().get(remotePackage.getPath());
+    Archive archive = remotePackage.getArchive();
+    if (archive == null) {
+      // There is not much we can do in this case, but it should "never be reached".
+      return Pair.of(0L, false);
+    }
+    if (localPackage != null) {
+      Archive.PatchType patch = archive.getPatch(localPackage.getVersion());
+      if (patch != null) {
+        return Pair.of(patch.getSize(), true);
+      }
+    }
+    return Pair.of(archive.getComplete().getSize(), false);
+  }
+
+  private Pair<HtmlBuilder, HtmlBuilder> getDiskUsageMessages(long fullInstallationsDownloadSize,
+                                                              long patchesDownloadSize, long spaceToBeFreedUp) {
+    HtmlBuilder message = new HtmlBuilder();
+    message.add("Disk usage:\n");
+    boolean issueDiskSpaceWarning = false;
+    message.beginList();
+    if (spaceToBeFreedUp > 0) {
+      message.listItem().add("Disk space that will be freed: " + new Storage(spaceToBeFreedUp).toUiString());
+    }
+    long totalDownloadSize = patchesDownloadSize + fullInstallationsDownloadSize;
+    if (totalDownloadSize > 0) {
+      message.listItem().add("Estimated download size: " + new Storage(totalDownloadSize).toUiString());
+      long tempDirUsageAfterDownload = patchesDownloadSize + ESTIMATED_ZIP_DECOMPRESSION_RATE * fullInstallationsDownloadSize;
+      message.listItem().add("Estimated disk space required in temp directory during installation: "
+                             + new Storage(tempDirUsageAfterDownload).toUiString());
+      long sdkRootUsageAfterInstallation = ESTIMATED_ZIP_DECOMPRESSION_RATE * fullInstallationsDownloadSize;
+      message.listItem().add("Estimated disk space to be additionally occupied on SDK partition after installation: "
+                             + new Storage(sdkRootUsageAfterInstallation).toUiString());
+      File tempDir = new File(System.getProperty("java.io.tmpdir"));
+      File sdkRoot = getSdkHandler().getLocation();
+      long sdkRootUsableSpace = 0;
+      if (sdkRoot != null) {
+        sdkRootUsableSpace = sdkRoot.getUsableSpace();
+      }
+      long tempDirUsableSpace = tempDir.getUsableSpace();
+      // Checking for strict equality between the available space does not 100% guarantee that the SDK root and temp
+      // folders are on the same partition of course, but for the purposes of this dialog the frequency of that edge case can be
+      // considered negligible. Even when it happens, the dialog will still show technically correct information, just not as
+      // fully as in the regular case.
+      // Also there is an opposite edge case when there were some changes to the disk space between the two calls to
+      // getUsableSpace() above. The probability of that can be considered negligible in this context as well, and even
+      // when it happens, it'll still be fine.
+      if (sdkRoot == null || sdkRootUsableSpace == tempDirUsableSpace) {
+        message.listItem().add("Currently available disk space: " + new Storage(tempDirUsableSpace).toUiString());
+      }
+      else {
+        message.listItem().add(String.format("Currently available disk space in SDK root (%1$s): %2$s", sdkRoot,
+                                             new Storage(sdkRootUsableSpace).toUiString()));
+        message.listItem().add(String.format("Currently available disk space in tmpdir (%1$s): %2$s", tempDir,
+                                             new Storage(tempDirUsableSpace).toUiString()));
+      }
+      long totalSdkUsableSpace = sdkRootUsableSpace + spaceToBeFreedUp;
+      issueDiskSpaceWarning = ((tempDirUsableSpace < tempDirUsageAfterDownload)
+                               || ((sdkRoot != null) && (totalSdkUsableSpace < sdkRootUsageAfterInstallation)));
+    }
+    message.endList();
+    if (issueDiskSpaceWarning) {
+      HtmlBuilder warningMessage = new HtmlBuilder();
+      warningMessage.beginColor(JBColor.RED)
+                    .addBold("WARNING: There might be insufficient disk space to perform this operation. ")
+                    .newline().newline()
+                    .add("Estimated disk usage is presented below. ")
+                    .add("Consider freeing up more disk space before proceeding. ")
+                    .endColor()
+                    .newline().newline();
+      return Pair.of(message, warningMessage);
+    }
+    return Pair.of(message, null);
+  }
+
   private static boolean confirmChange(HtmlBuilder message) {
     String[] options = {Messages.OK_BUTTON, Messages.CANCEL_BUTTON};
     Icon icon = AllIcons.General.Warning;
 
     // I would use showOkCancelDialog but Mac sheet panels do not gracefully handle long messages and their buttons can display offscreen
-    return Messages.showIdeaMessageDialog(null, message.getHtml(), "Confirm Change", options, 0, icon, null) == Messages.OK;
+    return Messages.showIdeaMessageDialog(null, message.getHtml(),
+                                          "Confirm Change", options, 0, icon, null) == Messages.OK;
   }
 
   @Override
