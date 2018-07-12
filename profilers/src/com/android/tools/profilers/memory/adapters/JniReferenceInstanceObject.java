@@ -126,14 +126,14 @@ public class JniReferenceInstanceObject implements InstanceObject {
       String classOrNamespace = "";
       List<String> parameters = Collections.emptyList();
       try {
-        CppFunctionModel nativeFunction = NodeNameParser.parseCppFunctionName(frame.getSymbolName(), false);
+        CppFunctionModel nativeFunction = NodeNameParser.createCppFunctionModel(frame.getSymbolName(), false);
         functionName = nativeFunction.getName();
         parameters = nativeFunction.getParameters();
         classOrNamespace = nativeFunction.getClassOrNamespace();
       }
       catch (IndexOutOfBoundsException|IllegalStateException e) {
         // Ignore symbol parsing exceptions, symbolizer may potentially produce all kinds of
-        // outputs that parseCppFunctionName wouldn't like and throw an exception.
+        // outputs that createCppFunctionModel wouldn't like and throw an exception.
         // functionName will still have the whole name for a user to see.
       }
       int lineNumber = (frame.getLineNumber() == 0)

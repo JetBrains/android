@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.simpleperf;
 
 import com.android.tools.profilers.cpu.nodemodel.*;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.regex.Pattern;
@@ -26,9 +27,11 @@ import java.util.regex.Pattern;
  */
 public class NodeNameParser {
 
-  private static final Pattern NATIVE_SEPARATOR_PATTERN = Pattern.compile("::");
-
   private static final Pattern JAVA_SEPARATOR_PATTERN = Pattern.compile("\\.");
+
+  private static Logger getLogger() {
+    return Logger.getInstance(NodeNameParser.class);
+  }
 
   /**
    * Parses a string representing a full symbol name into its corresponding model. For example:
@@ -42,12 +45,11 @@ public class NodeNameParser {
   static CaptureNodeModel parseNodeName(String fullName, boolean isUserWritten) {
     // C/C++ methods are represented as Namespace::Class::MethodName() in simpleperf. Check for the presence of "(".
     if (fullName.contains("(")) {
-      return parseCppFunctionName(fullName, isUserWritten);
+      return createCppFunctionModel(fullName, isUserWritten);
     }
     else if (fullName.contains(".")) {
-      // Method is in the format java.package.Class.method. Parse it into a CaptureNodeModel.
-      ModelInfo modelInfo = createModelInfo(fullName, ".", JAVA_SEPARATOR_PATTERN);
-      return new JavaMethodModel(modelInfo.getName(), modelInfo.getClassOrNamespace());
+      // Method is in the format java.package.Class.method. Parse it into a JavaMethodModel.
+      return createJavaMethodModel(fullName);
     }
     else {
       // Node represents a syscall.
@@ -61,16 +63,18 @@ public class NodeNameParser {
    * the function name into a {@link CppFunctionModel}.
    */
   @NotNull
-  public static CppFunctionModel parseCppFunctionName(String functionFullName, boolean isUserWritten) {
+  public static CppFunctionModel createCppFunctionModel(String functionFullName, boolean isUserWritten) {
     // First, extract the function parameters, which should be between the matching '(' and  the last index of ')' parentheses.
     String parameters = "";
     int paramsEndIndex = functionFullName.lastIndexOf(')');
     if (paramsEndIndex != -1) {
-      int paramsStartIndex = findMatchingOpeningCharacterIndex(functionFullName, '(', ')', paramsEndIndex);
-      // Make sure not to include the indexes of "(" and ")" when creating the parameters substring.
-      parameters = functionFullName.substring(paramsStartIndex + 1, paramsEndIndex);
-      // Remove the parameters and everything that comes after it, such as const/volatile modifiers.
-      functionFullName = functionFullName.substring(0, paramsStartIndex);
+      int paramsStartIndex = findMatchingOpeningParenthesisIndex(functionFullName, paramsEndIndex);
+      if (paramsStartIndex > 0) {
+        // Make sure not to include the indexes of "(" and ")" when creating the parameters substring.
+        parameters = functionFullName.substring(paramsStartIndex + 1, paramsEndIndex);
+        // Remove the parameters and everything that comes after it, such as const/volatile modifiers.
+        functionFullName = functionFullName.substring(0, paramsStartIndex);
+      }
     }
 
     // Then, strip out the return type, we assume that the return type is separated by the first space,
@@ -149,16 +153,18 @@ public class NodeNameParser {
   }
 
   /**
-   * Simplifies a C++ function name by removing the template instantiation information including template arguments.
-   * Essentially, removes angle brackets and everything between them. For example:
+   * Simplifies a C++ symbol (e.g. function name, or namespace) by removing the template instantiation information including template
+   * arguments. Essentially, removes angle brackets and everything between them. For example:
    * "Type1<int> Type2<float>::FuncTemplate<Type3<2>>(Type4<bool>)" -> "Type1 Type2::FuncTemplate(Type4)"
+   *
+   * If it can't find matching angle brackets, falls back to the full symbol string.
    */
   @NotNull
-  private static String removeTemplateInfo(@NotNull String functionFullName) {
+  private static String removeTemplateInfo(@NotNull String fullSymbol) {
     StringBuilder filteredName = new StringBuilder();
     int open = 0;
-    for (int i = 0; i < functionFullName.length(); ++i) {
-      char ch = functionFullName.charAt(i);
+    for (int i = 0; i < fullSymbol.length(); ++i) {
+      char ch = fullSymbol.charAt(i);
       if (ch == '<') {
         ++open;
       }
@@ -171,75 +177,51 @@ public class NodeNameParser {
     }
 
     if (open != 0) {
-      throw new IllegalStateException("Native function signature must have matching parentheses and brackets.");
+      getLogger().warn(String.format("Native function signature (%s) without matching angle brackets.", fullSymbol));
+      return fullSymbol;
     }
     return filteredName.toString();
   }
 
   /**
-   * Given the opening and closing characters (e.g. '<' and '>', or '(' and ')'), returns the index of the opening character
-   * that matches the closing character of a string representing a function name.
+   * Returns the index of the opening parenthesis, i.e. '(', that matches the closing one, i.e. ')' of a string representing a function
+   * name, or -1 if a corresponding opening parenthesis can't be found.
    */
-  private static int findMatchingOpeningCharacterIndex(String functionName, char opening, char closing, int endIndex) {
-    assert functionName.charAt(endIndex) == closing;
+  private static int findMatchingOpeningParenthesisIndex(String functionName, int endIndex) {
+    assert functionName.charAt(endIndex) == ')';
     int count = 0;
     for (int i = endIndex; i >= 0; --i) {
       Character ch = functionName.charAt(i);
-      if (ch == closing) {
+      if (ch == ')') {
         count++;
       }
-      else if (ch == opening) {
+      else if (ch == '(') {
         count--;
       }
       if (count == 0) {
         return i;
       }
     }
-    throw new IllegalStateException("Native function signature must have matching parentheses and brackets.");
+    getLogger().warn(String.format("Native function signature (%s) without matching parentheses.", functionName));
+    return -1;
   }
 
   /**
-   * Receives a full method/function name and returns a {@link ModelInfo} containing its class name (or namespace), and its (simple) name.
-   *
-   * @param fullName         The method's (or function's) full qualified name (e.g. java.lang.Object.equals)
-   * @param separator        The namespace/package separator (e.g. "." or "::")
-   * @param separatorPattern The regex pattern used to split the method full name (e.g. "\\." or "::")
+   * Receives a full method name and returns a {@link JavaMethodModel} containing its class name and its (simple) name.
+   * @param fullName The method's full qualified name (e.g. java.lang.Object.equals)
    */
-  private static ModelInfo createModelInfo(String fullName, String separator, Pattern separatorPattern) {
+  private static JavaMethodModel createJavaMethodModel(String fullName) {
     // First, we should extract the method name, which is the name after the last "." character.
-    String[] splittedMethod = separatorPattern.split(fullName);
+    String[] splittedMethod = JAVA_SEPARATOR_PATTERN.split(fullName);
     int methodNameIndex = splittedMethod.length - 1;
     String methodName = splittedMethod[methodNameIndex];
 
-    // Everything else composes the namespace and/or class name.
-    StringBuilder classOrNamespace = new StringBuilder(splittedMethod[0]);
+    // Everything else composes the class name.
+    StringBuilder className = new StringBuilder(splittedMethod[0]);
     for (int i = 1; i < methodNameIndex; i++) {
-      classOrNamespace.append(separator);
-      classOrNamespace.append(splittedMethod[i]);
+      className.append(".");
+      className.append(splittedMethod[i]);
     }
-    return new ModelInfo(methodName, classOrNamespace.toString());
-  }
-
-  /**
-   * Stores the name and the class/namespace of a Java method or native function model.
-   */
-  private static class ModelInfo {
-    @NotNull private final String myName;
-    @NotNull private final String myClassOrNamespace;
-
-    public ModelInfo(@NotNull String name, @NotNull String classOrNamespace) {
-      myName = name;
-      myClassOrNamespace = classOrNamespace;
-    }
-
-    @NotNull
-    public String getName() {
-      return myName;
-    }
-
-    @NotNull
-    public String getClassOrNamespace() {
-      return myClassOrNamespace;
-    }
+    return new JavaMethodModel(methodName, className.toString());
   }
 }

@@ -94,13 +94,36 @@ class NodeNameParserTest {
     assertThat(cppFunctionModel.classOrNamespace).isEqualTo("")
     assertThat(cppFunctionModel.parameters).hasSize(1)
     assertThat(cppFunctionModel.parameters[0]).isEqualTo("bool")
+  }
 
-    try {
-      NodeNameParser.parseNodeName("malformed::method<())", true)
-      fail()
-    } catch (e: IllegalStateException) {
-      assertThat(e.message).isEqualTo("Native function signature must have matching parentheses and brackets.")
-    }
+  @Test
+  fun unmatchingParenthesisShouldntThrowException() {
+    val model = NodeNameParser.parseNodeName("malformed::method(a))", true)
+    assertThat(model).isInstanceOf(CppFunctionModel::class.java)
+    // Instead of throwing an exception when finding matching parenthesis, we include all the parenthesis in the method name.
+    assertThat(model.name).isEqualTo("method(a))")
+    assertThat(model.fullName).isEqualTo("malformed::method(a))")
+    assertThat(model.id).isEqualTo("malformed::method(a))[]")
+    val cppFunctionModel: CppFunctionModel = model as CppFunctionModel
+    assertThat(cppFunctionModel.classOrNamespace).isEqualTo("malformed")
+    assertThat(cppFunctionModel.parameters).isEmpty()
+    assertThat(cppFunctionModel.isUserCode).isTrue()
+  }
+
+  @Test
+  fun unmatchingAngleBracketsShouldntThrowException() {
+    val model = NodeNameParser.parseNodeName("malformed::method<(a, b)", false)
+    assertThat(model).isInstanceOf(CppFunctionModel::class.java)
+    // Instead of throwing an exception when finding matching parenthesis, we include all the parenthesis in the method name.
+    assertThat(model.name).isEqualTo("method<")
+    assertThat(model.fullName).isEqualTo("malformed::method<")
+    assertThat(model.id).isEqualTo("malformed::method<[a, b]")
+    val cppFunctionModel: CppFunctionModel = model as CppFunctionModel
+    assertThat(cppFunctionModel.classOrNamespace).isEqualTo("malformed")
+    assertThat(cppFunctionModel.parameters).hasSize(2)
+    assertThat(cppFunctionModel.parameters[0]).isEqualTo("a")
+    assertThat(cppFunctionModel.parameters[1]).isEqualTo("b")
+    assertThat(cppFunctionModel.isUserCode).isFalse()
   }
 
   @Test
