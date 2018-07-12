@@ -119,7 +119,8 @@ public class ProjectViewFixture extends ToolWindowFixture {
     return ProjectView.getInstance(myProject).getCurrentViewId();
   }
 
-  @NotNull public PaneFixture selectPane(String name) {
+  @NotNull
+  private PaneFixture selectPane(String name) {
     activate();
     changePane(name);
     final ProjectView projectView = ProjectView.getInstance(myProject);
