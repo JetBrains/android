@@ -18,12 +18,14 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ConnectionDraw;
+import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchor;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidget;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -71,7 +73,9 @@ public class SingleWidgetView extends JPanel {
    */
   private static final int ASPECT_TEXT_BOX_OFFSET = JBUI.scale(4);
 
-  /* Constraints Controls Sizes */
+  /*
+   * Constraints Controls Sizes
+   */
 
   /**
    * size of the empty square in between the constraint controls
@@ -110,7 +114,8 @@ public class SingleWidgetView extends JPanel {
   private static final int CONSTRAINT_PATTERN_SIZE = JBUI.scale(2);
 
   private static final int DROP_DOWN_WIDTH = JBUI.scale(55);
-  private static final int DROPDOWN_HEIGHT = JBUI.scale(25);
+
+  private static final int DROP_DOWN_HEIGHT = JBUI.scale(25);
 
   /**
    * Offset between a dropdown and the box
@@ -128,7 +133,6 @@ public class SingleWidgetView extends JPanel {
   public final static int FIXED = 0;
   public final static int UNCONNECTED = -1;
 
-  private WidgetConstraintPanel mWidgetConstraintPanel;
   private final ColorSet mColorSet;
   private int mCacheBottom;
   private int mCacheTop;
@@ -171,6 +175,7 @@ public class SingleWidgetView extends JPanel {
   private AspectButton mAspectButton;
   private JLabel mAspectLabel;
   private JTextField mAspectText;
+  private WidgetConstraintModel myWidgetModel;
 
   private final String[] statusString = {"Fixed", "Match Constraints", "Wrap Content"};
 
@@ -189,9 +194,10 @@ public class SingleWidgetView extends JPanel {
    */
   private final static int CONNECT_BUTTON_SIZE = CONNECT_BUTTON_RADIUS * 2 + JBUI.scale(1);
 
-  public SingleWidgetView(WidgetConstraintPanel constraintPanel, ColorSet colorSet) {
+  public SingleWidgetView(@NotNull ColorSet colorSet, @NotNull WidgetConstraintModel widgetModel) {
     super(null);
     mColorSet = colorSet;
+    myWidgetModel = widgetModel;
 
     mTopMargin = new MarginWidget(TOP_MARGIN_WIDGET);
     mLeftMargin = new MarginWidget(LEFT_MARGIN_WIDGET);
@@ -240,7 +246,6 @@ public class SingleWidgetView extends JPanel {
     mVbar1.setSister(mVbar2);
     mVbar2.setSister(mVbar1);
 
-    mWidgetConstraintPanel = constraintPanel;
     addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
@@ -252,10 +257,10 @@ public class SingleWidgetView extends JPanel {
     add(mLeftMargin);
     add(mRightMargin);
     add(mBottomMargin);
-    mTopMargin.addActionListener(e -> mWidgetConstraintPanel.setTopMargin(mTopMargin.getMargin()));
-    mLeftMargin.addActionListener(e -> mWidgetConstraintPanel.setLeftMargin(mLeftMargin.getMargin()));
-    mRightMargin.addActionListener(e -> mWidgetConstraintPanel.setRightMargin(mRightMargin.getMargin()));
-    mBottomMargin.addActionListener(e -> mWidgetConstraintPanel.setBottomMargin(mBottomMargin.getMargin()));
+    mTopMargin.addActionListener(e -> myWidgetModel.setTopMargin(mTopMargin.getMargin()));
+    mLeftMargin.addActionListener(e -> myWidgetModel.setLeftMargin(mLeftMargin.getMargin()));
+    mRightMargin.addActionListener(e -> myWidgetModel.setRightMargin(mRightMargin.getMargin()));
+    mBottomMargin.addActionListener(e -> myWidgetModel.setBottomMargin(mBottomMargin.getMargin()));
     add(mTopKill);
     add(mLeftKill);
     add(mRightKill);
@@ -306,7 +311,7 @@ public class SingleWidgetView extends JPanel {
       sideRatioString = mRatioString.substring(0, mRatioString.indexOf(',') + 1);
     }
     mRatioString = sideRatioString + mAspectText.getText();
-    mWidgetConstraintPanel.setAspect(mRatioString);
+    myWidgetModel.setAspect(mRatioString);
     update();
   }
 
@@ -359,7 +364,7 @@ public class SingleWidgetView extends JPanel {
         mRatioString = null;
         break;
     }
-    mWidgetConstraintPanel.setAspect(mRatioString);
+    myWidgetModel.setAspect(mRatioString);
     update();
   }
 
@@ -373,7 +378,7 @@ public class SingleWidgetView extends JPanel {
     updateTriangle();
     mHbar1.setToolTipText(statusString[state.getState()]);
     mHbar2.setToolTipText(statusString[state.getState()]);
-    mWidgetConstraintPanel.setHorizontalConstraint(state.getState());
+    myWidgetModel.setHorizontalConstraint(state.getState());
   }
 
   private void setVerticalState(VConstraintDisplay state) {
@@ -386,7 +391,7 @@ public class SingleWidgetView extends JPanel {
     updateTriangle();
     mVbar1.setToolTipText(statusString[state.getState()]);
     mVbar2.setToolTipText(statusString[state.getState()]);
-    mWidgetConstraintPanel.setVerticalConstraint(state.getState());
+    myWidgetModel.setVerticalConstraint(state.getState());
   }
 
   private void updateTriangle() {
@@ -395,37 +400,37 @@ public class SingleWidgetView extends JPanel {
   }
 
   private void topKill() {
-    mWidgetConstraintPanel.killTopConstraint();
+    myWidgetModel.killConstraint(ConstraintAnchor.Type.TOP);
     mCacheTop = UNCONNECTED;
     update();
   }
 
   private void leftKill() {
-    mWidgetConstraintPanel.killLeftConstraint();
+    myWidgetModel.killConstraint(ConstraintAnchor.Type.LEFT);
     mCacheLeft = UNCONNECTED;
     update();
   }
 
   private void rightKill() {
-    mWidgetConstraintPanel.killRightConstraint();
+    myWidgetModel.killConstraint(ConstraintAnchor.Type.RIGHT);
     mCacheRight = UNCONNECTED;
     update();
   }
 
   private void bottomKill() {
-    mWidgetConstraintPanel.killBottomConstraint();
+    myWidgetModel.killConstraint(ConstraintAnchor.Type.BOTTOM);
     mCacheBottom = UNCONNECTED;
     update();
   }
 
   private void baselineKill() {
-    mWidgetConstraintPanel.killBaselineConstraint();
+    myWidgetModel.killBaselineConstraint();
     mCacheBaseline = false;
     update();
   }
 
   private void connectConstraint(Scout.Arrange bottom) {
-    NlComponent component = mWidgetConstraintPanel.mComponent;
+    NlComponent component = myWidgetModel.getComponent();
     if (component != null) {
       component.clearTransaction();
       Scout.arrangeWidgets(bottom, Collections.singletonList(component), false);
@@ -451,10 +456,10 @@ public class SingleWidgetView extends JPanel {
 
     mWidgetRender.build(boxLeft, boxTop, mBoxSize);
 
-    mTopMargin.setBounds(mWidth / 2 - DROP_DOWN_WIDTH / 2, boxTop - DROPDOWN_OFFSET - DROPDOWN_HEIGHT, DROP_DOWN_WIDTH, DROPDOWN_HEIGHT);
-    mLeftMargin.setBounds(boxLeft - DROPDOWN_OFFSET - DROP_DOWN_WIDTH, (mHeight - DROPDOWN_HEIGHT) / 2, DROP_DOWN_WIDTH, DROPDOWN_HEIGHT);
-    mRightMargin.setBounds(boxRight + DROPDOWN_OFFSET, (mHeight - DROPDOWN_HEIGHT) / 2, DROP_DOWN_WIDTH, DROPDOWN_HEIGHT);
-    mBottomMargin.setBounds(mWidth / 2 - DROP_DOWN_WIDTH / 2, boxTop + mBoxSize + DROPDOWN_OFFSET, DROP_DOWN_WIDTH, DROPDOWN_HEIGHT);
+    mTopMargin.setBounds(mWidth / 2 - DROP_DOWN_WIDTH / 2, boxTop - DROPDOWN_OFFSET - DROP_DOWN_HEIGHT, DROP_DOWN_WIDTH, DROP_DOWN_HEIGHT);
+    mLeftMargin.setBounds(boxLeft - DROPDOWN_OFFSET - DROP_DOWN_WIDTH, (mHeight - DROP_DOWN_HEIGHT) / 2, DROP_DOWN_WIDTH, DROP_DOWN_HEIGHT);
+    mRightMargin.setBounds(boxRight + DROPDOWN_OFFSET, (mHeight - DROP_DOWN_HEIGHT) / 2, DROP_DOWN_WIDTH, DROP_DOWN_HEIGHT);
+    mBottomMargin.setBounds(mWidth / 2 - DROP_DOWN_WIDTH / 2, boxTop + mBoxSize + DROPDOWN_OFFSET, DROP_DOWN_WIDTH, DROP_DOWN_HEIGHT);
     int rad = KillButton.KILL_BUTTON_SIZE;
     int size = rad * 2;
     int centerX = boxLeft + mBoxSize / 2;
