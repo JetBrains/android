@@ -107,11 +107,10 @@ public class AidlParser implements PsiParser, LightPsiParser {
   public static boolean body(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "body")) return false;
     Marker m = enter_section_(b, l, _NONE_, BODY, "<body>");
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!declaration(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "body", c)) break;
-      c = current_position_(b);
     }
     exit_section_(b, l, m, true, false, null);
     return true;
@@ -177,10 +176,8 @@ public class AidlParser implements PsiParser, LightPsiParser {
   private static boolean declarationRecover_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "declarationRecover_0")) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = consumeToken(b, INTERFACE_KEYWORD);
     if (!r) r = consumeToken(b, PARCELABLE_KEYWORD);
-    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -225,11 +222,10 @@ public class AidlParser implements PsiParser, LightPsiParser {
   // packageStatement*
   private static boolean headers_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "headers_0")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!packageStatement(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "headers_0", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -237,11 +233,10 @@ public class AidlParser implements PsiParser, LightPsiParser {
   // importStatement*
   private static boolean headers_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "headers_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!importStatement(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "headers_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -373,11 +368,10 @@ public class AidlParser implements PsiParser, LightPsiParser {
   static boolean methodDeclarations(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "methodDeclarations")) return false;
     Marker m = enter_section_(b, l, _NONE_);
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!methodDeclaration(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "methodDeclarations", c)) break;
-      c = current_position_(b);
     }
     exit_section_(b, l, m, true, false, interfaceDeclarationRecover_parser_);
     return true;
@@ -446,11 +440,10 @@ public class AidlParser implements PsiParser, LightPsiParser {
   // (',' parameter)*
   private static boolean parameterList_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "parameterList_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!parameterList_1_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "parameterList_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -580,11 +573,10 @@ public class AidlParser implements PsiParser, LightPsiParser {
   // ("." nameComponent)*
   private static boolean qualifiedName_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "qualifiedName_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!qualifiedName_1_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "qualifiedName_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -627,21 +619,18 @@ public class AidlParser implements PsiParser, LightPsiParser {
   private static boolean type_1_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_1_0")) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = primitiveType(b, l + 1);
     if (!r) r = classOrInterfaceType(b, l + 1);
-    exit_section_(b, m, null, r);
     return r;
   }
 
   // ('[' ']')*
   private static boolean type_1_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_1_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!type_1_1_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "type_1_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -675,11 +664,10 @@ public class AidlParser implements PsiParser, LightPsiParser {
   // (',' type)*
   private static boolean typeArguments_2(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "typeArguments_2")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!typeArguments_2_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "typeArguments_2", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
