@@ -20,8 +20,11 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.*;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.isEligibleForSingleVariantSync;
-import static com.android.tools.idea.testing.TestProjectPaths.*;
+import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
+import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
+import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
 
 /**
  * Tests for {@link EnableDisableSingleVariantSyncStep}.
@@ -29,25 +32,32 @@ import static com.android.tools.idea.testing.TestProjectPaths.*;
 public class EnableDisableSingleVariantSyncStepTest extends AndroidGradleTestCase {
   public void testIsEligible() throws Exception {
     loadSimpleApplication();
-    assertTrue(isEligibleForSingleVariantSync(getProject()));
+    assertEquals(ELIGIBLE, isEligibleForSingleVariantSync(getProject()));
   }
 
   public void testIsEligibleWithKotlinModule() throws Exception {
     loadProject(KOTLIN_GRADLE_DSL);
-    assertFalse(isEligibleForSingleVariantSync(getProject()));
+    assertEquals(HAS_KOTLIN, isEligibleForSingleVariantSync(getProject()));
   }
 
   public void testIsEligibleWithPureJavaProject() throws Exception {
     prepareProjectForImport(PURE_JAVA_PROJECT);
     Project project = getProject();
     importProject(project.getName(), getBaseDirPath(project), null);
-    assertFalse(isEligibleForSingleVariantSync(project));
+    assertEquals(PURE_JAVA, isEligibleForSingleVariantSync(project));
+  }
+
+  public void testIsEligibleWithNativeProject() throws Exception {
+    prepareProjectForImport(HELLO_JNI);
+    Project project = getProject();
+    importProject(project.getName(), getBaseDirPath(project), null);
+    assertEquals(HAS_NATIVE, isEligibleForSingleVariantSync(project));
   }
 
   public void testIsEligibleWithKotlinModuleWithNewSync() throws Exception {
     StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
     loadProject(KOTLIN_GRADLE_DSL);
-    assertFalse(isEligibleForSingleVariantSync(getProject()));
+    assertEquals(HAS_KOTLIN, isEligibleForSingleVariantSync(getProject()));
     StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
   }
 }

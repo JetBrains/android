@@ -370,8 +370,8 @@ public class GradleSyncState {
 
   private void warnIfSingleVariantSyncIsEnabled() {
     if (NewGradleSync.isSingleVariantSync(myProject)) {
-      String msg = "Experimental feature is enabled to only resolve active variants,\n" +
-                   "you could disable it from\n"
+      String msg = "Syncing only active variant\n" +
+                   "You can disable this experimental feature from\n"
                    + PATH_IN_SETTINGS;
       addInfoToEventLog(msg);
     }
