@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -31,7 +30,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
@@ -115,7 +114,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
@@ -175,7 +174,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
@@ -272,7 +271,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findBuildType("release")!!, afterSync = true)
@@ -282,7 +281,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
@@ -308,7 +307,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findBuildType("debug")!!, afterSync = true)
@@ -318,7 +317,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
@@ -347,7 +346,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findBuildType("debug")!!, afterSync = true)
@@ -357,7 +356,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
@@ -385,7 +384,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findBuildType("debug")!!, afterSync = true)
@@ -395,7 +394,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
@@ -438,7 +437,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findBuildType("release")!!, afterSync = true)
@@ -449,7 +448,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
@@ -490,7 +489,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findBuildType("release")!!, afterSync = true)

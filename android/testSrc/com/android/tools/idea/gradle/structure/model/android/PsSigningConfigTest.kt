@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -31,7 +30,7 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
@@ -51,7 +50,7 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
     // TODO(b/70501607): assertThat(keyPassword.resolved.asTestValue(), equalTo("android"))
     assertThat(keyPassword.parsedValue.asTestValue(), equalTo("android"))
 
-    assertThat(storeFile.resolved.asTestValue(), equalTo(File(File(project.resolvedModel?.basePath, "app"), "debug.keystore")))
+    assertThat(storeFile.resolved.asTestValue(), equalTo(File(File(project.ideProject.basePath, "app"), "debug.keystore")))
     assertThat(storeFile.parsedValue.asTestValue(), equalTo(File("debug.keystore")))
 
     assertThat(storePassword.resolved.asTestValue(), equalTo("android"))
@@ -62,7 +61,7 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
@@ -101,7 +100,7 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findSigningConfig("myConfig")!!, afterSync = true)
@@ -111,7 +110,7 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
@@ -136,7 +135,7 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findSigningConfig("debug")!!, afterSync = true)
