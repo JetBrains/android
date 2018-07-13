@@ -82,6 +82,9 @@
       <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>
       <loadForDefaultProject/>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.stats.UserSentimentProjectComponent</implementation-class>
+    </component>
   </project-components>
   <actions>
     <action id="Project.CallGraph" internal="true" text="Contextual Call Paths" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
