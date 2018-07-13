@@ -54,8 +54,7 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
     return new IdeSettingsDialogFixture(robot, find(robot, SettingsDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog component) {
-        // Title is different for mac and if it's global/project settings
-        return component.getTitle().matches("(Default )?(Preferences|Settings)");
+        return component.getTitle().matches("Settings for New Projects");
       }
     }));
   }
