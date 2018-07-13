@@ -70,13 +70,6 @@ public class LocalResourceManager extends ResourceManager {
 
   @Override
   @NotNull
-  protected ResourceNamespace getResourceNamespace() {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myFacet);
-    return repositoryManager.getNamespace();
-  }
-
-  @Override
-  @NotNull
   public AbstractResourceRepository getResourceRepository() {
     return ResourceRepositoryManager.getAppResources(myFacet);
   }

@@ -57,14 +57,6 @@ public abstract class ResourceManager {
   }
 
   /**
-   * Returns the primary namespace associated with this resource manager.
-   * @deprecated This method is temporary and may be removed in future.
-   */
-  @Deprecated
-  @NotNull
-  protected abstract ResourceNamespace getResourceNamespace();
-
-  /**
    * Returns the resource repository associated with this resource manager.
    */
   @NotNull
@@ -72,17 +64,17 @@ public abstract class ResourceManager {
 
   /**
    * Returns all the resource directories for this module <b>and all of its module dependencies</b>
-   * grouped by library name. A {@code null} key is used for the library name for system, application
+   * grouped by library name. A null key is used for the library name for system, application
    * and folder resources.
    */
   @NotNull
   public abstract Multimap<String, VirtualFile> getAllResourceDirs();
 
-  /** Returns all the resource directories for this module only */
+  /** Returns all the resource directories for this module only .*/
   @NotNull
   public abstract List<VirtualFile> getResourceDirs();
 
-  /** Returns true if the given directory is a resource directory in this module */
+  /** Returns true if the given directory is a resource directory in this module. */
   public abstract boolean isResourceDir(@NotNull VirtualFile dir);
 
   @Nullable
@@ -299,16 +291,6 @@ public abstract class ResourceManager {
       }
     }
     return result;
-  }
-
-  /**
-   * @deprecated Use {@link #collectLazyResourceElements(ResourceNamespace, String, String, boolean, PsiElement, Collection)}
-   * Preserved temporarily for compatibility with the Kotlin plugin.
-   */
-  @Deprecated
-  public void collectLazyResourceElements(@NotNull String resType, @NotNull String resName,
-                                          boolean withAttrs, @NotNull PsiElement context, @NotNull Collection<PsiElement> elements) {
-    collectLazyResourceElements(getResourceNamespace(), resType, resName, withAttrs, context, elements);
   }
 
   public void collectLazyResourceElements(@NotNull ResourceNamespace namespace, @NotNull String resType, @NotNull String resName,
