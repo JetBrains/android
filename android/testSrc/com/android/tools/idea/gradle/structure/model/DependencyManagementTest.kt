@@ -16,10 +16,7 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
-import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.gradle.structure.model.android.ReverseDependency
-import com.android.tools.idea.gradle.structure.model.android.findModuleDependency
+import com.android.tools.idea.gradle.structure.model.android.*
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -40,7 +37,7 @@ class DependencyManagementTest : DependencyTestCase() {
 
   private fun reparse() {
     resolvedProject = myFixture.project
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
   }
 
   fun testParsedDependencies() {

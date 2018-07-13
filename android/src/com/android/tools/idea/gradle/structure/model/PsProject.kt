@@ -21,7 +21,6 @@ import java.util.function.Consumer
 
 interface PsProject : PsModel {
   val ideProject: Project
-  val resolvedModel: Project?
   val parsedModel: ProjectBuildModel
   val variables: PsVariables
   val pomDependencyCache: PsPomDependencyCache

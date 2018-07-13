@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.testStructure
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
+import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.project.Project
 import org.hamcrest.CoreMatchers
@@ -37,7 +38,7 @@ class DependenciesTreeRootNodeTest : DependencyTestCase() {
 
   private fun reparse() {
     resolvedProject = myFixture.project
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
   }
 
   fun testTreeStructure() {
@@ -80,6 +81,4 @@ class DependenciesTreeRootNodeTest : DependencyTestCase() {
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Assert.assertThat(treeStructure.toString(), CoreMatchers.equalTo(expectedProjectStructure))
   }
-
-
 }

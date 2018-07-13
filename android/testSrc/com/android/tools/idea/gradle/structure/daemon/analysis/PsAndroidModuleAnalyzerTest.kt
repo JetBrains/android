@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.structure.daemon.analysis
 
 import com.android.tools.idea.gradle.structure.configurables.PsContextImpl
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection
-import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
 import com.intellij.openapi.util.Disposer
@@ -36,7 +36,7 @@ class PsAndroidModuleAnalyzerTest : DependencyTestCase() {
     loadProject(PSD_DEPENDENCY)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
     try {
       val context = PsContextImpl(project, disposable, disableAnalysis = true)
