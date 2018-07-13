@@ -149,11 +149,10 @@ public class DbParser implements PsiParser, LightPsiParser {
   // ('.' IDENTIFIER typeArguments? )*
   private static boolean classOrInterfaceType_2(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "classOrInterfaceType_2")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!classOrInterfaceType_2_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "classOrInterfaceType_2", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -263,11 +262,10 @@ public class DbParser implements PsiParser, LightPsiParser {
   // (',' expr)*
   private static boolean expressionList_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "expressionList_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!expressionList_1_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "expressionList_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -325,11 +323,10 @@ public class DbParser implements PsiParser, LightPsiParser {
   // (',' IDENTIFIER)*
   private static boolean inferredFormalParameterList_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "inferredFormalParameterList_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!inferredFormalParameterList_1_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "inferredFormalParameterList_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -403,7 +400,6 @@ public class DbParser implements PsiParser, LightPsiParser {
   static boolean literal(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "literal")) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = consumeToken(b, INTEGER_LITERAL);
     if (!r) r = consumeToken(b, FLOAT_LITERAL);
     if (!r) r = consumeToken(b, LONG_LITERAL);
@@ -413,7 +409,6 @@ public class DbParser implements PsiParser, LightPsiParser {
     if (!r) r = consumeToken(b, NULL);
     if (!r) r = consumeToken(b, CHARACTER_LITERAL);
     if (!r) r = consumeToken(b, STRING_LITERAL);
-    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -521,11 +516,10 @@ public class DbParser implements PsiParser, LightPsiParser {
   // ('[' ']')*
   private static boolean type_0_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_0_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!type_0_1_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "type_0_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -554,11 +548,10 @@ public class DbParser implements PsiParser, LightPsiParser {
   // ('[' ']')*
   private static boolean type_1_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_1_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!type_1_1_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "type_1_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -591,11 +584,10 @@ public class DbParser implements PsiParser, LightPsiParser {
   // (',' type)*
   private static boolean typeArguments_2(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "typeArguments_2")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!typeArguments_2_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "typeArguments_2", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
