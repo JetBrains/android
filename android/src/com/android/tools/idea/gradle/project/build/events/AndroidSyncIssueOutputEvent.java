@@ -29,7 +29,7 @@ public class AndroidSyncIssueOutputEvent extends AbstractBuildEvent implements O
 
   public AndroidSyncIssueOutputEvent(@NotNull Object parentId, @NotNull NotificationData data) {
     super(new Object(), parentId, System.currentTimeMillis(), data.getMessage());
-    myFailure = new AndroidSyncFailure(data);
+    myFailure = AndroidSyncFailure.create(data, "\n" /* Make sure there is a new line between messages */);
   }
 
   @Override

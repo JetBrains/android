@@ -19,6 +19,7 @@ import com.intellij.build.events.Failure;
 import com.intellij.notification.Notification;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.pom.Navigatable;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,44 +27,48 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 
-public class AndroidSyncFailure implements Failure {
-  @NotNull private final Notification myNotification;
-  @NotNull private final NotificationData myNotificationData;
-
-  public AndroidSyncFailure(@NotNull NotificationData notificationData) {
-    myNotificationData = notificationData;
-    myNotification = new Notification(GRADLE_SYSTEM_ID.getReadableName() + " sync", notificationData.getTitle(),
-                                      notificationData.getMessage(),
-                                      notificationData.getNotificationCategory().getNotificationType(),
-                                      notificationData.getListener());
-  }
-
+public final class AndroidSyncFailure {
+  @Contract(pure = true)
   @NotNull
-  @Override
-  public String getMessage() {
-    return myNotificationData.getTitle();
+  public static Failure create(@NotNull NotificationData data) {
+    return create(data, "");
   }
 
+  @Contract(pure = true)
   @NotNull
-  @Override
-  public String getDescription() {
-    return myNotificationData.getMessage();
-  }
+  public static Failure create(@NotNull NotificationData data, @NotNull String suffix) {
+    return new Failure() {
+      @NotNull
+      @Override
+      public String getMessage() {
+        return data.getTitle();
+      }
 
-  @Override
-  public List<? extends Failure> getCauses() {
-    return null;
-  }
+      @NotNull
+      @Override
+      public String getDescription() {
+        return data.getMessage() + suffix;
+      }
 
-  @NotNull
-  @Override
-  public Notification getNotification() {
-    return myNotification;
-  }
+      @Override
+      public List<? extends Failure> getCauses() {
+        return null;
+      }
 
-  @Nullable
-  @Override
-  public Navigatable getNavigatable() {
-    return myNotificationData.getNavigatable();
+      @NotNull
+      @Override
+      public Notification getNotification() {
+        return new Notification(GRADLE_SYSTEM_ID.getReadableName() + " sync", data.getTitle(),
+                                data.getMessage(),
+                                data.getNotificationCategory().getNotificationType(),
+                                data.getListener());
+      }
+
+      @Nullable
+      @Override
+      public Navigatable getNavigatable() {
+        return data.getNavigatable();
+      }
+    };
   }
 }
