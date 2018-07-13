@@ -224,6 +224,34 @@ class CpuCaptureViewTest {
     }
   }
 
+  @Test
+  fun filterShowsMatchCount() {
+    val stage = cpuProfiler.stage
+
+    cpuProfiler.apply {
+      ideServices.enableCpuCaptureFilter(true)
+      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
+      captureTrace(profilerType = ART)
+    }
+
+    assertThat(stage.captureDetails?.type).isEqualTo(CaptureDetails.Type.CALL_CHART)
+    (getCapturePane() as DetailsCapturePane).let { detailsCapturePane ->
+      val filterComponent = TreeWalker(detailsCapturePane).descendants().filterIsInstance<FilterComponent>().first()
+
+      var matchCount = 0
+      filterComponent.model.addMatchResultListener { result -> matchCount = result.matchCount }
+
+      detailsCapturePane.myToolbar.filterButton.doClick()
+      assertThat(filterComponent.isVisible).isTrue()
+
+      filterComponent.setFilterText("android") // Open trace file at CpuProfilerUITestUtils.VALID_TRACE_PATH
+      filterComponent.waitForFilterUpdated()
+
+      assertThat(matchCount).isGreaterThan(0)
+      assertThat(filterComponent.countLabel.text).isNotEmpty()
+    }
+  }
+
   private fun getCapturePane() = TreeWalker(captureView.component)
     .descendants()
     .filterIsInstance<CapturePane>()

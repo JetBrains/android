@@ -1054,6 +1054,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return myCaptureModel.getFilter();
   }
 
+  public int getCaptureFilterNodeCount() {
+    return myCaptureModel.getFilterNodeCount();
+  }
+
   private void trackFilterUsage(@NotNull Filter filter) {
     CaptureDetails details = getCaptureDetails();
     if (details == null) {
