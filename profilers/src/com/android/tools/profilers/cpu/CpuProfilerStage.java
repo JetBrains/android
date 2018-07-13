@@ -1049,11 +1049,21 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     trackFilterUsage(filter);
   }
 
+  @NotNull
+  public Filter getCaptureFilter() {
+    return myCaptureModel.getFilter();
+  }
+
   private void trackFilterUsage(@NotNull Filter filter) {
+    CaptureDetails details = getCaptureDetails();
+    if (details == null) {
+      // Not likely, but can happen if you modify a filter and then clear the selection. Filters
+      // fire delayed events, so we might get a "filter changed" notification with no details set.
+      return;
+    }
+
     FilterMetadata filterMetadata = new FilterMetadata();
     FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
-    CaptureDetails details = getCaptureDetails();
-    assert details != null;
     switch (details.getType()) {
       case TOP_DOWN:
         filterMetadata.setView(FilterMetadata.View.CPU_TOP_DOWN);

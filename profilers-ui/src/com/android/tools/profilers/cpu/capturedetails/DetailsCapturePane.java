@@ -61,7 +61,8 @@ class DetailsCapturePane extends CapturePane {
 
     myTabsPanel.addChangeListener(event -> setCaptureDetailToTab());
 
-    myFilterComponent = new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
+    myFilterComponent = new FilterComponent(myStageView.getStage().getCaptureFilter(),
+                                            FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
     if (view.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureFilterEnabled()) {
       myFilterComponent.getModel().setFilterHandler(new FilterHandler() {
         @Override
@@ -72,7 +73,7 @@ class DetailsCapturePane extends CapturePane {
           return new FilterResult(0, false);
         }
       });
-      myFilterComponent.setVisible(false);
+      myFilterComponent.setVisible(!myFilterComponent.getModel().getFilter().isEmpty());
       myFilterComponent.setBorder(DEFAULT_BOTTOM_BORDER);
       FilterComponent.configureKeyBindingAndFocusBehaviors(this, myFilterComponent, myToolbar.getFilterButton());
     }
