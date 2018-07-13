@@ -71,10 +71,10 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
     Template.NONE_TEMPLATE,
     Template.fromStream("E-mail Client",
                         RecyclerViewAssistant.class.getResourceAsStream("templates/email.xml"),
-                        EnumSet.of(TemplateTag.SUPPORT_LIBRARY)),
+                        EnumSet.of(TemplateTag.SUPPORT_LIBRARY, TemplateTag.CONSTRAINT_LAYOUT)),
     Template.fromStream("E-mail Client",
                         RecyclerViewAssistant.class.getResourceAsStream("templates/email-androidx.xml"),
-                        EnumSet.of(TemplateTag.ANDROIDX)),
+                        EnumSet.of(TemplateTag.ANDROIDX, TemplateTag.CONSTRAINT_LAYOUT)),
     Template.fromStream("One Line",
                         RecyclerViewAssistant.class.getResourceAsStream("templates/one_line.xml")),
     Template.fromStream("One Line w/ Avatar",
@@ -150,22 +150,8 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
     assert resourceDir != null;
     myProject = facet.getModule().getProject();
 
-    boolean dependsOnAndroidX = DependencyManagementUtil.dependsOnAndroidx(myComponent.getModel().getModule());
     Template[] availableTemplates = TEMPLATES.stream()
-                                    .filter(template -> {
-                                      if (!template.hasTags()) {
-                                        return true;
-                                      }
-
-                                      if (template.hasTag(TemplateTag.ANDROIDX)) {
-                                        return dependsOnAndroidX;
-                                      }
-                                      else if (template.hasTag(TemplateTag.SUPPORT_LIBRARY)) {
-                                        return !dependsOnAndroidX;
-                                      }
-
-                                      return true;
-                                    })
+                                    .filter(template -> template.availableFor(myComponent.getModel().getModule()))
                                     .toArray(Template[]::new);
     mySpinner = HorizontalSpinner.forModel(JBList.createDefaultListModel(availableTemplates));
 
