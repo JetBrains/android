@@ -208,7 +208,7 @@ public final class FilterComponent extends JPanel {
 
   @VisibleForTesting
   @NotNull
-  JLabel getCountLabel() {
+  public JLabel getCountLabel() {
     return myCountLabel;
   }
 
