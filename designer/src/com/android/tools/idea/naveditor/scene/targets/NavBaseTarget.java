@@ -22,6 +22,8 @@ import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+
 /**
  * {@linkplain NavBaseTarget} Contains helper functions common to navigation editor targets.
  */
@@ -74,5 +76,10 @@ public abstract class NavBaseTarget extends BaseTarget {
   @SwingCoordinate
   protected int getSwingCenterY(@NotNull SceneContext sceneContext) {
     return sceneContext.getSwingY((int)getCenterY());
+  }
+
+  @NavCoordinate
+  public Rectangle getBounds() {
+    return new Rectangle((int)myLeft, (int)myTop, (int)(myRight - myLeft), (int)(myBottom - myTop));
   }
 }
