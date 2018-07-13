@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.AdapterBinding;
 import com.android.ide.common.rendering.api.DataBindingItem;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
@@ -236,12 +237,14 @@ public class LayoutMetadata {
 
       if (header != null) {
         boolean isFramework = header.startsWith(ANDROID_LAYOUT_RESOURCE_PREFIX);
-        binding.addHeader(new ResourceReference(ResourceType.LAYOUT, stripLayoutPrefix(header), isFramework));
+        binding.addHeader(
+            new ResourceReference(ResourceNamespace.fromBoolean(isFramework), ResourceType.LAYOUT, stripLayoutPrefix(header)));
       }
 
       if (footer != null) {
         boolean isFramework = footer.startsWith(ANDROID_LAYOUT_RESOURCE_PREFIX);
-        binding.addFooter(new ResourceReference(ResourceType.LAYOUT, stripLayoutPrefix(footer), isFramework));
+        binding.addFooter(
+            new ResourceReference(ResourceNamespace.fromBoolean(isFramework), ResourceType.LAYOUT, stripLayoutPrefix(footer)));
       }
 
       if (layout != null) {

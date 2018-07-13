@@ -870,7 +870,7 @@ public class AndroidJavaDocRenderer {
   @NotNull
   private static ResourceReference urlToReference(ResourceUrl url) {
     // TODO: namespaces.
-    return new ResourceReference(url.type, url.name, url.isFramework());
+    return new ResourceReference(ResourceNamespace.fromBoolean(url.isFramework()), url.type, url.name);
   }
 
   private static class ArrayRenderer extends ResourceValueRenderer {

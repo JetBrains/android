@@ -17,9 +17,7 @@ package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.ResourceValueImpl;
+import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ptable.PTable;
@@ -36,7 +34,6 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.AndroidAnnotatorUtil;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -118,7 +115,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   private static Icon getDrawableIcon(@NotNull ResourceResolver resolver, @NotNull NlProperty property, @NotNull String value) {
     ResourceType type = value.startsWith(SdkConstants.MIPMAP_PREFIX) ? ResourceType.MIPMAP : ResourceType.DRAWABLE;
     ResourceValue drawable = resolver.resolveResValue(
-        new ResourceValueImpl(new ResourceReference(type, property.getName(), false), value));
+        new ResourceValueImpl(new ResourceReference(ResourceNamespace.TODO(), type, property.getName()), value));
     if (drawable == null) {
       return null;
     }
@@ -131,7 +128,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   @Nullable
   private static Icon getColorIcon(@NotNull ResourceResolver resolver, @NotNull NlProperty property, @NotNull String value, int iconSize) {
     ResourceValue resourceValue = resolver.resolveResValue(
-        new ResourceValueImpl(new ResourceReference(ResourceType.COLOR, property.getName(),false), value));
+        new ResourceValueImpl(new ResourceReference(ResourceNamespace.TODO(), ResourceType.COLOR, property.getName()), value));
     if (resourceValue == null) {
       return null;
     }
