@@ -48,12 +48,6 @@ public class SystemResourceManager extends ResourceManager {
 
   @Override
   @NotNull
-  protected ResourceNamespace getResourceNamespace() {
-    return ResourceNamespace.ANDROID;
-  }
-
-  @Override
-  @NotNull
   public AbstractResourceRepository getResourceRepository() {
     AndroidTargetData targetData = myPlatform.getSdkData().getTargetData(myPlatform.getTarget());
     AbstractResourceRepository frameworkResources = targetData.getFrameworkResources(false);
