@@ -224,6 +224,22 @@ class CpuProfilerStageViewTest {
   }
 
   @Test
+  fun importTraceModeShouldShowCpuCaptureView() {
+    // Enable import trace and sessions view, both of which are required for import-trace-mode.
+    myIdeServices.enableImportTrace(true)
+    myIdeServices.enableSessionsView(true)
+    myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
+    myStage.enter()
+
+    val cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
+    val treeWalker = TreeWalker(cpuStageView.component)
+    // CpuStageView layout is a based on a splitter. The first component contains the usage chart, threads list, and kernel list. The second
+    // component contains the CpuCaptureView and is set to null when it's not displayed.
+    val captureViewComponent = treeWalker.descendants().filterIsInstance<JBSplitter>().first().secondComponent
+    assertThat(captureViewComponent).isNotNull()
+  }
+
+  @Test
   fun traceMissingDataShowsDialog() {
     // Set a capture of type atrace.
     myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE

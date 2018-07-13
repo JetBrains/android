@@ -257,6 +257,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     if (!getStage().hasUserUsedCpuCapture() && !getStage().isImportTraceMode()) {
       installProfilingInstructions(myUsageView);
     }
+    updateCaptureViewVisibility();
   }
 
   private void updateThreadSelection() {
