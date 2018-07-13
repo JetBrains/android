@@ -18,13 +18,9 @@ package com.android.tools.adtui
 import com.android.tools.adtui.model.filter.Filter
 import com.android.tools.adtui.model.filter.FilterHandler
 import com.android.tools.adtui.model.filter.FilterResult
-import com.android.tools.adtui.stdui.CommonToggleButton
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import java.awt.BorderLayout
-import java.util.concurrent.CountDownLatch
 import javax.swing.JPanel
 
 class FilterComponentTest {
@@ -40,6 +36,14 @@ class FilterComponentTest {
       filterComponent.isVisible = false
       FilterComponent.configureKeyBindingAndFocusBehaviors(panel, filterComponent, filterButton)
     }
+  }
+
+  @Test
+  fun filterComponentCanBeInitializedWithFilter() {
+    val filter = Filter("XYZ", true, true)
+    val filterComponent = FilterComponent(filter, 123, 4, 0)
+
+    assertThat(filterComponent.searchField.text).isEqualTo(filter.filterString)
   }
 
   @Test
@@ -61,11 +65,11 @@ class FilterComponentTest {
         return FilterResult(Integer.parseInt(filter.filterString), true)
       }
     })
-    ui.filterComponent.model.setFilter(Filter("0"))
+    ui.filterComponent.model.filter = Filter("0")
     assertThat(ui.filterComponent.countLabel.text).isEqualTo("No matches")
-    ui.filterComponent.model.setFilter(Filter("1"))
+    ui.filterComponent.model.filter = Filter("1")
     assertThat(ui.filterComponent.countLabel.text).isEqualTo("One match")
-    ui.filterComponent.model.setFilter(Filter("1234567"))
+    ui.filterComponent.model.filter = Filter("1234567")
     assertThat(ui.filterComponent.countLabel.text).isEqualTo("1,234,567 matches")
   }
 }
