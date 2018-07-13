@@ -340,11 +340,15 @@ public class NavSceneManager extends SceneManager {
 
   @Override
   public void requestRender() {
+    boolean wasEmpty = getScene().getRoot() == null || getScene().getRoot().getChildCount() == 0;
     update();
     SceneComponent root = getScene().getRoot();
     if (root != null) {
       root.updateTargets();
       layoutAll(root);
+    }
+    if (wasEmpty) {
+      getDesignSurface().zoomToFit();
     }
   }
 
@@ -562,6 +566,7 @@ public class NavSceneManager extends SceneManager {
     @Override
     public void modelActivated(@NotNull NlModel model) {
       updateHierarchy(model, model);
+      requestRender();
     }
 
     @Override
