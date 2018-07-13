@@ -34,10 +34,10 @@ class CaptureNodeHRendererTest {
   @Test
   fun renderIdleCpuTime() {
     val simpleNode = CaptureNode(AtraceNodeModel("SomeName"))
-    simpleNode.startGlobal = 10;
-    simpleNode.endGlobal = 20;
-    simpleNode.startThread = 10;
-    simpleNode.endThread = 15;
+    simpleNode.startGlobal = 10
+    simpleNode.endGlobal = 20
+    simpleNode.startThread = 10
+    simpleNode.endThread = 15
     val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART)
     val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
     val fakeGraphics = TestGraphics2D()
@@ -68,7 +68,7 @@ class CaptureNodeHRendererTest {
     // Validate we get two shapes drawn, the first one is the expected size of the clamped window.
     // The second on is the size of the idle time clamped to the window size.
     fakeGraphics.expectFillShapes(clampedRenderWindow, Rectangle2D.Double(5.0, 0.0, 1.0, 10.0))
-    fakeGraphics.fillShapes.clear();
+    fakeGraphics.fillShapes.clear()
 
     // Test clamp start and width
     renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
@@ -84,10 +84,10 @@ class CaptureNodeHRendererTest {
   @Test
   fun renderIdleCpuTimeDoesNotHappenOnOtherModels() {
     val simpleNode = CaptureNode(SingleNameModel("SomeName"))
-    simpleNode.startGlobal = 10;
-    simpleNode.endGlobal = 20;
-    simpleNode.startThread = 10;
-    simpleNode.endThread = 15;
+    simpleNode.startGlobal = 10
+    simpleNode.endGlobal = 20
+    simpleNode.startThread = 10
+    simpleNode.endThread = 15
     val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART)
     val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
     val fakeGraphics = TestGraphics2D()
@@ -101,13 +101,13 @@ class CaptureNodeHRendererTest {
   @Test
   fun renderIdleTimeWithNegativeStartFillsIdleTime() {
     val simpleNode = CaptureNode(AtraceNodeModel("SomeName"))
-    simpleNode.startGlobal = 10;
-    simpleNode.endGlobal = 110;
-    simpleNode.startThread = 10;
-    simpleNode.endThread = 15;
+    simpleNode.startGlobal = 10
+    simpleNode.endGlobal = 110
+    simpleNode.startThread = 10
+    simpleNode.endThread = 15
     val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART)
     val renderWindow = Rectangle2D.Float(-100.0f, 0.0f, 300.0f,10.0f)
-    val clampWindow = Rectangle2D.Float(0f, 0f, 10f, 10f);
+    val clampWindow = Rectangle2D.Float(0f, 0f, 10f, 10f)
     val fakeGraphics = TestGraphics2D()
     renderer.render(fakeGraphics, simpleNode, renderWindow, clampWindow,false)
     assertThat(fakeGraphics.fillShapes).hasSize(2)
@@ -375,8 +375,8 @@ class CaptureNodeHRendererTest {
 
     fun expectFillShapes(vararg rectangles: Rectangle2D) {
       for (i in rectangles.indices) {
-        val boundsA = fillShapes[i].bounds2D;
-        val boundsB = rectangles[i];
+        val boundsA = fillShapes[i].bounds2D
+        val boundsB = rectangles[i]
         assertThat(boundsA.x).isWithin(0.0001).of(boundsB.x)
         assertThat(boundsA.y).isWithin(0.0001).of(boundsB.y)
         assertThat(boundsA.width).isWithin(0.0001).of(boundsB.width)
