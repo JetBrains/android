@@ -133,12 +133,12 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
   }
 
   private void doCreateModuleLink(@NotNull Project project,
-                                    @NotNull NotificationData notification,
-                                    @NotNull StringBuilder builder,
-                                    @NotNull Module module,
-                                    @NotNull ProjectBuildModel projectBuildModel,
-                                    @NotNull List<SyncIssue> syncIssues,
-                                    @Nullable VirtualFile buildFile) {
+                                  @NotNull NotificationData notification,
+                                  @NotNull StringBuilder builder,
+                                  @NotNull Module module,
+                                  @NotNull ProjectBuildModel projectBuildModel,
+                                  @NotNull List<SyncIssue> syncIssues,
+                                  @Nullable VirtualFile buildFile) {
     if (buildFile == null) {
       // No build file found, just include the name of the module.
       builder.append(module.getName());
@@ -155,11 +155,11 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * Creates the module link for this SyncIssue, this allows subclasses to link to specific files relevant to the issue. It defaults to
    * simply linking to the module build file.
    *
-   * @param project the project.
-   * @param module  the module this link should be created for.
+   * @param project           the project.
+   * @param module            the module this link should be created for.
    * @param projectBuildModel build model for this project, this prevent each link from having to create their own.
-   * @param syncIssues list of all the sync issues in this group, this list will contain at least one element.
-   * @param buildFile the build file for the provided module.
+   * @param syncIssues        list of all the sync issues in this group, this list will contain at least one element.
+   * @param buildFile         the build file for the provided module.
    */
   protected OpenFileHyperlink createModuleLink(@NotNull Project project,
                                                @NotNull Module module,
