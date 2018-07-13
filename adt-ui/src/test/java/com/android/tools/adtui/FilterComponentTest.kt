@@ -28,40 +28,44 @@ import java.util.concurrent.CountDownLatch
 import javax.swing.JPanel
 
 class FilterComponentTest {
-  private lateinit var myPanel: JPanel
-  private lateinit var myFilterComponent: FilterComponent
-  private lateinit var myFilterButton: CommonToggleButton
-  @Before
-  fun setUp() {
-    myPanel = JPanel(BorderLayout())
-    myFilterComponent = FilterComponent(245, 5, 0)
-    myFilterButton = FilterComponent.createFilterToggleButton()
-    myPanel.add(myFilterButton, BorderLayout.EAST)
-    myPanel.add(myFilterComponent, BorderLayout.SOUTH)
-    myFilterComponent.isVisible = false
-    FilterComponent.configureKeyBindingAndFocusBehaviors(myPanel, myFilterComponent, myFilterButton)
+
+  class FilterComponentUi {
+    val panel = JPanel(BorderLayout())
+    val filterComponent = FilterComponent(245, 5, 0)
+    val filterButton = FilterComponent.createFilterToggleButton()
+
+    init {
+      panel.add(filterButton, BorderLayout.EAST)
+      panel.add(filterComponent, BorderLayout.SOUTH)
+      filterComponent.isVisible = false
+      FilterComponent.configureKeyBindingAndFocusBehaviors(panel, filterComponent, filterButton)
+    }
   }
 
   @Test
   fun clicksFilterButton() {
-    myFilterButton.doClick()
-    assertThat(myFilterComponent.isVisible).isTrue()
-    myFilterButton.doClick()
-    assertThat(myFilterComponent.isVisible).isFalse()
+    val ui = FilterComponentUi()
+
+    ui.filterButton.doClick()
+    assertThat(ui.filterComponent.isVisible).isTrue()
+    ui.filterButton.doClick()
+    assertThat(ui.filterComponent.isVisible).isFalse()
   }
 
   @Test
   fun changeFilterResult() {
-    myFilterComponent.model.setFilterHandler(object: FilterHandler() {
+    val ui = FilterComponentUi()
+
+    ui.filterComponent.model.setFilterHandler(object: FilterHandler() {
       override fun applyFilter(filter: Filter): FilterResult {
         return FilterResult(Integer.parseInt(filter.filterString), true)
       }
     })
-    myFilterComponent.model.setFilter(Filter("0"));
-    assertThat(myFilterComponent.countLabel.text).isEqualTo("No matches")
-    myFilterComponent.model.setFilter(Filter("1"));
-    assertThat(myFilterComponent.countLabel.text).isEqualTo("One match")
-    myFilterComponent.model.setFilter(Filter("1234567"));
-    assertThat(myFilterComponent.countLabel.text).isEqualTo("1,234,567 matches")
+    ui.filterComponent.model.setFilter(Filter("0"))
+    assertThat(ui.filterComponent.countLabel.text).isEqualTo("No matches")
+    ui.filterComponent.model.setFilter(Filter("1"))
+    assertThat(ui.filterComponent.countLabel.text).isEqualTo("One match")
+    ui.filterComponent.model.setFilter(Filter("1234567"))
+    assertThat(ui.filterComponent.countLabel.text).isEqualTo("1,234,567 matches")
   }
 }
