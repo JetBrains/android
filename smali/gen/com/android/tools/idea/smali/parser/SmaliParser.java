@@ -187,11 +187,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   // annotation_property*
   private static boolean annotations_spec_3(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "annotations_spec_3")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!annotation_property(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "annotations_spec_3", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -204,11 +203,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = annotations_specs_0(b, l + 1);
-    int c = current_position_(b);
     while (r) {
+      int c = current_position_(b);
       if (!annotations_specs_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "annotations_specs", c)) break;
-      c = current_position_(b);
     }
     exit_section_(b, m, null, r);
     return r;
@@ -228,11 +226,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   // (COMMENT)*
   private static boolean annotations_specs_0_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "annotations_specs_0_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!consumeToken(b, COMMENT)) break;
       if (!empty_element_parsed_guard_(b, "annotations_specs_0_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -280,11 +277,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   // (access_modifier)*
   private static boolean class_spec_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "class_spec_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!class_spec_1_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "class_spec_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -364,11 +360,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   // (access_modifier)*
   private static boolean field_spec_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "field_spec_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!field_spec_1_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "field_spec_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -408,11 +403,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = field_specs_0(b, l + 1);
-    int c = current_position_(b);
     while (r) {
+      int c = current_position_(b);
       if (!field_specs_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "field_specs", c)) break;
-      c = current_position_(b);
     }
     exit_section_(b, m, null, r);
     return r;
@@ -432,11 +426,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   // (COMMENT)*
   private static boolean field_specs_0_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "field_specs_0_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!consumeToken(b, COMMENT)) break;
       if (!empty_element_parsed_guard_(b, "field_specs_0_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -446,10 +439,8 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   static boolean field_type(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "field_type")) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = class_name(b, l + 1);
     if (!r) r = primitive_type(b, l + 1);
-    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -488,11 +479,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = implements_specs_0(b, l + 1);
-    int c = current_position_(b);
     while (r) {
+      int c = current_position_(b);
       if (!implements_specs_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "implements_specs", c)) break;
-      c = current_position_(b);
     }
     exit_section_(b, m, null, r);
     return r;
@@ -512,11 +502,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   // (COMMENT)*
   private static boolean implements_specs_0_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "implements_specs_0_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!consumeToken(b, COMMENT)) break;
       if (!empty_element_parsed_guard_(b, "implements_specs_0_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -577,11 +566,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   // (access_modifier)*
   private static boolean method_spec_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "method_spec_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!method_spec_1_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "method_spec_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -604,11 +592,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = method_specs_0(b, l + 1);
-    int c = current_position_(b);
     while (r) {
+      int c = current_position_(b);
       if (!method_specs_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "method_specs", c)) break;
-      c = current_position_(b);
     }
     exit_section_(b, m, null, r);
     return r;
@@ -628,11 +615,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   // (COMMENT)*
   private static boolean method_specs_0_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "method_specs_0_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!consumeToken(b, COMMENT)) break;
       if (!empty_element_parsed_guard_(b, "method_specs_0_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -790,11 +776,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   // (',' single_value)*
   private static boolean single_values_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "single_values_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!single_values_1_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "single_values_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -849,11 +834,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   // (COMMENT)*
   private static boolean smali_file_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "smali_file_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!consumeToken(b, COMMENT)) break;
       if (!empty_element_parsed_guard_(b, "smali_file_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -861,11 +845,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   // (COMMENT)*
   private static boolean smali_file_3(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "smali_file_3")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!consumeToken(b, COMMENT)) break;
       if (!empty_element_parsed_guard_(b, "smali_file_3", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -890,11 +873,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   // (COMMENT)*
   private static boolean smali_file_5(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "smali_file_5")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!consumeToken(b, COMMENT)) break;
       if (!empty_element_parsed_guard_(b, "smali_file_5", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -936,11 +918,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   // (COMMENT)*
   private static boolean smali_file_8(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "smali_file_8")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!consumeToken(b, COMMENT)) break;
       if (!empty_element_parsed_guard_(b, "smali_file_8", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -965,11 +946,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   // (COMMENT)*
   private static boolean smali_file_10(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "smali_file_10")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!consumeToken(b, COMMENT)) break;
       if (!empty_element_parsed_guard_(b, "smali_file_10", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -994,11 +974,10 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   // (COMMENT)*
   private static boolean smali_file_12(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "smali_file_12")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!consumeToken(b, COMMENT)) break;
       if (!empty_element_parsed_guard_(b, "smali_file_12", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
