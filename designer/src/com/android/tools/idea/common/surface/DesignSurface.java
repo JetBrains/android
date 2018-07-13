@@ -716,6 +716,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @VisibleForTesting(visibility = Visibility.PROTECTED)
   public void setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
+    double newScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
+    if (Math.abs(newScale - myScale) < 0.005) {
+      return;
+    }
     myCurrentZoomType = null;
     if (scale < 0) {
       // We wait for component resized to be fired
@@ -742,7 +746,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       androidY = Coordinates.getAndroidYDip(view, y);
     }
 
-    myScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
+    myScale = newScale;
     layoutContent();
     updateScrolledAreaSize();
 

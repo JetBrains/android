@@ -19,6 +19,8 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.State
+import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -183,5 +185,29 @@ class NavSceneManagerTest : NavTestCase() {
 
       p.translate(incrementalOffset, incrementalOffset)
     }
+  }
+
+  fun testActivateUpdates() {
+    lateinit var root: NavModelBuilderUtil.NavigationComponentDescriptor
+
+    val modelBuilder = modelBuilder("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }.also { root = it }
+    }
+    val model = modelBuilder.build()
+
+    val sceneManager = model.surface.sceneManager as NavSceneManager
+    sceneManager.update()
+    val scene = model.surface.scene!!
+    assertEquals(1, scene.root!!.childCount)
+
+    root.fragment("f2")
+    modelBuilder.updateModel(model)
+
+    assertEquals(1, scene.root!!.childCount)
+    model.activate(this)
+
+    assertEquals(2, scene.root!!.childCount)
   }
 }
