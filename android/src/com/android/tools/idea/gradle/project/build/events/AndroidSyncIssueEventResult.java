@@ -38,7 +38,7 @@ public class AndroidSyncIssueEventResult implements MessageEventResult, FailureR
   @NotNull private final String myDetails;
 
   public AndroidSyncIssueEventResult(@NotNull NotificationData notificationData) {
-    myFailures = Collections.singletonList(new AndroidSyncFailure(notificationData));
+    myFailures = Collections.singletonList(AndroidSyncFailure.create(notificationData));
     myKind = convertCategory(notificationData.getNotificationCategory());
     myDetails = notificationData.getMessage();
   }
