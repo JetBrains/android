@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.*
+import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
 import com.android.tools.idea.common.property2.api.PropertiesTable
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
@@ -109,6 +110,37 @@ class NeleNewPropertyItemTest {
     assertThat(property.isReference).isFalse()
     assertThat(property.tooltipForName).isEqualTo("android:gravity")
     assertThat(property.tooltipForValue).isEqualTo("")
+  }
+
+  @Test
+  fun testCompletion() {
+    val properties = createTable()
+    val model = properties.first!!.model
+    val property = NeleNewPropertyItem(model, properties)
+    val values = property.nameEditingSupport.completion()
+    assertThat(values).containsExactly("style", "android:text", "android:textSize", "android:textColor", "android:gravity", "app:srcCompat")
+  }
+
+  @Test
+  fun testAssignedAttributesAreNotInCompletions() {
+    val properties = createTable()
+    val model = properties.first!!.model
+    val property = NeleNewPropertyItem(model, properties)
+    properties[ANDROID_URI, ATTR_TEXT].value = "Hello"
+    properties[ANDROID_URI, ATTR_TEXT_COLOR].value = "#445566"
+    val values = property.nameEditingSupport.completion()
+    assertThat(values).containsExactly("style", "android:textSize", "android:gravity", "app:srcCompat")
+  }
+
+  @Test
+  fun testValidationErrors() {
+    val properties = createTable()
+    val model = properties.first!!.model
+    val property = NeleNewPropertyItem(model, properties)
+    properties[ANDROID_URI, ATTR_TEXT].value = "Hello"
+    assertThat(property.nameEditingSupport.validation("android:xyz")).isEqualTo(Pair(ERROR, "No property found by the name: android:xyz"))
+    assertThat(property.nameEditingSupport.validation("android:text"))
+      .isEqualTo(Pair(ERROR, "A property by the name: android:text is already specified"))
   }
 
   private fun createTable(): PropertiesTable<NelePropertyItem> {

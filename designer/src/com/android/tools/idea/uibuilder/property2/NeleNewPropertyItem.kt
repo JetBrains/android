@@ -17,6 +17,10 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.TOOLS_URI
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
+import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property2.api.FlagsPropertyItem
 import com.android.tools.idea.common.property2.api.NewPropertyItem
@@ -44,7 +48,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
       val (propertyNamespace, propertyName) = parseName(value)
       namespace = propertyNamespace
       field = propertyName
-      delegate = findDelegate()
+      delegate = findDelegate(propertyNamespace, propertyName)
 
       // Give the model a change to hide expanded flag items
       model.firePropertyValueChange()
@@ -61,6 +65,11 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
    */
   var delegate: NelePropertyItem? = null
     private set
+
+  override val nameEditingSupport = object : EditingSupport {
+    override val completion = { getPropertyNamesWithPrefix() }
+    override val validation = { text: String -> validate(text)}
+  }
 
   override var value: String?
     get() = delegate?.value
@@ -119,19 +128,40 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
     return Pair(namespace, name)
   }
 
-  private fun findDelegate(): NelePropertyItem? {
-    var property = properties.getOrNull(namespace, name)
+  private fun findDelegate(propertyNamespace: String, propertyName: String): NelePropertyItem? {
+    var property = properties.getOrNull(propertyNamespace, propertyName)
     if (property != null) {
       return property
     }
-    if (namespace == TOOLS_URI) {
+    if (propertyNamespace == TOOLS_URI) {
       for (ns in properties.namespaces) {
-        property = properties.getOrNull(ns, name)
+        property = properties.getOrNull(ns, propertyName)
         if (property != null) {
           return property.designProperty
         }
       }
     }
     return null
+  }
+
+  private fun getPropertyNamesWithPrefix(): List<String> {
+    val resolver = namespaceResolver
+    return properties.values.filter { it.rawValue == null }.map { getPropertyNameWithPrefix(it, resolver) }
+  }
+
+  private fun getPropertyNameWithPrefix(property: NelePropertyItem, resolver: ResourceNamespace.Resolver): String {
+    val name = property.name
+    val prefix = resolver.uriToPrefix(property.namespace)
+    return if (prefix.isNullOrEmpty()) name else "$prefix:$name"
+  }
+
+  private fun validate(text: String): Pair<EditingErrorCategory, String> {
+    val (propertyNamespace, propertyName) = parseName(text)
+    val property = findDelegate(propertyNamespace, propertyName)
+    return when {
+      property == null -> Pair(EditingErrorCategory.ERROR, "No property found by the name: $text")
+      property.rawValue != null -> Pair(EditingErrorCategory.ERROR, "A property by the name: $text is already specified")
+      else -> EDITOR_NO_ERROR
+    }
   }
 }
