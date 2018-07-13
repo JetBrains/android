@@ -117,7 +117,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
         <LinearLayout
             xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
-            app:libAttr="layout">
+            app:libAttr="@string/libString">
           <TextView android:text="@string/appString" app:libAttr="view" />
           <TextView android:text="@string/libString" />
         </LinearLayout>
@@ -164,7 +164,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
             xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:lib="http://schemas.android.com/apk/res/com.example.lib"
-            lib:libAttr="layout">
+            lib:libAttr="@lib:string/libString">
           <TextView android:text="@string/appString" lib:libAttr="view" />
           <TextView android:text="@lib:string/libString" />
         </LinearLayout>
