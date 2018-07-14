@@ -62,7 +62,10 @@ public class AndroidTargetData {
   private final AndroidSdkData mySdkData;
   private final IAndroidTarget myTarget;
 
-  private volatile AttributeDefinitions myAttrDefs;
+  private final Object myAttrDefsLock = new Object();
+  @GuardedBy("myAttrDefsLock")
+  private AttributeDefinitions myAttrDefs;
+
   private volatile LayoutLibrary myLayoutLibrary;
 
   private final Object myPublicResourceCacheLock = new Object();
@@ -85,7 +88,7 @@ public class AndroidTargetData {
   @Nullable
   public AttributeDefinitions getPublicAttrDefs(@NotNull Project project) {
     AttributeDefinitions attrDefs = getAllAttrDefs(project);
-    return attrDefs != null ? new PublicAttributeDefinitions(attrDefs) : null;
+    return attrDefs == null ? null : new PublicAttributeDefinitions(attrDefs);
   }
 
   /**
@@ -93,18 +96,22 @@ public class AndroidTargetData {
    */
   @Nullable
   public AttributeDefinitions getAllAttrDefs(@NotNull Project project) {
-    if (myAttrDefs == null) {
-      ApplicationManager.getApplication().runReadAction(() -> {
-        String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES));
-        String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES));
+    synchronized (myAttrDefsLock) {
+      if (myAttrDefs == null) {
+        AttributeDefinitions[] attrDefs = new AttributeDefinitions[1];
+        ApplicationManager.getApplication().runReadAction(() -> {
+          String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES));
+          String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES));
 
-        XmlFile[] files = findXmlFiles(project, attrsPath, attrsManifestPath);
-        if (files != null) {
-          myAttrDefs = AttributeDefinitionsImpl.parseFrameworkFiles(files);
-        }
-      });
+          XmlFile[] files = findXmlFiles(project, attrsPath, attrsManifestPath);
+          if (files != null) {
+             attrDefs[0] = AttributeDefinitionsImpl.parseFrameworkFiles(files);
+          }
+        });
+        myAttrDefs = attrDefs[0];
+      }
+      return myAttrDefs;
     }
-    return myAttrDefs;
   }
 
   @Nullable

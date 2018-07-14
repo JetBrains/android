@@ -41,11 +41,14 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.util.*;
 
 public class LocalResourceManager extends ResourceManager {
-  private AttributeDefinitions myAttrDefs;
   private final AndroidFacet myFacet;
+  private final Object myAttrDefsLock = new Object();
+  @GuardedBy("myAttrDefsLock")
+  private AttributeDefinitions myAttrDefs;
 
   @Nullable
   public static LocalResourceManager getInstance(@NotNull Module module) {
@@ -105,16 +108,20 @@ public class LocalResourceManager extends ResourceManager {
   @Override
   @NotNull
   public AttributeDefinitions getAttributeDefinitions() {
-    if (myAttrDefs == null) {
-      ResourceManager systemResourceManager = ModuleResourceManagers.getInstance(myFacet).getSystemResourceManager();
-      AttributeDefinitions frameworkAttributes = systemResourceManager == null ? null : systemResourceManager.getAttributeDefinitions();
-      myAttrDefs = AttributeDefinitionsImpl.create(frameworkAttributes, getResourceRepository());
+    synchronized (myAttrDefsLock) {
+      if (myAttrDefs == null) {
+        ResourceManager systemResourceManager = ModuleResourceManagers.getInstance(myFacet).getSystemResourceManager();
+        AttributeDefinitions frameworkAttributes = systemResourceManager == null ? null : systemResourceManager.getAttributeDefinitions();
+        myAttrDefs = AttributeDefinitionsImpl.create(frameworkAttributes, getResourceRepository());
+      }
+      return myAttrDefs;
     }
-    return myAttrDefs;
   }
 
   public void invalidateAttributeDefinitions() {
-    myAttrDefs = null;
+    synchronized (myAttrDefsLock) {
+      myAttrDefs = null;
+    }
   }
 
   @NotNull
@@ -168,7 +175,8 @@ public class LocalResourceManager extends ResourceManager {
   private Set<VirtualFile> getAllValueResourceFiles() {
     Set<VirtualFile> files = new HashSet<>();
 
-    for (VirtualFile valueResourceDir : getResourceSubdirs(ResourceFolderType.VALUES)) {
+    List<VirtualFile> subdirs = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.VALUES, getAllResourceDirs().values());
+    for (VirtualFile valueResourceDir : subdirs) {
       for (VirtualFile valueResourceFile : valueResourceDir.getChildren()) {
         if (!valueResourceFile.isDirectory() && valueResourceFile.getFileType().equals(StdFileTypes.XML)) {
           files.add(valueResourceFile);
@@ -176,11 +184,6 @@ public class LocalResourceManager extends ResourceManager {
       }
     }
     return files;
-  }
-
-  @NotNull
-  private List<VirtualFile> getResourceSubdirs(@NotNull ResourceFolderType resourceType) {
-    return AndroidResourceUtil.getResourceSubdirs(resourceType, getAllResourceDirs().values());
   }
 
   public List<Attr> findStyleableAttributesByFieldName(@NotNull String fieldName) {
