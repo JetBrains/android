@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.utils.concurrency.CacheUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Lists;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -39,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -83,7 +83,7 @@ public class ResourceFolderRegistry {
   @VisibleForTesting
   ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir, @NotNull ResourceNamespace namespace) {
     Cache<VirtualFile, ResourceFolderRepository> cache =
-      namespace == ResourceNamespace.RES_AUTO ? myNonNamespacedCache : myNamespacedCache;
+        namespace == ResourceNamespace.RES_AUTO ? myNonNamespacedCache : myNamespacedCache;
 
     ResourceFolderRepository repository = CacheUtils.getAndUnwrap(cache, dir, () -> ResourceFolderRepository.create(facet, dir, namespace));
     assert repository.getNamespace().equals(namespace);
@@ -146,9 +146,8 @@ public class ResourceFolderRegistry {
 
       // Cap the threads to 4 for now. Scaling is okay from 1 to 2, but not necessarily much better as we go higher.
       int maxThreads = Math.min(4, Runtime.getRuntime().availableProcessors());
-      ExecutorService
-        parallelExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("ResourceFolderRegistry", maxThreads);
-      List<Future<ResourceFolderRepository>> repositoryJobs = Lists.newArrayList();
+      ExecutorService parallelExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("ResourceFolderRegistry", maxThreads);
+      List<Future<ResourceFolderRepository>> repositoryJobs = new ArrayList<>();
       for (Map.Entry<VirtualFile, AndroidFacet> entry : resDirectories.entrySet()) {
         AndroidFacet facet = entry.getValue();
         VirtualFile dir = entry.getKey();
