@@ -53,6 +53,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
+import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -359,6 +360,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   protected void enableNamespacing(@NotNull AndroidFacet facet, @NotNull String appPackageName) {
     facet.getConfiguration().setModel(TestAndroidModel.namespaced(facet));
     runWriteCommandAction(getProject(), () -> facet.getManifest().getPackage().setValue(appPackageName));
+    LocalResourceManager.getInstance(facet.getModule()).invalidateAttributeDefinitions();
   }
 
   protected final void createProjectProperties() throws IOException {
