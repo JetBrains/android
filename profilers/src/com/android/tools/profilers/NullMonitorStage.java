@@ -41,31 +41,23 @@ public class NullMonitorStage extends Stage {
   }
 
   private void updateType() {
-    if (getStudioProfilers().getClient() == null) {
-      myType = Type.NO_CLIENT;
-    }
-    else {
-      Common.Device device = getStudioProfilers().getDevice();
-      if (device == null) {
-        myType = Type.NO_DEVICE;
-      }
-      else {
-        try {
-          int deviceFeatureLevel = device.getFeatureLevel();
-          // Currently, we only support devices with API level 21 or higher
-          if (deviceFeatureLevel < AndroidVersion.VersionCodes.LOLLIPOP) {
-            myType = Type.UNSUPPORTED_DEVICE;
-          }
-          else {
-            // If device is not null and has API level of 21 or higher,
-            // we only create a NullMonitorStage if it doesn't have debuggable processes.
-            myType = Type.NO_DEBUGGABLE_PROCESS;
-          }
-        }
-        catch (NumberFormatException e) {
-          // API level is unknown. We don't support such device.
+    Common.Device device = getStudioProfilers().getDevice();
+    if (device == null) {
+      myType = Type.NO_DEVICE;
+    } else {
+      try {
+        int deviceFeatureLevel = device.getFeatureLevel();
+        // Currently, we only support devices with API level 21 or higher
+        if (deviceFeatureLevel < AndroidVersion.VersionCodes.LOLLIPOP) {
           myType = Type.UNSUPPORTED_DEVICE;
+        } else {
+          // If device is not null and has API level of 21 or higher,
+          // we only create a NullMonitorStage if it doesn't have debuggable processes.
+          myType = Type.NO_DEBUGGABLE_PROCESS;
         }
+      } catch (NumberFormatException e) {
+        // API level is unknown. We don't support such device.
+        myType = Type.UNSUPPORTED_DEVICE;
       }
     }
     myAspect.changed(Aspect.NULL_MONITOR_TYPE);
@@ -85,8 +77,6 @@ public class NullMonitorStage extends Stage {
   }
 
   enum Type {
-    // No ProfilerClient detected
-    NO_CLIENT,
     // No device detected
     NO_DEVICE,
     // Selected device has no debuggable processes

@@ -56,11 +56,4 @@ public class NullMonitorStageTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertEquals(stage.getType(), NullMonitorStage.Type.NO_DEBUGGABLE_PROCESS);
   }
-
-  @Test
-  public void testNoClient() {
-    StudioProfilers profilers = new StudioProfilers(null, new FakeIdeProfilerServices(), new FakeTimer());
-    NullMonitorStage stage = new NullMonitorStage(profilers);
-    assertEquals(stage.getType(), NullMonitorStage.Type.NO_CLIENT);
-  }
 }

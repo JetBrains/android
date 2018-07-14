@@ -36,8 +36,6 @@ import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_
 public class NullMonitorStageView extends StageView<NullMonitorStage> {
   private static final String ANDROID_PROFILER_TITLE = "Android Profiler";
   private static final String DEVICE_NOT_SUPPORTED_TITLE = "Device not supported";
-  private static final String NO_CLIENT_MESSAGE =
-    "Initialization failed. You can run the profiler for a single project at a time.";
   private static final String NO_DEVICE_MESSAGE = "No device detected. Please plug in a device, or launch the emulator.";
   private static final String NO_DEBUGGABLE_PROCESS_MESSAGE = "No debuggable processes detected for the selected device.";
   private static final String DEVICE_NOT_SUPPORTED_MESSAGE = "Android Profiler requires a device with API 21 (Lollipop) or higher.";
@@ -113,7 +111,6 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
     switch (myStage.getType()) {
       case UNSUPPORTED_DEVICE:
         return DEVICE_NOT_SUPPORTED_TITLE;
-      case NO_CLIENT:
       case NO_DEVICE:
       case NO_DEBUGGABLE_PROCESS:
       default:
@@ -125,17 +122,13 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
     Font font = myTitle.getFont().deriveFont(12.0f);
     List<RenderInstruction> instructions = new ArrayList<>();
     FontMetrics metrics = SwingUtilities2.getFontMetrics(myInstructionsWrappingPanel, font);
-    StudioProfilers profilers = myStage.getStudioProfilers();
-    if (profilers.getIdeServices().getFeatureConfig().isSessionsEnabled() && profilers.getClient() != null) {
+    if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isSessionsEnabled()) {
       instructions.add(new TextInstruction(metrics, "Click "));
       instructions.add(new IconInstruction(StudioIcons.Common.ADD, PROFILING_INSTRUCTIONS_ICON_PADDING, null));
       instructions.add(new TextInstruction(metrics, " to attach a process or load a capture."));
     }
     else {
       switch (myStage.getType()) {
-        case NO_CLIENT:
-          instructions.add(new TextInstruction(metrics, NO_CLIENT_MESSAGE));
-          break;
         case NO_DEVICE:
           instructions.add(new TextInstruction(metrics, NO_DEVICE_MESSAGE));
           break;

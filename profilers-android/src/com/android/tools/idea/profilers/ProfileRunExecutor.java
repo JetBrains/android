@@ -101,9 +101,11 @@ public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIc
     AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project);
     if (profilerToolWindow != null) {
       StudioProfilers profilers = profilerToolWindow.getProfilers();
-      Common.Session profilingSession = profilers.getSessionsManager().getProfilingSession();
-      if (SessionsManager.isSessionAlive(profilingSession)) {
-        return ExecutionUtil.getLiveIndicator(getIcon());
+      if (profilers != null) {
+        Common.Session profilingSession = profilers.getSessionsManager().getProfilingSession();
+        if (SessionsManager.isSessionAlive(profilingSession)) {
+          return ExecutionUtil.getLiveIndicator(getIcon());
+        }
       }
     }
 

@@ -82,19 +82,6 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testNullClient() {
-    FakeTimer timer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(null, new FakeIdeProfilerServices(), timer);
-    assertThat(profilers.getClient()).isNull();
-
-    // Make sure update does no harm
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(profilers.getDevice()).isNull();
-    assertThat(profilers.getProcess()).isNull();
-    assertThat(profilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
-  }
-
-  @Test
   public void testSleepBeforeAppLaunched() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
