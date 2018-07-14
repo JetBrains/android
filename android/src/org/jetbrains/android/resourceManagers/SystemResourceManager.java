@@ -97,7 +97,7 @@ public class SystemResourceManager extends ResourceManager {
 
   @Override
   @Nullable
-  public synchronized AttributeDefinitions getAttributeDefinitions() {
+  public AttributeDefinitions getAttributeDefinitions() {
     return myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).getPublicAttrDefs(myProject);
   }
 }
