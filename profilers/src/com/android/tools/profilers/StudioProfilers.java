@@ -66,7 +66,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   public static final int PROFILERS_UPDATE_RATE = 60;
 
-  @Nullable private final ProfilerClient myClient;
+  @NotNull private final ProfilerClient myClient;
 
   private final ProfilerTimeline myTimeline;
 
@@ -124,12 +124,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   private boolean myAutoProfilingEnabled = true;
 
-  public StudioProfilers(@Nullable ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
+  public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
   }
 
   @VisibleForTesting
-  public StudioProfilers(@Nullable ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
+  public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
     myClient = client;
     myIdeServices = ideServices;
     myPreferredProcessName = null;
@@ -161,45 +161,43 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
     myAgentStatus = AgentStatusResponse.getDefaultInstance();
 
-    if (myClient != null) {
-      myTimeline.getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
-        if (!myTimeline.getSelectionRange().isEmpty()) {
-          myTimeline.setStreaming(false);
+    myTimeline.getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
+      if (!myTimeline.getSelectionRange().isEmpty()) {
+        myTimeline.setStreaming(false);
+      }
+    });
+
+    registerSessionChangeListener(Common.SessionMetaData.SessionType.FULL, () -> {
+      setStage(new StudioMonitorStage(this));
+      if (SessionsManager.isSessionAlive(mySelectedSession)) {
+        // The session is live - move the timeline to the current time.
+        TimeResponse timeResponse = myClient.getProfilerClient()
+                                            .getCurrentTime(
+                                              TimeRequest.newBuilder().setDeviceId(mySelectedSession.getDeviceId()).build());
+
+        myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
+        if (startupCpuProfilingStarted()) {
+          setStage(new CpuProfilerStage(this));
         }
-      });
+      }
+      else {
+        // The session is finished, reset the timeline to include the entire data range.
+        myTimeline.reset(mySelectedSession.getStartTimestamp(), mySelectedSession.getEndTimestamp());
+        // Disable data range update and stream/snap features.
+        myTimeline.setIsPaused(true);
+        myTimeline.setStreaming(false);
+        myTimeline.getViewRange().set(mySessionsManager.getSessionPreferredViewRange(mySelectedSession));
+      }
+    });
 
-      registerSessionChangeListener(Common.SessionMetaData.SessionType.FULL, () -> {
-        setStage(new StudioMonitorStage(this));
-        if (SessionsManager.isSessionAlive(mySelectedSession)) {
-          // The session is live - move the timeline to the current time.
-          TimeResponse timeResponse = myClient.getProfilerClient()
-                                              .getCurrentTime(
-                                                TimeRequest.newBuilder().setDeviceId(mySelectedSession.getDeviceId()).build());
+    mySessionsManager.addDependency(this)
+                     .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
+                     .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
 
-          myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
-          if (startupCpuProfilingStarted()) {
-            setStage(new CpuProfilerStage(this));
-          }
-        }
-        else {
-          // The session is finished, reset the timeline to include the entire data range.
-          myTimeline.reset(mySelectedSession.getStartTimestamp(), mySelectedSession.getEndTimestamp());
-          // Disable data range update and stream/snap features.
-          myTimeline.setIsPaused(true);
-          myTimeline.setStreaming(false);
-          myTimeline.getViewRange().set(mySessionsManager.getSessionPreferredViewRange(mySelectedSession));
-        }
-      });
+    myViewAxis = new ResizingAxisComponentModel.Builder(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT)
+      .setGlobalRange(myTimeline.getDataRange()).build();
 
-      mySessionsManager.addDependency(this)
-                       .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
-                       .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
-
-      myViewAxis = new ResizingAxisComponentModel.Builder(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT)
-        .setGlobalRange(myTimeline.getDataRange()).build();
-
-      myUpdater.register(this);
-    }
+    myUpdater.register(this);
   }
 
   public boolean isStopped() {
@@ -579,7 +577,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myStage;
   }
 
-  @Nullable
+  @NotNull
   public ProfilerClient getClient() {
     return myClient;
   }

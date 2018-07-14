@@ -132,7 +132,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
     myLayeredPane = new ProfilerLayeredPane(mySplitter);
 
-    if (myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled() && myProfiler.getClient() != null) {
+    if (myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
       mySessionsView = new SessionsView(myProfiler, ideProfilerComponents);
       JComponent sessionsComponent = mySessionsView.getComponent();
       mySplitter.setFirstComponent(sessionsComponent);
