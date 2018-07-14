@@ -88,7 +88,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
     assertSame(image, imageFuture.get());
   }
-
+  
   public void testOldVersion() throws Exception {
     ThumbnailManager manager = ThumbnailManager.getInstance(myFacet);
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
@@ -99,33 +99,33 @@ public class ThumbnailManagerTest extends NavTestCase {
     BufferedImage orig = manager.getThumbnail(psiFile, configuration).get();
     assertNull(manager.getOldThumbnail(file, configuration));
 
-    Semaphore lock = new Semaphore(1);
-    lock.acquire();
+    Semaphore inProgressCheckDone = new Semaphore(1);
+    inProgressCheckDone.acquire();
+    Semaphore taskStarted = new Semaphore(1);
+    taskStarted.acquire();
 
     RenderService.setForTesting(getProject(), new RenderService(getProject()) {
-      @Nullable
+      @NotNull
       @Override
-      public RenderTask createTask(@NotNull AndroidFacet facet,
-                                   @Nullable PsiFile psiFile,
-                                   @NotNull Configuration configuration,
-                                   @NotNull RenderLogger logger,
-                                   @Nullable ILayoutPullParserFactory parserFactory) {
+      public RenderTaskBuilder taskBuilder(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
         try {
-          lock.acquire();
+          taskStarted.release();
+          inProgressCheckDone.acquire();
         }
         catch (Exception e) {
           fail(e.getMessage());
         }
-        return super.createTask(facet, psiFile, configuration, logger, parserFactory);
+        return super.taskBuilder(facet, configuration);
       }
     });
 
     ((VirtualFileSystemEntry)file).setTimeStamp(file.getTimeStamp() + 100);
 
     CompletableFuture<BufferedImage> newFuture = manager.getThumbnail(psiFile, configuration);
+    taskStarted.acquire();
     assertFalse(newFuture.isDone());
     assertEquals(manager.getOldThumbnail(file, configuration), orig);
-    lock.release();
+    inProgressCheckDone.release();
     BufferedImage newVersion = newFuture.get();
     assertNotSame(orig, newVersion);
     assertNotNull(newVersion);
