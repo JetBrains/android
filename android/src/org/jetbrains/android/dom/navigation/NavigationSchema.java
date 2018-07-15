@@ -378,6 +378,20 @@ public class NavigationSchema implements Disposable {
   }
 
   /**
+   * Gets a map of tags to destination classes
+   */
+  public Multimap<String, PsiClass> getAllDestinationClasses() {
+    Multimap<String, PsiClass> result = HashMultimap.create();
+
+    for (String tag : myTagToDestinationType.keySet()) {
+      List<PsiClass> classes = getDestinationClasses(tag);
+      result.putAll(tag, classes);
+    }
+
+    return result;
+  }
+
+  /**
    * Gets a list of PsiClasses for destination classes and their subclasses for all navigators
    * that use the specified tag name
    */
