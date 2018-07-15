@@ -25,7 +25,6 @@ import com.android.tools.idea.naveditor.TestNlEditor
 import com.android.tools.idea.naveditor.model.className
 import com.android.tools.idea.naveditor.model.layout
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.google.common.collect.ImmutableList
 import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -96,12 +95,36 @@ class AddDestinationMenuTest : NavTestCase() {
     val virtualFile = project.baseDir.findFileByRelativePath("../unitTest/res/layout/activity_main2.xml")
     val xmlFile = PsiManager.getInstance(project).findFile(virtualFile!!) as XmlFile
 
+    addFragment("fragment1")
+    addFragment("fragment3")
+    addFragment("fragment2")
+
+    addActivity("activity2")
+    addActivity("activity3")
+    addActivity("activity1")
+
+    addIncludeFile("include3")
+    addIncludeFile("include2")
+    addIncludeFile("include1")
+
     val parent = model.components[0]
-    val expected1 = Destination.RegularDestination(parent, "fragment", null, "BlankFragment", "mytest.navtest.BlankFragment")
-    val expected2 = Destination.RegularDestination(parent, "activity", null, "MainActivity", "mytest.navtest.MainActivity",
-                                                   layoutFile = xmlFile)
-    val expected3 = Destination.IncludeDestination("navigation.xml", parent)
-    assertSameElements(AddDestinationMenu(surface).destinations, ImmutableList.of(expected1, expected2, expected3))
+    val expected = listOf(
+      Destination.RegularDestination(parent, "fragment", null, "BlankFragment", "mytest.navtest.BlankFragment"),
+      Destination.RegularDestination(parent, "fragment", null, "fragment1", "mytest.navtest.fragment1"),
+      Destination.RegularDestination(parent, "fragment", null, "fragment2", "mytest.navtest.fragment2"),
+      Destination.RegularDestination(parent, "fragment", null, "fragment3", "mytest.navtest.fragment3"),
+      Destination.IncludeDestination("include1.xml", parent),
+      Destination.IncludeDestination("include2.xml", parent),
+      Destination.IncludeDestination("include3.xml", parent),
+      Destination.IncludeDestination("navigation.xml", parent),
+      Destination.RegularDestination(parent, "activity", null, "activity1", "mytest.navtest.activity1"),
+      Destination.RegularDestination(parent, "activity", null, "activity2", "mytest.navtest.activity2"),
+      Destination.RegularDestination(parent, "activity", null, "activity3", "mytest.navtest.activity3"),
+      Destination.RegularDestination(parent, "activity", null, "MainActivity", "mytest.navtest.MainActivity",
+                                     layoutFile = xmlFile))
+
+    val destinations = AddDestinationMenu(surface).destinations
+    assertContainsOrdered(destinations, expected)
   }
 
   override fun tearDown() {
@@ -151,14 +174,14 @@ class AddDestinationMenuTest : NavTestCase() {
     val searchField = menu.searchField
 
     assertEquals(3, gallery.itemsCount)
-    assertEquals("activity_main2", (gallery.model.getElementAt(0) as Destination).label)
-    assertEquals("BlankFragment", (gallery.model.getElementAt(1) as Destination).label)
-    assertEquals("navigation.xml", (gallery.model.getElementAt(2) as Destination).label)
+    assertEquals("BlankFragment", (gallery.model.getElementAt(0) as Destination).label)
+    assertEquals("navigation.xml", (gallery.model.getElementAt(1) as Destination).label)
+    assertEquals("activity_main2", (gallery.model.getElementAt(2) as Destination).label)
 
     searchField.text = "v"
     assertEquals(2, gallery.itemsCount)
-    assertEquals("activity_main2", (gallery.model.getElementAt(0) as Destination).label)
-    assertEquals("navigation.xml", (gallery.model.getElementAt(1) as Destination).label)
+    assertEquals("navigation.xml", (gallery.model.getElementAt(0) as Destination).label)
+    assertEquals("activity_main2", (gallery.model.getElementAt(1) as Destination).label)
 
     searchField.text = "vig"
     assertEquals(1, gallery.itemsCount)
@@ -261,5 +284,39 @@ class AddDestinationMenuTest : NavTestCase() {
     menu.createCustomComponentPopup();
     assertNull(menu.myLoadingPanel);
     */
+  }
+
+  private fun addFragment(name: String) {
+    addDestination(name, "Fragment")
+  }
+
+  private fun addActivity(name: String) {
+    addDestination(name, "Activity")
+  }
+
+  private fun addDestination(name: String, base: String) {
+    val relativePath = "src/mytest/navtest/$name.java"
+    val fileText = """
+      .package mytest.navtest;
+      .import android.app.$base;
+      .
+      .public class $name extends $base {
+      .}
+      """.trimMargin(".")
+
+    myFixture.addFileToProject(relativePath, fileText)
+  }
+
+  private fun addIncludeFile(name: String) {
+    val relativePath = "res/navigation/$name.xml"
+    val fileText = """
+      .<?xml version="1.0" encoding="utf-8"?>
+      .<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          .xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/testnav">
+
+      .</navigation>
+      """.trimMargin(".")
+
+    myFixture.addFileToProject(relativePath, fileText)
   }
 }

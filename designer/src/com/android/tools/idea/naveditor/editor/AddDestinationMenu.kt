@@ -31,21 +31,19 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.Result
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
-import com.intellij.openapi.application.Result
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.CollectionListModel
@@ -61,7 +59,6 @@ import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import org.jetbrains.android.AndroidGotoRelatedProvider
-import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import java.awt.BorderLayout
 import java.awt.Image
@@ -94,17 +91,12 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val module = model.module
       val schema = surface.sceneManager?.schema ?: return listOf()
 
-      val scope = GlobalSearchScope.moduleWithDependenciesScope(module)
-      val project = model.project
       val parent = surface.currentNavigation
-      for (superClassName in NavigationSchema.DESTINATION_SUPERCLASS_TO_TYPE.keys) {
-        val psiSuperClass = JavaPsiFacade.getInstance(project).findClass(superClassName, GlobalSearchScope.allScope(project)) ?: continue
-        val tag = schema.getTagForComponentSuperclass(superClassName) ?: continue
-        val query = ClassInheritorsSearch.search(psiSuperClass, scope, true)
-        for (psiClass in query) {
-          val destination = Destination.RegularDestination(parent, tag, null, psiClass.name, psiClass.qualifiedName)
-          classToDestination[psiClass] = destination
-        }
+      for ((tag, psiClass) in schema.allDestinationClasses.entries()) {
+        val inProject = ModuleUtilCore.findModuleForPsiElement(psiClass) != null
+        val destination = Destination.RegularDestination(parent, tag, null, psiClass.name, psiClass.qualifiedName,
+                                                         inProject = inProject)
+        classToDestination[psiClass] = destination
       }
 
       val resourceManager = LocalResourceManager.getInstance(module) ?: return listOf()
@@ -130,6 +122,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         result.add(Destination.IncludeDestination(navPsi.name, parent))
       }
 
+      result.sort()
       return result
     }
 
