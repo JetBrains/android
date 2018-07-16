@@ -2275,4 +2275,83 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
                    }""".trimIndent()
     verifyFileContents(myBuildFile, expected)
   }
+
+  @Test
+  fun testParseMatchingFallbacks() {
+    val text = """
+      android {
+        productFlavors {
+          demo {
+            matchingFallbacks = ['trial', 'free']
+          }
+        }
+      }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+    val demoFlavour = buildModel.android().productFlavors()[0]!!
+    val resolvedPropertyModel = demoFlavour.matchingFallbacks()
+    verifyListProperty(resolvedPropertyModel, listOf("trial", "free"))
+  }
+
+  @Test
+  fun testWriteMatchingFallbacks() {
+    val text = ""
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+    val demoFlavour = buildModel.android().addProductFlavor("demo")
+    val resolvedPropertyModel = demoFlavour.matchingFallbacks()
+    assertMissingProperty(resolvedPropertyModel)
+    resolvedPropertyModel.convertToEmptyList().addListValue().setValue("trial")
+    resolvedPropertyModel.addListValue().setValue("free")
+    verifyListProperty(resolvedPropertyModel, listOf("trial", "free"))
+
+    applyChangesAndReparse(buildModel)
+    verifyListProperty(buildModel.android().productFlavors()[0].matchingFallbacks(), listOf("trial", "free"))
+  }
+
+  @Test
+  fun testAppendMatchingFallbacks() {
+    val text = """
+      android {
+        productFlavors {
+          demo {
+            matchingFallbacks = ['trial']
+          }
+        }
+      }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+    val demoFlavour = buildModel.android().productFlavors()[0]!!
+    val resolvedPropertyModel = demoFlavour.matchingFallbacks()
+    verifyListProperty(resolvedPropertyModel, listOf("trial"))
+
+    resolvedPropertyModel.addListValue().setValue("free")
+
+    applyChangesAndReparse(buildModel)
+    verifyListProperty(buildModel.android().productFlavors()[0].matchingFallbacks(), listOf("trial", "free"))
+  }
+
+  @Test
+  fun deleteMatchingFallbacks() {
+    val text = """
+      android {
+        flavorDimensions 'tier'
+        productFlavors {
+          demo {
+            dimension 'tier'
+            matchingFallbacks = ['trial']
+          }
+        }
+      }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+    val demoFlavour = buildModel.android().productFlavors()[0]!!
+    val resolvedPropertyModel = demoFlavour.matchingFallbacks()
+    verifyListProperty(resolvedPropertyModel, listOf("trial"))
+
+    resolvedPropertyModel.delete()
+
+    applyChangesAndReparse(buildModel)
+    assertMissingProperty(buildModel.android().productFlavors()[0].matchingFallbacks())
+  }
 }
