@@ -42,7 +42,7 @@ open class AssistantPopupPanel @JvmOverloads constructor(
     border = JBUI.Borders.merge(
       JBUI.Borders.empty(8, SIDE_PADDING, 8, SIDE_PADDING),
       JBUI.Borders.customLine(com.android.tools.adtui.common.border, 0, 0, 1, 0), true)
-    font = font.deriveFont(10f)
+    font = font.deriveFont(JBUI.scaleFontSize(10f))
     isOpaque = false
   }
 
