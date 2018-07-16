@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.aidl.psi.*;
 
 public class AidlPrimitiveTypeImpl extends AidlTypeImpl implements AidlPrimitiveType {
 
-  public AidlPrimitiveTypeImpl(ASTNode node) {
+  public AidlPrimitiveTypeImpl(@NotNull ASTNode node) {
     super(node);
   }
 

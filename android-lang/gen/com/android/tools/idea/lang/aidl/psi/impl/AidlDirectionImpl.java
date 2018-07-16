@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.aidl.psi.*;
 
 public class AidlDirectionImpl extends AidlPsiCompositeElementImpl implements AidlDirection {
 
-  public AidlDirectionImpl(ASTNode node) {
+  public AidlDirectionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbDefaultsImpl extends DataBindingPsiElement implements PsiDbDefaults {
 
-  public PsiDbDefaultsImpl(ASTNode node) {
+  public PsiDbDefaultsImpl(@NotNull ASTNode node) {
     super(node);
   }
 

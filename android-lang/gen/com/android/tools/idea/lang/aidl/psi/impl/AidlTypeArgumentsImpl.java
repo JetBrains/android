@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.aidl.psi.*;
 
 public class AidlTypeArgumentsImpl extends AidlPsiCompositeElementImpl implements AidlTypeArguments {
 
-  public AidlTypeArgumentsImpl(ASTNode node) {
+  public AidlTypeArgumentsImpl(@NotNull ASTNode node) {
     super(node);
   }
 

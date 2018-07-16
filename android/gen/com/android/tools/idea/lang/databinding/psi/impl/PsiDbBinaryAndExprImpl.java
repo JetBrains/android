@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbBinaryAndExprImpl extends PsiDbExprImpl implements PsiDbBinaryAndExpr {
 
-  public PsiDbBinaryAndExprImpl(ASTNode node) {
+  public PsiDbBinaryAndExprImpl(@NotNull ASTNode node) {
     super(node);
   }
 

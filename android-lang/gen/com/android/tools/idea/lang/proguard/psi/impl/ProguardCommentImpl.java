@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.proguard.psi.*;
 
 public class ProguardCommentImpl extends ASTWrapperPsiElement implements ProguardComment {
 
-  public ProguardCommentImpl(ASTNode node) {
+  public ProguardCommentImpl(@NotNull ASTNode node) {
     super(node);
   }
 

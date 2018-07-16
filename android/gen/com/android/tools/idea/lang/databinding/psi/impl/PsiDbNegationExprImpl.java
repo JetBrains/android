@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbNegationExprImpl extends PsiDbExprImpl implements PsiDbNegationExpr {
 
-  public PsiDbNegationExprImpl(ASTNode node) {
+  public PsiDbNegationExprImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomLimitClauseImpl extends ASTWrapperPsiElement implements RoomLimitClause {
 
-  public RoomLimitClauseImpl(ASTNode node) {
+  public RoomLimitClauseImpl(@NotNull ASTNode node) {
     super(node);
   }
 

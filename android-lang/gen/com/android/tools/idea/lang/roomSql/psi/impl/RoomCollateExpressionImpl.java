@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomCollateExpressionImpl extends RoomExpressionImpl implements RoomCollateExpression {
 
-  public RoomCollateExpressionImpl(ASTNode node) {
+  public RoomCollateExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomRollbackStatementImpl extends ASTWrapperPsiElement implements RoomRollbackStatement {
 
-  public RoomRollbackStatementImpl(ASTNode node) {
+  public RoomRollbackStatementImpl(@NotNull ASTNode node) {
     super(node);
   }
 

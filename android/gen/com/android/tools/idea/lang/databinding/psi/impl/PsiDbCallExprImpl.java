@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbCallExprImpl extends PsiDbExprImpl implements PsiDbCallExpr {
 
-  public PsiDbCallExprImpl(ASTNode node) {
+  public PsiDbCallExprImpl(@NotNull ASTNode node) {
     super(node);
   }
 

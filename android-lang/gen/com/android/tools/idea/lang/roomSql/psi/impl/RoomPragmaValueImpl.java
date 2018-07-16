@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomPragmaValueImpl extends ASTWrapperPsiElement implements RoomPragmaValue {
 
-  public RoomPragmaValueImpl(ASTNode node) {
+  public RoomPragmaValueImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -29,7 +29,7 @@ import com.android.tools.idea.smali.psi.*;
 
 public class SmaliPrimitiveTypeImpl extends ASTWrapperPsiElement implements SmaliPrimitiveType {
 
-  public SmaliPrimitiveTypeImpl(ASTNode node) {
+  public SmaliPrimitiveTypeImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -29,7 +29,7 @@ import com.android.tools.idea.smali.psi.*;
 
 public class SmaliReturnTypeImpl extends ASTWrapperPsiElement implements SmaliReturnType {
 
-  public SmaliReturnTypeImpl(ASTNode node) {
+  public SmaliReturnTypeImpl(@NotNull ASTNode node) {
     super(node);
   }
 
