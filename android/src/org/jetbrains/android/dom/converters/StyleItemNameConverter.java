@@ -17,68 +17,41 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceNamespaceContext;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.util.Pair;
+import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
+import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
+import static com.intellij.openapi.util.Pair.pair;
 
 public class StyleItemNameConverter extends ResolvingConverter<String> {
-  /**
-   * Finds the parent name from the passed style {@link XmlTag}. The parent name might be in the parent attribute or it can be part of the
-   * style name.
-   */
-  @Nullable/*if the tag is null or doesn't define a parent*/
-  private static String getParentNameFromTag(@Nullable XmlTag styleTag) {
-    if (styleTag == null) {
-      return null;
-    }
-
-    String parentName = styleTag.getAttributeValue(SdkConstants.ATTR_PARENT);
-    if (parentName == null) {
-      String styleName = styleTag.getAttributeValue(SdkConstants.ATTR_NAME);
-      if (styleName == null) {
-        return null;
-      }
-
-      int lastDot = styleName.lastIndexOf('.');
-      if (lastDot == -1) {
-        return null;
-      }
-
-      parentName = styleName.substring(0, lastDot);
-    } else if (parentName.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX)) {
-      parentName = StringUtil.trimStart(parentName, SdkConstants.STYLE_RESOURCE_PREFIX);
-    } else if (parentName.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX)){
-      parentName = SdkConstants.PREFIX_ANDROID + StringUtil.trimStart(parentName, SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX);
-    }
-
-    return parentName;
-  }
 
   @NotNull
   @Override
@@ -86,41 +59,9 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
     List<String> result = Lists.newArrayList();
 
     if (context.getModule() != null && context.getTag() != null) {
-      // Try to find the parents of the styles where this item is defined and add to the suggestion every non-framework attribute that has been used.
-      // This is helpful in themes like AppCompat where there is not only a framework attribute defined but also a custom attribute. This
-      // will show both in the completion list.
-      LocalResourceRepository LocalResourceRepository = ResourceRepositoryManager.getAppResources(context.getModule());
       XmlTag styleTag = context.getTag().getParentTag();
-      String parent = getParentNameFromTag(styleTag);
-      List<ResourceItem> parentDefinitions =
-        parent != null && LocalResourceRepository != null ? LocalResourceRepository.getResourceItem(ResourceType.STYLE, parent) : null;
-
-      if (parentDefinitions != null && !parentDefinitions.isEmpty()) {
-        HashSet<String> attributeNames = Sets.newHashSet();
-        LinkedList<ResourceItem> toExplore = Lists.newLinkedList(parentDefinitions);
-        int i = 0;
-        while (!toExplore.isEmpty() && i++ < MAX_RESOURCE_INDIRECTION) {
-          ResourceItem parentItem = toExplore.pop();
-          StyleResourceValue parentValue = (StyleResourceValue)parentItem.getResourceValue();
-          if (parentValue == null || parentValue.isFramework()) {
-            // No parent or the parent is a framework style
-            continue;
-          }
-
-          // TODO: namespaces
-          for (StyleItemResourceValue value : parentValue.getDefinedItems()) {
-            if (!value.isFramework()) {
-              attributeNames.add(value.getAttrName());
-            }
-          }
-
-          ResourceReference parentStyle = parentValue.getParentStyle();
-          if (parentStyle != null) {
-            toExplore.addAll(LocalResourceRepository.getResourceItems(parentStyle));
-          }
-        }
-
-        result.addAll(attributeNames);
+      if (styleTag != null) {
+        result.addAll(getAttributesUsedByParentStyle(styleTag));
       }
     }
 
@@ -137,6 +78,105 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
     return result;
   }
 
+  /**
+   * Try to find the parents of the styles where this item is defined and add to the suggestion every non-framework attribute that has been
+   * used. This is helpful in themes like AppCompat where there is not only a framework attribute defined but also a custom attribute. This
+   * will show both in the completion list.
+   */
+  @NotNull
+  private static Collection<String> getAttributesUsedByParentStyle(@NotNull XmlTag styleTag) {
+    Module module = ModuleUtilCore.findModuleForPsiElement(styleTag);
+    if (module == null) {
+      return Collections.emptyList();
+    }
+
+    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(module);
+    if (appResources == null) {
+      return Collections.emptyList();
+    }
+
+    ResourceReference parentStyleReference = getParentStyleFromTag(styleTag);
+    if (parentStyleReference == null) {
+      return Collections.emptyList();
+    }
+    List<ResourceItem> parentStyles = appResources.getResourceItems(parentStyleReference);
+
+    ResourceNamespaceContext namespacesContext = ResourceHelper.getNamespacesContext(styleTag);
+    if (namespacesContext == null) {
+      return Collections.emptyList();
+    }
+
+    ResourceNamespace namespace = namespacesContext.getCurrentNs();
+    ResourceNamespace.Resolver resolver = namespacesContext.getResolver();
+    HashSet<String> attributeNames = new HashSet<>();
+
+    ArrayDeque<Pair<ResourceItem, Integer>> toExplore = new ArrayDeque<>();
+    for (ResourceItem parentStyle : parentStyles) {
+      toExplore.push(pair(parentStyle, 0));
+    }
+
+    while (!toExplore.isEmpty()) {
+      Pair<ResourceItem, Integer> top = toExplore.pop();
+      int depth = top.second;
+      if (depth > MAX_RESOURCE_INDIRECTION) {
+        continue; // This branch in the parent graph is too deep.
+      }
+
+      ResourceItem parentItem = top.first;
+      StyleResourceValue parentValue = (StyleResourceValue)parentItem.getResourceValue();
+      if (parentValue == null || parentValue.isFramework()) {
+        // No parent or the parent is a framework style
+        continue;
+      }
+
+      for (StyleItemResourceValue value : parentValue.getDefinedItems()) {
+        if (!value.isFramework()) {
+          ResourceReference attr = value.getAttr();
+          if (attr != null) {
+            attributeNames.add(attr.getRelativeResourceUrl(namespace, resolver).getQualifiedName());
+          }
+        }
+      }
+
+      parentStyleReference = parentValue.getParentStyle();
+      if (parentStyleReference != null) {
+        for (ResourceItem parentStyle : appResources.getResourceItems(parentStyleReference)) {
+          toExplore.add(pair(parentStyle, depth + 1));
+        }
+      }
+    }
+    return attributeNames;
+  }
+
+  /**
+   * Finds the parent style from the passed style {@link XmlTag}. The parent name might be in the parent attribute or it can be part of the
+   * style name. Returns null if it cannot determine the parent style.
+   */
+  @Nullable
+  private static ResourceReference getParentStyleFromTag(@NotNull XmlTag styleTag) {
+    String parentName = styleTag.getAttributeValue(SdkConstants.ATTR_PARENT);
+    if (parentName == null) {
+      String styleName = styleTag.getAttributeValue(SdkConstants.ATTR_NAME);
+      if (styleName == null) {
+        return null;
+      }
+
+      int lastDot = styleName.lastIndexOf('.');
+      if (lastDot == -1) {
+        return null;
+      }
+
+      parentName = styleName.substring(0, lastDot);
+    }
+
+    ResourceUrl parentUrl = ResourceUrl.parseStyleParentReference(parentName);
+    if (parentUrl == null) {
+      return null;
+    }
+
+    return ResourceHelper.resolve(parentUrl, styleTag);
+  }
+
   @Override
   public LookupElement createLookupElement(String s) {
     if (s == null) {
@@ -149,21 +189,38 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
 
   @Override
   public String fromString(@Nullable @NonNls String s, ConvertContext context) {
-    if (s == null) return null;
-    String[] strs = s.split(":");
-    if (strs.length < 2 || !"android".equals(strs[0])) {
-      return s;
+    if (s == null) {
+      return null;
     }
-    if (strs.length == 2) {
-      ResourceManager manager = FrameworkResourceManager.getInstance(context);
-      if (manager != null) {
-        AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
-        if (attrDefs != null && attrDefs.getAttrDefByName(strs[1]) != null) {
-          return s;
-        }
-      }
+
+    XmlElement xmlElement = context.getXmlElement();
+    if (xmlElement == null) {
+      return null;
     }
-    return null;
+
+    ResourceUrl attrUrl = ResourceUrl.parseAttrReference(s);
+    if (attrUrl == null) {
+      return null;
+    }
+
+    ResourceReference attributeReference = ResourceHelper.resolve(attrUrl, xmlElement);
+    if (attributeReference == null) {
+      return null;
+    }
+
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(xmlElement);
+    if (repositoryManager == null) {
+      return null;
+    }
+
+    AbstractResourceRepository repository = attributeReference.getNamespace() == ResourceNamespace.ANDROID ?
+                                            repositoryManager.getFrameworkResources(false) :
+                                            repositoryManager.getAppResources(true);
+    if (repository == null) {
+      return null;
+    }
+
+    return repository.getResourceItems(attributeReference).isEmpty() ? null : s;
   }
 
   @Override

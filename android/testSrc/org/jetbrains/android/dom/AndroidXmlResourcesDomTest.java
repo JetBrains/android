@@ -25,9 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Tests for code editor features when working with value resources XML files in non-namespaced projects.
- *
- * @see AndroidNamespacedXmlResourcesDomTest
+ * Tests for code editor features when working with resources under res/xml.
  */
 public class AndroidXmlResourcesDomTest extends AndroidDomTestCase {
   public AndroidXmlResourcesDomTest() {
