@@ -63,7 +63,7 @@ open class DrawableGrid(val module: Module,
     super.setSelectionInterval(anchor, lead)
   }
 
-  fun setImageSize(drawableSize: Int) {
+  private fun setImageSize(drawableSize: Int) {
     fixedCellWidth = drawableSize + ITEM_BORDER_WIDTH * 2
     fixedCellHeight = fixedCellWidth
     cellRenderer = DrawableCellRenderer(module, drawableSize, cacheSize)
@@ -75,10 +75,11 @@ open class DrawableGrid(val module: Module,
 }
 
 internal class DrawableCellRenderer(private val module: Module,
-                                    private val imageSize: Int,
+                                    imageSize: Int,
                                     cacheSize: Long = DEFAULT_CACHE_SIZE)
   : ListCellRenderer<ResourceValue> {
 
+  private val imageDimension = Dimension(imageSize, imageSize)
   private var emptyIcon = ColorIcon(imageSize, EMPTY_ICON_COLOR)
   private val disabledComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f)
   private val cache = CacheBuilder.newBuilder()
@@ -124,7 +125,7 @@ internal class DrawableCellRenderer(private val module: Module,
 
     val image = DesignAssetRendererManager.getInstance()
       .getViewer(file)
-      .getImage(file, module, JBUI.size(imageSize))
+      .getImage(file, module, imageDimension)
 
     image.addListener(Runnable {
       if (!image.isCancelled) {
