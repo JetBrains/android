@@ -78,8 +78,8 @@ class NelePropertiesProvider(private val model: NelePropertiesModel) {
   private fun getPropertiesImpl(components: List<NlComponent>): Table<String, String, NelePropertyItem> {
     val resourceManagers = ModuleResourceManagers.getInstance(model.facet)
     val localResourceManager = resourceManagers.localResourceManager
-    val systemResourceManager = resourceManagers.systemResourceManager
-    if (systemResourceManager == null) {
+    val frameworkResourceManager = resourceManagers.frameworkResourceManager
+    if (frameworkResourceManager == null) {
       Logger.getInstance(NelePropertiesProvider::class.java).error("No system resource manager for module: " + model.facet.module.name)
       return emptyTable
     }
@@ -89,7 +89,7 @@ class NelePropertiesProvider(private val model: NelePropertiesModel) {
     val minApi = AndroidModuleInfo.getInstance(model.facet).minSdkVersion.featureLevel
 
     val localAttrDefs = localResourceManager.attributeDefinitions
-    val systemAttrDefs = systemResourceManager.attributeDefinitions
+    val systemAttrDefs = frameworkResourceManager.attributeDefinitions
 
     var combinedProperties: Table<String, String, NelePropertyItem>? = null
 

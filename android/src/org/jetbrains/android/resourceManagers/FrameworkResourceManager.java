@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.resourceManagers;
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
@@ -36,11 +35,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-public class SystemResourceManager extends ResourceManager {
+public class FrameworkResourceManager extends ResourceManager {
   private final AndroidPlatform myPlatform;
   private final boolean myPublicOnly;
 
-  public SystemResourceManager(@NotNull Project project, @NotNull AndroidPlatform androidPlatform, boolean publicOnly) {
+  public FrameworkResourceManager(@NotNull Project project, @NotNull AndroidPlatform androidPlatform, boolean publicOnly) {
     super(project);
     myPlatform = androidPlatform;
     myPublicOnly = publicOnly;
@@ -90,9 +89,9 @@ public class SystemResourceManager extends ResourceManager {
   }
 
   @Nullable
-  public static SystemResourceManager getInstance(@NotNull ConvertContext context) {
+  public static FrameworkResourceManager getInstance(@NotNull ConvertContext context) {
     AndroidFacet facet = AndroidFacet.getInstance(context);
-    return facet != null ? ModuleResourceManagers.getInstance(facet).getSystemResourceManager() : null;
+    return facet != null ? ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager() : null;
   }
 
   @Override

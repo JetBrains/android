@@ -119,7 +119,7 @@ public class AttributeDefinitionsTest extends AndroidTestCase {
     assertThat(getDefs().getAttrDefByName("android:background").getResourceReference())
         .isEqualTo(ResourceReference.attr(ResourceNamespace.ANDROID, "background"));
     assertThat(getDefs().getAttrDefByName("background")).isNull();
-    AttributeDefinitions frameworkDefs = ModuleResourceManagers.getInstance(myFacet).getSystemResourceManager().getAttributeDefinitions();
+    AttributeDefinitions frameworkDefs = ModuleResourceManagers.getInstance(myFacet).getFrameworkResourceManager().getAttributeDefinitions();
     assertThat(frameworkDefs.getAttrDefByName("background").getResourceReference())
         .isEqualTo(ResourceReference.attr(ResourceNamespace.ANDROID, "background"));
   }

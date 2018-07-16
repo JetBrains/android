@@ -81,8 +81,8 @@ class NeleFlagsPropertyItemTest : PropertyTestCase() {
   private fun createFlagsPropertyItem(attrName: String, type: NelePropertyType, components: List<NlComponent>): NeleFlagsPropertyItem {
     val model = NelePropertiesModel(testRootDisposable, myFacet)
     val resourceManagers = ModuleResourceManagers.getInstance(myFacet)
-    val systemResourceManager = resourceManagers.systemResourceManager
-    val definition = systemResourceManager?.attributeDefinitions?.getAttrDefByName(attrName)
+    val frameworkResourceManager = resourceManagers.frameworkResourceManager
+    val definition = frameworkResourceManager?.attributeDefinitions?.getAttrDefByName(attrName)
     return NeleFlagsPropertyItem(ANDROID_URI, attrName, type, definition!!, "", model, components)
   }
 }

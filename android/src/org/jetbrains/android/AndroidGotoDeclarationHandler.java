@@ -95,7 +95,7 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
     else {
       ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
       ResourceManager manager = info.getNamespace() == ResourceNamespace.ANDROID
-                                    ? resourceManagers.getSystemResourceManager(false)
+                                    ? resourceManagers.getFrameworkResourceManager(false)
                                     : resourceManagers.getLocalResourceManager();
       if (manager == null) {
         return null;

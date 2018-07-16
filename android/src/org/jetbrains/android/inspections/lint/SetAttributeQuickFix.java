@@ -17,7 +17,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.resourceManagers.SystemResourceManager;
+import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -139,7 +139,7 @@ public class SetAttributeQuickFix implements AndroidLintQuickFix {
     final String title = "Set Attribute Value";
 
     if (facet != null) {
-      final SystemResourceManager srm = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
+      final FrameworkResourceManager srm = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
 
       if (srm != null) {
         final AttributeDefinitions attrDefs = srm.getAttributeDefinitions();

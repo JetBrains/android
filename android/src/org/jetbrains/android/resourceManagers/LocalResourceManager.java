@@ -110,8 +110,8 @@ public class LocalResourceManager extends ResourceManager {
   public AttributeDefinitions getAttributeDefinitions() {
     synchronized (myAttrDefsLock) {
       if (myAttrDefs == null) {
-        ResourceManager systemResourceManager = ModuleResourceManagers.getInstance(myFacet).getSystemResourceManager();
-        AttributeDefinitions frameworkAttributes = systemResourceManager == null ? null : systemResourceManager.getAttributeDefinitions();
+        ResourceManager frameworkResourceManager = ModuleResourceManagers.getInstance(myFacet).getFrameworkResourceManager();
+        AttributeDefinitions frameworkAttributes = frameworkResourceManager == null ? null : frameworkResourceManager.getAttributeDefinitions();
         myAttrDefs = AttributeDefinitionsImpl.create(frameworkAttributes, getResourceRepository());
       }
       return myAttrDefs;
