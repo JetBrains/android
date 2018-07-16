@@ -23,6 +23,9 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime[test]",
         "//tools/adt/idea/profilers-atrace[module]",
+        "//tools/adt/idea/perfd-host:intellij.android.perfdHost[test]",
+        # b/111212820 eliminate this dependency when the needed classes are refactored out.
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
+        "//tools/base/perf-logger:studio.perf-logger[test]",
     ],
 )
