@@ -45,6 +45,7 @@ import com.intellij.openapi.wm.ex.IdeFocusTraversalPolicy;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.Wrapper;
 import com.intellij.ui.navigation.BackAction;
 import com.intellij.ui.navigation.ForwardAction;
@@ -89,7 +90,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
   private SidePanel mySidePanel;
   private JPanel myNotificationPanel;
   private JComponent myToolbarComponent;
-  private ConfigurationErrorsComponent myErrorsComponent;
+  private JBLabel myErrorsComponent;
   private JComponent myToFocus;
 
   private boolean myUiInitialized;
@@ -338,7 +339,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
     mySplitter.setSecondComponent(myDetails);
 
     component.add(mySplitter, BorderLayout.CENTER);
-    myErrorsComponent = new ConfigurationErrorsComponent(myProject);
+    myErrorsComponent = new JBLabel(); // TODO(solodkyy): Configure for (multi-line?) HTML.
     component.add(myErrorsComponent, BorderLayout.SOUTH);
 
     myUiInitialized = true;
@@ -499,7 +500,6 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
     myConfigurables.forEach(Configurable::disposeUIResources);
     myConfigurables.clear();
 
-    Disposer.dispose(myErrorsComponent);
     Disposer.dispose(myDisposable);
 
     myUiInitialized = false;
