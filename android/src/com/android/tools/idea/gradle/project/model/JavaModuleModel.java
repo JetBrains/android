@@ -39,7 +39,7 @@ import static com.intellij.openapi.util.io.FileUtil.isAncestor;
  */
 public class JavaModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 3L;
 
   @NotNull private final String myModuleName;
   @NotNull private final Collection<JavaModuleContentRoot> myContentRoots;
