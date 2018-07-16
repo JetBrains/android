@@ -145,6 +145,11 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     myNoPiiExceptionHanlder = noPiiExceptionHanlder;
   }
 
+  @VisibleForTesting
+  public Map<BackingNamespace, DataStoreDatabase> getDatabases() {
+    return myDatabases;
+  }
+
   /**
    * Entry point for the datastore pollers and passthrough services are created,
    * and registered as the set of features the datastore supports.
