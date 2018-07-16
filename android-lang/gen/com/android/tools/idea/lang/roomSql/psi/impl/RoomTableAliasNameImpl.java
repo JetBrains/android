@@ -49,7 +49,7 @@ public class RoomTableAliasNameImpl extends AbstractRoomNameElement implements R
   }
 
   @NotNull
-  public RoomTableAliasName setName(String newName) {
+  public RoomTableAliasName setName(@NotNull String newName) {
     return PsiImplUtil.setName(this, newName);
   }
 
