@@ -37,10 +37,9 @@ private val DEFAULT_IMAGE_SIZE = JBUI.scale(48)
 private val EMPTY_ICON_COLOR = JBColor(Color(0xAA, 0xAA, 0xAA, 0x33),
                                        Color(0xAA, 0xAA, 0xAA, 0x33))
 private val ITEM_BORDER = JBUI.Borders.empty(ITEM_BORDER_WIDTH)
-private val ITEM_BORDER_SELECTED = JBUI.Borders.merge(
-  JBUI.Borders.customLine(UIUtil.getListBackground(true), ITEM_SELECTED_BORDER_WIDTH),
+private val ITEM_BORDER_SELECTED = BorderFactory.createCompoundBorder(
   JBUI.Borders.empty(ITEM_BORDER_WIDTH - ITEM_SELECTED_BORDER_WIDTH),
-  true)
+  JBUI.Borders.customLine(UIUtil.getListBackground(true), ITEM_SELECTED_BORDER_WIDTH))
 
 /**
  * Component that displays [ResourceValue] in a grid.
@@ -86,7 +85,9 @@ internal class DrawableCellRenderer(private val module: Module,
     .softValues()
     .maximumSize(cacheSize)
     .build<ResourceValue, Icon>()
-  private val label = JLabel()
+  private val label = JLabel().apply {
+    horizontalAlignment = JLabel.CENTER
+  }
 
   private fun createDisabledIcon(imageIcon: ImageIcon) = object : Icon by imageIcon {
     override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) {
