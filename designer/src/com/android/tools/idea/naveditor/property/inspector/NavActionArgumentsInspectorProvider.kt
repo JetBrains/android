@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.NlTableCellEditor
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.table.JBTable
+import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.BorderFactory
@@ -36,6 +37,7 @@ import javax.swing.JPanel
 import javax.swing.table.TableCellRenderer
 
 const val NAV_ACTION_ARGUMENTS_COMPONENT_NAME = "NavActionArgumentsPropertyInspector"
+val NAV_ARGUMENTS_ROW_HEIGHT = JBUI.scale(22)
 
 class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManager> {
 

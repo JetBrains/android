@@ -50,7 +50,7 @@ class NavDeeplinksPropertyTest : NavTestCase() {
 
   fun testNoActions() {
     val property = NavDeeplinkProperty(listOf(model.find("f1")!!))
-    assertTrue(property.properties.isEmpty())
+    assertTrue(property.properties.isEmpty)
   }
 
   fun testModify() {
@@ -62,6 +62,6 @@ class NavDeeplinksPropertyTest : NavTestCase() {
     assertEquals(deeplink, property.getChildProperties(uri1)[0].components[0])
     fragment.removeChild(deeplink)
     property.refreshList()
-    assertTrue(property.properties.isEmpty())
+    assertTrue(property.properties.isEmpty)
   }
 }

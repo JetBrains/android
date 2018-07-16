@@ -31,6 +31,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.navigation.NavActionElement
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE
 import java.io.File
 
 /*
@@ -124,6 +125,9 @@ val NlComponent.isDestination: Boolean
 val NlComponent.isAction: Boolean
   get() = tagName == NavigationSchema.TAG_ACTION
 
+val NlComponent.isArgument: Boolean
+  get() = tagName == NavigationSchema.TAG_ARGUMENT
+
 val NlComponent.isFragment: Boolean
   get() = model.schema.isFragmentTag(tagName)
 
@@ -171,6 +175,7 @@ private fun NlComponent.containsDestination(destinationId: String): Boolean {
 
 var NlComponent.actionDestinationId: String? by IdAutoAttributeDelegate(NavigationSchema.ATTR_DESTINATION)
 var NlComponent.className: String? by StringAttributeDelegate(ANDROID_URI, ATTR_NAME)
+var NlComponent.argumentName: String? by StringAttributeDelegate(ANDROID_URI, ATTR_NAME)
 var NlComponent.layout: String? by StringAttributeDelegate(TOOLS_URI, ATTR_LAYOUT)
 var NlComponent.enterAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_ENTER_ANIM)
 var NlComponent.exitAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_EXIT_ANIM)
@@ -180,6 +185,9 @@ var NlComponent.inclusive: Boolean by BooleanAutoAttributeDelegate(NavigationSch
 var NlComponent.popEnterAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_POP_ENTER_ANIM)
 var NlComponent.popExitAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_POP_EXIT_ANIM)
 var NlComponent.singleTop: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_SINGLE_TOP)
+var NlComponent.typeAttr: String? by StringAttributeDelegate(AUTO_URI, ATTR_TYPE)
+var NlComponent.defaultValue: String? by StringAttributeDelegate(ANDROID_URI, ATTR_DEFAULT_VALUE)
+var NlComponent.nullable: Boolean by BooleanAutoAttributeDelegate(ATTR_NULLABLE)
 
 var NlComponent.startDestination: String? by IdAutoAttributeDelegate(ATTR_START_DESTINATION)
 

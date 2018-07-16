@@ -131,17 +131,6 @@ public class NavDesignSurface extends DesignSurface {
     return 1f;
   }
 
-  /**
-   * @deprecated use {@link #getSceneManager()} and {@link NavSceneManager#getSchema()} instead.
-   */
-  @Deprecated
-  @NotNull
-  public NavigationSchema getSchema() {
-    NavSceneManager manager = getSceneManager();
-    assert manager != null;  // TODO: make sure this cannot happen
-    return manager.getSchema();
-  }
-
   @Override
   public void forceUserRequestedRefresh() {
   }
