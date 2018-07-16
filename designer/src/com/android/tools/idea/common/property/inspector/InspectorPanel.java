@@ -263,7 +263,11 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
         rows += inspector.getMaxNumberOfRows();
       }
       rows += myInspectors.size(); // 1 row for each divider (including 1 after the last property)
-      rows += 2; // 1 Line with a link to all properties + 1 row with a spacer on the bottom
+      rows++; // 1 row with a spacer on the bottom
+
+      if (myBottomLink != null) {
+        rows++; // 1 Line with a link to all properties +
+      }
 
       myInspector.setLayout(createLayoutManager(rows));
       for (InspectorComponent<PropMgr> inspector : myInspectors) {

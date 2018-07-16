@@ -40,9 +40,9 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
       return
     }
 
-    propertiesByName.put(TYPE_EDITOR_PROPERTY_LABEL, NavComponentTypeProperty(components))
+    propertiesByName[TYPE_EDITOR_PROPERTY_LABEL] = NavComponentTypeProperty(components)
     if (components.any { it.destinationType != null }) {
-      propertiesByName.put(SET_START_DESTINATION_PROPERTY_NAME, SetStartDestinationProperty(components))
+      propertiesByName[SET_START_DESTINATION_PROPERTY_NAME] = SetStartDestinationProperty(components)
     }
 
     val schema = NavigationSchema.get(components[0].model.facet)
@@ -51,15 +51,15 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
     addProperties(components, schema, propertiesByName, DeeplinkElement::class.java, ::NavDeeplinkProperty)
     addProperties(components, schema, propertiesByName, NavArgumentElement::class.java) { c ->
       if (c.all { it.destinationType != null }) {
-        NavDestinationArgumentsProperty(c, propertiesManager)
+        NavDestinationArgumentsProperty(c)
       }
       else {
         NavActionArgumentsProperty(c, propertiesManager)
       }
     }
     components.filter { it.tagName == TAG_INCLUDE }.forEach {
-      propertiesByName.put(ATTR_ID, SimpleProperty(ATTR_ID, listOf(it), ANDROID_URI, it.id))
-      propertiesByName.put(ATTR_LABEL, SimpleProperty(ATTR_LABEL, listOf(it), ANDROID_URI, it.resolveAttribute(ANDROID_URI, ATTR_LABEL)))
+      propertiesByName[ATTR_ID] = SimpleProperty(ATTR_ID, listOf(it), ANDROID_URI, it.id)
+      propertiesByName[ATTR_LABEL] = SimpleProperty(ATTR_LABEL, listOf(it), ANDROID_URI, it.resolveAttribute(ANDROID_URI, ATTR_LABEL))
     }
   }
 
@@ -69,7 +69,7 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
         components.filter { schema.getDestinationSubtags(it.tagName).containsKey(elementClass) }
     if (!relevantComponents.isEmpty()) {
       val property = propertyConstructor(relevantComponents)
-      propertiesByName.put(property.name, property)
+      propertiesByName[property.name] = property
     }
   }
 }

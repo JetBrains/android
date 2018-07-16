@@ -21,7 +21,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 
 /**
- * Property representing all the actions (possibly zero) for a destinations.
+ * Property representing all the deep links (possibly zero) for a destinations.
  */
 class NavDeeplinkProperty(components: List<NlComponent>) : ListProperty("Deeplinks", components) {
 

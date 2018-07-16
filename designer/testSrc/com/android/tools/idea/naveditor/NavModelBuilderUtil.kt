@@ -26,6 +26,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.naveditor.model.schema
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -46,8 +47,8 @@ annotation class NavTestDsl
  * Descriptors used for building navigation [com.android.tools.idea.common.model.NlModel]s
  */
 object NavModelBuilderUtil {
-  private val TAG_FRAGMENT = "fragment"
-  private val TAG_NAVIGATION = "navigation"
+  private const val TAG_FRAGMENT = "fragment"
+  private const val TAG_NAVIGATION = "navigation"
 
   fun model(name: String,
             facet: AndroidFacet,
@@ -64,7 +65,6 @@ object NavModelBuilderUtil {
         throw RuntimeException(e)
       }
 
-      `when`(surface.schema).thenReturn(NavigationSchema.get(facet))
       `when`<NlComponent>(surface.currentNavigation).then { model.components[0] }
       `when`(surface.extentSize).thenReturn(Dimension(500, 500))
       `when`(surface.scrollPosition).thenAnswer { Point(0, 0) }
@@ -137,8 +137,8 @@ object NavModelBuilderUtil {
       addChild(DeepLinkComponentDescriptor(uri, autoVerify), null)
     }
 
-    fun argument(name: String, type: String? = null, value: String? = null) {
-      addChild(ArgumentComponentDescriptor(name, type, value), null)
+    fun argument(name: String, type: String? = null, nullable: Boolean? = null, value: String? = null) {
+      addChild(ArgumentComponentDescriptor(name, type, nullable, value), null)
     }
   }
 
@@ -165,8 +165,8 @@ object NavModelBuilderUtil {
       addChild(DeepLinkComponentDescriptor(uri, autoVerify), null)
     }
 
-    fun argument(name: String, type: String? = null, value: String? = null) {
-      addChild(ArgumentComponentDescriptor(name, type, value), null)
+    fun argument(name: String, type: String? = null, nullable: Boolean? = null, value: String? = null) {
+      addChild(ArgumentComponentDescriptor(name, type, nullable, value), null)
     }
   }
 
@@ -182,7 +182,7 @@ object NavModelBuilderUtil {
     }
 
     fun argument(name: String, value: String? = null) {
-      addChild(ArgumentComponentDescriptor(name, null, value), null)
+      addChild(ArgumentComponentDescriptor(name, null, null, value), null)
     }
   }
 
@@ -195,8 +195,8 @@ object NavModelBuilderUtil {
       addChild(DeepLinkComponentDescriptor(uri, autoVerify), null)
     }
 
-    fun argument(name: String, type: String? = null, value: String? = null) {
-      addChild(ArgumentComponentDescriptor(name, type, value), null)
+    fun argument(name: String, type: String? = null, nullable: Boolean? = null, value: String? = null) {
+      addChild(ArgumentComponentDescriptor(name, type, nullable, value), null)
     }
   }
 
@@ -215,11 +215,12 @@ object NavModelBuilderUtil {
     }
   }
 
-  class ArgumentComponentDescriptor(name: String, type: String?, value: String?) : NavComponentDescriptor(TAG_ARGUMENT) {
+  class ArgumentComponentDescriptor(name: String, type: String?, nullable: Boolean?, value: String?) : NavComponentDescriptor(TAG_ARGUMENT) {
     init {
       withAttribute(ANDROID_URI, SdkConstants.ATTR_NAME, name)
       value?.let { withAttribute(ANDROID_URI, NavigationSchema.ATTR_DEFAULT_VALUE, it) }
       type?.let { withAttribute(AUTO_URI, SdkConstants.ATTR_TYPE, it) }
+      nullable?.let { withAttribute(AUTO_URI, SdkConstants.ATTR_NULLABLE, it.toString()) }
     }
   }
 

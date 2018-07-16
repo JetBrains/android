@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import org.mockito.Mockito.mock
 
 class NavDestinationArgumentsPropertyTest : NavTestCase() {
   private lateinit var model: SyncNlModel
@@ -29,8 +28,8 @@ class NavDestinationArgumentsPropertyTest : NavTestCase() {
     model = model("nav.xml") {
       navigation {
         fragment("f1") {
-          argument("arg1", value = "val1")
-          argument("arg2", value = "val2")
+          argument("arg1", type = "boolean", value = "true")
+          argument("arg2", type = "custom.Parcelable", nullable = true, value = "@null")
         }
         fragment("f2") {
           argument("arg3")
@@ -41,38 +40,28 @@ class NavDestinationArgumentsPropertyTest : NavTestCase() {
   }
 
   fun testMultipleArguments() {
-    val property = NavDestinationArgumentsProperty(listOf(model.find("f1")!!), mock(NavPropertiesManager::class.java))
-    assertEquals(mapOf("arg1" to "val1", "arg2" to "val2"),
-        property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
+    val property = NavDestinationArgumentsProperty(listOf(model.find("f1")!!))
+    property.refreshList()
+    val arg1 = "arg1: boolean (true)"
+    val arg2 = "arg2: custom.Parcelable? (@null)"
+    assertSameElements(property.properties.keys(), listOf(arg1, arg2))
+    assertSameElements(property.properties.values().map { it.name }, listOf(arg1, arg2))
   }
 
   fun testNoArguments() {
-    val property = NavDestinationArgumentsProperty(listOf(model.find("f3")!!), mock(NavPropertiesManager::class.java))
-    assertTrue(property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }).isEmpty())
+    val property = NavDestinationArgumentsProperty(listOf(model.find("f3")!!))
+    assertTrue(property.properties.isEmpty)
   }
 
   fun testModify() {
     val fragment = model.find("f3")!!
-    val property = NavDestinationArgumentsProperty(listOf(fragment), mock(NavPropertiesManager::class.java))
+    val property = NavDestinationArgumentsProperty(listOf(fragment))
     val argument = model.find { it.getAndroidAttribute(SdkConstants.ATTR_NAME) == "arg1" }!!
     fragment.addChild(argument)
     property.refreshList()
-    assertEquals(argument, property.properties[0].components[0])
+    assertEquals(argument, property.properties.values().first().components[0])
     fragment.removeChild(argument)
     property.refreshList()
-    assertTrue(property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }).isEmpty())
-  }
-
-  fun testAddDelete() {
-    val property = NavDestinationArgumentsProperty(listOf(model.find("f1")!!), mock(NavPropertiesManager::class.java))
-    property.addRow()
-    assertEquals(mapOf("arg1" to "val1", "arg2" to "val2", null to null),
-        property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
-    property.addRow()
-    assertEquals(mapOf("arg1" to "val1", "arg2" to "val2", null to null, null to null),
-        property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
-    property.deleteRows(intArrayOf(1, 2))
-    assertEquals(mapOf("arg1" to "val1", null to null),
-        property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
+    assertTrue(property.properties.isEmpty)
   }
 }

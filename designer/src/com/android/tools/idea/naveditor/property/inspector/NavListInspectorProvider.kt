@@ -33,7 +33,6 @@ import com.intellij.ui.InplaceButton
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SortedListModel
 import com.intellij.ui.components.JBList
-import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
@@ -120,7 +119,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
 
     override fun getEditors(): List<NlComponentEditor> = listOf()
 
-    override fun getMaxNumberOfRows() = 1
+    override fun getMaxNumberOfRows() = 2
 
     override fun attachToInspector(inspector: InspectorPanel<NavPropertiesManager>) {
       val panel = JPanel(BorderLayout())
