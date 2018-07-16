@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomCreateTriggerStatementImpl extends ASTWrapperPsiElement implements RoomCreateTriggerStatement {
 
-  public RoomCreateTriggerStatementImpl(ASTNode node) {
+  public RoomCreateTriggerStatementImpl(@NotNull ASTNode node) {
     super(node);
   }
 

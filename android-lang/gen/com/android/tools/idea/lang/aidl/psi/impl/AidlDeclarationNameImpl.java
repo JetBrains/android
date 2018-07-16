@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.aidl.psi.*;
 
 public class AidlDeclarationNameImpl extends AidlNamedElementImpl implements AidlDeclarationName {
 
-  public AidlDeclarationNameImpl(ASTNode node) {
+  public AidlDeclarationNameImpl(@NotNull ASTNode node) {
     super(node);
   }
 

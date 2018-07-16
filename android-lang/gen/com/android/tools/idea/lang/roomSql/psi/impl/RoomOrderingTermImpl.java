@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomOrderingTermImpl extends ASTWrapperPsiElement implements RoomOrderingTerm {
 
-  public RoomOrderingTermImpl(ASTNode node) {
+  public RoomOrderingTermImpl(@NotNull ASTNode node) {
     super(node);
   }
 

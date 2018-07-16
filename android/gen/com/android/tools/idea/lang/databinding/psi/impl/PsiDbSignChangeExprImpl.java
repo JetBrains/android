@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbSignChangeExprImpl extends PsiDbExprImpl implements PsiDbSignChangeExpr {
 
-  public PsiDbSignChangeExprImpl(ASTNode node) {
+  public PsiDbSignChangeExprImpl(@NotNull ASTNode node) {
     super(node);
   }
 

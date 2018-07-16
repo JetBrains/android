@@ -31,7 +31,7 @@ import com.android.tools.idea.lang.roomSql.resolution.SqlTable;
 
 public class RoomFromTableImpl extends ASTWrapperPsiElement implements RoomFromTable {
 
-  public RoomFromTableImpl(ASTNode node) {
+  public RoomFromTableImpl(@NotNull ASTNode node) {
     super(node);
   }
 

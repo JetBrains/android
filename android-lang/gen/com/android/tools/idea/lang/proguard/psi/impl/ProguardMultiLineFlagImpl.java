@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.proguard.psi.*;
 
 public class ProguardMultiLineFlagImpl extends ASTWrapperPsiElement implements ProguardMultiLineFlag {
 
-  public ProguardMultiLineFlagImpl(ASTNode node) {
+  public ProguardMultiLineFlagImpl(@NotNull ASTNode node) {
     super(node);
   }
 

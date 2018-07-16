@@ -29,7 +29,7 @@ import com.android.tools.idea.smali.psi.*;
 
 public class SmaliPropertyValueImpl extends ASTWrapperPsiElement implements SmaliPropertyValue {
 
-  public SmaliPropertyValueImpl(ASTNode node) {
+  public SmaliPropertyValueImpl(@NotNull ASTNode node) {
     super(node);
   }
 

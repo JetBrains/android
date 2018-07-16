@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.aidl.psi.*;
 
 public class AidlHeadersImpl extends AidlPsiCompositeElementImpl implements AidlHeaders {
 
-  public AidlHeadersImpl(ASTNode node) {
+  public AidlHeadersImpl(@NotNull ASTNode node) {
     super(node);
   }
 

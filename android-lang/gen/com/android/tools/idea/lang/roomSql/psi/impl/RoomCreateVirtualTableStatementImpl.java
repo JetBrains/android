@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomCreateVirtualTableStatementImpl extends ASTWrapperPsiElement implements RoomCreateVirtualTableStatement {
 
-  public RoomCreateVirtualTableStatementImpl(ASTNode node) {
+  public RoomCreateVirtualTableStatementImpl(@NotNull ASTNode node) {
     super(node);
   }
 

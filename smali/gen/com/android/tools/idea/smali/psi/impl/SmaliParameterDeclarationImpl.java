@@ -29,7 +29,7 @@ import com.android.tools.idea.smali.psi.*;
 
 public class SmaliParameterDeclarationImpl extends ASTWrapperPsiElement implements SmaliParameterDeclaration {
 
-  public SmaliParameterDeclarationImpl(ASTNode node) {
+  public SmaliParameterDeclarationImpl(@NotNull ASTNode node) {
     super(node);
   }
 

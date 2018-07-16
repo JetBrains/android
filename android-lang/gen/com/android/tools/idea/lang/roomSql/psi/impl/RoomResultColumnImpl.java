@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomResultColumnImpl extends ASTWrapperPsiElement implements RoomResultColumn {
 
-  public RoomResultColumnImpl(ASTNode node) {
+  public RoomResultColumnImpl(@NotNull ASTNode node) {
     super(node);
   }
 

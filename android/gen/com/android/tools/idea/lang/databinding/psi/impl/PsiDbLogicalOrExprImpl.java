@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbLogicalOrExprImpl extends PsiDbExprImpl implements PsiDbLogicalOrExpr {
 
-  public PsiDbLogicalOrExprImpl(ASTNode node) {
+  public PsiDbLogicalOrExprImpl(@NotNull ASTNode node) {
     super(node);
   }
 

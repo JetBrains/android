@@ -29,7 +29,7 @@ import com.android.tools.idea.smali.psi.*;
 
 public class SmaliAnnotationPropertyImpl extends ASTWrapperPsiElement implements SmaliAnnotationProperty {
 
-  public SmaliAnnotationPropertyImpl(ASTNode node) {
+  public SmaliAnnotationPropertyImpl(@NotNull ASTNode node) {
     super(node);
   }
 

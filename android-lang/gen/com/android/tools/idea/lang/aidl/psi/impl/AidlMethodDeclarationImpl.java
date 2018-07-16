@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.aidl.psi.*;
 
 public class AidlMethodDeclarationImpl extends AbstractAidlDeclarationImpl implements AidlMethodDeclaration {
 
-  public AidlMethodDeclarationImpl(ASTNode node) {
+  public AidlMethodDeclarationImpl(@NotNull ASTNode node) {
     super(node);
   }
 

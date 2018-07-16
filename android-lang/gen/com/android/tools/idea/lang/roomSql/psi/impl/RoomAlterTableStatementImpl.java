@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomAlterTableStatementImpl extends ASTWrapperPsiElement implements RoomAlterTableStatement {
 
-  public RoomAlterTableStatementImpl(ASTNode node) {
+  public RoomAlterTableStatementImpl(@NotNull ASTNode node) {
     super(node);
   }
 

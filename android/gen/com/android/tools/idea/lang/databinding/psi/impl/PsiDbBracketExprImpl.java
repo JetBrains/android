@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbBracketExprImpl extends PsiDbExprImpl implements PsiDbBracketExpr {
 
-  public PsiDbBracketExprImpl(ASTNode node) {
+  public PsiDbBracketExprImpl(@NotNull ASTNode node) {
     super(node);
   }
 

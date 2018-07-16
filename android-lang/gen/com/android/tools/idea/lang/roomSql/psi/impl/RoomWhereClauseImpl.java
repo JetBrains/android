@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomWhereClauseImpl extends ASTWrapperPsiElement implements RoomWhereClause {
 
-  public RoomWhereClauseImpl(ASTNode node) {
+  public RoomWhereClauseImpl(@NotNull ASTNode node) {
     super(node);
   }
 

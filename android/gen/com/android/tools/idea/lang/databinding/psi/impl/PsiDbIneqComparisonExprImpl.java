@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbIneqComparisonExprImpl extends PsiDbExprImpl implements PsiDbIneqComparisonExpr {
 
-  public PsiDbIneqComparisonExprImpl(ASTNode node) {
+  public PsiDbIneqComparisonExprImpl(@NotNull ASTNode node) {
     super(node);
   }
 
