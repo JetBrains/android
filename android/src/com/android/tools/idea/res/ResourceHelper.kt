@@ -21,6 +21,7 @@ import com.android.SdkConstants.*
 import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.repository.ResourceVisibilityLookup
 import com.android.ide.common.resources.AbstractResourceRepository
@@ -493,6 +494,12 @@ fun RenderResources.resolve(resourceUrl: ResourceUrl, element: XmlElement): Reso
 fun XmlElement.resolveResourceNamespace(prefix: String?): ResourceNamespace? {
   val (namespace, namespaceResolver) = getNamespacesContext(this) ?: return null
   return ResourceNamespace.fromNamespacePrefix(prefix, namespace,  namespaceResolver)
+}
+
+/** Resolves the given [ResourceUrl] in the context of the [XmlElement]. */
+fun ResourceUrl.resolve(element: XmlElement): ResourceReference? {
+  val (namespace, namespaceResolver) = getNamespacesContext(element) ?: return null
+  return resolve(namespace, namespaceResolver)
 }
 
 @Throws(NumberFormatException::class)

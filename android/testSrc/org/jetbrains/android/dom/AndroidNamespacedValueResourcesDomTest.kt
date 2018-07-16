@@ -34,9 +34,9 @@ import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection
 /**
  * Tests for code editor features when working with value resources XML files in namespaced projects.
  *
- * Namespaced equivalent of [AndroidXmlResourcesDomTest], covers features that have been fixed to work in namespaced projects.
+ * Namespaced equivalent of [AndroidValueResourcesTest], covers features that have been fixed to work in namespaced projects.
  */
-class AndroidNamespacedXmlResourcesDomTest : AndroidTestCase() {
+class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
 
   private val libRes get() = getAdditionalModulePath("lib") + "/res"
 
@@ -70,6 +70,7 @@ class AndroidNamespacedXmlResourcesDomTest : AndroidTestCase() {
       "$libRes/values/strings.xml",
       // language=xml
       """
+        <!--suppress ALL -->
         <resources>
           <string name="hello">Hello from lib</string>
         </resources>
@@ -220,6 +221,82 @@ class AndroidNamespacedXmlResourcesDomTest : AndroidTestCase() {
           <string name="app_string">@${caret}com.example.lib:string/hello</string>
         </resources>
       """.trimIndent()
+    )
+  }
+
+  fun testAttributeNames() {
+    myFixture.addFileToProject(
+      "$libRes/values/styles.xml",
+      // language=xml
+      """
+        <!--suppress ALL -->
+        <resources>
+          <attr name='libAttr1' format='string' />
+          <attr name='libAttr2' format='string' />
+          <attr name='libAttr3' format='string' />
+          <style name='LibStyle'>
+            <item name='libAttr1'>one</item>
+            <item name='libAttr2'>two</item>
+          </style>
+        </resources>
+      """.trimIndent()
+    )
+
+    val values = myFixture.addFileToProject(
+      "res/values/values.xml",
+      // language=xml
+      """
+        <!--suppress ALL -->
+        <resources xmlns:lib='http://schemas.android.com/apk/res/com.example.lib'>
+          <style name='AppStyle' parent='lib:LibStyle'>
+            <item name='$caret'></item>
+          </style>
+        </resources>
+      """.trimIndent()
+    )
+    myFixture.configureFromExistingVirtualFile(values.virtualFile)
+
+    val lookupStrings = myFixture.completeBasic().map { it.lookupString }
+    assertThat(lookupStrings).contains("lib:libAttr1")
+    assertThat(lookupStrings).contains("lib:libAttr2")
+    assertThat(lookupStrings).doesNotContain("lib:libAttr3")
+    assertThat(lookupStrings).contains("android:color")
+  }
+
+  fun testAttributeValues() {
+    myFixture.addFileToProject(
+      "$libRes/values/styles.xml",
+      // language=xml
+      """
+        <!--suppress ALL -->
+        <resources>
+          <attr name='libAttr1' format='string' />
+        </resources>
+      """.trimIndent()
+    )
+
+    val values = myFixture.addFileToProject(
+      "res/values/values.xml",
+      // language=xml
+      """
+        <!--suppress ALL -->
+        <resources xmlns:lib='http://schemas.android.com/apk/res/com.example.lib'>
+          <string name='appString'>app</string>
+          <style name='AppStyle'>
+            <item name='lib:libAttr1'>@$caret</item>
+          </style>
+        </resources>
+      """.trimIndent()
+    )
+    myFixture.configureFromExistingVirtualFile(values.virtualFile)
+
+    val lookupStrings = myFixture.completeBasic().map { it.lookupString }
+
+    // Make sure the "string" type of the attr is taken into account and libColor is not suggested.
+    assertThat(lookupStrings).containsExactly(
+      "@android:",
+      "@lib:string/hello",
+      "@string/appString"
     )
   }
 }
