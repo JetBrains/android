@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
+import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
@@ -56,7 +57,7 @@ class FixBuildToolsProcessorTest : AndroidGradleTestCase() {
                                                                                                        "77.7.7", false, false)
     val usages = processor.findUsages()
     assertSize(1, usages)
-    assertEquals("\"27.0.3\"", usages[0].element!!.text)
+    assertEquals('"' + SdkConstants.CURRENT_BUILD_TOOLS_VERSION + '"', usages[0].element!!.text)
   }
 
   @Test

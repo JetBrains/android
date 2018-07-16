@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.SdkConstants
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.helpers.matchHashStrings
@@ -41,8 +42,8 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     val sourceCompatibility = AndroidModuleDescriptors.sourceCompatibility.bind(appModule).getValue()
     val targetCompatibility = AndroidModuleDescriptors.targetCompatibility.bind(appModule).getValue()
 
-    assertThat(buildToolsVersion.resolved.asTestValue(), equalTo("27.0.3"))
-    assertThat(buildToolsVersion.parsedValue.asTestValue(), equalTo("27.0.3"))
+    assertThat(buildToolsVersion.resolved.asTestValue(), equalTo(SdkConstants.CURRENT_BUILD_TOOLS_VERSION))
+    assertThat(buildToolsVersion.parsedValue.asTestValue(), equalTo(SdkConstants.CURRENT_BUILD_TOOLS_VERSION))
 
     assertThat(matchHashStrings(null, compileSdkVersion.resolved.asTestValue(), SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
                equalTo(true))
