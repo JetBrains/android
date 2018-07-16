@@ -91,6 +91,46 @@ public final class SelectDeviceComboBoxActionTest {
   }
 
   @Test
+  public void newSelectDeviceActionsPhysicalDevicesIsEmpty() {
+    Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Collections.singletonList(
+      new VirtualDevice(false, "Pixel 2 XL API 27")));
+
+    SelectDeviceComboBoxAction action = new SelectDeviceComboBoxAction(() -> true, myDevicesGetter);
+    action.update(myEvent);
+
+    Object expectedActions = Collections.singletonList(new SelectDeviceAction(new VirtualDevice(false, "Pixel 2 XL API 27"), action));
+    assertEquals(expectedActions, action.newSelectDeviceActions());
+  }
+
+  @Test
+  public void newSelectDeviceActionsVirtualDevicesIsEmpty() {
+    Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Collections.singletonList(new PhysicalDevice("LGE Nexus 5X")));
+
+    SelectDeviceComboBoxAction action = new SelectDeviceComboBoxAction(() -> true, myDevicesGetter);
+    action.update(myEvent);
+
+    Object expectedActions = Collections.singletonList(new SelectDeviceAction(new PhysicalDevice("LGE Nexus 5X"), action));
+    assertEquals(expectedActions, action.newSelectDeviceActions());
+  }
+
+  @Test
+  public void newSelectDeviceActions() {
+    Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Arrays.asList(
+      new VirtualDevice(false, "Pixel 2 XL API 27"),
+      new PhysicalDevice("LGE Nexus 5X")));
+
+    SelectDeviceComboBoxAction action = new SelectDeviceComboBoxAction(() -> true, myDevicesGetter);
+    action.update(myEvent);
+
+    Object expectedActions = Arrays.asList(
+      new SelectDeviceAction(new VirtualDevice(false, "Pixel 2 XL API 27"), action),
+      Separator.getInstance(),
+      new SelectDeviceAction(new PhysicalDevice("LGE Nexus 5X"), action));
+
+    assertEquals(expectedActions, action.newSelectDeviceActions());
+  }
+
+  @Test
   public void updateSelectDeviceComboBoxActionVisibleIsFalse() {
     new SelectDeviceComboBoxAction(() -> false, myDevicesGetter).update(myEvent);
     assertFalse(myPresentation.isVisible());
