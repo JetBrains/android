@@ -112,8 +112,8 @@ public class IdeaJavaModuleModelFactory {
         else if (dependency instanceof IdeaModuleDependency) {
           // Don't include runtime module dependencies. b/63819274.
           // Consider example,
-          // libA implementaion depends on libB, libB api dependes on libAPI, libB implementation depends on LibImpl.
-          // libA should have implementaion dependency on libB and libAPI, but not on LibImpl, libA however still have runtime dependency on LibImpl.
+          // libA implementation depends on libB, libB api depends on libAPI, libB implementation depends on LibImpl.
+          // libA should have implementation dependency on libB and libAPI, but not on LibImpl, libA however still have runtime dependency on LibImpl.
           // So we need to exclude runtime module dependencies.
           if (equalsIgnoreCase(dependency.getScope().getScope(), "RUNTIME")) {
             continue;

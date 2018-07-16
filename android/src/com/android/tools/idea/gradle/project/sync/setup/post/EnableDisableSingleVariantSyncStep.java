@@ -105,6 +105,7 @@ public class EnableDisableSingleVariantSyncStep {
       () -> MessageDialogBuilder.yesNo("Experimental Gradle Sync Feature", message)
                                 .yesText(Messages.YES_BUTTON)
                                 .noText(Messages.NO_BUTTON)
+                                .icon(null) // no icon.
                                 .show());
     if (userAcceptsEnable == Messages.YES) {
       settings.USE_SINGLE_VARIANT_SYNC = true;
@@ -113,8 +114,8 @@ public class EnableDisableSingleVariantSyncStep {
     PropertiesComponent.getInstance(project).setValue(DO_NOT_DISPLAY_DIALOG_ENABLE_SINGLE_VARIANT_SYNC, true);
   }
 
-  // Check if the project is eligible for Single-Variant sync, returns false if any modules is native or kotlin module, or is using AGP version
-  // that doesn't support single-variant sync, or there's no Android module.
+  // Check if the project is eligible for Single-Variant sync.
+  // Returns EligibilityState which indicates the state or the specific reason if not supported.
   @VisibleForTesting
   @NotNull
   static EligibilityState isEligibleForSingleVariantSync(@NotNull Project project) {
@@ -201,7 +202,7 @@ public class EnableDisableSingleVariantSyncStep {
       @Override
       @NotNull
       String getReason() {
-        return "doesn't contain Android module";
+        return "do not contain Android module";
       }
     };
 
