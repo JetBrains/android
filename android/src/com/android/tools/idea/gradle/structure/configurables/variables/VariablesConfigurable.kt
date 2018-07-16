@@ -47,7 +47,7 @@ class VariablesConfigurable(private val project: Project, private val context: P
   override fun createComponent(): JComponent? {
     val panel = JPanel(BorderLayout())
     panel.border = BorderFactory.createEmptyBorder(20, 10, 20, 10)
-    val table = VariablesTable(project, context)
+    val table = VariablesTable(project, context.project)
     table.tableModel.addTreeModelListener(object: TreeModelListener {
       override fun treeNodesInserted(e: TreeModelEvent?) {
         this@VariablesConfigurable.isModified = true
