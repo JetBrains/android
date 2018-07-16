@@ -27,6 +27,11 @@ import javax.swing.*;
 final class PhysicalDevice extends Device {
   private static final Icon ourIcon = ExecutionUtil.getLiveIndicator(AndroidIcons.Ddms.RealDevice);
 
+  @VisibleForTesting
+  PhysicalDevice(@NotNull String name) {
+    super(name);
+  }
+
   PhysicalDevice(@NotNull DeviceNameProperties properties) {
     super(getName(properties));
   }

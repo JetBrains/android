@@ -27,11 +27,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 final class SelectDeviceComboBoxAction extends ComboBoxAction {
   private final Supplier<Boolean> mySelectDeviceComboBoxActionVisible;
@@ -91,10 +91,38 @@ final class SelectDeviceComboBoxAction extends ComboBoxAction {
   }
 
   @NotNull
-  private Collection<AnAction> newSelectDeviceActions() {
-    return myDevices.stream()
-                    .map(device -> new SelectDeviceAction(device, this))
-                    .collect(Collectors.toList());
+  @VisibleForTesting
+  Collection<AnAction> newSelectDeviceActions() {
+    Collection<Device> virtualDevices = new ArrayList<>(myDevices.size());
+    Collection<Device> physicalDevices = new ArrayList<>(myDevices.size());
+
+    myDevices.forEach(device -> {
+      if (device instanceof VirtualDevice) {
+        virtualDevices.add(device);
+      }
+      else if (device instanceof PhysicalDevice) {
+        physicalDevices.add(device);
+      }
+      else {
+        assert false;
+      }
+    });
+
+    Collection<AnAction> actions = new ArrayList<>(myDevices.size());
+
+    virtualDevices.stream()
+                  .map(device -> new SelectDeviceAction(device, this))
+                  .forEach(actions::add);
+
+    if (!virtualDevices.isEmpty() && !physicalDevices.isEmpty()) {
+      actions.add(Separator.create());
+    }
+
+    physicalDevices.stream()
+                   .map(device -> new SelectDeviceAction(device, this))
+                   .forEach(actions::add);
+
+    return actions;
   }
 
   @NotNull
