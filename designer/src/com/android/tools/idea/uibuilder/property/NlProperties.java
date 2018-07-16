@@ -94,14 +94,14 @@ public class NlProperties {
     assert !components.isEmpty();
     ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
     ResourceManager localResourceManager = resourceManagers.getLocalResourceManager();
-    ResourceManager systemResourceManager = resourceManagers.getSystemResourceManager();
-    if (systemResourceManager == null) {
+    ResourceManager frameworkResourceManager = resourceManagers.getFrameworkResourceManager();
+    if (frameworkResourceManager == null) {
       Logger.getInstance(NlProperties.class).error("No system resource manager for module: " + facet.getModule().getName());
       return ImmutableTable.of();
     }
 
     AttributeDefinitions localAttrDefs = localResourceManager.getAttributeDefinitions();
-    AttributeDefinitions systemAttrDefs = systemResourceManager.getAttributeDefinitions();
+    AttributeDefinitions systemAttrDefs = frameworkResourceManager.getAttributeDefinitions();
 
     Table<String, String, NlPropertyItem> combinedProperties = null;
     Project project = facet.getModule().getProject();

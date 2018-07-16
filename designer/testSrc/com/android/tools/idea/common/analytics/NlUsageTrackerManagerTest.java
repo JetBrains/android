@@ -49,7 +49,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.resourceManagers.SystemResourceManager;
+import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.picocontainer.MutablePicoContainer;
 
@@ -429,7 +429,7 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
 
   private void initNeleModelMocks() {
     ModuleResourceManagers moduleResourceManagers = mock(ModuleResourceManagers.class);
-    SystemResourceManager systemResourceManager = mock(SystemResourceManager.class);
+    FrameworkResourceManager frameworkResourceManager = mock(FrameworkResourceManager.class);
     LocalResourceManager localResourceManager = mock(LocalResourceManager.class);
     AttributeDefinitions systemAttributeDefinitions = mock(AttributeDefinitions.class);
     AttributeDefinitions localAttributeDefinitions = mock(AttributeDefinitions.class);
@@ -450,9 +450,9 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
                                                    getTestRootDisposable());
 
     when(moduleResourceManagers.getLocalResourceManager()).thenReturn(localResourceManager);
-    when(moduleResourceManagers.getSystemResourceManager()).thenReturn(systemResourceManager);
+    when(moduleResourceManagers.getFrameworkResourceManager()).thenReturn(frameworkResourceManager);
     when(localResourceManager.getAttributeDefinitions()).thenReturn(localAttributeDefinitions);
-    when(systemResourceManager.getAttributeDefinitions()).thenReturn(systemAttributeDefinitions);
+    when(frameworkResourceManager.getAttributeDefinitions()).thenReturn(systemAttributeDefinitions);
     when(localAttributeDefinitions.getAttrs())
         .thenReturn(ImmutableSet.of(ResourceReference.attr(ResourceNamespace.RES_AUTO, ATTR_COLLAPSE_PARALLAX_MULTIPLIER)));
     when(localAttributeDefinitions.getAttrDefinition(ResourceReference.attr(ResourceNamespace.RES_AUTO, ATTR_COLLAPSE_PARALLAX_MULTIPLIER)))

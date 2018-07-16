@@ -77,8 +77,8 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
     val nlModel = components[0].model as SyncNlModel
     model.surface = nlModel.surface
     val resourceManagers = ModuleResourceManagers.getInstance(myFacet)
-    val systemResourceManager = resourceManagers.systemResourceManager
-    val definition = systemResourceManager?.attributeDefinitions?.getAttrDefByName(attrName)
+    val frameworkResourceManager = resourceManagers.frameworkResourceManager
+    val definition = frameworkResourceManager?.attributeDefinitions?.getAttrDefByName(attrName)
     return NelePropertyItem(ANDROID_URI, attrName, type, definition, "", model, components)
   }
 

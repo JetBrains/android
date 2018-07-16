@@ -59,7 +59,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.resourceManagers.SystemResourceManager;
+import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -589,7 +589,7 @@ public class AttributeProcessingUtil {
     boolean isSystem = styleableAnnotation.packageName().equals(ANDROID_PKG);
     AttributeDefinitions definitions;
     if (isSystem) {
-      SystemResourceManager manager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
+      FrameworkResourceManager manager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
       if (manager == null) {
         return;
       }
@@ -676,7 +676,7 @@ public class AttributeProcessingUtil {
                                                 @NotNull DomElement element,
                                                 @NotNull Collection<XmlName> skippedAttributes,
                                                 @NotNull AttributeProcessor callback) {
-    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
     if (manager == null) {
       return;
     }

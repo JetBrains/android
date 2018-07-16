@@ -42,7 +42,7 @@ package com.android.tools.idea.common.analytics;
  import org.jetbrains.android.dom.attrs.StyleableDefinition;
  import org.jetbrains.android.resourceManagers.LocalResourceManager;
  import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
- import org.jetbrains.android.resourceManagers.SystemResourceManager;
+ import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
  import org.jetbrains.annotations.NotNull;
  import org.jetbrains.annotations.Nullable;
  import org.picocontainer.MutablePicoContainer;
@@ -340,14 +340,14 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
     localAttributes.add(new AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_LAYOUT_COLLAPSE_MODE, DESIGN_COORDINATE, null));
     localAttributes.add(new AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_ACME_LAYOUT_MARGIN, ACME_LIB_COORDINATE, null));
 
-    SystemResourceManager systemResourceManager = mock(SystemResourceManager.class);
-    when(systemResourceManager.getAttributeDefinitions()).thenReturn(frameworkAttributes);
+    FrameworkResourceManager frameworkResourceManager = mock(FrameworkResourceManager.class);
+    when(frameworkResourceManager.getAttributeDefinitions()).thenReturn(frameworkAttributes);
 
     LocalResourceManager localResourceManager = mock(LocalResourceManager.class);
     when(localResourceManager.getAttributeDefinitions()).thenReturn(localAttributes);
 
     ModuleResourceManagers resourceManagers = mock(ModuleResourceManagers.class);
-    when(resourceManagers.getSystemResourceManager()).thenReturn(systemResourceManager);
+    when(resourceManagers.getFrameworkResourceManager()).thenReturn(frameworkResourceManager);
     when(resourceManagers.getLocalResourceManager()).thenReturn(localResourceManager);
 
     registerComponentInstance((MutablePicoContainer)myFacet.getModule().getPicoContainer(),

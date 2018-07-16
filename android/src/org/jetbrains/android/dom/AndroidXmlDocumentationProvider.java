@@ -35,7 +35,7 @@ import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.resourceManagers.SystemResourceManager;
+import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -100,14 +100,14 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
           // Figure out if this resource is a framework file.
           // We really should store that info in the ValueResourceInfo instances themselves.
           // For now, attempt to figure it out
-          SystemResourceManager systemResourceManager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
+          FrameworkResourceManager frameworkResourceManager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
           VirtualFile containingFile = resourceInfo.getContainingFile();
-          if (systemResourceManager != null) {
+          if (frameworkResourceManager != null) {
             VirtualFile parent = containingFile.getParent();
             if (parent != null) {
               VirtualFile resDir = parent.getParent();
               if (resDir != null) {
-                isFramework = systemResourceManager.isResourceDir(resDir);
+                isFramework = frameworkResourceManager.isResourceDir(resDir);
               }
             }
           }
@@ -245,7 +245,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     if (facet == null) {
       return null;
     }
-    AttributeDefinitions definitions = getAttributeDefinitions(ModuleResourceManagers.getInstance(facet).getSystemResourceManager());
+    AttributeDefinitions definitions = getAttributeDefinitions(ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager());
     if (definitions == null) {
       return null;
     }
@@ -362,13 +362,13 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
                                                                      @NotNull String localName) {
     ResourceManager resourceManager;
     if (ANDROID_URI.equals(namespace) || TOOLS_URI.equals(namespace)) {
-      resourceManager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
+      resourceManager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
     }
     else if (namespace.equals(AUTO_URI) || namespace.startsWith(URI_PREFIX)) {
         resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     }
     else {
-      resourceManager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
+      resourceManager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
     }
 
     if (resourceManager != null) {

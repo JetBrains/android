@@ -435,11 +435,11 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     AndroidFacet facet = component.getModel().getFacet();
     ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
     ResourceManager localResourceManager = resourceManagers.getLocalResourceManager();
-    ResourceManager systemResourceManager = resourceManagers.getSystemResourceManager();
-    assertThat(systemResourceManager).isNotNull();
+    ResourceManager frameworkResourceManager = resourceManagers.getFrameworkResourceManager();
+    assertThat(frameworkResourceManager).isNotNull();
 
     AttributeDefinitions localAttrDefs = localResourceManager.getAttributeDefinitions();
-    AttributeDefinitions systemAttrDefs = systemResourceManager.getAttributeDefinitions();
+    AttributeDefinitions systemAttrDefs = frameworkResourceManager.getAttributeDefinitions();
     XmlName name = getXmlName(component, descriptor);
 
     AttributeDefinitions attrDefs = NS_RESOURCES.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;

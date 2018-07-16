@@ -329,14 +329,14 @@ public class UsageTrackerUtil {
   @VisibleForTesting
   static NamespaceAndLibraryNamePair lookupAttributeResource(@NotNull AndroidFacet facet, @NotNull String attributeName) {
     ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
-    ResourceManager systemResourceManager = resourceManagers.getSystemResourceManager();
-    if (systemResourceManager == null) {
+    ResourceManager frameworkResourceManager = resourceManagers.getFrameworkResourceManager();
+    if (frameworkResourceManager == null) {
       return new NamespaceAndLibraryNamePair(AndroidAttribute.AttributeNamespace.APPLICATION);
     }
 
     ResourceManager localResourceManager = resourceManagers.getLocalResourceManager();
     AttributeDefinitions localAttributeDefinitions = localResourceManager.getAttributeDefinitions();
-    AttributeDefinitions systemAttributeDefinitions = systemResourceManager.getAttributeDefinitions();
+    AttributeDefinitions systemAttributeDefinitions = frameworkResourceManager.getAttributeDefinitions();
 
     if (systemAttributeDefinitions != null &&
         systemAttributeDefinitions.getAttrs().contains(ResourceReference.attr(ResourceNamespace.ANDROID, attributeName))) {

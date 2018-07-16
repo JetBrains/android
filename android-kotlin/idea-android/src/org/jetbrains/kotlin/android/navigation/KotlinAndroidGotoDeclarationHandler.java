@@ -73,7 +73,7 @@ public class KotlinAndroidGotoDeclarationHandler implements GotoDeclarationHandl
     else {
       ModuleResourceManagers managers = ModuleResourceManagers.getInstance(facet);
       ResourceManager manager = info.getNamespace() == ResourceNamespace.ANDROID
-                                ? managers.getSystemResourceManager(false)
+                                ? managers.getFrameworkResourceManager(false)
                                 : managers.getLocalResourceManager();
       if (manager == null) {
         return null;

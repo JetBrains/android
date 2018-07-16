@@ -37,8 +37,8 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 public class ModuleResourceManagers {
   private final Module myModule;
 
-  private SystemResourceManager myPublicSystemResourceManager;
-  private SystemResourceManager myFullSystemResourceManager;
+  private FrameworkResourceManager myPublicFrameworkResourceManager;
+  private FrameworkResourceManager myFullFrameworkResourceManager;
 
   private LocalResourceManager myLocalResourceManager;
 
@@ -61,10 +61,10 @@ public class ModuleResourceManagers {
 
         // The system resource managers cache data only from the platform, so they only need to be cleared if the platform changes
         Sdk newSdk = ModuleRootManager.getInstance(module).getSdk();
-        if (myPublicSystemResourceManager != null || myFullSystemResourceManager != null) {
+        if (myPublicFrameworkResourceManager != null || myFullFrameworkResourceManager != null) {
           if (!Objects.equals(myPrevSdk, newSdk)) {
-            myPublicSystemResourceManager = null;
-            myFullSystemResourceManager = null;
+            myPublicFrameworkResourceManager = null;
+            myFullFrameworkResourceManager = null;
           }
         }
         myPrevSdk = newSdk;
@@ -80,10 +80,10 @@ public class ModuleResourceManagers {
   @Nullable
   public ResourceManager getResourceManager(@Nullable String resourcePackage, @Nullable PsiElement contextElement) {
     if (SYSTEM_RESOURCE_PACKAGE.equals(resourcePackage)) {
-      return getSystemResourceManager();
+      return getFrameworkResourceManager();
     }
     if (contextElement != null && AndroidSdks.getInstance().isInAndroidSdk(contextElement)) {
-      return getSystemResourceManager();
+      return getFrameworkResourceManager();
     }
     return getLocalResourceManager();
   }
@@ -104,28 +104,28 @@ public class ModuleResourceManagers {
   }
 
   @Nullable
-  public SystemResourceManager getSystemResourceManager() {
-    return getSystemResourceManager(true);
+  public FrameworkResourceManager getFrameworkResourceManager() {
+    return getFrameworkResourceManager(true);
   }
 
   @Nullable
-  public SystemResourceManager getSystemResourceManager(boolean publicOnly) {
+  public FrameworkResourceManager getFrameworkResourceManager(boolean publicOnly) {
     if (publicOnly) {
-      if (myPublicSystemResourceManager == null) {
+      if (myPublicFrameworkResourceManager == null) {
         AndroidPlatform platform = getFacet().getConfiguration().getAndroidPlatform();
         if (platform != null) {
-          myPublicSystemResourceManager = new SystemResourceManager(myModule.getProject(), platform, true);
+          myPublicFrameworkResourceManager = new FrameworkResourceManager(myModule.getProject(), platform, true);
         }
       }
-      return myPublicSystemResourceManager;
+      return myPublicFrameworkResourceManager;
     }
 
-    if (myFullSystemResourceManager == null) {
+    if (myFullFrameworkResourceManager == null) {
       AndroidPlatform platform = getFacet().getConfiguration().getAndroidPlatform();
       if (platform != null) {
-        myFullSystemResourceManager = new SystemResourceManager(myModule.getProject(), platform, false);
+        myFullFrameworkResourceManager = new FrameworkResourceManager(myModule.getProject(), platform, false);
       }
     }
-    return myFullSystemResourceManager;
+    return myFullFrameworkResourceManager;
   }
 }
