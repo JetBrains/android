@@ -49,7 +49,7 @@ public class RoomColumnDefinitionNameImpl extends AbstractRoomNameElement implem
   }
 
   @NotNull
-  public RoomColumnDefinitionName setName(String newName) {
+  public RoomColumnDefinitionName setName(@NotNull String newName) {
     return PsiImplUtil.setName(this, newName);
   }
 
