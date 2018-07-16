@@ -103,7 +103,7 @@ public class DbParser implements PsiParser, LightPsiParser {
   // '+' | '-'
   static boolean addOp(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "addOp")) return false;
-    if (!nextTokenIs(b, "", PLUS, MINUS)) return false;
+    if (!nextTokenIs(b, "", MINUS, PLUS)) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, PLUS);
@@ -238,7 +238,7 @@ public class DbParser implements PsiParser, LightPsiParser {
   // '==' | '!='
   static boolean eqComparisonOp(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "eqComparisonOp")) return false;
-    if (!nextTokenIs(b, "", NE, EQEQ)) return false;
+    if (!nextTokenIs(b, "", EQEQ, NE)) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, EQEQ);
@@ -345,7 +345,7 @@ public class DbParser implements PsiParser, LightPsiParser {
   // lambdaParameters '->' expr
   public static boolean lambdaExpression(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "lambdaExpression")) return false;
-    if (!nextTokenIs(b, "<lambda expression>", LPARENTH, IDENTIFIER)) return false;
+    if (!nextTokenIs(b, "<lambda expression>", IDENTIFIER, LPARENTH)) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, LAMBDA_EXPRESSION, "<lambda expression>");
     r = lambdaParameters(b, l + 1);
@@ -360,7 +360,7 @@ public class DbParser implements PsiParser, LightPsiParser {
   //   |   IDENTIFIER
   public static boolean lambdaParameters(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "lambdaParameters")) return false;
-    if (!nextTokenIs(b, "<lambda parameters>", LPARENTH, IDENTIFIER)) return false;
+    if (!nextTokenIs(b, "<lambda parameters>", IDENTIFIER, LPARENTH)) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, LAMBDA_PARAMETERS, "<lambda parameters>");
     r = lambdaParameters_0(b, l + 1);
@@ -481,7 +481,7 @@ public class DbParser implements PsiParser, LightPsiParser {
   // '+' | '-'
   static boolean signOp(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "signOp")) return false;
-    if (!nextTokenIs(b, "", PLUS, MINUS)) return false;
+    if (!nextTokenIs(b, "", MINUS, PLUS)) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, PLUS);
@@ -773,7 +773,7 @@ public class DbParser implements PsiParser, LightPsiParser {
 
   public static boolean signChangeExpr(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "signChangeExpr")) return false;
-    if (!nextTokenIsSmart(b, PLUS, MINUS)) return false;
+    if (!nextTokenIsSmart(b, MINUS, PLUS)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, null);
     r = signOp(b, l + 1);
