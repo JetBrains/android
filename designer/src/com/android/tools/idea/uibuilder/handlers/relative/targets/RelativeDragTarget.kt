@@ -25,33 +25,87 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.target.DragBaseTarget
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
+import com.android.tools.idea.uibuilder.scene.target.TargetSnapper
 import com.intellij.openapi.util.text.StringUtil
 
 /**
  * Target to handle the drag of RelativeLayout's children
  */
 class RelativeDragTarget : DragBaseTarget() {
-  private var myTargetX: BaseRelativeTarget? = null
-  private var myTargetY: BaseRelativeTarget? = null
 
-  private var hasHorizontalConstraint = false
-  private var hasVerticalConstraint = false
+  private lateinit var dropHandler: RelativeDropHandler
 
-  override fun isAutoConnectionEnabled() = ToggleAutoConnectAction.isAutoconnectOn()
+  override fun setComponent(component: SceneComponent) {
+    super.setComponent(component)
+    dropHandler = RelativeDropHandler(myComponent)
+  }
 
   override fun mouseDown(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
     if (myComponent.parent == null) {
       return
     }
-
-    preProcessAttribute(myComponent.authoritativeNlComponent.startAttributeTransaction())
-
-    hasHorizontalConstraint = hasHorizontalConstraint(myComponent)
-    hasVerticalConstraint = hasVerticalConstraint(myComponent)
-
     super.mouseDown(x, y)
     myComponent.setModelUpdateAuthorized(true)
   }
+
+  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
+    myComponent.isDragging = true
+
+    val attributes = myComponent.authoritativeNlComponent.startAttributeTransaction()
+    updateAttributes(attributes, x, y)
+    attributes.apply()
+
+    myChangedComponent = true
+  }
+
+  override fun updateAttributes(attributes: NlAttributesHolder, x: Int, y: Int) {
+    // Remove offset, so (dx, dy) is the position of left-top corner of component.
+    val parent = myComponent.parent!!
+    val dx = Math.max(parent.drawLeft, Math.min(x - myOffsetX, parent.drawRight - myComponent.drawWidth))
+    val dy = Math.max(parent.drawTop, Math.min(y - myOffsetY, parent.drawBottom - myComponent.drawHeight))
+    dropHandler.updateAttributes(attributes, dx, dy)
+  }
+
+  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>) {
+    if (!myComponent.isDragging) return
+    myComponent.isDragging = false
+
+    if (myComponent.parent != null) {
+      val component = myComponent.authoritativeNlComponent
+
+      val attributes = component.startAttributeTransaction()
+      updateAttributes(attributes, x, y)
+      dropHandler.hideHighlightTargets()
+      attributes.apply()
+
+      if (Math.abs(x - myFirstMouseX) > 1 || Math.abs(y - myFirstMouseY) > 1) {
+        NlWriteCommandAction.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
+      }
+    }
+
+    if (myChangedComponent) {
+      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+    }
+  }
+}
+
+class RelativeDropHandler(val myComponent: SceneComponent) {
+
+  private val targetSnapper = TargetSnapper()
+
+  private var targetX: BaseRelativeTarget? = null
+  private var targetY: BaseRelativeTarget? = null
+
+  private var hasHorizontalConstraint = hasHorizontalConstraint(myComponent)
+  private var hasVerticalConstraint = hasVerticalConstraint(myComponent)
+
+  init {
+    preProcessAttribute(myComponent.authoritativeNlComponent.startAttributeTransaction())
+    targetSnapper.reset()
+    targetSnapper.gatherNotches(myComponent)
+  }
+
+  private fun isAutoConnectionEnabled() = ToggleAutoConnectAction.isAutoconnectOn()
 
   /**
    * Split [SdkConstants.ATTR_LAYOUT_MARGIN] and [SdkConstants.ATTR_LAYOUT_CENTER_IN_PARENT] to multiple attributes.<br>
@@ -77,52 +131,17 @@ class RelativeDragTarget : DragBaseTarget() {
     }
   }
 
-  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
-    myComponent.isDragging = true
-
-    val attributes = myComponent.authoritativeNlComponent.startAttributeTransaction()
-    updateAttributes(attributes, x, y)
-    attributes.apply()
-
-    myChangedComponent = true
-  }
-
-  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>) {
-    if (!myComponent.isDragging) return
-    myComponent.isDragging = false
-
-    if (myComponent.parent != null) {
-      val component = myComponent.authoritativeNlComponent
-      val attributes = component.startAttributeTransaction()
-
-      updateAttributes(attributes, x, y)
-      postProcessAttribute(attributes)
-      attributes.apply()
-
-      if (!(Math.abs(x - myFirstMouseX) <= 1 && Math.abs(y - myFirstMouseY) <= 1)) {
-        NlWriteCommandAction.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
-      }
-    }
-
-    myTargetX?.myIsHighlight = false
-    myTargetY?.myIsHighlight = false
-
-    if (myChangedComponent) {
-      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
-    }
-  }
-
-  override fun updateAttributes(attributes: NlAttributesHolder, @AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
-    val parent = myComponent.parent ?: return
-
-    // Remove offset, so (dx, dy) is the position of left-top corner of component.
-    val dx = Math.max(parent.drawLeft, Math.min(x - myOffsetX, parent.drawRight - myComponent.drawWidth))
-    val dy = Math.max(parent.drawTop, Math.min(y - myOffsetY, parent.drawBottom - myComponent.drawHeight))
-
-    val newX = processHorizontalAttributes(attributes, dx)
-    val newY = processVerticalAttributes(attributes, dy)
+  fun updateAttributes(attributes: NlAttributesHolder, @AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
+    val newX = processHorizontalAttributes(attributes, x)
+    val newY = processVerticalAttributes(attributes, y)
 
     myComponent.setPosition(newX, newY, false)
+  }
+
+  // TODO: remove this function if possible
+  fun hideHighlightTargets() {
+    targetX?.myIsHighlight = false
+    targetY?.myIsHighlight = false
   }
 
   /**
@@ -131,7 +150,7 @@ class RelativeDragTarget : DragBaseTarget() {
   @AndroidDpCoordinate
   private fun processHorizontalAttributes(attributes: NlAttributesHolder, @AndroidDpCoordinate x: Int): Int {
     val parent = myComponent.parent!!
-    myTargetX?.myIsHighlight = false
+    targetX?.myIsHighlight = false
 
     // Calculate horizontal constraint(s)
     if (hasHorizontalConstraint) {
@@ -142,17 +161,17 @@ class RelativeDragTarget : DragBaseTarget() {
     clearHorizontalConstrains(attributes)
     attributes.removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL)
     val dx = Math.max(parent.drawLeft, Math.min(x, parent.drawRight - myComponent.drawWidth))
-    if (!isAutoConnectionEnabled) {
+    if (!isAutoConnectionEnabled()) {
       return dx
     }
 
-    val snappedX = targetNotchSnapper.trySnapHorizontal(dx)
+    val snappedX = targetSnapper.trySnapHorizontal(dx)
     if (snappedX.isPresent) {
-      targetNotchSnapper.applyNotches(attributes)
-      myTargetX = targetNotchSnapper.snappedHorizontalTarget as BaseRelativeTarget?
-      myTargetX?.myIsHighlight = true
+      targetSnapper.applyNotches(attributes)
+      targetX = targetSnapper.snappedHorizontalTarget as BaseRelativeTarget?
+      targetX?.myIsHighlight = true
 
-      targetNotchSnapper.clearSnappedNotches()
+      targetSnapper.clearSnappedNotches()
       return snappedX.asInt
     }
     else {
@@ -211,7 +230,7 @@ class RelativeDragTarget : DragBaseTarget() {
   @AndroidDpCoordinate
   private fun processVerticalAttributes(attributes: NlAttributesHolder, @AndroidDpCoordinate y: Int): Int {
     val parent = myComponent.parent!!
-    myTargetY?.myIsHighlight = false
+    targetY?.myIsHighlight = false
 
     // Calculate vertical constraint(s)
     if (hasVerticalConstraint) {
@@ -222,17 +241,17 @@ class RelativeDragTarget : DragBaseTarget() {
     clearVerticalConstrains(attributes)
     attributes.removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL)
     val dy = Math.max(parent.drawTop, Math.min(y, parent.drawBottom - myComponent.drawHeight))
-    if (!isAutoConnectionEnabled) {
+    if (!isAutoConnectionEnabled()) {
       return dy
     }
 
-    val snappedY = targetNotchSnapper.trySnapVertical(dy)
+    val snappedY = targetSnapper.trySnapVertical(dy)
     if (snappedY.isPresent) {
-      targetNotchSnapper.applyNotches(attributes)
-      myTargetY = targetNotchSnapper.snappedVerticalTarget as BaseRelativeTarget?
-      myTargetY?.myIsHighlight = true
+      targetSnapper.applyNotches(attributes)
+      targetY = targetSnapper.snappedVerticalTarget as BaseRelativeTarget?
+      targetY?.myIsHighlight = true
 
-      targetNotchSnapper.clearSnappedNotches()
+      targetSnapper.clearSnappedNotches()
 
       return snappedY.asInt
     }
@@ -269,22 +288,6 @@ class RelativeDragTarget : DragBaseTarget() {
     updateAlignAttributeIfNeed(attributes, BOTTOM_ALIGN_ATTRIBUTES, myComponent.drawBottom, BOTTOM_ATTRIBUTE_RULES)
   }
 
-  /**
-   * Merge [SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL] and [SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL] to
-   * [SdkConstants.ATTR_LAYOUT_CENTER_IN_PARENT]. The margins is not going to merge since it happens rarely and may
-   * be changed frequently.
-   */
-  private fun postProcessAttribute(attributes: AttributesTransaction) {
-    with (attributes) {
-      if (getAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL) == SdkConstants.VALUE_TRUE &&
-          getAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL) == SdkConstants.VALUE_TRUE) {
-        removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL)
-        removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL)
-        setAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_IN_PARENT, SdkConstants.VALUE_TRUE)
-      }
-    }
-  }
-
   private fun updateAlignAttributeIfNeed(attributes: NlAttributesHolder,
                                          attributesToUpdate: Array<String>,
                                          coordinateToUpdate: Int,
@@ -294,13 +297,6 @@ class RelativeDragTarget : DragBaseTarget() {
     }
   }
 }
-
-private val MARGINS_WITHOUT_RTL = arrayOf(
-  SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
-  SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
-  SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
-  SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
-)
 
 private fun hasHorizontalConstraint(component: SceneComponent): Boolean {
   val nlComponent = component.authoritativeNlComponent
@@ -317,6 +313,13 @@ private fun clearHorizontalConstrains(attributes: NlAttributesHolder) =
 
 private fun clearVerticalConstrains(attributes: NlAttributesHolder) =
   VERTICAL_ALIGNING_ATTRIBUTE_NAMES.map { attributes.removeAndroidAttribute(it) }
+
+private val MARGINS_WITHOUT_RTL = arrayOf(
+  SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
+  SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
+  SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
+  SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
+)
 
 /**
  * The horizontal constraints. Note that this doesn't include [SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL] and
