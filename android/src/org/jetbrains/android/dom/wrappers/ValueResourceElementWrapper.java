@@ -48,259 +48,260 @@ import javax.swing.*;
 import java.io.File;
 
 public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceElementWrapper, PsiNamedElement, PsiElementNavigationItem {
-  private final XmlAttributeValue myWrappee;
-  private final String myFileName;
-  private final String myDirName;
+  @NotNull private final XmlAttributeValue myWrappedElement;
+  @Nullable private final String myFileName;
+  @Nullable private final String myDirName;
 
-  public ValueResourceElementWrapper(@NotNull XmlAttributeValue wrappeeElement) {
-    if (!(wrappeeElement instanceof NavigationItem)) {
+  public ValueResourceElementWrapper(@NotNull XmlAttributeValue wrappedElement) {
+    if (!(wrappedElement instanceof NavigationItem)) {
       throw new IllegalArgumentException();
     }
-    if (!(wrappeeElement instanceof PsiMetaOwner)) {
+    if (!(wrappedElement instanceof PsiMetaOwner)) {
       throw new IllegalArgumentException();
     }
-    myWrappee = wrappeeElement;
+    myWrappedElement = wrappedElement;
     final PsiFile file = getContainingFile();
     myFileName = file != null ? file.getName() : null;
     final PsiDirectory dir = file != null ? file.getContainingDirectory() : null;
     myDirName = dir != null ? dir.getName() : null;
   }
 
+  @NotNull
   @Override
-  public PsiElement getWrappee() {
-    return myWrappee;
+  public PsiElement getWrappedElement() {
+    return myWrappedElement;
   }
 
   @Override
   @NotNull
   public Project getProject() throws PsiInvalidElementAccessException {
-    return myWrappee.getProject();
+    return myWrappedElement.getProject();
   }
 
   @Override
   @NotNull
   public Language getLanguage() {
-    return myWrappee.getLanguage();
+    return myWrappedElement.getLanguage();
   }
 
   @Override
   public PsiManager getManager() {
-    return myWrappee.getManager();
+    return myWrappedElement.getManager();
   }
 
   @Override
   @NotNull
   public PsiElement[] getChildren() {
-    return myWrappee.getChildren();
+    return myWrappedElement.getChildren();
   }
 
   @Override
   public PsiElement getParent() {
-    return myWrappee.getParent();
+    return myWrappedElement.getParent();
   }
 
   @Override
   @Nullable
   public PsiElement getFirstChild() {
-    return myWrappee.getFirstChild();
+    return myWrappedElement.getFirstChild();
   }
 
   @Override
   @Nullable
   public PsiElement getLastChild() {
-    return myWrappee.getLastChild();
+    return myWrappedElement.getLastChild();
   }
 
   @Override
   @Nullable
   public PsiElement getNextSibling() {
-    return myWrappee.getNextSibling();
+    return myWrappedElement.getNextSibling();
   }
 
   @Override
   @Nullable
   public PsiElement getPrevSibling() {
-    return myWrappee.getPrevSibling();
+    return myWrappedElement.getPrevSibling();
   }
 
   @Override
   public PsiFile getContainingFile() throws PsiInvalidElementAccessException {
-    return myWrappee.getContainingFile();
+    return myWrappedElement.getContainingFile();
   }
 
   @Override
   public TextRange getTextRange() {
-    return myWrappee.getTextRange();
+    return myWrappedElement.getTextRange();
   }
 
   @Override
   public int getStartOffsetInParent() {
-    return myWrappee.getStartOffsetInParent();
+    return myWrappedElement.getStartOffsetInParent();
   }
 
   @Override
   public int getTextLength() {
-    return myWrappee.getTextLength();
+    return myWrappedElement.getTextLength();
   }
 
   @Override
   @Nullable
   public PsiElement findElementAt(int offset) {
-    return myWrappee.findElementAt(offset);
+    return myWrappedElement.findElementAt(offset);
   }
 
   @Override
   @Nullable
   public PsiReference findReferenceAt(int offset) {
-    return myWrappee.findReferenceAt(offset);
+    return myWrappedElement.findReferenceAt(offset);
   }
 
   @Override
   public int getTextOffset() {
-    return myWrappee.getTextOffset();
+    return myWrappedElement.getTextOffset();
   }
 
   @Override
   @NonNls
   public String getText() {
-    return myWrappee.getText();
+    return myWrappedElement.getText();
   }
 
   @Override
   @NotNull
   public char[] textToCharArray() {
-    return myWrappee.textToCharArray();
+    return myWrappedElement.textToCharArray();
   }
 
   @Override
   public PsiElement getNavigationElement() {
-    return myWrappee.getNavigationElement();
+    return myWrappedElement.getNavigationElement();
   }
 
   @Override
   public PsiElement getOriginalElement() {
-    return myWrappee.getOriginalElement();
+    return myWrappedElement.getOriginalElement();
   }
 
   @Override
   public boolean textMatches(@NotNull @NonNls CharSequence text) {
-    return myWrappee.textMatches(text);
+    return myWrappedElement.textMatches(text);
   }
 
   @Override
   public boolean textMatches(@NotNull PsiElement element) {
-    return myWrappee.textMatches(element);
+    return myWrappedElement.textMatches(element);
   }
 
   @Override
   public boolean textContains(char c) {
-    return myWrappee.textContains(c);
+    return myWrappedElement.textContains(c);
   }
 
   @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
-    myWrappee.accept(visitor);
+    myWrappedElement.accept(visitor);
   }
 
   @Override
   public void acceptChildren(@NotNull PsiElementVisitor visitor) {
-    myWrappee.acceptChildren(visitor);
+    myWrappedElement.acceptChildren(visitor);
   }
 
   @Override
   public PsiElement copy() {
-    return myWrappee.copy();
+    return myWrappedElement.copy();
   }
 
   @Override
   public PsiElement add(@NotNull PsiElement element) throws IncorrectOperationException {
-    return myWrappee.add(element);
+    return myWrappedElement.add(element);
   }
 
   @Override
   public PsiElement addBefore(@NotNull PsiElement element, PsiElement anchor) throws IncorrectOperationException {
-    return myWrappee.addBefore(element, anchor);
+    return myWrappedElement.addBefore(element, anchor);
   }
 
   @Override
   public PsiElement addAfter(@NotNull PsiElement element, PsiElement anchor) throws IncorrectOperationException {
-    return myWrappee.addAfter(element, anchor);
+    return myWrappedElement.addAfter(element, anchor);
   }
 
   @SuppressWarnings("deprecation")
   @Override
   public void checkAdd(@NotNull PsiElement element) throws IncorrectOperationException {
-    myWrappee.checkAdd(element);
+    myWrappedElement.checkAdd(element);
   }
 
   @Override
   public PsiElement addRange(PsiElement first, PsiElement last) throws IncorrectOperationException {
-    return myWrappee.addRange(first, last);
+    return myWrappedElement.addRange(first, last);
   }
 
   @Override
   public PsiElement addRangeBefore(@NotNull PsiElement first, @NotNull PsiElement last, PsiElement anchor)
     throws IncorrectOperationException {
-    return myWrappee.addRangeBefore(first, last, anchor);
+    return myWrappedElement.addRangeBefore(first, last, anchor);
   }
 
   @Override
   public PsiElement addRangeAfter(PsiElement first, PsiElement last, PsiElement anchor) throws IncorrectOperationException {
-    return myWrappee.addRangeAfter(first, last, anchor);
+    return myWrappedElement.addRangeAfter(first, last, anchor);
   }
 
   @Override
   public void delete() throws IncorrectOperationException {
-    myWrappee.delete();
+    myWrappedElement.delete();
   }
 
   @SuppressWarnings("deprecation")
   @Override
   public void checkDelete() throws IncorrectOperationException {
-    myWrappee.checkDelete();
+    myWrappedElement.checkDelete();
   }
 
   @Override
   public void deleteChildRange(PsiElement first, PsiElement last) throws IncorrectOperationException {
-    myWrappee.deleteChildRange(first, last);
+    myWrappedElement.deleteChildRange(first, last);
   }
 
   @Override
   public PsiElement replace(@NotNull PsiElement newElement) throws IncorrectOperationException {
-    return myWrappee.replace(newElement);
+    return myWrappedElement.replace(newElement);
   }
 
   @Override
   public boolean isValid() {
-    return myWrappee.isValid();
+    return myWrappedElement.isValid();
   }
 
   @Override
   public boolean isWritable() {
-    return myWrappee.isWritable();
+    return myWrappedElement.isWritable();
   }
 
   @Override
   @Nullable
   public PsiReference getReference() {
-    return myWrappee.getReference();
+    return myWrappedElement.getReference();
   }
 
   @Override
   @NotNull
   public PsiReference[] getReferences() {
-    return myWrappee.getReferences();
+    return myWrappedElement.getReferences();
   }
 
   @Override
   @Nullable
   public <T> T getCopyableUserData(Key<T> key) {
-    return myWrappee.getCopyableUserData(key);
+    return myWrappedElement.getCopyableUserData(key);
   }
 
   @Override
   public <T> void putCopyableUserData(Key<T> key, T value) {
-    myWrappee.putCopyableUserData(key, value);
+    myWrappedElement.putCopyableUserData(key, value);
   }
 
   @Override
@@ -308,13 +309,13 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
                                      @NotNull ResolveState state,
                                      @Nullable PsiElement lastParent,
                                      @NotNull PsiElement place) {
-    return myWrappee.processDeclarations(processor, state, lastParent, place);
+    return myWrappedElement.processDeclarations(processor, state, lastParent, place);
   }
 
   @Override
   @Nullable
   public PsiElement getContext() {
-    return myWrappee.getContext();
+    return myWrappedElement.getContext();
   }
 
   @Override
@@ -325,32 +326,32 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
   @Override
   @NotNull
   public GlobalSearchScope getResolveScope() {
-    return myWrappee.getResolveScope();
+    return myWrappedElement.getResolveScope();
   }
 
   @Override
   @NotNull
   public SearchScope getUseScope() {
-    return myWrappee.getUseScope();
+    return myWrappedElement.getUseScope();
   }
 
   @Override
   @Nullable
   public ASTNode getNode() {
-    return myWrappee.getNode();
+    return myWrappedElement.getNode();
   }
 
   @NonNls
   public String toString() {
-    return myWrappee.toString();
+    return myWrappedElement.toString();
   }
 
   @Override
   public boolean isEquivalentTo(PsiElement another) {
     if (another instanceof ResourceElementWrapper) {
-      another = ((ResourceElementWrapper)another).getWrappee();
+      another = ((ResourceElementWrapper)another).getWrappedElement();
     }
-    return myWrappee == another || myWrappee.isEquivalentTo(another);
+    return myWrappedElement == another || myWrappedElement.isEquivalentTo(another);
   }
 
   @Override
@@ -360,50 +361,50 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
 
     ValueResourceElementWrapper that = (ValueResourceElementWrapper)o;
 
-    if (!myWrappee.equals(that.myWrappee)) return false;
+    if (!myWrappedElement.equals(that.myWrappedElement)) return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    return myWrappee.hashCode();
+    return myWrappedElement.hashCode();
   }
 
   @Override
   public <T> T getUserData(@NotNull Key<T> key) {
-    return myWrappee.getUserData(key);
+    return myWrappedElement.getUserData(key);
   }
 
   @Override
   public <T> void putUserData(@NotNull Key<T> key, @Nullable T value) {
-    myWrappee.putUserData(key, value);
+    myWrappedElement.putUserData(key, value);
   }
 
   @Override
   public Icon getIcon(int flags) {
-    return myWrappee.getIcon(flags);
+    return myWrappedElement.getIcon(flags);
   }
 
   @Override
   public String getName() {
-    String value = myWrappee.getValue();
+    String value = myWrappedElement.getValue();
     if (value.startsWith(SdkConstants.NEW_ID_PREFIX)) {
       return AndroidResourceUtil.getResourceNameByReferenceText(value);
     }
-    return ((NavigationItem)myWrappee).getName();
+    return ((NavigationItem)myWrappedElement).getName();
   }
 
   @Override
   @Nullable
   public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
-    if (AndroidResourceUtil.isIdDeclaration(myWrappee)) {
-      XmlAttribute attribute = (XmlAttribute)myWrappee.getParent();
+    if (AndroidResourceUtil.isIdDeclaration(myWrappedElement)) {
+      XmlAttribute attribute = (XmlAttribute)myWrappedElement.getParent();
       attribute.setValue(name);
     }
     else {
       // then it is a value resource
-      XmlTag tag = PsiTreeUtil.getParentOfType(myWrappee, XmlTag.class);
+      XmlTag tag = PsiTreeUtil.getParentOfType(myWrappedElement, XmlTag.class);
       DomElement domElement = DomManager.getDomManager(getProject()).getDomElement(tag);
       assert domElement instanceof ResourceElement;
       ResourceElement resElement = (ResourceElement)domElement;
@@ -418,7 +419,7 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
       @Override
       @Nullable
       public String getPresentableText() {
-        String name = ((NavigationItem)myWrappee).getName();
+        String name = ((NavigationItem)myWrappedElement).getName();
         if (myDirName == null || myFileName == null) {
           return name;
         }
@@ -440,36 +441,36 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
 
   @Override
   public void navigate(boolean requestFocus) {
-    ((NavigationItem)myWrappee).navigate(requestFocus);
+    ((NavigationItem)myWrappedElement).navigate(requestFocus);
   }
 
   @Override
   public boolean canNavigate() {
-    return ((NavigationItem)myWrappee).canNavigate();
+    return ((NavigationItem)myWrappedElement).canNavigate();
   }
 
   @Override
   public boolean canNavigateToSource() {
-    return ((NavigationItem)myWrappee).canNavigateToSource();
+    return ((NavigationItem)myWrappedElement).canNavigateToSource();
   }
 
   @Override
   public String getValue() {
-    return myWrappee.getValue();
+    return myWrappedElement.getValue();
   }
 
   @Override
   public TextRange getValueTextRange() {
-    return myWrappee.getValueTextRange();
+    return myWrappedElement.getValueTextRange();
   }
 
   @Override
   public boolean processElements(PsiElementProcessor processor, PsiElement place) {
-    return myWrappee.processElements(processor, place);
+    return myWrappedElement.processElements(processor, place);
   }
 
   @Override
   public PsiElement getTargetElement() {
-    return getWrappee();
+    return getWrappedElement();
   }
 }

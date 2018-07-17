@@ -74,7 +74,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
       }
 
       if (element instanceof ResourceElementWrapper) {
-        element = ((ResourceElementWrapper)element).getWrappee();
+        element = ((ResourceElementWrapper)element).getWrappedElement();
       }
 
       if (element != null) {
