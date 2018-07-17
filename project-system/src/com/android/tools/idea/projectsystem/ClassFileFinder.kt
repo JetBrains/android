@@ -17,6 +17,8 @@
 
 package com.android.tools.idea.projectsystem
 
+import com.android.SdkConstants
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
@@ -33,4 +35,21 @@ interface ClassFileFinder {
    * fully-qualified class name, or null if the class file can't be found.
    */
   fun findClassFile(fqcn: String): VirtualFile?
+}
+
+/**
+ * Given a fully-qualified class name, searches the directory contents of the build system
+ * [outputRoot] for the corresponding class file.
+ *
+ * @return the class file where the class referenced by [fqcn] is defined, or null if the
+ *         [outputRoot] doesn't exist or doesn't contain such a class file.
+ */
+fun findClassFileInOutputRoot(outputRoot: VirtualFile, fqcn: String): VirtualFile? {
+  if (!outputRoot.exists()) return null
+
+  val pathSegments = fqcn.split(".").toTypedArray()
+  pathSegments[pathSegments.size - 1] += SdkConstants.DOT_CLASS
+
+  val file = VfsUtil.findRelativeFile(outputRoot, *pathSegments)
+  return if (file != null && file.exists()) file else null
 }
