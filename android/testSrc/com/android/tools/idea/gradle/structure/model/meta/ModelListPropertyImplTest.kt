@@ -167,8 +167,8 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
     list.deleteItem(0)
     assertThat(list.isModified, equalTo(true))
     var editableValues = list.getEditableValues()
-    assertThat(editableValues[0].isModified, equalTo(false))  // Deleting an item from the list does not make
-    assertThat(editableValues[3].isModified, equalTo(false))  // other items modified.
+    assertThat(editableValues[0].isModified, equalTo(true))   // Items after are modified due to their index changing
+    assertThat(editableValues[3].isModified, equalTo(true))
     editableValues[0].testSetReference("propC")
     editableValues[1].testSetInterpolatedString("${'$'}{propC}rd")
     editableValues[2].testSetValue("D")
@@ -219,14 +219,14 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
     list.deleteItem(2)
     var editableValues = list.getEditableValues()
-    assertThat(editableValues[0].isModified, equalTo(false))  // Deleting an item from the list does not make
-    assertThat(editableValues[3].isModified, equalTo(false))  // other items modified.
+    assertThat(editableValues[0].isModified, equalTo(false))  // Deleting an item from the list does not make items before modified
+    assertThat(editableValues[3].isModified, equalTo(true))   // Items after are modified due to their index changing
     editableValues[1].testSetInterpolatedString("${'$'}{propC}rd")
     editableValues[2].testSetValue("D")
     editableValues[3].testSetValue("E")
 
     list.addItem(0).testSetValue("ZZ")
-    assertThat(editableValues[0].isModified, equalTo(false))  // Adding an item does not make other items modified.
+    assertThat(editableValues[0].isModified, equalTo(true))  // Items after are modified due to their index changing
 
     fun verify(ext: ExtModel) {
       editableValues =

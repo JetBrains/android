@@ -23,13 +23,23 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.ExternalNativeBuildOptionsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptionsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.VectorDrawablesOptionsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.ExternalNativeBuildOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement.NDK_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement.VECTOR_DRAWABLES_OPTIONS_BLOCK_NAME;
@@ -39,6 +49,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @NonNls private static final String DIMENSION = "dimension";
   @NonNls private static final String MAX_SDK_VERSION = "maxSdkVersion";
   @NonNls private static final String MIN_SDK_VERSION = "minSdkVersion";
+  @NonNls private static final String MISSING_DIMENSION_STRATEGY = "missingDimensionStrategy";
   @NonNls private static final String RENDER_SCRIPT_TARGET_API = "renderscriptTargetApi";
   @NonNls private static final String RENDER_SCRIPT_SUPPORT_MODE_ENABLED = "renderscriptSupportModeEnabled";
   @NonNls private static final String RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED = "renderscriptSupportModeBlasEnabled";
@@ -98,6 +109,52 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @NotNull
   public ResolvedPropertyModel minSdkVersion() {
     return getModelForProperty(MIN_SDK_VERSION, true);
+  }
+
+  @NotNull
+  @Override
+  public List<ResolvedPropertyModel> missingDimensionStrategies() {
+    List<ResolvedPropertyModel> models = new ArrayList<>();
+    for (GradleDslExpressionList list : myDslElement.getPropertyElements(MISSING_DIMENSION_STRATEGY, GradleDslExpressionList.class)) {
+      if (list.getExpressions().size() > 1) {
+        models.add(GradlePropertyModelBuilder.create(list).buildResolved());
+      }
+    }
+    return models;
+  }
+
+  @NotNull
+  @Override
+  public ResolvedPropertyModel addMissingDimensionStrategy(@NotNull String dimension, @NotNull Object... fallbacks) {
+    GradleDslExpressionList list = new GradleDslExpressionList(myDslElement, GradleNameElement.create(MISSING_DIMENSION_STRATEGY), false);
+    myDslElement.setNewElement(list);
+    list.setElementType(REGULAR);
+    ResolvedPropertyModel model = GradlePropertyModelBuilder.create(list).asMethod(true).buildResolved();
+    model.addListValue().setValue(dimension);
+    for (Object fallback : fallbacks) {
+      model.addListValue().setValue(fallback);
+    }
+    return model;
+  }
+
+  @Override
+  public boolean areMissingDimensionStrategiesModified() {
+    List<GradleDslElement> originalElements =
+      myDslElement.getOriginalElements().stream().filter(e -> e.getName().equals(MISSING_DIMENSION_STRATEGY)).collect(Collectors.toList());
+    List<GradleDslElement> currentElements = myDslElement.getPropertyElementsByName(MISSING_DIMENSION_STRATEGY);
+    if (originalElements.size() != currentElements.size()) {
+      return true;
+    }
+    for (GradleDslElement oldElement : originalElements) {
+      boolean modified = true;
+      for (GradleDslElement newElement : currentElements) {
+        modified &= PropertyUtil.isElementModified(oldElement, newElement);
+      }
+      if (modified) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -197,7 +254,8 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @NotNull
   @Override
   public VectorDrawablesOptionsModel vectorDrawables() {
-    VectorDrawablesOptionsDslElement vectorDrawableElement = myDslElement.getPropertyElement(VECTOR_DRAWABLES_OPTIONS_BLOCK_NAME, VectorDrawablesOptionsDslElement.class);
+    VectorDrawablesOptionsDslElement vectorDrawableElement =
+      myDslElement.getPropertyElement(VECTOR_DRAWABLES_OPTIONS_BLOCK_NAME, VectorDrawablesOptionsDslElement.class);
     if (vectorDrawableElement == null) {
       vectorDrawableElement = new VectorDrawablesOptionsDslElement(myDslElement);
       myDslElement.setNewElement(vectorDrawableElement);

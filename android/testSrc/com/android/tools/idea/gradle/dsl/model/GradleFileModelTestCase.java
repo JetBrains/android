@@ -426,11 +426,13 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
         break;
       case REFERENCE:
         if (resolve) {
-          verifyPropertyModel(message, model.resolve().getResultModel(), expected);
+          GradlePropertyModel resultModel = model.resolve().getResultModel();
+          if (resultModel != model) {
+            verifyPropertyModel(message, model.resolve().getResultModel(), expected);
+            break;
+          }
         }
-        else {
-          assertEquals(message, expected, model.getValue(STRING_TYPE));
-        }
+        assertEquals(message, expected, model.getValue(STRING_TYPE));
         break;
       case UNKNOWN:
         assertEquals(message, expected, model.getValue(STRING_TYPE));
