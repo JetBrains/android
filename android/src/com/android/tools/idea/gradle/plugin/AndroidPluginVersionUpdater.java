@@ -30,6 +30,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +47,7 @@ import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.ThreeState.*;
 
 public class AndroidPluginVersionUpdater {
   @NotNull private final Project myProject;
@@ -71,6 +73,29 @@ public class AndroidPluginVersionUpdater {
     mySyncState = syncState;
     mySyncInvoker = syncInvoker;
     myTextSearch = textSearch;
+  }
+
+  public boolean canDetectPluginVersionToUpdate(@NotNull GradleVersion pluginVersion) {
+    final boolean[] foundPlugin = new boolean[1];
+    BuildFileProcessor.getInstance().processRecursively(myProject, buildModel -> {
+      if (foundPlugin[0]) {
+        return true;
+      }
+
+      DependenciesModel dependencies = buildModel.buildscript().dependencies();
+      for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
+        ThreeState result = isUpdatablePluginVersion(pluginVersion, dependency);
+        if (result == YES) {
+          foundPlugin[0] = true;
+          break;
+        }
+        else if (result == NO) {
+          break;
+        }
+      }
+      return true;
+    }, true);
+    return foundPlugin[0];
   }
 
   public UpdateResult updatePluginVersionAndSync(@NotNull GradleVersion pluginVersion,
@@ -147,6 +172,18 @@ public class AndroidPluginVersionUpdater {
     return result;
   }
 
+  @NotNull
+  private static ThreeState isUpdatablePluginVersion(@NotNull GradleVersion pluginVersion, @NotNull ArtifactDependencyModel model) {
+    String artifactId = model.name().forceString();
+    String groupId = model.group().toString();
+    if  (AndroidPluginGeneration.find(artifactId, groupId) == null) {
+      return UNSURE;
+    }
+
+    String versionValue = model.version().toString();
+    return (isEmpty(versionValue) || pluginVersion.compareTo(versionValue) != 0) ? YES : NO;
+  }
+
   /**
    * Updates android plugin version.
    *
@@ -163,22 +200,20 @@ public class AndroidPluginVersionUpdater {
     BuildFileProcessor.getInstance().processRecursively(myProject, buildModel -> {
       DependenciesModel dependencies = buildModel.buildscript().dependencies();
       for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
-        String artifactId = dependency.name().forceString();
-        String groupId = dependency.group().toString();
-        if (AndroidPluginGeneration.find(artifactId, groupId) != null) {
-          String versionValue = dependency.version().toString();
-          if (isEmpty(versionValue) || pluginVersion.compareTo(versionValue) != 0) {
-            dependency.version().getResultModel().setValue(pluginVersion.toString());
-            // Add Google Maven repository to buildscript (b/69977310)
-            if (gradleVersion != null) {
-              buildModel.buildscript().repositories().addGoogleMavenRepository(gradleVersion);
-            }
-            else {
-              // Gradle version will *not* change, use project version
-              buildModel.buildscript().repositories().addGoogleMavenRepository(myProject);
-            }
-            modelsToUpdate.add(buildModel);
+        ThreeState shouldUpdate = isUpdatablePluginVersion(pluginVersion, dependency);
+        if (shouldUpdate == YES) {
+          dependency.version().getResultModel().setValue(pluginVersion.toString());
+          // Add Google Maven repository to buildscript (b/69977310)
+          if (gradleVersion != null) {
+            buildModel.buildscript().repositories().addGoogleMavenRepository(gradleVersion);
           }
+          else {
+            // Gradle version will *not* change, use project version
+            buildModel.buildscript().repositories().addGoogleMavenRepository(myProject);
+          }
+          modelsToUpdate.add(buildModel);
+        }
+        else if (shouldUpdate == NO) {
           break;
         }
       }
