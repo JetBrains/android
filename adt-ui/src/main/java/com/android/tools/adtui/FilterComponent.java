@@ -39,7 +39,7 @@ import java.text.DecimalFormat;
  * the filter box triggering a change event.
  */
 
-public class FilterComponent extends JPanel {
+public final class FilterComponent extends JPanel {
   static final String OPEN_AND_FOCUS_ACTION = "OpenAndFocusSearchAction";
   static final String CLOSE_ACTION = "CloseSearchAction";
   static final KeyStroke FILTER_KEY_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask());
@@ -51,7 +51,7 @@ public class FilterComponent extends JPanel {
   private JCheckBox myRegexCheckBox;
   private JCheckBox myMatchCaseCheckBox;
   private JLabel myCountLabel;
-  private final SearchTextField myFilter;
+  private final SearchTextField mySearchField;
   private final Alarm myUpdateAlarm = new Alarm();
   private final int myDelayMs;
 
@@ -68,19 +68,19 @@ public class FilterComponent extends JPanel {
     });
 
     // Configure filter text field
-    myFilter = new SearchTextField() {
+    mySearchField = new SearchTextField() {
       @Override
       protected Runnable createItemChosenCallback(JList list) {
         final Runnable callback = super.createItemChosenCallback(list);
         return () -> {
           callback.run();
-          updateFilter();
+          updateModel();
         };
       }
 
       @Override
       protected Component getPopupLocationComponent() {
-        return FilterComponent.this.getPopupLocationComponent();
+        return mySearchField;
       }
 
       @Override
@@ -89,41 +89,43 @@ public class FilterComponent extends JPanel {
         super.onFocusLost();
       }
     };
-    myFilter.getTextEditor().addKeyListener(new KeyAdapter() {
+    mySearchField.getTextEditor().addKeyListener(new KeyAdapter() {
       //to consume enter in combo box - do not process this event by default button from DialogWrapper
       @Override
       public void keyPressed(final KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
           e.consume();
-          myFilter.addCurrentTextToHistory();
-          updateFilter();
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-          onEscape(e);
+          mySearchField.addCurrentTextToHistory();
+          updateModel();
         }
       }
     });
 
-    myFilter.addDocumentListener(new DocumentListener() {
+    mySearchField.addDocumentListener(new DocumentListener() {
       @Override
       public void insertUpdate(DocumentEvent e) {
-        onChange();
+        onChanged();
       }
 
       @Override
       public void removeUpdate(DocumentEvent e) {
-        onChange();
+        onChanged();
       }
 
       @Override
       public void changedUpdate(DocumentEvent e) {
-        onChange();
+        onChanged();
+      }
+
+      private void onChanged() {
+        myUpdateAlarm.cancelAllRequests();
+        myUpdateAlarm.addRequest(() -> updateModel(), myDelayMs);
       }
     });
 
-    myFilter.setHistorySize(historySize);
+    mySearchField.setHistorySize(historySize);
 
-    add(myFilter, new TabularLayout.Constraint(0, 1));
+    add(mySearchField, new TabularLayout.Constraint(0, 1));
 
     // Configure check boxes
     myMatchCaseCheckBox = new JCheckBox(MATCH_CASE);
@@ -132,7 +134,7 @@ public class FilterComponent extends JPanel {
     myMatchCaseCheckBox.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
-        updateFilter();
+        updateModel();
       }
     });
     add(myMatchCaseCheckBox, new TabularLayout.Constraint(0, 3));
@@ -142,7 +144,7 @@ public class FilterComponent extends JPanel {
     myRegexCheckBox.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
-        updateFilter();
+        updateModel();
       }
     });
     add(myRegexCheckBox, new TabularLayout.Constraint(0, 5));
@@ -169,41 +171,8 @@ public class FilterComponent extends JPanel {
     });
   }
 
-  @VisibleForTesting
-  JLabel getCountLabel() {
-    return myCountLabel;
-  }
-
-  protected JComponent getPopupLocationComponent() {
-    return myFilter;
-  }
-
-  public JTextField getTextEditor() {
-    return myFilter.getTextEditor();
-  }
-
-  private void onChange() {
-    myUpdateAlarm.cancelAllRequests();
-    myUpdateAlarm.addRequest(() -> updateFilter(), myDelayMs);
-  }
-
-  public void reset() {
-    myFilter.reset();
-  }
-
-  protected void onEscape(KeyEvent e) {
-  }
-
-  public void setSelectedItem(final String filter) {
-    myFilter.setSelectedItem(filter);
-  }
-
   public void setFilterText(final String filterText) {
-    myFilter.setText(filterText);
-  }
-
-  public void selectText() {
-    myFilter.selectText();
+    mySearchField.setText(filterText);
   }
 
   @NotNull
@@ -213,15 +182,17 @@ public class FilterComponent extends JPanel {
 
   @Override
   public boolean requestFocusInWindow() {
-    return myFilter.requestFocusInWindow();
+    return mySearchField.requestFocusInWindow();
   }
 
-  public void dispose() {
-    myUpdateAlarm.cancelAllRequests();
+  @VisibleForTesting
+  @NotNull
+  JLabel getCountLabel() {
+    return myCountLabel;
   }
 
-  private void updateFilter() {
-    myModel.setFilter(new Filter(myFilter.getText(), myMatchCaseCheckBox.isSelected(), myRegexCheckBox.isSelected()));
+  private void updateModel() {
+    myModel.setFilter(new Filter(mySearchField.getText(), myMatchCaseCheckBox.isSelected(), myRegexCheckBox.isSelected()));
   }
 
   /**
