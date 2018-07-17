@@ -1210,6 +1210,7 @@
 
     <projectImportProvider implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectImportProvider"/>
     <projectImportBuilder implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectImportProvider$AndroidGradleImportBuilder"/>
+    <elementDescriptionProvider implementation="org.jetbrains.android.dom.wrappers.ResourceFieldElementWrapper$DescriptionProvider" />
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
