@@ -25,6 +25,7 @@ import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.ComponentProvider;
+import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.ActionTarget;
@@ -1247,6 +1248,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       }
     }
     return component.getNlComponent();
+  }
+
+  @Override
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    return ImmutableList.of(new ConstraintPlaceholder(component));
   }
 
   private static class ConstraintViewActions {
