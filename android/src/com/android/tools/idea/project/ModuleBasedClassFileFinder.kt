@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.project
 
-import com.android.SdkConstants
 import com.android.tools.idea.projectsystem.ClassFileFinder
+import com.android.tools.idea.projectsystem.findClassFileInOutputRoot
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.CompilerModuleExtension
 import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+
+private val LOG = Logger.getInstance(ModuleBasedClassFileFinder::class.java)
 
 private fun Logger.debugIfEnabled(msg: String) {
   if (isDebugEnabled) debug(msg)
@@ -81,27 +82,5 @@ open class ModuleBasedClassFileFinder(val module: Module): ClassFileFinder {
   protected open fun findClassFileInModule(module: Module, fqcn: String): VirtualFile? {
     if (module.isDisposed) return null
     return CompilerModuleExtension.getInstance(module)?.compilerOutputPath?.let { findClassFileInOutputRoot(it, fqcn) }
-  }
-
-  companion object {
-    private val LOG = Logger.getInstance(ModuleBasedClassFileFinder::class.java)
-
-    /**
-     * Given a fully-qualified class name, searches the directory contents of the build system
-     * [outputRoot] for the corresponding class file.
-     *
-     * @return the class file where the class referenced by [fqcn] is defined, or null if the
-     *         [outputRoot] doesn't exist or doesn't contain such a class file.
-     */
-    @JvmStatic
-    protected fun findClassFileInOutputRoot(outputRoot: VirtualFile, fqcn: String): VirtualFile? {
-      if (!outputRoot.exists()) return null
-
-      val pathSegments = fqcn.split(".").toTypedArray()
-      pathSegments[pathSegments.size - 1] += SdkConstants.DOT_CLASS
-
-      val file = VfsUtil.findRelativeFile(outputRoot, *pathSegments)
-      return if (file != null && file.exists()) file else null
-    }
   }
 }

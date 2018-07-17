@@ -21,6 +21,7 @@ import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.ModuleBasedClassFileFinder;
+import com.android.tools.idea.projectsystem.ClassFileFinderUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -50,7 +51,7 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
       return null;
     }
     for (VirtualFile outputDir : getCompilerOutputRoots(model)) {
-      file = findClassFileInOutputRoot(outputDir, className);
+      file = ClassFileFinderUtil.findClassFileInOutputRoot(outputDir, className);
       if (file != null) {
         return file;
       }
