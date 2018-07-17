@@ -45,6 +45,10 @@ public class AtraceParser implements TraceParser {
    */
   public static final int INVALID_PROCESS = Integer.MAX_VALUE;
   /**
+   * The platform RenderThread is hard coded to have this name.
+   */
+  public static final String RENDER_THREAD_NAME = "RenderThread";
+  /**
    * Map of CpuThreadInfo to capture nodes. The thread info in this map does not contain process information.
    */
   private final Map<CpuThreadInfo, CaptureNode> myCaptureTreeNodes;
@@ -77,6 +81,7 @@ public class AtraceParser implements TraceParser {
   // Trebuchet.Model is what Trebuchet uses to represent all captured data.
   private Model myModel;
   private Range myRange;
+  private AtraceFrameFactory myFrameInfo;
 
   /**
    * This constructor parses the atrace model from the file and should be used for getting the list
@@ -115,6 +120,7 @@ public class AtraceParser implements TraceParser {
     buildCaptureTreeNodes();
     buildThreadStateData();
     buildCpuStateData();
+    myFrameInfo = new AtraceFrameFactory(myProcessModel, this::convertToUserTimeUs);
     return new AtraceCpuCapture(this, traceId);
   }
 
@@ -254,6 +260,42 @@ public class AtraceParser implements TraceParser {
     return myCpuUtilizationSeries;
   }
 
+  public int getRenderThreadId() {
+    return findRenderThreadId(myProcessModel);
+  }
+
+  /**
+   * Returns a series of frames where gaps between frames are filled with empty frames. This allows the caller to determine the
+   * frame length by looking at the delta between a valid frames series and the empty frame series that follows it. The delta between
+   * an empty frame series and the following frame is idle time between frames.
+   */
+  @NotNull
+  public List<SeriesData<AtraceFrame>> getFrames(AtraceFrameFilterConfig filter) {
+    List<SeriesData<AtraceFrame>> framesSeries = new ArrayList<>();
+    List<AtraceFrame> framesList = myFrameInfo.buildFramesList(filter);
+    // Look at each frame converting them to series data.
+    // The last frame is handled outside the for loop as we need to add an entry for the frame as well as an entry for the frame ending.
+    // Single frames are handled in the last frame case.
+    for (int i = 1; i < framesList.size(); i++) {
+      AtraceFrame current = framesList.get(i);
+      AtraceFrame past = framesList.get(i - 1);
+      framesSeries.add(new SeriesData<>(convertToUserTimeUs(past.getTotalRangeSeconds().getMin()), past));
+
+      // Need to get the time delta between two frames.
+      // If we have a gap then we add an empty frame to signify to the UI that nothing should be rendered.
+      if (past.getTotalRangeSeconds().getMax() < current.getTotalRangeSeconds().getMin()) {
+        framesSeries.add(new SeriesData<>(convertToUserTimeUs(past.getTotalRangeSeconds().getMax()), AtraceFrame.EMPTY));
+      }
+    }
+
+    // Always add the last frame, and a null frame following to properly setup the series for the UI.
+    if (!framesList.isEmpty()) {
+      AtraceFrame lastFrame = framesList.get(framesList.size() - 1);
+      framesSeries.add(new SeriesData<>(convertToUserTimeUs(lastFrame.getTotalRangeSeconds().getMin()), lastFrame));
+      framesSeries.add(new SeriesData<>(convertToUserTimeUs(lastFrame.getTotalRangeSeconds().getMax()), AtraceFrame.EMPTY));
+    }
+    return framesSeries;
+  }
   /**
    * @return Returns a map of {@link CpuThreadInfo} to {@link CaptureNode}. The capture nodes are built from {@link SliceGroup} maintaining
    * the order and hierarchy.
@@ -480,5 +522,16 @@ public class AtraceParser implements TraceParser {
       }
     }
     return name;
+  }
+
+  /**
+   * Helper function used to find the main and render threads.
+   *
+   * @return ui thread model as this element is required to be non-null.
+   */
+  private static int findRenderThreadId(@NotNull ProcessModel process) {
+    Optional<ThreadModel> renderThread =
+      process.getThreads().stream().filter((thread) -> thread.getName().equalsIgnoreCase(RENDER_THREAD_NAME)).findFirst();
+    return renderThread.map(ThreadModel::getId).orElse(INVALID_PROCESS);
   }
 }

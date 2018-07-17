@@ -20,10 +20,12 @@ import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.CpuThreadInfo
+import com.android.tools.profilers.cpu.atrace.AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS
 import com.google.common.collect.Iterables
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 class AtraceParserTest {
 
@@ -141,6 +143,19 @@ class AtraceParserTest {
       expectedExceptionCaught = true
     }
     assertThat(expectedExceptionCaught).isTrue()
+  }
+
+  @Test
+  fun framesEndWithEmptyFrame() {
+    val frameFilter = AtraceFrameFilterConfig(APP_MAIN_THREAD_FRAME_ID_MPLUS, AtraceTestUtils.TEST_PID,
+                                              TimeUnit.MILLISECONDS.toMicros(30));
+    val frames = myParser.getFrames(frameFilter)
+    // Each frame has a empty frame after it for spacing.
+    assertThat(frames).hasSize(122 * 2)
+    for (i in 0 until frames.size step 2) {
+      assertThat(frames[i].value).isNotEqualTo(AtraceFrame.EMPTY)
+      assertThat(frames[i + 1].value).isEqualTo(AtraceFrame.EMPTY)
+    }
   }
 
   @Test
