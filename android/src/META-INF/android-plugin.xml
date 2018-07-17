@@ -402,6 +402,11 @@
                          provider="com.android.tools.idea.fd.InstantRunConfigurableProvider"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.project.build.compiler.HideCompilerOptions" />
 
+    <applicationConfigurable groupId="tools" id="device.file.explorer"
+                             provider="com.android.tools.idea.explorer.options.DeviceFileExplorerConfigurableProvider"/>
+    <applicationService serviceInterface="com.android.tools.idea.explorer.options.DeviceFileExplorerSettings"
+                        serviceImplementation="com.android.tools.idea.explorer.options.DeviceFileExplorerSettings"/>
+
     <applicationConfigurable groupId="editor" groupWeight="115" id="nele.options"
                              provider="com.android.tools.idea.uibuilder.options.NlOptionsConfigurableProvider"/>
     <projectConfigurable instance="com.android.tools.idea.flags.ExperimentalSettingsConfigurable"
