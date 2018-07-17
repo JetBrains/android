@@ -206,7 +206,10 @@ public class PostSyncProjectSetup {
       return;
     }
 
-    if (!request.skipAndroidPluginUpgrade && myPluginVersionUpgrade.checkAndPerformUpgrade()) {
+    // Needed internally for development of Android support lib.
+    boolean skipAgpUpgrade = SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false);
+
+    if (!skipAgpUpgrade && !request.skipAndroidPluginUpgrade && myPluginVersionUpgrade.checkAndPerformUpgrade()) {
       // Plugin version was upgraded and a sync was triggered.
       finishSuccessfulSync(taskId);
       return;
