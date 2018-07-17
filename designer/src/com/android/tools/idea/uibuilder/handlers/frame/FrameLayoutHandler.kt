@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.frame
 
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.scene.target.Target
@@ -45,5 +46,13 @@ open class FrameLayoutHandler : ViewGroupHandler() {
     ResizeBaseTarget.Type.values().forEach { list.add(FrameResizeTarget(it)) }
     list.add(FrameDragTarget())
     return list
+  }
+
+  override fun getPlaceholders(component: SceneComponent): List<Placeholder> {
+    val left = component.drawX
+    val top = component.drawY
+    val right = component.drawX + component.drawWidth
+    val bottom = component.drawY + component.drawHeight
+    return listOf(FramePlaceholder(component, left, top, right, bottom))
   }
 }
