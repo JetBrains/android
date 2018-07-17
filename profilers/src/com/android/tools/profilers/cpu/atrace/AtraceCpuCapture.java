@@ -75,4 +75,18 @@ public class AtraceCpuCapture extends CpuCapture {
   public boolean isMissingData() {
     return myParser.isMissingData();
   }
+
+  /**
+   * @return Data series of frame perf classes sorted by frame start time.
+   */
+  public List<SeriesData<AtraceFrame>> getFrames(AtraceFrameFilterConfig filter) {
+    return myParser.getFrames(filter);
+  }
+
+  /**
+   * @return thread id of thread matching name of the render thread.
+   */
+  public int getRenderThreadId() {
+    return myParser.getRenderThreadId();
+  }
 }
