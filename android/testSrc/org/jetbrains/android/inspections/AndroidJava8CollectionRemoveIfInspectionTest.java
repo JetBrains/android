@@ -78,6 +78,11 @@ public class AndroidJava8CollectionRemoveIfInspectionTest extends AndroidInspect
   @Nullable
   @Override
   protected InspectionProfileEntry getInspection() {
-    return new Java8CollectionRemoveIfInspection();
+    return new Java8CollectionRemoveIfInspection() {
+      @Override
+      public String getDisplayName() {
+        return "Loop can be replaced with Collection.removeIf()";
+      }
+    };
   }
 }
