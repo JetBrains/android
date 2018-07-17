@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
@@ -203,3 +202,14 @@ internal val RIGHT_ALIGN_ATTRIBUTES = arrayOf(
   SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT,
   SdkConstants.ATTR_LAYOUT_TO_LEFT_OF
 )
+
+internal val RELATIVE_LAYOUT_ATTRIBUTES =
+  TOP_ALIGN_ATTRIBUTES +
+  BOTTOM_ALIGN_ATTRIBUTES +
+  START_ALIGN_ATTRIBUTES +
+  LEFT_ALIGN_ATTRIBUTES +
+  END_ALIGN_ATTRIBUTES +
+  RIGHT_ALIGN_ATTRIBUTES +
+  SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL +
+  SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL +
+  SdkConstants.ATTR_LAYOUT_CENTER_IN_PARENT

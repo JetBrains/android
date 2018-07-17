@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative
 
+import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.common.api.DragType
+import com.android.tools.idea.common.api.InsertType
+import com.android.tools.idea.common.model.NlAttributesHolder
+import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.target.AnchorTarget
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
@@ -45,6 +49,21 @@ class RelativeLayoutHandler : ViewGroupHandler() {
       return null
     }
     return RelativeDragHandler(editor, this, layout, components, type)
+  }
+
+  override fun onChildRemoved(editor: ViewEditor, layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
+    RELATIVE_LAYOUT_ATTRIBUTES.forEach { newChild.removeAndroidAttribute(it) }
+  }
+
+  override fun cleanUpAttributes(component: NlComponent, attributes: NlAttributesHolder) {
+    with (attributes) {
+      if (getAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL) == SdkConstants.VALUE_TRUE &&
+          getAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL) == SdkConstants.VALUE_TRUE) {
+        removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL)
+        removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL)
+        setAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_IN_PARENT, SdkConstants.VALUE_TRUE)
+      }
+    }
   }
 
   override fun handlesPainting(): Boolean = true
@@ -78,6 +97,8 @@ class RelativeLayoutHandler : ViewGroupHandler() {
     super.addToolbarActions(actions)
     actions.add(ToggleAutoConnectAction())
   }
+
+  override fun getPlaceholders(sceneComponent: SceneComponent) = listOf(RelativePlaceholder(sceneComponent))
 }
 
 private val RESIZE_TARGETS = listOf(
