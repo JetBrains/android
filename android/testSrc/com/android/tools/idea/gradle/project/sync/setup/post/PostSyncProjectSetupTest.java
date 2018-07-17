@@ -181,6 +181,26 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     verify(mySyncState, never()).syncEnded();
   }
 
+  public void testWithExceptionDuringProjectSetup() {
+    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
+    doThrow(new RuntimeException()).when(myProjectSetup).setUpProject(myProgressIndicator, false);
+
+    PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
+    request.usingCachedGradleModels = false;
+    request.lastSyncTimestamp = 1L;
+
+    try {
+      mySetup.setUpProject(request, myProgressIndicator, myTaskId);
+      fail();
+    }
+    catch (Throwable t) {
+      // Exception is expected
+    }
+
+    verify(mySyncState, times(1)).syncFailed(any());
+    verify(mySyncState, never()).syncEnded();
+  }
+
   // See: https://code.google.com/p/android/issues/detail?id=225938
   public void testSyncFinishedWithSyncIssues() {
     when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);

@@ -116,7 +116,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
       "    package=\"google.simpleapplication\" >\n" +
-      "<uses-sdk  android:targetSdkVersion='27'/>\n" +
+      "<uses-sdk android:targetSdkVersion='27'/>\n" +
       "</manifest>\n"
     );
 

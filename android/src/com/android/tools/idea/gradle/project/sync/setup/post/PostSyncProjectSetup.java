@@ -59,6 +59,7 @@ import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
@@ -163,86 +164,93 @@ public class PostSyncProjectSetup {
    * Invoked after a project has been synced with Gradle.
    */
   public void setUpProject(@NotNull Request request, @NotNull ProgressIndicator progressIndicator, @Nullable ExternalSystemTaskId taskId) {
-    if (!StudioFlags.NEW_SYNC_INFRA_ENABLED.get()) {
-      removeSyncContextDataFrom(myProject);
-    }
+    try {
+      if (!StudioFlags.NEW_SYNC_INFRA_ENABLED.get()) {
+        removeSyncContextDataFrom(myProject);
+      }
 
-    // If single-variant sync is enabled but not supported for current project, disable the option and sync again.
-    if (!isInTestingMode() && myEnableDisableSingleVariantSyncStep.checkAndDisableOption(myProject, mySyncState)) {
-      // Single-variant sync disabled and a sync was triggered.
+      // If single-variant sync is enabled but not supported for current project, disable the option and sync again.
+      if (!isInTestingMode() && myEnableDisableSingleVariantSyncStep.checkAndDisableOption(myProject, mySyncState)) {
+        // Single-variant sync disabled and a sync was triggered.
+        finishSuccessfulSync(taskId);
+        return;
+      }
+
+      myGradleProjectInfo.setNewProject(false);
+      myGradleProjectInfo.setImportedProject(false);
+      boolean syncFailed = mySyncState.lastSyncFailedOrHasIssues();
+
+      if (syncFailed && request.usingCachedGradleModels) {
+        onCachedModelsSetupFailure(request);
+        return;
+      }
+
+      myDependencySetupIssues.reportIssues();
+      myVersionCompatibilityChecker.checkAndReportComponentIncompatibilities(myProject);
+
+      ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+      List<Module> modules = Arrays.asList(moduleManager.getModules());
+      CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
+      JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, progressIndicator, module -> {
+        moduleValidator.validate(module);
+        return true;
+      });
+      moduleValidator.fixAndReportFoundIssues();
+
+      if (syncFailed) {
+        failTestsIfSyncIssuesPresent();
+
+        myProjectSetup.setUpProject(progressIndicator, true /* sync failed */);
+        // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
+        // previous sync, and not the one from the sync that just ended.
+        mySyncState.syncFailed("");
+        finishFailedSync(taskId, myProject);
+        return;
+      }
+
+      // Needed internally for development of Android support lib.
+      boolean skipAgpUpgrade = SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false);
+
+      if (!skipAgpUpgrade && !request.skipAndroidPluginUpgrade && myPluginVersionUpgrade.checkAndPerformUpgrade()) {
+        // Plugin version was upgraded and a sync was triggered.
+        finishSuccessfulSync(taskId);
+        return;
+      }
+
+      new ProjectStructureUsageTracker(myProject).trackProjectStructure();
+
+      DisposedModules.getInstance(myProject).deleteImlFilesForDisposedModules();
+      SupportedModuleChecker.getInstance().checkForSupportedModules(myProject);
+
+      findAndShowVariantConflicts();
+      myProjectSetup.setUpProject(progressIndicator, false /* sync successful */);
+
+      modifyJUnitRunConfigurations();
+      RunConfigurationChecker.getInstance(myProject).ensureRunConfigsInvokeBuild();
+
+      myProvisionTasks.addInstantAppProvisionTaskToRunConfigurations(myProject);
+
+      AndroidPluginVersionsInProject agpVersions = myProjectStructure.getAndroidPluginVersions();
+      myProjectStructure.analyzeProjectStructure(progressIndicator);
+      boolean cleanProjectAfterSync = myProjectStructure.getAndroidPluginVersions().haveVersionsChanged(agpVersions);
+
+      attemptToGenerateSources(request, cleanProjectAfterSync);
+      notifySyncFinished(request);
+
+      TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
+
+      myModuleSetup.setUpModules(null);
+
       finishSuccessfulSync(taskId);
-      return;
+      // If sync is successful and the project is eligible, ask user to opt-in single-variant sync.
+      if (!isInTestingMode()) {
+        myEnableDisableSingleVariantSyncStep.checkAndEnableOption(myProject);
+      }
     }
-
-    myGradleProjectInfo.setNewProject(false);
-    myGradleProjectInfo.setImportedProject(false);
-    boolean syncFailed = mySyncState.lastSyncFailedOrHasIssues();
-
-    if (syncFailed && request.usingCachedGradleModels) {
-      onCachedModelsSetupFailure(request);
-      return;
-    }
-
-    myDependencySetupIssues.reportIssues();
-    myVersionCompatibilityChecker.checkAndReportComponentIncompatibilities(myProject);
-
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    List<Module> modules = Arrays.asList(moduleManager.getModules());
-    CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
-    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, progressIndicator, module -> {
-      moduleValidator.validate(module);
-      return true;
-    });
-    moduleValidator.fixAndReportFoundIssues();
-
-    if (syncFailed) {
-      failTestsIfSyncIssuesPresent();
-
-      myProjectSetup.setUpProject(progressIndicator, true /* sync failed */);
-      // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
-      // previous sync, and not the one from the sync that just ended.
-      mySyncState.syncFailed("");
+    catch (Throwable t) {
+      mySyncState.syncFailed("setup project failed: " + t.getMessage());
       finishFailedSync(taskId, myProject);
-      return;
-    }
-
-    // Needed internally for development of Android support lib.
-    boolean skipAgpUpgrade = SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false);
-
-    if (!skipAgpUpgrade && !request.skipAndroidPluginUpgrade && myPluginVersionUpgrade.checkAndPerformUpgrade()) {
-      // Plugin version was upgraded and a sync was triggered.
-      finishSuccessfulSync(taskId);
-      return;
-    }
-
-    new ProjectStructureUsageTracker(myProject).trackProjectStructure();
-
-    DisposedModules.getInstance(myProject).deleteImlFilesForDisposedModules();
-    SupportedModuleChecker.getInstance().checkForSupportedModules(myProject);
-
-    findAndShowVariantConflicts();
-    myProjectSetup.setUpProject(progressIndicator, false /* sync successful */);
-
-    modifyJUnitRunConfigurations();
-    RunConfigurationChecker.getInstance(myProject).ensureRunConfigsInvokeBuild();
-
-    myProvisionTasks.addInstantAppProvisionTaskToRunConfigurations(myProject);
-
-    AndroidPluginVersionsInProject agpVersions = myProjectStructure.getAndroidPluginVersions();
-    myProjectStructure.analyzeProjectStructure(progressIndicator);
-    boolean cleanProjectAfterSync = myProjectStructure.getAndroidPluginVersions().haveVersionsChanged(agpVersions);
-
-    attemptToGenerateSources(request, cleanProjectAfterSync);
-    notifySyncFinished(request);
-
-    TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
-
-    myModuleSetup.setUpModules(null);
-
-    finishSuccessfulSync(taskId);
-    // If sync is successful and the project is eligible, ask user to opt-in single-variant sync.
-    if (!isInTestingMode()) {
-      myEnableDisableSingleVariantSyncStep.checkAndEnableOption(myProject);
+      getLog().error(t);
     }
   }
 
@@ -412,6 +420,11 @@ public class PostSyncProjectSetup {
       return;
     }
     myProjectBuilder.generateSources();
+  }
+
+  @NotNull
+  private Logger getLog() {
+    return Logger.getInstance(getClass());
   }
 
   /**
