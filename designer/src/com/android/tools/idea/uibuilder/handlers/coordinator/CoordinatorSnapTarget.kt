@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.model.NlAttributesHolder
+import com.android.tools.idea.common.scene.NonPlaceholderDragTarget
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.target.BaseTarget
@@ -30,7 +31,7 @@ import java.awt.Color
  * A "snap" target for CoordinatorLayout. When a CoordinatorDragTarget
  * is moved close to this, we'll snap the component at the location.
  */
-class CoordinatorSnapTarget constructor(type: Type) : BaseTarget() {
+class CoordinatorSnapTarget constructor(type: Type) : BaseTarget(), NonPlaceholderDragTarget {
   private val DEBUG: Boolean = false
 
   enum class Type {
