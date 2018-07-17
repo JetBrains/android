@@ -17,9 +17,13 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
+import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
@@ -41,6 +45,7 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.util.text.nullize
 import icons.StudioIcons
 import org.jetbrains.android.dom.attrs.AttributeDefinition
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import javax.swing.Icon
 
 /**
@@ -123,6 +128,12 @@ open class NelePropertyItem(
       }
     }
 
+  override val editingSupport = object : EditingSupport {
+    override val completion = { getCompletionValues() }
+    override val validation = { text: String -> validate(text) }
+    override val execution = { runnable: Runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) }
+  }
+
   override val designProperty: NelePropertyItem
     get() = if (namespace == TOOLS_URI) this else NelePropertyItem(TOOLS_URI, name, type, definition, libraryName, model, components)
 
@@ -141,7 +152,7 @@ open class NelePropertyItem(
   private fun resolveValueUsingResolver(value: String?): String? {
     if (value == null || !isReferenceValue(value)) return value
     val resolver = resolver ?: return value
-    // TODO: Should an error if the value cannot be parsed and resolved...
+    // TODO: Should an error be raised if the value cannot be parsed and resolved...
     val url = ResourceUrl.parse(value) ?: return value
     val defaultNamespace = ResourceRepositoryManager.getOrCreateInstance(model.facet).namespace
     val resRef = url.resolve(defaultNamespace, namespaceResolver) ?: return value
@@ -246,6 +257,37 @@ open class NelePropertyItem(
     val prefix = namespaceResolver.uriToPrefix(namespace) ?: return ""
     @Suppress("ConvertToStringTemplate")
     return prefix + ":"
+  }
+
+  private fun getCompletionValues(): List<String> {
+    val values = mutableListOf<String>()
+    if (definition != null && definition.values.isNotEmpty()) {
+      values.addAll(definition.values)
+    }
+    val resourceManagers = ModuleResourceManagers.getInstance(model.facet)
+    val localRepository = resourceManagers.localResourceManager.resourceRepository
+    val frameworkRepository = resourceManagers.frameworkResourceManager?.resourceRepository
+    val defaultNamespace = ResourceRepositoryManager.getOrCreateInstance(model.facet).namespace
+    val namespaceResolver = namespaceResolver
+    val types = type.resourceTypes
+    val toName = { item: ResourceItem -> item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString() }
+    if (types.isNotEmpty()) {
+      for (type in types) {
+        localRepository.getResourceItems(defaultNamespace, type).filter { it.libraryName == null }.mapTo(values, toName)
+      }
+      for (type in types) {
+        localRepository.getPublicResourcesOfType(type).filter { it.libraryName != null }.mapTo(values, toName)
+      }
+      for (type in types) {
+        frameworkRepository?.getPublicResourcesOfType(type)?.mapTo(values, toName)
+      }
+    }
+    return values
+  }
+
+  // TODO: implement validate
+  private fun validate(text: String): Pair<EditingErrorCategory, String> {
+    return EDITOR_NO_ERROR
   }
 
   // region Implementation of ActionButtonSupport
