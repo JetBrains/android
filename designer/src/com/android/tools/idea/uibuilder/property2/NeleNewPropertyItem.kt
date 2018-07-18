@@ -21,7 +21,6 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property2.api.NewPropertyItem
 import com.android.tools.idea.common.property2.api.PropertiesTable
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.psi.xml.XmlTag
 import icons.StudioIcons
 import javax.swing.Icon
 
@@ -94,31 +93,18 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
   override fun getAction(): AnAction? =
     delegate?.getAction()
 
+  override val firstComponent: NlComponent?
+    get() = properties.first?.components?.firstOrNull()
+
   private fun parseName(value: String): Pair<String, String> {
     val prefixIndex = value.indexOf(":")
     if (prefixIndex < 0) {
-      return Pair(ANDROID_URI, value)
+      return Pair("", value)
     }
     val prefix = value.substring(0, prefixIndex)
     val name = value.substring(prefixIndex + 1)
-
-    val namespace = findNamespaceDeclarations()[prefix] ?: ANDROID_URI
+    val namespace = namespaceResolver.prefixToUri(prefix) ?: ANDROID_URI
     return Pair(namespace, name)
-  }
-
-  private fun findNamespaceDeclarations(): Map<String, String> {
-    val component = properties.first?.components?.firstOrNull() ?: return emptyMap()
-    return findRootTag(component).localNamespaceDeclarations
-  }
-
-  private fun findRootTag(component: NlComponent): XmlTag {
-    var tag = component.tag
-    var parent = tag.parent
-    while (parent is XmlTag) {
-      tag = parent
-      parent = tag.parent
-    }
-    return tag
   }
 
   private fun findDelegate(): NelePropertyItem? {
@@ -130,7 +116,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
       for (ns in properties.namespaces) {
         property = properties.getOrNull(ns, name)
         if (property != null) {
-          property.designProperty
+          return property.designProperty
         }
       }
     }

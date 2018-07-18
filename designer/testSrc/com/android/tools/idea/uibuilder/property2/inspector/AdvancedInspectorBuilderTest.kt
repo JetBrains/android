@@ -137,7 +137,7 @@ class AdvancedInspectorBuilderTest {
 
     val declared = util.inspector.lines[1].tableModel!!
     val newProperty = declared.items.last() as NeleNewPropertyItem
-    newProperty.name = ATTR_TEXT_SIZE
+    newProperty.name = PREFIX_ANDROID + ATTR_TEXT_SIZE
     newProperty.delegate?.value = "10sp"
 
     assertThat(declared.acceptMoveToNextEditor(declared.items[0], PTableColumn.NAME)).isTrue()
