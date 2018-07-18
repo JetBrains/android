@@ -25,7 +25,7 @@ public class SketchShapePath extends SketchLayer {
 
   public SketchShapePath(@NotNull String objectId,
                          int booleanOperation,
-                         @NotNull Rectangle frame,
+                         @NotNull Rectangle.Double frame,
                          boolean isFlippedHorizontal,
                          boolean isFlippedVertical,
                          boolean isVisible,

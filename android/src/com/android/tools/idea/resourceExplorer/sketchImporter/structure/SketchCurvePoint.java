@@ -34,7 +34,7 @@ public class SketchCurvePoint {
                           @NotNull String curveFrom,
                           short curveMode,
                           @NotNull String curveTo,
-                          boolean from,
+                          boolean hasCurveFrom,
                           boolean hasCurveTo,
                           @NotNull String point) {
     this.objectId = objectId;
@@ -42,7 +42,7 @@ public class SketchCurvePoint {
     this.curveFrom = curveFrom;
     this.curveMode = curveMode;
     this.curveTo = curveTo;
-    hasCurveFrom = from;
+    this.hasCurveFrom = hasCurveFrom;
     this.hasCurveTo = hasCurveTo;
     this.point = point;
   }

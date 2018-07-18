@@ -28,7 +28,7 @@ public class SketchShapeGroup extends SketchLayer {
 
   public SketchShapeGroup(@NotNull String objectId,
                           int booleanOperation,
-                          @NotNull Rectangle frame,
+                          @NotNull Rectangle.Double frame,
                           boolean isFlippedHorizontal,
                           boolean isFlippedVertical,
                           boolean isVisible,

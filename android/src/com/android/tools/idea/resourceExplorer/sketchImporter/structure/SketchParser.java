@@ -21,6 +21,8 @@ import com.google.gson.GsonBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
+import java.awt.geom.Point2D;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -47,9 +49,9 @@ public class SketchParser {
    * @return pair of (floating-point) coords
    */
   public static
-  Pair<Double, Double> getPosition(@NotNull String positionString) {
+  Point2D.Double getPosition(@NotNull String positionString) {
     String[] parts = positionString.split("[{}, ]");
 
-    return Pair.of(Double.parseDouble(parts[1]), Double.parseDouble(parts[3]));
+    return new Point2D.Double(Double.parseDouble(parts[1]), Double.parseDouble(parts[3]));
   }
 }

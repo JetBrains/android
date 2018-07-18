@@ -27,7 +27,7 @@ public class SketchArtboard extends SketchLayer {
 
   public SketchArtboard(@NotNull String objectId,
                         int booleanOperation,
-                        @NotNull Rectangle frame,
+                        @NotNull Rectangle.Double frame,
                         boolean isFlippedHorizontal,
                         boolean isFlippedVertical,
                         boolean isVisible,
