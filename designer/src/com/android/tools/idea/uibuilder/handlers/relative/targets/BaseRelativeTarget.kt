@@ -20,5 +20,5 @@ import com.android.tools.idea.uibuilder.scene.target.Notch
 
 abstract class BaseRelativeTarget: BaseTarget(), Notch.Provider {
   // TODO: Not all targets are renderable, refactor/improve the [Target] API to provide renderable condition.
-  var myIsHighlight = false
+  var myIsHighlight: Boolean = false
 }

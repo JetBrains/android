@@ -46,7 +46,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * Layout editor-specific helper methods and data for NlModel
  */
 
-const val CUSTOM_DENSITY_ID = "Custom Density"
+const val CUSTOM_DENSITY_ID: String = "Custom Density"
 
 /**
  * Changes the configuration to use a custom device with screen size defined by xDimension and yDimension.
