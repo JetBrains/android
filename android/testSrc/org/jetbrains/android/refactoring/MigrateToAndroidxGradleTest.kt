@@ -44,7 +44,10 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     runProcessor()
 
     val activityMain = getTextForFile("app/src/main/res/layout/activity_main.xml")
+    val mainGradle = getTextForFile("build.gradle")
     val appGradle = getTextForFile("app/build.gradle")
+
+    assertEquals(2, mainGradle.lineSequence().filter { it.contains("google()") }.count())
 
     val implementationLines = appGradle.lineSequence()
       .map { it.trim() }

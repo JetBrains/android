@@ -22,6 +22,8 @@ import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
+import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.google.common.collect.Range
@@ -39,6 +41,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.Segment
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.impl.migration.PsiMigrationManager
@@ -217,7 +220,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
       RefactoringUIUtil.processIncorrectOperation(project, e)
     }
 
-    if (callSyncAfterMigration && usages.any { it is MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo }) {
+    if (callSyncAfterMigration && usages.any { it is MigrateToAppCompatUsageInfo.GradleUsageInfo }) {
       // If we modified gradle entries, request sync.
       syncBeforeFinishingRefactoring(myProject)
     }
@@ -342,8 +345,8 @@ open class MigrateToAndroidxProcessor(val project: Project,
 
   private fun findUsagesInBuildFiles(project: Project,
                                      gradleDependencyEntries: Map<Pair<String, String>, GradleMigrationEntry>)
-    : List<UsageInfo> {
-    val gradleUsages = mutableListOf<UsageInfo>()
+    : List<MigrateToAppCompatUsageInfo> {
+    val gradleUsages = mutableListOf<MigrateToAppCompatUsageInfo>()
     if (gradleDependencyEntries.isEmpty()) {
       return emptyList()
     }
@@ -388,7 +391,22 @@ open class MigrateToAndroidxProcessor(val project: Project,
       }
     }
 
+    // Add google() repositories
+    if (gradleUsages.isNotEmpty()) {
+      fun addGoogleRepoUsage(repositoriesModel: RepositoriesModel) {
+        if (!repositoriesModel.hasGoogleMavenRepository()) {
+          gradleUsages.add(MigrateToAppCompatUsageInfo.AddGoogleRepositoryUsageInfo(projectBuildModel, repositoriesModel))
+        }
+      }
+
+      for (file: VirtualFile in AddGoogleMavenRepositoryHyperlink.getBuildFileForPlugin(project)) {
+        val gradleBuildModel = projectBuildModel.getModuleBuildModel(file)
+
+        addGoogleRepoUsage(gradleBuildModel.buildscript().repositories())
+        addGoogleRepoUsage(gradleBuildModel.repositories())
+      }
+    }
+
     return gradleUsages
   }
-
 }
