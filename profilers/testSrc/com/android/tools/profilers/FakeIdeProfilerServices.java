@@ -99,11 +99,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myNativeProfilingConfigurationPreferred = false;
 
   /**
-   * Whether network request payload is tracked and shown.
-   */
-  private boolean myRequestPayloadEnabled = false;
-
-  /**
    * Whether long trace files should be parsed.
    */
   private boolean myShouldParseLongTraces = false;
@@ -275,11 +270,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isMemorySnapshotEnabled() {
         return myMemorySnapshotEnabled;
-      }
-
-      @Override
-      public boolean isNetworkRequestPayloadEnabled() {
-        return myRequestPayloadEnabled;
       }
 
       @Override
@@ -456,10 +446,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableMemorySnapshot(boolean enabled) {
     myMemorySnapshotEnabled = enabled;
-  }
-
-  public void enableRequestPayload(boolean enabled) {
-    myRequestPayloadEnabled = enabled;
   }
 
   public void enableSessionsView(boolean enabled) {

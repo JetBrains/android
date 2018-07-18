@@ -30,7 +30,6 @@ public interface FeatureConfig {
   boolean isLiveAllocationsEnabled();
   boolean isMemoryCaptureFilterEnabled();
   boolean isMemorySnapshotEnabled();
-  boolean isNetworkRequestPayloadEnabled();
   boolean isNetworkThreadViewEnabled();
   boolean isPerformanceMonitoringEnabled();
   boolean isSessionImportEnabled();
