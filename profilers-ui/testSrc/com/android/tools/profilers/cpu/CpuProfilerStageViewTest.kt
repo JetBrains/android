@@ -38,6 +38,7 @@ import com.android.tools.profilers.cpu.capturedetails.CpuCaptureView
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
+import com.android.tools.profilers.stacktrace.CodeLocation
 import com.android.tools.profilers.stacktrace.ContextMenuItem
 import com.google.common.collect.Iterators
 import com.google.common.truth.Truth.assertThat
@@ -395,6 +396,29 @@ class CpuProfilerStageViewTest {
     assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.EXPANDED)
 
     val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
+    assertThat(splitter.secondComponent).isNotNull()
+    assertThat(splitter.secondComponent.isVisible).isTrue()
+  }
+
+  @Test
+  fun dontHideDetailsPanelWhenGoingBackToNormalMode() {
+    val stageView = CpuProfilerStageView(myProfilersView, myStage)
+
+    assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.NORMAL)
+    val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
+    assertThat(splitter.secondComponent).isNull()
+
+    // As we don't have an access to change the mode directly, we're changing it indirectly by setting a capture.
+    myStage.capture = CpuProfilerUITestUtils.validCapture()
+    assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.EXPANDED)
+    // CpuCaptureView should not be null now and should also be visible.
+    assertThat(splitter.secondComponent).isNotNull()
+    assertThat(splitter.secondComponent.isVisible).isTrue()
+
+    // As we don't have an access to change the mode directly, we're changing it indirectly by simulating a code navigation.
+    myStage.onNavigated(CodeLocation.stub())
+    assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.NORMAL)
+    // Even though we went back to NORMAL (non maximized) mode so the user can view the code editor, we keep displaying the CpuCaptureView.
     assertThat(splitter.secondComponent).isNotNull()
     assertThat(splitter.secondComponent.isVisible).isTrue()
   }

@@ -445,8 +445,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private void updateCaptureViewVisibility() {
     if (myStage.getProfilerMode() == ProfilerMode.EXPANDED) {
       mySplitter.setSecondComponent(myCaptureView.getComponent());
-    } else {
-      mySplitter.setSecondComponent(null);
     }
   }
 
