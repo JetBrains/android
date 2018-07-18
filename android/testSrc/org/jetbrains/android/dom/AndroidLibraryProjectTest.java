@@ -4,6 +4,8 @@ import com.android.SdkConstants;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiElement;
@@ -21,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * @author Eugene.Kudelevsky
@@ -150,22 +153,17 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
 
   private void doFindUsagesTest(String extension, String dir) throws Throwable {
     myFixture.copyFileToProject(BASE_PATH + "FindUsagesClass.java", "src/p1/p2/Class.java");
-    myFixture.copyFileToProject(BASE_PATH + "FindUsagesClass1.java", "src/p1/p2/lib/Class.java");
     myFixture.copyFileToProject(BASE_PATH + "FindUsagesClass1.java", "additionalModules/lib/src/p1/p2/lib/Class.java");
     myFixture.copyFileToProject(BASE_PATH + "FindUsagesStyles.xml", "res/values/styles.xml");
     myFixture.copyFileToProject(BASE_PATH + "picture1.png", "additionalModules/lib/res/drawable/picture1.png");
     copyRJavaToGeneratedSources();
     setUpLibraryRClass();
 
-    VirtualFileManager.getInstance().syncRefresh();
-
-    Collection<UsageInfo> references = findCodeUsages(getTestName(false) + "." + extension, dir);
-    assertEquals(buildFileList(references), 5, references.size());
-  }
-
-  private List<UsageInfo> findCodeUsages(String path, String dir) throws Throwable {
+    String path = getTestName(false) + "." + extension;
     String newFilePath = dir + path;
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + path, newFilePath);
+    VirtualFileManager.getInstance().syncRefresh();
+
     Collection<UsageInfo> usages = AndroidFindUsagesTest.findUsages(file, myFixture);
     List<UsageInfo> result = new ArrayList<>();
     for (UsageInfo usage : usages) {
@@ -173,7 +171,12 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
         result.add(usage);
       }
     }
-    return result;
+
+    assertThat(buildFileList(result)).containsExactly(
+      newFilePath,
+      "res/values/styles.xml",
+      "additionalModules/lib/src/p1/p2/lib/Class.java",
+      "src/p1/p2/Class.java");
   }
 
   @NotNull
@@ -181,15 +184,17 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
     return getTestName(true) + ".xml";
   }
 
-  private static String buildFileList(Collection<UsageInfo> infos) {
-    final StringBuilder result = new StringBuilder();
+  private List<String> buildFileList(Collection<UsageInfo> infos) {
+    final List<String> result = new ArrayList<>();
+    VirtualFile tempDir = LocalFileSystem.getInstance().findFileByPath(myFixture.getTempDirPath());
 
     for (UsageInfo info : infos) {
       final PsiFile file = info.getFile();
       final VirtualFile vFile = file != null ? file.getVirtualFile() : null;
-      final String path = vFile != null ? vFile.getPath() : "null";
-      result.append(path).append('\n');
+      String path = VfsUtilCore.findRelativePath(tempDir, vFile, '/');
+      result.add(path);
     }
-    return result.toString();
+
+    return result;
   }
 }
