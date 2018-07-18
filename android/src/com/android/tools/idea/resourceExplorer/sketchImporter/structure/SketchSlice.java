@@ -25,7 +25,7 @@ public class SketchSlice extends SketchLayer {
 
   public SketchSlice(@NotNull String do_objectID,
                      int booleanOperation,
-                     @NotNull Rectangle frame,
+                     @NotNull Rectangle.Double frame,
                      boolean isFlippedHorizontal,
                      boolean isFlippedVertical,
                      boolean isVisible,

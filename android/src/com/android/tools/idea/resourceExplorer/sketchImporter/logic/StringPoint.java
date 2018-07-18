@@ -13,28 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
+package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 
-public class SketchBorderOptions {
-  private final boolean isEnabled;
-  private final short lineCapStyle;
-  private final short lineJoinStyle;
+public class StringPoint {
 
-  public SketchBorderOptions(boolean isEnabled, short lineCapStyle, short lineJoinStyle) {
-    this.isEnabled = isEnabled;
-    this.lineCapStyle = lineCapStyle;
-    this.lineJoinStyle = lineJoinStyle;
+  private String coordX;
+  private String coordY;
+
+  public StringPoint(String x, String y){
+    coordX = x;
+    coordY = y;
   }
 
-  public boolean isEnabled() {
-    return isEnabled;
+  public String getX(){
+    return coordX;
   }
 
-  public short getLineCapStyle() {
-    return lineCapStyle;
-  }
-
-  public short getLineJoinStyle() {
-    return lineJoinStyle;
+  public String getY() {
+    return coordY;
   }
 }

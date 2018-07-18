@@ -24,7 +24,7 @@ public abstract class SketchLayer {
   @SerializedName("do_objectID")
   private final String objectId;
   private final int booleanOperation;
-  private final Rectangle frame;
+  private final Rectangle.Double frame;
   private final boolean isFlippedHorizontal;
   private final boolean isFlippedVertical;
   private final boolean isVisible;
@@ -38,7 +38,7 @@ public abstract class SketchLayer {
 
   public SketchLayer(@NotNull String objectId,
                      int booleanOperation,
-                     @NotNull Rectangle frame,
+                     @NotNull Rectangle.Double frame,
                      boolean isFlippedHorizontal,
                      boolean isFlippedVertical,
                      boolean isVisible,
@@ -64,7 +64,7 @@ public abstract class SketchLayer {
     return booleanOperation;
   }
 
-  public Rectangle getFrame() {
+  public Rectangle.Double getFrame() {
     return frame;
   }
 

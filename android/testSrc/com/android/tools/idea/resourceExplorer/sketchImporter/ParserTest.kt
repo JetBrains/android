@@ -32,10 +32,10 @@ class ParserTest {
 
     assertEquals(page.booleanOperation, -1)
 
-    assertEquals(page.frame.x, 0)
-    assertEquals(page.frame.y, 0)
-    assertEquals(page.frame.height, 0)
-    assertEquals(page.frame.width, 0)
+    assertEquals(page.frame.x, 0.0)
+    assertEquals(page.frame.y, 0.0)
+    assertEquals(page.frame.height, 0.0)
+    assertEquals(page.frame.width, 0.0)
 
     assertEquals(page.isFlippedHorizontal, false)
 
@@ -57,7 +57,7 @@ class ParserTest {
 fun checkParsedPosition() {
     val position = SketchParser.getPosition("{0.5, 0.67135115527602085}")
 
-    assert(abs(position.first - 0.5) < errorMargin)
-    assert(abs(position.second - 0.67135115527602085) < errorMargin)
+    assert(abs(position.getX() - 0.5) < errorMargin)
+    assert(abs(position.getY() - 0.67135115527602085) < errorMargin)
   }
 }
