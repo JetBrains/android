@@ -1182,7 +1182,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testNamespaceCompletion() throws Throwable {
-    doTestNamespaceCompletion(true, true, true, false);
+    doTestNamespaceCompletion(false);
   }
 
   public void testDimenUnitsCompletion1() throws Exception {

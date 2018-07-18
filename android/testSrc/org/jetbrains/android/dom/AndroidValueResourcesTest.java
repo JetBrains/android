@@ -616,7 +616,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   }
 
   public void testNamespaceCompletion() throws Exception {
-    doTestNamespaceCompletion(false, false, true, true);
+    doTestNamespaceCompletion(true);
   }
 
   public void testAttrValidation() throws Throwable {
