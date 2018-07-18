@@ -27,15 +27,18 @@ import com.android.tools.idea.common.property2.api.ActionButtonSupport
 import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.res.getNamespaceResolver
 import com.android.tools.idea.uibuilder.property2.support.OpenResourceManagerAction
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.utils.HashCodes
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
+import com.intellij.util.text.nullize
 import icons.StudioIcons
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import javax.swing.Icon
@@ -96,10 +99,28 @@ open class NelePropertyItem(
   override val resolvedValue: String?
     get() = resolveValue(rawValue)
 
+  // TODO: Use the namespace resolver in ResourceHelper when it no longer returns [ResourceNamespace.Resolver.TOOLS_ONLY].
+  // We need to find the prefix even when namespacing is turned off.
   val namespaceResolver: ResourceNamespace.Resolver
     get() {
-      val tag = getTagOfFirstComponent()
-      return if (tag != null) getNamespaceResolver(tag) else ResourceNamespace.Resolver.EMPTY_RESOLVER
+      val element = firstTag ?: return ResourceNamespace.Resolver.EMPTY_RESOLVER
+
+      fun withTag(compute: (XmlTag) -> String?): String? {
+        return ReadAction.compute<String, RuntimeException> {
+          if (!element.isValid) {
+            null
+          }
+          else {
+            val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java, false)
+            tag?.let(compute).let(StringUtil::nullize)
+          }
+        }
+      }
+
+      return object : ResourceNamespace.Resolver {
+        override fun uriToPrefix(namespaceUri: String): String? = withTag { tag -> tag.getPrefixByNamespace(namespaceUri) }
+        override fun prefixToUri(namespacePrefix: String): String? = withTag { tag -> tag.getNamespaceByPrefix(namespacePrefix).nullize() }
+      }
     }
 
   override val designProperty: NelePropertyItem
@@ -138,14 +159,11 @@ open class NelePropertyItem(
   }
 
   val resolver: ResourceResolver?
-    get() {
-      val configuration: Configuration = getNeleModel()?.configuration ?: return null
-      return configuration.resourceResolver
-    }
+    get() = nlModel?.configuration?.resourceResolver
 
   val tagName: String
     get() {
-      val tagName = getFirstComponent()?.tagName ?: return ""
+      val tagName = firstComponent?.tagName ?: return ""
       for (component in components) {
         if (component.tagName != tagName) {
           return ""
@@ -154,18 +172,14 @@ open class NelePropertyItem(
       return tagName
     }
 
+  protected open val firstComponent: NlComponent?
+    get() = components.firstOrNull()
 
-  private fun getFirstComponent(): NlComponent? {
-    return if (components.isNotEmpty()) components[0] else null
-  }
+  private val firstTag: XmlTag?
+    get() = firstComponent?.tag
 
-  private fun getTagOfFirstComponent(): XmlTag? {
-    return getFirstComponent()?.tag
-  }
-
-  private fun getNeleModel(): NlModel? {
-    return getFirstComponent()?.model
-  }
+  private val nlModel: NlModel?
+    get() = firstComponent?.model
 
   private fun isReferenceValue(value: String?): Boolean {
     return value != null && (value.startsWith("?") || value.startsWith("@") && !isId(value))

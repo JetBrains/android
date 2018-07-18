@@ -36,11 +36,11 @@ class NeleNewPropertyItemTest {
   val edtRule = EdtRule()
 
   @Test
-  fun testSetName() {
+  fun testSetNameWithPrefix() {
     val properties = createTable()
     val model = properties.first!!.model
     val property = NeleNewPropertyItem(model, properties)
-    property.name = ATTR_TEXT
+    property.name = PREFIX_ANDROID + ATTR_TEXT
     assertThat(property.namespace).isEqualTo(ANDROID_URI)
     assertThat(property.delegate).isNotNull()
   }
@@ -55,12 +55,12 @@ class NeleNewPropertyItemTest {
   }
 
   @Test
-  fun testSetNameWithPrefix() {
+  fun testSetNameWithoutPrefix() {
     val properties = createTable()
     val model = properties.first!!.model
     val property = NeleNewPropertyItem(model, properties)
-    property.name = PREFIX_ANDROID + ATTR_TEXT
-    assertThat(property.namespace).isEqualTo(ANDROID_URI)
+    property.name = ATTR_STYLE
+    assertThat(property.namespace).isEqualTo("")
     assertThat(property.delegate).isNotNull()
   }
 
@@ -79,7 +79,7 @@ class NeleNewPropertyItemTest {
     val properties = createTable()
     val model = properties.first!!.model
     val property = NeleNewPropertyItem(model, properties)
-    property.name = ATTR_TEXT
+    property.name = PREFIX_ANDROID + ATTR_TEXT
     val delegate = property.delegate!!
 
     property.value = "Hello"
@@ -94,11 +94,13 @@ class NeleNewPropertyItemTest {
 
   private fun createTable(): PropertiesTable<NelePropertyItem> {
     val util = SupportTestUtil(projectRule, IMAGE_BUTTON, LINEAR_LAYOUT)
+    val property0 = util.makeProperty("", ATTR_STYLE, NelePropertyType.STYLE)
     val property1 = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
     val property2 = util.makeProperty(ANDROID_URI, ATTR_TEXT_SIZE, NelePropertyType.DIMENSION)
     val property3 = util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NelePropertyType.COLOR_OR_DRAWABLE)
     val property4 = util.makeProperty(AUTO_URI, ATTR_SRC_COMPAT, NelePropertyType.STRING)
     val table: Table<String, String, NelePropertyItem> = HashBasedTable.create()
+    add(table, property0)
     add(table, property1)
     add(table, property2)
     add(table, property3)
