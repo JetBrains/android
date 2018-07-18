@@ -34,13 +34,14 @@ iml_module(
         "//tools/idea/platform/configuration-store-impl:intellij.platform.configurationStore.impl",
         "//tools/idea/platform/built-in-server:intellij.platform.builtInServer.impl",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
     ],
     # do not sort: must match IML order
     deps = [
         "//tools/idea/.idea/libraries:layoutlib",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
-        "//tools/idea/platform/annotations:intellij.platform.annotations.java5[module]",
+        "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
