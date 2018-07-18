@@ -203,15 +203,13 @@ public class CpuCaptureParser {
       // We should go on and try parsing the file as a simpleperf or atrace trace.
     }
 
-    if (myServices.getFeatureConfig().isSimpleperfEnabled()) {
-      try {
-        // Then, try parsing the file as a simpleperf trace if its flag is enabled.
-        SimpleperfTraceParser simpleperfParser = new SimpleperfTraceParser();
-        return simpleperfParser.parse(traceFile, IMPORTED_TRACE_ID);
-      }
-      catch (Exception ignored) {
-        // We should go on and try parsing the file as an atrace trace.
-      }
+    try {
+      // Then, try parsing the file as a simpleperf trace.
+      SimpleperfTraceParser simpleperfParser = new SimpleperfTraceParser();
+      return simpleperfParser.parse(traceFile, IMPORTED_TRACE_ID);
+    }
+    catch (Exception ignored) {
+      // We should go on and try parsing the file as an atrace trace.
     }
 
     // If atrace flag is enabled, check the file header to see if it's an atrace file.

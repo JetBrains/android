@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterModel;
@@ -767,9 +768,8 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void suggestedProfilingConfigurationDependsOnNativePreference() {
-    // Make sure simpleperf is supported.
-    myServices.enableSimpleperf(true);
-    addAndSetDevice(26, "Any Serial");
+    // Make sure simpleperf is supported by setting an O device.
+    addAndSetDevice(AndroidVersion.VersionCodes.O, "Any Serial");
 
     myServices.setNativeProfilingConfigurationPreferred(false);
     myStage = new CpuProfilerStage(myStage.getStudioProfilers());

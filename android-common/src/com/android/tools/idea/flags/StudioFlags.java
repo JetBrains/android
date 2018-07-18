@@ -93,12 +93,6 @@ public final class StudioFlags {
     PROFILER, "energy", "Enable Energy profiling",
     "Enable the new energy profiler. It monitors battery usage of the selected app.", true);
 
-  public static final Flag<Boolean> PROFILER_USE_SIMPLEPERF = Flag.create(
-    PROFILER, "simpleperf", "Enable Simpleperf profiling",
-    "Use Simpleperf for CPU profiling on devices with Android O or newer. " +
-    "Simpleperf is a native profiler tool built for Android.",
-    true);
-
   public static final Flag<Boolean> PROFILER_IMPORT_CPU_TRACE = Flag.create(
     PROFILER, "cpu.import.trace", "Enable CPU trace importing",
     "Add the option to import CPU trace files when right-clicking the CPU profiler usage chart.",

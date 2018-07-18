@@ -264,11 +264,6 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isSimpleperfEnabled() {
-        return StudioFlags.PROFILER_USE_SIMPLEPERF.get();
-      }
-
-      @Override
       public boolean isStartupCpuProfilingEnabled() {
         return StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get();
       }

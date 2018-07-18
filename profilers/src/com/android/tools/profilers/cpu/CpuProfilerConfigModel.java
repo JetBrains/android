@@ -121,8 +121,7 @@ public class CpuProfilerConfigModel {
     Common.Device selectedDevice = myProfilers.getDevice();
     // Anytime before we check the device feature level we need to validate we have a device. The device will be null in test
     // causing a null pointer exception here.
-    boolean isSimpleperfEnabled = selectedDevice != null && selectedDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
-                                  myProfilers.getIdeServices().getFeatureConfig().isSimpleperfEnabled();
+    boolean isSimpleperfEnabled = selectedDevice != null && selectedDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O;
     if (myProfilingConfiguration == null) {
       // First we try to get the last selected config.
       String selectedConfigName =
@@ -155,9 +154,6 @@ public class CpuProfilerConfigModel {
     Predicate<ProfilingConfiguration> filter = pref -> {
       if (selectedDevice != null && pref.getRequiredDeviceLevel() > selectedDevice.getFeatureLevel() && filterOnDevice) {
         return false;
-      }
-      if (pref.getProfilerType() == CpuProfilerType.SIMPLEPERF) {
-        return myProfilers.getIdeServices().getFeatureConfig().isSimpleperfEnabled();
       }
       if (pref.getProfilerType() == CpuProfilerType.ATRACE) {
         return myProfilers.getIdeServices().getFeatureConfig().isAtraceEnabled();
