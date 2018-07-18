@@ -40,6 +40,7 @@ class PsProjectImpl(override val ideProject: Project) : PsChildModel(), PsProjec
   override val isDeclared: Boolean = true
   override val icon: Icon? = null
 
+  override val modules: Collection<PsModule> get() = moduleCollection.items()
   override val modelCount: Int get() = moduleCollection.items().size
 
   init {

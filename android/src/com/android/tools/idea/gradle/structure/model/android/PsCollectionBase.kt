@@ -37,7 +37,7 @@ abstract class PsCollectionBase<TModel : PsModel, TKey, TParent: PsModel>(val pa
 
   override fun forEach(consumer: (TModel) -> Unit) = entries.values.forEach(consumer)
 
-  override fun items(): List<TModel> = entries.values.toList()
+  override fun items(): Collection<TModel> = entries.values
 
   fun findElement(key: TKey): TModel? = entries[key]
 

@@ -481,7 +481,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
 
-    appModule.buildTypes[0].jniDebuggable = true.asParsed()
+    appModule.buildTypes.toList()[0].jniDebuggable = true.asParsed()
     project.applyChanges()
     assertThat(appModule).isSameAs(project.findModuleByGradlePath(":") as PsAndroidModule?)
 

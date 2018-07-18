@@ -24,7 +24,7 @@ interface PsModelCollection<T> {
 
   fun forEach(consumer: (T) -> Unit) = forEach(Consumer { consumer(it) })
 
-  fun items(): List<T> {
+  fun items(): Collection<T> {
     val result = ImmutableList.Builder<T>()
     forEach(Consumer { result.add(it) })
     return result.build()
