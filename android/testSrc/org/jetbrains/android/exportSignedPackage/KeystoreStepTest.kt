@@ -222,8 +222,9 @@ class KeystoreStepTest : IdeaTestCase() {
   class PasswordSafeMock : PasswordSafe() {
     private val storedPasswords = HashMap<Class<*>, HashMap<String, String?>>()
 
-    override fun getAsync(attributes: CredentialAttributes): Promise<Credentials> = resolvedPromise()
-    override fun isMemoryOnly(): Boolean = false
+    override fun getAsync(attributes: CredentialAttributes): Promise<Credentials?> = resolvedPromise()
+    override var isRememberPasswordByDefault: Boolean = false
+    override val isMemoryOnly: Boolean = false
     override fun isPasswordStoredOnlyInMemory(attributes: CredentialAttributes, credentials: Credentials): Boolean = false
     override fun set(attributes: CredentialAttributes, credentials: Credentials?, memoryOnly: Boolean) {}
     override fun set(attributes: CredentialAttributes, credentials: Credentials?) {}
