@@ -187,6 +187,20 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void testJumpToLiveIfOngoingRecording() {
+    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    timeline.setStreaming(false);
+    CpuProfiler.CpuProfilerConfiguration config =
+      CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF).build();
+    myCpuService.setOngoingCaptureConfiguration(config, 100L, CpuProfiler.TraceInitiationType.INITIATED_BY_UI);
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+    assertThat(timeline.isStreaming()).isFalse();
+    myStage.updateProfilingState();
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+    assertThat(timeline.isStreaming()).isTrue();
+  }
+
+  @Test
   public void testSelectedThread() {
     myStage.setSelectedThread(0);
     assertThat(myStage.getSelectedThread()).isEqualTo(0);
