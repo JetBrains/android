@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathDataUtils.buildPathString;
 import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathDataUtils.buildRectangleString;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.*;
 import static org.junit.Assert.*;
 
 import java.awt.*;
@@ -37,7 +38,8 @@ public class PathsTest {
                            "{0.8, 0.3}")
     };
 
-    SketchShapePath shapePath = new SketchShapePath("abc",
+    SketchShapePath shapePath = new SketchShapePath(SHAPE_PATH_CLASS_TYPE,
+                                                    "abc",
                                                     -1,
                                                     new Rectangle.Double(0, 0, 10, 10),
                                                     false,
@@ -64,7 +66,8 @@ public class PathsTest {
                            "{0.2, 0.3}")
     };
 
-    SketchShapePath shapePath = new SketchShapePath("abc",
+    SketchShapePath shapePath = new SketchShapePath(SHAPE_PATH_CLASS_TYPE,
+                                                    "abc",
                                                     -1,
                                                     new Rectangle.Double(0, 0, 10, 10),
                                                     false,
@@ -91,7 +94,8 @@ public class PathsTest {
                            "{0.8, 0.7}")
     };
 
-    SketchShapePath shapePath = new SketchShapePath("abc",
+    SketchShapePath shapePath = new SketchShapePath(SHAPE_PATH_CLASS_TYPE,
+                                                    "abc",
                                                     -1,
                                                     new Rectangle.Double(0, 0, 10, 10),
                                                     false,
@@ -120,7 +124,8 @@ public class PathsTest {
                            "{0.9, 0.5}")
     };
 
-    SketchShapePath shapePath = new SketchShapePath("abc",
+    SketchShapePath shapePath = new SketchShapePath(SHAPE_PATH_CLASS_TYPE,
+                                                    "abc",
                                                     -1,
                                                     new Rectangle.Double(0, 0, 10, 10),
                                                     false,
