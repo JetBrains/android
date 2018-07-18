@@ -21,7 +21,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Activatable;
 import com.intellij.util.ui.update.UiNotifyConnector;
@@ -52,9 +51,9 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
 
   private DatabaseNameComponent myNameComponent;
 
-  private ComboBox myDeviceComboBox;
-  private ComboBox myPackageNameComboBox;
-  private ComboBox myDataBaseComboBox;
+  private ComboBox<Object> myDeviceComboBox;
+  private ComboBox<String> myPackageNameComboBox;
+  private ComboBox<String> myDataBaseComboBox;
   private JPanel myPanel;
   private JPanel myConfigurationPanel;
   private JBRadioButton myExternalStorageRadioButton;
@@ -203,7 +202,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
 
   @NotNull
   private static IDevice[] getDevicesWithValidDeviceId(@NotNull AndroidDebugBridge bridge) {
-    final List<IDevice> result = new ArrayList<IDevice>();
+    final List<IDevice> result = new ArrayList<>();
 
     for (IDevice device : bridge.getDevices()) {
       if (device.isOnline()) {
@@ -214,7 +213,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
         }
       }
     }
-    return result.toArray(new IDevice[result.size()]);
+    return result.toArray(new IDevice[0]);
   }
 
   private void updateDataBases() {
@@ -224,12 +223,12 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
 
     if (selectedDevice == null) {
       myDatabaseMap.clear();
-      myPackageNameComboBox.setModel(new DefaultComboBoxModel());
-      myDataBaseComboBox.setModel(new DefaultComboBoxModel());
+      myPackageNameComboBox.setModel(new DefaultComboBoxModel<>());
+      myDataBaseComboBox.setModel(new DefaultComboBoxModel<>());
     }
     else if (!selectedDevice.equals(mySelectedDevice)) {
       loadDatabases(selectedDevice);
-      myPackageNameComboBox.setModel(new DefaultComboBoxModel(ArrayUtil.toStringArray(myDatabaseMap.keySet())));
+      myPackageNameComboBox.setModel(new DefaultComboBoxModel<>(ArrayUtil.toStringArray(myDatabaseMap.keySet())));
       updateDbCombo();
     }
     mySelectedDevice = selectedDevice;
@@ -243,10 +242,10 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
 
     if (myInternalStorageRadioButton.isSelected()) {
       List<String> dbList = myDatabaseMap.get(selectedPackage);
-      myDataBaseComboBox.setModel(new DefaultComboBoxModel(ArrayUtil.toStringArray(dbList)));
+      myDataBaseComboBox.setModel(new DefaultComboBoxModel<>(ArrayUtil.toStringArray(dbList)));
     }
     else {
-      myDataBaseComboBox.setModel(new DefaultComboBoxModel(DEFAULT_EXTERNAL_DB_PATTERNS));
+      myDataBaseComboBox.setModel(new DefaultComboBoxModel<>(DEFAULT_EXTERNAL_DB_PATTERNS));
     }
     if (databaseIsCustom) {
       myDataBaseComboBox.getEditor().setItem(selectedDatabase);
@@ -269,7 +268,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     final FileListingService service = device.getFileListingService();
     if (service == null) return;
 
-    final Set<String> packages = new HashSet<String>();
+    final Set<String> packages = new HashSet<>();
 
     for (AndroidFacet facet : ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID)) {
       final Manifest manifest = facet.getManifest();
@@ -288,7 +287,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     boolean tooLong = false;
 
     for (String aPackage : packages) {
-      myDatabaseMap.put(aPackage, tooLong ? Collections.<String>emptyList(): loadDatabases(device, aPackage));
+      myDatabaseMap.put(aPackage, tooLong ? Collections.emptyList() : loadDatabases(device, aPackage));
 
       if (System.currentTimeMillis() - startTime > 4000) {
         tooLong = true;
@@ -298,7 +297,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
 
   @NotNull
   private static List<String> loadDatabases(@NotNull IDevice device, @NotNull final String packageName) {
-    final List<String> result = new ArrayList<String>();
+    final List<String> result = new ArrayList<>();
 
     try {
       device.executeShellCommand("run-as " + packageName + " ls " + AndroidDbUtil.getInternalDatabasesRemoteDirPath(packageName), new MultiLineReceiver() {

@@ -86,7 +86,7 @@ class AndroidDataSource extends LocalDataSource implements DatabaseSystem, Modif
     if (serializedElements == null || serializedElements.length == 0) {
       return Collections.emptyList();
     }
-    final List<SimpleClasspathElement> elements = new ArrayList<SimpleClasspathElement>(serializedElements.length);
+    final List<SimpleClasspathElement> elements = new ArrayList<>(serializedElements.length);
 
     for (Element serializedElement : serializedElements) {
       elements.addAll(SimpleClasspathElementFactory.createElements(null, serializedElement));
