@@ -27,6 +27,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
@@ -106,16 +107,7 @@ public class DependencyManager {
       GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(item.getGradleCoordinateId() + ":+");
 
       if (coordinate != null) {
-        // TODO(b/111124139) This logic can be improved by considering other factors such as user preferences to decide on how to handle preview dependencies.
-        GoogleMavenArtifactId artifact = GoogleMavenArtifactId.forCoordinate(coordinate);
-
-        // Allow adding preview androidx dependencies because many androidx dependencies don't have stable version artifacts.
-        if (artifact != null && artifact.isAndroidxLibrary()) {
-          DependencyManagementUtil.addDependencies(myModule, Collections.singletonList(coordinate), true, true, true);
-        }
-        else {
-          DependencyManagementUtil.addDependencies(myModule, Collections.singletonList(coordinate), true);
-        }
+        DependencyManagementUtil.addDependencies(myModule, Collections.singletonList(coordinate), true);
       }
     }
   }
