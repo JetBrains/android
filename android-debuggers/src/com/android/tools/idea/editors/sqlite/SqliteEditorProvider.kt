@@ -48,7 +48,7 @@ class SqliteEditorProvider : FileEditorProvider, DumbAware {
     }
   }
 
-  override fun readState(sourceElement: Element?, project: Project, file: VirtualFile): FileEditorState {
+  override fun readState(sourceElement: Element, project: Project, file: VirtualFile): FileEditorState {
     return SqliteEditorState.readState(sourceElement)
   }
 
