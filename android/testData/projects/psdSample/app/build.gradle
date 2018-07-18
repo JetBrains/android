@@ -59,6 +59,9 @@ android {
             signingConfig signingConfigs.myConfig
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt', 'proguard-rules2.txt'
         }
+        specialRelease {
+            matchingFallbacks = ['release', 'debug']
+        }
     }
     flavorDimensions 'foo', 'bar'
     productFlavors {
@@ -79,6 +82,10 @@ android {
         }
         bar {
             dimension "bar"
+        }
+        otherBar {
+            dimension "bar"
+            matchingFallbacks = ["bar"]
         }
     }
 }
