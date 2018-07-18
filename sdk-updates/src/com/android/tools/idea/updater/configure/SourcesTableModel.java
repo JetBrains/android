@@ -310,6 +310,15 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
     return isEditable() && getRowValue(row).mySource.getProvider().isModifiable();
   }
 
+  public boolean hasEditableRows() {
+    for (int i = 0, rowCount = getRowCount(); i < rowCount; ++i) {
+      if (isEditable(i)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Reset the sources to the state they were before the user made any changes.
    */
