@@ -33,76 +33,90 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
 
-    val productFlavor = appModule.findProductFlavor("paid")
-    assertThat(productFlavor, notNullValue()); productFlavor!!
+    run {
+      val productFlavor = appModule.findProductFlavor("paid")
+      assertThat(productFlavor, notNullValue()); productFlavor!!
 
-    val applicationId = PsProductFlavor.ProductFlavorDescriptors.applicationId.bind(productFlavor).getValue()
-    val dimension = PsProductFlavor.ProductFlavorDescriptors.dimension.bind(productFlavor).getValue()
-    val maxSdkVersion = PsProductFlavor.ProductFlavorDescriptors.maxSdkVersion.bind(productFlavor).getValue()
-    val minSdkVersion = PsProductFlavor.ProductFlavorDescriptors.minSdkVersion.bind(productFlavor).getValue()
-    val multiDexEnabled = PsProductFlavor.ProductFlavorDescriptors.multiDexEnabled.bind(productFlavor).getValue()
-    val signingConfig = PsProductFlavor.ProductFlavorDescriptors.signingConfig.bind(productFlavor).getValue()
-    val targetSdkVersion = PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion.bind(productFlavor).getValue()
-    val testApplicationId = PsProductFlavor.ProductFlavorDescriptors.testApplicationId.bind(productFlavor).getValue()
-    // TODO(b/70501607): Decide on val testFunctionalTest = PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest.getValue(productFlavor)
-    // TODO(b/70501607): Decide on val testHandleProfiling = PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling.getValue(productFlavor)
-    val testInstrumentationRunner = PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunner.bind(productFlavor).getValue()
-    val versionCode = PsProductFlavor.ProductFlavorDescriptors.versionCode.bind(productFlavor).getValue()
-    val versionName = PsProductFlavor.ProductFlavorDescriptors.versionName.bind(productFlavor).getValue()
-    val manifestPlaceholders = PsProductFlavor.ProductFlavorDescriptors.manifestPlaceholders.bind(productFlavor).getValue()
-    val testInstrumentationRunnerArguments =
-      PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).getValue()
-    val editableTestInstrumentationRunnerArguments =
-      PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).getEditableValues()
-        .mapValues { it.value.getValue() }
+      val applicationId = PsProductFlavor.ProductFlavorDescriptors.applicationId.bind(productFlavor).getValue()
+      val dimension = PsProductFlavor.ProductFlavorDescriptors.dimension.bind(productFlavor).getValue()
+      val maxSdkVersion = PsProductFlavor.ProductFlavorDescriptors.maxSdkVersion.bind(productFlavor).getValue()
+      val minSdkVersion = PsProductFlavor.ProductFlavorDescriptors.minSdkVersion.bind(productFlavor).getValue()
+      val multiDexEnabled = PsProductFlavor.ProductFlavorDescriptors.multiDexEnabled.bind(productFlavor).getValue()
+      val signingConfig = PsProductFlavor.ProductFlavorDescriptors.signingConfig.bind(productFlavor).getValue()
+      val targetSdkVersion = PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion.bind(productFlavor).getValue()
+      val testApplicationId = PsProductFlavor.ProductFlavorDescriptors.testApplicationId.bind(productFlavor).getValue()
+      // TODO(b/70501607): Decide on val testFunctionalTest = PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest.getValue(productFlavor)
+      // TODO(b/70501607): Decide on val testHandleProfiling = PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling.getValue(productFlavor)
+      val testInstrumentationRunner = PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunner.bind(productFlavor).getValue()
+      val versionCode = PsProductFlavor.ProductFlavorDescriptors.versionCode.bind(productFlavor).getValue()
+      val versionName = PsProductFlavor.ProductFlavorDescriptors.versionName.bind(productFlavor).getValue()
+      val matchingFallbacks = PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).getValue()
+      val manifestPlaceholders = PsProductFlavor.ProductFlavorDescriptors.manifestPlaceholders.bind(productFlavor).getValue()
+      val testInstrumentationRunnerArguments =
+        PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).getValue()
+      val editableTestInstrumentationRunnerArguments =
+        PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).getEditableValues()
+          .mapValues { it.value.getValue() }
 
-    assertThat(dimension.resolved.asTestValue(), equalTo("foo"))
-    assertThat(dimension.parsedValue.asTestValue(), equalTo("foo"))
+      assertThat(dimension.resolved.asTestValue(), equalTo("foo"))
+      assertThat(dimension.parsedValue.asTestValue(), equalTo("foo"))
 
-    assertThat(applicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.paid"))
-    assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.paid"))
+      assertThat(applicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.paid"))
+      assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.paid"))
 
-    assertThat(maxSdkVersion.resolved.asTestValue(), equalTo(25))
-    assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(25))
+      assertThat(maxSdkVersion.resolved.asTestValue(), equalTo(25))
+      assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(25))
 
-    assertThat(minSdkVersion.resolved.asTestValue(), equalTo("10"))
-    assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("10"))
+      assertThat(minSdkVersion.resolved.asTestValue(), equalTo("10"))
+      assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("10"))
 
-    assertThat(multiDexEnabled.resolved.asTestValue(), nullValue())
-    assertThat(multiDexEnabled.parsedValue.asTestValue(), nullValue())
+      assertThat(multiDexEnabled.resolved.asTestValue(), nullValue())
+      assertThat(multiDexEnabled.parsedValue.asTestValue(), nullValue())
 
-    assertThat(signingConfig.resolved.asTestValue(), nullValue())
-    assertThat(signingConfig.parsedValue.asTestValue(), nullValue())
+      assertThat(signingConfig.resolved.asTestValue(), nullValue())
+      assertThat(signingConfig.parsedValue.asTestValue(), nullValue())
 
-    assertThat(targetSdkVersion.resolved.asTestValue(), equalTo("20"))
-    // TODO(b/71988818) assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("19"))
+      assertThat(targetSdkVersion.resolved.asTestValue(), equalTo("20"))
+      // TODO(b/71988818) assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("19"))
 
-    assertThat(testApplicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.paid.test"))
-    assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.paid.test"))
+      assertThat(testApplicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.paid.test"))
+      assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.paid.test"))
 
-    assertThat(testInstrumentationRunner.resolved.asTestValue(), nullValue())
-    assertThat(testInstrumentationRunner.parsedValue.asTestValue(), nullValue())
+      assertThat(testInstrumentationRunner.resolved.asTestValue(), nullValue())
+      assertThat(testInstrumentationRunner.parsedValue.asTestValue(), nullValue())
 
-    assertThat(versionCode.resolved.asTestValue(), equalTo(2))
-    assertThat(versionCode.parsedValue.asTestValue(), equalTo(2))
+      assertThat(versionCode.resolved.asTestValue(), equalTo(2))
+      assertThat(versionCode.parsedValue.asTestValue(), equalTo(2))
 
-    assertThat(versionName.resolved.asTestValue(), equalTo("2.0"))
-    assertThat(versionName.parsedValue.asTestValue(), equalTo("2.0"))
+      assertThat(versionName.resolved.asTestValue(), equalTo("2.0"))
+      assertThat(versionName.parsedValue.asTestValue(), equalTo("2.0"))
 
-    assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf()))
-    assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
+      assertThat(matchingFallbacks.resolved.asTestValue(), nullValue())
+      assertThat(matchingFallbacks.parsedValue.asTestValue(), nullValue())
 
-    assertThat(testInstrumentationRunnerArguments.resolved.asTestValue(), equalTo(mapOf("a" to "AAA", "b" to "BBB", "c" to "CCC")))
-    assertThat(testInstrumentationRunnerArguments.parsedValue.asTestValue(), equalTo(mapOf("a" to "AAA", "b" to "BBB", "c" to "CCC")))
+      assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf()))
+      assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
 
-    assertThat(editableTestInstrumentationRunnerArguments["a"]?.resolved?.asTestValue(), equalTo("AAA"))
-    assertThat(editableTestInstrumentationRunnerArguments["a"]?.parsedValue?.asTestValue(), equalTo("AAA"))
+      assertThat(testInstrumentationRunnerArguments.resolved.asTestValue(), equalTo(mapOf("a" to "AAA", "b" to "BBB", "c" to "CCC")))
+      assertThat(testInstrumentationRunnerArguments.parsedValue.asTestValue(), equalTo(mapOf("a" to "AAA", "b" to "BBB", "c" to "CCC")))
 
-    assertThat(editableTestInstrumentationRunnerArguments["b"]?.resolved?.asTestValue(), equalTo("BBB"))
-    assertThat(editableTestInstrumentationRunnerArguments["b"]?.parsedValue?.asTestValue(), equalTo("BBB"))
+      assertThat(editableTestInstrumentationRunnerArguments["a"]?.resolved?.asTestValue(), equalTo("AAA"))
+      assertThat(editableTestInstrumentationRunnerArguments["a"]?.parsedValue?.asTestValue(), equalTo("AAA"))
 
-    assertThat(editableTestInstrumentationRunnerArguments["c"]?.resolved?.asTestValue(), equalTo("CCC"))
-    assertThat(editableTestInstrumentationRunnerArguments["c"]?.parsedValue?.asTestValue(), equalTo("CCC"))
+      assertThat(editableTestInstrumentationRunnerArguments["b"]?.resolved?.asTestValue(), equalTo("BBB"))
+      assertThat(editableTestInstrumentationRunnerArguments["b"]?.parsedValue?.asTestValue(), equalTo("BBB"))
+
+      assertThat(editableTestInstrumentationRunnerArguments["c"]?.resolved?.asTestValue(), equalTo("CCC"))
+      assertThat(editableTestInstrumentationRunnerArguments["c"]?.parsedValue?.asTestValue(), equalTo("CCC"))
+    }
+    run {
+      val productFlavor = appModule.findProductFlavor("otherBar")
+      assertThat(productFlavor, notNullValue()); productFlavor!!
+      val matchingFallbacks = PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).getValue()
+
+      assertThat(matchingFallbacks.resolved.asTestValue(), nullValue())
+      assertThat(matchingFallbacks.parsedValue.asTestValue(), equalTo(listOf("bar")))
+    }
   }
 
   fun testDimensions() {
@@ -147,6 +161,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     productFlavor.versionName = "3.0".asParsed()
     PsProductFlavor.ProductFlavorDescriptors.signingConfig.bind(productFlavor).setParsedValue(
       ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.myConfig")))
+    PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).addItem(0).setParsedValue("free".asParsed())
     PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).changeEntryKey("b", "e")
     PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor)
       .getEditableValues()["a"]?.setParsedValue("AAA".asParsed())
@@ -169,6 +184,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       // TODO(b/79531524): find out why it fails.
       // val versionCode = PsProductFlavor.ProductFlavorDescriptors.versionCode.bind(productFlavor).getValue()
       val versionName = PsProductFlavor.ProductFlavorDescriptors.versionName.bind(productFlavor).getValue()
+      val matchingFallbacks = PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).getValue()
       val testInstrumentationRunnerArguments =
         PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).getValue()
 
@@ -184,6 +200,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       // TODO(b/71988818)
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))
+      assertThat(matchingFallbacks.parsedValue.asTestValue(), equalTo(listOf("free")))
       assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo("com.runner"))
       // TODO(b/79531524): find out why it fails.
       // assertThat(versionCode.parsedValue.asTestValue(), equalTo("3"))
@@ -200,6 +217,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
         // TODO(b/71988818)
         assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(targetSdkVersion.resolved.asTestValue()))
         assertThat(testApplicationId.parsedValue.asTestValue(), equalTo(testApplicationId.resolved.asTestValue()))
+        // Note: Resolved values of matchingFallbacks property are not available.
         assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo(testInstrumentationRunner.resolved.asTestValue()))
         // TODO(b/79531524): find out why it fails.
         // assertThat(versionCode.parsedValue.asTestValue(), equalTo(versionCode.resolved.asTestValue()))

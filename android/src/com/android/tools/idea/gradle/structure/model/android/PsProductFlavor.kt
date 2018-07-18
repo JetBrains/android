@@ -192,6 +192,17 @@ open class PsProductFlavor(
       parser = ::parseString
     )
 
+    val matchingFallbacks: ListProperty<PsProductFlavor, String> = listProperty(
+      "Matching Fallbacks",
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { matchingFallbacks() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString,
+      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
+      knownValuesGetter = { _, model -> productFlavorMatchingFallbackValues(model.parent.parent, model.dimension.maybeValue) }
+    )
+
     val proGuardFiles: ListProperty<PsProductFlavor, File> = listProperty(
       "ProGuard Files",
       resolvedValueGetter = { proguardFiles.toList() },
