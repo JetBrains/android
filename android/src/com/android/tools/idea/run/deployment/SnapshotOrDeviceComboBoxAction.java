@@ -33,21 +33,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-final class SelectDeviceComboBoxAction extends ComboBoxAction {
-  private final Supplier<Boolean> mySelectDeviceComboBoxActionVisible;
+final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
+  private final Supplier<Boolean> mySelectSnapshotDeviceComboBoxVisible;
+  private final AsyncDevicesGetter myDevicesGetter;
 
-  private AsyncDevicesGetter myDevicesGetter;
   private List<Device> myDevices;
   private Device mySelectedDevice;
 
   @SuppressWarnings("unused")
-  private SelectDeviceComboBoxAction() {
-    this(() -> StudioFlags.SELECT_DEVICE_COMBO_BOX_ACTION_VISIBLE.get(), new AsyncDevicesGetter(ApplicationManager.getApplication()));
+  private SnapshotOrDeviceComboBoxAction() {
+    this(() -> StudioFlags.SELECT_SNAPSHOT_DEVICE_COMBO_BOX_VISIBLE.get(), new AsyncDevicesGetter(ApplicationManager.getApplication()));
   }
 
   @VisibleForTesting
-  SelectDeviceComboBoxAction(@NotNull Supplier<Boolean> selectDeviceComboBoxActionVisible, @NotNull AsyncDevicesGetter devicesGetter) {
-    mySelectDeviceComboBoxActionVisible = selectDeviceComboBoxActionVisible;
+  SnapshotOrDeviceComboBoxAction(@NotNull Supplier<Boolean> selectSnapshotDeviceComboBoxVisible,
+                                 @NotNull AsyncDevicesGetter devicesGetter) {
+    mySelectSnapshotDeviceComboBoxVisible = selectSnapshotDeviceComboBoxVisible;
     myDevicesGetter = devicesGetter;
   }
 
@@ -70,7 +71,7 @@ final class SelectDeviceComboBoxAction extends ComboBoxAction {
   protected DefaultActionGroup createPopupActionGroup(@NotNull JComponent button) {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    Collection<AnAction> actions = newSelectDeviceActions();
+    Collection<AnAction> actions = newSnapshotOrDeviceActions();
     group.addAll(actions);
 
     if (!actions.isEmpty()) {
@@ -92,13 +93,13 @@ final class SelectDeviceComboBoxAction extends ComboBoxAction {
 
   @NotNull
   @VisibleForTesting
-  Collection<AnAction> newSelectDeviceActions() {
-    Collection<Device> virtualDevices = new ArrayList<>(myDevices.size());
+  Collection<AnAction> newSnapshotOrDeviceActions() {
+    Collection<VirtualDevice> virtualDevices = new ArrayList<>(myDevices.size());
     Collection<Device> physicalDevices = new ArrayList<>(myDevices.size());
 
     myDevices.forEach(device -> {
       if (device instanceof VirtualDevice) {
-        virtualDevices.add(device);
+        virtualDevices.add((VirtualDevice)device);
       }
       else if (device instanceof PhysicalDevice) {
         physicalDevices.add(device);
@@ -108,10 +109,10 @@ final class SelectDeviceComboBoxAction extends ComboBoxAction {
       }
     });
 
-    Collection<AnAction> actions = new ArrayList<>(myDevices.size());
+    Collection<AnAction> actions = new ArrayList<>(virtualDevices.size() + 1 + physicalDevices.size());
 
     virtualDevices.stream()
-                  .map(device -> new SelectDeviceAction(device, this))
+                  .map(device -> new SnapshotActionGroup(device, this))
                   .forEach(actions::add);
 
     if (!virtualDevices.isEmpty() && !physicalDevices.isEmpty()) {
@@ -162,7 +163,7 @@ final class SelectDeviceComboBoxAction extends ComboBoxAction {
 
     Presentation presentation = event.getPresentation();
 
-    if (!mySelectDeviceComboBoxActionVisible.get()) {
+    if (!mySelectSnapshotDeviceComboBoxVisible.get()) {
       presentation.setVisible(false);
       return;
     }

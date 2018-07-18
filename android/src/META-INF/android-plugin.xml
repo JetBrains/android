@@ -92,7 +92,7 @@
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="RevealIn"/>
     </group>
 
-    <action id="SelectDeviceComboBox" class="com.android.tools.idea.run.deployment.SelectDeviceComboBoxAction">
+    <action id="SnapshotOrDeviceComboBox" class="com.android.tools.idea.run.deployment.SnapshotOrDeviceComboBoxAction">
       <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="after"/>
     </action>
 

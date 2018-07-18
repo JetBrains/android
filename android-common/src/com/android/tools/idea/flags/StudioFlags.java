@@ -252,11 +252,11 @@ public final class StudioFlags {
     "Changing the value of this flag requires restarting Android Studio.",
     true);
 
-  public static final Flag<Boolean> SELECT_DEVICE_COMBO_BOX_ACTION_VISIBLE = Flag.create(
+  public static final Flag<Boolean> SELECT_SNAPSHOT_DEVICE_COMBO_BOX_VISIBLE = Flag.create(
     RUNDEBUG,
-    "select.device.combo.box.action.visible",
-    "Show the Select Device combo box action",
-    "Show the Select Device combo box action next to the Select Run/Debug Configuration one in the toolbar",
+    "select.snapshot.device.combo.box.visible",
+    "Show the Select Snapshot/Device combo box",
+    "Show the Select Snapshot/Device combo box next to the Select Run/Debug Configuration one in the toolbar",
     false);
 
   public static final Flag<Boolean> JVMTI_REFRESH = Flag.create(
