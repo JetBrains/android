@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon
@@ -107,7 +108,7 @@ class PsAndroidModule(
     fun applicableArtifacts() = listOf("", "test", "androidTest")
 
     fun flavorsByDimension(dimension: String) =
-      productFlavors.filter { (it.dimension as? ParsedValue.Set.Parsed)?.value == dimension }.map { it.name }
+      productFlavors.filter { it.dimension.maybeValue == dimension }.map { it.name }
 
     fun buildFlavorCombinations() = when {
       flavorDimensions.size > 1 -> flavorDimensions

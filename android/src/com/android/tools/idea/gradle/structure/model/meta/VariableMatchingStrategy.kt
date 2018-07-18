@@ -28,7 +28,7 @@ enum class VariableMatchingStrategy {
   WELL_KNOWN_VALUE {
     override fun <T> matches(variable: ParsedValue.Set.Parsed<T>, knownValues: Set<T>): Boolean = knownValues.contains(variable.value)
     override fun <T : Any> prepare(descriptors: List<ValueDescriptor<T>>): Set<T> =
-      descriptors.mapNotNull { (it.value as? ParsedValue.Set.Parsed)?.value }.toSet()
+      descriptors.mapNotNull { it.value.maybeValue }.toSet()
   },
   /**
    * The strategy matching to the property the variables compatible by the type of their current values.

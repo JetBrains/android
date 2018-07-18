@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import java.util.concurrent.TimeUnit
 
 internal fun <T> ResolvedValue<T>.asTestValue(): T? = (this as? ResolvedValue.Set<T>)?.resolved
-internal fun <T> Annotated<ParsedValue<T>>.asTestValue(): T? = (value as? ParsedValue.Set.Parsed<T>)?.value
+internal fun <T> Annotated<ParsedValue<T>>.asTestValue(): T? = value.maybeValue
 internal fun <T : Any> T.asParsed(): ParsedValue<T> = ParsedValue.Set.Parsed(this, DslText.Literal)
 internal fun <T> Annotated<ParsedValue<T>>.asUnparsedValue(): String? =
   ((value as? ParsedValue.Set.Parsed<T>)?.dslText as? DslText.OtherUnparsedDslText)?.text

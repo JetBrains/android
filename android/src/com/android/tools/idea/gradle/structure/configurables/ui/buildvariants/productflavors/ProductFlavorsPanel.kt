@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMas
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -115,7 +116,7 @@ class ProductFlavorsPanel(
               val selectedObject = selectedConfigurable
               val currentDimension = when (selectedObject) {
                 is FlavorDimensionConfigurable -> selectedObject.flavorDimension
-                is ProductFlavorConfigurable -> (selectedObject.model.dimension as? ParsedValue.Set.Parsed<String>)?.value
+                is ProductFlavorConfigurable -> selectedObject.model.dimension.maybeValue
                 else -> null
               }
               val (_, node) = treeModel.createProductFlavor(newName, currentDimension)
