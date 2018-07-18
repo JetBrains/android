@@ -18,10 +18,7 @@ package com.android.tools.idea.gradle.structure.model.helpers
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.model.PsVariable
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
-import com.android.tools.idea.gradle.structure.model.meta.Annotated
-import com.android.tools.idea.gradle.structure.model.meta.DslText
-import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.*
 
 class ExtractVariableWorker<PropertyT : Any, out ModelPropertyCoreT : ModelPropertyCore<PropertyT>>(
   private val refactoredProperty: ModelPropertyCoreT
@@ -68,6 +65,6 @@ class ExtractVariableWorker<PropertyT : Any, out ModelPropertyCoreT : ModelPrope
     variable?.setName(currentName)
     refactoredProperty.setParsedValue(ParsedValue.Set.Parsed(
       dslText = DslText.Reference(currentName),
-      value = (value!!.value as? ParsedValue.Set.Parsed<PropertyT>)?.value))
+      value = value!!.value.maybeValue))
   }
 }

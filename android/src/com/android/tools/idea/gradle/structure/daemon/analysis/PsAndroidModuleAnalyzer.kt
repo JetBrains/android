@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSI
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.ReverseDependency
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings.nullToEmpty
 import com.google.common.collect.ArrayListMultimap
@@ -116,7 +117,7 @@ class PsAndroidModuleAnalyzer(context: PsContext) : PsModuleAnalyzer<PsAndroidMo
     return PsMessageScopeAggregator(
       model.buildTypes.map { it.name }.toSet(),
       model.flavorDimensions.map { dimension ->
-        model.productFlavors.filter { (it.dimension as? ParsedValue.Set.Parsed)?.value == dimension }.map { it.name }.toSet()
+        model.productFlavors.filter { it.dimension.maybeValue == dimension }.map { it.name }.toSet()
       })
   }
 }
