@@ -32,10 +32,10 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
-    val appModule = project.findModuleByName("app") as PsAndroidModule
-    assertThat(appModule, notNullValue())
-
     run {
+      val appModule = project.findModuleByName("app") as PsAndroidModule
+      assertThat(appModule, notNullValue())
+
       val buildType = appModule.findBuildType("release")
       assertThat(buildType, notNullValue()); buildType!!
 
@@ -114,6 +114,9 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
     }
     run {
+      val appModule = project.findModuleByName("app") as PsAndroidModule
+      assertThat(appModule, notNullValue())
+
       val buildType = appModule.findBuildType("specialRelease")
       assertThat(buildType, notNullValue()); buildType!!
       val matchingFallbacks = PsBuildType.BuildTypeDescriptors.matchingFallbacks.bind(buildType).getEditableValues().map { it.getValue() }
@@ -123,6 +126,18 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(matchingFallbacks[0].parsedValue.asTestValue(), equalTo("release"))
       assertThat(matchingFallbacks[1].resolved.asTestValue(), nullValue())
       assertThat(matchingFallbacks[1].parsedValue.asTestValue(), equalTo("debug"))
+    }
+    run {
+      val appModule = project.findModuleByName("lib") as PsAndroidModule
+      assertThat(appModule, notNullValue())
+
+      val buildType = appModule.findBuildType("release")
+      assertThat(buildType, notNullValue()); buildType!!
+
+      val consumerProGuardFiles = PsBuildType.BuildTypeDescriptors.consumerProGuardFiles.bind(buildType).getValue()
+      assertThat(consumerProGuardFiles.parsedValue.asTestValue(), equalTo(listOf(File("other.pro"))))
+      // TODO(b/72814329): Resolved values are not yet supported on list properties.
+      assertThat(consumerProGuardFiles.resolved.asTestValue(), equalTo(listOf()))
     }
   }
 
