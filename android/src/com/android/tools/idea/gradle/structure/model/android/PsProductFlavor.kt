@@ -203,6 +203,16 @@ open class PsProductFlavor(
       knownValuesGetter = { _, model -> productFlavorMatchingFallbackValues(model.parent.parent, model.dimension.maybeValue) }
     )
 
+    val consumerProGuardFiles: ListProperty<PsProductFlavor, File> = listProperty(
+      "Consumer ProGuard Files",
+      resolvedValueGetter = { consumerProguardFiles.toList() },
+      parsedPropertyGetter = { consumerProguardFiles() },
+      getter = { asFile() },
+      setter = { setValue(it.toString()) },
+      parser = ::parseFile,
+      knownValuesGetter = { _, model -> proGuardFileValues(model.parent) }
+    )
+
     val proGuardFiles: ListProperty<PsProductFlavor, File> = listProperty(
       "ProGuard Files",
       resolvedValueGetter = { proguardFiles.toList() },
