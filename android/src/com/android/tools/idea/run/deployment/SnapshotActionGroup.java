@@ -15,39 +15,43 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class SelectDeviceAction extends AnAction {
+final class SnapshotActionGroup extends ActionGroup {
+  private final VirtualDevice myDevice;
   private final SnapshotOrDeviceComboBoxAction myComboBoxAction;
-  private final Device myDevice;
 
-  SelectDeviceAction(@NotNull Device device, @NotNull SnapshotOrDeviceComboBoxAction comboBoxAction) {
-    super(device.getName(), null, device.getIcon());
+  SnapshotActionGroup(@NotNull VirtualDevice device, @NotNull SnapshotOrDeviceComboBoxAction comboBoxAction) {
+    super(device.getName(), true);
 
-    myComboBoxAction = comboBoxAction;
     myDevice = device;
+    myComboBoxAction = comboBoxAction;
   }
 
+  @NotNull
   @Override
-  public void actionPerformed(@NotNull AnActionEvent event) {
-    myComboBoxAction.setSelectedDevice(myDevice);
+  public AnAction[] getChildren(@Nullable AnActionEvent event) {
+    return myDevice.getSnapshots().stream()
+                   .map(snapshot -> new SelectSnapshotAction(snapshot, myComboBoxAction))
+                   .toArray(AnAction[]::new);
   }
 
   @Override
   public boolean equals(@Nullable Object object) {
-    if (!(object instanceof SelectDeviceAction)) {
+    if (!(object instanceof SnapshotActionGroup)) {
       return false;
     }
 
-    SelectDeviceAction action = (SelectDeviceAction)object;
-    return myComboBoxAction.equals(action.myComboBoxAction) && myDevice.equals(action.myDevice);
+    SnapshotActionGroup group = (SnapshotActionGroup)object;
+    return myDevice.equals(group.myDevice) && myComboBoxAction.equals(group.myComboBoxAction);
   }
 
   @Override
   public int hashCode() {
-    return 31 * myComboBoxAction.hashCode() + myDevice.hashCode();
+    return 31 * myDevice.hashCode() + myComboBoxAction.hashCode();
   }
 }

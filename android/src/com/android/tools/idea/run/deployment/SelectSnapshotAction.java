@@ -18,36 +18,14 @@ package com.android.tools.idea.run.deployment;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-final class SelectDeviceAction extends AnAction {
-  private final SnapshotOrDeviceComboBoxAction myComboBoxAction;
-  private final Device myDevice;
-
-  SelectDeviceAction(@NotNull Device device, @NotNull SnapshotOrDeviceComboBoxAction comboBoxAction) {
-    super(device.getName(), null, device.getIcon());
-
-    myComboBoxAction = comboBoxAction;
-    myDevice = device;
+final class SelectSnapshotAction extends AnAction {
+  SelectSnapshotAction(@NotNull String snapshot, @NotNull SnapshotOrDeviceComboBoxAction comboBoxAction) {
+    super(snapshot);
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    myComboBoxAction.setSelectedDevice(myDevice);
-  }
-
-  @Override
-  public boolean equals(@Nullable Object object) {
-    if (!(object instanceof SelectDeviceAction)) {
-      return false;
-    }
-
-    SelectDeviceAction action = (SelectDeviceAction)object;
-    return myComboBoxAction.equals(action.myComboBoxAction) && myDevice.equals(action.myDevice);
-  }
-
-  @Override
-  public int hashCode() {
-    return 31 * myComboBoxAction.hashCode() + myDevice.hashCode();
+    // TODO
   }
 }

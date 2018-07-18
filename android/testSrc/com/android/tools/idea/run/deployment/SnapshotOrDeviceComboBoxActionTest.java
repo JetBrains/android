@@ -34,7 +34,7 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public final class SelectDeviceComboBoxActionTest {
+public final class SnapshotOrDeviceComboBoxActionTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
@@ -65,15 +65,15 @@ public final class SelectDeviceComboBoxActionTest {
       new VirtualDevice(false, "Pixel API 28"),
       new VirtualDevice(false, "Pixel 2 API 27")));
 
-    SelectDeviceComboBoxAction action = new SelectDeviceComboBoxAction(() -> true, myDevicesGetter);
+    SnapshotOrDeviceComboBoxAction action = new SnapshotOrDeviceComboBoxAction(() -> true, myDevicesGetter);
 
     action.update(myEvent);
     Iterator<AnAction> i = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class)).getChildren(null)).iterator();
 
-    assertEquals(new SelectDeviceAction(new VirtualDevice(false, "Pixel 2 XL API 27"), action), i.next());
-    assertEquals(new SelectDeviceAction(new VirtualDevice(false, "Pixel 2 XL API 28"), action), i.next());
-    assertEquals(new SelectDeviceAction(new VirtualDevice(false, "Pixel API 28"), action), i.next());
-    assertEquals(new SelectDeviceAction(new VirtualDevice(false, "Pixel 2 API 27"), action), i.next());
+    assertEquals(new SnapshotActionGroup(new VirtualDevice(false, "Pixel 2 XL API 27"), action), i.next());
+    assertEquals(new SnapshotActionGroup(new VirtualDevice(false, "Pixel 2 XL API 28"), action), i.next());
+    assertEquals(new SnapshotActionGroup(new VirtualDevice(false, "Pixel API 28"), action), i.next());
+    assertEquals(new SnapshotActionGroup(new VirtualDevice(false, "Pixel 2 API 27"), action), i.next());
     assertEquals(Separator.getInstance(), i.next());
     assertTrue(i.next() instanceof RunAndroidAvdManagerAction);
     assertFalse(i.hasNext());
@@ -81,7 +81,7 @@ public final class SelectDeviceComboBoxActionTest {
 
   @Test
   public void createPopupActionGroupActionsIsEmpty() {
-    SelectDeviceComboBoxAction action = new SelectDeviceComboBoxAction(() -> true, myDevicesGetter);
+    SnapshotOrDeviceComboBoxAction action = new SnapshotOrDeviceComboBoxAction(() -> true, myDevicesGetter);
 
     action.update(myEvent);
     Iterator<AnAction> i = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class)).getChildren(null)).iterator();
@@ -91,54 +91,54 @@ public final class SelectDeviceComboBoxActionTest {
   }
 
   @Test
-  public void newSelectDeviceActionsPhysicalDevicesIsEmpty() {
+  public void newSnapshotOrDeviceActionsPhysicalDevicesIsEmpty() {
     Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Collections.singletonList(
       new VirtualDevice(false, "Pixel 2 XL API 27")));
 
-    SelectDeviceComboBoxAction action = new SelectDeviceComboBoxAction(() -> true, myDevicesGetter);
+    SnapshotOrDeviceComboBoxAction action = new SnapshotOrDeviceComboBoxAction(() -> true, myDevicesGetter);
     action.update(myEvent);
 
-    Object expectedActions = Collections.singletonList(new SelectDeviceAction(new VirtualDevice(false, "Pixel 2 XL API 27"), action));
-    assertEquals(expectedActions, action.newSelectDeviceActions());
+    Object expectedActions = Collections.singletonList(new SnapshotActionGroup(new VirtualDevice(false, "Pixel 2 XL API 27"), action));
+    assertEquals(expectedActions, action.newSnapshotOrDeviceActions());
   }
 
   @Test
-  public void newSelectDeviceActionsVirtualDevicesIsEmpty() {
+  public void newSnapshotOrDeviceActionsVirtualDevicesIsEmpty() {
     Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Collections.singletonList(new PhysicalDevice("LGE Nexus 5X")));
 
-    SelectDeviceComboBoxAction action = new SelectDeviceComboBoxAction(() -> true, myDevicesGetter);
+    SnapshotOrDeviceComboBoxAction action = new SnapshotOrDeviceComboBoxAction(() -> true, myDevicesGetter);
     action.update(myEvent);
 
     Object expectedActions = Collections.singletonList(new SelectDeviceAction(new PhysicalDevice("LGE Nexus 5X"), action));
-    assertEquals(expectedActions, action.newSelectDeviceActions());
+    assertEquals(expectedActions, action.newSnapshotOrDeviceActions());
   }
 
   @Test
-  public void newSelectDeviceActions() {
+  public void newSnapshotOrDeviceActions() {
     Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Arrays.asList(
       new VirtualDevice(false, "Pixel 2 XL API 27"),
       new PhysicalDevice("LGE Nexus 5X")));
 
-    SelectDeviceComboBoxAction action = new SelectDeviceComboBoxAction(() -> true, myDevicesGetter);
+    SnapshotOrDeviceComboBoxAction action = new SnapshotOrDeviceComboBoxAction(() -> true, myDevicesGetter);
     action.update(myEvent);
 
     Object expectedActions = Arrays.asList(
-      new SelectDeviceAction(new VirtualDevice(false, "Pixel 2 XL API 27"), action),
+      new SnapshotActionGroup(new VirtualDevice(false, "Pixel 2 XL API 27"), action),
       Separator.getInstance(),
       new SelectDeviceAction(new PhysicalDevice("LGE Nexus 5X"), action));
 
-    assertEquals(expectedActions, action.newSelectDeviceActions());
+    assertEquals(expectedActions, action.newSnapshotOrDeviceActions());
   }
 
   @Test
-  public void updateSelectDeviceComboBoxActionVisibleIsFalse() {
-    new SelectDeviceComboBoxAction(() -> false, myDevicesGetter).update(myEvent);
+  public void updateSelectSnapshotDeviceComboBoxVisibleIsFalse() {
+    new SnapshotOrDeviceComboBoxAction(() -> false, myDevicesGetter).update(myEvent);
     assertFalse(myPresentation.isVisible());
   }
 
   @Test
   public void updateDevicesIsEmpty() {
-    SelectDeviceComboBoxAction action = new SelectDeviceComboBoxAction(() -> true, myDevicesGetter);
+    SnapshotOrDeviceComboBoxAction action = new SnapshotOrDeviceComboBoxAction(() -> true, myDevicesGetter);
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
@@ -157,7 +157,7 @@ public final class SelectDeviceComboBoxActionTest {
 
     Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(devices);
 
-    SelectDeviceComboBoxAction action = new SelectDeviceComboBoxAction(() -> true, myDevicesGetter);
+    SnapshotOrDeviceComboBoxAction action = new SnapshotOrDeviceComboBoxAction(() -> true, myDevicesGetter);
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
@@ -175,7 +175,7 @@ public final class SelectDeviceComboBoxActionTest {
 
     Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(devices);
 
-    SelectDeviceComboBoxAction action = new SelectDeviceComboBoxAction(() -> true, myDevicesGetter);
+    SnapshotOrDeviceComboBoxAction action = new SnapshotOrDeviceComboBoxAction(() -> true, myDevicesGetter);
     action.setSelectedDevice(new VirtualDevice(false, "Pixel 2 API 27"));
     action.update(myEvent);
 
@@ -187,7 +187,7 @@ public final class SelectDeviceComboBoxActionTest {
 
   @Test
   public void updateDisconnectingSelectedDeviceDoesntChangeSelection() {
-    SelectDeviceComboBoxAction action = new SelectDeviceComboBoxAction(() -> true, myDevicesGetter);
+    SnapshotOrDeviceComboBoxAction action = new SnapshotOrDeviceComboBoxAction(() -> true, myDevicesGetter);
     action.setSelectedDevice(new VirtualDevice(true, "Pixel 2 XL API 28"));
 
     Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Arrays.asList(
