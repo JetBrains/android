@@ -240,7 +240,7 @@ public class NavDesignSurface extends DesignSurface {
     ApplicationManager.getApplication().invokeAndWait(
       () -> didAdd.set(DependencyManagementUtil.addDependencies(
         // TODO: check for and add androidx dependency when it's released
-        facet.getModule(), ImmutableList.of(GoogleMavenArtifactId.NAVIGATION_FRAGMENT.getCoordinate("+")), true, false, true).isEmpty()));
+        facet.getModule(), ImmutableList.of(GoogleMavenArtifactId.NAVIGATION_FRAGMENT.getCoordinate("+")), true, false, false).isEmpty()));
     return didAdd.get();
   }
 
