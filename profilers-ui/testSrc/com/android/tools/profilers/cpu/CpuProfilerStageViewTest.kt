@@ -97,7 +97,7 @@ class CpuProfilerStageViewTest {
   }
 
   @Test
-  fun testCpuKernelViewIsExpandedOnAtraceCapture() {
+  fun testCpuKernelAndFramesViewAreExpandedOnAtraceCapture() {
     // Create default device and process for a default session.
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(1234).setState(Common.Process.State.ALIVE).build()
@@ -106,18 +106,29 @@ class CpuProfilerStageViewTest {
     myStage.studioProfilers.sessionsManager.beginSession(device, process1)
     val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
     val treeWalker = TreeWalker(cpuProfilerStageView.component)
+    // Find our Jlist elements, type of test ignores generics so we get all elements.
+    val list = treeWalker.descendants().filterIsInstance<JList<CpuFramesModel.FrameState>>()
+    val framesPanel = TreeWalker(list[0]).ancestors().filterIsInstance<HideablePanel>().first()
+    var title = TreeWalker(framesPanel).descendants().filterIsInstance<JLabel>().first()
+    // The panel containing the frames list should be hidden by default
+    assertThat(framesPanel.isVisible).isFalse()
+    assertThat(title.text).contains("FRAMES")
+
     // Find our cpu list.
-    val cpuList = treeWalker.descendants().filterIsInstance<JList<CpuKernelModel.CpuState>>().first()
-    val hideablePanel = TreeWalker(cpuList).ancestors().filterIsInstance<HideablePanel>().first()
-    // The panel containing the cpu list should be hidden and collapsed by default.
-    assertThat(hideablePanel.isExpanded).isFalse()
-    assertThat(hideablePanel.isVisible).isFalse()
+    val kernelPanel = TreeWalker(list[1]).ancestors().filterIsInstance<HideablePanel>().first()
+    title = TreeWalker(kernelPanel).descendants().filterIsInstance<JLabel>().first()
+    // The panel containing the cpu list should be hidden by default.
+    assertThat(kernelPanel.isVisible).isFalse()
+    assertThat(title.text).contains("KERNEL")
+
     val traceFile = TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)
     val capture = AtraceParser(1).parse(traceFile, 0)
     myStage.capture = capture
     // After we set a capture it should be visible and expanded.
-    assertThat(hideablePanel.isExpanded).isTrue()
-    assertThat(hideablePanel.isVisible).isTrue()
+    assertThat(kernelPanel.isExpanded).isTrue()
+    assertThat(kernelPanel.isVisible).isTrue()
+    assertThat(framesPanel.isExpanded).isTrue()
+    assertThat(framesPanel.isVisible).isTrue()
 
     // Verify the expanded kernel view adjust the splitter to take up more space.
     val splitter = treeWalker.descendants().filterIsInstance<JBSplitter>().first()
@@ -141,14 +152,13 @@ class CpuProfilerStageViewTest {
 
     val cpuProfilerStageView = myProfilersView.stageView as CpuProfilerStageView
     val treeWalker = TreeWalker(cpuProfilerStageView.component)
-    // Find our cpu list.
-    val cpuList = treeWalker.descendants().filterIsInstance<JList<CpuKernelModel.CpuState>>().first()
-    var hideablePanel = TreeWalker(cpuList).ancestors().filterIsInstance<HideablePanel>().first()
+    // Find our Jlist elements, type of test ignores generics so we get all elements.
+    val list = treeWalker.descendants().filterIsInstance<JList<CpuKernelModel.CpuState>>()
+    var hideablePanel = TreeWalker(list[1]).ancestors().filterIsInstance<HideablePanel>().first()
     var panelTitle = TreeWalker(hideablePanel).descendants().filterIsInstance<JLabel>().first()
     assertThat(panelTitle.text).contains("KERNEL (4)")
     // Find our thread list.
-    val threadsList = treeWalker.descendants().filterIsInstance<JList<CpuThreadsModel.RangedCpuThread>>().last()
-    hideablePanel = TreeWalker(threadsList).ancestors().filterIsInstance<HideablePanel>().first()
+    hideablePanel = TreeWalker(list[2]).ancestors().filterIsInstance<HideablePanel>().first()
     panelTitle = TreeWalker(hideablePanel).descendants().filterIsInstance<JLabel>().first()
     assertThat(panelTitle.text).contains("THREADS (0)")
     // Add a thread
