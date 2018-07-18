@@ -124,11 +124,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean mySessionsImportEnabled = true;
 
   /**
-   * Can toggle for tests via {@link #enableSimpleperf(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean mySimpleperfEnabled = false;
-
-  /**
    * Can toggle for tests via {@link #enableStartupCpuProfiling(boolean)}, but each test starts with this defaulted to false.
    */
   private boolean myStartupCpuProfilingEnabled = false;
@@ -313,11 +308,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isSimpleperfEnabled() {
-        return mySimpleperfEnabled;
-      }
-
-      @Override
       public boolean isStartupCpuProfilingEnabled() {
         return myStartupCpuProfilingEnabled;
       }
@@ -483,10 +473,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableSessionImport(boolean enabled) {
     mySessionsImportEnabled = enabled;
-  }
-
-  public void enableSimpleperf(boolean enabled) {
-    mySimpleperfEnabled = enabled;
   }
 
   public void enableStartupCpuProfiling(boolean enabled) {

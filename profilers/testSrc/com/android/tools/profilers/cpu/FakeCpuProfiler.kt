@@ -124,7 +124,6 @@ class FakeCpuProfiler(val grpcChannel: FakeGrpcChannel,
   private fun selectConfig(profilerType: CpuProfilerType) {
     when (profilerType) {
       CpuProfilerType.ATRACE -> ideServices.enableAtrace(true)
-      CpuProfilerType.SIMPLEPERF -> ideServices.enableSimpleperf(true)
       else -> {}
     }
 

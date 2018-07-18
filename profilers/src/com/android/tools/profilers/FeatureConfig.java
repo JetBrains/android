@@ -36,7 +36,6 @@ public interface FeatureConfig {
   boolean isPerformanceMonitoringEnabled();
   boolean isSessionImportEnabled();
   boolean isSessionsEnabled();
-  boolean isSimpleperfEnabled();
   boolean isStartupCpuProfilingEnabled();
   // Add new features alphabetically instead of at the end of the list
   // This reduces the chance of having to deal with an annoying merge conflict.

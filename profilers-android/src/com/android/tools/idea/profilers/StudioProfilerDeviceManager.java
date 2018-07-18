@@ -250,10 +250,8 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
             copyFileToDevice("perfa_okhttp.dex", productionRoot, devRoot, deviceDir, false);
             pushJvmtiAgentNativeLibraries(deviceDir);
           }
-          if (StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
-            // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
-            pushSimpleperfIfSupported(deviceDir);
-          }
+          // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
+          pushSimpleperf(deviceDir);
         }
         pushAgentConfig(AGENT_CONFIG_FILE, deviceDir);
 
@@ -441,7 +439,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     /**
      * Pushes simpleperf binaries to device. It needs to be consistent with app's abi, so we use {@link #pushAbiDependentBinaryFiles}.
      */
-    private void pushSimpleperfIfSupported(String devicePath) throws AdbCommandRejectedException, IOException {
+    private void pushSimpleperf(String devicePath) throws AdbCommandRejectedException, IOException {
       String simpleperfBinariesReleasePath = "plugins/android/resources/simpleperf";
       String simpleperfBinariesDevPath = "../../prebuilts/tools/common/simpleperf";
       String simpleperfFilename = "simpleperf";
