@@ -18,11 +18,9 @@
 package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.tools.idea.gradle.structure.configurables.ui.readOnPooledThread
+import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.gradle.structure.model.meta.DslText
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
-import com.android.tools.idea.gradle.structure.model.meta.getText
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.ModuleManager
@@ -82,3 +80,32 @@ fun proGuardFileValuesCore(module: PsAndroidModule): List<ValueDescriptor<File>>
 fun proGuardFileValues(module: PsAndroidModule): ListenableFuture<List<ValueDescriptor<File>>> =
   readOnPooledThread { proGuardFileValuesCore(module) }
 
+fun buildTypeMatchingFallbackValuesCore(project: PsProject): List<ValueDescriptor<String>> =
+  project
+    .modules.asSequence()
+    .flatMap { (it as? PsAndroidModule)?.buildTypes?.asSequence()?.map { it.name } ?: emptySequence() }
+    .distinct()
+    .sorted()
+    .map { ValueDescriptor(it) }
+    .toList()
+
+fun productFlavorMatchingFallbackValuesCore(project: PsProject, dimension: String?): List<ValueDescriptor<String>> =
+  project
+    .modules.asSequence()
+    .flatMap {
+      (it as? PsAndroidModule)
+        ?.productFlavors?.asSequence()
+        ?.filter { dimension == null || it.dimension.maybeValue == dimension }
+        ?.map { it.name }
+      ?: emptySequence()
+    }
+    .distinct()
+    .sorted()
+    .map { ValueDescriptor(it) }
+    .toList()
+
+fun buildTypeMatchingFallbackValues(project: PsProject): ListenableFuture<List<ValueDescriptor<String>>> =
+  immediateFuture(buildTypeMatchingFallbackValuesCore(project))
+
+fun productFlavorMatchingFallbackValues(project: PsProject, dimension: String?): ListenableFuture<List<ValueDescriptor<String>>> =
+  immediateFuture(productFlavorMatchingFallbackValuesCore(project, dimension))

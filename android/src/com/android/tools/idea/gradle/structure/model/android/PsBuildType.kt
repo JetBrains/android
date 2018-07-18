@@ -215,6 +215,17 @@ open class PsBuildType(
       knownValuesGetter = ::booleanValues
     )
 
+    val matchingFallbacks: ListProperty<PsBuildType, String> = listProperty(
+      "Matching Fallbacks",
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { matchingFallbacks() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString,
+      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
+      knownValuesGetter = { _, model -> buildTypeMatchingFallbackValues(model.parent.parent) }
+    )
+
     val proGuardFiles: ListProperty<PsBuildType, File> = listProperty(
       "ProGuard Files",
       resolvedValueGetter = { proguardFiles.toList() },

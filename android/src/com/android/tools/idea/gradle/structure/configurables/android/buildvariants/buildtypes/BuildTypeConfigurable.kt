@@ -41,6 +41,7 @@ fun buildTypePropertiesModel() =
 // TODO(b/70501607): Decide on PsBuildType.BuildTypeDescriptors.testCoverageEnabled,
       uiProperty(PsBuildType.BuildTypeDescriptors.applicationIdSuffix, ::simplePropertyEditor),
       uiProperty(PsBuildType.BuildTypeDescriptors.versionNameSuffix, ::simplePropertyEditor),
-      uiProperty(PsBuildType.BuildTypeDescriptors.zipAlignEnabled, ::simplePropertyEditor)
+      uiProperty(PsBuildType.BuildTypeDescriptors.zipAlignEnabled, ::simplePropertyEditor),
+      uiProperty(PsBuildType.BuildTypeDescriptors.matchingFallbacks, ::listPropertyEditor)
     ))
 
