@@ -24,6 +24,7 @@ interface PsProject : PsModel {
   val parsedModel: ProjectBuildModel
   val variables: PsVariables
   val pomDependencyCache: PsPomDependencyCache
+  val modules: Collection<PsModule>
   val modelCount: Int
 
   fun findModuleByName(moduleName: String): PsModule?
