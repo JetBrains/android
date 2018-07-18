@@ -72,11 +72,6 @@ public final class StudioFlags {
     true);
 
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
-  public static final Flag<Boolean> PROFILER_ENABLED = Flag.create(
-    PROFILER, "enabled", "Enable \"Profiler\" toolbar",
-    "Enable the new Android Profiler toolbar, which replaces the Android Monitor toolbar " +
-    "and provides more advanced CPU, event, memory, and network profiling information.",
-    true);
 
   public static final Flag<Boolean> PROFILER_SHOW_SESSIONS = Flag.create(
     PROFILER, "show.session", "Enable the sessions panel",
