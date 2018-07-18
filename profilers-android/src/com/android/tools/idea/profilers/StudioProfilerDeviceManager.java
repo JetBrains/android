@@ -460,7 +460,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
               .newBuilder()
               .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get()).setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
               .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get()).build())
-          .setProfilerNetworkRequestPayload(StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get())
           .setSocketType(socketType).setServiceAddress("127.0.0.1:" + DEVICE_PORT)
           // Using "@" to indicate an abstract socket in unix.
           .setServiceSocketName("@" + DEVICE_SOCKET_NAME).setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())

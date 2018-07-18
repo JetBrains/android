@@ -233,7 +233,7 @@ final class OverviewTabContent extends TabContent {
   @NotNull
   @Override
   public String getTitle() {
-    return myFeatures.isNetworkRequestPayloadEnabled() ? "Overview" : "Response";
+    return "Overview";
   }
 
   @NotNull
@@ -275,12 +275,7 @@ final class OverviewTabContent extends TabContent {
 
   @Override
   public void trackWith(@NotNull FeatureTracker featureTracker) {
-    if (myFeatures.isNetworkRequestPayloadEnabled()) {
-      featureTracker.trackSelectNetworkDetailsOverview();
-    }
-    else {
-      featureTracker.trackSelectNetworkDetailsResponse();
-    }
+    featureTracker.trackSelectNetworkDetailsOverview();
   }
 
   @Nullable
