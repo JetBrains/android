@@ -25,7 +25,8 @@ public class SketchArtboard extends SketchLayer {
   private final Color backgroundColor;
   private final boolean hasBackgroundColor;
 
-  public SketchArtboard(@NotNull String objectId,
+  public SketchArtboard(@NotNull String classType,
+                        @NotNull String objectId,
                         int booleanOperation,
                         @NotNull Rectangle.Double frame,
                         boolean isFlippedHorizontal,
@@ -36,13 +37,14 @@ public class SketchArtboard extends SketchLayer {
                         boolean shouldBreakMaskChain,
                         @NotNull SketchStyle style,
                         @NotNull SketchLayer[] layers,
-                        @NotNull Color color,
+                        @NotNull Color backgroundColor,
                         boolean hasBackgroundColor) {
-    super(objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation, shouldBreakMaskChain);
+    super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
+          shouldBreakMaskChain);
 
     this.style = style;
     this.layers = layers;
-    backgroundColor = color;
+    this.backgroundColor = backgroundColor;
     this.hasBackgroundColor = hasBackgroundColor;
   }
 

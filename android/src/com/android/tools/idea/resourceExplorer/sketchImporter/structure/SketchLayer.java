@@ -21,6 +21,8 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 
 public abstract class SketchLayer {
+  @SerializedName("_class")
+  private final String classType;
   @SerializedName("do_objectID")
   private final String objectId;
   private final int booleanOperation;
@@ -36,7 +38,8 @@ public abstract class SketchLayer {
   private final int rotation;
   private final boolean shouldBreakMaskChain;  // TODO what does this do?
 
-  public SketchLayer(@NotNull String objectId,
+  public SketchLayer(@NotNull String classType,
+                     @NotNull String objectId,
                      int booleanOperation,
                      @NotNull Rectangle.Double frame,
                      boolean isFlippedHorizontal,
@@ -45,6 +48,7 @@ public abstract class SketchLayer {
                      @NotNull String name,
                      int rotation,
                      boolean shouldBreakMaskChain) {
+    this.classType = classType;
     this.objectId = objectId;
     this.booleanOperation = booleanOperation;
     this.frame = frame;
@@ -54,6 +58,10 @@ public abstract class SketchLayer {
     this.name = name;
     this.rotation = rotation;
     this.shouldBreakMaskChain = shouldBreakMaskChain;
+  }
+
+  public String getClassType() {
+    return classType;
   }
 
   public String getObjectId() {

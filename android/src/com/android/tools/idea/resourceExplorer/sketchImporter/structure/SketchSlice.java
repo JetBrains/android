@@ -23,7 +23,8 @@ public class SketchSlice extends SketchLayer {
   private final Color backgroundColor;
   private final boolean hasBackgroundColor;
 
-  public SketchSlice(@NotNull String do_objectID,
+  public SketchSlice(@NotNull String classType,
+                     @NotNull String do_objectID,
                      int booleanOperation,
                      @NotNull Rectangle.Double frame,
                      boolean isFlippedHorizontal,
@@ -34,7 +35,8 @@ public class SketchSlice extends SketchLayer {
                      boolean shouldBreakMaskChain,
                      @NotNull Color backgroundColor,
                      boolean hasBackgroundColor) {
-    super(do_objectID, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation, shouldBreakMaskChain);
+    super(classType, do_objectID, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
+          shouldBreakMaskChain);
     this.backgroundColor = backgroundColor;
     this.hasBackgroundColor = hasBackgroundColor;
   }

@@ -16,12 +16,12 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.*;
-import com.android.utils.Pair;
 
 import java.awt.*;
 import java.util.ArrayList;
 
 import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.CoordinateUtils.*;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.*;
 
 public class PathDataUtils {
 
@@ -42,12 +42,12 @@ public class PathDataUtils {
     if (shapeGroupLayers.length == 1) {
       SketchLayer layer = shapeGroupLayers[0];
 
-      if (false) {
+      if (layer.getClassType().equals(SHAPE_PATH_CLASS_TYPE)) {
 
         SketchShapePath shapePath = (SketchShapePath)layer;
         return buildPathString(shapePath, frame);
       }
-      else if (CONDITION_FOR_RECTANGLE) {
+      else if (layer.getClassType().equals(RECTANGLE_CLASS_TYPE)) {
 
         return buildRectangleString(frame);
       }
