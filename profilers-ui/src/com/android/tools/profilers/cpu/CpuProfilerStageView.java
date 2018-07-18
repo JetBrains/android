@@ -15,33 +15,48 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
+import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER;
+
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerFonts;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.ProfilerScrollbar;
+import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
+import com.android.tools.profilers.StageView;
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
+import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureView;
-import com.android.tools.profilers.event.*;
+import com.android.tools.profilers.event.EventActivityTooltip;
+import com.android.tools.profilers.event.EventActivityTooltipView;
+import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.event.EventSimpleEventTooltip;
+import com.android.tools.profilers.event.EventSimpleEventTooltipView;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.FontMetrics;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseListener;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseListener;
-
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
-import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private enum PanelSpacing {
@@ -59,6 +74,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
      * Sizing string for the kernel portion of the details view.
      */
     KERNEL("Fit"),
+
+    /**
+     * Sizing string for the frames portion of the details view.
+     */
+    FRAME("Fit"),
 
     /**
      * Sizing string for the threads portion of the details view.
@@ -79,8 +99,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   private static final int MONITOR_PANEL_ROW = 0;
   private static final int DETAILS_PANEL_ROW = 1;
-  private static final int DETAILS_KERNEL_PANEL_ROW = 0;
-  private static final int DETAILS_THREADS_PANEL_ROW = 1;
+  private static final int DETAILS_FRAMES_PANEL_ROW = 0;
+  private static final int DETAILS_KERNEL_PANEL_ROW = 1;
+  private static final int DETAILS_THREADS_PANEL_ROW = 2;
 
   @VisibleForTesting
   static final String ATRACE_BUFFER_OVERFLOW_TITLE = "System Trace Buffer Overflow Detected";
@@ -107,6 +128,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @NotNull private final CpuThreadsView myThreads;
   @NotNull private final CpuKernelsView myCpus;
+  @NotNull private final CpuFramesView myFrames;
 
   /**
    * The action listener of the capture button changes depending on the state of the profiler.
@@ -146,6 +168,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getTooltipBinder().bind(CpuThreadsTooltip.class, CpuThreadsTooltipView::new);
     getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
     getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
+    getTooltipBinder().bind(CpuFrameTooltip.class, CpuFrameTooltipView::new);
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
     if (myStage.isImportTraceMode()) {
@@ -189,13 +212,16 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     mainPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
     TabularLayout detailsLayout = new TabularLayout("*");
+    detailsLayout.setRowSizing(DETAILS_FRAMES_PANEL_ROW, PanelSpacing.FRAME.toString());
     detailsLayout.setRowSizing(DETAILS_KERNEL_PANEL_ROW, PanelSpacing.KERNEL.toString());
     detailsLayout.setRowSizing(DETAILS_THREADS_PANEL_ROW, PanelSpacing.THREADS.toString());
     final JPanel detailsPanel = new JBPanel(detailsLayout);
     detailsPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
-    myThreads = new CpuThreadsView(stage);
+    myThreads = new CpuThreadsView(myStage);
     myCpus = new CpuKernelsView(myStage);
+    myFrames = new CpuFramesView(myStage);
+    addFramesPanelToDetails(detailsPanel);
     addKernelPanelToDetails(detailsPanel);
     addThreadsPanelToDetails(detailsPanel);
     mainPanel.add(myUsageView, new TabularLayout.Constraint(MONITOR_PANEL_ROW, 0));
@@ -264,6 +290,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     });
     myTooltipComponent.registerListenersOn(myCpus.getComponent());
     detailsPanel.add(myCpus.getComponent(), new TabularLayout.Constraint(DETAILS_KERNEL_PANEL_ROW, 0));
+  }
+
+  private void addFramesPanelToDetails(@NotNull JPanel detailsPanel) {
+    myTooltipComponent.registerListenersOn(myFrames.getComponent());
+    detailsPanel.add(myFrames.getComponent(), new TabularLayout.Constraint(DETAILS_FRAMES_PANEL_ROW, 0));
   }
 
   private void installProfilingInstructions(@NotNull JPanel parent) {
