@@ -18,10 +18,7 @@ package org.jetbrains.android.sdk;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.ide.common.rendering.api.AttrResourceValue;
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleableResourceValue;
+import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
@@ -65,7 +62,10 @@ public class AndroidTargetData {
   private final AndroidSdkData mySdkData;
   private final IAndroidTarget myTarget;
 
-  private volatile AttributeDefinitionsImpl myAttrDefs;
+  private final Object myAttrDefsLock = new Object();
+  @GuardedBy("myAttrDefsLock")
+  private AttributeDefinitions myAttrDefs;
+
   private volatile LayoutLibrary myLayoutLibrary;
 
   private final Object myPublicResourceCacheLock = new Object();
@@ -87,27 +87,31 @@ public class AndroidTargetData {
    */
   @Nullable
   public AttributeDefinitions getPublicAttrDefs(@NotNull Project project) {
-    AttributeDefinitionsImpl attrDefs = getAllAttrDefs(project);
-    return attrDefs != null ? new PublicAttributeDefinitions(attrDefs) : null;
+    AttributeDefinitions attrDefs = getAllAttrDefs(project);
+    return attrDefs == null ? null : new PublicAttributeDefinitions(attrDefs);
   }
 
   /**
    * Returns all attributes
    */
   @Nullable
-  public AttributeDefinitionsImpl getAllAttrDefs(@NotNull Project project) {
-    if (myAttrDefs == null) {
-      ApplicationManager.getApplication().runReadAction(() -> {
-        String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES));
-        String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES));
+  public AttributeDefinitions getAllAttrDefs(@NotNull Project project) {
+    synchronized (myAttrDefsLock) {
+      if (myAttrDefs == null) {
+        AttributeDefinitions[] attrDefs = new AttributeDefinitions[1];
+        ApplicationManager.getApplication().runReadAction(() -> {
+          String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES));
+          String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES));
 
-        XmlFile[] files = findXmlFiles(project, attrsPath, attrsManifestPath);
-        if (files != null) {
-          myAttrDefs = new AttributeDefinitionsImpl(files);
-        }
-      });
+          XmlFile[] files = findXmlFiles(project, attrsPath, attrsManifestPath);
+          if (files != null) {
+             attrDefs[0] = AttributeDefinitionsImpl.parseFrameworkFiles(files);
+          }
+        });
+        myAttrDefs = attrDefs[0];
+      }
+      return myAttrDefs;
     }
-    return myAttrDefs;
   }
 
   @Nullable
@@ -292,8 +296,9 @@ public class AndroidTargetData {
     }
 
     @Override
-    protected boolean isAttributeAcceptable(@NotNull String name) {
-      return isResourcePublic(ResourceType.ATTR.getName(), name);
+    protected boolean isAttributeAcceptable(@NotNull ResourceReference attr) {
+      return attr.getNamespace().equals(ResourceNamespace.ANDROID) &&
+             isResourcePublic(ResourceType.ATTR.getName(), attr.getName());
     }
   }
 

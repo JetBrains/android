@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
+import com.android.java.model.GradlePluginModel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManager;
@@ -311,7 +312,6 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     return modelsByModuleName;
   }
 
-
   public void testVariantOnlySyncWithRecursiveSelection() throws Throwable {
     prepareProjectForImport(TRANSITIVE_DEPENDENCIES);
 
@@ -339,6 +339,33 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     // Verify that models for library1 and library2 are requested based on user selection.
     verifyRequestedVariants(modelsByModuleId.get(createUniqueModuleId(buildId, ":library1")), singletonList("release"));
     verifyRequestedVariants(modelsByModuleId.get(createUniqueModuleId(buildId, ":library2")), singletonList("release"));
+  }
+
+  public void testGradlePluginModel() throws Throwable {
+    prepareProjectForImport(SIMPLE_APPLICATION);
+    Project project = getProject();
+    SelectedVariantCollectorMock variantCollector = new SelectedVariantCollectorMock(project);
+    SyncExecutor syncExecutor = new SyncExecutor(project, ExtraGradleSyncModelsManager.getInstance(),
+                                                 new CommandLineArgs(true /* apply Java library plugin */),
+                                                 new SyncErrorHandlerManager(project), variantCollector);
+    SyncListener syncListener = new SyncListener();
+    syncExecutor.syncProject(new MockProgressIndicator(), syncListener);
+    syncListener.await();
+
+    syncListener.propagateFailureIfAny();
+    SyncProjectModels models = syncListener.getSyncModels();
+    for (SyncModuleModels moduleModels : models.getModuleModels()) {
+      // Verify that GradlePluginModel is available for all Gradle modules.
+      GradlePluginModel pluginModel = moduleModels.findModel(GradlePluginModel.class);
+      assertNotNull(pluginModel);
+      Collection<String> plugins = pluginModel.getGraldePluginList();
+      // Verify that Java Library Plugin is in the plugin list of each module.
+      assertThat(plugins).contains("com.android.java.model.builder.JavaLibraryPlugin");
+      if ("app".equals(moduleModels.getModuleName())) {
+        // Verify that Android plugin is in the plugin list of app module.
+        assertThat(plugins).contains("com.android.build.gradle.AppPlugin");
+      }
+    }
   }
 
   private static void verifyRequestedVariants(@NotNull VariantOnlyModuleModel moduleModels, @NotNull List<String> requestedVariants) {

@@ -93,8 +93,9 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
     (property as? HelpSupport)?.secondaryHelp()
   }
 
-  override fun cancelEditing() {
+  override fun cancelEditing(): Boolean {
     refresh()
+    return true
   }
 
   override fun refresh() {

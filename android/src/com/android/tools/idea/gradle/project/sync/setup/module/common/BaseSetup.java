@@ -31,7 +31,11 @@ public abstract class BaseSetup<T extends ModuleSetupStep<M>, M> {
     return !syncSkipped || step.invokeOnSkippedSync();
   }
 
+  protected void beforeSetup(@NotNull ModuleSetupContext context, @Nullable M model, boolean syncSkipped) { }
+
   public void setUpModule(@NotNull ModuleSetupContext context, @Nullable M model, boolean syncSkipped) {
+    beforeSetup(context, model, syncSkipped);
+
     for (T step : mySetupSteps) {
       if (shouldRunSyncStep(step, syncSkipped)) {
         step.setUpModule(context, model);

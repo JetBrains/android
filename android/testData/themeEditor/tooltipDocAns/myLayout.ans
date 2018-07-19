@@ -1,4 +1,4 @@
-<html><body><B>myLayout</B><br/> My Layout Documentation <br/><hr/><BR/>
+<html><body><B>myLayout</B><br/>My Layout Documentation<br/><hr/><BR/>
 ?attr/myLayout => ?android:preferenceLayoutChild => @layout/preference_child => preference_child.xml<BR/>
 <BR/>
 </body></html>

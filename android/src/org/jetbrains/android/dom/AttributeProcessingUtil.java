@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
@@ -59,7 +60,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.resourceManagers.SystemResourceManager;
+import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,15 +77,13 @@ import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
  * look for a Javadoc there.
  */
 public class AttributeProcessingUtil {
-
   private static final String PREFERENCE_TAG_NAME = "Preference";
 
   private static final ImmutableSet<String> SIZE_NOT_REQUIRED_TAG_NAMES =
-    ImmutableSet.of(VIEW_MERGE, TABLE_ROW, VIEW_INCLUDE, REQUEST_FOCUS, TAG_LAYOUT, TAG_DATA, TAG_IMPORT, TAG);
-  private static final ImmutableSet<String> SIZE_NOT_REQUIRED_PARENT_TAG_NAMES =
-    ImmutableSet
-      .of(TABLE_ROW, TABLE_LAYOUT, VIEW_MERGE, GRID_LAYOUT, FQCN_GRID_LAYOUT_V7.oldName(), FQCN_GRID_LAYOUT_V7.newName(),
-          CLASS_PERCENT_RELATIVE_LAYOUT, CLASS_PERCENT_FRAME_LAYOUT);
+      ImmutableSet.of(VIEW_MERGE, TABLE_ROW, VIEW_INCLUDE, REQUEST_FOCUS, TAG_LAYOUT, TAG_DATA, TAG_IMPORT, TAG);
+  private static final ImmutableSet<String> SIZE_NOT_REQUIRED_PARENT_TAG_NAMES = ImmutableSet.of(
+      TABLE_ROW, TABLE_LAYOUT, VIEW_MERGE, GRID_LAYOUT, FQCN_GRID_LAYOUT_V7.oldName(), FQCN_GRID_LAYOUT_V7.newName(),
+      CLASS_PERCENT_RELATIVE_LAYOUT, CLASS_PERCENT_FRAME_LAYOUT);
 
   private AttributeProcessingUtil() {
   }
@@ -123,7 +122,7 @@ public class AttributeProcessingUtil {
   }
 
   @Nullable
-  public static String getNamespaceKeyByResourcePackage(@NotNull AndroidFacet facet, @Nullable String resPackage) {
+  private static String getNamespaceUriByResourcePackage(@NotNull AndroidFacet facet, @Nullable String resPackage) {
     if (resPackage == null) {
       if (!facet.getConfiguration().isAppProject() || facet.requiresAndroidModel()) {
         return AUTO_URI;
@@ -144,15 +143,13 @@ public class AttributeProcessingUtil {
 
   private static void registerStyleableAttributes(@NotNull DomElement element,
                                                   @NotNull StyleableDefinition styleable,
-                                                  @Nullable String namespace,
+                                                  @Nullable String namespaceUri,
                                                   @NotNull AttributeProcessor callback,
                                                   @NotNull Set<XmlName> skippedAttributes) {
     for (AttributeDefinition attrDef : styleable.getAttributes()) {
-      String attrName = attrDef.getName();
-      final XmlName xmlName = new XmlName(attrName, namespace);
-      if (!skippedAttributes.contains(xmlName)) {
-        skippedAttributes.add(xmlName);
-        registerAttribute(attrDef, styleable.getName(), namespace, element, callback);
+      XmlName xmlName = getXmlName(attrDef, namespaceUri);
+      if (skippedAttributes.add(xmlName)) {
+        registerAttribute(attrDef, xmlName, styleable.getName(), element, callback);
       }
     }
   }
@@ -165,27 +162,18 @@ public class AttributeProcessingUtil {
   }
 
   private static void registerAttribute(@NotNull AttributeDefinition attrDef,
+                                        @NotNull XmlName xmlName,
                                         @Nullable String parentStyleableName,
-                                        @Nullable String namespaceKey,
                                         @NotNull DomElement element,
                                         @NotNull AttributeProcessor callback) {
-    String name = attrDef.getName();
-    if (!NS_RESOURCES.equals(namespaceKey) && name.startsWith(PREFIX_ANDROID)) {
-      // A styleable-definition in the app namespace (user specified or from a library) can include
-      // a reference to a platform attribute. In such a case, register it under the android namespace
-      // as opposed to the app namespace. See https://code.google.com/p/android/issues/detail?id=171162
-      name = name.substring(PREFIX_ANDROID.length());
-      namespaceKey = NS_RESOURCES;
-    }
-    XmlName xmlName = new XmlName(name, namespaceKey);
-    final DomExtension extension = callback.processAttribute(xmlName, attrDef, parentStyleableName);
-
+    DomExtension extension = callback.processAttribute(xmlName, attrDef, parentStyleableName);
     if (extension == null) {
       return;
     }
+
     Converter converter = AndroidDomUtil.getSpecificConverter(xmlName, element);
     if (converter == null) {
-      if (TOOLS_URI.equals(namespaceKey)) {
+      if (TOOLS_URI.equals(xmlName.getNamespaceKey())) {
         converter = ToolsAttributeUtil.getConverter(attrDef);
       }
       else {
@@ -210,12 +198,12 @@ public class AttributeProcessingUtil {
     }
   }
 
-  private static void registerAttributes(AndroidFacet facet,
-                                         DomElement element,
+  private static void registerAttributes(@NotNull AndroidFacet facet,
+                                         @NotNull DomElement element,
                                          @NotNull String styleableName,
                                          @Nullable String resPackage,
-                                         AttributeProcessor callback,
-                                         Set<XmlName> skipNames) {
+                                         @NotNull AttributeProcessor callback,
+                                         @NotNull Set<XmlName> skipNames) {
     ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resPackage);
     if (manager == null) {
       return;
@@ -226,7 +214,7 @@ public class AttributeProcessingUtil {
       return;
     }
 
-    String namespace = getNamespaceKeyByResourcePackage(facet, resPackage);
+    String namespace = getNamespaceUriByResourcePackage(facet, resPackage);
     StyleableDefinition styleable = attrDefs.getStyleableByName(styleableName);
     if (styleable != null) {
       registerStyleableAttributes(element, styleable, namespace, callback, skipNames);
@@ -237,11 +225,11 @@ public class AttributeProcessingUtil {
     // TODO: add a warning when rest of the code of AndroidDomExtender is cleaned up
   }
 
-  private static void registerAttributesForClassAndSuperclasses(AndroidFacet facet,
-                                                                DomElement element,
-                                                                PsiClass c,
-                                                                AttributeProcessor callback,
-                                                                Set<XmlName> skipNames) {
+  private static void registerAttributesForClassAndSuperclasses(@NotNull AndroidFacet facet,
+                                                                @NotNull DomElement element,
+                                                                @Nullable PsiClass c,
+                                                                @NotNull AttributeProcessor callback,
+                                                                @NotNull Set<XmlName> skipNames) {
     while (c != null) {
       String styleableName = c.getName();
       if (styleableName != null) {
@@ -281,7 +269,7 @@ public class AttributeProcessingUtil {
   }
 
   @Nullable
-  private static PsiClass getSuperclass(@NotNull final PsiClass c) {
+  private static PsiClass getSuperclass(@NotNull PsiClass c) {
     return ApplicationManager.getApplication().runReadAction((Computable<PsiClass>)() -> c.isValid() ? c.getSuperClass() : null);
   }
 
@@ -293,10 +281,10 @@ public class AttributeProcessingUtil {
                                           @NotNull XmlResourceElement element,
                                           @NotNull Set<XmlName> skipAttrNames,
                                           @NotNull AttributeProcessor callback) {
-    final String tagName = tag.getName();
+    String tagName = tag.getName();
     String styleableName = AndroidXmlResourcesUtil.SPECIAL_STYLEABLE_NAMES.get(tagName);
     if (styleableName != null) {
-      final Set<XmlName> newSkipAttrNames = new HashSet<>();
+      Set<XmlName> newSkipAttrNames = new HashSet<>();
       if (element instanceof Intent) {
         newSkipAttrNames.add(new XmlName("action", NS_RESOURCES));
       }
@@ -316,7 +304,9 @@ public class AttributeProcessingUtil {
     String widgetClassName = AndroidTextUtils.trimEndOrNullize(prefClassName, PREFERENCE_TAG_NAME);
     if (widgetClassName != null) {
       PsiClass widgetClass = LayoutViewClassUtils.findClassByTagName(facet, widgetClassName, VIEW_CLASS_NAME);
-      registerAttributesForClassAndSuperclasses(facet, element, widgetClass, callback, skipAttrNames);
+      if (widgetClass != null) {
+        registerAttributesForClassAndSuperclasses(facet, element, widgetClass, callback, skipAttrNames);
+      }
     }
   }
 
@@ -348,7 +338,7 @@ public class AttributeProcessingUtil {
 
     // Not using Map here for lookup by prefix for performance reasons - using switch instead of ImmutableMap makes
     // attribute highlighting 20% faster as measured by AndroidLayoutDomTest#testCustomAttrsPerformance
-    final String styleableName;
+    String styleableName;
     switch (viewName) {
       case "ViewGroup":
         styleableName = "ViewGroup_MarginLayout";
@@ -385,7 +375,7 @@ public class AttributeProcessingUtil {
   }
 
   /**
-   * Entry point for XML elements in navigation XMLs
+   * Entry point for XML elements in navigation XMLs.
    */
   public static void processNavAttributes(@NotNull AndroidFacet facet,
                                           @NotNull XmlTag tag,
@@ -415,7 +405,7 @@ public class AttributeProcessingUtil {
                                              @NotNull AttributeProcessor callback) {
     Map<String, PsiClass> map = getViewClassMap(facet);
 
-    // Add tools namespace attributes to layout tags, but not those that are databinding-specific ones
+    // Add tools namespace attributes to layout tags, but not those that are databinding-specific ones.
     if (!(element instanceof DataBindingElement)) {
       registerToolsAttribute(ATTR_TARGET_API, callback);
       if (tag.getParentTag() == null) {
@@ -425,22 +415,22 @@ public class AttributeProcessingUtil {
         registerToolsAttribute(ATTR_SHOW_IN, callback);
       }
 
-      // AdapterView resides in android.widget package and thus is acquired from class map by short name
-      final PsiClass adapterView = map.get(ADAPTER_VIEW);
-      final PsiClass psiClass = map.get(tag.getName());
+      // AdapterView resides in android.widget package and thus is acquired from class map by short name.
+      PsiClass adapterView = map.get(ADAPTER_VIEW);
+      PsiClass psiClass = map.get(tag.getName());
       if (adapterView != null && psiClass != null && psiClass.isInheritor(adapterView, true)) {
         registerToolsAttribute(ATTR_LISTITEM, callback);
         registerToolsAttribute(ATTR_LISTHEADER, callback);
         registerToolsAttribute(ATTR_LISTFOOTER, callback);
       }
 
-      final PsiClass oldDrawerLayout = map.get(CLASS_DRAWER_LAYOUT.oldName());
+      PsiClass oldDrawerLayout = map.get(CLASS_DRAWER_LAYOUT.oldName());
       if (oldDrawerLayout != null && psiClass != null &&
           (psiClass.isEquivalentTo(oldDrawerLayout) || psiClass.isInheritor(oldDrawerLayout, true))) {
         registerToolsAttribute(ATTR_OPEN_DRAWER, callback);
       }
 
-      final PsiClass newDrawerLayout = map.get(CLASS_DRAWER_LAYOUT.newName());
+      PsiClass newDrawerLayout = map.get(CLASS_DRAWER_LAYOUT.newName());
       if (newDrawerLayout != null && psiClass != null &&
           (psiClass.isEquivalentTo(newDrawerLayout) || psiClass.isInheritor(newDrawerLayout, true))) {
         registerToolsAttribute(ATTR_OPEN_DRAWER, callback);
@@ -478,7 +468,7 @@ public class AttributeProcessingUtil {
         // See LayoutInflater#createViewFromTag in Android framework for inflating code
 
         for (PsiClass aClass : map.values()) {
-          final String name = aClass.getName();
+          String name = aClass.getName();
           if (name == null) {
             continue;
           }
@@ -533,7 +523,7 @@ public class AttributeProcessingUtil {
       }
     }
 
-    // We don't know what the parent is: include all layout attributes from all layout classes
+    // We don't know what the parent is: include all layout attributes from all layout classes.
     for (PsiClass c : map.values()) {
       registerAttributesFromSuffixedStyleables(facet, element, c, callback, skipAttrNames);
     }
@@ -561,7 +551,7 @@ public class AttributeProcessingUtil {
     }
     XmlTag tag = element.getXmlTag();
 
-    final Set<XmlName> skippedAttributes =
+    Set<XmlName> skippedAttributes =
       processAllExistingAttrsFirst ? registerExistingAttributes(facet, tag, element, callback) : new HashSet<>();
 
     if (element instanceof ManifestElement) {
@@ -583,14 +573,14 @@ public class AttributeProcessingUtil {
     // If DOM element is annotated with @Styleable annotation, load a styleable definition
     // from Android framework or a library with the name provided in annotation and register all attributes
     // from it for code highlighting and completion.
-    final Styleable styleableAnnotation = element.getAnnotation(Styleable.class);
+    Styleable styleableAnnotation = element.getAnnotation(Styleable.class);
     if (styleableAnnotation == null) {
       return;
     }
     boolean isSystem = styleableAnnotation.packageName().equals(ANDROID_PKG);
     AttributeDefinitions definitions;
     if (isSystem) {
-      final SystemResourceManager manager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
+      FrameworkResourceManager manager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
       if (manager == null) {
         return;
       }
@@ -629,9 +619,9 @@ public class AttributeProcessingUtil {
     // but is used to provide customized warning message
     // TODO: figure it out how to make it DRY without introducing new method with lots of arguments
     if (element instanceof InterpolatorElement) {
-      final String styleableName = InterpolatorDomFileDescription.getInterpolatorStyleableByTagName(tag.getName());
+      String styleableName = InterpolatorDomFileDescription.getInterpolatorStyleableByTagName(tag.getName());
       if (styleableName != null) {
-        final StyleableDefinition styleable = definitions.getStyleableByName(styleableName);
+        StyleableDefinition styleable = definitions.getStyleableByName(styleableName);
         if (styleable == null) {
           getLog().warn(String.format("%s doesn't point to existing styleable for interpolator", styleableName));
         }
@@ -667,6 +657,7 @@ public class AttributeProcessingUtil {
       registerToolsAttribute(ToolsAttributeUtil.ATTR_REMOVE, callback);
       registerToolsAttribute(ToolsAttributeUtil.ATTR_REPLACE, callback);
     }
+
     if (element instanceof UsesSdk) {
       registerToolsAttribute(ToolsAttributeUtil.ATTR_OVERRIDE_LIBRARY, callback);
     }
@@ -676,20 +667,17 @@ public class AttributeProcessingUtil {
                                                 @NotNull DomElement element,
                                                 @NotNull Collection<XmlName> skippedAttributes,
                                                 @NotNull AttributeProcessor callback) {
-    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
-
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
     if (manager == null) {
       return;
     }
 
     AttributeDefinitions styleables = manager.getAttributeDefinitions();
-
     if (styleables == null) {
       return;
     }
 
     StyleableDefinition styleable = styleables.getStyleableByName("MenuItem");
-
     if (styleable == null) {
       getLog().warn("No StyleableDefinition for MenuItem");
       return;
@@ -698,32 +686,35 @@ public class AttributeProcessingUtil {
     for (AttributeDefinition attribute : styleable.getAttributes()) {
       String name = attribute.getName();
 
-      // android:showAsAction was introduced in API Level 11. Use the app: one if the project depends on appcompat. See com.android.tools
-      // .lint.checks.AppCompatResourceDetector.
+      // android:showAsAction was introduced in API Level 11. Use the app: one if the project depends on appcompat.
+      // See com.android.tools.lint.checks.AppCompatResourceDetector.
       if (name.equals(ATTR_SHOW_AS_ACTION)) {
         boolean hasAppCompat = DependencyManagementUtil.dependsOn(facet.getModule(), GoogleMavenArtifactId.APP_COMPAT_V7) ||
                                DependencyManagementUtil.dependsOn(facet.getModule(), GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
         if (hasAppCompat) {
-          if (skippedAttributes.add(new XmlName(name, AUTO_URI))) {
-            registerAttribute(attribute, "MenuItem", AUTO_URI, element, callback);
+          // TODO(namespaces): Replace AUTO_URI with the URI of the correct namespace.
+          XmlName xmlName = new XmlName(name, AUTO_URI);
+          if (skippedAttributes.add(xmlName)) {
+            registerAttribute(attribute, xmlName, "MenuItem", element, callback);
           }
 
           continue;
         }
       }
 
-      if (skippedAttributes.add(new XmlName(name, ANDROID_URI))) {
-        registerAttribute(attribute, "MenuItem", ANDROID_URI, element, callback);
+      XmlName xmlName = new XmlName(name, ANDROID_URI);
+      if (skippedAttributes.add(xmlName)) {
+        registerAttribute(attribute, xmlName, "MenuItem", element, callback);
       }
     }
   }
 
   private static void registerToolsAttribute(@NotNull String attributeName, @NotNull AttributeProcessor callback) {
-    final AttributeDefinition definition = ToolsAttributeUtil.getAttrDefByName(attributeName);
+    AttributeDefinition definition = ToolsAttributeUtil.getAttrDefByName(attributeName);
     if (definition != null) {
-      final XmlName name = new XmlName(attributeName, TOOLS_URI);
-      final DomExtension domExtension = callback.processAttribute(name, definition, null);
-      final ResolvingConverter converter = ToolsAttributeUtil.getConverter(definition);
+      XmlName name = new XmlName(attributeName, TOOLS_URI);
+      DomExtension domExtension = callback.processAttribute(name, definition, null);
+      ResolvingConverter converter = ToolsAttributeUtil.getConverter(definition);
       if (domExtension != null && converter != null) {
         domExtension.setConverter(converter);
       }
@@ -738,7 +729,7 @@ public class AttributeProcessingUtil {
                                                          @NotNull XmlTag tag,
                                                          @NotNull AndroidDomElement element,
                                                          @NotNull AttributeProcessor callback) {
-    final Set<XmlName> result = new HashSet<>();
+    Set<XmlName> result = new HashSet<>();
     XmlAttribute[] attrs = tag.getAttributes();
 
     for (XmlAttribute attr : attrs) {
@@ -749,9 +740,10 @@ public class AttributeProcessingUtil {
           AttributeDefinition attrDef = AndroidDomUtil.getAttributeDefinition(facet, attr);
 
           if (attrDef != null) {
-            String namespace = attr.getNamespace();
-            result.add(new XmlName(attr.getLocalName(), attr.getNamespace()));
-            registerAttribute(attrDef, null, !namespace.isEmpty() ? namespace : null, element, callback);
+            XmlName xmlName = getXmlName(attrDef, attr.getNamespace());
+            result.add(xmlName);
+            String namespaceUri = attr.getNamespace();
+            registerAttribute(attrDef, xmlName, null, element, callback);
           }
         }
       }
@@ -759,10 +751,14 @@ public class AttributeProcessingUtil {
     return result;
   }
 
+  private static XmlName getXmlName(@NotNull AttributeDefinition attrDef, @Nullable String namespaceUri) {
+    ResourceReference attrReference = attrDef.getResourceReference();
+    String attrNamespaceUri = attrReference.getNamespace().getXmlNamespaceUri();
+    return new XmlName(attrReference.getName(), TOOLS_URI.equals(namespaceUri) ? TOOLS_URI : attrNamespaceUri);
+  }
+
   public interface AttributeProcessor {
     @Nullable
-    DomExtension processAttribute(@NotNull XmlName xmlName,
-                                  @NotNull AttributeDefinition attrDef,
-                                  @Nullable String parentStyleableName);
+    DomExtension processAttribute(@NotNull XmlName xmlName, @NotNull AttributeDefinition attrDef, @Nullable String parentStyleableName);
   }
 }

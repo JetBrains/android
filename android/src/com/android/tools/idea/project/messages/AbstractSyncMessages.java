@@ -18,6 +18,7 @@ package com.android.tools.idea.project.messages;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventResult;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent;
+import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueOutputEvent;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.ui.QuickFixNotificationListener;
@@ -200,6 +201,11 @@ public abstract class AbstractSyncMessages implements Disposable {
     if (lines.length > 0) {
       title = lines[0];
     }
+
+    // Since we have no way of changing the text attributes in the BuildConsole we prefix the message with
+    // ERROR or WARNING to indicate to the user the severity of each message.
+    notification.setMessage(notification.getNotificationCategory().name() + ": " + notification.getMessage());
+
     AndroidSyncIssueEvent issueEvent;
     if (notification.getFilePath() != null) {
       issueEvent = new AndroidSyncIssueFileEvent(taskId, notification, title);
@@ -207,7 +213,9 @@ public abstract class AbstractSyncMessages implements Disposable {
     else {
       issueEvent = new AndroidSyncIssueEvent(taskId, notification, title);
     }
-    ServiceManager.getService(myProject, SyncViewManager.class).onEvent(issueEvent);
+    SyncViewManager syncViewManager = ServiceManager.getService(myProject, SyncViewManager.class);
+    syncViewManager.onEvent(issueEvent);
+    syncViewManager.onEvent(new AndroidSyncIssueOutputEvent(taskId, notification));
     myShownFailures.computeIfAbsent(taskId, key -> new ArrayList<>()).addAll(((AndroidSyncIssueEventResult)issueEvent.getResult()).getFailures());
   }
 

@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2016 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.adtui.workbench;
 
 import com.android.annotations.VisibleForTesting;
@@ -368,7 +354,7 @@ class AttachedToolWindow<T> implements Disposable {
   @NotNull
   private JComponent createActionPanel(boolean includeSearchButton, @NotNull List<AnAction> additionalActions) {
     Dimension buttonSize = myDefinition.getButtonSize();
-    int border = buttonSize.equals(NAVBAR_MINIMUM_BUTTON_SIZE) ? 4 : 3;
+    int border = buttonSize.equals(NAVBAR_MINIMUM_BUTTON_SIZE) ? 4 : 2;
     JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
     actionPanel.setOpaque(false);
     actionPanel.setBorder(JBUI.Borders.empty(border, 0));
@@ -602,7 +588,7 @@ class AttachedToolWindow<T> implements Disposable {
     public SearchAction() {
       super("Search");
       Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(AllIcons.Actions.FindPlain);
+      presentation.setIcon(AllIcons.Actions.Find);
     }
 
     @Override
@@ -613,10 +599,7 @@ class AttachedToolWindow<T> implements Disposable {
 
   private class GearAction extends AnAction {
     public GearAction() {
-      super("More Options");
-      Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(AllIcons.General.Gear);
-      presentation.setHoveredIcon(AllIcons.General.GearHover);
+      super("More Options", null, AllIcons.General.GearPlain);
     }
 
     @Override
@@ -635,24 +618,7 @@ class AttachedToolWindow<T> implements Disposable {
 
   private class HideAction extends AnAction {
     public HideAction() {
-      super(UIBundle.message("tool.window.hide.action.name"));
-      update(getTemplatePresentation());
-    }
-
-    @Override
-    public void update(@NotNull AnActionEvent event) {
-      update(event.getPresentation());
-    }
-
-    private void update(@NotNull Presentation presentation) {
-      if (isLeft()) {
-        presentation.setIcon(AllIcons.General.HideLeftPart);
-        presentation.setHoveredIcon(AllIcons.General.HideLeftPartHover);
-      }
-      else {
-        presentation.setIcon(AllIcons.General.HideRightPart);
-        presentation.setHoveredIcon(AllIcons.General.HideRightPartHover);
-      }
+      super(UIBundle.message("tool.window.hide.action.name"), null, AllIcons.General.HideToolWindow);
     }
 
     @Override

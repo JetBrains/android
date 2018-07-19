@@ -16,7 +16,6 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.analytics.AnalyticsSettings;
-import com.android.tools.analytics.UsageTracker;
 import com.android.utils.NullLogger;
 import com.google.wireless.android.sdk.stats.LintAction.LintFeedback;
 import com.intellij.ide.util.PropertiesComponent;
@@ -115,7 +114,7 @@ public class ProvideLintFeedbackPanel extends DialogWrapper implements ActionLis
    * Whether we should request feedback from the user
    */
   public static boolean canRequestFeedback() {
-    if (!AnalyticsSettings.getInstance(new NullLogger()).hasOptedIn()) {
+    if (!AnalyticsSettings.getInstance(new NullLogger()).getOptedIn()) {
       return false;
     }
     if (requestFeedback == null) {

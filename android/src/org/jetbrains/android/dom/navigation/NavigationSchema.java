@@ -16,7 +16,6 @@
 package org.jetbrains.android.dom.navigation;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.google.common.base.Preconditions;
@@ -26,12 +25,15 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.TypeConversionUtil;
+import com.intellij.util.Query;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
@@ -89,6 +91,8 @@ public class NavigationSchema implements Disposable {
     SdkConstants.CLASS_V4_FRAGMENT.oldName(), FRAGMENT,
     SdkConstants.CLASS_V4_FRAGMENT.newName(), FRAGMENT);
 
+  private static final Multimap<String, String> NAVIGATION_TO_DESTINATION_SUPERCLASS = HashMultimap.create();
+
   private static final Map<AndroidFacet, NavigationSchema> ourSchemas = new HashMap<>();
 
   // TODO: it would be nice to have this generated dynamically, but there's no way to know what the default navigator for a type should be.
@@ -99,17 +103,34 @@ public class NavigationSchema implements Disposable {
   );
 
   private Map<String, DestinationType> myTagToDestinationType;
-  private Map<PsiClass, String> myNavigatorClassToTag;
+  private Multimap<String, PsiClass> myTagToNavigatorClass;
 
   private final AndroidFacet myFacet;
   public static final String ATTR_DEFAULT_VALUE = "defaultValue";
-  public static final String NAV_HOST_FRAGMENT = "androidx.navigation.NavHostFragment";
 
   public enum DestinationType {
     NAVIGATION,
     FRAGMENT,
     ACTIVITY,
     OTHER
+  }
+
+  static {
+    // TODO: Remove this hardcoded initialization once the platform supplies this information
+    for (Map.Entry<String, DestinationType> entry : DESTINATION_SUPERCLASS_TO_TYPE.entrySet()) {
+      String navigatorClass;
+      if (entry.getValue() == FRAGMENT) {
+        navigatorClass = "androidx.navigation.fragment.FragmentNavigator";
+      }
+      else if (entry.getValue() == ACTIVITY) {
+        navigatorClass = "androidx.navigation.ActivityNavigator";
+      }
+      else {
+        continue;
+      }
+
+      NAVIGATION_TO_DESTINATION_SUPERCLASS.put(navigatorClass, entry.getKey());
+    }
   }
 
   public static boolean enableNavigationEditor() {
@@ -180,7 +201,7 @@ public class NavigationSchema implements Disposable {
     PsiTypeParameter destinationTypeParam = navigatorRoot.getTypeParameters()[0];
 
     Map<String, DestinationType> tagToType = new HashMap<>();
-    Map<PsiClass, String> classToTag = new HashMap<>();
+    Multimap<String, PsiClass> tagToClass = HashMultimap.create();
 
     for (PsiClass navClass : getClassMap(NAVIGATOR_CLASS_NAME).values()) {
       if (navClass.equals(navigatorRoot)) {
@@ -199,12 +220,12 @@ public class NavigationSchema implements Disposable {
         Logger.getInstance(NavigationSchema.class).warn("Multiple destination types for tag " + navClass);
       }
       tagToType.put(tag, type);
-      classToTag.put(navClass, tag);
+      tagToClass.put(tag, navClass);
     }
     // Doesn't come from library, so have to add manually.
     tagToType.put(TAG_INCLUDE, NAVIGATION);
 
-    myNavigatorClassToTag = classToTag;
+    myTagToNavigatorClass = tagToClass;
     myTagToDestinationType = tagToType;
   }
 
@@ -299,27 +320,12 @@ public class NavigationSchema implements Disposable {
   }
 
   @NotNull
-  public String getTag(@NotNull PsiClass navigatorClass) {
-    return myNavigatorClassToTag.get(navigatorClass);
-  }
-
-  @Nullable
-  public DestinationType getTypeForNavigatorClass(@NotNull PsiClass navigatorClass) {
-    String tag = myNavigatorClassToTag.get(navigatorClass);
-    return tag == null ? null : myTagToDestinationType.get(tag);
-  }
-
-  @NotNull
   public Set<PsiClass> getDestinationClassesByTagSlowly(@NotNull String tagName) {
-    return myNavigatorClassToTag.keySet().stream().filter(c -> myNavigatorClassToTag.get(c).equals(tagName)).collect(Collectors.toSet());
+    return new HashSet<>(myTagToNavigatorClass.get(tagName));
   }
 
   public Map<String, DestinationType> getTagTypeMap() {
     return Collections.unmodifiableMap(myTagToDestinationType);
-  }
-
-  public Map<PsiClass, String> getNavigatorClassTagMap() {
-    return Collections.unmodifiableMap(myNavigatorClassToTag);
   }
 
   @NotNull
@@ -369,5 +375,66 @@ public class NavigationSchema implements Disposable {
 
     assert text != null;
     return text;
+  }
+
+  /**
+   * Gets a list of PsiClasses for destination classes and their subclasses for all navigators
+   * that use the specified tag name
+   */
+  public List<PsiClass> getDestinationClasses(String tag) {
+    Module module = myFacet.getModule();
+    Project project = module.getProject();
+    JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
+    List<PsiClass> result = new ArrayList<>();
+
+    for (PsiClass navigatorClass : myTagToNavigatorClass.get(tag)) {
+      for (String destinationSuperClass : NAVIGATION_TO_DESTINATION_SUPERCLASS.get(navigatorClass.getQualifiedName())) {
+        if (destinationSuperClass == null) {
+          continue;
+        }
+
+        PsiClass psiSuperClass = javaPsiFacade.findClass(destinationSuperClass, GlobalSearchScope.allScope(project));
+        if (psiSuperClass == null) {
+          continue;
+        }
+
+        Query<PsiClass> query = ClassInheritorsSearch.search(psiSuperClass, GlobalSearchScope.moduleWithDependenciesScope(module), true);
+        if (query == null) {
+          continue;
+        }
+
+        for (PsiClass psiClass : query) {
+          if (isNavHostFragment(psiClass)) {
+            continue;
+          }
+
+          result.add(psiClass);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  private static boolean isNavHostFragment(PsiClass psiClass) {
+    for (PsiClass superClass : psiClass.getSupers()) {
+      if (superClass.getQualifiedName().equals(SdkConstants.FQCN_NAV_HOST_FRAGMENT)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public Boolean isFragmentTag(@NotNull String tag) {
+    return getDestinationType(tag) == FRAGMENT;
+  }
+
+  public Boolean isActivityTag(@NotNull String tag) {
+    return getDestinationType(tag) == ACTIVITY;
+  }
+
+  public Boolean isNavigationTag(@NotNull String tag) {
+    return getDestinationType(tag) == NAVIGATION;
   }
 }

@@ -24,13 +24,13 @@ interface AndroidLibrary : Library {
   val artifact: File
   /** The list of local Jar files that are included in the dependency. */
   val localJars: Collection<File>
-  /** The location of the unzipped bundle folder. */
+  /** The location of the unzipped AAR folder. */
   val bundleFolder: File
 
   fun toProto(converter: PathConverter) = LibraryProto.AndroidLibrary.newBuilder()
     .setLibrary(LibraryProto.Library.newBuilder().setArtifactAddress(artifactAddress))
-    .setArtifact(converter.fileToProto(artifact, PathConverter.DirType.OUT))
-    .addAllLocalJars(localJars.map { converter.fileToProto(it, PathConverter.DirType.LIBRARY) })
-    .setBundleFolder(converter.fileToProto(bundleFolder, PathConverter.DirType.LIBRARY))
+    .setArtifact(converter.fileToProto(artifact, PathConverter.DirType.OFFLINE_REPO))
+    .setBundleFolder(converter.fileToProto(bundleFolder, PathConverter.DirType.OFFLINE_REPO))
+    .addAllLocalJars(localJars.map { converter.fileToProto(it, PathConverter.DirType.OFFLINE_REPO) })
     .build()!!
 }

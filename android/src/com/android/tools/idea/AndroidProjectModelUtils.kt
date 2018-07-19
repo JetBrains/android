@@ -41,7 +41,7 @@ fun findAllAarsLibraries(project: Project): Map<String, AarLibrary> {
   return ModuleManager.getInstance(project)
     .modules
     .asSequence()
-    .map(::findAarDependenciesInfo)
+    .map(::findAarDependencies)
     .fold(HashMap()) { inProject, inModule ->
       inProject.putAll(inModule)
       inProject
@@ -52,7 +52,7 @@ fun findAllAarsLibraries(project: Project): Map<String, AarLibrary> {
  * Returns information about all [AarLibrary] dependencies of a given module, indexed by [AarLibrary.address] which is unique within
  * a project.
  */
-private fun findAarDependenciesInfo(module: Module): Map<String, AarLibrary> {
+fun findAarDependencies(module: Module): Map<String, AarLibrary> {
   return module.getModuleSystem()
     .getDependentLibraries()
     .filterIsInstance<AarLibrary>()

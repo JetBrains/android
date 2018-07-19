@@ -17,6 +17,7 @@ package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.common.AdtSecondaryPanel
+import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.impl.model.FlagPropertyEditorModel

@@ -32,7 +32,8 @@ class NelePropertiesModelTest: LayoutTestCase() {
 
   fun testPropertiesGeneratedEventWhenDesignSurfaceIsHookedUp() {
     // setup
-    val listener = mock(PropertiesModelListener::class.java)
+    @Suppress("UNCHECKED_CAST")
+    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     model.updateQueue.isPassThrough = true
@@ -46,7 +47,8 @@ class NelePropertiesModelTest: LayoutTestCase() {
 
   fun testPropertiesGeneratedEventWhenSwitchingDesignSurface() {
     // setup
-    val listener = mock(PropertiesModelListener::class.java)
+    @Suppress("UNCHECKED_CAST")
+    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = createModel()
     val nlModelA = createNlModel(IMAGE_VIEW)
     val nlModelB = createNlModel(TEXT_VIEW)
@@ -65,7 +67,8 @@ class NelePropertiesModelTest: LayoutTestCase() {
 
   fun testPropertiesGeneratedEventAfterSelectionChange() {
     // setup
-    val listener = mock(PropertiesModelListener::class.java)
+    @Suppress("UNCHECKED_CAST")
+    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     model.surface = nlModel.surface
@@ -81,7 +84,8 @@ class NelePropertiesModelTest: LayoutTestCase() {
 
   fun testPropertiesChangedEventAfterRendering() {
     // setup
-    val listener = mock(PropertiesModelListener::class.java)
+    @Suppress("UNCHECKED_CAST")
+    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     model.surface = nlModel.surface
@@ -126,7 +130,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
           .children(
               component(tag)
                 .withBounds(100, 100, 100, 100)
-                .id("@id/" + tag)
+                .id("@id/$tag")
                 .width("wrap_content")
                 .height("wrap_content")
           )

@@ -17,28 +17,48 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallSdkPackageHyperlink;
-import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Reporter for dealing with {@link SyncIssue#TYPE_MISSING_SDK_PACKAGE} issues.
  */
-public class MissingSdkPackageSyncIssuesReporter extends BaseSyncIssuesReporter {
+public class MissingSdkPackageSyncIssuesReporter extends SimpleDeduplicatingSyncIssueReporter {
   @Override
   int getSupportedIssueType() {
     return SyncIssue.TYPE_MISSING_SDK_PACKAGE;
   }
 
+  @Nullable
   @Override
-  void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
-    SyncMessage message = generateSyncMessage(syncIssue, module, buildFile);
-    if (syncIssue.getData() != null) {
-      message.add(new InstallSdkPackageHyperlink(syncIssue.getData()));
-    }
+  protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
+    return issue;
+  }
 
-    getSyncMessages(module).report(message);
+  @Override
+  protected boolean shouldIncludeModuleLinks() {
+    return false;
+  }
+
+  @NotNull
+  @Override
+  protected List<NotificationHyperlink> getCustomLinks(@NotNull Project project,
+                                                       @NotNull List<SyncIssue> syncIssues,
+                                                       @NotNull List<Module> affectedModules,
+                                                       @NotNull Map<Module, VirtualFile> buildFileMap) {
+    assert !syncIssues.isEmpty();
+    String data = syncIssues.get(0).getData();
+    if (data != null) {
+      return ImmutableList.of(new InstallSdkPackageHyperlink(data));
+    }
+    return ImmutableList.of();
   }
 }

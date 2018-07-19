@@ -29,4 +29,3 @@ open class LegacyJavaCompileOptions(private val javaCompileOptions: JavaCompileO
                                     "targetCompatibility=$targetCompatibility" +
                                     "}"
 }
-

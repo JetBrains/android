@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
@@ -37,7 +36,6 @@ import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
 import com.android.tools.idea.instantapp.ProvisionTasks;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
@@ -54,13 +52,14 @@ import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.concurrency.JobLauncher;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.BeforeRunTaskProvider;
+import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
@@ -79,11 +78,9 @@ import java.util.*;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
 import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.removeSyncContextDataFrom;
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.SINGLE_VARIANT_SYNC;
-import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isSingleVariantSync;
+import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
-import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static java.lang.System.currentTimeMillis;
@@ -102,8 +99,9 @@ public class PostSyncProjectSetup {
   @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
   @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
-  @NotNull private final RunManagerImpl myRunManager;
+  @NotNull private final RunManagerEx myRunManager;
   @NotNull private final ProvisionTasks myProvisionTasks;
+  @NotNull private final EnableDisableSingleVariantSyncStep myEnableDisableSingleVariantSyncStep;
 
   @NotNull
   public static PostSyncProjectSetup getInstance(@NotNull Project project) {
@@ -124,7 +122,7 @@ public class PostSyncProjectSetup {
                               @NotNull GradleProjectBuilder projectBuilder) {
     this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
          new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
-         RunManagerImpl.getInstanceImpl(project), new ProvisionTasks());
+         RunManagerEx.getInstanceEx(project), new ProvisionTasks(), new EnableDisableSingleVariantSyncStep());
   }
 
   @VisibleForTesting
@@ -141,8 +139,9 @@ public class PostSyncProjectSetup {
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
                        @NotNull CommonModuleValidator.Factory moduleValidatorFactory,
-                       @NotNull RunManagerImpl runManager,
-                       @NotNull ProvisionTasks provisionTasks) {
+                       @NotNull RunManagerEx runManager,
+                       @NotNull ProvisionTasks provisionTasks,
+                       @NotNull EnableDisableSingleVariantSyncStep enableSingleVariantSyncStep) {
     myProject = project;
     myIdeInfo = ideInfo;
     myProjectStructure = projectStructure;
@@ -158,94 +157,100 @@ public class PostSyncProjectSetup {
     myModuleValidatorFactory = moduleValidatorFactory;
     myRunManager = runManager;
     myProvisionTasks = provisionTasks;
+    myEnableDisableSingleVariantSyncStep = enableSingleVariantSyncStep;
   }
 
   /**
    * Invoked after a project has been synced with Gradle.
    */
   public void setUpProject(@NotNull Request request, @NotNull ProgressIndicator progressIndicator, @Nullable ExternalSystemTaskId taskId) {
-    if (!StudioFlags.NEW_SYNC_INFRA_ENABLED.get()) {
-      removeSyncContextDataFrom(myProject);
-    }
-
-    myGradleProjectInfo.setNewProject(false);
-    myGradleProjectInfo.setImportedProject(false);
-    boolean syncFailed = mySyncState.lastSyncFailedOrHasIssues();
-
-    if (syncFailed && request.usingCachedGradleModels) {
-      onCachedModelsSetupFailure(request);
-      return;
-    }
-
-    myDependencySetupIssues.reportIssues();
-    myVersionCompatibilityChecker.checkAndReportComponentIncompatibilities(myProject);
-
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    List<Module> modules = Arrays.asList(moduleManager.getModules());
-    CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
-    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, progressIndicator, true, module -> {
-      moduleValidator.validate(module);
-      return true;
-    });
-    moduleValidator.fixAndReportFoundIssues();
-
-    if (syncFailed) {
-      failTestsIfSyncIssuesPresent();
-
-      myProjectSetup.setUpProject(progressIndicator, true /* sync failed */);
-      // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
-      // previous sync, and not the one from the sync that just ended.
-      mySyncState.syncFailed("");
-      finishFailedSync(taskId, myProject);
-      return;
-    }
-
-    if (!request.skipAndroidPluginUpgrade && myPluginVersionUpgrade.checkAndPerformUpgrade()) {
-      // Plugin version was upgraded and a sync was triggered.
-      finishSuccessfulSync(taskId);
-      return;
-    }
-
-    new ProjectStructureUsageTracker(myProject).trackProjectStructure();
-
-    DisposedModules.getInstance(myProject).deleteImlFilesForDisposedModules();
-    SupportedModuleChecker.getInstance().checkForSupportedModules(myProject);
-
-    findAndShowVariantConflicts();
-    warnIfSingleVariantIsEnableButNotSupported();
-    myProjectSetup.setUpProject(progressIndicator, false /* sync successful */);
-
-    modifyJUnitRunConfigurations();
-    RunConfigurationChecker.getInstance(myProject).ensureRunConfigsInvokeBuild();
-
-    myProvisionTasks.addInstantAppProvisionTaskToRunConfigurations(myProject);
-
-    AndroidPluginVersionsInProject agpVersions = myProjectStructure.getAndroidPluginVersions();
-    myProjectStructure.analyzeProjectStructure(progressIndicator);
-    boolean cleanProjectAfterSync = myProjectStructure.getAndroidPluginVersions().haveVersionsChanged(agpVersions);
-
-    attemptToGenerateSources(request, cleanProjectAfterSync);
-    notifySyncFinished(request);
-
-    TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
-
-    myModuleSetup.setUpModules(null);
-
-    finishSuccessfulSync(taskId);
-  }
-
-  private void warnIfSingleVariantIsEnableButNotSupported() {
-    if (isSingleVariantSync(myProject)) {
-      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-        AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-        if (androidModel != null && !androidModel.getFeatures().isSingleVariantSyncSupported()) {
-          String text =
-            "Single-Variant Sync is enabled but not supported by this version of Gradle. Full Variants Sync was performed instead.";
-          SyncMessage msg = new SyncMessage(SINGLE_VARIANT_SYNC, WARNING, text);
-          GradleSyncMessages.getInstance(myProject).report(msg);
-          return;
-        }
+    try {
+      if (!StudioFlags.NEW_SYNC_INFRA_ENABLED.get()) {
+        removeSyncContextDataFrom(myProject);
       }
+
+      // If single-variant sync is enabled but not supported for current project, disable the option and sync again.
+      if (!isInTestingMode() && myEnableDisableSingleVariantSyncStep.checkAndDisableOption(myProject, mySyncState)) {
+        // Single-variant sync disabled and a sync was triggered.
+        finishSuccessfulSync(taskId);
+        return;
+      }
+
+      myGradleProjectInfo.setNewProject(false);
+      myGradleProjectInfo.setImportedProject(false);
+      boolean syncFailed = mySyncState.lastSyncFailedOrHasIssues();
+
+      if (syncFailed && request.usingCachedGradleModels) {
+        onCachedModelsSetupFailure(request);
+        return;
+      }
+
+      myDependencySetupIssues.reportIssues();
+      myVersionCompatibilityChecker.checkAndReportComponentIncompatibilities(myProject);
+
+      ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+      List<Module> modules = Arrays.asList(moduleManager.getModules());
+      CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
+      JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, progressIndicator, module -> {
+        moduleValidator.validate(module);
+        return true;
+      });
+      moduleValidator.fixAndReportFoundIssues();
+
+      if (syncFailed) {
+        failTestsIfSyncIssuesPresent();
+
+        myProjectSetup.setUpProject(progressIndicator, true /* sync failed */);
+        // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
+        // previous sync, and not the one from the sync that just ended.
+        mySyncState.syncFailed("");
+        finishFailedSync(taskId, myProject);
+        return;
+      }
+
+      // Needed internally for development of Android support lib.
+      boolean skipAgpUpgrade = SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false);
+
+      if (!skipAgpUpgrade && !request.skipAndroidPluginUpgrade && myPluginVersionUpgrade.checkAndPerformUpgrade()) {
+        // Plugin version was upgraded and a sync was triggered.
+        finishSuccessfulSync(taskId);
+        return;
+      }
+
+      new ProjectStructureUsageTracker(myProject).trackProjectStructure();
+
+      DisposedModules.getInstance(myProject).deleteImlFilesForDisposedModules();
+      SupportedModuleChecker.getInstance().checkForSupportedModules(myProject);
+
+      findAndShowVariantConflicts();
+      myProjectSetup.setUpProject(progressIndicator, false /* sync successful */);
+
+      modifyJUnitRunConfigurations();
+      RunConfigurationChecker.getInstance(myProject).ensureRunConfigsInvokeBuild();
+
+      myProvisionTasks.addInstantAppProvisionTaskToRunConfigurations(myProject);
+
+      AndroidPluginVersionsInProject agpVersions = myProjectStructure.getAndroidPluginVersions();
+      myProjectStructure.analyzeProjectStructure(progressIndicator);
+      boolean cleanProjectAfterSync = myProjectStructure.getAndroidPluginVersions().haveVersionsChanged(agpVersions);
+
+      attemptToGenerateSources(request, cleanProjectAfterSync);
+      notifySyncFinished(request);
+
+      TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
+
+      myModuleSetup.setUpModules(null);
+
+      finishSuccessfulSync(taskId);
+      // If sync is successful and the project is eligible, ask user to opt-in single-variant sync.
+      if (!isInTestingMode()) {
+        myEnableDisableSingleVariantSyncStep.checkAndEnableOption(myProject);
+      }
+    }
+    catch (Throwable t) {
+      mySyncState.syncFailed("setup project failed: " + t.getMessage());
+      finishFailedSync(taskId, myProject);
+      getLog().error(t);
     }
   }
 
@@ -348,7 +353,7 @@ public class PostSyncProjectSetup {
   private void modifyJUnitRunConfigurations() {
     ConfigurationType junitConfigurationType = AndroidJUnitConfigurationType.getInstance();
     BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = Extensions.getExtensions(BeforeRunTaskProvider.EXTENSION_POINT_NAME, myProject);
-    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
+    RunManagerEx runManager = RunManagerEx.getInstanceEx(myProject);
 
     // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
     // For IDEA, use regular "Make".
@@ -363,7 +368,7 @@ public class PostSyncProjectSetup {
 
     if (targetProvider != null) {
       // Store current before run tasks in each configuration to reset them after modifying the template, since modifying
-      Map<RunConfiguration, List<? extends BeforeRunTask<?>>> currentTasks = new HashMap<>();
+      Map<RunConfiguration, List<BeforeRunTask>> currentTasks = new HashMap<>();
       for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
         currentTasks.put(runConfiguration, new ArrayList<>(runManager.getBeforeRunTasks(runConfiguration)));
       }
@@ -388,7 +393,7 @@ public class PostSyncProjectSetup {
   private void setMakeStepInJUnitConfiguration(@NotNull BeforeRunTaskProvider targetProvider, @NotNull RunConfiguration runConfiguration) {
     // Only "make" steps of beforeRunTasks should be overridden (see http://b.android.com/194704 and http://b.android.com/227280)
     List<BeforeRunTask> newBeforeRunTasks = new LinkedList<>();
-    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
+    RunManagerEx runManager = RunManagerEx.getInstanceEx(myProject);
     for (BeforeRunTask beforeRunTask : runManager.getBeforeRunTasks(runConfiguration)) {
       if (beforeRunTask.getProviderId().equals(CompileStepBeforeRun.ID)) {
         if (runManager.getBeforeRunTasks(runConfiguration, MakeBeforeRunTaskProvider.ID).isEmpty()) {
@@ -403,7 +408,7 @@ public class PostSyncProjectSetup {
         newBeforeRunTasks.add(beforeRunTask);
       }
     }
-    runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks, false);
+    runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks);
   }
 
   private void attemptToGenerateSources(@NotNull Request request, boolean cleanProjectAfterSync) {
@@ -415,6 +420,11 @@ public class PostSyncProjectSetup {
       return;
     }
     myProjectBuilder.generateSources();
+  }
+
+  @NotNull
+  private Logger getLog() {
+    return Logger.getInstance(getClass());
   }
 
   /**

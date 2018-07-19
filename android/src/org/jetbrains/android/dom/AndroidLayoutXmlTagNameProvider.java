@@ -166,7 +166,7 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
       return false;
     }
 
-    return modifierList.findAnnotation("java.lang.Deprecated") != null;
+    return modifierList.hasAnnotation("java.lang.Deprecated");
   }
 
   private static boolean isDeclarationRestricted(@Nullable PsiElement declaration) {

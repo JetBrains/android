@@ -20,19 +20,24 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
 
 import static com.android.tools.idea.gradle.util.GradleProjects.open;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.invokeLater;
@@ -124,6 +129,7 @@ class SyncResultHandler {
       ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
       projectSetup.setUpProject(models, indicator);
       projectSetup.commit();
+      SyncIssuesReporter.getInstance().report(ModuleManager.getInstance(myProject).getModules());
       scheduleExternalViewStructureUpdate(myProject, SYSTEM_ID);
 
       if (syncListener != null) {
@@ -150,6 +156,7 @@ class SyncResultHandler {
     ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
     projectSetup.setUpProject(projectModelsCache, indicator);
     projectSetup.commit();
+    SyncIssuesReporter.getInstance().report(ModuleManager.getInstance(myProject).getModules());
 
     if (syncListener != null) {
       syncListener.syncSkipped(myProject);
@@ -221,6 +228,7 @@ class SyncResultHandler {
         ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
         projectSetup.setUpProject(models, indicator);
         projectSetup.commit();
+        SyncIssuesReporter.getInstance().report(ModuleManager.getInstance(myProject).getModules());
 
         if (syncListener != null) {
           syncListener.syncSucceeded(myProject);

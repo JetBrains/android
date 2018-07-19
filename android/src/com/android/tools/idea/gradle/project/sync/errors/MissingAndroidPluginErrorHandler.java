@@ -16,11 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenPluginBuildFileHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +33,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 import static com.android.tools.idea.gradle.project.sync.errors.MissingDependencyErrorHandler.MISSING_DEPENDENCY_PATTERN;
-import static com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink.getBuildModelForPlugin;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink.getBuildFileForPlugin;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink.shouldEnableEmbeddedRepo;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
@@ -57,19 +59,20 @@ public class MissingAndroidPluginErrorHandler extends BaseSyncErrorHandler {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
 
     if (project.isInitialized()) {
-      GradleBuildModel gradleBuildModel = getBuildModelForPlugin(project);
-      if (gradleBuildModel != null) {
+      List<VirtualFile> buildFiles = getBuildFileForPlugin(project);
+      if (!buildFiles.isEmpty()) {
+        VirtualFile buildFile = buildFiles.get(0);
+        GradleBuildModel gradleBuildModel = ProjectBuildModel.get(project).getModuleBuildModel(buildFile);
         // Check if Google Maven repository can be added
-        VirtualFile buildFile = gradleBuildModel.getVirtualFile();
         if (!gradleBuildModel.buildscript().repositories().hasGoogleMavenRepository()) {
-          hyperlinks.add(new AddGoogleMavenRepositoryHyperlink(buildFile));
+          hyperlinks.add(new AddGoogleMavenRepositoryHyperlink(ImmutableList.of(buildFile)));
         }
         hyperlinks.add(new OpenFileHyperlink(toSystemDependentName(buildFile.getPath())));
       }
     }
     else {
       // if project is not initialized, offer quickfixes.
-      hyperlinks.add(new AddGoogleMavenRepositoryHyperlink());
+      hyperlinks.add(new AddGoogleMavenRepositoryHyperlink(project));
       hyperlinks.add(new OpenPluginBuildFileHyperlink());
     }
 

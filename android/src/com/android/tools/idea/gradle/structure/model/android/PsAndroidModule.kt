@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon
@@ -31,8 +32,8 @@ import javax.swing.Icon
 
 class PsAndroidModule(
   parent: PsProject,
-  gradlePath: String
-) : PsModule(parent, gradlePath) {
+  override val gradlePath: String
+) : PsModule(parent) {
   var resolvedModel: AndroidModuleModel? = null; private set
   override var projectType: PsModuleType = PsModuleType.UNKNOWN; private set
   var isLibrary: Boolean = false; private set
@@ -67,11 +68,11 @@ class PsAndroidModule(
     signingConfigCollection?.refresh()
   }
 
-  val buildTypes: List<PsBuildType> get() = getOrCreateBuildTypeCollection().items()
-  val productFlavors: List<PsProductFlavor> get() = getOrCreateProductFlavorCollection().items()
-  val variants: List<PsVariant> get() = getOrCreateVariantCollection().items()
+  val buildTypes: Collection<PsBuildType> get() = getOrCreateBuildTypeCollection().items()
+  val productFlavors: Collection<PsProductFlavor> get() = getOrCreateProductFlavorCollection().items()
+  val variants: Collection<PsVariant> get() = getOrCreateVariantCollection().items()
   val dependencies: PsAndroidModuleDependencyCollection get() = getOrCreateDependencyCollection()
-  val signingConfigs: List<PsSigningConfig> get() = getOrCreateSigningConfigCollection().items()
+  val signingConfigs: Collection<PsSigningConfig> get() = getOrCreateSigningConfigCollection().items()
   val defaultConfig = PsAndroidModuleDefaultConfig(this)
   val flavorDimensions: Collection<String>
     get() {
@@ -107,7 +108,7 @@ class PsAndroidModule(
     fun applicableArtifacts() = listOf("", "test", "androidTest")
 
     fun flavorsByDimension(dimension: String) =
-      productFlavors.filter { (it.dimension as? ParsedValue.Set.Parsed)?.value == dimension }.map { it.name }
+      productFlavors.filter { it.dimension.maybeValue == dimension }.map { it.name }
 
     fun buildFlavorCombinations() = when {
       flavorDimensions.size > 1 -> flavorDimensions

@@ -22,9 +22,11 @@ import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldTestO
 
 open class LegacyTestOptions(private val testOptions: TestOptions) : OldTestOptions {
   override fun getExecution(): OldTestOptionsExecution = OldTestOptionsExecution.valueOf(testOptions.execution.name)
+  override fun toString(): String = "LegacyBaseArtifact{$execution}"
 
   override fun getAnimationsDisabled(): Boolean = throw UnusedModelMethodException("getAnimationsDisabled")
-
-  override fun toString(): String = "LegacyBaseArtifact{$execution}"
 }
 
+class LegacyTestOptionsStub(testOptions: TestOptions) : LegacyTestOptions(testOptions) {
+  override fun getAnimationsDisabled(): Boolean = false
+}

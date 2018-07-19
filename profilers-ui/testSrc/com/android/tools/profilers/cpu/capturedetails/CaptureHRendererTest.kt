@@ -23,9 +23,7 @@ import com.intellij.ui.Graphics2DDelegate
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.fail
 import org.junit.Test
-import java.awt.Color
-import java.awt.FontMetrics
-import java.awt.Shape
+import java.awt.*
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
 
@@ -34,11 +32,11 @@ class CaptureNodeHRendererTest {
   @Test
   fun renderIdleCpuTime() {
     val simpleNode = CaptureNode(AtraceNodeModel("SomeName"))
-    simpleNode.startGlobal = 10;
-    simpleNode.endGlobal = 20;
-    simpleNode.startThread = 10;
-    simpleNode.endThread = 15;
-    val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
+    simpleNode.startGlobal = 10
+    simpleNode.endGlobal = 20
+    simpleNode.startThread = 10
+    simpleNode.endThread = 15
+    val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART)
     val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
     val fakeGraphics = TestGraphics2D()
     renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, false)
@@ -57,7 +55,7 @@ class CaptureNodeHRendererTest {
       startThread = 10
       endThread = 15
     }
-    val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
+    val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART)
     // Test clamp width.
     var renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
     var clampedRenderWindow = Rectangle2D.Float(0.0f, 0.0f, 6.0f, 6.0f)
@@ -68,7 +66,7 @@ class CaptureNodeHRendererTest {
     // Validate we get two shapes drawn, the first one is the expected size of the clamped window.
     // The second on is the size of the idle time clamped to the window size.
     fakeGraphics.expectFillShapes(clampedRenderWindow, Rectangle2D.Double(5.0, 0.0, 1.0, 10.0))
-    fakeGraphics.fillShapes.clear();
+    fakeGraphics.fillShapes.clear()
 
     // Test clamp start and width
     renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
@@ -84,11 +82,11 @@ class CaptureNodeHRendererTest {
   @Test
   fun renderIdleCpuTimeDoesNotHappenOnOtherModels() {
     val simpleNode = CaptureNode(SingleNameModel("SomeName"))
-    simpleNode.startGlobal = 10;
-    simpleNode.endGlobal = 20;
-    simpleNode.startThread = 10;
-    simpleNode.endThread = 15;
-    val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
+    simpleNode.startGlobal = 10
+    simpleNode.endGlobal = 20
+    simpleNode.startThread = 10
+    simpleNode.endThread = 15
+    val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART)
     val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
     val fakeGraphics = TestGraphics2D()
     renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow,false)
@@ -101,13 +99,13 @@ class CaptureNodeHRendererTest {
   @Test
   fun renderIdleTimeWithNegativeStartFillsIdleTime() {
     val simpleNode = CaptureNode(AtraceNodeModel("SomeName"))
-    simpleNode.startGlobal = 10;
-    simpleNode.endGlobal = 110;
-    simpleNode.startThread = 10;
-    simpleNode.endThread = 15;
-    val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
+    simpleNode.startGlobal = 10
+    simpleNode.endGlobal = 110
+    simpleNode.startThread = 10
+    simpleNode.endThread = 15
+    val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART)
     val renderWindow = Rectangle2D.Float(-100.0f, 0.0f, 300.0f,10.0f)
-    val clampWindow = Rectangle2D.Float(0f, 0f, 10f, 10f);
+    val clampWindow = Rectangle2D.Float(0f, 0f, 10f, 10f)
     val fakeGraphics = TestGraphics2D()
     renderer.render(fakeGraphics, simpleNode, renderWindow, clampWindow,false)
     assertThat(fakeGraphics.fillShapes).hasSize(2)
@@ -121,7 +119,7 @@ class CaptureNodeHRendererTest {
   @Test
   fun renderInvalidNodeShouldThrowException() {
     val unsupportedNode = CaptureNode(StubCaptureNodeModel())
-    val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
+    val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART)
 
     val fakeGraphics = TestGraphics2D()
     try {
@@ -136,7 +134,7 @@ class CaptureNodeHRendererTest {
   @Test
   fun invalidChartTypeShouldThrowException() {
     try {
-      CaptureNodeHRenderer(CaptureModel.Details.Type.BOTTOM_UP)
+      CaptureNodeHRenderer(CaptureDetails.Type.BOTTOM_UP)
       fail()
     }
     catch (e: IllegalStateException) {
@@ -145,37 +143,43 @@ class CaptureNodeHRendererTest {
   }
 
   @Test
-  fun testFilterRenderStyle() {
-    val simpleNode = CaptureNode(SyscallModel("write"))
-    val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
-
+  fun testFilterRenderStyles() {
+    val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART)
     val fakeGraphics = TestGraphics2D()
+
+    val simpleNode = CaptureNode(SyscallModel("write"))
+
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.MATCH
     renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), Rectangle2D.Float(), false)
-    assertThat(fakeGraphics.paint).isEqualTo(Color.BLACK)
-    assertThat(fakeGraphics.font.isBold).isFalse()
+    assertThat(fakeGraphics.lastTextInfo!!.paint).isEqualTo(Color.BLACK)
+    assertThat(fakeGraphics.lastTextInfo!!.isBold).isFalse()
 
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.UNMATCH
     renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), Rectangle2D.Float(), false)
-    assertThat(fakeGraphics.paint).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(Color.BLACK))
-    assertThat(fakeGraphics.font.isBold).isFalse()
+    assertThat(fakeGraphics.lastTextInfo!!.paint).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(Color.BLACK))
+    assertThat(fakeGraphics.lastTextInfo!!.isBold).isFalse()
 
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.EXACT_MATCH
     renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), Rectangle2D.Float(), false)
-    assertThat(fakeGraphics.paint).isEqualTo(Color.BLACK)
-    // TODO: refactor CaptureNodeHRenderer#render to check font is Bold for EXACT_MATCHES
+    assertThat(fakeGraphics.lastTextInfo!!.paint).isEqualTo(Color.BLACK)
+    assertThat(fakeGraphics.lastTextInfo!!.isBold).isTrue()
 
-    // TODO: refactor CaptureNodeHRenderer#render to cover the case of null filter type
+    // Make sure that, when we render a non-exact match after an EXACT_MATCH, that the bold state is cleared
+    fakeGraphics.paint = Color.RED
+    simpleNode.filterType = CaptureNode.FilterType.MATCH
+    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), Rectangle2D.Float(), false)
+    assertThat(fakeGraphics.lastTextInfo!!.paint).isEqualTo(Color.BLACK)
+    assertThat(fakeGraphics.lastTextInfo!!.isBold).isFalse()
   }
 
   @Test
   fun testAtraceColors() {
     val invalidModel = SyscallModel("write")
     try {
-      AtraceNodeModelHChartColors.getFillColor(invalidModel, CaptureModel.Details.Type.CALL_CHART, false, false)
+      AtraceNodeModelHChartColors.getFillColor(invalidModel, CaptureDetails.Type.CALL_CHART, false, false)
       fail()
     }
     catch (e: IllegalStateException) {
@@ -184,28 +188,28 @@ class CaptureNodeHRendererTest {
 
     val model = AtraceNodeModel("SomeName")
 
-    var color = AtraceNodeModelHChartColors.getFillColor(model, CaptureModel.Details.Type.CALL_CHART, false, false)
+    var color = AtraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.CALL_CHART, false, false)
     assertThat(color).isEqualTo(ProfilerColors.CPU_USAGE_CAPTURED)
 
-    color = AtraceNodeModelHChartColors.getFillColor(model, CaptureModel.Details.Type.CALL_CHART, false, true)
+    color = AtraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.CALL_CHART, false, true)
     assertThat(color).isEqualTo(ProfilerColors.CPU_USAGE_CAPTURED_HOVER)
 
-    color = AtraceNodeModelHChartColors.getFillColor(model, CaptureModel.Details.Type.FLAME_CHART, false, false)
+    color = AtraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.FLAME_CHART, false, false)
     assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP)
 
-    color = AtraceNodeModelHChartColors.getFillColor(model, CaptureModel.Details.Type.FLAME_CHART, false, true)
+    color = AtraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.FLAME_CHART, false, true)
     assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP_HOVER)
 
-    color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureModel.Details.Type.CALL_CHART, false, false)
+    color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.CALL_CHART, false, false)
     assertThat(color).isEqualTo(ProfilerColors.CPU_TRACE_IDLE)
 
-    color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureModel.Details.Type.CALL_CHART, false, true)
+    color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.CALL_CHART, false, true)
     assertThat(color).isEqualTo(ProfilerColors.CPU_TRACE_IDLE_HOVER)
 
-    color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureModel.Details.Type.FLAME_CHART, false, false)
+    color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.FLAME_CHART, false, false)
     assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP)
 
-    color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureModel.Details.Type.FLAME_CHART, false, true)
+    color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.FLAME_CHART, false, true)
     assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP_HOVER)
   }
 
@@ -213,7 +217,7 @@ class CaptureNodeHRendererTest {
   fun testJavaColors() {
     val invalidModel = SyscallModel("write")
     try {
-      JavaMethodHChartColors.getFillColor(invalidModel, CaptureModel.Details.Type.CALL_CHART, false, false)
+      JavaMethodHChartColors.getFillColor(invalidModel, CaptureDetails.Type.CALL_CHART, false, false)
       fail()
     }
     catch (e: IllegalStateException) {
@@ -237,7 +241,7 @@ class CaptureNodeHRendererTest {
   fun testNativeColors() {
     val invalidModel = JavaMethodModel("toString", "com.example.MyClass")
     try {
-      NativeModelHChartColors.getFillColor(invalidModel, CaptureModel.Details.Type.CALL_CHART, false, false)
+      NativeModelHChartColors.getFillColor(invalidModel, CaptureDetails.Type.CALL_CHART, false, false)
       fail()
     }
     catch (e: IllegalStateException) {
@@ -294,14 +298,14 @@ class CaptureNodeHRendererTest {
   private fun checkFittingText(nodeModel: CaptureNodeModel, expectedTexts: List<String>) {
     val node = CaptureNode(nodeModel)
     val textFitPredicate = TestTextFitPredicate()
-    val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART, textFitPredicate)
+    val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART, textFitPredicate)
     val graphics = TestGraphics2D()
 
     var prevTextLength = expectedTexts[0].length + 1
     for (text in expectedTexts) {
       textFitPredicate.fittingLength = prevTextLength - 1
       renderer.render(graphics, node, Rectangle2D.Float(), Rectangle2D.Float(), false)
-      assertThat(graphics.drawnString).isEqualTo(text)
+      assertThat(graphics.lastTextInfo!!.text).isEqualTo(text)
       prevTextLength = text.length
     }
   }
@@ -311,8 +315,8 @@ class CaptureNodeHRendererTest {
                                      flameChartFill: Color,
                                      callChartFillHover: Color,
                                      flameChartFillHover: Color) {
-    val callChart = CaptureModel.Details.Type.CALL_CHART
-    val flameChart = CaptureModel.Details.Type.FLAME_CHART
+    val callChart = CaptureDetails.Type.CALL_CHART
+    val flameChart = CaptureDetails.Type.FLAME_CHART
 
     // Call chart not unmatched
     var color = JavaMethodHChartColors.getFillColor(model, callChart, false, false)
@@ -338,8 +342,8 @@ class CaptureNodeHRendererTest {
                                  flameChartFill: Color,
                                  callChartFillHover: Color,
                                  flameChartFillHover: Color) {
-    val callChart = CaptureModel.Details.Type.CALL_CHART
-    val flameChart = CaptureModel.Details.Type.FLAME_CHART
+    val callChart = CaptureDetails.Type.CALL_CHART
+    val flameChart = CaptureDetails.Type.FLAME_CHART
 
     // Call chart not unmatched
     var color = NativeModelHChartColors.getFillColor(model, callChart, false, false)
@@ -362,11 +366,13 @@ class CaptureNodeHRendererTest {
   }
 
   private class TestGraphics2D : Graphics2DDelegate(UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()) {
-    var drawnString: String? = null
+    class TextInfo(val text: String, val isBold: Boolean, val paint: Paint)
+
+    var lastTextInfo: TextInfo? = null
     val fillShapes: MutableList<Shape> = ArrayList()
 
     override fun drawString(s: String, x: Float, y: Float) {
-      drawnString = s
+      lastTextInfo = TextInfo(s, font.isBold, paint)
     }
 
     override fun fill(s: Shape) {
@@ -375,8 +381,8 @@ class CaptureNodeHRendererTest {
 
     fun expectFillShapes(vararg rectangles: Rectangle2D) {
       for (i in rectangles.indices) {
-        val boundsA = fillShapes[i].bounds2D;
-        val boundsB = rectangles[i];
+        val boundsA = fillShapes[i].bounds2D
+        val boundsB = rectangles[i]
         assertThat(boundsA.x).isWithin(0.0001).of(boundsB.x)
         assertThat(boundsA.y).isWithin(0.0001).of(boundsB.y)
         assertThat(boundsA.width).isWithin(0.0001).of(boundsB.width)

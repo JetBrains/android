@@ -19,10 +19,7 @@ import com.android.builder.model.ProductFlavor
 import com.android.builder.model.TestedTargetVariant
 import com.android.ide.common.gradle.model.UnusedModelMethodException
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.Variant
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldAndroidArtifact
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldJavaArtifact
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldVariant
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.toLegacy
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.*
 
 open class LegacyVariant(private val variant: Variant) : OldVariant {
   override fun getName(): String = variant.name
@@ -53,3 +50,15 @@ open class LegacyVariant(private val variant: Variant) : OldVariant {
                                     "}"
 }
 
+class LegacyVariantStub(val variant: Variant) : LegacyVariant(variant) {
+  override fun getMainArtifact(): OldAndroidArtifact = LegacyAndroidArtifactStub(variant.mainArtifact, variant.variantConfig.resValues)
+  override fun getExtraAndroidArtifacts(): Collection<OldAndroidArtifact> {
+    return listOfNotNull(variant.androidTestArtifact?.toLegacyStub(variant.variantConfig.resValues))
+  }
+
+  override fun getExtraJavaArtifacts(): Collection<OldJavaArtifact> = listOfNotNull(variant.unitTestArtifact?.toLegacyStub())
+  override fun getMergedFlavor(): ProductFlavor = LegacyProductFlavorStub(variant.variantConfig)
+
+  override fun getBuildType(): String = BUILD_TYPE_NAME
+  override fun getProductFlavors(): List<String> = listOf()
+}

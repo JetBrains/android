@@ -22,7 +22,10 @@ import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerComponentProvider
 import com.intellij.testFramework.IdeaTestCase
+import com.intellij.util.ui.UIUtil
 import java.awt.Color
+import java.awt.Component
+import javax.swing.JComponent
 
 class MaterialColorPaletteTest : IdeaTestCase() {
 
@@ -79,7 +82,10 @@ class MaterialColorPaletteTest : IdeaTestCase() {
   private operator fun MaterialColors.get(color: MaterialColors.Color, category: MaterialColors.Category): Color? =
     MaterialColors.getColor(color, category)
 
+  /**
+   * Get the [CommonComboBox] of [MaterialColorPalette] which helps to select the set of MaterialColor. (Material 50, 100, 200, etc.)
+   */
   @Suppress("UNCHECKED_CAST")
-  private fun MaterialColorPalette.getColorSetComboBox() =
-    components.first { it is CommonComboBox<*, *> } as CommonComboBox<MaterialColors.Category, CommonComboBoxModel<MaterialColors.Category>>
+  private fun MaterialColorPalette.getColorSetComboBox() = UIUtil.findComponentOfType(this, CommonComboBox::class.java)
+    as CommonComboBox<MaterialColors.Category, CommonComboBoxModel<MaterialColors.Category>>
 }

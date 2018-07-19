@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerAspect;
@@ -241,12 +242,13 @@ public class LiveAllocationCaptureObjectTest {
       expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
       expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
-      heapSet.selectFilter(getFilterPattern("Foo", true, false));
+      heapSet.selectFilter(new Filter("Foo", true, false));
       assertThat(loadSuccess[0]).isTrue();
+      assertThat(heapSet.getFilterMatchCount()).isEqualTo(2);
       verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
 
       //Filter with "Bar"
-      heapSet.selectFilter(getFilterPattern("bar", false, false));
+      heapSet.selectFilter(new Filter("bar"));
       expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, myHeapName, 2, 1, 1, 4, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(1, "That", 2, 1, 1, 2, 2, true));
@@ -254,10 +256,11 @@ public class LiveAllocationCaptureObjectTest {
       expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
       expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
+      assertThat(heapSet.getFilterMatchCount()).isEqualTo(2);
       verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
 
       // filter with package name and regex
-      heapSet.selectFilter(getFilterPattern("T[a-z]is", false, true));
+      heapSet.selectFilter(new Filter("T[a-z]is", false, true));
       expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, myHeapName, 2, 1, 1, 4, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(1, "This", 2, 1, 1, 2, 2, true));
@@ -265,10 +268,11 @@ public class LiveAllocationCaptureObjectTest {
       expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
       expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
+      assertThat(heapSet.getFilterMatchCount()).isEqualTo(3);
       verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
 
       // Reset filter
-      heapSet.selectFilter(null);
+      heapSet.selectFilter(Filter.EMPTY_FILTER);
       expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, myHeapName, 4, 2, 2, 4, 2, true));
       expected_0_to_4.add(new ClassifierSetTestData(1, "This", 2, 1, 1, 2, 2, true));
@@ -553,7 +557,7 @@ public class LiveAllocationCaptureObjectTest {
 
       // Filter with Java method name
       heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK);
-      heapSet.selectFilter(getFilterPattern("MethodA", false, false));
+      heapSet.selectFilter(new Filter("MethodA"));
       Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 3, 2, 1, 4, 3, true));
       expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodA() (That.Is.Bar)", 1, 1, 0, 1, 1, true));
@@ -634,7 +638,7 @@ public class LiveAllocationCaptureObjectTest {
 
       // Filter with Java method name
       heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK);
-      heapSet.selectFilter(getFilterPattern("MethodA", false, false));
+      heapSet.selectFilter(new Filter("MethodA"));
       Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, JNI_HEAP_NAME, 3, 2, 1, 4, 3, true));
       expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodA() (NativeNamespace::Bar)", 1, 1, 0, 1, 1, true));

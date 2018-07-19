@@ -19,6 +19,7 @@ import com.android.SdkConstants.*
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.common.property2.impl.model.BasePropertyEditorModel
 import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil.makeProperty
+import com.android.tools.idea.uibuilder.property2.ui.HorizontalEditorPanel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -121,6 +122,14 @@ class HorizontalEditorPanelModelTest {
     assertThat(test.toggle1.focusWasRequested).isTrue()
     assertThat(test.toggle2.focusWasRequested).isFalse()
     assertThat(test.toggle3.focusWasRequested).isFalse()
+  }
+
+  @Test
+  fun testModelIsHookedOnPanelCreation() {
+    val test = createTestData()
+    val panel = HorizontalEditorPanel(test.model)
+    test.model.visible = false
+    assertThat(panel.isVisible).isFalse()
   }
 
   private class FakeEditorModel(property: PropertyItem) : BasePropertyEditorModel(property) {

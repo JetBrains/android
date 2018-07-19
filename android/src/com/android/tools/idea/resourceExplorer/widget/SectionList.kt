@@ -192,6 +192,11 @@ class SectionListModel : ListModel<Section<*>> {
     sections += section
     dataListeners.forEach { it.contentsChanged(ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, sections.size)) }
   }
+
+  fun clear() {
+    sections.clear()
+    dataListeners.forEach { it.contentsChanged(ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, sections.size)) }
+  }
 }
 
 interface Section<T> {

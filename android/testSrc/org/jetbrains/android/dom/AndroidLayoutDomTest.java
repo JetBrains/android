@@ -218,6 +218,12 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestHighlighting("layoutAttrs1.xml");
   }
 
+  public void testCheckLayoutAttrs1_appStyleable() throws Throwable {
+    // Having a styleable in res-auto that references a framework attr may cause AttributeDefinitions to be wrong. See b/111547198.
+    copyFileToProject("layoutAttrs1_styleable.xml", "res/values/styleable.xml");
+    doTestHighlighting("layoutAttrs1.xml");
+  }
+
   public void testCheckLayoutAttrs2() throws Throwable {
     doTestHighlighting("layoutAttrs2.xml");
   }

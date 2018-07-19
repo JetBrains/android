@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.variables
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
-import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariable
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.intellij.ide.util.treeView.NodeRenderer
@@ -51,7 +51,7 @@ private const val RESOLVED_VALUE = 2
 /**
  * Main table for the Variables view in the Project Structure Dialog
  */
-class VariablesTable(private val project: Project, private val context: PsContext) :
+class VariablesTable(private val project: Project, private val psProject: PsProject) :
   TreeTable(VariablesTableModel(DefaultMutableTreeNode())) {
 
   private val iconGap = JBUI.scale(2)
@@ -94,9 +94,9 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
 
     val moduleNodes = mutableListOf<ModuleNode>()
-    context.project.forEachModule(Consumer { module -> module.variables.let { variables -> moduleNodes.add(createRoot(variables)) } })
+    psProject.forEachModule(Consumer { module -> module.variables.let { variables -> moduleNodes.add(createRoot(variables)) } })
     moduleNodes.sortBy { it.variables.name }
-    moduleNodes.add(0, createRoot(context.project.variables))
+    moduleNodes.add(0, createRoot(psProject.variables))
 
     moduleNodes.forEach { (tableModel.root as DefaultMutableTreeNode).add(it) }
     tree.expandRow(0)

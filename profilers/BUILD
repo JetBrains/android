@@ -23,5 +23,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime[test]",
         "//tools/adt/idea/profilers-atrace[module]",
+        # b/111212820 eliminate this dependency when the needed classes are refactored out.
+        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
     ],
 )

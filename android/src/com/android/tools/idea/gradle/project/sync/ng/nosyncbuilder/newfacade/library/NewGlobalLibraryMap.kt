@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.li
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.GlobalLibraryMap
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.Library
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.Level2GlobalLibraryMap
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.Level2Library
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.toNew
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.LibraryProto

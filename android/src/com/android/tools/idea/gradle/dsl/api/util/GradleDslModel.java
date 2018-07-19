@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.dsl.api.util;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -38,4 +40,10 @@ public interface GradleDslModel {
    */
   @NotNull
   List<GradlePropertyModel> getDeclaredProperties();
+
+  /**
+   * @return the psiElement for this model.
+   */
+  @Nullable
+  PsiElement getPsiElement();
 }

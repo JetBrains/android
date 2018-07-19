@@ -22,6 +22,7 @@ import java.util.*
  * Types of a [NelePropertyItem].
  */
 enum class NelePropertyType {
+  UNKNOWN,
   BOOLEAN,
   COLOR,
   COLOR_OR_DRAWABLE,

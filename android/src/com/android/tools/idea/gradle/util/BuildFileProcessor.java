@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
@@ -66,10 +67,12 @@ public class BuildFileProcessor {
                                     .collect(Collectors.toList()));
       }
 
+      ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
+
       for (VirtualFile rootFolder : projectRootFolders) {
         processFileRecursivelyWithoutIgnored(rootFolder, virtualFile -> {
           if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
-            GradleBuildModel buildModel = parseBuildFile(virtualFile, project);
+            GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(virtualFile);
             return processor.process(buildModel);
           }
           return true;

@@ -71,10 +71,10 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
     Template.NONE_TEMPLATE,
     Template.fromStream("E-mail Client",
                         RecyclerViewAssistant.class.getResourceAsStream("templates/email.xml"),
-                        EnumSet.of(TemplateTag.SUPPORT_LIBRARY)),
+                        EnumSet.of(TemplateTag.SUPPORT_LIBRARY, TemplateTag.CONSTRAINT_LAYOUT)),
     Template.fromStream("E-mail Client",
                         RecyclerViewAssistant.class.getResourceAsStream("templates/email-androidx.xml"),
-                        EnumSet.of(TemplateTag.ANDROIDX)),
+                        EnumSet.of(TemplateTag.ANDROIDX, TemplateTag.CONSTRAINT_LAYOUT)),
     Template.fromStream("One Line",
                         RecyclerViewAssistant.class.getResourceAsStream("templates/one_line.xml")),
     Template.fromStream("One Line w/ Avatar",
@@ -107,36 +107,38 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
 
 
   /**
-   * Returns, from the list of valid templates, the template that is currently being used or null if no template
-   * is being used.
+   * Returns, from the array of available templates, the index of the template that is currently being
+   * used or -1 if none of the templates is being used.
    * This method helps finding if the layout pointed by reference, is pointing to an existing template.
    */
-  @Nullable
-  private static Template getMatchingTemplate(@NotNull AndroidFacet facet, @NotNull ResourceReference reference) {
+  private static int getIndexOfMatchingTemplate(@NotNull Template[] availableTemplates, @NotNull AndroidFacet facet,
+                                         @NotNull ResourceReference reference) {
     List<ResourceItem> items = ResourceRepositoryManager.getAppResources(facet).getResourceItems(reference);
     if (items.isEmpty()) {
-      return null;
+      return -1;
     }
 
     ResourceItem item = items.get(0);
     File layoutFile = item.getSource() != null ? item.getSource().toFile() : null;
     if (layoutFile == null || layoutFile.length() > LONGEST_TEMPLATE) {
-      // If the item does not point to a file (all layouts do), return null.
+      // If the item does not point to a file (all layouts do), return -1.
       // We also have a shortcut to avoid loading long files unnecessarily
-      return null;
+      return -1;
     }
 
     try {
       String strValue = Files.toString(layoutFile, Charsets.UTF_8);
-      return TEMPLATES.stream()
-                      .filter(template -> template.hasSameContent(strValue))
-                      .findFirst()
-                      .orElse(null);
+
+      for (int i = 0; i < availableTemplates.length; i++) {
+        if (availableTemplates[i].hasSameContent(strValue)) {
+          return i;
+        }
+      }
     }
     catch (IOException ignore) {
     }
 
-    return null;
+    return -1;
   }
 
   public RecyclerViewAssistant(@NotNull Context context) {
@@ -148,24 +150,10 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
     assert resourceDir != null;
     myProject = facet.getModule().getProject();
 
-    boolean dependsOnAndroidX = DependencyManagementUtil.dependsOnAndroidx(myComponent.getModel().getModule());
-    Template[] templates = TEMPLATES.stream()
-                                    .filter(template -> {
-                                      if (!template.hasTags()) {
-                                        return true;
-                                      }
-
-                                      if (template.hasTag(TemplateTag.ANDROIDX)) {
-                                        return dependsOnAndroidX;
-                                      }
-                                      else if (template.hasTag(TemplateTag.SUPPORT_LIBRARY)) {
-                                        return !dependsOnAndroidX;
-                                      }
-
-                                      return true;
-                                    })
+    Template[] availableTemplates = TEMPLATES.stream()
+                                    .filter(template -> template.availableFor(myComponent.getModel().getModule()))
                                     .toArray(Template[]::new);
-    mySpinner = HorizontalSpinner.forModel(JBList.createDefaultListModel(templates));
+    mySpinner = HorizontalSpinner.forModel(JBList.createDefaultListModel(availableTemplates));
 
     String itemCountAttribute = myComponent.getAttribute(TOOLS_URI, ATTR_ITEM_COUNT);
     int count = parseItemCountAttribute(itemCountAttribute);
@@ -193,11 +181,11 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
       ResourceUrl url = ResourceUrl.parse(originalListItem);
       ResourceReference reference = url != null ? url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER) : null;
       if (reference != null) {
-        Template originalTemplate = getMatchingTemplate(facet, reference);
-        if (originalTemplate != null) {
+        int originalTemplateIndex = getIndexOfMatchingTemplate(availableTemplates, facet, reference);
+        if (originalTemplateIndex >= 0) {
           // This means that the current tools:listitem is one of our pre-defined templates
           // pre-select that version in the templates combobox
-          mySpinner.setSelectedIndex(TEMPLATES.indexOf(originalTemplate));
+          mySpinner.setSelectedIndex(originalTemplateIndex);
           resourceName = reference.getName();
           // For the case where we are handling a template, we consider the "Default" option to remove
           // both attributes

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
@@ -36,12 +37,13 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
  */
 public class GradleModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 3L;
 
   @NotNull private final String myModuleName;
   @NotNull private final List<String> myTaskNames;
   @NotNull private final String myGradlePath;
   @NotNull private final File myRootFolderPath;
+  @NotNull private final List<String> myGradlePlugins;
 
   @Nullable private final File myBuildFilePath;
   @Nullable private final String myGradleVersion;
@@ -49,15 +51,22 @@ public class GradleModuleModel implements ModuleModel {
   /**
    * @param moduleName    the name of the IDE module.
    * @param gradleProject the model obtained from Gradle.
+   * @param gradlePlugins the list of gradle plugins applied to this module.
    * @param buildFilePath the path of the build.gradle file.
    * @param gradleVersion the version of Gradle used to sync the project.
    */
   public GradleModuleModel(@NotNull String moduleName,
                            @NotNull GradleProject gradleProject,
+                           @NotNull Collection<String> gradlePlugins,
                            @Nullable File buildFilePath,
                            @Nullable String gradleVersion) {
-    this(moduleName, getTaskNames(gradleProject), gradleProject.getPath(),
-         gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir(), buildFilePath, gradleVersion);
+    myModuleName = moduleName;
+    myTaskNames = getTaskNames(gradleProject);
+    myGradlePath = gradleProject.getPath();
+    myRootFolderPath = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir();
+    myGradlePlugins = ImmutableList.copyOf(gradlePlugins);
+    myBuildFilePath = buildFilePath;
+    myGradleVersion = gradleVersion;
   }
 
   @NotNull
@@ -73,21 +82,6 @@ public class GradleModuleModel implements ModuleModel {
       }
     }
     return taskNames;
-  }
-
-  @VisibleForTesting
-  public GradleModuleModel(@NotNull String moduleName,
-                           @NotNull List<String> taskNames,
-                           @NotNull String gradlePath,
-                           @NotNull File rootFolderPath,
-                           @Nullable File buildFilePath,
-                           @Nullable String gradleVersion) {
-    myModuleName = moduleName;
-    myTaskNames = taskNames;
-    myGradlePath = gradlePath;
-    myRootFolderPath = rootFolderPath;
-    myBuildFilePath = buildFilePath;
-    myGradleVersion = gradleVersion;
   }
 
   @Override
@@ -127,5 +121,10 @@ public class GradleModuleModel implements ModuleModel {
   @Nullable
   public String getGradleVersion() {
     return myGradleVersion;
+  }
+
+  @NotNull
+  public List<String> getGradlePlugins() {
+    return myGradlePlugins;
   }
 }

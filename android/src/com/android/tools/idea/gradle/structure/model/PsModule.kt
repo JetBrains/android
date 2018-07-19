@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.JCenterRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.LocalMavenRepository
@@ -34,9 +36,9 @@ import java.util.*
 import javax.swing.Icon
 
 abstract class PsModule protected constructor(
-  override val parent: PsProject,
-  open val gradlePath: String?
+  override val parent: PsProject
 ) : PsChildModel() {
+  abstract val gradlePath: String?
   final override var name: String = "" ; private set
   override val path: PsPath? get() = PsModulePath(name)
   var parsedModel: GradleBuildModel? = null ; private set
@@ -58,7 +60,7 @@ abstract class PsModule protected constructor(
   /**
    * <All Modules> constructor.
    */
-  protected constructor(name: String, parent: PsProject) : this(parent, null) {
+  protected constructor(name: String, parent: PsProject) : this(parent) {
     init(name, null)
   }
 
@@ -79,17 +81,26 @@ abstract class PsModule protected constructor(
   protected abstract fun resetDependencies()
   protected abstract fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency>
 
-  fun addLibraryDependency(library: String, scopesNames: List<String>) {
+  fun addLibraryDependency(library: ParsedValue.Set.Parsed<String>, scopesNames: List<String>) {
     // Update/reset the "parsed" model.
-    addLibraryDependencyToParsedModel(scopesNames, library)
+    val compactNotation =
+      library.dslText.let {
+        when (it) {
+          DslText.Literal -> library.value ?: ""
+          is DslText.InterpolatedString -> it.text
+          is DslText.OtherUnparsedDslText -> it.text
+          is DslText.Reference -> "\${${it.text}}"
+        }
+      }
+
+    addLibraryDependencyToParsedModel(scopesNames, compactNotation)
 
     resetDependencies()
 
-    val spec = PsArtifactDependencySpec.create(library)!!
+    val spec = PsArtifactDependencySpec.create(compactNotation)!!
     fireLibraryDependencyAddedEvent(spec)
     isModified = true
   }
-
 
   fun addModuleDependency(modulePath: String, scopesNames: List<String>) {
     // Update/reset the "parsed" model.

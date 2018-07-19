@@ -23,6 +23,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup;
 import com.android.tools.idea.gradle.util.GeneratedSourceFolders;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
@@ -118,13 +119,7 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
 
     GradleVersion modelVersion = myAndroidModel.getModelVersion();
     if (artifact instanceof AndroidArtifact || (modelVersion != null && modelVersion.compareIgnoringQualifiers("1.2") >= 0)) {
-      // getGeneratedSourceFolders used to be in AndroidArtifact only.
-      Collection<File> generatedSourceFolders = artifact.getGeneratedSourceFolders();
-
-      //noinspection ConstantConditions - this returned null in 1.2
-      if (generatedSourceFolders != null) {
-        addSourceFolders(generatedSourceFolders, contentEntries, sourceType, true);
-      }
+      addSourceFolders(GradleUtil.getGeneratedSourceFoldersToUse(artifact, myAndroidModel), contentEntries, sourceType, true);
     }
 
     if (artifact instanceof AndroidArtifact) {

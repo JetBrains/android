@@ -20,11 +20,16 @@ import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.common.property2.impl.model.*
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import java.awt.BorderLayout
+import java.awt.FlowLayout
 import java.awt.Font
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -84,18 +89,29 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     return scrollPane
   }
 
-  override fun addTitle(title: String): InspectorLineModel {
+  override fun addTitle(title: String, vararg actions: AnAction): InspectorLineModel {
     addSeparatorBeforeTitle()
     val model = TitleLineModel(title)
     val label = CollapsibleLabel(model)
-    addLine(model, null)
-    inspector.addLineElement(label)
     label.font = boldFont
     label.isOpaque = true
-    label.border = JBUI.Borders.merge(
-      JBUI.Borders.empty(TITLE_SEPARATOR_HEIGHT, LEFT_HORIZONTAL_CONTENT_BORDER_SIZE, TITLE_SEPARATOR_HEIGHT, 0),
-      JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0), true)
-    label.background = UIUtil.getPanelBackground()
+    label.border = JBUI.Borders.empty(TITLE_SEPARATOR_HEIGHT, LEFT_HORIZONTAL_CONTENT_BORDER_SIZE, TITLE_SEPARATOR_HEIGHT, 0)
+    val outerBorder = JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0)
+    var component: JComponent = label
+    if (actions.isNotEmpty()) {
+      val buttons = JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(2), 0))
+      actions.forEach { buttons.add(ActionButton(it, it.templatePresentation.clone(), "", NAVBAR_MINIMUM_BUTTON_SIZE)) }
+      component = JPanel(BorderLayout())
+      component.add(label, BorderLayout.CENTER)
+      component.add(buttons, BorderLayout.EAST)
+      component.border = outerBorder
+    }
+    else {
+      label.border = JBUI.Borders.merge(label.border, outerBorder, true)
+    }
+    addLine(model, null)
+    inspector.addLineElement(component)
+    component.background = UIUtil.getPanelBackground()
     model.gotoNextLine = gotoNextLine
     lastTitleLine = model
     return model
@@ -116,9 +132,9 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   override fun addTable(tableModel: PTableModel,
                         searchable: Boolean,
                         tableUI: TableUIProvider,
-                        parent: InspectorLineModel?): InspectorLineModel {
+                        parent: InspectorLineModel?): TableLineModel {
     // Do NOT call addSeparatorAfterTitle since tables should not be preceded with spacing after a title
-    val model = TableLineModel(tableModel, searchable)
+    val model = TableLineModelImpl(tableModel, searchable)
     val editor = TableEditor(model, tableUI.tableCellRendererProvider, tableUI.tableCellEditorProvider)
     addLine(model, parent)
     inspector.addLineElement(editor.component)

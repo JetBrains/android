@@ -35,7 +35,7 @@ import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.resourceManagers.SystemResourceManager;
+import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -124,12 +124,12 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
       }
     }
 
-    ResourceManager manager = SystemResourceManager.getInstance(context);
+    ResourceManager manager = FrameworkResourceManager.getInstance(context);
     if (manager != null) {
       AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
       if (attrDefs != null) {
-        for (String name : attrDefs.getAttributeNames()) {
-          result.add(SdkConstants.PREFIX_ANDROID + name);
+        for (ResourceReference attr : attrDefs.getAttrs()) {
+          result.add(attr.getQualifiedName());
         }
       }
     }
@@ -155,7 +155,7 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
       return s;
     }
     if (strs.length == 2) {
-      ResourceManager manager = SystemResourceManager.getInstance(context);
+      ResourceManager manager = FrameworkResourceManager.getInstance(context);
       if (manager != null) {
         AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
         if (attrDefs != null && attrDefs.getAttrDefByName(strs[1]) != null) {

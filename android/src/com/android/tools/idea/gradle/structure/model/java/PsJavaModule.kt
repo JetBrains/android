@@ -27,8 +27,8 @@ import javax.swing.Icon
 
 class PsJavaModule(
   parent: PsProject,
-  gradlePath: String
-  ) : PsModule(parent, gradlePath) {
+  override val gradlePath: String
+  ) : PsModule(parent) {
   var resolvedModel: JavaModuleModel? = null ; private set
   override var rootDir: File? = null ; private set
   override val projectType: PsModuleType = PsModuleType.JAVA

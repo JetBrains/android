@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.model.helpers
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
-import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptors
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
@@ -29,6 +28,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.intellij.pom.java.LanguageLevel
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -105,6 +105,42 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
 
       assertThat(project.variables.getOrCreateVariable("renamedName").getUnresolvedValue(STRING_TYPE),
                  equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()))
+    }
+  }
+
+  fun testExtractEmptyValue() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    val targetCompatibility = AndroidModuleDescriptors.targetCompatibility.bind(appModule)
+
+    run {
+      val worker = ExtractVariableWorker(targetCompatibility)
+      val (newName, newProperty) = worker.changeScope(appModule.variables, "")
+      assertThat(newName, equalTo("var"))
+      assertThat(newProperty.getParsedValue(), equalTo<Annotated<ParsedValue<LanguageLevel>>>(ParsedValue.NotSet.annotated()))
+
+      assertThat(worker.validate("var"), equalTo("Cannot bind a variable to an empty value."))
+    }
+  }
+
+  fun testExtractVariableWithBlankName() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    val targetCompatibility = AndroidModuleDescriptors.targetCompatibility.bind(appModule)
+
+    run {
+      val worker = ExtractVariableWorker(targetCompatibility)
+      val (newName, newProperty) = worker.changeScope(appModule.variables, "")
+      assertThat(newName, equalTo("var"))
+      assertThat(newProperty.getParsedValue(), equalTo<Annotated<ParsedValue<LanguageLevel>>>(ParsedValue.NotSet.annotated()))
+
+      assertThat(worker.validate(" "), equalTo("Variable name is required."))
     }
   }
 }

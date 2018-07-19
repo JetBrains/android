@@ -23,17 +23,15 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 public class SyncIssuesReporter {
-  @NotNull private final Map<Integer, BaseSyncIssuesReporter> myStrategies = new HashMap<>(5);
+  @NotNull private final Map<Integer, BaseSyncIssuesReporter> myStrategies = new HashMap<>(6);
   @NotNull private final BaseSyncIssuesReporter myDefaultMessageFactory;
 
   @NotNull
@@ -44,7 +42,8 @@ public class SyncIssuesReporter {
   @SuppressWarnings("unused") // Instantiated by IDEA
   public SyncIssuesReporter(@NotNull UnresolvedDependenciesReporter unresolvedDependenciesReporter) {
     this(unresolvedDependenciesReporter, new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter(),
-         new BuildToolsTooLowReporter(), new MissingSdkPackageSyncIssuesReporter());
+         new BuildToolsTooLowReporter(), new MissingSdkPackageSyncIssuesReporter(), new SdkInManifestIssuesReporter(),
+         new DeprecatedConfigurationReporter());
   }
 
   @VisibleForTesting
@@ -56,34 +55,66 @@ public class SyncIssuesReporter {
     myDefaultMessageFactory = new UnhandledIssuesReporter();
   }
 
-  public void report(@NotNull Collection<SyncIssue> syncIssues, @NotNull Module module) {
-    if (syncIssues.isEmpty()) {
+  public void report(@NotNull Module... modules) {
+    report(Arrays.asList(modules));
+  }
+
+  public void report(@NotNull List<Module> modules) {
+    if (modules.isEmpty()) {
+      return;
+    }
+    report(SyncIssueRegister.getInstance(modules.get(0).getProject()).getSyncIssueMap());
+  }
+
+  /**
+   * Reports all sync errors for the provided collection of modules.
+   */
+  public void report(@NotNull Map<Module, List<SyncIssue>> issuesByModules) {
+    if (issuesByModules.isEmpty()) {
       return;
     }
 
-    boolean hasSyncErrors = false;
+    Map<Integer, List<SyncIssue>> syncIssues = new LinkedHashMap<>();
+    // Note: Since the SyncIssues don't store the module they come from their hashes will be the same.
+    // As such we use an IdentityHashMap to ensure different issues get hashed to different values.
+    Map<SyncIssue, Module> moduleMap = new IdentityHashMap<>();
+    Map<Module, VirtualFile> buildFileMap = new LinkedHashMap<>();
 
-    VirtualFile buildFile = getGradleBuildFile(module);
-    for (SyncIssue syncIssue : syncIssues) {
-      if (syncIssue.getSeverity() == SEVERITY_ERROR) {
-        hasSyncErrors = true;
-      }
-      report(syncIssue, module, buildFile);
+    Project project = null;
+    boolean[] hasSyncErrors = new boolean[1];
+    // Go through all the issue, grouping them by their type. In doing so we also populate
+    // the module and buildFile maps which will be used by each reporter.
+    for (Module module : issuesByModules.keySet()) {
+      project = module.getProject();
+      buildFileMap.put(module, getGradleBuildFile(module));
+
+      issuesByModules.get(module).forEach(issue -> {
+        if (issue != null) {
+          syncIssues.computeIfAbsent(issue.getType(), (type) -> new ArrayList<>()).add(issue);
+          moduleMap.put(issue, module);
+          if (issue.getSeverity() == SEVERITY_ERROR) {
+            hasSyncErrors[0] = true;
+          }
+        }
+      });
     }
 
-    if (hasSyncErrors) {
-      Project project = module.getProject();
+    // Make sure errors are reported before warnings, note this assumes that each type of issue will be the same type.
+    // Otherwise errors and warnings may be interleaved.
+    Map<Integer, List<SyncIssue>> sortedSyncIssues = syncIssues.entrySet().stream().sorted(
+      Collections.reverseOrder(Map.Entry.comparingByValue(Comparator.comparing(issues -> issues.get(0).getSeverity())))).collect(
+      Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldVal, newVal) -> oldVal, LinkedHashMap::new));
+    for (Map.Entry<Integer, List<SyncIssue>> entry : sortedSyncIssues.entrySet()) {
+      BaseSyncIssuesReporter strategy = myStrategies.get(entry.getKey());
+      if (strategy == null) {
+        strategy = myDefaultMessageFactory;
+      }
+      strategy.reportAll(entry.getValue(), moduleMap, buildFileMap);
+    }
+
+    if (hasSyncErrors[0] && project != null) {
       GradleSyncState.getInstance(project).getSummary().setSyncErrorsFound(true);
     }
-  }
-
-  private void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
-    int type = syncIssue.getType();
-    BaseSyncIssuesReporter strategy = myStrategies.get(type);
-    if (strategy == null) {
-      strategy = myDefaultMessageFactory;
-    }
-    strategy.report(syncIssue, module, buildFile);
   }
 
   @VisibleForTesting

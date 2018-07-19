@@ -115,7 +115,7 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
   public void getSamples(EnergyRequest request, StreamObserver<EnergySamplesResponse> responseObserver) {
     if (!myLastSamplesResponse.matches(request.getSession(), request.getStartTimestamp(), request.getEndTimestamp())) {
       EnergyProfiler.EnergySamplesResponse.Builder response = EnergyProfiler.EnergySamplesResponse.newBuilder();
-      List<EnergySample> samples = myEnergyTable.findSamples(request);
+      List<EnergySample> samples = myEnergyTable.getSamples(request);
       response.addAllSamples(samples);
       myLastSamplesResponse =
         new ResponseData<>(request.getSession(), request.getStartTimestamp(), request.getEndTimestamp(), response.build());
@@ -128,7 +128,7 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
   public void getEvents(EnergyRequest request, StreamObserver<EnergyEventsResponse> responseObserver) {
     if (!myLastEventsResponse.matches(request.getSession(), request.getStartTimestamp(), request.getEndTimestamp())) {
       EnergyProfiler.EnergyEventsResponse.Builder response = EnergyProfiler.EnergyEventsResponse.newBuilder();
-      List<EnergyEvent> events = myEnergyTable.findEvents(request);
+      List<EnergyEvent> events = myEnergyTable.getEvents(request);
       response.addAllEvents(events);
       myLastEventsResponse =
         new ResponseData<>(request.getSession(), request.getStartTimestamp(), request.getEndTimestamp(), response.build());
@@ -140,7 +140,7 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
   @Override
   public void getEventGroup(EnergyEventGroupRequest request, StreamObserver<EnergyEventsResponse> responseObserver) {
     EnergyProfiler.EnergyEventsResponse.Builder response = EnergyProfiler.EnergyEventsResponse.newBuilder();
-    List<EnergyEvent> events = myEnergyTable.findEventGroup(request);
+    List<EnergyEvent> events = myEnergyTable.getEventGroup(request);
     response.addAllEvents(events);
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();

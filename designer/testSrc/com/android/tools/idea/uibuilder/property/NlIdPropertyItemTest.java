@@ -126,7 +126,6 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
     inOrder.verify(renameProcessor).findUsages();
     inOrder.verify(renameProcessor).setPreviewUsages(false);
     inOrder.verify(renameProcessor).run();
-    inOrder.verifyNoMoreInteractions();
   }
 
   public void testSetValueAndPreviewWillEnablePreviewBeforeRun() {
@@ -142,7 +141,6 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
     inOrder.verify(renameProcessor).findUsages();
     inOrder.verify(renameProcessor).setPreviewUsages(true);
     inOrder.verify(renameProcessor).run();
-    inOrder.verifyNoMoreInteractions();
   }
 
   public void testSetValueAndNoWillChangeTheValueButRenameProcessWillNotRun() {

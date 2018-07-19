@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade
 
+import com.android.builder.model.level2.DependencyGraphs
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.JavaArtifact
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.library.LegacyDependencyGraphsStub
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.stubs.DependenciesStub
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldDependencies
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldJavaArtifact
 import java.io.File
 
@@ -25,3 +29,10 @@ open class LegacyJavaArtifact(private val javaArtifact: JavaArtifact) : OldJavaA
   override fun toString(): String = "LegacyJavaArtifact{mockablePlatformJar=$mockablePlatformJar}"
 }
 
+class LegacyJavaArtifactStub(private val javaArtifact: JavaArtifact) : LegacyJavaArtifact(javaArtifact) {
+  override fun getDependencyGraphs(): DependencyGraphs = LegacyDependencyGraphsStub(javaArtifact.dependencies)
+
+  override fun getDependencies(): OldDependencies = DependenciesStub()
+  @Deprecated("use dependencies instead", ReplaceWith("getDependencies()"))
+  override fun getCompileDependencies(): OldDependencies = dependencies
+}

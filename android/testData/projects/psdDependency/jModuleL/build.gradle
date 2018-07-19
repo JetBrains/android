@@ -17,7 +17,7 @@ apply plugin: 'java-library'
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation "com.example.jlib:lib3:1.0"
+    implementation varLib3_var10
 }
 
 sourceCompatibility = "1.6"

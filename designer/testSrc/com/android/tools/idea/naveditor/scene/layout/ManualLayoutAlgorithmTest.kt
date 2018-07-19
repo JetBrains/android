@@ -20,6 +20,7 @@ import com.android.SdkConstants.ATTR_ID
 import com.android.tools.idea.common.editor.NlEditor
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.UndoManager
@@ -27,6 +28,7 @@ import com.intellij.openapi.fileEditor.DocumentsEditor
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.mockito.Mockito.mock
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.stream.Collectors
 
@@ -55,7 +57,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     positions.put("fragment2", newPositions)
 
     val scene = model.surface.scene!!
-    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions, myModule)
+    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions, myModule, mock(NavSceneManager::class.java))
     algorithm.layout(scene.root!!.flatten().collect(Collectors.toList()))
 
     assertEquals(123, scene.getSceneComponent("fragment1")!!.drawX)
@@ -91,7 +93,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     positions.put("fragment1", newPositions)
 
     val scene = model.surface.scene!!
-    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions, myModule)
+    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions, myModule, mock(NavSceneManager::class.java))
     algorithm.layout(scene.root!!.flatten().collect(Collectors.toList()))
 
     val scene2 = model2.surface.scene!!
@@ -114,7 +116,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     surface.model = model
     var component = surface.scene!!.getSceneComponent("fragment1")!!
     component.setPosition(100, 200)
-    var algorithm = ManualLayoutAlgorithm(model.module)
+    var algorithm = ManualLayoutAlgorithm(model.module, mock(NavSceneManager::class.java))
     algorithm.save(component)
     PlatformTestUtil.saveProject(project)
 
@@ -132,14 +134,14 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     surface = NavDesignSurface(project, myRootDisposable)
     surface.model = model
     component = surface.scene!!.getSceneComponent("fragment1")!!
-    algorithm = ManualLayoutAlgorithm(model.module)
+    algorithm = ManualLayoutAlgorithm(model.module, mock(NavSceneManager::class.java))
     algorithm.layout(listOf(component))
     assertEquals(100, component.drawX)
     assertEquals(200, component.drawY)
   }
 
   fun testSaveWithError() {
-    var algorithm = ManualLayoutAlgorithm(myModule)
+    var algorithm = ManualLayoutAlgorithm(myModule, mock(NavSceneManager::class.java))
     var model = model("nav.xml") {
       navigation("nav") {
         fragment("fragment1")
@@ -168,7 +170,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     surface = NavDesignSurface(project, testRootDisposable)
     surface.model = model
     component = surface.scene!!.getSceneComponent("fragment2")!!
-    algorithm = ManualLayoutAlgorithm(model.module)
+    algorithm = ManualLayoutAlgorithm(model.module, mock(NavSceneManager::class.java))
     algorithm.layout(listOf(component))
     assertEquals(400, component.drawX)
     assertEquals(500, component.drawY)
@@ -196,7 +198,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     positions.put("fragment2", newPositions)
 
     val scene = model.surface.scene!!
-    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions, myModule)
+    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions, myModule, mock(NavSceneManager::class.java))
     algorithm.layout(scene.root!!.flatten().collect(Collectors.toList()))
 
     WriteCommandAction.runWriteCommandAction(project) { model.find("fragment1")!!.setAttribute(ANDROID_URI, ATTR_ID, "@+id/renamed") }
@@ -225,7 +227,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     surface.model = model
     val component = surface.scene!!.getSceneComponent("fragment1")!!
     component.setPosition(100, 200)
-    val algorithm = ManualLayoutAlgorithm(model.module)
+    val algorithm = ManualLayoutAlgorithm(model.module, mock(NavSceneManager::class.java))
     algorithm.save(component)
     PlatformTestUtil.saveProject(project)
     component.setPosition(300, 400)

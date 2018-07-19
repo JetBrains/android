@@ -22,7 +22,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.model.*
 import com.android.tools.idea.naveditor.property.editors.getAnimatorsPopupContent
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.uibuilder.model.parentSequence
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.ui.DialogWrapper
@@ -32,11 +31,8 @@ import com.intellij.ui.ListCellRendererWrapper
 import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.*
-import org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.FRAGMENT
-import org.jetbrains.annotations.TestOnly
 import java.awt.Font
 import java.awt.event.ActionListener
-import java.awt.event.ItemEvent
 import java.awt.event.ItemListener
 import javax.swing.Action
 import javax.swing.JComboBox
@@ -326,7 +322,7 @@ open class AddActionDialog(
                       ?: return@ActionListener
 
       if (repoManager != null) {
-        getAnimatorsPopupContent(repoManager, component.destinationType == FRAGMENT)
+        getAnimatorsPopupContent(repoManager, component.isFragment)
           .forEach { item ->
             dialog.myEnterComboBox.addItem(item)
             dialog.myExitComboBox.addItem(item)

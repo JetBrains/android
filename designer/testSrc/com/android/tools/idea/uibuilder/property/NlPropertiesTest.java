@@ -46,7 +46,6 @@ import static org.mockito.Mockito.*;
 public class NlPropertiesTest extends PropertyTestCase {
   private static final String APPCOMPAT_IMAGE_VIEW = "android.support.v7.widget.AppCompatImageView";
   private static final String APPCOMPAT_TEXT_VIEW = "android.support.v7.widget.AppCompatTextView";
-  private static final String CUSTOM_NAMESPACE = "http://schemas.android.com/apk/res/com.example";
   private static final String[] NO_NAMESPACE_VIEW_ATTRS = {"style"};
   private static final String[] ANDROID_VIEW_ATTRS = {"id", "padding", "visibility", "textAlignment", "translationZ", "elevation"};
   private static final String[] TEXT_VIEW_ATTRS = {"text", "hint", "textColor", "textSize"};
@@ -199,7 +198,7 @@ public class NlPropertiesTest extends PropertyTestCase {
 
     assertEquals("id", p.getName());
 
-    String expected = "@android:id:  Supply an identifier name for this view, to later retrieve it\n" +
+    String expected = "@android:id: Supply an identifier name for this view, to later retrieve it\n" +
                       "             with {@link android.view.View#findViewById View.findViewById()} or\n" +
                       "             {@link android.app.Activity#findViewById Activity.findViewById()}.\n" +
                       "             This must be a\n" +
@@ -207,19 +206,18 @@ public class NlPropertiesTest extends PropertyTestCase {
                       "             <code>@+</code> syntax to create a new ID resources.\n" +
                       "             For example: <code>android:id=\"@+id/my_id\"</code> which\n" +
                       "             allows you to later retrieve the view\n" +
-                      "             with <code>findViewById(R.id.my_id)</code>. ";
+                      "             with <code>findViewById(R.id.my_id)</code>.";
 
     assertEquals(expected, p.getTooltipText());
 
-    p = properties.get(CUSTOM_NAMESPACE, "legend");
+    p = properties.get(AUTO_URI, "legend");
     assertNotNull(p);
 
     assertEquals("legend", p.getName());
-    assertEquals("legend", p.getTooltipText());
+    assertEquals("@app:legend", p.getTooltipText());
   }
 
   public void testAppCompatIssues() {
-
     XmlTag rootTag = myCustomAppCompatFile.getRootTag();
     assert rootTag != null;
 
@@ -233,7 +231,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     // The attrs.xml in appcompat-22.0.0 includes android:focusable, theme and android:theme.
     // The android:focusable refers to the platform attribute, and hence should not be duplicated..
     assertPresent("com.example.MyTextView", properties, ANDROID_URI, "focusable", "theme");
-    assertPresent("com.example.MyTextView", properties, CUSTOM_NAMESPACE, "custom");
+    assertPresent("com.example.MyTextView", properties, AUTO_URI, "custom");
     assertAbsent("com.example.MyTextView", properties, ANDROID_URI, "android:focusable", "android:theme");
   }
 
@@ -267,7 +265,6 @@ public class NlPropertiesTest extends PropertyTestCase {
     NlProperties.saveStarState(null, ATTR_NAME, true, myPropertiesManager);
     List<String> expected = ImmutableList.of(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION, ATTR_NAME);
     assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(propertyList(expected));
-    verify(myUsageTracker).logFavoritesChange(ATTR_NAME, "", expected, myFacet);
   }
 
   public void testAddStarredToolsProperty() {
@@ -275,7 +272,6 @@ public class NlPropertiesTest extends PropertyTestCase {
     NlProperties.saveStarState(TOOLS_URI, ATTR_TEXT, true, myPropertiesManager);
     List<String> expected = ImmutableList.of(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, TOOLS_NS_NAME_PREFIX + ATTR_TEXT);
     assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(propertyList(expected));
-    verify(myUsageTracker).logFavoritesChange(TOOLS_NS_NAME_PREFIX + ATTR_TEXT, "", expected, myFacet);
   }
 
   public void testRemoveStarredProperty() {
@@ -283,7 +279,6 @@ public class NlPropertiesTest extends PropertyTestCase {
     NlProperties.saveStarState(ANDROID_URI, ATTR_CARD_ELEVATION, false, myPropertiesManager);
     List<String> expected = ImmutableList.of(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK);
     assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(propertyList(expected));
-    verify(myUsageTracker).logFavoritesChange("", ATTR_CARD_ELEVATION, expected, myFacet);
   }
 
   @NotNull

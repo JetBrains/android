@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.inspector.InspectorComponent;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
@@ -39,7 +40,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
 public class LayoutInspectorProviderTest extends PropertyTestCase {
-
   private NlComponent myCoordinatorLayout;
   private NlComponent myAppBarLayout;
   private NlComponent myCollapsingToolbarLayout;
@@ -150,7 +150,7 @@ public class LayoutInspectorProviderTest extends PropertyTestCase {
   }
 
   private void addFakeProperty(@NotNull Map<String, NlProperty> map, @NotNull String propertyName, @NotNull List<NlComponent> components) {
-    AttributeDefinition definition = new AttributeDefinition(propertyName, null, null, Collections.emptyList());
+    AttributeDefinition definition = new AttributeDefinition(ResourceNamespace.RES_AUTO, propertyName);
     NlProperty property = NlPropertyItem.create(new XmlName(propertyName), definition, components, myPropertiesManager);
     map.put(propertyName, property);
   }

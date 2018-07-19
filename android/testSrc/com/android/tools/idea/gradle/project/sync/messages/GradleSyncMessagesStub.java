@@ -19,6 +19,7 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -27,12 +28,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static org.junit.Assert.assertSame;
 
 public class GradleSyncMessagesStub extends GradleSyncMessages {
   @NotNull private final List<SyncMessage> myMessages = new ArrayList<>();
 
-  @Nullable private NotificationData myNotification;
+  @NotNull private final List<NotificationData> myNotifications = new ArrayList<>();
   @Nullable private NotificationUpdate myNotificationUpdate;
 
   @NotNull
@@ -46,6 +48,15 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
   public GradleSyncMessagesStub(@NotNull Project project) {
     super(project);
     Disposer.register(project, this);
+  }
+
+  /**
+   * Note: This can't override getErrorCount() since tests rely on syncs succeeding even with errors.
+   */
+  public int getFakeErrorCount() {
+    return myMessages.stream().mapToInt(message -> message.getType() == ERROR ? 1 : 0).sum() +
+           myNotifications.stream().mapToInt(notification -> notification.getNotificationCategory() == NotificationCategory.ERROR ? 1 : 0)
+                          .sum();
   }
 
   @Override
@@ -65,12 +76,12 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
 
   @Override
   public void report(@NotNull NotificationData notification) {
-    myNotification = notification;
+    myNotifications.add(notification);
   }
 
-  @Nullable
-  public NotificationData getNotification() {
-    return myNotification;
+  @NotNull
+  public List<NotificationData> getNotifications() {
+    return myNotifications;
   }
 
   @Override

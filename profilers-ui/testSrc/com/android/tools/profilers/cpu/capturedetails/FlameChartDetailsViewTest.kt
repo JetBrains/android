@@ -60,9 +60,9 @@ class FlameChartDetailsViewTest {
 
   @Test
   fun showsNoDataForThreadMessageWhenNodeIsNull() {
-    stage.setCaptureDetails(CaptureModel.Details.Type.FLAME_CHART)
+    stage.setCaptureDetails(CaptureDetails.Type.FLAME_CHART)
 
-    val flameChart = stage.captureDetails as CaptureModel.FlameChart
+    val flameChart = stage.captureDetails as CaptureDetails.FlameChart
     assertThat(flameChart.node).isNull()
 
     val flameChartView = ChartDetailsView.FlameChartDetailsView(stageView, flameChart)
@@ -81,10 +81,10 @@ class FlameChartDetailsViewTest {
       val capture = CpuProfilerUITestUtils.validCapture()
       setAndSelectCapture(capture)
       selectedThread = capture.mainThreadId
-      setCaptureDetails(CaptureModel.Details.Type.FLAME_CHART)
+      setCaptureDetails(CaptureDetails.Type.FLAME_CHART)
     }
 
-    val flameChart = stage.captureDetails as CaptureModel.FlameChart
+    val flameChart = stage.captureDetails as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(stageView, flameChart)
 
     val noDataInstructionsList = TreeWalker(flameChartView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
@@ -105,13 +105,13 @@ class FlameChartDetailsViewTest {
       val capture = CpuProfilerUITestUtils.validCapture()
       setAndSelectCapture(capture)
       selectedThread = capture.mainThreadId
-      setCaptureDetails(CaptureModel.Details.Type.FLAME_CHART)
+      setCaptureDetails(CaptureDetails.Type.FLAME_CHART)
     }
 
     // Select a range where we don't have trace data
     stage.studioProfilers.timeline.selectionRange.set(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
 
-    val flameChart = stage.captureDetails as CaptureModel.FlameChart
+    val flameChart = stage.captureDetails as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(stageView, flameChart)
 
     val noDataInstructions = TreeWalker(flameChartView.component).descendants().filterIsInstance<InstructionsPanel>().first {

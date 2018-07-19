@@ -15,48 +15,33 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import java.util.List;
 
 public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
-  @NotNull private final VirtualFile myBuildFile;
+  @NotNull private final List<VirtualFile> myBuildFiles;
   @NotNull private final String myVersion;
+  /**
+   * Whether or not to remove the buildToolsVersion line from Gradle files, if false we update them to myVersion instead.
+   */
+  private final boolean myRemoveBuildTools;
 
-  public FixBuildToolsVersionHyperlink(@NotNull VirtualFile buildFile, @NotNull String version) {
-    super("fix.build.tools.version", "Update Build Tools version and sync project");
-    myBuildFile = buildFile;
+  public FixBuildToolsVersionHyperlink(@NotNull String version, @NotNull List<VirtualFile> buildFiles, boolean removeBuildTools) {
+    super("fix.build.tools.version", (removeBuildTools ? "Remove" : "Update") + " Build Tools version and sync project");
+    myBuildFiles = buildFiles;
     myVersion = version;
+    myRemoveBuildTools = removeBuildTools;
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    setBuildToolsVersion(project, myBuildFile, myVersion, true);
-  }
-
-  static void setBuildToolsVersion(@NotNull Project project, @NotNull VirtualFile buildFile, @NotNull String version, boolean requestSync) {
-    // TODO check that the build file has the 'android' plugin applied.
-    GradleBuildModel buildModel = parseBuildFile(buildFile, project);
-
-    AndroidModel android = buildModel.android();
-
-    if (version.equals(android.buildToolsVersion().toString())) {
-      return;
-    }
-
-    android.buildToolsVersion().setValue(version);
-    runWriteCommandAction(project, buildModel::applyChanges);
-
-    if (requestSync) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
-    }
+    FixBuildToolsProcessor processor = new FixBuildToolsProcessor(project, myBuildFiles, myVersion, true, myRemoveBuildTools);
+    processor.setPreviewUsages(true);
+    processor.run();
   }
 }

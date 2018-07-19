@@ -47,4 +47,3 @@ open class LegacySourceProvider(private val androidSourceSet: AndroidSourceSet) 
                                     "shadersDirectories=$shadersDirectories" +
                                     "}"
 }
-

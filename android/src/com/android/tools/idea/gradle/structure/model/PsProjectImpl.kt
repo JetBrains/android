@@ -18,20 +18,14 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.model.JavaModuleModel
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
 import java.util.*
 import java.util.function.Consumer
 import javax.swing.Icon
 
 class PsProjectImpl(override val ideProject: Project) : PsChildModel(), PsProject {
-  override var resolvedModel: Project? = ideProject; private set
   override var parsedModel: ProjectBuildModel = GradleModelProvider.get().getProjectModel(ideProject); private set
   @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
   final override var variables: PsVariables
@@ -40,12 +34,13 @@ class PsProjectImpl(override val ideProject: Project) : PsChildModel(), PsProjec
   private var internalResolvedModuleModels: Map<String, PsResolvedModuleModel>? = null
   private val moduleCollection: PsModuleCollection
 
-  override val name: String get() = resolvedModel?.name ?: ""
+  override val name: String get() = ideProject.name  // Supposedly there is no way to rename the project from within the PSD.
 
   override val parent: PsModel? = null
   override val isDeclared: Boolean = true
   override val icon: Icon? = null
 
+  override val modules: Collection<PsModule> get() = moduleCollection.items()
   override val modelCount: Int get() = moduleCollection.items().size
 
   init {
@@ -73,7 +68,6 @@ class PsProjectImpl(override val ideProject: Project) : PsChildModel(), PsProjec
           isModified = false
         }
       }.execute()
-      resolvedModel = null
       parsedModel = GradleModelProvider.get().getProjectModel(ideProject)
       variables = PsVariables(
         this, "Project: $name", Objects.requireNonNull<GradleBuildModel>(parsedModel.projectBuildModel).ext(), null)
@@ -87,29 +81,6 @@ class PsProjectImpl(override val ideProject: Project) : PsChildModel(), PsProjec
     moduleCollection.refresh()
   }
 
-  internal fun getResolvedModuleModelsByGradlePath(): Map<String, PsResolvedModuleModel> {
-    internalResolvedModuleModels?.let { return it }
-
-    val resolvedModules = mutableMapOf<String, PsResolvedModuleModel>()
-    resolvedModel?.let { ModuleManager.getInstance(it).modules }?.forEach { resolvedModel ->
-      val gradlePath = GradleUtil.getGradlePath(resolvedModel)
-      if (gradlePath != null) {
-        val gradleModel = AndroidFacet.getInstance(resolvedModel)
-        if (gradleModel != null) {
-          val androidModuleModel = AndroidModuleModel.get(gradleModel)
-          if (androidModuleModel != null) {
-            resolvedModules[gradlePath] = PsResolvedModuleModel.PsAndroidModuleResolvedModel(gradlePath, androidModuleModel)
-          }
-        }
-        else {
-          val javaModuleModel = JavaModuleModel.get(resolvedModel)
-          if (javaModuleModel != null && javaModuleModel.isBuildable) {
-            resolvedModules[gradlePath] = PsResolvedModuleModel.PsJavaModuleResolvedModel(gradlePath, javaModuleModel)
-          }
-        }
-      }
-    }
-    internalResolvedModuleModels = resolvedModules
-    return resolvedModules
-  }
+  internal fun getResolvedModuleModelsByGradlePath(): Map<String, PsResolvedModuleModel> =
+    internalResolvedModuleModels ?: mapOf()
 }

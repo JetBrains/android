@@ -34,6 +34,7 @@ import java.util.Map;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 public class ActionsToolbarTest extends LayoutTestCase {
@@ -71,7 +72,7 @@ public class ActionsToolbarTest extends LayoutTestCase {
     IssuePanel issuePanel = new IssuePanel(surface, issueModel);
     Disposer.register(getTestRootDisposable(), issuePanel);
     when(surface.getActionManager()).thenReturn(actionManager);
-    when(surface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
+    doReturn(NlLayoutType.LAYOUT).when(surface).getLayoutType();
     when(surface.getIssuePanel()).thenReturn(issuePanel);
     when(surface.getIssueModel()).thenReturn(issueModel);
     ActionsToolbar toolbar = new ActionsToolbar(getTestRootDisposable(), surface);

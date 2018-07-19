@@ -49,7 +49,7 @@ public class AndroidInlineLayoutHandler extends InlineActionHandler {
   @Override
   public boolean canInlineElementInEditor(PsiElement element, Editor editor) {
     if (element instanceof ResourceElementWrapper) {
-      element = ((ResourceElementWrapper)element).getWrappee();
+      element = ((ResourceElementWrapper)element).getWrappedElement();
     }
     if (element instanceof XmlFile) {
       if (AndroidFacet.getInstance(element) == null ||
@@ -82,7 +82,7 @@ public class AndroidInlineLayoutHandler extends InlineActionHandler {
   @Override
   public void inlineElement(Project project, Editor editor, PsiElement element) {
     if (element instanceof ResourceElementWrapper) {
-      element = ((ResourceElementWrapper)element).getWrappee();
+      element = ((ResourceElementWrapper)element).getWrappedElement();
     }
 
     if (element instanceof XmlFile) {

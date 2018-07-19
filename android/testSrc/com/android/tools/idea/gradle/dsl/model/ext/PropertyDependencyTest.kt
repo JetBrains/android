@@ -424,7 +424,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     assertDependencyNumbers(appliedMaxSdk, 0, 1, 1, 1)
     appliedMaxSdk.rename("minSdk")
     // Note: A cycle is now triggered here, this caused this model and any referencing is to not include the dependency.
-    assertDependencyNumbers(appliedMaxSdk, 1, 1, 0, 2)
+    assertDependencyNumbers(appliedMaxSdk, 0, 1, 1, 1)
     assertDependencyNumbers(appliedMinSdk, 0, 0, 0, 1)
 
     assertDependencyNumbers(childMaxSdk, 1, 1, 0, 0)

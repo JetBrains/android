@@ -57,9 +57,9 @@ public class JavaModuleModelFactory {
   public JavaModuleModel create(@NotNull File moduleFolderPath, @NotNull GradleProject gradleProject, @NotNull ArtifactModel jarAarModel) {
     Collection<JavaModuleContentRoot> contentRoots = getContentRoots(moduleFolderPath, gradleProject);
     return new JavaModuleModel(jarAarModel.getName(), contentRoots, Collections.emptyList() /* Java module dependencies */,
-                               Collections.emptyList() /* Jar library dependencies */, jarAarModel.getArtifactsByConfiguration(),
-                               null /* compiler output */, gradleProject.getBuildDirectory(), null /* Java language level */,
-                               isBuildable(gradleProject), false /* regular Java module */);
+                               Collections.emptyList() /* Jar library dependencies */, Collections.emptyList() /* Sync Issues */,
+                               jarAarModel.getArtifactsByConfiguration(), null /* compiler output */, gradleProject.getBuildDirectory(),
+                               null /* Java language level */, isBuildable(gradleProject), false /* regular Java module */);
   }
 
   @NotNull
@@ -83,6 +83,7 @@ public class JavaModuleModelFactory {
     return new JavaModuleModel(androidProject.getName(), Collections.emptyList() /* content roots */,
                                Collections.emptyList() /* Java module dependencies */,
                                Collections.emptyList() /* Jar library dependencies */,
+                               Collections.emptyList() /* Sync Issues */,
                                Collections.emptyMap() /* artifacts by configuration */, new IdeaCompilerOutputImpl(),
                                gradleProject.getBuildDirectory(), sourceCompatibility, false /* not buildable */,
                                true /* Android project without variants */);
@@ -94,9 +95,9 @@ public class JavaModuleModelFactory {
     String projectName = javaProject.getName();
     Collection<JavaModuleContentRoot> contentRoots = getContentRoots(moduleFolderPath, javaProject, gradleProject);
     return new JavaModuleModel(projectName, contentRoots, dependencies.first, dependencies.second,
-                               Collections.emptyMap() /* artifacts by configuration */, getCompilerOutput(javaProject),
-                               gradleProject.getBuildDirectory(), javaProject.getJavaLanguageLevel(), isBuildable(gradleProject),
-                               false /* regular Java module */);
+                               Collections.emptyList() /* Sync Issues */, Collections.emptyMap() /* artifacts by configuration */,
+                               getCompilerOutput(javaProject), gradleProject.getBuildDirectory(), javaProject.getJavaLanguageLevel(),
+                               isBuildable(gradleProject), false /* regular Java module */);
   }
 
   @NotNull

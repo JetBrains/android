@@ -15,15 +15,13 @@
  */
 package com.android.tools.adtui.ptable2.item
 
-import com.android.tools.adtui.ptable2.PTableColumn
-import com.android.tools.adtui.ptable2.PTableGroupItem
-import com.android.tools.adtui.ptable2.PTableItem
-import com.android.tools.adtui.ptable2.PTableModel
+import com.android.tools.adtui.ptable2.*
 import com.android.tools.adtui.ptable2.impl.PTableModelImpl
 import org.mockito.Mockito
+import javax.swing.JPanel
 import javax.swing.event.TableModelListener
 
-fun createModel(vararg items: PTableItem): PTableModel {
+fun createModel(vararg items: PTableItem): PTableTestModel {
   return PTableTestModel(*items)
 }
 
@@ -33,17 +31,51 @@ fun addModelListener(model: PTableModelImpl): TableModelListener {
   return listener
 }
 
-class Item(override val name: String, override val value: String? = null ) : PTableItem
+open class Item(override val name: String, override val value: String? = null ) : PTableItem {
+  override fun hashCode(): Int {
+    return name.hashCode()
+  }
 
-class Group(override val name: String, vararg childItems: PTableItem) : PTableGroupItem {
+  override fun equals(other: Any?): Boolean {
+    return name == (other as? Item)?.name
+  }
+}
+
+class Group(name: String, vararg childItems: PTableItem) : Item(name, null), PTableGroupItem {
   override val value: String? = null
   override val children: List<PTableItem> = listOf(*childItems)
 }
 
-private class PTableTestModel(vararg items: PTableItem) : PTableModel {
-  override val items: List<PTableItem> = listOf(*items)
+class PTableTestModel(vararg items: PTableItem) : PTableModel {
+  private val listeners = mutableListOf<PTableModelUpdateListener>()
+  override val items = mutableListOf(*items)
 
-  override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {
-    return column == PTableColumn.VALUE && item.name != "readonly"
+  override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean =
+    when (column) {
+      PTableColumn.NAME -> item.name == "new"
+      PTableColumn.VALUE -> item.name != "readonly"
+    }
+
+  fun updateTo(vararg newItems: PTableItem) {
+    items.clear()
+    items.addAll(listOf(*newItems))
+    listeners.forEach { it.itemsUpdated() }
+  }
+
+  override fun addListener(listener: PTableModelUpdateListener) {
+    listeners.add(listener)
   }
 }
+
+class DummyPTableCellEditor : DefaultPTableCellEditor() {
+  override val editorComponent = JPanel()
+}
+
+class DummyPTableCellEditorProvider : PTableCellEditorProvider {
+  val editor = DummyPTableCellEditor()
+
+  override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellEditor {
+    return editor
+  }
+}
+

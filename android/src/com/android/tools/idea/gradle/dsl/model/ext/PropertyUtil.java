@@ -251,15 +251,23 @@ public class PropertyUtil {
     if (oldElement instanceof GradleDslSettableExpression) {
       GradleDslSettableExpression oExpression = (GradleDslSettableExpression)oldElement;
       GradleDslSettableExpression nExpression = (GradleDslSettableExpression)newElement;
-      if (nExpression.getUnsavedValue() == null) {
-        return false;
+      String newText = null;
+      String oldText = null;
+      if (nExpression.getUnsavedValue() != null) {
+        newText = nExpression.getUnsavedValue().getText();
       }
-      else if (oExpression.getExpression() == null) {
-        return true;
+      else if (nExpression.getExpression() != null) {
+        newText = nExpression.getExpression().getText();
       }
-      else {
-        return !Objects.equals(nExpression.getUnsavedValue().getText(), oExpression.getExpression().getText());
+
+      if (oExpression.getExpression() != null) {
+        oldText = oExpression.getExpression().getText();
       }
+      else if (oExpression.getUnsavedValue() != null) {
+        oldText = oExpression.getUnsavedValue().getText();
+      }
+
+      return !(newText == null && oldText == null) && !Objects.equals(newText, oldText);
     }
 
     if (oldElement instanceof GradlePropertiesDslElement) {

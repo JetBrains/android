@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.naveditor;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -45,9 +44,7 @@ import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.*;
 
 /**
  * UI tests for {@link NlEditor} as used in the navigation editor.
@@ -59,12 +56,12 @@ public class NavNlEditorTest {
 
   @Before
   public void setUp() {
-    StudioFlags.ENABLE_NAV_EDITOR.override(true);
+    NavTestSetupKt.beforeNavTest();
   }
 
   @After
   public void tearDown() {
-    StudioFlags.ENABLE_NAV_EDITOR.clearOverride();
+    NavTestSetupKt.afterNavTest();
   }
 
   @Test
@@ -94,17 +91,19 @@ public class NavNlEditorTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/72238573
   @Test
   public void testCreateAndDelete() throws Exception {
-    IdeFrameFixture frame = guiTest.importProject("Navigation");
-    // Open file as XML and switch to design tab, wait for successful render
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
-    NlEditorFixture layout = editor.getLayoutEditor(true);
+    NlEditorFixture layout = guiTest
+      .importProject("Navigation")
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(true);
 
-    // This is separate to catch the case where we have a problem opening the file before sync is complete.
-    frame.waitForGradleProjectSyncToFinish();
-    layout.waitForRenderToFinish();
+    AddDestinationMenuFixture menuFixture = layout
+      .waitForRenderToFinish()
+      .getNavSurface()
+      .openAddDestinationMenu()
+      .waitForContents();
 
-    AddDestinationMenuFixture menuFixture = ((NavDesignSurfaceFixture)layout.getSurface()).openAddDestinationMenu();
     assertEquals(4, menuFixture.visibleItemCount());
     guiTest.robot().enterText("fragment_my");
     assertEquals(1, menuFixture.visibleItemCount());
@@ -145,6 +144,7 @@ public class NavNlEditorTest {
       .waitForRenderToFinish()
       .getNavSurface()
       .openAddDestinationMenu()
+      .waitForContents()
       .clickCreateBlank()
       .getConfigureTemplateParametersStep()
       .enterTextFieldValue("Fragment Name:", "TestCreateAndCancelFragment")
@@ -215,10 +215,10 @@ public class NavNlEditorTest {
     GuiTests.findAndClickCancelButton(frame.waitForDialog("Add Project Dependency"));
     GuiTests.findAndClickOkButton(frame.waitForDialog("Failed to Add Dependency"));
     assertFalse(guiTest
-      .ideFrame()
-      .getEditor()
-      .getLayoutEditor(false)
-      .canInteractWithSurface());
+                  .ideFrame()
+                  .getEditor()
+                  .getLayoutEditor(false)
+                  .canInteractWithSurface());
 
     frame
       .getEditor()

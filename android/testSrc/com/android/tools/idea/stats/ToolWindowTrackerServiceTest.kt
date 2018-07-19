@@ -38,8 +38,8 @@ class ToolWindowTrackerServiceTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     MockitoAnnotations.initMocks(this)
-    myUsageTracker = TestUsageTracker(AnalyticsSettings(), VirtualTimeScheduler())
-    UsageTracker.setInstanceForTest(myUsageTracker)
+    myUsageTracker = TestUsageTracker(VirtualTimeScheduler())
+    UsageTracker.setWriterForTest(myUsageTracker)
     myService = ToolWindowTrackerService(myMockToolWindowManager)
   }
 

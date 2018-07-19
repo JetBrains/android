@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import com.android.ide.common.rendering.api.AttributeFormat
+import com.android.ide.common.rendering.api.ResourceNamespace
 import org.junit.Test
 
 class TypeResolverTest {
@@ -53,7 +54,7 @@ class TypeResolverTest {
   }
 
   private fun resolve(name: String, format: AttributeFormat): NelePropertyType {
-    val definition = AttributeDefinition(name, null, null, setOf(format))
+    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, name, null, setOf(format))
     return TypeResolver.resolveType(name, definition)
   }
 }

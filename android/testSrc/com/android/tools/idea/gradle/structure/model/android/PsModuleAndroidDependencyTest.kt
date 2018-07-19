@@ -38,7 +38,7 @@ class PsModuleAndroidDependencyTest : DependencyTestCase() {
 
   private fun reparse() {
     resolvedProject = myFixture.project
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
   }
 
   fun testModuleDependenciesAreResolved() {

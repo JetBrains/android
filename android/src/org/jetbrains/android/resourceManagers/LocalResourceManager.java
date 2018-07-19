@@ -21,14 +21,12 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Multimap;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.dom.resources.Attr;
@@ -43,14 +41,14 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import javax.annotation.concurrent.GuardedBy;
+import java.util.*;
 
 public class LocalResourceManager extends ResourceManager {
-  private AttributeDefinitions myAttrDefs;
   private final AndroidFacet myFacet;
+  private final Object myAttrDefsLock = new Object();
+  @GuardedBy("myAttrDefsLock")
+  private AttributeDefinitions myAttrDefs;
 
   @Nullable
   public static LocalResourceManager getInstance(@NotNull Module module) {
@@ -71,13 +69,6 @@ public class LocalResourceManager extends ResourceManager {
 
   public AndroidFacet getFacet() {
     return myFacet;
-  }
-
-  @Override
-  @NotNull
-  protected ResourceNamespace getResourceNamespace() {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myFacet);
-    return repositoryManager.getNamespace();
   }
 
   @Override
@@ -117,20 +108,20 @@ public class LocalResourceManager extends ResourceManager {
   @Override
   @NotNull
   public AttributeDefinitions getAttributeDefinitions() {
-    if (myAttrDefs == null) {
-      ResourceManager systemResourceManager = ModuleResourceManagers.getInstance(myFacet).getSystemResourceManager();
-      AttributeDefinitions systemAttributeDefinitions =
-          systemResourceManager == null ? null : systemResourceManager.getAttributeDefinitions();
-      ApplicationManager.getApplication().runReadAction(() -> {
-        myAttrDefs = new AttributeDefinitionsImpl(systemAttributeDefinitions,
-                                                  findValueResourcesByLibraryName());
-      });
+    synchronized (myAttrDefsLock) {
+      if (myAttrDefs == null) {
+        ResourceManager frameworkResourceManager = ModuleResourceManagers.getInstance(myFacet).getFrameworkResourceManager();
+        AttributeDefinitions frameworkAttributes = frameworkResourceManager == null ? null : frameworkResourceManager.getAttributeDefinitions();
+        myAttrDefs = AttributeDefinitionsImpl.create(frameworkAttributes, getResourceRepository());
+      }
+      return myAttrDefs;
     }
-    return myAttrDefs;
   }
 
   public void invalidateAttributeDefinitions() {
-    myAttrDefs = null;
+    synchronized (myAttrDefsLock) {
+      myAttrDefs = null;
+    }
   }
 
   @NotNull
@@ -184,7 +175,8 @@ public class LocalResourceManager extends ResourceManager {
   private Set<VirtualFile> getAllValueResourceFiles() {
     Set<VirtualFile> files = new HashSet<>();
 
-    for (VirtualFile valueResourceDir : getResourceSubdirs(ResourceFolderType.VALUES)) {
+    List<VirtualFile> subdirs = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.VALUES, getAllResourceDirs().values());
+    for (VirtualFile valueResourceDir : subdirs) {
       for (VirtualFile valueResourceFile : valueResourceDir.getChildren()) {
         if (!valueResourceFile.isDirectory() && valueResourceFile.getFileType().equals(StdFileTypes.XML)) {
           files.add(valueResourceFile);
@@ -192,11 +184,6 @@ public class LocalResourceManager extends ResourceManager {
       }
     }
     return files;
-  }
-
-  @NotNull
-  private List<VirtualFile> getResourceSubdirs(@NotNull ResourceFolderType resourceType) {
-    return AndroidResourceUtil.getResourceSubdirs(resourceType, getAllResourceDirs().values());
   }
 
   public List<Attr> findStyleableAttributesByFieldName(@NotNull String fieldName) {
@@ -292,15 +279,5 @@ public class LocalResourceManager extends ResourceManager {
     }
 
     return targets;
-  }
-
-  /**
-   * @deprecated Use {@link #findResourcesByFieldName(ResourceNamespace, String, String)}.
-   * Preserved temporarily for compatibility with the Kotlin plugin.
-   */
-  @Deprecated
-  @NotNull
-  public List<PsiElement> findResourcesByFieldName(@NotNull String resClassName, @NotNull String fieldName) {
-    return findResourcesByFieldName(getResourceNamespace(), resClassName, fieldName);
   }
 }

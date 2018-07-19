@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.common.property2.impl.ui
 
-import com.android.tools.adtui.common.secondaryPanelBackground
+import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
+import java.awt.Color
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
-import javax.swing.BorderFactory
 import javax.swing.KeyStroke
 
 /**
@@ -30,6 +30,8 @@ import javax.swing.KeyStroke
  */
 class PropertyTextField(editorModel: TextFieldPropertyEditorModel,
                         asTableCellEditor: Boolean) : CommonTextField<TextFieldPropertyEditorModel>(editorModel) {
+  // HORIZONTAL_PADDING has already been scaled: do not use JBUI.scale()
+  private val textBorder: CellBorder? = CellBorder(0, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING, background)
 
   init {
     registerKeyAction({ editorModel.enter(text) }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
@@ -38,8 +40,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel,
     registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
     addFocusListener(EditorFocusListener(editorModel, { text }))
     if (asTableCellEditor) {
-      // HORIZONTAL_PADDING has already been scaled: do not use JBUI.Borders
-      border = BorderFactory.createMatteBorder(0, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING, secondaryPanelBackground)
+      border = textBorder
     }
   }
 
@@ -49,6 +50,11 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel,
     if (editorModel.focusRequest && !isFocusOwner) {
       requestFocusInWindow()
     }
+  }
+
+  override fun setBackground(color: Color?) {
+    super.setBackground(color)
+    textBorder?.background = color
   }
 
   override fun getToolTipText(): String? = editorModel.tooltip

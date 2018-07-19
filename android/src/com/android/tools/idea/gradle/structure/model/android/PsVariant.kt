@@ -29,7 +29,7 @@ open class PsVariant(override val parent: PsAndroidModule,
   private var myProductFlavors: List<String> = listOf()
   var resolvedModel: IdeVariant? = null ; private set
   private var myArtifactCollection: PsAndroidArtifactCollection? = null
-  val artifacts: List<PsAndroidArtifact> get() = orCreateArtifactCollection.items()
+  val artifacts: Collection<PsAndroidArtifact> get() = orCreateArtifactCollection.items()
 
   internal fun init(buildType: String, productFlavors: List<String>, resolvedModel: IdeVariant?) {
     myBuildType = buildType

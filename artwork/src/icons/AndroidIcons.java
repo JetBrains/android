@@ -13,11 +13,11 @@ public class AndroidIcons {
     return IconLoader.getIcon(path, AndroidIcons.class);
   }
 
-  public static final Icon Android = load("/icons/android.png"); // 16x16
+  public static final Icon Android = load("/icons/android.svg"); // 16x16
   public static final Icon Android24 = load("/icons/android24.png"); // 24x24
   public static final Icon AndroidLarge = load("/icons/androidLarge.png"); // 64x64
   public static final Icon AndroidPreview = load("/icons/androidPreview.png"); // 13x13
-  public static final Icon AndroidToolWindow = load("/icons/androidToolWindow.png"); // 13x13
+  public static final Icon AndroidToolWindow = load("/icons/androidToolWindow.svg"); // 13x13
   public static final Icon AndroidModule = load("/icons/androidModule.png"); // 16x16
 
   public static final Icon AvdManager = load("/icons/avd_manager.png"); // 16x16
@@ -46,7 +46,6 @@ public class AndroidIcons {
   public static final Icon Display = load("/icons/display.png"); // 16x16
   public static final Icon Themes = load("/icons/themes.png"); // 16x16
   public static final Icon ThemesPreview = load("/icons/themesPreview.png"); // 13x13
-  public static final Icon Sunburst = load("/icons/sunburst.png"); // 16x16
 
   public static final Icon EmptyFlag = load("/icons/flags/flag_empty.png"); // 16x16
 
@@ -56,16 +55,13 @@ public class AndroidIcons {
   public static final Icon MavenLogo = load("/icons/maven.png"); // 16x16
 
   public static final Icon CapturesToolWindow = load("/icons/captures.png"); // 13x13
-  public static final Icon MemoryMonitor = load("/icons/memory_monitor.png"); // 16x16
-  public static final Icon CpuMonitor = load("/icons/cpu_monitor.png"); // 16x16
-  public static final Icon GpuMonitor = load("/icons/gpu_monitor.png"); // 16x16
-  public static final Icon NetworkMonitor = load("/icons/network_monitor.png"); // 16x16
 
   public static final Icon Variant = load("/icons/variant.png");
 
   public static final Icon AppModule = load("/icons/appModule.png");
   public static final Icon LibraryModule = load("/icons/libraryModule.png");
   public static final Icon AndroidTestRoot = load("/icons/androidTestRoot.png");
+  public static final Icon AndroidTestsScope = load("/icons/androidTestsScope.svg");
 
   public static final Icon GreyQuestionMark = load("/icons/grey_question.png"); // 23x23
 
@@ -127,15 +123,10 @@ public class AndroidIcons {
   }
 
   public static class Ddms {
-    public static final Icon AllocationTracker = load("/icons/ddms/allocation_tracker.png"); // 16x16
     public static final Icon AttachDebugger = load("/icons/ddms/attachDebugger.png"); // 16x16
-    public static final Icon Gc = load("/icons/ddms/cause_garbage_collection.png"); // 16x16
-    public static final Icon DumpHprof = load("/icons/ddms/dump_hprof_file.png"); // 16x16
     public static final Icon Emulator = load("/icons/ddms/emulator.png"); // 16x16
     public static final Icon Emulator2 = load("/icons/ddms/emulator_02.png"); // 16x16
     public static final Icon FileExplorer = load("/icons/ddms/file_explorer.png"); // 16x16
-    public static final Icon Heap = load("/icons/ddms/heap.png"); // 16x16
-    public static final Icon HeapInfo = load("/icons/ddms/heap_info.png"); // 16x16
     public static final Icon Logcat = load("/icons/ddms/logcat.png"); // 16x16
     /**
      * The {@link #LogcatAutoFilterSelectedPid} icon is a copy of the AllIcons.Diff.diff icon to be replaced if we get a better icon.
@@ -144,9 +135,6 @@ public class AndroidIcons {
     public static final Icon RealDevice = load("/icons/ddms/real_device.png"); // 16x16
     public static final Icon EmulatorDevice = load("/icons/ddms/emulator_device.png"); // 16x16
     public static final Icon ScreenCapture = load("/icons/ddms/screen_capture.png"); // 16x16
-    public static final Icon StartMethodProfiling = load("/icons/ddms/start_method_profiling.png"); // 16x16
-    public static final Icon Threads = load("/icons/ddms/threads.png"); // 16x16
-    public static final Icon SysInfo = load("/icons/ddms/sysinfo.png"); // 16x16 - this is a copy of AllIcons.Actions.Preview
     public static final Icon ScreenRecorder = load("/icons/ddms/screen_recorder.png"); // 16x16
   }
 
@@ -199,8 +187,8 @@ public class AndroidIcons {
   }
 
   public static class ToolWindows {
-    public static final Icon HeapAnalysis = IconLoader.getIcon("/icons/toolwindows/toolWindowHeapAnalysis.png"); // 13x13
-    public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.png"); // 13x13
+    public static final Icon HeapAnalysis = IconLoader.getIcon("/icons/toolwindows/toolWindowHeapAnalysis.svg"); // 13x13
+    public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.svg"); // 13x13
   }
 
   public static class Issue {

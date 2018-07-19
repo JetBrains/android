@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.gradle.project.build.output.AndroidGradleSyncTextConsoleView;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManager;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
@@ -29,6 +30,7 @@ import com.intellij.build.events.impl.OutputBuildEventImpl;
 import com.intellij.build.events.impl.SkippedResultImpl;
 import com.intellij.build.events.impl.StartBuildEventImpl;
 import com.intellij.build.output.BuildOutputInstantReaderImpl;
+import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -149,7 +151,11 @@ class SyncExecutor {
     // Add a StartEvent to the build tool window
     String projectPath = getBaseDirPath(myProject).getPath();
     DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(id, myProject.getName(), projectPath, currentTimeMillis());
-    StartBuildEventImpl startEvent = new StartBuildEventImpl(buildDescriptor, "syncing...");
+    StartBuildEventImpl startEvent = new StartBuildEventImpl(buildDescriptor, "syncing...").withContentDescriptorSupplier(
+      () -> {
+        AndroidGradleSyncTextConsoleView consoleView = new AndroidGradleSyncTextConsoleView(myProject);
+        return new RunContentDescriptor(consoleView, null, consoleView.getComponent(), "Gradle Sync");
+      });
     syncViewManager.onEvent(startEvent);
     try {
       if (options == null) {

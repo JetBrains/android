@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.common.property2.impl.ui
 
+import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.adtui.stdui.CommonComboBox
+import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
-import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.EventQueue
 import java.awt.event.ActionEvent
 import java.awt.event.InputEvent
@@ -35,14 +38,36 @@ import javax.swing.plaf.basic.ComboPopup
  *
  * This control will act as a ComboBox or a DropDown depending on the model.
  */
-class PropertyComboBox(model: ComboBoxPropertyEditorModel,
-                       asTableCellEditor: Boolean): CommonComboBox<EnumValue, ComboBoxPropertyEditorModel>(model) {
+class PropertyComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Boolean): CellPanel() {
+  private val comboBox = WrappedComboBox(model, asTableCellEditor)
+  private val comboBorder: CellBorder? = CellBorder(0, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING, background)
 
   init {
+    add(comboBox, BorderLayout.CENTER)
+    if (asTableCellEditor) {
+      border = comboBorder
+    }
+  }
+
+  var renderer: ListCellRenderer<in EnumValue>
+    get() = comboBox.renderer
+    set(value) { comboBox.renderer = value }
+
+  override fun setBackground(color: Color?) {
+    super.setBackground(color)
+    comboBorder?.background = color
+  }
+}
+
+private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Boolean)
+  : CommonComboBox<EnumValue, ComboBoxPropertyEditorModel>(model) {
+
+  init {
+    renderer
     registerKeyAction({ model.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
     registerKeyAction({ model.escapeKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "escape")
     if (asTableCellEditor) {
-      border = JBUI.Borders.empty()
+      putClientProperty("JComboBox.isTableCellEditor", true)
     }
 
     val editor = editor.editorComponent as JTextField
@@ -92,6 +117,16 @@ class PropertyComboBox(model: ComboBoxPropertyEditorModel,
     if (model.isPopupVisible != isPopupVisible) {
       isPopupVisible = model.isPopupVisible
     }
+  }
+
+  override fun setForeground(color: Color?) {
+    super.setForeground(color)
+    editor?.editorComponent?.foreground = color
+  }
+
+  override fun setBackground(color: Color?) {
+    super.setBackground(color)
+    editor?.editorComponent?.background = color
   }
 
   override fun getToolTipText(): String? = model.tooltip

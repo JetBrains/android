@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.SdkConstants
+import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
@@ -39,7 +40,7 @@ class PropertyThreeStateCheckBox(private val propertyModel: ThreeStateBooleanPro
     registerKeyAction({ propertyModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
 
     propertyModel.addListener(ValueChangedListener { handleValueChanged() })
-    addFocusListener(EditorFocusListener(propertyModel, { fromThreeStateValue(state) }))
+    addFocusListener(EditorFocusListener(propertyModel, { "" }, updateValueOnFocusLoss = false))
     addPropertyChangeListener { event ->
       if (!stateChangeFromModel && event.propertyName == THREE_STATE_CHECKBOX_STATE) {
         propertyModel.value = fromThreeStateValue(event.newValue)

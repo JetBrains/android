@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -78,12 +79,9 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   }
 
   @Override
-  protected void setupRenderTask(@Nullable RenderTask task) {
-    super.setupRenderTask(task);
-
-    if (task != null) {
-      task.disableSecurityManager();
-    }
+  @NotNull
+  protected RenderService.RenderTaskBuilder setupRenderTaskBuilder(@NotNull RenderService.RenderTaskBuilder taskBuilder) {
+    return super.setupRenderTaskBuilder(taskBuilder).disableSecurityManager();
   }
 
   @Override

@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.assistant
 
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.util.dependsOn
+import com.android.tools.idea.util.dependsOnAndroidx
+import com.android.tools.idea.util.dependsOnOldSupportLib
+import com.intellij.openapi.module.Module
 import libcore.io.Streams
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -25,11 +30,28 @@ private fun hash(content: String): ByteArray =
 
 internal enum class TemplateTag {
   /** This template only supports the old version of the androidx */
-  ANDROIDX,
+  ANDROIDX {
+    override fun availableFor(module: Module) = module.dependsOnAndroidx()
+  },
   /** This template only supports the old version of the support library (not androidx) */
-  SUPPORT_LIBRARY,
-  /** This template has a grid layout */
-  GRID
+  SUPPORT_LIBRARY {
+    override fun availableFor(module: Module) = module.dependsOnOldSupportLib() && !module.dependsOnAndroidx()
+  },
+  /** This template has a constraint layout */
+  CONSTRAINT_LAYOUT {
+    override fun availableFor(module: Module): Boolean {
+      return module.dependsOn(GoogleMavenArtifactId.CONSTRAINT_LAYOUT) ||
+             module.dependsOn(GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT)
+    }
+  },
+  /** This template uses GridLayoutManager (which is already included in recyclerview) */
+  GRID;
+
+  /**
+   * Returns true if a template tagged with this [TemplateTag] is available
+   * for the [module] based on its dependencies.
+   */
+  open fun availableFor(module: Module) = true
 }
 
 /**
@@ -37,6 +59,12 @@ internal enum class TemplateTag {
  */
 internal data class Template(private val myTemplateName: String, val myTemplate: String, private val tags: Set<TemplateTag>) {
   private val hash: ByteArray by lazy { hash(myTemplate) }
+
+  /**
+   * Returns true if this [Template] is available to [module], based on the template's
+   * tags and the module's dependencies.
+   */
+  fun availableFor(module: Module): Boolean = tags.all { it.availableFor(module) }
 
   fun hasSameContent(content: String?): Boolean {
     return !content.isNullOrBlank() && content!!.length == myTemplate.length && hash.contentEquals(hash(content))

@@ -17,7 +17,8 @@ import com.android.tools.idea.gradle.structure.configurables.android.buildvarian
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ConfigPanel
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 
-class ProductFlavorConfigPanel(val productFlavor: PsProductFlavor) : ConfigPanel<PsProductFlavor>(productFlavorPropertiesModel()) {
+class ProductFlavorConfigPanel(val productFlavor: PsProductFlavor)
+  : ConfigPanel<PsProductFlavor>(productFlavorPropertiesModel(productFlavor.parent.isLibrary)) {
   init {
     bind(productFlavor.parent, productFlavor)
   }

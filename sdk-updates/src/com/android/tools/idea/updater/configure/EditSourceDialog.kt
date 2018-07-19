@@ -45,8 +45,8 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
   private val passwordField = JPasswordField(existingAuth?.let { OneTimeString(existingAuth.password, clearable = true).toString() })
   private val errorLabel = JLabel()
   private val authPanel = panel {
-    row("Login:") { loginField(CCFlags.growX, CCFlags.pushX) }
-    row("Password:") { passwordField(CCFlags.growX, CCFlags.pushX) }
+    row("Login:") { loginField(growX, pushX) }
+    row("Password:") { passwordField(growX, pushX) }
   }
 
   private var myUrlSet = false
@@ -140,7 +140,7 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
       row("URL:") { urlField() }
       row { useAuthentication() }
       row {
-        authPanel(CCFlags.growX)
+        authPanel(growX)
       }
       row { errorLabel() }
     }

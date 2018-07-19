@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.modules.ModulePa
 import com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptors
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefaultConfigDescriptors
+import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 
 class AndroidModuleRootConfigurable(context: PsContext, module: PsAndroidModule) : AbstractModuleConfigurable<ModulePanel>(context, module) {
 
@@ -39,14 +40,15 @@ fun androidModulePropertiesModel() =
       uiProperty(AndroidModuleDescriptors.sourceCompatibility, ::simplePropertyEditor),
       uiProperty(AndroidModuleDescriptors.targetCompatibility, ::simplePropertyEditor)))
 
-fun defaultConfigPropertiesModel() =
+fun defaultConfigPropertiesModel(isLibrary: Boolean) =
   PropertiesUiModel(
-    listOf(
+    listOfNotNull(
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.applicationId, ::simplePropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion, ::simplePropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.minSdkVersion, ::simplePropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion, ::simplePropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.signingConfig, ::simplePropertyEditor),
+      if (isLibrary) uiProperty(PsAndroidModuleDefaultConfigDescriptors.consumerProGuardFiles, ::listPropertyEditor) else null,
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.proGuardFiles, ::listPropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders, ::mapPropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled, ::simplePropertyEditor),

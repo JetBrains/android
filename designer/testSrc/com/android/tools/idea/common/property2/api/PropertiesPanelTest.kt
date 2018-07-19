@@ -219,13 +219,13 @@ private class FakeModel: PropertiesModel<FakeProperty> {
   override fun deactivate() {
   }
 
-  private val listeners = mutableListOf<PropertiesModelListener>()
+  private val listeners = mutableListOf<PropertiesModelListener<FakeProperty>>()
 
-  override fun addListener(listener: PropertiesModelListener) {
+  override fun addListener(listener: PropertiesModelListener<FakeProperty>) {
     listeners.add(listener)
   }
 
-  override fun removeListener(listener: PropertiesModelListener) {
+  override fun removeListener(listener: PropertiesModelListener<FakeProperty>) {
     listeners.remove(listener)
   }
 

@@ -19,13 +19,12 @@ import com.android.resources.ResourceVisibility
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.naveditor.model.actionDestination
-import com.android.tools.idea.naveditor.model.destinationType
+import com.android.tools.idea.naveditor.model.isFragment
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getResourceItems
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
-import org.jetbrains.android.dom.navigation.NavigationSchema
 
 // TODO: ideally this wouldn't be a separate editor, and EnumEditor could just get the EnumSupport from the property itself.
 class AnimationEditor(listener: NlEditingListener, comboBox: CustomComboBox) : EnumEditor(listener, comboBox, null, true, false) {
@@ -38,7 +37,7 @@ class AnimationEditor(listener: NlEditingListener, comboBox: CustomComboBox) : E
     override fun getAllValues(): List<ValueWithDisplayString> {
       val isFragment = myProperty.components
         .mapNotNull { it.actionDestination }
-        .all { it.destinationType == NavigationSchema.DestinationType.FRAGMENT }
+        .all { it.isFragment }
       // TODO: check the type of the start destination if the target is a graph
 
 

@@ -26,7 +26,6 @@ import com.google.common.truth.Truth.assertThat
 import org.intellij.lang.annotations.Language
 
 private const val CUSTOM_TAG = "com.example.PieChart"
-private const val CUSTOM_NAMESPACE = "http://schemas.android.com/apk/res/com.example"
 private const val ATTR_LEGEND = "legend"
 private const val ATTR_LABEL_POS = "labelPosition"
 
@@ -109,7 +108,7 @@ class NelePropertiesProviderTest : PropertyTestCase() {
     assertThat(properties.getByNamespace("").keys).contains(ATTR_STYLE)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(linearLayoutAttrs)
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_TEXT)).isTrue()
-    assertThat(properties.getByNamespace(CUSTOM_NAMESPACE).keys).containsAllOf(ATTR_LEGEND, ATTR_LABEL_POS)
+    assertThat(properties.getByNamespace(AUTO_URI).keys).containsAllOf(ATTR_LEGEND, ATTR_LABEL_POS)
   }
 
   fun testToolTip() {
@@ -117,7 +116,7 @@ class NelePropertiesProviderTest : PropertyTestCase() {
     val provider = createProvider()
     val properties = provider.getProperties(createComponents(component(CUSTOM_TAG)))
     val id = properties[ANDROID_URI, ATTR_ID]
-    val legend = properties[CUSTOM_NAMESPACE, ATTR_LEGEND]
+    val legend = properties[AUTO_URI, ATTR_LEGEND]
     assertThat(id.tooltipForName.trim()).isEqualTo(EXPECTED_ID_TOOLTIP.trim())
     assertThat(legend.tooltipForName).isEqualTo("legend")
   }

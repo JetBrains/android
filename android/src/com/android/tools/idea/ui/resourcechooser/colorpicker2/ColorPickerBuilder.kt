@@ -22,7 +22,7 @@ import java.awt.Dimension
 import javax.swing.*
 
 val PICKER_BACKGROUND_COLOR = JBColor(Color(252, 252, 252), Color(64, 64, 64))
-val TEXT_COLOR = Color(186, 186, 186)
+val PICKER_TEXT_COLOR = Color(186, 186, 186)
 
 const val PICKER_PREFERRED_WIDTH = 300
 const val HORIZONTAL_MARGIN_TO_PICKER_BORDER = 14

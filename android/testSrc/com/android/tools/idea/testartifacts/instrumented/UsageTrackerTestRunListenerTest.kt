@@ -18,7 +18,6 @@ package com.android.tools.idea.testartifacts.instrumented
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.InstrumentationResultParser
 import com.android.testutils.VirtualTimeScheduler
-import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.stubs.FileStructure
@@ -36,8 +35,8 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
   private val serial = "my serial"
 
   private fun checkLoggedEvent(instrumentationOutput: String, block: (AndroidStudioEvent) -> Unit) {
-    val tracker = TestUsageTracker(AnalyticsSettings(), VirtualTimeScheduler())
-    val oldTracker = UsageTracker.setInstanceForTest(tracker)
+    val tracker = TestUsageTracker(VirtualTimeScheduler())
+    val oldTracker = UsageTracker.setWriterForTest(tracker)
     val listener = UsageTrackerTestRunListener(
         AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
         mock(IDevice::class.java)!!.also {

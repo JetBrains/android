@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
-import com.intellij.util.ui.JBUI
-
 import java.awt.*
 import java.awt.geom.Point2D
 
@@ -40,8 +38,8 @@ class HueSliderComponent : SliderComponent<Float>(0f) {
   override fun valueToKnobPosition(value: Float): Int = Math.round(value * sliderWidth)
 
   override fun paintSlider(g2d: Graphics2D) {
-    val sliderWidth = width - myLeftMargin - myRightMargin
+    val sliderWidth = width - leftPadding - rightPadding
     g2d.paint = LinearGradientPaint(Point2D.Double(0.0, 0.0), Point2D.Double(sliderWidth.toDouble(), 0.0), POINTS, COLORS)
-    g2d.fillRect(myLeftMargin, JBUI.scale(7), sliderWidth, JBUI.scale(12))
+    g2d.fillRect(leftPadding, topPadding, sliderWidth, height - topPadding - bottomPadding)
   }
 }

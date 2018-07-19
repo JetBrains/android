@@ -64,7 +64,9 @@ class PsContextImpl constructor(
 
   init {
     mainConfigurable.add(
-      ProjectStructureConfigurable.ProjectStructureChangeListener { this.requestGradleSync() }, this)
+      ProjectStructureConfigurable.ProjectStructureChangeListener { this.requestGradleModels() }, this)
+    // The UI has not yet subscribed to notifications which is fine since we don't want to see "Loading..." at startup.
+    requestGradleModels()
 
     libraryUpdateCheckerDaemon = PsLibraryUpdateCheckerDaemon(this)
     if (!disableAnalysis) {
@@ -81,7 +83,7 @@ class PsContextImpl constructor(
     Disposer.register(parentDisposable, this)
   }
 
-  private fun requestGradleSync() {
+  private fun requestGradleModels() {
     val project = this.project.ideProject
     gradleSyncEventDispatcher.multicaster.syncStarted(project, false, false)
     gradleSync

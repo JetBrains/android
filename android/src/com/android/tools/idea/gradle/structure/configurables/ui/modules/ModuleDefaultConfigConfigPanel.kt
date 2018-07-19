@@ -26,11 +26,11 @@ import com.intellij.ui.navigation.Place
 import javax.swing.JComponent
 
 class ModuleDefaultConfigConfigPanel(
-    val module: PsAndroidModuleDefaultConfig
-) : ConfigPanel<PsAndroidModuleDefaultConfig>(defaultConfigPropertiesModel()), ModelPanel<PsAndroidModule> {
+    val defaultConfig: PsAndroidModuleDefaultConfig
+) : ConfigPanel<PsAndroidModuleDefaultConfig>(defaultConfigPropertiesModel(defaultConfig.module.isLibrary)), ModelPanel<PsAndroidModule> {
 
   init {
-    bind(module.module, module)
+    bind(defaultConfig.module, defaultConfig)
   }
 
   override val title = "Default Config"

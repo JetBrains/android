@@ -15,125 +15,17 @@
  */
 package com.android.tools.adtui.stdui
 
-import com.android.tools.adtui.imagediff.ImageDiffUtil
-import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.google.common.truth.Truth.assertThat
-import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
-import org.junit.After
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito
-import java.awt.Dimension
-import java.awt.Font
-import java.awt.KeyboardFocusManager
 import javax.swing.JList
-import javax.swing.JTextField
 import javax.swing.plaf.basic.BasicComboBoxUI
-
-private const val MAX_PERCENT_DIFFERENT = 5.2f
 
 @RunWith(JUnit4::class)
 class CommonComboBoxTest {
-  private val model = DefaultCommonComboBoxModel("t", listOf("one", "two", "three", "four", "five", "six", "t"))
+  private val model = TestCommonComboBoxModel("t", listOf("one", "two", "three", "four", "five", "six", "t"))
   private val comboBox = CommonComboBox(model)
-  private val focusManager = Mockito.mock(KeyboardFocusManager::class.java)
-
-  @Before
-  fun setUp() {
-    comboBox.font = UIUtil.getFontWithFallback("Courier New", Font.PLAIN, 12)
-  }
-
-  @After
-  fun cleanUp() {
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(null)
-    JBUI.setUserScaleFactor(1.0f)
-  }
-
-  @Test
-  fun regularComboBox() {
-    model.selectedItem = "t"
-    checkLook("regularComboBox.png")
-  }
-
-  @Test
-  fun focusedComboBox() {
-    model.selectedItem = "t"
-    Mockito.`when`(focusManager.focusOwner).thenReturn(comboBox)
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
-    checkLook("focusedComboBox.png")
-  }
-
-  @Test
-  fun disabledComboBox() {
-    model.selectedItem = "t"
-    model.enabled = false
-    checkLook("disabledComboBox.png")
-  }
-
-  @Test
-  fun placeHolderComboBox() {
-    model.placeHolderValue = "t"
-    (comboBox.editor.editorComponent as JTextField).text = ""
-    checkLook("placeHolderComboBox.png")
-  }
-
-  @Test
-  fun errorComboBox() {
-    (comboBox.editor.editorComponent as JTextField).text = "Error"
-    checkLook("errorComboBox.png")
-  }
-
-  @Test
-  fun regularComboBoxHiRes() {
-    model.selectedItem = "t"
-    JBUI.setUserScaleFactor(1.75f)
-    checkLook("regularComboBoxHiRes.png")
-  }
-
-  @Test
-  fun focusedComboBoxHiRes() {
-    model.selectedItem = "t"
-    JBUI.setUserScaleFactor(1.75f)
-    Mockito.`when`(focusManager.focusOwner).thenReturn(comboBox)
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
-    checkLook("focusedComboBoxHiRes.png")
-  }
-
-  @Test
-  fun disabledComboBoxHiRes() {
-    model.selectedItem = "t"
-    JBUI.setUserScaleFactor(1.75f)
-    model.enabled = false
-    checkLook("disabledComboBoxHiRes.png")
-  }
-
-  @Test
-  fun placeHolderComboBoxHiRes() {
-    JBUI.setUserScaleFactor(1.75f)
-    model.placeHolderValue = "H"
-    (comboBox.editor.editorComponent as JTextField).text = ""
-    checkLook("placeHolderComboBoxHiRes.png")
-  }
-
-  @Test
-  fun errorComboBoxHiRes() {
-    JBUI.setUserScaleFactor(1.75f)
-    (comboBox.editor.editorComponent as JTextField).text = "Error"
-    checkLook("errorComboBoxHiRes.png")
-  }
-
-  private fun checkLook(imageName: String) {
-    setFieldSize()
-    ImageDiffUtil.assertImagesSimilar("stdui/combobox/" + imageName, comboBox, 7.0, MAX_PERCENT_DIFFERENT)
-  }
-
-  private fun setFieldSize() {
-    comboBox.size = Dimension(JBUI.scale(120), JBUI.scale(24))
-    comboBox.doLayout()
-  }
 
   @Test
   fun valueChangesArePropagatedToEditor() {
@@ -152,5 +44,13 @@ class CommonComboBoxTest {
     val field = BasicComboBoxUI::class.java.getDeclaredField("listBox")
     field.isAccessible = true
     return field!!.get(comboBox.ui) as JList<*>
+  }
+
+  @Test
+  fun testErrorStateIsSetAndResetOnComboBox() {
+    model.value = "Error"
+    assertThat(comboBox.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(ERROR_VALUE)
+    model.value = "Fixed"
+    assertThat(comboBox.getClientProperty(OUTLINE_PROPERTY)).isNull()
   }
 }

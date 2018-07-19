@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.variant
 
-import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.*
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldAndroidArtifact
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.toNew
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.VariantProto
@@ -43,7 +43,7 @@ data class NewAndroidArtifact(
   override val bundleTaskName: String?,
   override val apkFromBundleTaskName: String?
 ) : AndroidArtifact {
-  constructor(oldAndroidArtifact: IdeAndroidArtifact, artifactSourceProviderFactory: NewArtifactSourceProviderFactory) : this(
+  constructor(oldAndroidArtifact: OldAndroidArtifact, artifactSourceProviderFactory: NewArtifactSourceProviderFactory) : this(
     oldAndroidArtifact.sourceGenTaskName,
     oldAndroidArtifact.signingConfigName,
     oldAndroidArtifact.isSigned,
@@ -55,7 +55,7 @@ data class NewAndroidArtifact(
     oldAndroidArtifact.name,
     oldAndroidArtifact.compileTaskName,
     oldAndroidArtifact.assembleTaskName,
-    NewDependencies(oldAndroidArtifact.level2Dependencies, oldAndroidArtifact.nativeLibraries.orEmpty()),
+    NewDependencies(oldAndroidArtifact.getLevel2Dependencies(), oldAndroidArtifact.nativeLibraries.orEmpty()),
     artifactSourceProviderFactory.build(oldAndroidArtifact),
     oldAndroidArtifact.ideSetupTaskNames.toList(),
     oldAndroidArtifact.instrumentedTestTaskName,

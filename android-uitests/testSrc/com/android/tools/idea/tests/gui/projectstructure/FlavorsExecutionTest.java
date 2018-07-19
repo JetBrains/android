@@ -133,7 +133,7 @@ public class FlavorsExecutionTest {
     flavor1WindowContent.waitForOutput(new PatternTextMatcher(Pattern.compile(flavor1LaunchPattern, Pattern.DOTALL)), 120);
 
     ideFrameFixture
-      .getAndroidToolWindow()
+      .getAndroidLogcatToolWindow()
       .selectDevicesTab()
       .selectProcess(PROCESS_NAME);
 
@@ -151,7 +151,7 @@ public class FlavorsExecutionTest {
     flavor2WindowContent.waitForOutput(new PatternTextMatcher(Pattern.compile(flavor2LaunchPattern, Pattern.DOTALL)), 120);
 
     ideFrameFixture
-      .getAndroidToolWindow()
+      .getAndroidLogcatToolWindow()
       .selectDevicesTab()
       .selectProcess(PROCESS_NAME);
   }

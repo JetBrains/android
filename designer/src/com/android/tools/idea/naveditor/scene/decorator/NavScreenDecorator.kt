@@ -62,32 +62,34 @@ abstract class NavScreenDecorator : SceneDecorator() {
   }
 
   protected fun drawImage(list: DisplayList, sceneContext: SceneContext, component: SceneComponent, rectangle: Rectangle) {
-    list.add(DrawNavScreen(rectangle, buildImage(sceneContext, component)))
+    val (image, oldImage) = buildImage(sceneContext, component)
+    list.add(DrawNavScreen(rectangle, image, oldImage))
   }
 
-  private fun buildImage(sceneContext: SceneContext, component: SceneComponent): CompletableFuture<BufferedImage?>? {
-    val surface = sceneContext.surface ?: return null
-    val configuration = surface.configuration ?: return null
-    val facet = surface.model?.facet ?: return null
+  private fun buildImage(sceneContext: SceneContext, component: SceneComponent): Pair<CompletableFuture<BufferedImage?>, BufferedImage?> {
+    val empty = Pair(CompletableFuture.completedFuture<BufferedImage>(null), null)
+    val surface = sceneContext.surface ?: return empty
+    val configuration = surface.configuration ?: return empty
+    val facet = surface.model?.facet ?: return empty
 
-    val layout = component.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT) ?: return null
-    val resourceUrl = ResourceUrl.parse(layout) ?: return null
+    val layout = component.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT) ?: return empty
+    val resourceUrl = ResourceUrl.parse(layout) ?: return empty
     if (resourceUrl.type != ResourceType.LAYOUT) {
-      return null
+      return empty
     }
     val resourceResolver = configuration.resourceResolver
     val resourceValue = ApplicationManager.getApplication().runReadAction<String> {
       resourceResolver?.resolve(resourceUrl, component.nlComponent.tag)?.value
-    } ?: return null
+    } ?: return empty
 
     val file = File(resourceValue)
     if (!file.exists()) {
-      return null
+      return empty
     }
-    val virtualFile = VfsUtil.findFileByIoFile(file, false) ?: return null
+    val virtualFile = VfsUtil.findFileByIoFile(file, false) ?: return empty
 
-    val psiFile = AndroidPsiUtils.getPsiFileSafely(surface.project, virtualFile) as? XmlFile ?: return null
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(surface.project, virtualFile) as? XmlFile ?: return empty
     val manager = ThumbnailManager.getInstance(facet)
-    return manager.getThumbnail(psiFile, configuration)
+    return Pair(manager.getThumbnail(psiFile, configuration), manager.getOldThumbnail(virtualFile, configuration))
   }
 }

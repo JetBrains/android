@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -29,10 +30,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
-import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
+import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -249,7 +247,9 @@ public class PreviewProvider implements Disposable {
       }
       RenderService renderService = RenderService.getInstance(module.getProject());
       RenderLogger logger = renderService.createLogger(facet);
-      myRenderTask = renderService.createTask(facet, null, configuration, logger, null);
+      myRenderTask = renderService.taskBuilder(facet, configuration)
+                                  .withLogger(logger)
+                                  .build();
     }
 
     return myRenderTask;

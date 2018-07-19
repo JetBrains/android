@@ -15,69 +15,72 @@
  */
 package com.android.tools.adtui.model
 
+import com.android.tools.adtui.model.filter.Filter
+import com.android.tools.adtui.model.filter.FilterHandler
+import com.android.tools.adtui.model.filter.FilterModel
+import com.android.tools.adtui.model.filter.FilterResult
 import org.junit.Test
-import java.util.regex.Pattern
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
-import java.util.function.BiConsumer
 
 class FilterModelTest {
-  private lateinit var myPattern:Pattern
+  private lateinit var myFilter: Filter
   private lateinit var myModel: FilterModel
-  private var myHasBeenGetCalled = false
+  private var myFilterHandled = false
 
   @Before
   fun setUp() {
-    myPattern = Pattern.compile("")
+    myFilter = Filter.EMPTY_FILTER
     myModel = FilterModel()
-    myHasBeenGetCalled = false
-    myModel.addOnFilterChange (BiConsumer { p, _ ->  myPattern = p; myHasBeenGetCalled = true })
-
+    myFilterHandled = false
+    myModel.setFilterHandler(object: FilterHandler() {
+      override fun applyFilter(filter: Filter): FilterResult {
+        myFilter = filter
+        myFilterHandled = true
+        return FilterResult(0, false)
+      }
+    })
   }
 
   @Test
   fun changesText() {
-    myModel.setFilterString("testText");
-    assertThat(myHasBeenGetCalled).isTrue()
-    assertThat(myPattern.matcher("testText").matches()).isTrue()
-    assertThat(myPattern.matcher("testtext").matches()).isTrue()
-    assertThat(myPattern.matcher("test").matches()).isFalse()
+    myModel.setFilter(Filter("testText"))
+    assertThat(myFilterHandled).isTrue()
+    assertThat(myFilter.matches("testText")).isTrue()
+    assertThat(myFilter.matches("testtext")).isTrue()
+    assertThat(myFilter.matches("test")).isFalse()
   }
 
   @Test
   fun changesMatchCase() {
-    myModel.setFilterString("testText");
-    myModel.isMatchCase = true;
-    assertThat(myHasBeenGetCalled).isTrue()
-    assertThat(myModel.isMatchCase).isTrue()
-    assertThat(myPattern.matcher("testText").matches()).isTrue()
-    assertThat(myPattern.matcher("testtext").matches()).isFalse()
-    assertThat(myPattern.matcher("test").matches()).isFalse()
+    myModel.setFilter(Filter("testText", true, false))
+    assertThat(myFilterHandled).isTrue()
+    assertThat(myFilter.isMatchCase).isTrue()
+    assertThat(myFilter.matches("testText")).isTrue()
+    assertThat(myFilter.matches("testtext")).isFalse()
+    assertThat(myFilter.matches("test")).isFalse()
   }
 
   @Test
   fun changesRegex() {
-    myModel.setFilterString("test[A-Z]ext");
-    myModel.isRegex = true;
-    assertThat(myHasBeenGetCalled).isTrue()
-    assertThat(myModel.isRegex).isTrue()
-    assertThat(myPattern.matcher("testText").matches()).isTrue()
-    assertThat(myPattern.matcher("testAext").matches()).isTrue()
-    assertThat(myPattern.matcher("testaext").matches()).isTrue()
-    assertThat(myPattern.matcher("test.ext").matches()).isFalse()
+    myModel.setFilter(Filter("test[A-Z]ext", false, true))
+    assertThat(myFilterHandled).isTrue()
+    assertThat(myFilter.isRegex).isTrue()
+    assertThat(myFilter.matches("testText")).isTrue()
+    assertThat(myFilter.matches("testAext")).isTrue()
+    assertThat(myFilter.matches("testaext")).isTrue()
+    assertThat(myFilter.matches("test.ext")).isFalse()
   }
 
   @Test
   fun changesMatchCaseAndRegex() {
-    myModel.setFilterString("test[A-Z]ext");
-    myModel.isMatchCase = true;
-    myModel.isRegex = true;
-    assertThat(myHasBeenGetCalled).isTrue()
-    assertThat(myModel.isMatchCase).isTrue()
-    assertThat(myModel.isRegex).isTrue()
-    assertThat(myPattern.matcher("testText").matches()).isTrue()
-    assertThat(myPattern.matcher("testAext").matches()).isTrue()
-    assertThat(myPattern.matcher("testaext").matches()).isFalse()
-    assertThat(myPattern.matcher("test.ext").matches()).isFalse()
+    myModel.setFilter(Filter("test[A-Z]ext", true, true))
+    assertThat(myFilterHandled).isTrue()
+    assertThat(myFilter.isMatchCase).isTrue()
+    assertThat(myFilter.isRegex).isTrue()
+    assertThat(myFilter.matches("testText")).isTrue()
+    assertThat(myFilter.matches("testAext")).isTrue()
+    assertThat(myFilter.matches("testaext")).isFalse()
+    assertThat(myFilter.matches("test.ext")).isFalse()
   }
 }

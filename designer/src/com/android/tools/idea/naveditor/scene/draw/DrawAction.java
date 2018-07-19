@@ -23,7 +23,6 @@ import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt
 import com.android.tools.idea.naveditor.scene.NavColorSet;
 import com.android.tools.idea.naveditor.scene.NavDrawHelperKt;
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 

@@ -25,7 +25,7 @@ import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.options.BaseConfigurable;
+import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.ex.SingleConfigurableEditor;
 import com.intellij.openapi.project.Project;
@@ -84,7 +84,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     myOnCloseCallback.accept(selectedConfigSupported ? selectedConfig : null);
   }
 
-  private static class ProfilingConfigurable extends BaseConfigurable {
+  private static class ProfilingConfigurable implements Configurable {
 
     private static final String ADD = "Add";
 

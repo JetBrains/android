@@ -57,23 +57,32 @@ class MigrateToAndroidxAction : BaseRefactoringAction() {
   override fun isAvailableForLanguage(language: Language) = true
 }
 
-class MigrateToAndroidxHandler : RefactoringActionHandler {
-
+class MigrateToAndroidxHandler(var showWarningDialog: Boolean = true,
+                               var callSyncAfterMigration: Boolean = true,
+                               var checkPrerequisites: Boolean = true
+) : RefactoringActionHandler {
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext?) {
-    invoke(project, arrayOf<PsiElement>(file!!), dataContext)
+    invoke(project, if (file == null) arrayOf() else arrayOf<PsiElement>(file), dataContext)
   }
 
   override fun invoke(project: Project, elements: Array<out PsiElement>, dataContext: DataContext?) {
-    if (!checkRefactoringPrerequisites(project)) {
+    if (checkPrerequisites && !checkRefactoringPrerequisites(project)) {
       return
     }
 
-    offerToCreateBackupAndRun(project, "Migrate to AndroidX") {
-      val processor = MigrateToAndroidxProcessor(project, parseMigrationMap())
+    val runProcessor = {
+      val processor = MigrateToAndroidxProcessor(project, parseMigrationMap(), callSyncAfterMigration = callSyncAfterMigration)
       with(processor) {
         setPreviewUsages(true)
         run()
       }
+    }
+
+    if (showWarningDialog) {
+      offerToCreateBackupAndRun(project, "Migrate to AndroidX", runProcessor)
+    }
+    else {
+      runProcessor()
     }
   }
 
@@ -104,42 +113,44 @@ class MigrateToAndroidxHandler : RefactoringActionHandler {
     val moduleModels = ModuleManager.getInstance(project).modules
       .mapNotNull { it to buildModel.getModuleBuildModel(it) }
     val highestCompileSdkVersion = moduleModels
-        .mapNotNull { it.findBuildSdk() }
-        .sorted()
-        .lastOrNull()
-      val supportedCompileSdk = if (highestCompileSdkVersion != null) {
-        AndroidVersion(28) <= highestCompileSdkVersion || highestCompileSdkVersion.codename != null
-      }
-      else {
-        true // Enable by default when we can not find out the version
-      }
+      .mapNotNull { it.findBuildSdk() }
+      .sorted()
+      .lastOrNull()
+    val supportedCompileSdk = if (highestCompileSdkVersion != null) {
+      AndroidVersion(28) <= highestCompileSdkVersion || highestCompileSdkVersion.codename != null
+    }
+    else {
+      true // Enable by default when we can not find out the version
+    }
 
-      val gradleVersionString = moduleModels.mapNotNull { it.second }
-        .map { it.buildscript().dependencies() }
-        .flatMap { it.artifacts() }
-        .filter { it.name().forceString() == "gradle" && it.group().forceString() == "com.android.tools.build" }
-        .map { it.version().getValue(GradlePropertyModel.STRING_TYPE) }
-        .firstOrNull()
-      val supportedGradleVersion = if (gradleVersionString?.startsWith('$') == false) {
-        GradleVersion.tryParse(gradleVersionString)?.isAtLeastIncludingPreviews(3, 2, 0) ?: false
-      }
-      else {
-        // For now, ignore this case since the DSL parser does not seem to handle that correctly
-        true
-      }
+    val gradleVersionString = moduleModels.mapNotNull { it.second }
+      .map { it.buildscript().dependencies() }
+      .flatMap { it.artifacts() }
+      .filter { it.name().forceString() == "gradle" && it.group().forceString() == "com.android.tools.build" }
+      .map { it.version().getValue(GradlePropertyModel.STRING_TYPE) }
+      .firstOrNull()
+    val supportedGradleVersion = if (gradleVersionString?.startsWith('$') == false) {
+      GradleVersion.tryParse(gradleVersionString)?.isAtLeastIncludingPreviews(3, 2, 0) ?: false
+    }
+    else {
+      // For now, ignore this case since the DSL parser does not seem to handle that correctly
+      true
+    }
 
     if (supportedCompileSdk && supportedGradleVersion) {
       return true
     }
 
     val warningContent = if (!supportedCompileSdk) {
-      "You need to have at least have compileSdk 28 set in your module build.gradle to migrate to AndroidX.\n"
-    } else {
+      "You need to have at least have compileSdk 28 set in your module build.gradle to migrate to AndroidX."
+    }
+                         else {
       ""
     } + if (!supportedGradleVersion) {
       "The gradle plugin version in your project build.gradle file needs to be set to at least com.android.tools.build:gradle:3.2.0 " +
       "in order to migrate to AndroidX."
-    } else {
+    }
+                         else {
       ""
     }
 
@@ -150,9 +161,9 @@ class MigrateToAndroidxHandler : RefactoringActionHandler {
   @VisibleForTesting
   private fun parseMigrationMap(): List<AppCompatMigrationEntry> {
     val classesAndCoordinates = mutableListOf<AppCompatMigrationEntry>()
-    val packages =  mutableListOf<PackageMigrationEntry>()
+    val packages = mutableListOf<PackageMigrationEntry>()
 
-    parseMigrationFile(object: MigrationParserVisitor {
+    parseMigrationFile(object : MigrationParserVisitor {
       override fun visitClass(old: String, new: String) {
         classesAndCoordinates.add(ClassMigrationEntry(old, new))
       }
@@ -168,7 +179,8 @@ class MigrateToAndroidxHandler : RefactoringActionHandler {
         newArtifactName: String,
         newBaseVersion: String
       ) {
-        classesAndCoordinates.add(GradleDependencyMigrationEntry(oldGroupName, oldArtifactName, newGroupName, newArtifactName, newBaseVersion))
+        classesAndCoordinates.add(
+          GradleDependencyMigrationEntry(oldGroupName, oldArtifactName, newGroupName, newArtifactName, newBaseVersion))
       }
 
       override fun visitGradleCoordinateUpgrade(groupName: String, artifactName: String, newBaseVersion: String) {

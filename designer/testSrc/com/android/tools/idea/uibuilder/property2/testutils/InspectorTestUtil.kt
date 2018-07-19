@@ -29,6 +29,9 @@ import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import com.android.ide.common.rendering.api.AttributeFormat
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.adtui.ptable2.PTableItem
+import com.intellij.openapi.actionSystem.AnAction
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -36,20 +39,25 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, tag: String, parentTag:
   : SupportTestUtil(projectRule, tag, parentTag) {
   private val _properties: Table<String, String, NelePropertyItem> = HashBasedTable.create()
 
-  var properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
-    private set
+  val properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
 
   val editorProvider = FakeEditorProviderImpl()
 
   val inspector = FakeInspectorPanel()
+
+  init {
+    model.setPropertiesInTest(properties)
+  }
 
   fun addProperty(namespace: String, name: String, type: NelePropertyType) {
     _properties.put(namespace, name, makeProperty(namespace, name, type))
   }
 
   fun addFlagsProperty(namespace: String, name: String, values: List<String>) {
-    val definition = AttributeDefinition(name, null, null, listOf(AttributeFormat.FLAGS))
-    values.forEach { definition.addValue(it) }
+    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, name, null, listOf(AttributeFormat.FLAGS))
+    val valueMappings = HashMap<String, Int?>()
+    values.forEach { valueMappings[it] = null }
+    definition.setValueMappings(valueMappings)
     _properties.put(namespace, name, makeFlagsProperty(namespace, definition))
   }
 
@@ -69,14 +77,15 @@ enum class LineType {
   TITLE, PROPERTY, TABLE, PANEL, SEPARATOR
 }
 
-class FakeInspectorLine(val type: LineType) : InspectorLineModel {
+open class FakeInspectorLine(val type: LineType) : InspectorLineModel {
   override var visible = true
   override var hidden = false
   override var focusable = true
   override var parent: InspectorLineModel? = null
+  var actions = listOf<AnAction>()
+  open val tableModel: PTableModel? = null
   var title: String? = null
   var editorModel: PropertyEditorModel? = null
-  var tableModel: PTableModel? = null
   var expandable = false
   var expanded = false
   val children = mutableListOf<InspectorLineModel>()
@@ -103,12 +112,25 @@ class FakeInspectorLine(val type: LineType) : InspectorLineModel {
   }
 }
 
+class FakeTableLine(override val tableModel: PTableModel) : FakeInspectorLine(LineType.TABLE), TableLineModel {
+  override var selectedItem: PTableItem? = null
+
+  override fun requestFocus(item: PTableItem) {
+    selectedItem = item
+  }
+
+  override fun stopEditing() {
+    selectedItem = null
+  }
+}
+
 class FakeInspectorPanel : InspectorPanel {
   val lines = mutableListOf<FakeInspectorLine>()
 
-  override fun addTitle(title: String): InspectorLineModel {
+  override fun addTitle(title: String, vararg actions: AnAction): InspectorLineModel {
     val line = FakeInspectorLine(LineType.TITLE)
     line.title = title
+    line.actions = actions.asList()
     lines.add(line)
     return line
   }
@@ -125,9 +147,8 @@ class FakeInspectorPanel : InspectorPanel {
   override fun addTable(tableModel: PTableModel,
                         searchable: Boolean,
                         tableUI: TableUIProvider,
-                        parent: InspectorLineModel?): InspectorLineModel {
-    val line = FakeInspectorLine(LineType.TABLE)
-    line.tableModel = tableModel
+                        parent: InspectorLineModel?): TableLineModel {
+    val line = FakeTableLine(tableModel)
     lines.add(line)
     addAsChild(line, parent)
     return line

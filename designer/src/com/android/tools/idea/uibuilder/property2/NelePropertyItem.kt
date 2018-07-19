@@ -30,6 +30,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getNamespaceResolver
 import com.android.tools.idea.uibuilder.property2.support.OpenResourceManagerAction
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
+import com.android.utils.HashCodes
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.TransactionGuard
@@ -37,7 +38,6 @@ import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.psi.xml.XmlTag
 import icons.StudioIcons
 import org.jetbrains.android.dom.attrs.AttributeDefinition
-import java.util.*
 import javax.swing.Icon
 
 /**
@@ -62,10 +62,6 @@ open class NelePropertyItem(
   val model: NelePropertiesModel,
   val components: List<NlComponent>
 ) : PropertyItem, ActionButtonSupport {
-
-  init {
-    assert(components.isNotEmpty())
-  }
 
   override var value: String?
     get() {
@@ -111,11 +107,11 @@ open class NelePropertyItem(
 
   override fun equals(other: Any?) =
     when (other) {
-      is NelePropertyItem -> namespace == other.namespace && name == other.name && type == type
+      is NelePropertyItem -> namespace == other.namespace && name == other.name
       else -> false
     }
 
-  override fun hashCode() = Objects.hash(namespace, name, type)
+  override fun hashCode() = HashCodes.mix(namespace.hashCode(), name.hashCode())
 
   private fun resolveValue(value: String?): String? {
     return resolveValueUsingResolver(value ?: model.provideDefaultValue(this))
@@ -193,7 +189,7 @@ open class NelePropertyItem(
 
   private fun setCommonComponentValue(newValue: String?) {
     assert(ApplicationManager.getApplication().isDispatchThread)
-    if (model.facet.module.project.isDisposed) {
+    if (model.facet.module.project.isDisposed || components.isEmpty()) {
       return
     }
     val componentName = if (components.size == 1) components[0].tagName else "Multiple"
@@ -210,7 +206,7 @@ open class NelePropertyItem(
     val sb = StringBuilder(100)
     sb.append(findNamespacePrefix())
     sb.append(name)
-    val value = definition?.getDocValue(null) ?: ""
+    val value = definition?.getDescription(null) ?: ""
     if (value.isNotEmpty()) {
       sb.append(": ")
       sb.append(value)
@@ -256,7 +252,7 @@ open class NelePropertyItem(
     }
   }
 
-  override fun getAction(): AnAction {
+  override fun getAction(): AnAction? {
     return OpenResourceManagerAction(this)
   }
 

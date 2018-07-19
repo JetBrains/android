@@ -56,7 +56,11 @@ class NavDesignSurfaceTest : NavTestCase() {
 
   fun testSkipContentResize() {
     val surface = NavDesignSurface(project, myRootDisposable)
-    surface.model = model("nav.xml") { navigation("root") }
+    surface.model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+      }
+    }
     LayoutTestCase.assertFalse(surface.isSkipContentResize)
     surface.zoomToFit()
     LayoutTestCase.assertFalse(surface.isSkipContentResize)

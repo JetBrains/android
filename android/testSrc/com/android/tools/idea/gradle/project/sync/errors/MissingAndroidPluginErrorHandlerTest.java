@@ -154,7 +154,7 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     assertThat(quickFixes).hasSize(2);
     assertThat(quickFixes.get(0)).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
     AddGoogleMavenRepositoryHyperlink addHyperlink = (AddGoogleMavenRepositoryHyperlink)quickFixes.get(0);
-    assertThat(addHyperlink.getBuildFile()).isNull();
+    assertThat(addHyperlink.getBuildFiles()).isNotEmpty();
     assertThat(quickFixes.get(1)).isInstanceOf(OpenPluginBuildFileHyperlink.class);
   }
 
@@ -181,7 +181,7 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
   private static void verifyAddHyperlink(@NotNull NotificationHyperlink hyperlink, @NotNull String expectedPath) {
     assertThat(hyperlink).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
     AddGoogleMavenRepositoryHyperlink addHyperlink = (AddGoogleMavenRepositoryHyperlink)hyperlink;
-    assertThat(toSystemDependentName(addHyperlink.getBuildFile().getPath())).isEqualTo(expectedPath);
+    assertThat(toSystemDependentName(addHyperlink.getBuildFiles().get(0).getPath())).isEqualTo(expectedPath);
   }
 
   private static void verifyOpenHyperlink(@NotNull NotificationHyperlink hyperlink, @NotNull String expectedPath) {

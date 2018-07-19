@@ -41,6 +41,7 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
     myGradleDslFile = gradleDslFile;
   }
 
+  @Override
   @Nullable
   public PsiElement getPsiElement() {
     return myGradleDslFile.getPsiElement();

@@ -58,7 +58,8 @@ class SimplePropertyEditorTest : UsefulTestCase() {
   private var defaultValue: String? = "default"
   private var translateDsl = mutableMapOf<DslText, Annotated<ParsedValue<String>>>()
   private var wellKnownValuesFuture: ListenableFuture<List<ValueDescriptor<String>>> =
-    immediateFuture(listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two")))
+    immediateFuture(listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two"),
+                           ValueDescriptor(ParsedValue.Set.Parsed(null, DslText.Reference("well_known_reference")))))
 
   private val invalidValueParsed = ParsedValue.Set.Parsed("invalid", DslText.Literal)
                 .annotateWithError("invalid text message")
@@ -228,6 +229,17 @@ class SimplePropertyEditorTest : UsefulTestCase() {
     val editor = SimplePropertyEditor(property.bind(model), property.bindContext(null, model), null, listOf())
     assertThat<Any?>(editor.selectedItem, equalTo(("some_reference" to "1").asAnnotatedParsed()))
     assertThat(editor.testPlainTextStatus, equalTo(""))
+  }
+
+  fun testLoadsWellKnownReferenceWithError() {
+    val knownReferenceParsedValue = ParsedValue.Set.Parsed(null, DslText.Reference("well_known_reference"))
+    parsedModel.value = knownReferenceParsedValue.annotateWithError("error")
+    resolvedModel.value = null
+    val editor = SimplePropertyEditor(property.bind(model), property.bindContext(null, model), null, listOf())
+    assertThat(editor.testWatermark(), equalTo("\$well_known_reference"))  // No error messages here.
+
+    assertThat(editor.testPlainTextStatus, equalTo(""))
+    assertThat<Any?>(editor.selectedItem, equalTo(knownReferenceParsedValue.annotated()))
   }
 
   fun testLoadsInterpolatedString() {

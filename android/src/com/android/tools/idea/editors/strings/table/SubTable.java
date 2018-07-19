@@ -177,6 +177,19 @@ final class SubTable extends JBTable implements DataProvider, PasteProvider {
   }
 
   @Override
+  public int getRowHeight() {
+    int subTableRowHeight = super.getRowHeight();
+    int frozenColumnTableRowHeight = myFrozenColumnTable.getRowHeight();
+
+    if (subTableRowHeight > frozenColumnTableRowHeight) {
+      myFrozenColumnTable.setRowHeight(subTableRowHeight);
+      return subTableRowHeight;
+    }
+
+    return frozenColumnTableRowHeight;
+  }
+
+  @Override
   public void createDefaultColumnsFromModel() {
     if (myFrozenColumnTable == null) {
       return;

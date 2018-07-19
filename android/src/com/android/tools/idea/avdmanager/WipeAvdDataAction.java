@@ -23,7 +23,7 @@ import java.awt.event.ActionEvent;
 
 public class WipeAvdDataAction extends AvdUiAction {
   public WipeAvdDataAction(AvdInfoProvider avdInfoProvider) {
-    super(avdInfoProvider, "Wipe Data", "Wipe the user data of this AVD", AllIcons.Modules.Edit);
+    super(avdInfoProvider, "Wipe Data", "Wipe the user data of this AVD", AllIcons.Actions.Edit);
   }
 
   @Override

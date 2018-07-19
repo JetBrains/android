@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CaptureNode;
@@ -31,9 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 
 /**
  * Manages states of the selected capture, such as current select thread, capture details (i.e top down tree, bottom up true, chart).
@@ -50,11 +49,11 @@ public class CaptureModel {
    */
   public static final int NO_THREAD = -1;
 
-  private static final Map<Details.Type, Consumer<FeatureTracker>> DETAILS_TRACKERS = ImmutableMap.of(
-    CaptureModel.Details.Type.TOP_DOWN, FeatureTracker::trackSelectCaptureTopDown,
-    CaptureModel.Details.Type.BOTTOM_UP, FeatureTracker::trackSelectCaptureBottomUp,
-    CaptureModel.Details.Type.CALL_CHART, FeatureTracker::trackSelectCaptureCallChart,
-    CaptureModel.Details.Type.FLAME_CHART, FeatureTracker::trackSelectCaptureFlameChart
+  private static final Map<CaptureDetails.Type, Consumer<FeatureTracker>> DETAILS_TRACKERS = ImmutableMap.of(
+    CaptureDetails.Type.TOP_DOWN, FeatureTracker::trackSelectCaptureTopDown,
+    CaptureDetails.Type.BOTTOM_UP, FeatureTracker::trackSelectCaptureBottomUp,
+    CaptureDetails.Type.CALL_CHART, FeatureTracker::trackSelectCaptureCallChart,
+    CaptureDetails.Type.FLAME_CHART, FeatureTracker::trackSelectCaptureFlameChart
   );
 
   @NotNull
@@ -71,11 +70,11 @@ public class CaptureModel {
   /**
    * A filter that is applied to the current {@link CaptureNode}.
    */
-  @Nullable
-  private Pattern myFilter;
+  @NotNull
+  private Filter myFilter = Filter.EMPTY_FILTER;
 
   @Nullable
-  private Details myDetails;
+  private CaptureDetails myDetails;
 
   private int myTotalNodeCount;
 
@@ -149,7 +148,7 @@ public class CaptureModel {
     return myClockType;
   }
 
-  public void setFilter(@Nullable Pattern filter) {
+  public void setFilter(@NotNull Filter filter) {
     if (Objects.equals(filter, myFilter)) {
       return;
     }
@@ -157,7 +156,7 @@ public class CaptureModel {
     rebuildDetails();
   }
 
-  public void setDetails(@Nullable Details.Type type) {
+  public void setDetails(@Nullable CaptureDetails.Type type) {
     if (type != null && myDetails != null && type == myDetails.getType()) {
       return;
     }
@@ -170,7 +169,7 @@ public class CaptureModel {
   }
 
   @Nullable
-  public Details getDetails() {
+  public CaptureDetails getDetails() {
     return myDetails;
   }
 
@@ -179,11 +178,11 @@ public class CaptureModel {
       buildDetails(null);
     }
     else {
-      buildDetails(myDetails == null ? Details.Type.CALL_CHART : myDetails.getType());
+      buildDetails(myDetails == null ? CaptureDetails.Type.CALL_CHART : myDetails.getType());
     }
   }
 
-  private void buildDetails(@Nullable Details.Type type) {
+  private void buildDetails(@Nullable CaptureDetails.Type type) {
     updateCaptureConvertedRange();
     myTotalNodeCount = 0;
     myFilterNodeCount = 0;
@@ -238,7 +237,7 @@ public class CaptureModel {
     if (!matches && allChildrenUnmatch) {
       node.setFilterType(CaptureNode.FilterType.UNMATCH);
     }
-    else if (nodeExactMatch && myFilter != null) {
+    else if (nodeExactMatch && !myFilter.isEmpty()) {
       node.setFilterType(CaptureNode.FilterType.EXACT_MATCH);
     }
     else {
@@ -310,205 +309,6 @@ public class CaptureModel {
   private void setConvertedRange(double min, double max) {
     if (Math.abs(myCaptureConvertedRange.getMin() - min) > EPSILON || Math.abs(myCaptureConvertedRange.getMax() - max) > EPSILON) {
       myCaptureConvertedRange.set(min, max);
-    }
-  }
-
-  public interface Details {
-    enum Type {
-      TOP_DOWN(TopDown::new),
-      BOTTOM_UP(BottomUp::new),
-      CALL_CHART(CallChart::new),
-      FLAME_CHART(FlameChart::new);
-
-      @NotNull
-      private final BiFunction<Range, CaptureNode, Details> myBuilder;
-
-      Type(@NotNull BiFunction<Range, CaptureNode, Details> builder) {
-        myBuilder = builder;
-      }
-
-      public Details build(Range range, CaptureNode node) {
-        return myBuilder.apply(range, node);
-      }
-    }
-
-    Type getType();
-  }
-
-  public static class TopDown implements Details {
-    @Nullable private final TopDownTreeModel myModel;
-
-    public TopDown(@NotNull Range range, @Nullable CaptureNode node) {
-      myModel = node == null ? null : new TopDownTreeModel(range, new TopDownNode(node));
-    }
-
-    @Nullable
-    public TopDownTreeModel getModel() {
-      return myModel;
-    }
-
-    @Override
-    public Type getType() {
-      return Type.TOP_DOWN;
-    }
-  }
-
-  public static class BottomUp implements Details {
-    @Nullable private BottomUpTreeModel myModel;
-
-    public BottomUp(@NotNull Range range, @Nullable CaptureNode node) {
-      myModel = node == null ? null : new BottomUpTreeModel(range, new BottomUpNode(node));
-    }
-
-    @Nullable
-    public BottomUpTreeModel getModel() {
-      return myModel;
-    }
-
-    @Override
-    public Type getType() {
-      return Type.BOTTOM_UP;
-    }
-  }
-
-  public interface ChartDetails extends Details {
-    @Nullable
-    CaptureNode getNode();
-  }
-
-  public static class CallChart implements ChartDetails {
-    @NotNull private final Range myRange;
-    @Nullable private CaptureNode myNode;
-
-    public CallChart(@NotNull Range range, @Nullable CaptureNode node) {
-      myRange = range;
-      myNode = node;
-    }
-
-    @NotNull
-    public Range getRange() {
-      return myRange;
-    }
-
-    @Override
-    @Nullable
-    public CaptureNode getNode() {
-      return myNode;
-    }
-
-    @Override
-    public Type getType() {
-      return Type.CALL_CHART;
-    }
-  }
-
-  public static class FlameChart implements ChartDetails {
-    public enum Aspect {
-      /**
-       * When the root changes.
-       */
-      NODE
-    }
-
-    @NotNull private final Range myFlameRange;
-    @Nullable private CaptureNode myFlameNode;
-    @Nullable private final TopDownNode myTopDownNode;
-
-    @NotNull private final Range mySelectionRange;
-    @NotNull private final AspectModel<Aspect> myAspectModel;
-
-    public FlameChart(@NotNull Range selectionRange, @Nullable CaptureNode captureNode) {
-      mySelectionRange = selectionRange;
-      myFlameRange = new Range();
-      myAspectModel = new AspectModel<>();
-
-      if (captureNode == null) {
-        myFlameNode = null;
-        myTopDownNode = null;
-        return;
-      }
-      myTopDownNode = new TopDownNode(captureNode);
-
-      selectionRange.addDependency(myAspectModel).onChange(Range.Aspect.RANGE, this::selectionRangeChanged);
-      selectionRangeChanged();
-    }
-
-    private void selectionRangeChanged() {
-      assert myTopDownNode != null;
-      myTopDownNode.update(mySelectionRange);
-      if (myTopDownNode.getTotal() > 0) {
-        double start = Math.max(myTopDownNode.getNodes().get(0).getStart(), mySelectionRange.getMin());
-        myFlameNode = convertToFlameChart(myTopDownNode, start, 0);
-      }
-      else {
-        myFlameNode = null;
-      }
-
-      myFlameRange.set(mySelectionRange);
-      myAspectModel.changed(Aspect.NODE);
-    }
-
-    @NotNull
-    public Range getRange() {
-      return myFlameRange;
-    }
-
-    @Override
-    @Nullable
-    public CaptureNode getNode() {
-      return myFlameNode;
-    }
-
-    @NotNull
-    public AspectModel<Aspect> getAspect() {
-      return myAspectModel;
-    }
-
-    @Override
-    public Type getType() {
-      return Type.FLAME_CHART;
-    }
-
-    /**
-     * Produces a flame chart that is similar to {@link CallChart}, but the identical methods with the same sequence of callers
-     * are combined into one wider bar. It converts it from {@link TopDownNode} as it's similar to FlameChart and
-     * building a {@link TopDownNode} instance only on creation gives a performance improvement in every update.
-     */
-    private CaptureNode convertToFlameChart(@NotNull TopDownNode topDown, double start, int depth) {
-      assert topDown.getTotal() > 0;
-
-      CaptureNode node = new CaptureNode(topDown.getNodes().get(0).getData());
-      node.setFilterType(topDown.getNodes().get(0).getFilterType());
-      node.setStartGlobal((long)start);
-      node.setStartThread((long)start);
-      node.setEndGlobal((long)(start + topDown.getTotal()));
-      node.setEndThread((long)(start + topDown.getTotal()));
-
-      node.setDepth(depth);
-
-      for (TopDownNode child : topDown.getChildren()) {
-        child.update(mySelectionRange);
-      }
-
-      List<TopDownNode> sortedChildren = new ArrayList<>(topDown.getChildren());
-      // When we display a topdown node in the ui, its sorting handled by the table's sorting mechanism.
-      // Conversely, in the flame chart we take care of sorting.
-      // List#sort api is stable, i.e it keeps order of the appearance if sorting arguments are equal.
-      sortedChildren.sort((o1, o2) -> {
-        int cmp = Boolean.compare(o1.isUnmatched(), o2.isUnmatched());
-        return cmp == 0 ? Double.compare(o2.getTotal(), o1.getTotal()) : cmp;
-      });
-
-      for (TopDownNode child : sortedChildren) {
-        if (child.getTotal() == 0) {
-          // Sorted in descending order, so starting from now every child's total is zero.
-          continue;
-        }
-        node.addChild(convertToFlameChart(child, start, depth + 1));
-        start += child.getTotal();
-      }
-
-      return node;
     }
   }
 }

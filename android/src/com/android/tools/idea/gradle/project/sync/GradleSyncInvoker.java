@@ -276,7 +276,7 @@ public class GradleSyncInvoker {
     public boolean useCachedGradleModels;
     public boolean skipAndroidPluginUpgrade;
     // Perform a variant-only sync if not null.
-    @Nullable public VariantOnlySyncOptions myVariantOnlySyncOptions;
+    @Nullable public VariantOnlySyncOptions variantOnlySyncOptions;
 
     @NotNull
     public static Request projectLoaded() {
@@ -315,25 +315,26 @@ public class GradleSyncInvoker {
              cleanProject == request.cleanProject &&
              generateSourcesOnSuccess == request.generateSourcesOnSuccess &&
              useCachedGradleModels == request.useCachedGradleModels &&
+             skipAndroidPluginUpgrade == request.skipAndroidPluginUpgrade &&
              trigger == request.trigger &&
-             Objects.equals(myVariantOnlySyncOptions, request.myVariantOnlySyncOptions);
+             Objects.equals(variantOnlySyncOptions, request.variantOnlySyncOptions);
     }
 
     @Override
     public int hashCode() {
-      return Objects
-        .hash(runInBackground, cleanProject, generateSourcesOnSuccess, useCachedGradleModels, trigger, myVariantOnlySyncOptions);
+      return Objects.hash(runInBackground, cleanProject, generateSourcesOnSuccess, useCachedGradleModels, skipAndroidPluginUpgrade, trigger, variantOnlySyncOptions);
     }
 
     @Override
     public String toString() {
       return "RequestSettings{" +
-             "myRunInBackground=" + runInBackground +
-             ", myCleanProject=" + cleanProject +
-             ", myGenerateSourcesOnSuccess=" + generateSourcesOnSuccess +
-             ", myUseCachedGradleModels=" + useCachedGradleModels +
-             ", myTrigger=" + trigger +
-             ", variantOnlySyncOptions=" + myVariantOnlySyncOptions +
+             "runInBackground=" + runInBackground +
+             ", cleanProject=" + cleanProject +
+             ", generateSourcesOnSuccess=" + generateSourcesOnSuccess +
+             ", useCachedGradleModels=" + useCachedGradleModels +
+             ", skipAndroidPluginUpgrade=" + skipAndroidPluginUpgrade +
+             ", trigger=" + trigger +
+             ", variantOnlySyncOptions=" + variantOnlySyncOptions +
              '}';
     }
   }

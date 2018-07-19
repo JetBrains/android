@@ -59,9 +59,9 @@ class BottomUpDetailsViewTest {
 
   @Test
   fun showsNoDataForThreadMessageWhenNodeIsNull() {
-    stage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP)
+    stage.setCaptureDetails(CaptureDetails.Type.BOTTOM_UP)
 
-    val bottomUp = stage.captureDetails as CaptureModel.BottomUp
+    val bottomUp = stage.captureDetails as CaptureDetails.BottomUp
     assertThat(bottomUp.model).isNull()
 
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(stageView, bottomUp)
@@ -80,10 +80,10 @@ class BottomUpDetailsViewTest {
       val capture = CpuProfilerUITestUtils.validCapture()
       setAndSelectCapture(capture)
       selectedThread = capture.mainThreadId
-      setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP)
+      setCaptureDetails(CaptureDetails.Type.BOTTOM_UP)
     }
 
-    val bottomUp = stage.captureDetails as CaptureModel.BottomUp
+    val bottomUp = stage.captureDetails as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(stageView, bottomUp)
 
     val noDataInstructionsList = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
@@ -103,13 +103,13 @@ class BottomUpDetailsViewTest {
       val capture = CpuProfilerUITestUtils.validCapture()
       setAndSelectCapture(capture)
       selectedThread = capture.mainThreadId
-      setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP)
+      setCaptureDetails(CaptureDetails.Type.BOTTOM_UP)
     }
 
     // Select a range where we don't have trace data
     stage.studioProfilers.timeline.selectionRange.set(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
 
-    val bottomUp = stage.captureDetails as CaptureModel.BottomUp
+    val bottomUp = stage.captureDetails as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(stageView, bottomUp)
 
     val noDataInstructions = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().first {

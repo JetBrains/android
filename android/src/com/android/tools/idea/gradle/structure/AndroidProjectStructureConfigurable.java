@@ -56,7 +56,10 @@ import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.options.*;
+import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.options.SearchableConfigurable;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
@@ -95,8 +98,7 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 /**
  * Contents of the "Project Structure" dialog, for Gradle-based Android projects, in Android Studio.
  */
-public class AndroidProjectStructureConfigurable extends BaseConfigurable
-  implements GradleSyncListener, SearchableConfigurable, Configurable.NoScroll {
+public class AndroidProjectStructureConfigurable implements GradleSyncListener, SearchableConfigurable, Configurable.NoScroll {
   public static final DataKey<AndroidProjectStructureConfigurable> KEY = DataKey.create("AndroidProjectStructureConfiguration");
 
   private static final Logger LOG = Logger.getInstance(AndroidProjectStructureConfigurable.class);
@@ -263,7 +265,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable
         return true;
       }
     }
-    return super.isModified();
+    return false;
   }
 
   @Override

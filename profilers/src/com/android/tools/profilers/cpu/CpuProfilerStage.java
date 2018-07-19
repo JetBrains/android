@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
+import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
@@ -34,6 +35,7 @@ import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
+import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -51,7 +53,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 
 public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final String HAS_USED_CPU_CAPTURE = "cpu.used.capture";
@@ -104,9 +105,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   /**
    * Default capture details to be set after stopping a capture.
-   * {@link CaptureModel.Details.Type#CALL_CHART} is used by default because it's useful and fast to compute.
+   * {@link CaptureDetails.Type#CALL_CHART} is used by default because it's useful and fast to compute.
    */
-  private static final CaptureModel.Details.Type DEFAULT_CAPTURE_DETAILS = CaptureModel.Details.Type.CALL_CHART;
+  private static final CaptureDetails.Type DEFAULT_CAPTURE_DETAILS = CaptureDetails.Type.CALL_CHART;
 
   private final CpuThreadsModel myThreadsStates;
   private final CpuKernelModel myCpuKernelModel;
@@ -172,12 +173,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     PARSING_FAILURE,
     // Waiting for the service to respond a start capturing call
     STARTING,
-    // An attempt to start capture has failed
-    START_FAILURE,
     // Waiting for the service to respond a stop capturing call
     STOPPING,
-    // An attempt to stop capture has failed
-    STOP_FAILURE,
   }
 
   @NotNull
@@ -211,11 +208,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    * Parsed captures should be obtained from this object.
    */
   private final CpuCaptureParser myCaptureParser;
-
-  /**
-   * State to track if an invalid (excluding "cancel") selection has been made.
-   */
-  private boolean mySelectionFailure;
 
   /**
    * Used to navigate across {@link CpuCapture}. The iterator navigates through trace IDs of captures generated in the current session.
@@ -352,13 +344,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       selectionModel.addListener(new SelectionListener() {
         @Override
         public void selectionCreated() {
-          mySelectionFailure = false;
           getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectRange();
         }
 
         @Override
         public void selectionCleared() {
-          mySelectionFailure = false;
           if (myCaptureModel.getCapture() != null) {
             // when we switch from a session into another session of import trace mode, we first create a new stage, and then the selection
             // on timeline is cleared which would trigger this method in the new stage, but at that point myCaptureModel.getCapture()
@@ -369,7 +359,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
         @Override
         public void selectionCreationFailure() {
-          mySelectionFailure = false;
           if (myCaptureModel.getCapture() != null) {
             setAndSelectCapture(myCaptureModel.getCapture());
           }
@@ -380,20 +369,17 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       selectionModel.addListener(new SelectionListener() {
         @Override
         public void selectionCreated() {
-          mySelectionFailure = false;
           getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectRange();
           selectionChanged();
         }
 
         @Override
         public void selectionCleared() {
-          mySelectionFailure = false;
           selectionChanged();
         }
 
         @Override
         public void selectionCreationFailure() {
-          mySelectionFailure = true;
           selectionChanged();
         }
       });
@@ -459,10 +445,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @NotNull
   public CpuProfilerConfigModel getProfilerConfigModel() {
     return myProfilerConfigModel;
-  }
-
-  public boolean isSelectionFailure() {
-    return mySelectionFailure;
   }
 
   @Override
@@ -580,12 +562,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     else {
       getLogger().warn("Unable to start tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
-      setCaptureState(CaptureState.START_FAILURE);
       getStudioProfilers().getIdeServices()
                           .showErrorBalloon(CAPTURE_START_FAILURE_BALLOON_TITLE, CAPTURE_START_FAILURE_BALLOON_TEXT, CPU_BUG_TEMPLATE_URL,
                                             REPORT_A_BUG_TEXT);
-      // START_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
+      // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
+      setCapture(null);
     }
   }
 
@@ -659,15 +641,19 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   private void stopCapturingCallback(CpuProfilingAppStopResponse response) {
     CpuCaptureMetadata captureMetadata = new CpuCaptureMetadata(myProfilerConfigModel.getProfilingConfiguration());
+    long estimateDurationMs = TimeUnit.NANOSECONDS.toMicros(currentTimeNs() - myCaptureStartTimeNs);
+    // Set the estimate duration of the capture, i.e. the time difference between device time when user clicked start and stop.
+    // If the capture is successful, it will be overridden by a more accurate time, calculated from the capture itself.
+    captureMetadata.setCaptureDurationMs(estimateDurationMs);
     if (!response.getStatus().equals(CpuProfilingAppStopResponse.Status.SUCCESS)) {
       getLogger().warn("Unable to stop tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
-      setCaptureState(CaptureState.STOP_FAILURE);
       getStudioProfilers().getIdeServices()
                           .showErrorBalloon(CAPTURE_STOP_FAILURE_BALLOON_TITLE, CAPTURE_STOP_FAILURE_BALLOON_TEXT, CPU_BUG_TEMPLATE_URL,
                                             REPORT_A_BUG_TEXT);
-      // STOP_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
+      // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
+      setCapture(null);
       captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE);
       getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
     }
@@ -1008,7 +994,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myCaptureModel.setThread(id);
     Range range = getStudioProfilers().getTimeline().getSelectionRange();
     if (range.isEmpty()) {
-      mySelectionFailure = true;
       myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
       setProfilerMode(ProfilerMode.EXPANDED);
     }
@@ -1059,15 +1044,15 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
   }
 
-  public void setCaptureFilter(@Nullable Pattern filter, @NotNull FilterModel model) {
+  public void setCaptureFilter(@NotNull Filter filter) {
     myCaptureModel.setFilter(filter);
-    trackFilterUsage(filter, model);
+    trackFilterUsage(filter);
   }
 
-  private void trackFilterUsage(@Nullable Pattern filter, @NotNull FilterModel model) {
+  private void trackFilterUsage(@NotNull Filter filter) {
     FilterMetadata filterMetadata = new FilterMetadata();
     FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
-    CaptureModel.Details details = getCaptureDetails();
+    CaptureDetails details = getCaptureDetails();
     assert details != null;
     switch (details.getType()) {
       case TOP_DOWN:
@@ -1083,10 +1068,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         filterMetadata.setView(FilterMetadata.View.CPU_FLAME_CHART);
         break;
     }
-    filterMetadata.setFeaturesUsed(model.getIsMatchCase(), model.getIsRegex());
+    filterMetadata.setFeaturesUsed(filter.isMatchCase(), filter.isRegex());
     filterMetadata.setMatchedElementCount(myCaptureModel.getFilterNodeCount());
     filterMetadata.setTotalElementCount(myCaptureModel.getNodeCount());
-    filterMetadata.setFilterTextLength(filter == null ? 0 : filter.pattern().length());
+    filterMetadata.setFilterTextLength(filter.isEmpty() ? 0 : filter.getFilterString().length());
     featureTracker.trackFilterMetadata(filterMetadata);
   }
 
@@ -1131,12 +1116,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return capture;
   }
 
-  public void setCaptureDetails(@Nullable CaptureModel.Details.Type type) {
+  public void setCaptureDetails(@Nullable CaptureDetails.Type type) {
     myCaptureModel.setDetails(type);
   }
 
   @Nullable
-  public CaptureModel.Details getCaptureDetails() {
+  public CaptureDetails getCaptureDetails() {
     return myCaptureModel.getDetails();
   }
 

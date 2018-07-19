@@ -15,8 +15,12 @@
  */
 package org.jetbrains.android.dom.attrs;
 
-import com.android.ide.common.rendering.api.AttributeFormat;
-import com.google.common.collect.Multimap;
+import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.resources.ResourceType;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -33,33 +37,116 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 
-public class AttributeDefinitionsImpl implements AttributeDefinitions {
+public final class AttributeDefinitionsImpl implements AttributeDefinitions {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl");
+  private static final Splitter PIPE_SPLITTER = Splitter.on('|').trimResults();
 
-  // Used for parsing group of attributes, used heuristically to skip long comments before <eat-comment/>
+  // Used for parsing group of attributes, used heuristically to skip long comments before <eat-comment/>.
   private static final int ATTR_GROUP_MAX_CHARACTERS = 40;
 
-  private final Map<String, AttributeDefinition> myAttrs = new HashMap<>();
-  private final Map<String, StyleableDefinitionImpl> myStyleables = new HashMap<>();
+  @NotNull private final Map<ResourceReference, AttributeDefinition> myAttrs = new HashMap<>();
+  @NotNull private final Map<ResourceReference, StyleableDefinitionImpl> myStyleables = new HashMap<>();
 
-  private final AttributeDefinitions mySystemAttributeDefinitions;
+  @Nullable private final AttributeDefinitions myFrameworkAttributeDefinitions;
 
-  public AttributeDefinitionsImpl(@NotNull XmlFile... files) {
-    mySystemAttributeDefinitions = null;
+  private AttributeDefinitionsImpl(@Nullable AttributeDefinitions frameworkAttributeDefinitions) {
+    myFrameworkAttributeDefinitions = frameworkAttributeDefinitions;
+  }
+
+  public static AttributeDefinitions parseFrameworkFiles(@NotNull XmlFile... files) {
+    AttributeDefinitionsImpl attributeDefinitions = new AttributeDefinitionsImpl(null);
     for (XmlFile file : files) {
-      addAttrsFromFile(file, null);
+      attributeDefinitions.addAttrsFromFile(file);
+    }
+    return attributeDefinitions;
+  }
+
+  public static AttributeDefinitions create(@Nullable AttributeDefinitions frameworkAttributeDefinitions,
+                                            @NotNull AbstractResourceRepository resources) {
+    AttributeDefinitionsImpl attributeDefinitions = new AttributeDefinitionsImpl(frameworkAttributeDefinitions);
+    attributeDefinitions.initializeFromResourceRepository(resources);
+    return attributeDefinitions;
+  }
+
+  private void initializeFromResourceRepository(@NotNull AbstractResourceRepository resources) {
+    for (ResourceNamespace namespace : resources.getNamespaces()) {
+      List<ResourceItem> items = resources.getResourceItems(namespace, ResourceType.ATTR);
+      for (ResourceItem item : items) {
+        ResourceValue resourceValue = item.getResourceValue();
+        if (resourceValue instanceof AttrResourceValue) {
+          createOrUpdateAttributeDefinition((AttrResourceValue)resourceValue, null);
+        }
+      }
+    }
+
+    for (ResourceNamespace namespace : resources.getNamespaces()) {
+      List<ResourceItem> items = resources.getResourceItems(namespace, ResourceType.STYLEABLE);
+      for (ResourceItem item : items) {
+        ResourceValue resourceValue = item.getResourceValue();
+        if (resourceValue instanceof StyleableResourceValue) {
+          StyleableResourceValue styleableValue = (StyleableResourceValue)resourceValue;
+          ResourceReference reference = styleableValue.asReference();
+          StyleableDefinitionImpl styleable =
+              myStyleables.computeIfAbsent(reference, (ref) -> new StyleableDefinitionImpl(namespace, styleableValue.getName()));
+          for (AttrResourceValue attrValue : styleableValue.getAllAttributes()) {
+            createOrUpdateAttributeDefinition(attrValue, styleable);
+          }
+        }
+      }
     }
   }
 
-  public AttributeDefinitionsImpl(@Nullable AttributeDefinitions systemAttributeDefinitions, @NotNull Multimap<String, XmlFile> files) {
-    mySystemAttributeDefinitions = systemAttributeDefinitions;
-    for (Map.Entry<String, XmlFile> file : files.entries()) {
-      addAttrsFromFile(file.getValue(), file.getKey());
+  private void createOrUpdateAttributeDefinition(@NotNull AttrResourceValue attrValue, @Nullable StyleableDefinitionImpl parentStyleable) {
+    ResourceReference attrRef = attrValue.asReference();
+    AttributeDefinition attr = myAttrs.get(attrRef);
+    if (attr == null) {
+      if (myFrameworkAttributeDefinitions != null && attrValue.getNamespace().equals(ResourceNamespace.ANDROID)) {
+        attr = myFrameworkAttributeDefinitions.getAttrDefinition(attrRef);
+        if (attr != null) {
+          // Copy the framework attribute definition to be able to add parent styleables.
+          attr = new AttributeDefinition(attr);
+        }
+      }
+
+      if (attr == null) {
+        attr = new AttributeDefinition(attrValue.getNamespace(), attrValue.getName(), attrValue.getLibraryName(), null);
+      }
+
+      myAttrs.put(attrRef, attr);
+    }
+
+    attr.addFormats(attrValue.getFormats());
+
+    Map<String, Integer> valueMappings = attrValue.getAttributeValues();
+    if (valueMappings != null && !valueMappings.isEmpty()) {
+      attr.setValueMappings(valueMappings);
+      Map<String, String> valueDescriptions = Maps.newHashMapWithExpectedSize(valueMappings.size());
+      for (String value : valueMappings.keySet()) {
+        String description = attrValue.getValueDescription(value);
+        if (description != null) {
+          valueDescriptions.put(value, description);
+        }
+      }
+      if (!valueDescriptions.isEmpty()) {
+        attr.setValueDescriptions(valueDescriptions);
+      }
+    }
+
+    String description = attrValue.getDescription();
+    if (description != null) {
+      attr.setDescription(description, parentStyleable == null ? null : parentStyleable.getResourceReference());
+    }
+    String groupName = attrValue.getGroupName();
+    if (groupName != null) {
+      attr.setGroupName(groupName);
+    }
+
+    if (parentStyleable != null) {
+      parentStyleable.addAttribute(attr);
     }
   }
 
-  private void addAttrsFromFile(@NotNull XmlFile file, @Nullable String libraryName) {
-    Map<StyleableDefinitionImpl, String[]> parentMap = new HashMap<>();
+  private void addAttrsFromFile(@NotNull XmlFile file) {
     XmlDocument document = file.getDocument();
     if (document == null) return;
     XmlTag rootTag = document.getRootTag();
@@ -69,16 +156,16 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     for (XmlTag tag : rootTag.getSubTags()) {
       String tagName = tag.getName();
       if (TAG_ATTR.equals(tagName)) {
-        AttributeDefinition def = parseAttrTag(tag, null, libraryName);
+        AttributeDefinition def = parseAttrTag(tag, null);
 
-        // Sets group for attribute, for example: sets "Button Styles" group for "buttonStyleSmall" attribute
+        // Sets group for attribute, for example: sets "Button Styles" group for "buttonStyleSmall" attribute.
         if (def != null) {
-          def.setAttrGroup(attrGroup);
+          def.setGroupName(attrGroup);
         }
       }
       else if (TAG_DECLARE_STYLEABLE.equals(tagName)) {
-        StyleableDefinitionImpl def = parseDeclareStyleableTag(tag, parentMap, libraryName);
-        // Only "Theme" Styleable has attribute groups
+        StyleableDefinitionImpl def = parseDeclareStyleableTag(tag);
+        // Only "Theme" Styleable has attribute groups.
         if (def != null && def.getName().equals("Theme")) {
           parseAndAddAttrGroups(tag);
         }
@@ -96,53 +183,34 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
 
         // Not all <eat-comment /> sections are actually attribute headers, some are comments.
         // We identify these by looking at the line length; category comments are short, and descriptive comments are longer
-        if (newAttrGroup != null && newAttrGroup.length() <= ATTR_GROUP_MAX_CHARACTERS) {
+        if (newAttrGroup != null && newAttrGroup.length() <= ATTR_GROUP_MAX_CHARACTERS && !newAttrGroup.startsWith("TODO:")) {
           attrGroup = newAttrGroup;
-        }
-      }
-    }
-
-    for (Map.Entry<StyleableDefinitionImpl, String[]> entry : parentMap.entrySet()) {
-      StyleableDefinitionImpl definition = entry.getKey();
-      String[] parentNames = entry.getValue();
-      for (String parentName : parentNames) {
-        StyleableDefinitionImpl parent = getStyleableByName(parentName);
-        if (parent != null) {
-          definition.addParent(parent);
-          parent.addChild(definition);
-        }
-        else {
-          LOG.info("Found tag with unknown parent: " + parentName);
+          if (attrGroup.endsWith(".")) {
+            attrGroup = attrGroup.substring(0, attrGroup.length() - 1);
+          }
         }
       }
     }
   }
 
   @Nullable
-  private AttributeDefinition parseAttrTag(XmlTag tag, @Nullable String parentStyleable, @Nullable String libraryName) {
+  private AttributeDefinition parseAttrTag(@NotNull XmlTag tag,@Nullable ResourceReference parentStyleable) {
     String name = tag.getAttributeValue(ATTR_NAME);
     if (name == null) {
       LOG.info("Found attr tag with no name: " + tag.getText());
       return null;
     }
-    AttributeDefinition def = myAttrs.get(name);
-    if (mySystemAttributeDefinitions != null && name.startsWith(ANDROID_NS_NAME_PREFIX)) {
-      // Reference to a system attribute.
-      if (def == null) {
-        String unqualifiedName = name.substring(ANDROID_NS_NAME_PREFIX_LEN);
-        def = mySystemAttributeDefinitions.getAttrDefByName(unqualifiedName);
-        if (def != null) {
-          def = def.cloneWithName(name);
-          myAttrs.put(name, def);
-        }
-      }
-      return def;
+    ResourceReference attrRef = getAttrReference(name);
+    if (attrRef == null) {
+      LOG.info("Found attr tag with an invalid name: " + tag.getText());
+      return null;
     }
 
-    // Locally defined attribute.
-    if (def == null) {
-      def = new AttributeDefinition(name, libraryName, parentStyleable, Collections.emptySet());
-      myAttrs.put(name, def);
+    AttributeDefinition attrDef = myAttrs.get(attrRef);
+
+    if (attrDef == null) {
+      attrDef = new AttributeDefinition(ResourceNamespace.ANDROID, name, null, null);
+      myAttrs.put(attrDef.getResourceReference(), attrDef);
     }
 
     List<AttributeFormat> parsedFormats;
@@ -150,36 +218,64 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     String format = tag.getAttributeValue(ATTR_FORMAT);
     if (format != null) {
       parsedFormats = parseAttrFormat(format);
-      if (parsedFormats != null) formats.addAll(parsedFormats);
+      formats.addAll(parsedFormats);
     }
     XmlTag[] values = tag.findSubTags(TAG_ENUM);
-    if (values.length > 0) {
+    if (values.length != 0) {
       formats.add(AttributeFormat.ENUM);
     }
     else {
       values = tag.findSubTags(TAG_FLAG);
-      if (values.length > 0) {
+      if (values.length != 0) {
         formats.add(AttributeFormat.FLAGS);
       }
     }
-    def.addFormats(formats);
-    parseDocComment(tag, def, parentStyleable);
-    parseAndAddValues(def, values);
-    return def;
-  }
-
-  private static void parseDocComment(XmlTag tag, AttributeDefinition def, @Nullable String styleable) {
-    PsiElement comment = XmlDocumentationProvider.findPreviousComment(tag);
-    if (comment != null) {
-      String docValue = XmlUtil.getCommentText((XmlComment)comment);
-      if (docValue != null && !StringUtil.isEmpty(docValue)) {
-        def.addDocValue(docValue, styleable);
-      }
+    attrDef.addFormats(formats);
+    String description = parseDocComment(tag);
+    if (description != null) {
+      attrDef.setDescription(description, parentStyleable);
     }
+    Map<String, Integer> valueMappings = new HashMap<>();
+    Map<String, String> valueDescriptions = new HashMap<>();
+    parseValues(values, valueMappings, valueDescriptions);
+    if (!valueMappings.isEmpty()) {
+      attrDef.setValueMappings(valueMappings);
+    }
+    if (!valueDescriptions.isEmpty()) {
+      attrDef.setValueDescriptions(valueDescriptions);
+    }
+    return attrDef;
   }
 
   @Nullable
-  private static String getCommentBeforeEatComment(XmlTag tag) {
+  private static ResourceReference getAttrReference(@NotNull String name) {
+    if (name.startsWith(ANDROID_NS_NAME_PREFIX)) {
+      return ResourceReference.attr(ResourceNamespace.ANDROID, name.substring(ANDROID_NS_NAME_PREFIX_LEN));
+    }
+    int colonPos = name.indexOf(':');
+    if (colonPos < 0) {
+      return ResourceReference.attr(ResourceNamespace.ANDROID, name);
+    }
+    return null;
+  }
+
+  @Nullable
+  private static String parseDocComment(@NotNull XmlTag tag) {
+    PsiElement comment = XmlDocumentationProvider.findPreviousComment(tag);
+    if (comment != null) {
+      String docValue = XmlUtil.getCommentText((XmlComment)comment);
+      if (docValue != null) {
+        docValue = docValue.trim();
+        if (!docValue.isEmpty()) {
+          return docValue;
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static String getCommentBeforeEatComment(@NotNull XmlTag tag) {
     PsiElement comment = XmlDocumentationProvider.findPreviousComment(tag);
     for (int i = 0; i < 5; ++i) {
       if (comment == null) {
@@ -199,10 +295,10 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     return null;
   }
 
-  @Nullable
-  private static List<AttributeFormat> parseAttrFormat(String formatString) {
-    String[] formats = formatString.split("\\|");
-    List<AttributeFormat> result = new ArrayList<>(formats.length);
+  @NotNull
+  private static List<AttributeFormat> parseAttrFormat(@NotNull String formatString) {
+    List<String> formats = PIPE_SPLITTER.splitToList(formatString);
+    List<AttributeFormat> result = new ArrayList<>(formats.size());
     for (String format : formats) {
       AttributeFormat attributeFormat = AttributeFormat.fromXmlName(format);
       if (attributeFormat != null) {
@@ -212,7 +308,8 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     return result;
   }
 
-  private void parseAndAddValues(AttributeDefinition def, XmlTag[] values) {
+  private static void parseValues(@NotNull XmlTag[] values, @NotNull Map<String, Integer> valueMappings,
+                                  @NotNull Map<String, String> valueDescriptions) {
     for (XmlTag value : values) {
       String valueName = value.getAttributeValue(ATTR_NAME);
       if (valueName == null) {
@@ -220,71 +317,77 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
         continue;
       }
 
-      def.addValue(valueName);
-      PsiElement comment = XmlDocumentationProvider.findPreviousComment(value);
-      if (comment != null) {
-        String docValue = XmlUtil.getCommentText((XmlComment)comment);
-        if (!StringUtil.isEmpty(docValue)) {
-          def.addValueDoc(valueName, docValue);
-        }
-      }
-
+      Integer intValue = null;
       String strIntValue = value.getAttributeValue(ATTR_VALUE);
       if (strIntValue != null) {
         try {
-          // Integer.decode cannot handle "ffffffff", see JDK issue 6624867
-          int intValue = Long.decode(strIntValue).intValue();
-          def.addValueMapping(valueName, intValue);
+          // Integer.decode cannot handle "ffffffff", see JDK issue 6624867.
+          intValue = Long.decode(strIntValue).intValue();
         }
         catch (NumberFormatException ignored) {
+        }
+      }
+      valueMappings.put(valueName, intValue);
+
+      PsiElement comment = XmlDocumentationProvider.findPreviousComment(value);
+      if (comment != null) {
+        String description = XmlUtil.getCommentText((XmlComment)comment);
+        if (description != null) {
+          description = description.trim();
+          if (!description.isEmpty()) {
+            valueDescriptions.put(valueName, description);
+          }
         }
       }
     }
   }
 
-  private StyleableDefinitionImpl parseDeclareStyleableTag(@NotNull XmlTag tag,
-                                                           @NotNull Map<StyleableDefinitionImpl, String[]> parentMap,
-                                                           @Nullable String libraryName) {
+  @Nullable
+  private StyleableDefinitionImpl parseDeclareStyleableTag(@NotNull XmlTag tag) {
     String name = tag.getAttributeValue(ATTR_NAME);
     if (name == null) {
       LOG.info("Found declare-styleable tag with no name: " + tag.getText());
       return null;
     }
-    StyleableDefinitionImpl def = new StyleableDefinitionImpl(name);
-    String parentNameAttributeValue = tag.getAttributeValue(ATTR_PARENT);
-    if (parentNameAttributeValue != null) {
-      String[] parentNames = parentNameAttributeValue.split("\\s+");
-      parentMap.put(def, parentNames);
-    }
-    myStyleables.put(name, def);
+    StyleableDefinitionImpl def = new StyleableDefinitionImpl(ResourceNamespace.ANDROID, name);
+    myStyleables.put(def.getResourceReference(), def);
 
     for (XmlTag subTag : tag.findSubTags(TAG_ATTR)) {
-      parseStyleableAttr(def, subTag, libraryName);
+      parseStyleableAttr(def, subTag);
     }
     return def;
   }
 
-  private void parseStyleableAttr(@NotNull StyleableDefinitionImpl def, @NotNull XmlTag tag, @Nullable String libraryName) {
+  private void parseStyleableAttr(@NotNull StyleableDefinitionImpl styleableDef, @NotNull XmlTag tag) {
     String name = tag.getAttributeValue(ATTR_NAME);
     if (name == null) {
       LOG.info("Found attr tag with no name: " + tag.getText());
       return;
     }
 
-    AttributeDefinition attr = parseAttrTag(tag, def.getName(), libraryName);
+    ResourceReference styleable = styleableDef.getResourceReference();
+    AttributeDefinition attr = parseAttrTag(tag, styleable);
     if (attr != null) {
-      def.addAttribute(attr);
+      styleableDef.addAttribute(attr);
     }
   }
 
-  private void parseAndAddAttrGroups(XmlTag tag) {
+  private void parseAndAddAttrGroups(@NotNull XmlTag tag) {
     String attrGroup = null;
     for (XmlTag subTag : tag.getSubTags()) {
       String subTagName = subTag.getName();
       if (TAG_ATTR.equals(subTagName)) {
-        AttributeDefinition def = myAttrs.get(subTag.getAttributeValue(ATTR_NAME));
-        if (def != null) {
-          def.setAttrGroup(attrGroup);
+        String attrName = subTag.getAttributeValue(ATTR_NAME);
+        if (attrName != null) {
+          ResourceReference attrRef = getAttrReference(attrName);
+          if (attrRef == null) {
+            LOG.info("Found attr tag with an invalid name: " + tag.getText());
+            continue;
+          }
+          AttributeDefinition def = myAttrs.get(attrRef);
+          if (def != null) {
+            def.setGroupName(attrGroup);
+          }
         }
       }
       else if (TAG_EAT_COMMENT.equals(subTagName)) {
@@ -298,28 +401,63 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
 
   @Override
   @Nullable
-  public StyleableDefinitionImpl getStyleableByName(@NotNull String name) {
-    return myStyleables.get(name);
+  public StyleableDefinition getStyleableDefinition(@NotNull ResourceReference styleable) {
+    if (myFrameworkAttributeDefinitions != null && styleable.getNamespace().equals(ResourceNamespace.ANDROID)) {
+      return myFrameworkAttributeDefinitions.getStyleableDefinition(styleable);
+    }
+    return myStyleables.get(styleable);
   }
 
-  @NotNull
+  @Deprecated
   @Override
-  public Set<String> getAttributeNames() {
+  @Nullable
+  public StyleableDefinition getStyleableByName(@NotNull String name) {
+    StyleableDefinition styleable = getStyleableDefinition(ResourceReference.styleable(ResourceNamespace.TODO(), name));
+    if (styleable == null) {
+      styleable = getStyleableDefinition(ResourceReference.styleable(ResourceNamespace.ANDROID, name));
+    }
+    return styleable;
+  }
+
+  @Override
+  @NotNull
+  public Set<ResourceReference> getAttrs() {
     return myAttrs.keySet();
   }
 
+  @Nullable
+  @Override
+  public AttributeDefinition getAttrDefinition(@NotNull ResourceReference attr) {
+    AttributeDefinition attributeDefinition = myAttrs.get(attr);
+    if (attributeDefinition == null && myFrameworkAttributeDefinitions != null && attr.getNamespace().equals(ResourceNamespace.ANDROID)) {
+      return myFrameworkAttributeDefinitions.getAttrDefinition(attr);
+    }
+    return attributeDefinition;
+  }
+
+  @Deprecated
   @Override
   @Nullable
   public AttributeDefinition getAttrDefByName(@NotNull String name) {
-    return myAttrs.get(name);
+    ResourceReference attr;
+    if (name.startsWith(ANDROID_NS_NAME_PREFIX)) {
+      attr = ResourceReference.attr(ResourceNamespace.ANDROID, name.substring(ANDROID_NS_NAME_PREFIX_LEN));
+    }
+    else if (myFrameworkAttributeDefinitions == null) {
+      // This object represents framework attributes only.
+      attr = ResourceReference.attr(ResourceNamespace.ANDROID, name);
+    }
+    else {
+      // This object represents all attributes.
+      attr = ResourceReference.attr(ResourceNamespace.TODO(), name);
+    }
+    return getAttrDefinition(attr);
   }
 
-  @Nullable
   @Override
-  public String getAttrGroupByName(@NotNull String name) {
-    if (myAttrs.get(name) == null) {
-      return null;
-    }
-    return myAttrs.get(name).getAttrGroup();
+  @Nullable
+  public String getAttrGroup(@NotNull ResourceReference attr) {
+    AttributeDefinition attributeDefinition = getAttrDefinition(attr);
+    return attributeDefinition == null ? null : attributeDefinition.getGroupName();
   }
 }

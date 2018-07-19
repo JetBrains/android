@@ -116,10 +116,10 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
         if (component.getTagName().equals(TAG_INCLUDE)) {
           icon = INCLUDE_GRAPH;
         }
-        else if (NavComponentHelperKt.getDestinationType(component) == NavigationSchema.DestinationType.ACTIVITY) {
+        else if (NavComponentHelperKt.isActivity(component)) {
           icon = ACTIVITY;
         }
-        else if (mySchema.getDestinationType(component.getTagName()) == NavigationSchema.DestinationType.NAVIGATION) {
+        else if (NavComponentHelperKt.isNavigation(component)) {
           icon = NESTED_GRAPH;
         }
         if (isSelected && cellHasFocus) {

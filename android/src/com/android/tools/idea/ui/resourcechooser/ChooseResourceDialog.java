@@ -379,7 +379,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
 
-    myThemAttributes = initializeThemeAttributes(configuration, resolver);
+    myThemAttributes = initializeThemeAttributes(configuration, resolver, facet);
 
     ResourceValue resValue = null;
     if (value != null) {
@@ -505,12 +505,13 @@ public class ChooseResourceDialog extends DialogWrapper {
   }
 
   private static MultiMap<ResourceType, String> initializeThemeAttributes(@NotNull Configuration configuration,
-                                                                          @NotNull ResourceResolver resolver) {
+                                                                          @NotNull ResourceResolver resolver,
+                                                                          @NotNull AndroidFacet facet) {
     MultiMap<ResourceType, String> attrs = new MultiMap<>();
     String themeName = configuration.getTheme();
     for (StyleItemResourceValue item : ResolutionUtils.getThemeAttributes(resolver, themeName)) {
       ResourceType type = ResolutionUtils.getAttrType(item, configuration);
-      if (type != null) {
+      if (type != null && ResourceHelper.isAccessibleInXml(item, facet)) {
         attrs.putValue(type, ResolutionUtils.getQualifiedItemAttrName(item));
       }
     }
@@ -640,7 +641,8 @@ public class ChooseResourceDialog extends DialogWrapper {
 
     ResourcePanel panel = myTypeToPanels.get(type);
     if (panel == null) {
-      panel = new ResourcePanel(type, type != ResourceType.COLOR || !allowDrawables(), myThemAttributes.get(type), myShowSampleDataPicker);
+      boolean includeFileResources = type != ResourceType.COLOR || !allowDrawables() || !myFilterColorStateLists;
+      panel = new ResourcePanel(type, includeFileResources, myThemAttributes.get(type), myShowSampleDataPicker);
       panel.expandAll();
 
       JPanel container = myAltPane;

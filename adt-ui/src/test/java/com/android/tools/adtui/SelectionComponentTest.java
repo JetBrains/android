@@ -19,8 +19,10 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.ui.AdtUiCursors;
+import com.intellij.openapi.util.EmptyRunnable;
 import org.junit.Test;
 
+import javax.swing.*;
 import java.awt.*;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -77,6 +79,23 @@ public class SelectionComponentTest {
     FakeUi ui = new FakeUi(component);
     ui.keyboard.setFocus(component);
     ui.keyboard.press(FakeKeyboard.Key.ESC);
+    assertThat(model.getSelectionRange().isEmpty()).isTrue();
+  }
+
+  @Test
+  public void doubleClickingClearsSelection() throws Exception {
+    SelectionModel model = new SelectionModel(new Range(40, 60));
+    SelectionComponent component = new SelectionComponent(model, new Range(20, 120));
+    component.setSize(100, 100);
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(40);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(60);
+    FakeUi ui = new FakeUi(component);
+    // Assert click does not clear selection.
+    ui.mouse.click(50, 50);
+    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
+    assertThat(model.getSelectionRange().isEmpty()).isFalse();
+    ui.mouse.doubleClick(50,50);
+    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
     assertThat(model.getSelectionRange().isEmpty()).isTrue();
   }
 

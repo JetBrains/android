@@ -17,6 +17,10 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 ext {
+    var06 = "0.6"
+    var10 = "1.0"
+    varLib3_091 = "com.example.jlib:lib3:0.9.1"
+    varLib3_var10 = "com.example.jlib:lib3:${var10}"
 }
 
 buildscript {

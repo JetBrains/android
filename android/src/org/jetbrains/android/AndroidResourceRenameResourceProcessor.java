@@ -194,7 +194,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       prepareResourceFieldRenaming((PsiField)computedElement, newName, allRenames);
     }
     else if (computedElement instanceof ResourceFieldElementWrapper) {
-      prepareResourceFieldRenaming(((ResourceFieldElementWrapper)computedElement).getWrappee(), newName, allRenames);
+      prepareResourceFieldRenaming(((ResourceFieldElementWrapper)computedElement).getWrappedElement(), newName, allRenames);
     }
   }
 
@@ -510,7 +510,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   @Override
   public Collection<PsiReference> findReferences(@NotNull PsiElement element, boolean searchInCommentsAndStrings) {
     if (element instanceof ResourceFieldElementWrapper) {
-      element = ((ResourceFieldElementWrapper)element).getWrappee();
+      element = ((ResourceFieldElementWrapper)element).getWrappedElement();
     }
     return super.findReferences(element, searchInCommentsAndStrings);
   }
@@ -522,7 +522,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       new RenameJavaVariableProcessor().renameElement(element, newName, usages, listener);
     }
     else if (element instanceof ResourceFieldElementWrapper) {
-      new RenameJavaVariableProcessor().renameElement(((ResourceFieldElementWrapper)element).getWrappee(), newName, usages, listener);
+      new RenameJavaVariableProcessor().renameElement(((ResourceFieldElementWrapper)element).getWrappedElement(), newName, usages, listener);
     }
     else {
       if (element instanceof PsiNamedElement) {

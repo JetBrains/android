@@ -35,5 +35,5 @@ dependencies {
   implementation 'com.example.libs:lib1:1.0'
   debugImplementation 'com.example.libs:lib1:1.0'
   releaseImplementation 'com.example.libs:lib1:0.9.1'
-  freeImplementation 'com.example.jlib:lib3:0.6'
+  freeImplementation "com.example.jlib:lib3:${var06}"
 }

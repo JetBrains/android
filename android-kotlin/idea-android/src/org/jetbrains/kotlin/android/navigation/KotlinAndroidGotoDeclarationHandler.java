@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.kotlin.android.navigation;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -45,105 +45,105 @@ import java.util.List;
 // TODO: ask for extension point
 // this class is mostly copied from org.jetbrains.android.AndroidGotoDeclarationHandler
 public class KotlinAndroidGotoDeclarationHandler implements GotoDeclarationHandler {
-    @Override
-    public PsiElement[] getGotoDeclarationTargets(@Nullable PsiElement sourceElement, int offset, Editor editor) {
-        KtSimpleNameExpression referenceExpression = GotoResourceHelperKt.getReferenceExpression(sourceElement);
-        if (referenceExpression == null) {
-            return null;
-        }
-
-        AndroidFacet facet = AndroidUtilKt.getAndroidFacetForFile(referenceExpression);
-        if (facet == null) {
-            return null;
-        }
-
-        AndroidResourceUtil.MyReferredResourceFieldInfo info = GotoResourceHelperKt.getInfo(referenceExpression, facet);
-
-        if (info == null) return null;
-
-        String nestedClassName = info.getClassName();
-        String fieldName = info.getFieldName();
-        List<PsiElement> resourceList = new ArrayList<PsiElement>();
-
-        if (info.isFromManifest()) {
-            collectManifestElements(nestedClassName, fieldName, facet, resourceList);
-        }
-        else {
-            ModuleResourceManagers managers = ModuleResourceManagers.getInstance(facet);
-            ResourceManager manager = info.isSystem()
-                                      ? managers.getSystemResourceManager(false)
-                                      : managers.getLocalResourceManager();
-            if (manager == null) {
-                return null;
-            }
-            manager.collectLazyResourceElements(nestedClassName, fieldName, false, referenceExpression, resourceList);
-
-            if (manager instanceof LocalResourceManager) {
-                LocalResourceManager lrm = (LocalResourceManager) manager;
-
-                if (nestedClassName.equals(ResourceType.ATTR.getName())) {
-                    for (Attr attr : lrm.findAttrs(fieldName)) {
-                        resourceList.add(attr.getName().getXmlAttributeValue());
-                    }
-                }
-                else if (nestedClassName.equals(ResourceType.STYLEABLE.getName())) {
-                    for (DeclareStyleable styleable : lrm.findStyleables(fieldName)) {
-                        resourceList.add(styleable.getName().getXmlAttributeValue());
-                    }
-
-                    for (Attr styleable : lrm.findStyleableAttributesByFieldName(fieldName)) {
-                        resourceList.add(styleable.getName().getXmlAttributeValue());
-                    }
-                }
-            }
-        }
-
-        if (resourceList.size() > 1) {
-            // Sort to ensure the output is stable, and to prefer the base folders
-            Collections.sort(resourceList, AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
-        }
-
-        return resourceList.toArray(new PsiElement[resourceList.size()]);
+  @Override
+  public PsiElement[] getGotoDeclarationTargets(@Nullable PsiElement sourceElement, int offset, Editor editor) {
+    KtSimpleNameExpression referenceExpression = GotoResourceHelperKt.getReferenceExpression(sourceElement);
+    if (referenceExpression == null) {
+      return null;
     }
 
-    private static void collectManifestElements(
-            @NotNull String nestedClassName,
-            @NotNull String fieldName,
-            @NotNull AndroidFacet facet,
-            @NotNull List<PsiElement> result
-    ) {
-        Manifest manifest = facet.getManifest();
-
-        if (manifest == null) {
-            return;
-        }
-        List<? extends ManifestElementWithRequiredName> list;
-
-        if ("permission".equals(nestedClassName)) {
-            list = manifest.getPermissions();
-        }
-        else if ("permission_group".equals(nestedClassName)) {
-            list = manifest.getPermissionGroups();
-        }
-        else {
-            return;
-        }
-        for (ManifestElementWithRequiredName domElement : list) {
-            AndroidAttributeValue<String> nameAttribute = domElement.getName();
-            String name = nameAttribute.getValue();
-
-            if (AndroidUtils.equal(name, fieldName, false)) {
-                XmlElement psiElement = nameAttribute.getXmlAttributeValue();
-
-                if (psiElement != null) {
-                    result.add(psiElement);
-                }
-            }
-        }
+    AndroidFacet facet = AndroidUtilKt.getAndroidFacetForFile(referenceExpression);
+    if (facet == null) {
+      return null;
     }
 
-    @Override
-    public String getActionText(DataContext context) {
+    AndroidResourceUtil.MyReferredResourceFieldInfo info = GotoResourceHelperKt.getInfo(referenceExpression, facet);
+
+    if (info == null) {
+      return null;
+    }
+
+    String nestedClassName = info.getClassName();
+    String fieldName = info.getFieldName();
+    List<PsiElement> resourceList = new ArrayList<>();
+
+    if (info.isFromManifest()) {
+      collectManifestElements(nestedClassName, fieldName, facet, resourceList);
+    }
+    else {
+      ModuleResourceManagers managers = ModuleResourceManagers.getInstance(facet);
+      ResourceManager manager = info.getNamespace() == ResourceNamespace.ANDROID
+                                ? managers.getFrameworkResourceManager(false)
+                                : managers.getLocalResourceManager();
+      if (manager == null) {
         return null;
+      }
+      manager.collectLazyResourceElements(info.getNamespace(), nestedClassName, fieldName, false, referenceExpression, resourceList);
+
+      if (manager instanceof LocalResourceManager) {
+        LocalResourceManager lrm = (LocalResourceManager) manager;
+
+        if (nestedClassName.equals(ResourceType.ATTR.getName())) {
+          for (Attr attr : lrm.findAttrs(fieldName)) {
+            resourceList.add(attr.getName().getXmlAttributeValue());
+          }
+        }
+        else if (nestedClassName.equals(ResourceType.STYLEABLE.getName())) {
+          for (DeclareStyleable styleable : lrm.findStyleables(fieldName)) {
+            resourceList.add(styleable.getName().getXmlAttributeValue());
+          }
+
+          for (Attr styleable : lrm.findStyleableAttributesByFieldName(fieldName)) {
+            resourceList.add(styleable.getName().getXmlAttributeValue());
+          }
+        }
+      }
     }
+
+    if (resourceList.size() > 1) {
+      // Sort to ensure the output is stable, and to prefer the base folders
+      Collections.sort(resourceList, AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
+    }
+
+    return resourceList.toArray(PsiElement.EMPTY_ARRAY);
+  }
+
+  private static void collectManifestElements(@NotNull String nestedClassName,
+                                              @NotNull String fieldName,
+                                              @NotNull AndroidFacet facet,
+                                              @NotNull List<PsiElement> result) {
+    Manifest manifest = facet.getManifest();
+
+    if (manifest == null) {
+      return;
+    }
+    List<? extends ManifestElementWithRequiredName> list;
+
+    if ("permission".equals(nestedClassName)) {
+      list = manifest.getPermissions();
+    }
+    else if ("permission_group".equals(nestedClassName)) {
+      list = manifest.getPermissionGroups();
+    }
+    else {
+      return;
+    }
+    for (ManifestElementWithRequiredName domElement : list) {
+      AndroidAttributeValue<String> nameAttribute = domElement.getName();
+      String name = nameAttribute.getValue();
+
+      if (AndroidUtils.equal(name, fieldName, false)) {
+        XmlElement psiElement = nameAttribute.getXmlAttributeValue();
+
+        if (psiElement != null) {
+          result.add(psiElement);
+        }
+      }
+    }
+  }
+
+  @Override
+  public String getActionText(DataContext context) {
+    return null;
+  }
 }

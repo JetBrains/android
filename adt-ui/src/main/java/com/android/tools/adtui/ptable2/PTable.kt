@@ -31,6 +31,9 @@ interface PTable {
   /** The table component */
   val component: JComponent
 
+  /** The table model */
+  val tableModel: PTableModel
+
   /** A context where the consumer can store a reference to a model that otherwise would be hard to identify */
   val context: Any?
 
@@ -64,6 +67,9 @@ interface PTable {
 
   /** Returns true if the item is currently expanded. */
   fun isExpanded(item: PTableGroupItem): Boolean
+
+  /** Start editing the specified row, and stop editing if row is -1. */
+  fun startEditing(row: Int)
 
   /** Stops editing the current row and starts editing in the next row. */
   fun startNextEditor(): Boolean

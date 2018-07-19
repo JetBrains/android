@@ -66,6 +66,15 @@ public final class RenderParamsFlags {
     public static final Key<String> FLAG_KEY_ADAPTIVE_ICON_MASK_PATH =
       new Key<>("adaptiveIconMaskPath", String.class);
 
+    /**
+     * When enabled, Layoutlib will resize the output image to whatever size
+     * is returned by {@link IImageFactory#getImage(int, int)}. The default
+     * behaviour when this is false is to crop the image to the size of the image
+     * returned by {@link IImageFactory#getImage(int, int)}.
+     */
+    public static final Key<Boolean> FLAG_KEY_RESULT_IMAGE_AUTO_SCALE =
+      new Key<Boolean>("enableResultImageAutoScale", Boolean.class);
+
     // Disallow instances.
     private RenderParamsFlags() {}
 }

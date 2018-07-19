@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.structure.configurables.variables
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.structure.dialog.TrackedConfigurable
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.options.BaseConfigurable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -36,14 +38,16 @@ import javax.swing.event.TreeModelListener
 /**
  * Configurable defining the Variables panel in the Project Structure Dialog
  */
-class VariablesConfigurable(private val project: Project, private val context: PsContext) : BaseConfigurable() {
+class VariablesConfigurable(private val project: Project, private val context: PsContext)
+  : BaseConfigurable(), TrackedConfigurable {
 
   override fun getDisplayName(): String = "Variables"
+  override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_VARIABLES
 
   override fun createComponent(): JComponent? {
     val panel = JPanel(BorderLayout())
     panel.border = BorderFactory.createEmptyBorder(20, 10, 20, 10)
-    val table = VariablesTable(project, context)
+    val table = VariablesTable(project, context.project)
     table.tableModel.addTreeModelListener(object: TreeModelListener {
       override fun treeNodesInserted(e: TreeModelEvent?) {
         this@VariablesConfigurable.isModified = true

@@ -20,7 +20,6 @@ import com.android.instantapp.sdk.Metadata;
 import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.analytics.AnalyticsSettings;
-import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -150,7 +149,7 @@ public class InstantAppSdks {
     }
 
     // We want to set this every time the SDK is used to keep it up to date
-    cachedSdkLib.getTelemetryManager().setOptInStatus(AnalyticsSettings.getInstance(new NullLogger()).hasOptedIn()
+    cachedSdkLib.getTelemetryManager().setOptInStatus(AnalyticsSettings.getInstance(new NullLogger()).getOptedIn()
                                                       ? TelemetryManager.OptInStatus.OPTED_IN
                                                       : TelemetryManager.OptInStatus.OPTED_OUT);
 

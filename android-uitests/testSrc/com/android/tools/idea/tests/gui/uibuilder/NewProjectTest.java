@@ -16,19 +16,14 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.builder.model.ApiVersion;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.InferNullityDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
+import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.LanguageLevelModuleExtension;
@@ -40,6 +35,7 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,8 +45,9 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
-import static com.android.tools.idea.npw.FormFactor.MOBILE;
+import static com.android.tools.idea.flags.StudioFlags.NPW_DYNAMIC_APPS;
 import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
@@ -62,86 +59,9 @@ public class NewProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
-  /**
-   * Verify able to create a new project with name containing a space.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: beb45d64-d93d-4e04-a7b3-6d21f130949f
-   * <p>
-   *   <pre>
-   *   Steps:
-   *   1. Create a new project with min sdk 23.
-   *   2. Enter a project name with at least one space.
-   *   3. Accept all other defaults.
-   *   4. Wait for build to finish.
-   *   5. Project is created successfully.
-   *   Verify:
-   *   Successfully created new project with name containing a space.
-   *   </pre>
-   */
-  @RunIn(TestGroup.QA)
-  @Test
-  public void createNewProjectNameWithSpace() {
-    EditorFixture editor = newProject("Test Application").withMinSdk("23").create(guiTest)
-      .getEditor()
-      .open("app/src/main/res/values/strings.xml", EditorFixture.Tab.EDITOR);
-    String text = editor.getCurrentFileContents();
-    assertThat(text).contains("Test Application");
-  }
-
-  /**
-   * Verify module properties can be modified.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: 42c3202c-f2aa-4080-b94a-1a17d56d8fe2
-   * <p>
-   *   <pre>
-   *   Steps:
-   *   1. Create a new project.
-   *   2. Create a new library module and an application module.
-   *   3. Right click on the library module and select Change Module Settings.
-   *   4. Make a few changes to the properties, like build tools version.
-   *   5. Repeat with application module
-   *   Verify:
-   *   1. Module setting is updated.
-   *   </pre>
-   */
-  @RunIn(TestGroup.QA)
-  @Test
-  public void changeLibraryModuleSettings() throws Exception {
-    newProject("MyTestApp").withMinSdk("24").create(guiTest)
-      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Android Library")
-      .clickNextToStep("Android Library")
-      .setModuleName("library_module")
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish(Wait.seconds(30));
-
-    guiTest.waitForBackgroundTasks();
-
-    String gradleFileContents = guiTest.ideFrame()
-      .getProjectView()
-      .selectProjectPane()
-      .clickPath(RIGHT_BUTTON, "MyTestApp", "library_module")
-      .openFromMenu(ProjectStructureDialogFixture::find, "Open Module Settings")
-      .selectPropertiesTab()
-      .setCompileSdkVersion("API 24: Android 7.0 (Nougat)")
-      .setIgnoreAssetsPattern("TestIgnoreAssetsPattern")
-      .setIncrementalDex(false)
-      .setSourceCompatibility("1.7")
-      .setTargetCompatibility("1.7")
-      .clickOk()
-      .getEditor()
-      .open("/library_module/build.gradle")
-      .getCurrentFileContents();
-
-    assertThat(gradleFileContents).contains("compileSdkVersion 24");
-    assertThat(gradleFileContents).contains("aaptOptions {\n        ignoreAssetsPattern 'TestIgnoreAssetsPattern'\n    }");
-    assertThat(gradleFileContents).contains("dexOptions {\n        incremental false\n    }");
-    assertThat(gradleFileContents).contains(
-      "compileOptions {\n        sourceCompatibility JavaVersion.VERSION_1_7\n        targetCompatibility JavaVersion.VERSION_1_7\n    }");
+  @After
+  public void tearDown() {
+    NPW_DYNAMIC_APPS.clearOverride();
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/66249968
@@ -254,11 +174,36 @@ public class NewProjectTest {
     assertTrue(guiTest.getProjectPath(FN_GRADLE_WRAPPER_UNIX).canExecute());
   }
 
+  @Test
+  public void testIncludeNavControllerWithJava() throws Exception {
+    newProject("Java", true);
+
+    String buildGradleText = Files.toString(guiTest.getProjectPath("app/build.gradle"), UTF_8);
+    assertThat(buildGradleText).contains("android.arch.navigation:navigation-fragment:");
+    assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/navigation/mobile_navigation.xml")).isFile();
+  }
+
+  @Test
+  public void testIncludeNavControllerWithKotlin() throws Exception {
+    newProject("Kotlin", true);
+
+    String buildGradleText = Files.toString(guiTest.getProjectPath("app/build.gradle"), UTF_8);
+    assertThat(buildGradleText).contains("android.arch.navigation:navigation-fragment-ktx:");
+    assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/navigation/mobile_navigation.xml")).isFile();
+  }
+
+  @Test
+  public void testDontIncludeNavController() throws Exception {
+    newProject("Java", false);
+
+    String buildGradleText = Files.toString(guiTest.getProjectPath("app/build.gradle"), UTF_8);
+    assertThat(buildGradleText).doesNotContain("navigation");
+    assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/navigation/mobile_navigation.xml")).doesNotExist();
+  }
+
   @Test // http://b.android.com/227918
   public void scrollingActivityFollowedByBasicActivity() throws Exception {
-    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
-      return; // On the new NPW design, the reported bug no longer applies.
-    }
+    NPW_DYNAMIC_APPS.override(false);
 
     guiTest.welcomeFrame()
       .createNewProject()
@@ -349,5 +294,24 @@ public class NewProjectTest {
   @NotNull
   private static NewProjectDescriptor newProject(@NotNull String name) {
     return new NewProjectDescriptor(name);
+  }
+
+  private IdeFrameFixture newProject(String language, boolean includeNavController) {
+    NPW_DYNAMIC_APPS.override(true);
+
+    guiTest
+      .welcomeFrame()
+      .createNewProject()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .selectMinimumSdkApi("27")
+      .setSourceLanguage(language)
+      .setIncludeNavController(includeNavController)
+      .wizard()
+      .clickFinish();
+
+    return guiTest
+      .ideFrame()
+      .waitForGradleProjectSyncToFinish();
   }
 }

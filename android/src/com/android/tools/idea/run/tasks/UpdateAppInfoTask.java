@@ -18,7 +18,6 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.activity.AndroidActivityLauncher;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;

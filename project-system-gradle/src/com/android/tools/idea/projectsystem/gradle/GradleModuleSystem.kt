@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.util.PathString
@@ -29,15 +28,11 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.*
-import com.android.tools.idea.templates.IdeGoogleMavenRepository
-import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.annotations.TestOnly
 import java.util.*
 
-class GradleModuleSystem(val module: Module, @TestOnly private val mavenRepository: GoogleMavenRepository = IdeGoogleMavenRepository)
-  : AndroidModuleSystem {
+class GradleModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFinder by GradleClassFileFinder(module) {
 
   override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
     // Check for android library dependencies from the build model

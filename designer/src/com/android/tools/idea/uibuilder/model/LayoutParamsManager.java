@@ -177,7 +177,7 @@ public class LayoutParamsManager {
         setterMethod.get().invoke(target, value);
         return true;
       }
-      catch (IllegalAccessException | InvocationTargetException ignored) {
+      catch (Throwable ignored) {
       }
     }
 

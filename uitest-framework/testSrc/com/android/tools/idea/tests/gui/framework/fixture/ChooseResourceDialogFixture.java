@@ -39,7 +39,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 
@@ -130,6 +132,15 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
   @NotNull
   public JListFixture getList(@NotNull String appNamespaceLabel) {
     return new JListFixture(robot(), waitUntilFound(robot(), target(), Matchers.byName(JList.class, appNamespaceLabel)));
+  }
+
+  public List<String> getAllListsInSelectedTab() {
+    return robot()
+      .finder()
+      .findAll((JComponent)getTabs().target().getSelectedComponent(), Matchers.byType(JList.class))
+      .stream()
+      .map(list -> list.getName())
+      .collect(Collectors.toList());
   }
 
   @NotNull

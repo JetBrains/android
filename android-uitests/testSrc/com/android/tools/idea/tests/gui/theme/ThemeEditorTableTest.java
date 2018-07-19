@@ -239,9 +239,11 @@ public class ThemeEditorTableTest {
         return !component.equals(dialog.target());
       }
     });
-    secondDialog.getResourceNameTable().cell("android:disabledAlpha").click();
+    secondDialog.getResourceNameTable().cell("disabledAlpha").click();
     secondDialog.clickOK();
-    Wait.seconds(1).expecting("component update").until(() -> "?android:attr/disabledAlpha".equals(state1.getAlphaValue()));
+    Wait.seconds(1)
+        .expecting("component value to be \"@dimen/disabledAlpha\" but was " + state1.getAlphaValue())
+        .until(() -> "@dimen/disabledAlpha".equals(state1.getAlphaValue()));
 
     dialog.requireNoError();
 

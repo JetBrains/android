@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.dom.attrs;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -24,43 +26,29 @@ import java.util.List;
 /**
  * @author yole, coyote
  */
-public class StyleableDefinitionImpl implements StyleableDefinition {
-  private final String myName;
-  private final List<StyleableDefinition> myParents = new ArrayList<>();
-  private final List<AttributeDefinition> myAttributes = new ArrayList<>();
-  private final List<StyleableDefinition> myChildren = new ArrayList<>();
+public final class StyleableDefinitionImpl implements StyleableDefinition {
+  @NotNull private final ResourceReference myStyleable;
+  @NotNull private final List<AttributeDefinition> myAttributes = new ArrayList<>();
 
-  public StyleableDefinitionImpl(@NotNull String name) {
-    myName = name;
-  }
-
-  public void addChild(@NotNull StyleableDefinition child) {
-    myChildren.add(child);
-  }
-
-  public void addParent(@NotNull StyleableDefinition parent) {
-    myParents.add(parent);
-  }
-
-  @NotNull
-  public List<StyleableDefinition> getParents() {
-    return myParents;
+  public StyleableDefinitionImpl(@NotNull ResourceNamespace namespace, @NotNull String name) {
+    myStyleable = ResourceReference.styleable(namespace, name);
   }
 
   @Override
   @NotNull
-  public List<StyleableDefinition> getChildren() {
-    return myChildren;
+  public ResourceReference getResourceReference() {
+    return myStyleable;
   }
 
   @Override
   @NotNull
   public String getName() {
-    return myName;
+    return myStyleable.getName();
   }
 
   public void addAttribute(@NotNull AttributeDefinition attrDef) {
     myAttributes.add(attrDef);
+    attrDef.addParent(myStyleable);
   }
 
   @Override

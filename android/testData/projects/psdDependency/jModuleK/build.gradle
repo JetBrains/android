@@ -18,7 +18,7 @@ apply plugin: 'java-library'
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation project(":jModuleL")
-    implementation "com.example.jlib:lib3:0.9.1"
+    implementation varLib3_091
     implementation "com.example.jlib:lib4:0.6"
 }
 

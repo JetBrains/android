@@ -51,10 +51,14 @@ public final class FakeMouse {
    * eventually should be released by {@link #release()}
    */
   public void press(int x, int y, Button button) {
+    press(x, y, button, 1);
+  }
+
+  private void press(int x, int y, Button button, int clickCount) {
     if (myCursor != null) {
       throw new IllegalStateException("Mouse already pressed. Call release before pressing again.");
     }
-    dispatchMouseEvent(MouseEvent.MOUSE_PRESSED, x, y, button);
+    dispatchMouseEvent(MouseEvent.MOUSE_PRESSED, x, y, button, clickCount);
     myCursor = new Cursor(button, x, y);
   }
 
@@ -63,7 +67,7 @@ public final class FakeMouse {
       throw new IllegalStateException("Mouse not pressed. Call press before dragging.");
     }
 
-    dispatchMouseEvent(MouseEvent.MOUSE_DRAGGED, x, y, myCursor.button);
+    dispatchMouseEvent(MouseEvent.MOUSE_DRAGGED, x, y, myCursor.button,1);
     myCursor = new Cursor(myCursor, x, y);
   }
 
@@ -84,14 +88,14 @@ public final class FakeMouse {
     if (target != myFocus) {
       if (myFocus != null) {
         Point converted = myUi.toRelative(myFocus, x, y);
-        dispatchMouseEvent(new FakeUi.RelativePoint(myFocus, converted.x, converted.y), MouseEvent.MOUSE_EXITED, 0, 0);
+        dispatchMouseEvent(new FakeUi.RelativePoint(myFocus, converted.x, converted.y), MouseEvent.MOUSE_EXITED, 0, 0, 1);
       }
       if (target != null) {
-        dispatchMouseEvent(point, MouseEvent.MOUSE_ENTERED, 0, 0);
+        dispatchMouseEvent(point, MouseEvent.MOUSE_ENTERED, 0, 0, 1);
       }
     }
     if (target != null) {
-      dispatchMouseEvent(point, MouseEvent.MOUSE_MOVED, 0, 0);
+      dispatchMouseEvent(point, MouseEvent.MOUSE_MOVED, 0, 0, 1);
     }
     myFocus = target;
   }
@@ -100,7 +104,7 @@ public final class FakeMouse {
     if (myCursor == null) {
       throw new IllegalStateException("Mouse not pressed. Call press before releasing.");
     }
-    dispatchMouseEvent(MouseEvent.MOUSE_RELEASED, myCursor.x, myCursor.y, myCursor.button);
+    dispatchMouseEvent(MouseEvent.MOUSE_RELEASED, myCursor.x, myCursor.y, myCursor.button, 1);
     myCursor = null;
   }
 
@@ -114,15 +118,18 @@ public final class FakeMouse {
    * event is handled before you check a component's state.
    */
   public void click(int x, int y, Button button) {
+    click(x, y, button, 1);
+  }
+
+  private void click(int x, int y, Button button, int clickCount) {
     if (myCursor != null) {
       throw new IllegalStateException("Mouse already pressed. Call release before clicking.");
     }
-
-    press(x, y, button);
+    press(x, y, button, clickCount);
     Cursor cursor = myCursor;
     release();
     // PRESSED + RELEASED should additionally fire a CLICKED event
-    dispatchMouseEvent(MouseEvent.MOUSE_CLICKED, cursor.x, cursor.y, cursor.button);
+    dispatchMouseEvent(MouseEvent.MOUSE_CLICKED, cursor.x, cursor.y, cursor.button, clickCount);
   }
 
   /**
@@ -137,8 +144,8 @@ public final class FakeMouse {
     if (myCursor != null) {
       throw new IllegalStateException("Mouse already pressed. Call release before double-clicking.");
     }
-    click(x, y, button);
-    click(x, y, button);
+    click(x, y, button, 1);
+    click(x, y, button, 2);
   }
 
   /**
@@ -181,20 +188,29 @@ public final class FakeMouse {
     dispatchMouseWheelEvent(x, y, rotation);
   }
 
-  private void dispatchMouseEvent(int eventType, int x, int y, Button button) {
+  private void dispatchMouseEvent(int eventType, int x, int y, Button button, int clickCount) {
     FakeUi.RelativePoint point = myUi.targetMouseEvent(x, y);
     if (point != null) {
       // Rare, but can happen if, say, a release mouse event closes a component, and then we try to
       // fire a followup clicked event on it.
-      dispatchMouseEvent(point, eventType, button.mask, button.code);
+      dispatchMouseEvent(point, eventType, button.mask, button.code, clickCount);
     }
   }
 
-  private void dispatchMouseEvent(FakeUi.RelativePoint point, int eventType, int modifiers, int button) {
+  /**
+   * Helper method to dispatch a mouse event.
+   * @param point Point that supplies the component and coordinates to trigger mouse event.
+   * @param eventType Type of mouse event to trigger.
+   * @param modifiers Mouse modifier codes.
+   * @param button Which mouse button to pass to the event.
+   * @param clickCount The number of consecutive clicks passed in the event. This is not how many times to issue the event but
+   *                   how many times a click has occurred.
+   */
+  private void dispatchMouseEvent(FakeUi.RelativePoint point, int eventType, int modifiers, int button, int clickCount) {
     //noinspection MagicConstant (modifier code is valid, from FakeKeyboard class)
     MouseEvent event = new MouseEvent(point.component, eventType, TimeUnit.NANOSECONDS.toMillis(System.nanoTime()),
                                       myKeyboard.toModifiersCode() | modifiers,
-                                      point.x, point.y, 1, false, button);
+                                      point.x, point.y, clickCount, false, button);
     point.component.dispatchEvent(event);
   }
 

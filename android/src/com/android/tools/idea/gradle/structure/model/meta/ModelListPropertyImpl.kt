@@ -30,6 +30,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
   parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
   parser: (ContextT, String) -> Annotated<ParsedValue<ValueT>>,
   formatter: (ContextT, ValueT) -> String = { _, value -> value.toString() },
+  variableMatchingStrategy: VariableMatchingStrategy = VariableMatchingStrategy.BY_TYPE,
   knownValuesGetter: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>)? = null,
   matcher: (model: ModelT, parsedValue: ValueT?, resolvedValue: ValueT) -> Boolean =
     { _, parsedValue, resolvedValue -> parsedValue == resolvedValue }
@@ -43,6 +44,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     setter,
     { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet.annotated() else parser(context, value.trim()) },
     formatter,
+    variableMatchingStrategy,
     { context: ContextT, model -> if (knownValuesGetter != null) knownValuesGetter(context, model) else immediateFuture(listOf()) },
     matcher
   )
@@ -56,6 +58,7 @@ class ModelListPropertyImpl<in ContextT, in ModelT, out ResolvedT, ParsedT, Valu
   override val setter: ResolvedPropertyModel.(ValueT) -> Unit,
   override val parser: (ContextT, String) -> Annotated<ParsedValue<ValueT>>,
   override val formatter: (ContextT, ValueT) -> String,
+  override val variableMatchingStrategy: VariableMatchingStrategy,
   override val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>,
   private val matcher: (model: ModelT, parsed: ValueT?, resolved: ValueT) -> Boolean
 ) : ModelCollectionPropertyBase<ContextT, ModelT, ResolvedT, ParsedT, List<ValueT>, ValueT>(), ModelListProperty<ContextT, ModelT, ValueT> {

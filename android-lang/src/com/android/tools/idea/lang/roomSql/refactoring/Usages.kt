@@ -66,7 +66,7 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     }
   }
 
-  override fun processQuery(queryParameters: ReferencesSearch.SearchParameters, consumer: Processor<PsiReference>) {
+  override fun processQuery(queryParameters: ReferencesSearch.SearchParameters, consumer: Processor<in PsiReference>) {
     val (word, referenceTarget) = ReadAction.compute<Pair<String, PsiElement>?, Throwable> {
       getNameDefinition(queryParameters.elementToSearch)?.let(this::chooseWordAndElement)
     } ?: return

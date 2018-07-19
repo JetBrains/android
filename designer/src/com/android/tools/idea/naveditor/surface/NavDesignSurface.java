@@ -240,7 +240,7 @@ public class NavDesignSurface extends DesignSurface {
     ApplicationManager.getApplication().invokeAndWait(
       () -> didAdd.set(DependencyManagementUtil.addDependencies(
         // TODO: check for and add androidx dependency when it's released
-        facet.getModule(), ImmutableList.of(GoogleMavenArtifactId.NAVIGATION_FRAGMENT.getCoordinate("+")), true, false, true).isEmpty()));
+        facet.getModule(), ImmutableList.of(GoogleMavenArtifactId.NAVIGATION_FRAGMENT.getCoordinate("+")), true, false, false).isEmpty()));
     return didAdd.get();
   }
 
@@ -368,7 +368,7 @@ public class NavDesignSurface extends DesignSurface {
     }
     String tagName = component.getTagName();
     String id;
-    if (getSceneManager().getSchema().getDestinationType(tagName) == NavigationSchema.DestinationType.NAVIGATION) {
+    if (getSceneManager().getSchema().isNavigationTag(tagName)) {
       if (tagName.equals(TAG_INCLUDE)) {
         id = component.getAttribute(SdkConstants.AUTO_URI, ATTR_GRAPH);
         if (id == null) {

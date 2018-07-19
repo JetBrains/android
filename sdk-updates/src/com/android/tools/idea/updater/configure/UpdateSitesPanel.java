@@ -88,7 +88,7 @@ public class UpdateSitesPanel {
 
       @Override
       public boolean isEnabled() {
-        return mySourcesTableModel.isEditable() && myUpdateSitesTable.getRowCount() > 0;
+        return mySourcesTableModel.hasEditableRows();
       }
     }).addExtraAction(new AnActionButton("Deselect All", AllIcons.Actions.Unselectall) {
       @Override
@@ -98,7 +98,7 @@ public class UpdateSitesPanel {
 
       @Override
       public boolean isEnabled() {
-        return mySourcesTableModel.isEditable() && myUpdateSitesTable.getRowCount() > 0;
+        return mySourcesTableModel.hasEditableRows();
       }
     }).setMoveDownAction(null).setMoveUpAction(null).setRemoveActionUpdater(new AnActionButtonUpdater() {
       @Override

@@ -29,4 +29,3 @@ open class LegacyApiVersion(private val apiVersion: ApiVersion) : OldApiVersion 
                                     "apiString=$apiString" +
                                     "}"
 }
-

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android
 
+import com.android.repository.api.RepoManager
+import com.android.repository.testframework.MockFileOp
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext
 import com.android.tools.idea.sdk.AndroidSdks
@@ -25,17 +28,29 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl
 import com.intellij.openapi.roots.ModifiableRootModel
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
+import org.mockito.Mockito.*
 
 class SdkModuleSetupStepTest : AndroidGradleTestCase() {
-  private var androidSdks : AndroidSdks? = null
-  private var setupStep : SdkModuleSetupStep? = null
+  private val androidSdks = mock(AndroidSdks::class.java)
+  private val setupStep = SdkModuleSetupStep(androidSdks)
+  private val moduleContext = mock(ModuleSetupContext::class.java)
+  private val sdk = mock(Sdk::class.java)
+  private lateinit var androidModel : AndroidModuleModel
 
   override fun setUp() {
     super.setUp()
-    androidSdks = mock(AndroidSdks::class.java)
-    setupStep = SdkModuleSetupStep(androidSdks!!)
+    loadSimpleApplication()
+
+    `when`(sdk.name).thenReturn("SdkName")
+
+    val appModule = myModules.appModule
+    androidModel = AndroidModuleModel.get(appModule)!!
+
+    val modifiableRootModel = mock(ModifiableRootModel::class.java)
+    val llmei = mock(LanguageLevelModuleExtensionImpl::class.java)
+    `when`(moduleContext.modifiableRootModel).thenReturn(modifiableRootModel)
+    `when`(moduleContext.module).thenReturn(appModule)
+    `when`(modifiableRootModel.getModuleExtension(LanguageLevelModuleExtensionImpl::class.java)).thenReturn(llmei)
   }
 
   private fun <T> any(): T {
@@ -44,27 +59,26 @@ class SdkModuleSetupStepTest : AndroidGradleTestCase() {
 
   @Test
   fun testCreateSdkUnderWriteAction() {
-    loadSimpleApplication()
-
-    val appModule = myModules.appModule
-    val androidModel = AndroidModuleModel.get(appModule)!!
-
-    val sdk = mock (Sdk::class.java)
-    `when`(sdk.name).thenReturn("SdkName")
-
-    `when`(androidSdks!!.findSuitableAndroidSdk(any())).thenReturn(null)
-    `when`(androidSdks!!.tryToCreate(any(), any())).thenAnswer {
+    `when`(androidSdks.findSuitableAndroidSdk(any())).thenReturn(null)
+    `when`(androidSdks.tryToChooseSdkHandler()).thenReturn(AndroidSdkHandler.getInstance(null))
+    `when`(androidSdks.tryToCreate(any(), any())).thenAnswer {
       ApplicationManager.getApplication().assertWriteAccessAllowed()
       sdk
     }
 
-    val moduleContext = mock(ModuleSetupContext::class.java)
-    val modifiableRootModel = mock(ModifiableRootModel::class.java)
-    val llmei = mock(LanguageLevelModuleExtensionImpl::class.java)
-    `when`(moduleContext.modifiableRootModel).thenReturn(modifiableRootModel)
-    `when`(moduleContext.module).thenReturn(appModule)
-    `when`(modifiableRootModel.getModuleExtension(LanguageLevelModuleExtensionImpl::class.java)).thenReturn(llmei)
+    setupStep.doSetUpModule(moduleContext, androidModel)
+  }
 
-    setupStep!!.doSetUpModule(moduleContext, androidModel)
+  @Test
+  fun testSdkIsReloaded() {
+    val repoManager = mock(RepoManager::class.java)
+    val sdkHandler = AndroidSdkHandler(null, null, MockFileOp(), repoManager)
+    `when`(androidSdks.findSuitableAndroidSdk(any())).thenReturn(null)
+    `when`(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler)
+    `when`(androidSdks.tryToCreate(any(), any())).thenReturn(sdk)
+
+    setupStep.doSetUpModule(moduleContext, androidModel)
+
+    verify(repoManager).reloadLocalIfNeeded(any())
   }
 }

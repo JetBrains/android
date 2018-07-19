@@ -252,7 +252,6 @@ public class PalettePanelTest extends LayoutTestCase {
     TransferHandler handler = list.getTransferHandler();
     imitateDragAndDrop(handler, list);
 
-    verify(usageTracker).logDropFromPalette(CONSTRAINT_LAYOUT.defaultName(), representation, "Layouts", -1);
   }
 
   public void testDragAndDropInDumbMode() throws Exception {
@@ -430,7 +429,7 @@ public class PalettePanelTest extends LayoutTestCase {
     myModel = createModel().build();
     DesignSurface surface = myModel.getSurface();
     LayoutTestUtilities.createScreen(myModel);
-    when(surface.getLayoutType()).thenReturn(layoutType);
+    doReturn(layoutType).when(surface).getLayoutType();
     myPanel.setToolContext(myModel.getSurface());
     return surface;
   }

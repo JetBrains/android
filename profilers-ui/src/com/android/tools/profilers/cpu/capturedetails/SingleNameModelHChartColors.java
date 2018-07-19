@@ -36,11 +36,11 @@ class SingleNameModelHChartColors {
     }
   }
 
-  static Color getFillColor(@NotNull CaptureNodeModel model, CaptureModel.Details.Type chartType, boolean isUnmatched, boolean isFocused) {
+  static Color getFillColor(@NotNull CaptureNodeModel model, CaptureDetails.Type chartType, boolean isUnmatched, boolean isFocused) {
     validateModel(model);
 
     Color color;
-    if (chartType == CaptureModel.Details.Type.CALL_CHART) {
+    if (chartType == CaptureDetails.Type.CALL_CHART) {
       color = isFocused ? ProfilerColors.CPU_CALLCHART_APP_HOVER : ProfilerColors.CPU_CALLCHART_APP;
     }
     else {

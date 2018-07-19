@@ -142,6 +142,16 @@ public class SourcesTableModelTest extends AndroidTestCase {
     assertTrue(myModel.getItem(0).mySource.isEnabled());
     assertTrue(myModel.getItem(1).mySource.isEnabled());
     assertTrue(myModel.getItem(3).mySource.isEnabled());
+
+    // Remove all editable sources and check that when all sources are non-editable
+    // (for example, this is the OOTB use-case), then deselect all does nothing even when called (b/111496462).
+    refreshCalled.set(false);
+    assertTrue(myModel.hasEditableRows());
+    runAndWaitForUpdate(() -> myModel.removeRow(0));
+    runAndWaitForUpdate(() -> myModel.removeRow(0));
+    assertFalse(myModel.hasEditableRows());
+    myModel.setAllEnabled(false);
+    assertTrue(myModel.getItem(0).mySource.isEnabled());
   }
 
   public void testRemoveSource() {

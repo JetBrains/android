@@ -48,7 +48,7 @@ class SqliteEditorProvider : FileEditorProvider, DumbAware {
     }
   }
 
-  override fun readState(sourceElement: Element, project: Project, file: VirtualFile): FileEditorState {
+  override fun readState(sourceElement: Element?, project: Project, file: VirtualFile): FileEditorState {
     return SqliteEditorState.readState(sourceElement)
   }
 
@@ -57,6 +57,6 @@ class SqliteEditorProvider : FileEditorProvider, DumbAware {
   override fun getPolicy(): FileEditorPolicy = FileEditorPolicy.PLACE_BEFORE_DEFAULT_EDITOR
 
   companion object {
-    private val SQLITE_EDITOR_ID = "android-sqlite-editor-id"
+    private const val SQLITE_EDITOR_ID = "android-sqlite-editor-id"
   }
 }

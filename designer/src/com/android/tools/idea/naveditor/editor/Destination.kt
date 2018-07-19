@@ -31,7 +31,6 @@ import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import icons.StudioIcons.NavEditor.ExistingDestinations.ACTIVITY
 import icons.StudioIcons.NavEditor.ExistingDestinations.DESTINATION
-import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.Image
 import java.awt.image.BufferedImage
 
@@ -41,7 +40,11 @@ private const val THUMBNAIL_WIDTH = 50
 private const val THUMBNAIL_HEIGHT = 56
 
 sealed class Destination {
+  /**
+   * Add this to the graph. Must be called in a write action.
+   */
   abstract fun addToGraph()
+
   abstract val label: String
   abstract val thumbnail: Image
   abstract val typeLabel: String
@@ -59,17 +62,18 @@ sealed class Destination {
       val model = parent.model
       if (layoutFile != null) {
         val future = ThumbnailManager.getInstance(model.facet).getThumbnail(layoutFile, model.configuration)
-        if (future != null) {
+        // TODO: wait for rendering nicely
+        val image = future.get()
+        if (image != null) {
           val scale = (DESTINATION as? JBUI.RasterJBIcon)?.getScale(JBUI.ScaleType.PIX_SCALE) ?: 1.0
           val result = BufferedImage((73 * scale).toInt(), (94 * scale).toInt(), BufferedImage.TYPE_INT_ARGB)
           DESTINATION.paintIcon(null, result.graphics, 0, 0)
-          // TODO: wait for rendering nicely
-          result.graphics.drawImage(future.get(), (THUMBNAIL_X * scale).toInt(), (THUMBNAIL_Y * scale).toInt(),
+          result.graphics.drawImage(image, (THUMBNAIL_X * scale).toInt(), (THUMBNAIL_Y * scale).toInt(),
                                     (THUMBNAIL_WIDTH * scale).toInt(), (THUMBNAIL_HEIGHT * scale).toInt(), null)
           return@lazy result
         }
       }
-      val isActivity = model.schema.getDestinationType(tag) == NavigationSchema.DestinationType.ACTIVITY
+      val isActivity = model.schema.isActivityTag(tag)
       
       return@lazy iconToImage(if (isActivity) ACTIVITY else DESTINATION)
     }
@@ -81,39 +85,33 @@ sealed class Destination {
 
     override fun addToGraph() {
       val model = parent.model
-      object : WriteCommandAction<Unit>(model.project, "Add $className", model.file) {
-        override fun run(result: Result<Unit>) {
-          val tag = parent.tag.createChildTag(tag, null, null, true)
-          val newComponent = model.createComponent(null, tag, parent, null, InsertType.CREATE)
-          newComponent.assignId(idBase)
-          newComponent.setAndroidAttribute(SdkConstants.ATTR_NAME, qualifiedName)
-          newComponent.setAndroidAttribute(SdkConstants.ATTR_LABEL, label)
-          if (parent.startDestination == null) {
-            newComponent.setAsStartDestination()
-          }
-          layoutFile?.let {
-            // TODO: do this the right way
-            val layoutId = "@${ResourceType.LAYOUT.getName()}/${FileUtil.getNameWithoutExtension(it.name)}"
-            newComponent.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, layoutId)
-          }
-          component = newComponent
-        }
-      }.execute()
+
+      val tag = parent.tag.createChildTag(tag, null, null, true)
+      val newComponent = model.createComponent(null, tag, parent, null, InsertType.CREATE)
+      newComponent.assignId(idBase)
+      newComponent.setAndroidAttribute(SdkConstants.ATTR_NAME, qualifiedName)
+      newComponent.setAndroidAttribute(SdkConstants.ATTR_LABEL, label)
+      if (parent.startDestination == null) {
+        newComponent.setAsStartDestination()
+      }
+      layoutFile?.let {
+        // TODO: do this the right way
+        val layoutId = "@${ResourceType.LAYOUT.getName()}/${FileUtil.getNameWithoutExtension(it.name)}"
+        newComponent.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, layoutId)
+      }
+      component = newComponent
     }
   }
 
   data class IncludeDestination(val graph: String, val parent: NlComponent) : Destination() {
     override fun addToGraph() {
       val model = parent.model
-      object : WriteCommandAction<Unit>(model.project, "Add include", model.file) {
-        override fun run(result: Result<Unit>) {
-          val tag = parent.tag.createChildTag(SdkConstants.TAG_INCLUDE, null, null, true)
-          val newComponent = model.createComponent(null, tag, parent, null, InsertType.CREATE)
-          newComponent.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_GRAPH,
-              "@${ResourceType.NAVIGATION.getName()}/${FileUtil.getNameWithoutExtension(graph)}")
-          component = newComponent
-        }
-      }.execute()
+
+      val tag = parent.tag.createChildTag(SdkConstants.TAG_INCLUDE, null, null, true)
+      val newComponent = model.createComponent(null, tag, parent, null, InsertType.CREATE)
+      newComponent.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_GRAPH,
+                                "@${ResourceType.NAVIGATION.getName()}/${FileUtil.getNameWithoutExtension(graph)}")
+      component = newComponent
     }
 
     override val label = graph

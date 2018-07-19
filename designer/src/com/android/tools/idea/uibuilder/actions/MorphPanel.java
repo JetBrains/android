@@ -19,7 +19,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.palette.Palette;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.project.Project;
@@ -28,15 +27,15 @@ import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.Consumer;
 import com.intellij.util.textCompletion.TextFieldWithCompletion;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyEvent;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,58 +48,37 @@ public class MorphPanel extends JPanel {
   public static final String MORPH_DIALOG_NAME = "MorphPanel";
   private final AndroidFacet myFacet;
   private final Project myProject;
-  private final JComponent myEditor;
-  private JPanel myCodePreview;
   private JBLabel myNewTagLabel;
   private TextFieldWithCompletion myNewTagText;
   @SuppressWarnings("FieldCanBeLocal") private JPanel myRoot; // Needed for the .form file
   private JButton myOkButton;
   private JList<Palette.Item> mySuggestionsList;
-  private JBLabel myShowMoreLabel;
   private Consumer<String> myOkAction;
   @Nullable private Consumer<String> myNameChangeConsumer;
 
   /**
-   * @param facet             {@link AndroidFacet} for the highlighting
-   * @param project           Current project used for the autocompletion
-   * @param codePreviewEditor Editor showing the code preview
-   * @param oldTag            old tag name of the morphed component to pre-fill the text field
-   * @param tagSuggestions    Suggestion of tags to morph the view to
+   * @param facet          {@link AndroidFacet} for the highlighting
+   * @param project        Current project used for the autocompletion
+   * @param oldTag         old tag name of the morphed component to pre-fill the text field
+   * @param tagSuggestions Suggestion of tags to morph the view to
    */
   public MorphPanel(@NotNull AndroidFacet facet,
                     @NotNull Project project,
-                    @NotNull JComponent codePreviewEditor,
                     @NotNull String oldTag,
                     @NotNull List<String> tagSuggestions) {
     myFacet = facet;
     myProject = project;
-    myEditor = codePreviewEditor;
-    myEditor.setVisible(false);
-    myCodePreview.add(myEditor, BorderLayout.CENTER);
     setName(MORPH_DIALOG_NAME);
     setFocusable(true);
     myOkButton.addActionListener(e -> doOkAction());
     setupTextTagField(oldTag);
     setupButtonList(tagSuggestions);
-    myShowMoreLabel.setIcon(AllIcons.General.ComboArrowRight);
-    myShowMoreLabel.setText("Show XML preview");
-    myShowMoreLabel.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        myEditor.setVisible(!myEditor.isVisible());
-        myShowMoreLabel.setIcon(myEditor.isVisible() ? AllIcons.General.ComboArrowDown : AllIcons.General.ComboArrowRight);
-        Window window = UIUtil.getWindow(e.getComponent());
-        if (window != null) {
-          window.pack();
-        }
-      }
-    });
   }
 
   private void setupButtonList(List<String> suggestions) {
     DefaultListModel<Palette.Item> model = new DefaultListModel<>();
     ViewHandlerManager manager = ViewHandlerManager.get(myProject);
-    for (String tagSuggestion : suggestions) {
+    for (String tagSuggestion: suggestions) {
       ViewHandler handler = manager.getHandlerOrDefault(tagSuggestion);
       model.addElement(new Palette.Item(tagSuggestion, handler));
     }
@@ -200,7 +178,7 @@ public class MorphPanel extends JPanel {
    * @return The component that should e focused when this panel is shown
    */
   @NotNull
-  public Component getPreferredFocusComponent() {
+  public JComponent getPreferredFocusComponent() {
     return myNewTagText;
   }
 

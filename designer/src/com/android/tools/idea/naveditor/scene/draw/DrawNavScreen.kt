@@ -42,9 +42,10 @@ private const val FONT_NAME = "Default"
  * [DrawCommand] that draws a screen in the navigation editor.
  */
 class DrawNavScreen(@SwingCoordinate private val rectangle: Rectangle,
-                    private val image: CompletableFuture<BufferedImage?>?) : NavBaseDrawCommand() {
+                    private val imageFuture: CompletableFuture<BufferedImage?>,
+                    private val oldImage: BufferedImage? = null) : NavBaseDrawCommand() {
 
-  private constructor(sp: Array<String>) : this(stringToRect(sp[0]), null)
+  private constructor(sp: Array<String>) : this(stringToRect(sp[0]), CompletableFuture.completedFuture(null))
 
   constructor(s: String) : this(parse(s, 1))
 
@@ -59,15 +60,20 @@ class DrawNavScreen(@SwingCoordinate private val rectangle: Rectangle,
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     setRenderingHints(g)
     g.clipRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height)
-    when {
-      image == null || (image.isDone && image.get() == null) -> drawText(UNAVAILABLE_TEXT_1, UNAVAILABLE_TEXT_2, g, sceneContext)
-      image.isDone -> // TODO: better scaling (similar to ScreenViewLayer)
-        g.drawImage(image.get(), rectangle.x, rectangle.y, rectangle.width, rectangle.height, null)
-      else -> {
-        drawText(LOADING_TEXT_1, null, g, sceneContext)
-        image.thenRun {
-          sceneContext.repaint()
-        }
+    val done = imageFuture.isDone
+    val image = if (done) imageFuture.get() else oldImage
+    if (image != null) {
+      g.drawImage(image, rectangle.x, rectangle.y, rectangle.width, rectangle.height, null)
+    }
+    else if (done) {
+      drawText(UNAVAILABLE_TEXT_1, UNAVAILABLE_TEXT_2, g, sceneContext)
+    }
+    else {
+      drawText(LOADING_TEXT_1, null, g, sceneContext)
+    }
+    if (!done) {
+      imageFuture.thenRun {
+        sceneContext.repaint()
       }
     }
   }

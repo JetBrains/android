@@ -66,7 +66,7 @@ iml_module(
         "//tools/idea/platform/platform-api:intellij.platform.ide[module, test]",
         "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module, test]",
         "//tools/idea/java/openapi:intellij.java[module, test]",
-        "//tools/idea/plugins/gradle:intellij.gradle[module, test]",
+        "//tools/idea/plugins/gradle/java:intellij.gradle.java[module, test]",
         "//tools/idea/java/compiler/openapi:intellij.java.compiler[module, test]",
         "//tools/idea:intellij.java.impl[module, test]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
@@ -86,6 +86,7 @@ iml_module(
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/adt/idea/android-adb[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
     ],
 )
 
@@ -312,13 +313,17 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+# fast test
 java_test(
     name = "LintTest",
     data = COMMON_DATA + glob([
         "testData/LintTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.lint.LintTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",  # b/110178024
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -929,11 +934,11 @@ java_test(
 
 # fast test
 java_test(
-    name = "MultiJavaLibrariesDependencyTest",
+    name = "JavaLibsDepTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.MultiJavaLibrariesDependencyTest"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.JavaLibsDepTest"],
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
@@ -944,11 +949,11 @@ java_test(
 
 # fast test
 java_test(
-    name = "TransitiveDependenciesTest",
+    name = "AndroidLibsDepTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.TransitiveDependenciesTest"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AndroidLibsDepTest"],
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
@@ -959,12 +964,12 @@ java_test(
 
 # fast test
 java_test(
-    name = "TransitiveJavaDependenciesResolveTest",
+    name = "JavaDepTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.6.2:jar",
     ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.TransitiveJavaDependenciesResolveTest"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.JavaDepTest"],
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
@@ -975,15 +980,81 @@ java_test(
 
 # fast test
 java_test(
-    name = "TransitiveDependenciesResolveTest",
+    name = "AndroidDepTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.6.2:jar",
     ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.TransitiveDependenciesResolveTest"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AndroidDepTest"],
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "IdePermissionTest",
+    data = COMMON_DATA + glob([
+        "testData/SimpleLocalApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.IdePermissionTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "PrivateResourceTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ] + glob([
+        "testData/PrivateResource/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.PrivateResourceTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "ChangeLibModSettingsTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ] + glob([
+        "testData/PrivateResource/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ChangeLibModSettingsTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
+        "qa_unreliable",  # b/111399767
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "NameWithSpaceTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NameWithSpaceTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
+        "qa_unreliable",  # b/111399767
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

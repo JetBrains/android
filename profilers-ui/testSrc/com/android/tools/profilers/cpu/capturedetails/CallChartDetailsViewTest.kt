@@ -62,10 +62,10 @@ class CallChartDetailsViewTest {
       val capture = CpuProfilerUITestUtils.validCapture()
       setAndSelectCapture(capture)
       selectedThread = CaptureModel.NO_THREAD
-      setCaptureDetails(CaptureModel.Details.Type.CALL_CHART)
+      setCaptureDetails(CaptureDetails.Type.CALL_CHART)
     }
 
-    val callChart = stage.captureDetails as CaptureModel.CallChart
+    val callChart = stage.captureDetails as CaptureDetails.CallChart
     assertThat(callChart.node).isNull()
 
     val callChartView = ChartDetailsView.CallChartDetailsView(stageView, callChart)
@@ -84,10 +84,10 @@ class CallChartDetailsViewTest {
       val capture = CpuProfilerUITestUtils.validCapture()
       setAndSelectCapture(capture)
       selectedThread = capture.mainThreadId
-      setCaptureDetails(CaptureModel.Details.Type.CALL_CHART)
+      setCaptureDetails(CaptureDetails.Type.CALL_CHART)
     }
 
-    val callChart = stage.captureDetails as CaptureModel.CallChart
+    val callChart = stage.captureDetails as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(stageView, callChart)
 
     val noDataInstructionsList = TreeWalker(callChartView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
@@ -107,13 +107,13 @@ class CallChartDetailsViewTest {
       val capture = CpuProfilerUITestUtils.validCapture()
       setAndSelectCapture(capture)
       selectedThread = capture.mainThreadId
-      setCaptureDetails(CaptureModel.Details.Type.CALL_CHART)
+      setCaptureDetails(CaptureDetails.Type.CALL_CHART)
     }
 
     // Select a range where we don't have trace data
     stage.studioProfilers.timeline.selectionRange.set(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
 
-    val callChart = stage.captureDetails as CaptureModel.CallChart
+    val callChart = stage.captureDetails as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(stageView, callChart)
 
     val noDataInstructions = TreeWalker(callChartView.component).descendants().filterIsInstance<InstructionsPanel>().first {

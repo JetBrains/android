@@ -20,7 +20,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.BuildVariantsPerspectiveConfigurableKt;
-import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.ModulesPerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.BuildVariantsPanelKt;
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.buildtypes.BuildTypesPanelKt;
@@ -164,8 +164,8 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
     if (StudioFlags.NEW_PSD_ENABLED.get()) {
       showNewPsd(
         new Place()
-          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurable.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
-          .putPath(DependenciesPerspectiveConfigurable.DEPENDENCIES_PERSPECTIVE_PLACE_NAME, module.getName())
+          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
+          .putPath(DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_PLACE_NAME, module.getName())
           .putPath(String.format("dependencies.%s.place", module.getName()), dependency.toString())
       );
     }
@@ -209,8 +209,8 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
     if (StudioFlags.NEW_PSD_ENABLED.get()) {
       showNewPsd(
         new Place()
-          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurable.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
-          .putPath(DependenciesPerspectiveConfigurable.DEPENDENCIES_PERSPECTIVE_PLACE_NAME, module.getName())
+          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
+          .putPath(DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_PLACE_NAME, module.getName())
       );
     }
     else {

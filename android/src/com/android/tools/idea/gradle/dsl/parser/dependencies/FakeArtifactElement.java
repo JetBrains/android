@@ -136,7 +136,14 @@ public class FakeArtifactElement extends FakeElement {
   @NotNull
   @Override
   public List<GradleReferenceInjection> getResolvedVariables() {
-    PsiElement realExpression = myRealExpression.getExpression();
+    PsiElement realExpression;
+    if (myRealExpression instanceof GradleDslSettableExpression) {
+      realExpression = ((GradleDslSettableExpression)myRealExpression).getCurrentElement();
+    }
+    else {
+      realExpression = myRealExpression.getExpression();
+    }
+
     if (realExpression == null) {
       return ImmutableList.of();
     }
@@ -149,6 +156,12 @@ public class FakeArtifactElement extends FakeElement {
     GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
     GradleDslElement element = resolved.resolveReference(referenceText, true);
     return ImmutableList.of(new GradleReferenceInjection(this, element, realExpression /* Used as a placeholders */, referenceText));
+  }
+
+  @NotNull
+  @Override
+  public List<GradleReferenceInjection> getDependencies() {
+    return getResolvedVariables();
   }
 
   @Override

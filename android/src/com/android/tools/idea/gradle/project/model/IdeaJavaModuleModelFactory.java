@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.model.java.IdeaJarLibraryDependencyFactory;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
@@ -52,10 +53,11 @@ public class IdeaJavaModuleModelFactory {
   @NotNull
   public JavaModuleModel create(@NotNull IdeaModule ideaModule,
                                 @Nullable ModuleExtendedModel javaModel,
+                                @NotNull Collection<SyncIssue> syncIssues,
                                 boolean androidModuleWithoutVariants) {
     Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies = getDependencies(ideaModule);
     return new JavaModuleModel(ideaModule.getName(), getContentRoots(ideaModule, javaModel), dependencies.first, dependencies.second,
-                               getArtifactsByConfiguration(javaModel), getCompilerOutput(javaModel),
+                               syncIssues, getArtifactsByConfiguration(javaModel), getCompilerOutput(javaModel),
                                ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(javaModel),
                                !androidModuleWithoutVariants && isBuildable(ideaModule.getGradleProject()), androidModuleWithoutVariants);
   }
@@ -110,8 +112,8 @@ public class IdeaJavaModuleModelFactory {
         else if (dependency instanceof IdeaModuleDependency) {
           // Don't include runtime module dependencies. b/63819274.
           // Consider example,
-          // libA implementaion depends on libB, libB api dependes on libAPI, libB implementation depends on LibImpl.
-          // libA should have implementaion dependency on libB and libAPI, but not on LibImpl, libA however still have runtime dependency on LibImpl.
+          // libA implementation depends on libB, libB api depends on libAPI, libB implementation depends on LibImpl.
+          // libA should have implementation dependency on libB and libAPI, but not on LibImpl, libA however still have runtime dependency on LibImpl.
           // So we need to exclude runtime module dependencies.
           if (equalsIgnoreCase(dependency.getScope().getScope(), "RUNTIME")) {
             continue;
