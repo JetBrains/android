@@ -25,6 +25,8 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <fileTypeFactory implementation="com.android.tools.idea.editors.layoutInspector.LayoutInspectorFileTypeFactory" />
+    <projectService serviceInterface="com.android.tools.idea.editors.layoutInspector.AndroidLayoutInspectorService"
+      serviceImplementation="com.android.tools.idea.editors.layoutInspector.impl.AndroidLayoutInspectorServiceImpl" />
   </extensions>
 
   <extensions defaultExtensionNs="com.android">

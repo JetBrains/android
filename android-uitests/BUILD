@@ -267,6 +267,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
         "testData/SimpleLocalApplication/**",
+        "testData/LayoutInspector/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.LayoutInspectorTest"],
     tags = COMMON_TAGS + ["manual"],  #Test failed for UI reason
