@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency
 import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
+import com.intellij.util.PlatformIcons
+import javax.swing.Icon
 
 class PsDeclaredModuleJavaDependency(
   parent: PsJavaModule,
@@ -30,6 +32,7 @@ class PsDeclaredModuleJavaDependency(
   override val isDeclared: Boolean = true
   override val joinedConfigurationNames: String get() = parsedModel.configurationName()
   override fun toText(type: TextType): String = name
+  override val icon: Icon = parent.parent.findModuleByGradlePath(gradlePath)?.icon ?: PlatformIcons.LIBRARY_ICON
   override val gradlePath: String get() = parsedModel.path().forceString()
   override val configurationName: String get() = parsedModel.configurationName()
 }
@@ -45,5 +48,6 @@ class PsResolvedModuleJavaDependency(
   override val isDeclared: Boolean get() = declaredDependencies.isNotEmpty()
   override val joinedConfigurationNames: String = scope
   override fun toText(type: TextType): String = name
+  override val icon: Icon = parent.parent.findModuleByGradlePath(gradlePath)?.icon ?: PlatformIcons.LIBRARY_ICON
   override fun getParsedModels(): List<DependencyModel> = declaredDependencies.map { it.parsedModel }
 }
