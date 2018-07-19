@@ -157,7 +157,8 @@ open class PsProductFlavor(
 
     val testFunctionalTest: SimpleProperty<PsProductFlavor, Boolean> = property(
       "Test Functional Test",
-      resolvedValueGetter = { testFunctionalTest },
+      // TODO(b/111630584): Replace with the resolved value.
+      resolvedValueGetter = { null },
       parsedPropertyGetter = { testFunctionalTest() },
       getter = { asBoolean() },
       setter = { setValue(it) },
@@ -167,7 +168,8 @@ open class PsProductFlavor(
 
     val testHandleProfiling: SimpleProperty<PsProductFlavor, Boolean> = property(
       "Test Handle Profiling",
-      resolvedValueGetter = { testHandleProfiling },
+      // TODO(b/111630584): Replace with the resolved value.
+      resolvedValueGetter = { null },
       parsedPropertyGetter = { testHandleProfiling() },
       getter = { asBoolean() },
       setter = { setValue(it) },
