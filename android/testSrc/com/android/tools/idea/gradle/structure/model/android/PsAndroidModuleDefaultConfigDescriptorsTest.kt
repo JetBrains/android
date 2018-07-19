@@ -35,6 +35,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     val defaultConfig = appModule.defaultConfig
 
     val applicationId = PsAndroidModuleDefaultConfigDescriptors.applicationId.bind(defaultConfig).getValue()
+    val applicationIdSuffix = PsAndroidModuleDefaultConfigDescriptors.applicationIdSuffix.bind(defaultConfig).getValue()
     val maxSdkVersion = PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion.bind(defaultConfig).getValue()
     val minSdkVersion = PsAndroidModuleDefaultConfigDescriptors.minSdkVersion.bind(defaultConfig).getValue()
     val multiDexEnabled = PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled.bind(defaultConfig).getValue()
@@ -54,6 +55,9 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
     assertThat(applicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.default"))
     assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.default"))
+
+    assertThat(applicationIdSuffix.resolved.asTestValue(), equalTo("defaultSuffix"))
+    assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("defaultSuffix"))
 
     assertThat(maxSdkVersion.resolved.asTestValue(), equalTo(26))
     assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(26))
@@ -111,6 +115,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     assertThat(defaultConfig, notNullValue())
 
     defaultConfig.applicationId = "com.example.psd.sample.app.unpaid".asParsed()
+    defaultConfig.applicationIdSuffix = "newSuffix".asParsed()
     defaultConfig.maxSdkVersion = 26.asParsed()
     defaultConfig.minSdkVersion = "20".asParsed()
     defaultConfig.multiDexEnabled = false.asParsed()
@@ -131,6 +136,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
     fun verifyValues(defaultConfig: PsAndroidModuleDefaultConfig, afterSync: Boolean = false) {
       val applicationId = PsAndroidModuleDefaultConfigDescriptors.applicationId.bind(defaultConfig).getValue()
+      val applicationIdSuffix = PsAndroidModuleDefaultConfigDescriptors.applicationIdSuffix.bind(defaultConfig).getValue()
       val maxSdkVersion = PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion.bind(defaultConfig).getValue()
       val minSdkVersion = PsAndroidModuleDefaultConfigDescriptors.minSdkVersion.bind(defaultConfig).getValue()
       val multiDexEnabled = PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled.bind(defaultConfig).getValue()
@@ -146,6 +152,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       val manifestPlaceholders = PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).getValue()
 
       assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid"))
+      assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("newSuffix"))
       assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(26))
       assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("20"))
       assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(false))
@@ -164,6 +171,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
       if (afterSync) {
         assertThat(applicationId.parsedValue.asTestValue(), equalTo(applicationId.resolved.asTestValue()))
+        assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo(applicationIdSuffix.resolved.asTestValue()))
         assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(maxSdkVersion.resolved.asTestValue()))
         assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo(minSdkVersion.resolved.asTestValue()))
         assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(multiDexEnabled.resolved.asTestValue()))

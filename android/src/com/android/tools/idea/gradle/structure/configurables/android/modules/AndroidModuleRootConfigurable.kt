@@ -43,7 +43,8 @@ fun androidModulePropertiesModel() =
 fun defaultConfigPropertiesModel(isLibrary: Boolean) =
   PropertiesUiModel(
     listOfNotNull(
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.applicationId, ::simplePropertyEditor),
+      if (!isLibrary) uiProperty(PsAndroidModuleDefaultConfigDescriptors.applicationId, ::simplePropertyEditor) else null,
+      if (!isLibrary) uiProperty(PsAndroidModuleDefaultConfigDescriptors.applicationIdSuffix, ::simplePropertyEditor) else null,
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion, ::simplePropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.minSdkVersion, ::simplePropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion, ::simplePropertyEditor),
