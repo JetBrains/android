@@ -160,6 +160,15 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     parser = ::parseString
   )
 
+  val versionNameSuffix: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
+    "Version Name Suffix",
+    resolvedValueGetter = { versionNameSuffix },
+    parsedPropertyGetter = { versionNameSuffix() },
+    getter = { asString() },
+    setter = { setValue(it) },
+    parser = ::parseString
+  )
+
   val consumerProGuardFiles: ListProperty<PsAndroidModuleDefaultConfig, File> = listProperty(
     "Consumer ProGuard Files",
     resolvedValueGetter = { consumerProguardFiles.toList() },

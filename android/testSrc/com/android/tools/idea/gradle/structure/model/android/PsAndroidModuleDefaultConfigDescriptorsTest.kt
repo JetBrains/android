@@ -47,6 +47,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     val testInstrumentationRunner = PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner.bind(defaultConfig).getValue()
     val versionCode = PsAndroidModuleDefaultConfigDescriptors.versionCode.bind(defaultConfig).getValue()
     val versionName = PsAndroidModuleDefaultConfigDescriptors.versionName.bind(defaultConfig).getValue()
+    val versionNameSuffix = PsAndroidModuleDefaultConfigDescriptors.versionNameSuffix.bind(defaultConfig).getValue()
     val proGuardFiles = PsAndroidModuleDefaultConfigDescriptors.proGuardFiles.bind(defaultConfig).getValue()
     val manifestPlaceholders = PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).getValue()
     val editableManifestPlaceholders =
@@ -92,6 +93,9 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     assertThat(versionName.resolved.asTestValue(), equalTo("1.0"))
     assertThat(versionName.parsedValue.asTestValue(), equalTo("1.0"))
 
+    assertThat(versionNameSuffix.resolved.asTestValue(), equalTo("vns"))
+    assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("vns"))
+
     assertThat(proGuardFiles.resolved.asTestValue(), equalTo(listOf()))
     assertThat(proGuardFiles.parsedValue.asTestValue(), nullValue())
 
@@ -133,6 +137,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     // TODO(b/79531524): find out why it fails.
     // defaultConfig.versionCode = "3".asParsed()
     defaultConfig.versionName = "3.0".asParsed()
+    defaultConfig.versionNameSuffix = "newVns".asParsed()
     PsAndroidModuleDefaultConfigDescriptors.signingConfig.bind(defaultConfig).setParsedValue(
       ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.myConfig")))
     PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).run {
@@ -157,6 +162,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       // TODO(b/79531524): find out why it fails.
       // val versionCode = PsAndroidModuleDefaultConfigDescriptors.versionCode.bind(defaultConfig).getValue()
       val versionName = PsAndroidModuleDefaultConfigDescriptors.versionName.bind(defaultConfig).getValue()
+      val versionNameSuffix = PsAndroidModuleDefaultConfigDescriptors.versionNameSuffix.bind(defaultConfig).getValue()
       val manifestPlaceholders = PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).getValue()
 
       assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid"))
@@ -177,6 +183,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       // TODO(b/79531524): find out why it fails.
       // assertThat(versionCode.parsedValue.asTestValue(), equalTo("3"))
       assertThat(versionName.parsedValue.asTestValue(), equalTo("3.0"))
+      assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("newVns"))
       assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf("bb" to "bbb", "ee" to "EEE", "nn" to "NNN")))
 
       if (afterSync) {
@@ -195,6 +202,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
         // TODO(b/79531524): find out why it fails.
         // assertThat(versionCode.parsedValue.asTestValue(), equalTo(versionCode.resolved.asTestValue()))
         assertThat(versionName.parsedValue.asTestValue(), equalTo(versionName.resolved.asTestValue()))
+        assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo(versionNameSuffix.resolved.asTestValue()))
         assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(manifestPlaceholders.resolved.asTestValue()))
       }
     }
