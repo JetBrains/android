@@ -58,5 +58,6 @@ fun defaultConfigPropertiesModel(isLibrary: Boolean) =
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling, ::simplePropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.testApplicationId, ::simplePropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionCode, ::simplePropertyEditor),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionName, ::simplePropertyEditor)))
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionName, ::simplePropertyEditor),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionNameSuffix, ::simplePropertyEditor)))
 

@@ -52,6 +52,7 @@ open class PsProductFlavor(
   var testInstrumentationRunner by ProductFlavorDescriptors.testInstrumentationRunner
   var versionCode by ProductFlavorDescriptors.versionCode
   var versionName by ProductFlavorDescriptors.versionName
+  var versionNameSuffix by ProductFlavorDescriptors.versionNameSuffix
   var manifestPlaceholders by ProductFlavorDescriptors.manifestPlaceholders
   var testInstrumentationRunnerArguments by ProductFlavorDescriptors.testInstrumentationRunnerArguments
 
@@ -199,6 +200,15 @@ open class PsProductFlavor(
       "Version Name",
       resolvedValueGetter = { versionName },
       parsedPropertyGetter = { versionName() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString
+    )
+
+    val versionNameSuffix: SimpleProperty<PsProductFlavor, String> = property(
+      "Version Name Suffix",
+      resolvedValueGetter = { versionNameSuffix },
+      parsedPropertyGetter = { versionNameSuffix() },
       getter = { asString() },
       setter = { setValue(it) },
       parser = ::parseString

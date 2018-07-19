@@ -79,5 +79,6 @@ fun productFlavorPropertiesModel(isLibrary: Boolean) =
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.testApplicationId, ::simplePropertyEditor),
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionCode, ::simplePropertyEditor),
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionName, ::simplePropertyEditor),
+      uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionNameSuffix, ::simplePropertyEditor),
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks, ::listPropertyEditor)))
 
