@@ -131,7 +131,8 @@ public class ThreadStateDataSeriesTest {
   }
 
   private ThreadStateDataSeries createThreadSeries(int tid) {
-    ThreadStateDataSeries dataSeries = new ThreadStateDataSeries(myProfilerStage, FAKE_SESSION, tid);
+    ThreadStateDataSeries dataSeries =
+      new ThreadStateDataSeries(myProfilerStage.getStudioProfilers().getClient().getCpuClient(), FAKE_SESSION, tid);
     return dataSeries;
   }
 }

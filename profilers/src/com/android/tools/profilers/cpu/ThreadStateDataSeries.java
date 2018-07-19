@@ -30,12 +30,14 @@ import java.util.concurrent.TimeUnit;
 
 public class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
 
-  @NotNull private final Common.Session mySession;
+  @NotNull
+  private CpuServiceGrpc.CpuServiceBlockingStub myClient;
+  @NotNull
+  private final Common.Session mySession;
   private final int myThreadId;
-  @NotNull private final CpuProfilerStage myStage;
 
-  public ThreadStateDataSeries(@NotNull CpuProfilerStage stage, @NotNull Common.Session session, int tid) {
-    myStage = stage;
+  public ThreadStateDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, @NotNull Common.Session session, int tid) {
+    myClient = client;
     mySession = session;
     myThreadId = tid;
   }
@@ -47,18 +49,17 @@ public class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.Thread
 
     long min = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
     long max = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
-    CpuServiceGrpc.CpuServiceBlockingStub client = myStage.getStudioProfilers().getClient().getCpuClient();
-    GetThreadsResponse threads = client.getThreads(GetThreadsRequest.newBuilder()
-                                                     .setSession(mySession)
-                                                     .setStartTimestamp(min)
-                                                     .setEndTimestamp(max)
-                                                     .build());
+    GetThreadsResponse threads = myClient.getThreads(GetThreadsRequest.newBuilder()
+                                                                      .setSession(mySession)
+                                                                      .setStartTimestamp(min)
+                                                                      .setEndTimestamp(max)
+                                                                      .build());
 
-    GetTraceInfoResponse traces = client.getTraceInfo(GetTraceInfoRequest.newBuilder()
-                                                        .setSession(mySession)
-                                                        .setFromTimestamp(min)
-                                                        .setToTimestamp(max)
-                                                        .build());
+    GetTraceInfoResponse traces = myClient.getTraceInfo(GetTraceInfoRequest.newBuilder()
+                                                                           .setSession(mySession)
+                                                                           .setFromTimestamp(min)
+                                                                           .setToTimestamp(max)
+                                                                           .build());
 
     for (GetThreadsResponse.Thread thread : threads.getThreadsList()) {
       if (thread.getTid() == myThreadId) {
