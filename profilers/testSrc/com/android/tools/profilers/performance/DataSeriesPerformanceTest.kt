@@ -28,7 +28,10 @@ import com.android.tools.perflogger.Metric
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.cpu.CpuThreadCountDataSeries
+import com.android.tools.profilers.cpu.CpuUsageDataSeries
 import com.android.tools.profilers.cpu.FakeCpuService
+import com.android.tools.profilers.cpu.ThreadStateDataSeries
 import com.android.tools.profilers.energy.EnergyDuration
 import com.android.tools.profilers.energy.EnergyEventsDataSeries
 import com.android.tools.profilers.energy.EnergyUsageDataSeries
@@ -95,7 +98,10 @@ class DataSeriesPerformanceTest {
                                  Pair("Energy Usage", EnergyUsageDataSeries(client, session)),
                                  Pair("Energy Events",
                                       MergedEnergyEventsDataSeries(EnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,
-                                                                   EnergyDuration.Kind.JOB))
+                                                                   EnergyDuration.Kind.JOB)),
+                                 Pair("Cpu Usage", CpuUsageDataSeries(client.cpuClient, false, session)),
+                                 Pair("Cpu Thread Count", CpuThreadCountDataSeries(client.cpuClient, session)),
+                                 Pair("Cpu Thread State", ThreadStateDataSeries(client.cpuClient, session, 1))
     )
     val nameToMetrics = mutableMapOf<String, Metric>()
     val queryStep = QUERY_INTERVAL / 2
