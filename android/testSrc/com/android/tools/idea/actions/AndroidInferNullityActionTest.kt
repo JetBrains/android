@@ -85,7 +85,7 @@ public class TestNullity {
     catch (e: RuntimeException) {
       // Having set a JPS project without the annotations library, we're going to end up here.
       // But that is ok since currently the tests only check what the default annotations are, and don't rely on the analysis succeeding.
-      assertThat(e.message).startsWith("It is required that JetBrains annotations be available in all your project sources.")
+      assertThat(e.message).contains("JetBrains annotations")
     }
   }
 }
