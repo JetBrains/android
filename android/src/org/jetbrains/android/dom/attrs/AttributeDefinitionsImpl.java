@@ -103,7 +103,8 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
       if (myFrameworkAttributeDefinitions != null && attrValue.getNamespace().equals(ResourceNamespace.ANDROID)) {
         attr = myFrameworkAttributeDefinitions.getAttrDefinition(attrRef);
         if (attr != null) {
-          attr = attr.cloneWithQualifiedName();
+          // Copy the framework attribute definition to be able to add parent styleables.
+          attr = new AttributeDefinition(attr);
         }
       }
 

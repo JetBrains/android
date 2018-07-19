@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.common.property.NlProperty;
 import com.google.common.collect.ImmutableList;
@@ -28,6 +29,7 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 
 import java.util.Collections;
+import java.util.EnumSet;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.anyString;
@@ -40,17 +42,17 @@ public class SimpleQuantityEnumSupportTest {
   private NlProperty myProperty;
   @Mock
   private ResourceResolver myResolver;
-  @Mock
+
   private AttributeDefinition myNumericDefinition;
 
   private SimpleQuantityEnumSupport mySupport;
 
   @Before
   public void setUp() {
+    myNumericDefinition = new AttributeDefinition(ResourceNamespace.RES_AUTO, "my_attr", null, EnumSet.of(AttributeFormat.DIMENSION));
     initMocks(this);
     when(myProperty.getResolver()).thenReturn(myResolver);
     when(myProperty.resolveValue(anyString())).thenAnswer(invocation -> invocation.getArguments()[0]);
-    when(myNumericDefinition.getFormats()).thenReturn(Collections.singleton(AttributeFormat.DIMENSION));
     mySupport = new SimpleQuantityEnumSupport(myProperty, ImmutableList.of("item1", "item2"));
   }
 
