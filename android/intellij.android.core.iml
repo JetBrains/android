@@ -165,5 +165,6 @@
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="library" name="HdrHistogram" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlin-plugin" level="project" />
   </component>
 </module>
