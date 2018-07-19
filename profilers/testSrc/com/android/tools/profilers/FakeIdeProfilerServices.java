@@ -79,11 +79,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myImportCpuTraceEnabled = false;
 
   /**
-   * Toggle for faking jvmti agent support in tests.
-   */
-  private boolean myJvmtiAgentEnabled = false;
-
-  /**
    * JNI references alloc/dealloc events are tracked and shown.
    */
   private boolean myIsJniReferenceTrackingEnabled = false;
@@ -261,11 +256,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
-
-      @Override
-      public boolean isJvmtiAgentEnabled() {
-        return myJvmtiAgentEnabled;
-      }
 
       @Override
       public boolean isLiveAllocationsEnabled() {
@@ -447,10 +437,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableEnergyProfiler(boolean enabled) {
     myEnergyProfilerEnabled = enabled;
-  }
-
-  public void enableJvmtiAgent(boolean enabled) {
-    myJvmtiAgentEnabled = enabled;
   }
 
   public void enableJniReferenceTracking(boolean enabled) { myIsJniReferenceTrackingEnabled = enabled; }

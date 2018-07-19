@@ -83,12 +83,6 @@ public final class StudioFlags {
     "Shows the file open drop down menu for session import.",
     true);
 
-  public static final Flag<Boolean> PROFILER_USE_JVMTI = Flag.create(
-    PROFILER, "jvmti", "Enable JVMTI profiling",
-    "Use JVMTI for profiling devices with Android O or newer. " +
-    "This unlocks even more profiling features for these devices.",
-    true);
-
   public static final Flag<Boolean> PROFILER_ENERGY_PROFILER_ENABLED = Flag.create(
     PROFILER, "energy", "Enable Energy profiling",
     "Enable the new energy profiler. It monitors battery usage of the selected app.", true);
