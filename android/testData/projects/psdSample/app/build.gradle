@@ -48,6 +48,7 @@ android {
         versionCode 1
         versionName "1.0"
         manifestPlaceholders = [aa: "aaa", bb: "bbb", "cc": 'ccc']
+        testFunctionalTest false
     }
     buildTypes {
         release {
@@ -80,6 +81,8 @@ android {
             versionCode 2
             versionName "2.0"
             testInstrumentationRunnerArguments = ["a": "AAA", "b": "BBB", c: 'CCC']
+            testHandleProfiling true
+            testFunctionalTest true
         }
         bar {
             dimension "bar"
