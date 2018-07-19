@@ -49,8 +49,6 @@ class PsDeclaredLibraryJavaDependency(
 
   override val name: String get() = spec.name
 
-  override val icon: Icon get() = LIBRARY_ICON
-
   override fun toText(type: PsDependency.TextType): String = spec.toString()
 
   var version by PsDeclaredLibraryJavaDependency.Descriptor.version
@@ -105,8 +103,6 @@ class PsResolvedLibraryJavaDependency(
   override fun hasPromotedVersion(): Boolean = false
 
   override val name: String get() = spec.name
-
-  override val icon: Icon get() = LIBRARY_ICON
 
   override fun toText(type: PsDependency.TextType): String = spec.toString()
 }

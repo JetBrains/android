@@ -25,8 +25,6 @@ import com.android.tools.idea.gradle.structure.model.repositories.search.Artifac
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
 import com.google.common.collect.ImmutableSet
 import com.google.common.util.concurrent.Futures
-import com.intellij.util.PlatformIcons.LIBRARY_ICON
-import javax.swing.Icon
 import kotlin.reflect.KProperty
 
 open class PsDeclaredLibraryAndroidDependency(
@@ -133,8 +131,6 @@ abstract class PsLibraryAndroidDependency internal constructor(
   }
 
   override val name: String get() = spec.name
-
-  override val icon: Icon get() = LIBRARY_ICON
 
   override fun toText(type: PsDependency.TextType): String = spec.toString()
 

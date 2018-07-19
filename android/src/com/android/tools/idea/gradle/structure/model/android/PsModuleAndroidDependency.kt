@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.android.tools.idea.gradle.structure.model.*
-import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
+import com.intellij.util.PlatformIcons.LIBRARY_ICON
 import javax.swing.Icon
 
 class PsDeclaredModuleAndroidDependency internal constructor(
@@ -34,7 +34,6 @@ class PsDeclaredModuleAndroidDependency internal constructor(
   override val name: String = parsedModel.name()
   override val isDeclared: Boolean = true
   override val joinedConfigurationNames: String = configurationName
-  override val icon: Icon? get() = ANDROID_MODULE
 }
 
 class PsResolvedModuleAndroidDependency internal constructor(
@@ -49,7 +48,6 @@ class PsResolvedModuleAndroidDependency internal constructor(
 ), PsResolvedDependency {
   override val name: String = targetModule.name
   override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
-  override val icon: Icon? get() = targetModule.icon
 }
 
 abstract class PsModuleAndroidDependency internal constructor(
@@ -60,6 +58,7 @@ abstract class PsModuleAndroidDependency internal constructor(
 ) : PsAndroidDependency(parent, artifacts), PsModuleDependency {
 
   override fun toText(type: PsDependency.TextType): String = name
+  override val icon: Icon = parent.parent.findModuleByGradlePath(gradlePath)?.icon ?: LIBRARY_ICON
 
   fun findReferredArtifact(): PsAndroidArtifact? {
     val referred = parent.parent.findModuleByGradlePath(gradlePath)
