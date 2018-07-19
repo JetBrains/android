@@ -42,8 +42,8 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     val signingConfig = PsAndroidModuleDefaultConfigDescriptors.signingConfig.bind(defaultConfig).getValue()
     val targetSdkVersion = PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion.bind(defaultConfig).getValue()
     val testApplicationId = PsAndroidModuleDefaultConfigDescriptors.testApplicationId.bind(defaultConfig).getValue()
-    // TODO(b/70501607): Decide on val testFunctionalTest = PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest.getValue(defaultConfig)
-    // TODO(b/70501607): Decide on val testHandleProfiling = PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling.getValue(defaultConfig)
+    val testFunctionalTest = PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest.bind(defaultConfig).getValue()
+    val testHandleProfiling = PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling.bind(defaultConfig).getValue()
     val testInstrumentationRunner = PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner.bind(defaultConfig).getValue()
     val versionCode = PsAndroidModuleDefaultConfigDescriptors.versionCode.bind(defaultConfig).getValue()
     val versionName = PsAndroidModuleDefaultConfigDescriptors.versionName.bind(defaultConfig).getValue()
@@ -79,6 +79,12 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
     assertThat(testInstrumentationRunner.resolved.asTestValue(), nullValue())
     assertThat(testInstrumentationRunner.parsedValue.asTestValue(), nullValue())
+
+    // TODO(b/111630584): assertThat(testFunctionalTest.resolved.asTestValue(), equalTo(false))
+    assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(false))
+
+    // TODO(b/111630584): assertThat(testHandleProfiling.resolved.asTestValue(), nullValue())
+    assertThat(testHandleProfiling.parsedValue.asTestValue(), nullValue())
 
     assertThat(versionCode.resolved.asTestValue(), equalTo(1))
     assertThat(versionCode.parsedValue.asTestValue(), equalTo(1))
@@ -122,6 +128,8 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     defaultConfig.targetSdkVersion = "21".asParsed()
     defaultConfig.testApplicationId = "com.example.psd.sample.app.unpaid.failed_test".asParsed()
     defaultConfig.testInstrumentationRunner = "com.runner".asParsed()
+    defaultConfig.testFunctionalTest = ParsedValue.NotSet
+    defaultConfig.testHandleProfiling = true.asParsed()
     // TODO(b/79531524): find out why it fails.
     // defaultConfig.versionCode = "3".asParsed()
     defaultConfig.versionName = "3.0".asParsed()
@@ -143,8 +151,8 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       val signingConfig = PsAndroidModuleDefaultConfigDescriptors.signingConfig.bind(defaultConfig).getValue()
       val targetSdkVersion = PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion.bind(defaultConfig).getValue()
       val testApplicationId = PsAndroidModuleDefaultConfigDescriptors.testApplicationId.bind(defaultConfig).getValue()
-      // TODO(b/70501607): Decide on val testFunctionalTest = PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest.getValue(defaultConfig)
-      // TODO(b/70501607): Decide on val testHandleProfiling = PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling.getValue(defaultConfig)
+      val testFunctionalTest = PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest.bind(defaultConfig).getValue()
+      val testHandleProfiling = PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling.bind(defaultConfig).getValue()
       val testInstrumentationRunner = PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner.bind(defaultConfig).getValue()
       // TODO(b/79531524): find out why it fails.
       // val versionCode = PsAndroidModuleDefaultConfigDescriptors.versionCode.bind(defaultConfig).getValue()
@@ -164,6 +172,8 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))
       assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo("com.runner"))
+      assertThat(testFunctionalTest.parsedValue.asTestValue(), nullValue())
+      assertThat(testHandleProfiling.parsedValue.asTestValue(), equalTo(true))
       // TODO(b/79531524): find out why it fails.
       // assertThat(versionCode.parsedValue.asTestValue(), equalTo("3"))
       assertThat(versionName.parsedValue.asTestValue(), equalTo("3.0"))
@@ -180,6 +190,8 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
         assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(targetSdkVersion.resolved.asTestValue()))
         assertThat(testApplicationId.parsedValue.asTestValue(), equalTo(testApplicationId.resolved.asTestValue()))
         assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo(testInstrumentationRunner.resolved.asTestValue()))
+        // TODO(b/111630584): assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(testFunctionalTest.resolved.asTestValue()))
+        // TODO(b/111630584): assertThat(testHandleProfiling.parsedValue.asTestValue(), equalTo(testHandleProfiling.resolved.asTestValue()))
         // TODO(b/79531524): find out why it fails.
         // assertThat(versionCode.parsedValue.asTestValue(), equalTo(versionCode.resolved.asTestValue()))
         assertThat(versionName.parsedValue.asTestValue(), equalTo(versionName.resolved.asTestValue()))

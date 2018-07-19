@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.modules.ModulePa
 import com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptors
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefaultConfigDescriptors
-import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 
 class AndroidModuleRootConfigurable(context: PsContext, module: PsAndroidModule) : AbstractModuleConfigurable<ModulePanel>(context, module) {
 
@@ -53,10 +52,10 @@ fun defaultConfigPropertiesModel(isLibrary: Boolean) =
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.proGuardFiles, ::listPropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders, ::mapPropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled, ::simplePropertyEditor),
-// TODO(b/70501607): Decide on PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest,
-// TODO(b/70501607): Decide on PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling,
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner, ::simplePropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunnerArguments, ::mapPropertyEditor),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest, ::simplePropertyEditor),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling, ::simplePropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.testApplicationId, ::simplePropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionCode, ::simplePropertyEditor),
       uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionName, ::simplePropertyEditor)))

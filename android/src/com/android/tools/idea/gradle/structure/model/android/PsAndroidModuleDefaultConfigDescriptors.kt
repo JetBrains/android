@@ -113,7 +113,8 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val testFunctionalTest: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
     "Test Functional Test",
-    resolvedValueGetter = { testFunctionalTest },
+    // TODO(b/111630584): Replace with the resolved value.
+    resolvedValueGetter = { null },
     parsedPropertyGetter = { testFunctionalTest() },
     getter = { asBoolean() },
     setter = { setValue(it) },
@@ -123,7 +124,8 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val testHandleProfiling: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
     "Test Handle Profiling",
-    resolvedValueGetter = { testHandleProfiling },
+    // TODO(b/111630584): Replace with the resolved value.
+    resolvedValueGetter = { null },
     parsedPropertyGetter = { testHandleProfiling() },
     getter = { asBoolean() },
     setter = { setValue(it) },
