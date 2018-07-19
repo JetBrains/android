@@ -357,7 +357,6 @@ public class NewProjectModel extends WizardModel {
         .withCommandName("New Project")
         .withDryRun(dryRun)
         .withShowErrors(true)
-        .withPerformSync(false) // Project importing will Sync
         .withParams(params)
         .build();
       // @formatter:on

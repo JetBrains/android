@@ -1629,8 +1629,7 @@ public class TemplateTest extends AndroidGradleTestCase {
                                                          @Nullable Map<String, Object> parameters) {
     RenderingContext.Builder builder = RenderingContext.Builder.newContext(projectTemplate, project)
       .withOutputRoot(projectRoot)
-      .withModuleRoot(moduleRoot)
-      .withPerformSync(false);
+      .withModuleRoot(moduleRoot);
 
     if (parameters != null) {
       builder.withParams(parameters);

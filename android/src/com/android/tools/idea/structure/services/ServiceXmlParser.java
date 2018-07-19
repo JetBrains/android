@@ -225,7 +225,6 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
         .withOutputRoot(moduleRoot)
         .withModuleRoot(moduleRoot)
         .withFindOnlyReferences(findOnlyReferences)
-        .withPerformSync(false)
         .intoOpenFiles(openFiles)
         .intoDependencies(dependencies)
         .intoClasspathEntries(classpathEntries)
