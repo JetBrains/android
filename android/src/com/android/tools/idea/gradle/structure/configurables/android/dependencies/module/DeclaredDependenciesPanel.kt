@@ -80,6 +80,7 @@ internal class DeclaredDependenciesPanel(
     dependenciesTable = DeclaredDependenciesTableView(dependenciesTableModel, context)
 
     module.addDependencyChangedListener(this) { event ->
+      val oldSelection = dependenciesTable.selection
       dependenciesTableModel.reset()
       var toSelect: PsAndroidDependency? = null
       if (event is PsModule.LibraryDependencyAddedEvent) {
@@ -92,9 +93,7 @@ internal class DeclaredDependenciesPanel(
           toSelect = dependency
         }
       }
-      if (toSelect != null) {
-        dependenciesTable.selection = listOf(toSelect)
-      }
+      dependenciesTable.selection = toSelect?.let { listOf(it) } ?: oldSelection
     }
 
     dependenciesTable.selectionModel.addListSelectionListener { updateDetailsAndIssues() }
