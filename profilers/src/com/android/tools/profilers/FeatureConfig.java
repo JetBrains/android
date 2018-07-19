@@ -27,7 +27,6 @@ public interface FeatureConfig {
   boolean isExportCpuTraceEnabled();
   boolean isImportCpuTraceEnabled();
   boolean isJniReferenceTrackingEnabled();
-  boolean isJvmtiAgentEnabled();
   boolean isLiveAllocationsEnabled();
   boolean isMemoryCaptureFilterEnabled();
   boolean isMemorySnapshotEnabled();

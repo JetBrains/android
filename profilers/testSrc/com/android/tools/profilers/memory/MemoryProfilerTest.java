@@ -79,7 +79,6 @@ public class MemoryProfilerTest {
 
   @Test
   public void testLiveAllocationTrackingOnAgentAttach() {
-    myIdeProfilerServices.enableJvmtiAgent(true);
     myIdeProfilerServices.enableLiveAllocationTracking(true);
     setupODeviceAndProcess();
 
@@ -95,7 +94,6 @@ public class MemoryProfilerTest {
 
   @Test
   public void liveAllocationTrackingDidNotStartIfAgentIsNotAttached() {
-    myIdeProfilerServices.enableJvmtiAgent(true);
     myIdeProfilerServices.enableLiveAllocationTracking(true);
     setupODeviceAndProcess();
 
@@ -114,7 +112,6 @@ public class MemoryProfilerTest {
 
   @Test
   public void testStopTrackingOnProfilerStop() {
-    myIdeProfilerServices.enableJvmtiAgent(true);
     myIdeProfilerServices.enableLiveAllocationTracking(true);
     myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     setupODeviceAndProcess();

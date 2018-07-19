@@ -242,8 +242,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
                                                                     .setSessionName(buildSessionName(device, process))
                                                                     .setRequestTimeEpochMs(System.currentTimeMillis());
     // Attach agent for advanced profiling if JVMTI is enabled
-    if (device.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
-        myProfilers.getIdeServices().getFeatureConfig().isJvmtiAgentEnabled()) {
+    if (device.getFeatureLevel() >= AndroidVersion.VersionCodes.O) {
       // If an agent has been previously attached, Perfd will only re-notify the existing agent of the updated grpc target instead
       // of re-attaching an agent. See ProfilerService::AttachAgent on the Perfd side for more details.
       requestBuilder.setJvmtiConfig(BeginSessionRequest.JvmtiConfig.newBuilder()

@@ -243,13 +243,11 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../bazel-bin/tools/base/profiler/native/perfd/android", deviceDir,
                          true);
         if (isAtLeastO(myDevice)) {
-          if (StudioFlags.PROFILER_USE_JVMTI.get()) {
-            String productionRoot = "plugins/android/resources";
-            String devRoot = "../../bazel-genfiles/tools/base/profiler/app";
-            copyFileToDevice("perfa.jar", productionRoot, devRoot, deviceDir, false);
-            copyFileToDevice("perfa_okhttp.dex", productionRoot, devRoot, deviceDir, false);
-            pushJvmtiAgentNativeLibraries(deviceDir);
-          }
+          String productionRoot = "plugins/android/resources";
+          String devRoot = "../../bazel-genfiles/tools/base/profiler/app";
+          copyFileToDevice("perfa.jar", productionRoot, devRoot, deviceDir, false);
+          copyFileToDevice("perfa_okhttp.dex", productionRoot, devRoot, deviceDir, false);
+          pushJvmtiAgentNativeLibraries(deviceDir);
           // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
           pushSimpleperf(deviceDir);
         }
@@ -454,13 +452,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
      */
     private void pushAgentConfig(@NotNull String fileName, @NotNull String devicePath)
       throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
-      // TODO: remove profiler.jvmti after agent uses only JVMTI to instrument bytecode on O+ devices.
-      Agent.SocketType socketType = StudioFlags.PROFILER_USE_JVMTI.get() && isAtLeastO(myDevice)
-                                    ? Agent.SocketType.ABSTRACT_SOCKET
-                                    : Agent.SocketType.UNSPECIFIED_SOCKET;
+      Agent.SocketType socketType = isAtLeastO(myDevice) ? Agent.SocketType.ABSTRACT_SOCKET : Agent.SocketType.UNSPECIFIED_SOCKET;
       Agent.AgentConfig agentConfig =
-        Agent.AgentConfig
-          .newBuilder().setUseJvmti(StudioFlags.PROFILER_USE_JVMTI.get())
+        Agent.AgentConfig.newBuilder()
           .setMemConfig(
             Agent.AgentConfig.MemoryConfig
               .newBuilder()
@@ -489,9 +483,8 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
           throw new RuntimeException("Unable to find available socket port");
         }
 
-        if (isAtLeastO(myDevice) && StudioFlags.PROFILER_USE_JVMTI.get()) {
-          myDevice.createForward(myLocalPort, DEVICE_SOCKET_NAME,
-                                 IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+        if (isAtLeastO(myDevice)) {
+          myDevice.createForward(myLocalPort, DEVICE_SOCKET_NAME, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
         }
         else {
           myDevice.createForward(myLocalPort, DEVICE_PORT);

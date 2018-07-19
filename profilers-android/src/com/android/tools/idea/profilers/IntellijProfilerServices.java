@@ -219,13 +219,8 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isJvmtiAgentEnabled() {
-        return StudioFlags.PROFILER_USE_JVMTI.get();
-      }
-
-      @Override
       public boolean isLiveAllocationsEnabled() {
-        return StudioFlags.PROFILER_USE_JVMTI.get() && StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get();
+        return StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get();
       }
 
       @Override
