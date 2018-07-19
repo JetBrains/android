@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.property2.testutils
 
 import com.android.SdkConstants.*
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
@@ -78,7 +80,8 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
     model.surface = nlModel.surface
     val resourceManagers = ModuleResourceManagers.getInstance(myFacet)
     val frameworkResourceManager = resourceManagers.frameworkResourceManager
-    val definition = frameworkResourceManager?.attributeDefinitions?.getAttrDefByName(attrName)
+    val definition =
+        frameworkResourceManager?.attributeDefinitions?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
     return NelePropertyItem(ANDROID_URI, attrName, type, definition, "", model, components)
   }
 

@@ -295,7 +295,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       namespace = ANDROID_URI;
     }
 
-    if (namespace.startsWith(URI_PREFIX)) {
+    if (namespace.startsWith(URI_PREFIX) || namespace.equals(AUTO_URI)) {
       final String finalNamespace = namespace;
 
       final CachedValue<String> cachedValue = CachedValuesManager.getManager(originalElement.getProject()).createCachedValue(

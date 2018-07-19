@@ -18,6 +18,7 @@ package org.jetbrains.android.dom.attrs;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.SmartList;
@@ -31,22 +32,21 @@ import java.util.*;
  * including declarations at the top level and inside styleables. This class combines information about
  * the attr resource from all its declarations.
  */
-public class AttributeDefinition implements Cloneable {
+public final class AttributeDefinition implements Cloneable {
   @NotNull private final ResourceReference myAttr;
-  private boolean myQualifyName;
-  @NotNull private Set<AttributeFormat> myFormats;
+  @Nullable private final String myLibraryName;
+  @Nullable private String myGlobalDescription;
+  /** @see com.android.ide.common.rendering.api.AttrResourceValue#getGroupName() */
+  @Nullable private String myGroupName;
   /** Mapping of flag/enum names to their integer values. */
   @NotNull private Map<String, Integer> myValueMappings = Collections.emptyMap();
   /** Keys are flag/enum names, values are their descriptions. */
   @NotNull private Map<String, String> myValueDescriptions = Collections.emptyMap();
+  @NotNull private Set<AttributeFormat> myFormats;
   @Nullable private List<ResourceReference> myParentStyleables;
   // TODO: Consider moving style-specific descriptions to StyleableDefinitionImpl.
   /** Keys are styleables, values are descriptions for this attribute in the context of the styleable. */
   @Nullable private Map<ResourceReference, String> myDescriptionsInStyleableContexts;
-  @Nullable private String myGlobalDescription;
-  /** @see com.android.ide.common.rendering.api.AttrResourceValue#getGroupName() */
-  @Nullable private String myGroupName;
-  @Nullable private final String myLibraryName;
 
   public AttributeDefinition(@NotNull ResourceNamespace namespace, @NotNull String name) {
     this(namespace, name, null, null);
@@ -60,6 +60,19 @@ public class AttributeDefinition implements Cloneable {
     myAttr = ResourceReference.attr(namespace, name);
     myLibraryName = libraryName;
     myFormats = formats == null || formats.isEmpty() ? EnumSet.noneOf(AttributeFormat.class) : EnumSet.copyOf(formats);
+  }
+
+  public AttributeDefinition(@NotNull AttributeDefinition other) {
+    myAttr = other.myAttr;
+    myLibraryName = other.myLibraryName;
+    myGlobalDescription = other.myGlobalDescription;
+    myGroupName = other.myGroupName;
+    myValueMappings = other.myValueMappings;
+    myValueDescriptions = other.myValueDescriptions;
+    myFormats = EnumSet.copyOf(other.myFormats);
+    myParentStyleables = other.myParentStyleables == null ? null : new SmartList<>(other.myParentStyleables);
+    myDescriptionsInStyleableContexts = other.myDescriptionsInStyleableContexts == null ?
+        null : new HashMap<>(other.myDescriptionsInStyleableContexts);
   }
 
   /**
@@ -77,8 +90,7 @@ public class AttributeDefinition implements Cloneable {
 
   @NotNull
   public String getName() {
-    //TODO(namespaces): Always return the non-qualified name when the callers are updated to handle that.
-    return myQualifyName ? myAttr.getQualifiedName() : myAttr.getName();
+    return myAttr.getName();
   }
 
   @Nullable
@@ -117,7 +129,7 @@ public class AttributeDefinition implements Cloneable {
   }
 
   /**
-   * @deprecated Use {@link #getDescription(ResourceReference)}
+   * @deprecated Use {@link #getDescription(ResourceReference)}.
    */
   @Deprecated
   @Nullable
@@ -162,12 +174,16 @@ public class AttributeDefinition implements Cloneable {
   }
 
   public void setValueMappings(@NotNull Map<String, Integer> valueMappings) {
-    assert myValueMappings.isEmpty() || myValueMappings.equals(valueMappings);
+    if (!myValueMappings.isEmpty() && !myValueMappings.equals(valueMappings)) {
+      getLog().warn("An attempt to redefine value mappings of " + myAttr.getQualifiedName());
+    }
     myValueMappings = Collections.unmodifiableMap(valueMappings);
   }
 
   void setValueDescriptions(@NotNull Map<String, String> valueDescriptions) {
-    assert myValueDescriptions.isEmpty() || myValueDescriptions.equals(valueDescriptions);
+    if (!myValueDescriptions.isEmpty() && !myValueDescriptions.equals(valueDescriptions)) {
+      getLog().warn("An attempt to redefine value descriptions of " + myAttr.getQualifiedName());
+    }
     myValueDescriptions = Collections.unmodifiableMap(valueDescriptions);
   }
 
@@ -187,32 +203,12 @@ public class AttributeDefinition implements Cloneable {
     }
   }
 
-  /**
-   * Returns a copy of this attribute definition for which the {@link #getName()} will return a qualified name.
-   *
-   * @return the new attribute definition
-   */
-  @NotNull
-  AttributeDefinition cloneWithQualifiedName() {
-    try {
-      AttributeDefinition copy = (AttributeDefinition)super.clone();
-      copy.myFormats = EnumSet.copyOf(myFormats);
-      if (myParentStyleables != null) {
-        copy.myParentStyleables = new SmartList<>(myParentStyleables);
-      }
-      if (myDescriptionsInStyleableContexts != null) {
-        copy.myDescriptionsInStyleableContexts = new HashMap<>(myDescriptionsInStyleableContexts);
-      }
-      copy.myQualifyName = true;
-      return copy;
-    }
-    catch (CloneNotSupportedException e) {
-      throw new AssertionError();
-    }
-  }
-
   @Override
   public String toString() {
-    return getName() + " [" + myFormats + ']';
+    return myAttr.getQualifiedName() + " [" + myFormats + ']';
+  }
+
+  private static Logger getLog() {
+    return Logger.getInstance(AttributeDefinition.class);
   }
 }

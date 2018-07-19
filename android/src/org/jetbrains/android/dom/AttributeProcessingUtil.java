@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
@@ -142,14 +143,13 @@ public class AttributeProcessingUtil {
 
   private static void registerStyleableAttributes(@NotNull DomElement element,
                                                   @NotNull StyleableDefinition styleable,
-                                                  @Nullable String namespace,
+                                                  @Nullable String namespaceUri,
                                                   @NotNull AttributeProcessor callback,
                                                   @NotNull Set<XmlName> skippedAttributes) {
     for (AttributeDefinition attrDef : styleable.getAttributes()) {
-      String attrName = attrDef.getName();
-      XmlName xmlName = new XmlName(attrName, namespace);
+      XmlName xmlName = getXmlName(attrDef, namespaceUri);
       if (skippedAttributes.add(xmlName)) {
-        registerAttribute(attrDef, styleable.getName(), namespace, element, callback);
+        registerAttribute(attrDef, xmlName, styleable.getName(), element, callback);
       }
     }
   }
@@ -162,27 +162,18 @@ public class AttributeProcessingUtil {
   }
 
   private static void registerAttribute(@NotNull AttributeDefinition attrDef,
+                                        @NotNull XmlName xmlName,
                                         @Nullable String parentStyleableName,
-                                        @Nullable String namespaceUri,
                                         @NotNull DomElement element,
                                         @NotNull AttributeProcessor callback) {
-    String name = attrDef.getName();
-    if (!NS_RESOURCES.equals(namespaceUri) && name.startsWith(PREFIX_ANDROID)) {
-      // A styleable-definition in the app namespace (user specified or from a library) can include
-      // a reference to a platform attribute. In such a case, register it under the android namespace
-      // as opposed to the app namespace. See https://code.google.com/p/android/issues/detail?id=171162
-      name = name.substring(PREFIX_ANDROID.length());
-      namespaceUri = NS_RESOURCES;
-    }
-    XmlName xmlName = new XmlName(name, namespaceUri);
     DomExtension extension = callback.processAttribute(xmlName, attrDef, parentStyleableName);
-
     if (extension == null) {
       return;
     }
+
     Converter converter = AndroidDomUtil.getSpecificConverter(xmlName, element);
     if (converter == null) {
-      if (TOOLS_URI.equals(namespaceUri)) {
+      if (TOOLS_URI.equals(xmlName.getNamespaceKey())) {
         converter = ToolsAttributeUtil.getConverter(attrDef);
       }
       else {
@@ -701,16 +692,19 @@ public class AttributeProcessingUtil {
         boolean hasAppCompat = DependencyManagementUtil.dependsOn(facet.getModule(), GoogleMavenArtifactId.APP_COMPAT_V7) ||
                                DependencyManagementUtil.dependsOn(facet.getModule(), GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
         if (hasAppCompat) {
-          if (skippedAttributes.add(new XmlName(name, AUTO_URI))) {
-            registerAttribute(attribute, "MenuItem", AUTO_URI, element, callback);
+          // TODO(namespaces): Replace AUTO_URI with the URI of the correct namespace.
+          XmlName xmlName = new XmlName(name, AUTO_URI);
+          if (skippedAttributes.add(xmlName)) {
+            registerAttribute(attribute, xmlName, "MenuItem", element, callback);
           }
 
           continue;
         }
       }
 
-      if (skippedAttributes.add(new XmlName(name, ANDROID_URI))) {
-        registerAttribute(attribute, "MenuItem", ANDROID_URI, element, callback);
+      XmlName xmlName = new XmlName(name, ANDROID_URI);
+      if (skippedAttributes.add(xmlName)) {
+        registerAttribute(attribute, xmlName, "MenuItem", element, callback);
       }
     }
   }
@@ -746,14 +740,21 @@ public class AttributeProcessingUtil {
           AttributeDefinition attrDef = AndroidDomUtil.getAttributeDefinition(facet, attr);
 
           if (attrDef != null) {
-            String namespace = attr.getNamespace();
-            result.add(new XmlName(attr.getLocalName(), attr.getNamespace()));
-            registerAttribute(attrDef, null, !namespace.isEmpty() ? namespace : null, element, callback);
+            XmlName xmlName = getXmlName(attrDef, attr.getNamespace());
+            result.add(xmlName);
+            String namespaceUri = attr.getNamespace();
+            registerAttribute(attrDef, xmlName, null, element, callback);
           }
         }
       }
     }
     return result;
+  }
+
+  private static XmlName getXmlName(@NotNull AttributeDefinition attrDef, @Nullable String namespaceUri) {
+    ResourceReference attrReference = attrDef.getResourceReference();
+    String attrNamespaceUri = attrReference.getNamespace().getXmlNamespaceUri();
+    return new XmlName(attrReference.getName(), TOOLS_URI.equals(namespaceUri) ? TOOLS_URI : attrNamespaceUri);
   }
 
   public interface AttributeProcessor {

@@ -14,7 +14,7 @@ public interface AttributeDefinitions {
   StyleableDefinition getStyleableDefinition(@NotNull ResourceReference styleable);
 
   /**
-   * @deprecated Use {@link #getStyleableDefinition(ResourceReference)}.
+   * @deprecated Use {@link #getStyleableDefinition(ResourceReference)}. This method doesn't support namespaces.
    */
   @Deprecated
   @Nullable
@@ -27,7 +27,7 @@ public interface AttributeDefinitions {
   AttributeDefinition getAttrDefinition(@NotNull ResourceReference attr);
 
   /**
-   * @deprecated Use {@link #getAttrDefinition(ResourceReference)}.
+   * @deprecated Use {@link #getAttrDefinition(ResourceReference)}. This method doesn't support namespaces.
    */
   @Deprecated
   @Nullable

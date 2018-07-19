@@ -50,12 +50,12 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
      * the actual documentation returned and will be responsible for asserting expected values.
      */
   private void checkJavadoc(String fileName, String targetName, Consumer<String> javadocConsumer) {
-    final VirtualFile f = myFixture.copyFileToProject(getTestDataPath() + fileName, targetName);
+    VirtualFile f = myFixture.copyFileToProject(getTestDataPath() + fileName, targetName);
     myFixture.configureFromExistingVirtualFile(f);
     PsiElement originalElement = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
     assert originalElement != null;
-    final PsiElement docTargetElement = DocumentationManager.getInstance(getProject()).findTargetElement(
-      myFixture.getEditor(), myFixture.getFile(), originalElement);
+    PsiElement docTargetElement =
+        DocumentationManager.getInstance(getProject()).findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
     assert docTargetElement != null;
     DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
     javadocConsumer.consume(provider.generateDoc(docTargetElement, originalElement));

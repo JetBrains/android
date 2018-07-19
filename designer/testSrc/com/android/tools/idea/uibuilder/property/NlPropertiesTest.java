@@ -46,7 +46,6 @@ import static org.mockito.Mockito.*;
 public class NlPropertiesTest extends PropertyTestCase {
   private static final String APPCOMPAT_IMAGE_VIEW = "android.support.v7.widget.AppCompatImageView";
   private static final String APPCOMPAT_TEXT_VIEW = "android.support.v7.widget.AppCompatTextView";
-  private static final String CUSTOM_NAMESPACE = "http://schemas.android.com/apk/res/com.example";
   private static final String[] NO_NAMESPACE_VIEW_ATTRS = {"style"};
   private static final String[] ANDROID_VIEW_ATTRS = {"id", "padding", "visibility", "textAlignment", "translationZ", "elevation"};
   private static final String[] TEXT_VIEW_ATTRS = {"text", "hint", "textColor", "textSize"};
@@ -211,15 +210,14 @@ public class NlPropertiesTest extends PropertyTestCase {
 
     assertEquals(expected, p.getTooltipText());
 
-    p = properties.get(CUSTOM_NAMESPACE, "legend");
+    p = properties.get(AUTO_URI, "legend");
     assertNotNull(p);
 
     assertEquals("legend", p.getName());
-    assertEquals("legend", p.getTooltipText());
+    assertEquals("@app:legend", p.getTooltipText());
   }
 
   public void testAppCompatIssues() {
-
     XmlTag rootTag = myCustomAppCompatFile.getRootTag();
     assert rootTag != null;
 
@@ -233,7 +231,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     // The attrs.xml in appcompat-22.0.0 includes android:focusable, theme and android:theme.
     // The android:focusable refers to the platform attribute, and hence should not be duplicated..
     assertPresent("com.example.MyTextView", properties, ANDROID_URI, "focusable", "theme");
-    assertPresent("com.example.MyTextView", properties, CUSTOM_NAMESPACE, "custom");
+    assertPresent("com.example.MyTextView", properties, AUTO_URI, "custom");
     assertAbsent("com.example.MyTextView", properties, ANDROID_URI, "android:focusable", "android:theme");
   }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
@@ -111,10 +112,9 @@ public class NlPropertyItemTest extends PropertyTestCase {
   }
 
   public void testCreateForToolAttributes() {
-    AttributeDefinition definition = mock(AttributeDefinition.class);
-    when(definition.getName()).thenReturn(ATTR_CONTEXT);
+    AttributeDefinition definition = new AttributeDefinition(ResourceNamespace.TOOLS, ATTR_CONTEXT);
     NlPropertyItem item =
-      NlPropertyItem.create(new XmlName(ATTR_CONTEXT, TOOLS_URI), definition, ImmutableList.of(myMerge), myPropertiesManager);
+        NlPropertyItem.create(new XmlName(ATTR_CONTEXT, TOOLS_URI), definition, ImmutableList.of(myMerge), myPropertiesManager);
     assertThat(item).isNotInstanceOf(NlFlagPropertyItem.class);
     assertThat(item).isNotInstanceOf(NlIdPropertyItem.class);
     assertThat(item.getName()).isEqualTo(ATTR_CONTEXT);
