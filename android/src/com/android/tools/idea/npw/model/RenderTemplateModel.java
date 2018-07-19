@@ -326,7 +326,6 @@ public final class RenderTemplateModel extends WizardModel {
       .withCommandName(myCommandName)
       .withDryRun(dryRun)
       .withShowErrors(true)
-      .withPerformSync(false)
       .withModuleRoot(paths.getModuleRoot())
       .withModule(getModule())
       .withParams(myTemplateValues)

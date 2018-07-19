@@ -79,7 +79,6 @@ public class RecipeUtils {
         .withOutputRoot(moduleRoot)
         .withModuleRoot(moduleRoot)
         .withFindOnlyReferences(true)
-        .withPerformSync(false)
         .intoDependencies(dependencies)
         .intoClasspathEntries(classpathEntries)
         .intoPlugins(plugins)

@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.instantapp;
 
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
@@ -37,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -96,6 +98,7 @@ public final class NewInstantAppModuleModel extends WizardModel {
     if (success) {
       // calling smartInvokeLater will make sure that files are open only when the project is ready
       DumbService.getInstance(myProject).smartInvokeLater(() -> TemplateUtils.openEditors(myProject, filesToOpen, true));
+      ProjectSystemUtil.getProjectSystem(myProject).getSyncManager().syncProject(PROJECT_MODIFIED, true);
     }
   }
 

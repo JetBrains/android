@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.java;
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public final class NewJavaModuleModel extends WizardModel {
@@ -109,6 +111,7 @@ public final class NewJavaModuleModel extends WizardModel {
     if (success) {
       // calling smartInvokeLater will make sure that files are open only when the project is ready
       DumbService.getInstance(myProject).smartInvokeLater(() -> TemplateUtils.openEditors(myProject, filesToOpen, true));
+      ProjectSystemUtil.getProjectSystem(myProject).getSyncManager().syncProject(PROJECT_MODIFIED, true);
     }
   }
 
