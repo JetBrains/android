@@ -225,6 +225,7 @@ public class NlPropertyTableTest {
   }
 
   @Test
+  @Ignore("b/111614586")
   public void testSimpleKeyboardNavigationInTable() throws Exception {
     NlEditorFixture layout = myFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
