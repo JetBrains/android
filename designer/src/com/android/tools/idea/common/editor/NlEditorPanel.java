@@ -61,6 +61,10 @@ import java.util.concurrent.CompletableFuture;
  * Assembles a designer editor from various components
  */
 public class NlEditorPanel extends JPanel implements Disposable {
+
+  public static final String NELE_EDITOR = "NELE_EDITOR";
+  public static final String NAV_EDITOR = "NAV_EDITOR";
+
   private static final String DESIGN_UNAVAILABLE_MESSAGE = "Design editor is unavailable until after a successful project sync";
 
   private final NlEditor myEditor;
@@ -74,14 +78,15 @@ public class NlEditorPanel extends JPanel implements Disposable {
 
   public NlEditorPanel(@NotNull NlEditor editor, @NotNull Project project, @NotNull VirtualFile file) {
     super(new BorderLayout());
-    myWorkBench = new WorkBench<>(project, "NELE_EDITOR", editor);
-    myWorkBench.setOpaque(true);
-
     myEditor = editor;
     myProject = project;
     myFile = file;
+    boolean isNavigation = getLayoutType() == NlLayoutType.NAV;
+    myWorkBench = new WorkBench<>(project, isNavigation ? NAV_EDITOR : NELE_EDITOR, editor);
+    myWorkBench.setOpaque(true);
+
     myContentPanel = new AdtPrimaryPanel(new BorderLayout());
-    mySurface = createDesignSurface(editor, project);
+    mySurface = createDesignSurface(editor, project, isNavigation);
     Disposer.register(this, mySurface);
     myContentPanel.add(createSurfaceToolbar(mySurface), BorderLayout.NORTH);
 
@@ -94,8 +99,13 @@ public class NlEditorPanel extends JPanel implements Disposable {
   }
 
   @NotNull
-  private DesignSurface createDesignSurface(@NotNull NlEditor editor, @NotNull Project project) {
-    if (NlLayoutType.typeOf(getFile()) == NlLayoutType.NAV) {
+  private NlLayoutType getLayoutType() {
+    return NlLayoutType.typeOf(getFile());
+  }
+
+  @NotNull
+  private DesignSurface createDesignSurface(@NotNull NlEditor editor, @NotNull Project project, boolean isNavigation) {
+    if (isNavigation) {
       return new NavDesignSurface(project, this, editor);
     }
     else {
@@ -231,7 +241,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
   }
 
   @NotNull
-  public XmlFile getFile() {
+  private XmlFile getFile() {
     XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, myFile);
     assert file != null;
     return file;
