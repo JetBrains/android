@@ -97,9 +97,4 @@ class GradleModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFin
   override fun getInstantRunSupport(): CapabilityStatus {
     return getInstantRunCapabilityStatus(module)
   }
-
-  private fun parseDependencyVersion(version: String?): GradleDependencyVersion {
-    if (version == null) return GradleDependencyVersion(null)
-    return GradleDependencyVersion(GradleVersion.parse(version))
-  }
 }
