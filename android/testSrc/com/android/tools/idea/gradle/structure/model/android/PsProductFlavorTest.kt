@@ -38,6 +38,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(productFlavor, notNullValue()); productFlavor!!
 
       val applicationId = PsProductFlavor.ProductFlavorDescriptors.applicationId.bind(productFlavor).getValue()
+      val applicationIdSuffix = PsProductFlavor.ProductFlavorDescriptors.applicationIdSuffix.bind(productFlavor).getValue()
       val dimension = PsProductFlavor.ProductFlavorDescriptors.dimension.bind(productFlavor).getValue()
       val maxSdkVersion = PsProductFlavor.ProductFlavorDescriptors.maxSdkVersion.bind(productFlavor).getValue()
       val minSdkVersion = PsProductFlavor.ProductFlavorDescriptors.minSdkVersion.bind(productFlavor).getValue()
@@ -63,6 +64,9 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
 
       assertThat(applicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.paid"))
       assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.paid"))
+
+      assertThat(applicationIdSuffix.resolved.asTestValue(), nullValue())
+      assertThat(applicationIdSuffix.parsedValue.asTestValue(), nullValue())
 
       assertThat(maxSdkVersion.resolved.asTestValue(), equalTo(25))
       assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(25))
@@ -110,6 +114,14 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(editableTestInstrumentationRunnerArguments["c"]?.parsedValue?.asTestValue(), equalTo("CCC"))
     }
     run {
+      val productFlavor = appModule.findProductFlavor("bar")
+      assertThat(productFlavor, notNullValue()); productFlavor!!
+      val applicationIdSuffix = PsProductFlavor.ProductFlavorDescriptors.applicationIdSuffix.bind(productFlavor).getValue()
+
+      assertThat(applicationIdSuffix.resolved.asTestValue(), equalTo("barSuffix"))
+      assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("barSuffix"))
+    }
+    run {
       val productFlavor = appModule.findProductFlavor("otherBar")
       assertThat(productFlavor, notNullValue()); productFlavor!!
       val matchingFallbacks = PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).getValue()
@@ -149,6 +161,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     assertThat(productFlavor, notNullValue()); productFlavor!!
 
     productFlavor.applicationId = "com.example.psd.sample.app.unpaid".asParsed()
+    productFlavor.applicationIdSuffix = "suffix".asParsed()
     productFlavor.dimension = "bar".asParsed()
     productFlavor.maxSdkVersion = 26.asParsed()
     productFlavor.minSdkVersion = "20".asParsed()
@@ -171,6 +184,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
 
     fun verifyValues(productFlavor: PsProductFlavor, afterSync: Boolean = false) {
       val applicationId = PsProductFlavor.ProductFlavorDescriptors.applicationId.bind(productFlavor).getValue()
+      val applicationIdSuffix = PsProductFlavor.ProductFlavorDescriptors.applicationIdSuffix.bind(productFlavor).getValue()
       val dimension = PsProductFlavor.ProductFlavorDescriptors.dimension.bind(productFlavor).getValue()
       val maxSdkVersion = PsProductFlavor.ProductFlavorDescriptors.maxSdkVersion.bind(productFlavor).getValue()
       val minSdkVersion = PsProductFlavor.ProductFlavorDescriptors.minSdkVersion.bind(productFlavor).getValue()
@@ -190,6 +204,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
 
       assertThat(dimension.parsedValue.asTestValue(), equalTo("bar"))
       assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid"))
+      assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("suffix"))
       assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(26))
       assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("20"))
       assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(false))
@@ -210,6 +225,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       if (afterSync) {
         assertThat(dimension.parsedValue.asTestValue(), equalTo(dimension.resolved.asTestValue()))
         assertThat(applicationId.parsedValue.asTestValue(), equalTo(applicationId.resolved.asTestValue()))
+        assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo(applicationIdSuffix.resolved.asTestValue()))
         assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(maxSdkVersion.resolved.asTestValue()))
         assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo(minSdkVersion.resolved.asTestValue()))
         assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(multiDexEnabled.resolved.asTestValue()))

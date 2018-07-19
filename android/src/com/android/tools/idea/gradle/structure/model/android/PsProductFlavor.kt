@@ -40,6 +40,7 @@ open class PsProductFlavor(
   override val name: String get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
 
   var applicationId by ProductFlavorDescriptors.applicationId
+  var applicationIdSuffix by ProductFlavorDescriptors.applicationIdSuffix
   var dimension by ProductFlavorDescriptors.dimension
   var maxSdkVersion by ProductFlavorDescriptors.maxSdkVersion
   var minSdkVersion by ProductFlavorDescriptors.minSdkVersion
@@ -69,6 +70,15 @@ open class PsProductFlavor(
       "Application ID",
       resolvedValueGetter = { applicationId },
       parsedPropertyGetter = { applicationId() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString
+    )
+
+    val applicationIdSuffix: SimpleProperty<PsProductFlavor, String> = property(
+      "Application Id Suffix",
+      resolvedValueGetter = { applicationIdSuffix },
+      parsedPropertyGetter = { applicationIdSuffix() },
       getter = { asString() },
       setter = { setValue(it) },
       parser = ::parseString

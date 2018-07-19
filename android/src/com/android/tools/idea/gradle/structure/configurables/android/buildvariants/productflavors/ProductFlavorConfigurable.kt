@@ -64,7 +64,8 @@ fun productFlavorPropertiesModel(isLibrary: Boolean) =
     listOfNotNull(
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.dimension, ::simplePropertyEditor),
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.minSdkVersion, ::simplePropertyEditor),
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.applicationId, ::simplePropertyEditor),
+      if (!isLibrary) uiProperty(PsProductFlavor.ProductFlavorDescriptors.applicationId, ::simplePropertyEditor) else null,
+      if (!isLibrary) uiProperty(PsProductFlavor.ProductFlavorDescriptors.applicationIdSuffix, ::simplePropertyEditor) else null,
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion, ::simplePropertyEditor),
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.maxSdkVersion, ::simplePropertyEditor),
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.signingConfig, ::simplePropertyEditor),

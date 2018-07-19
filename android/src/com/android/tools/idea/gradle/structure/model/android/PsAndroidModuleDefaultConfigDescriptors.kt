@@ -41,6 +41,15 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     parser = ::parseString
   )
 
+  val applicationIdSuffix: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
+    "Application Id Suffix",
+    resolvedValueGetter = { applicationIdSuffix },
+    parsedPropertyGetter = { applicationIdSuffix() },
+    getter = { asString() },
+    setter = { setValue(it) },
+    parser = ::parseString
+  )
+
   val maxSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, Int> = property(
     "Max SDK Version",
     resolvedValueGetter = { maxSdkVersion },

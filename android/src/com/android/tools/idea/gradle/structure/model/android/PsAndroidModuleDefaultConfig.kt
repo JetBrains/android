@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android
 
 class PsAndroidModuleDefaultConfig(val module: PsAndroidModule) {
   var applicationId by PsAndroidModuleDefaultConfigDescriptors.applicationId
+  var applicationIdSuffix by PsAndroidModuleDefaultConfigDescriptors.applicationIdSuffix
   var maxSdkVersion by PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion
   var minSdkVersion by PsAndroidModuleDefaultConfigDescriptors.minSdkVersion
   var multiDexEnabled by PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled
