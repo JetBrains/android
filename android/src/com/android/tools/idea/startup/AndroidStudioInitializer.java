@@ -117,6 +117,9 @@ public class AndroidStudioInitializer implements Runnable {
         ? AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE
         : AndroidStudioEvent.IdeBrand.ANDROID_STUDIO);
     }
+    if (ApplicationManager.getApplication().isInternal()) {
+      UsageTracker.setIdeaIsInternal(true);
+    }
   }
 
   private static void checkInstallation() {
