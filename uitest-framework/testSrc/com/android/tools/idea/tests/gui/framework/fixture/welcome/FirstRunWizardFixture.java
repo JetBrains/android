@@ -63,6 +63,8 @@ public class FirstRunWizardFixture extends AbstractWizardFixture<FirstRunWizardF
         WelcomeFrame.showNow();
       }
     });
+    // PSQ windows manager sometime can't get the focus back
+    robot.focus(WelcomeFrame.getInstance().getComponent());
   }
 
   public static FirstRunWizardFixture find(@NotNull Robot robot) {

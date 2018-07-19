@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.welcome;
 
-import com.android.flags.junit.RestoreFlagRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -25,8 +24,6 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.*;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
-
 import static com.android.tools.idea.flags.StudioFlags.NPW_FIRST_RUN_WIZARD;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -34,8 +31,6 @@ import static org.junit.Assert.assertNotEquals;
 @RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner.class)
 public class FirstRunWizardCancelTest {
-
-  @Rule public final RestoreFlagRule<Boolean> myRestoreFlagRule = new RestoreFlagRule<>(NPW_FIRST_RUN_WIZARD);
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
 
@@ -43,7 +38,7 @@ public class FirstRunWizardCancelTest {
   private int mySdkUpdateVersion;
 
   @Before
-  public void setUp() throws IOException {
+  public void setUp() {
     mySdkUpdateVersion = getSdkUpdateVersion();
     setSdkUpdateVersion(DUMMY_SDK_VERSION);
 
@@ -52,6 +47,7 @@ public class FirstRunWizardCancelTest {
 
   @After
   public void tearDown() {
+    NPW_FIRST_RUN_WIZARD.clearOverride();
     setSdkUpdateVersion(mySdkUpdateVersion);
     FirstRunWizardFixture.close(guiTest.robot());
   }
