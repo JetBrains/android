@@ -128,29 +128,29 @@ class EnergyTableTest {
   fun testGetSamples() {
     TablePopulator().setSampleValues(10, 200).populate(table, MAIN_SESSION)
 
-    with(table.findSamples(newEnergyRequest(Long.MIN_VALUE, Long.MAX_VALUE))!!) {
+    with(table.getSamples(newEnergyRequest(Long.MIN_VALUE, Long.MAX_VALUE))!!) {
       assertThat(this).hasSize(10)
     }
 
-    with(table.findSamples(newEnergyRequest(250, 500))!!) {
+    with(table.getSamples(newEnergyRequest(250, 500))!!) {
       assertThat(this).hasSize(1)
     }
 
-    with(table.findSamples(newEnergyRequest(500, 1001))!!) {
+    with(table.getSamples(newEnergyRequest(500, 1001))!!) {
       assertThat(this).hasSize(3)
     }
 
     // t1 is exclusive
-    with(table.findSamples(newEnergyRequest(500, 1000))!!) {
+    with(table.getSamples(newEnergyRequest(500, 1000))!!) {
       assertThat(this).hasSize(2)
     }
 
     // t0 is inclusive
-    with(table.findSamples(newEnergyRequest(400, 1001))!!) {
+    with(table.getSamples(newEnergyRequest(400, 1001))!!) {
       assertThat(this).hasSize(4)
     }
 
-    with(table.findSamples(newEnergyRequest(Long.MIN_VALUE, Long.MAX_VALUE, ANOTHER_SESSION))!!) {
+    with(table.getSamples(newEnergyRequest(Long.MIN_VALUE, Long.MAX_VALUE, ANOTHER_SESSION))!!) {
       assertThat(this).isEmpty()
     }
   }
@@ -160,24 +160,24 @@ class EnergyTableTest {
     // Events: 0->500, 1000->1500, 2000->2500, ...
     TablePopulator().setWakeLockEventValues(10, 1000, 500).populate(table, MAIN_SESSION)
 
-    with(table.findEvents(newEnergyRequest(Long.MIN_VALUE, Long.MAX_VALUE))!!) {
+    with(table.getEvents(newEnergyRequest(Long.MIN_VALUE, Long.MAX_VALUE))!!) {
       assertThat(this).hasSize(10 * 2) // 2 events per event group
     }
 
     // t1 is exclusive
-    with(table.findEvents(newEnergyRequest(800, 1000))!!) {
+    with(table.getEvents(newEnergyRequest(800, 1000))!!) {
       assertThat(this).hasSize(0)
     }
 
     //     t0              t1
     //      |              | [-----]
-    with(table.findEvents(newEnergyRequest(1600, 1800))!!) {
+    with(table.getEvents(newEnergyRequest(1600, 1800))!!) {
       assertThat(this).hasSize(0)
     }
 
     //     t0              t1
     //  [---|---]          |
-    with(table.findEvents(newEnergyRequest(1250, 1750))!!) {
+    with(table.getEvents(newEnergyRequest(1250, 1750))!!) {
       assertThat(this).hasSize(2)
       assertThat(this[0].hasWakeLockAcquired()).isTrue()
       assertThat(this[1].hasWakeLockReleased()).isTrue()
@@ -185,7 +185,7 @@ class EnergyTableTest {
 
     //     t0              t1
     //      |   [------]   |
-    with(table.findEvents(newEnergyRequest(750, 1750))!!) {
+    with(table.getEvents(newEnergyRequest(750, 1750))!!) {
       assertThat(this).hasSize(2)
       assertThat(this[0].hasWakeLockAcquired()).isTrue()
       assertThat(this[1].hasWakeLockReleased()).isTrue()
@@ -193,19 +193,19 @@ class EnergyTableTest {
 
     //     t0              t1
     //      |          [---|---]
-    with(table.findEvents(newEnergyRequest(750, 1250))!!) {
+    with(table.getEvents(newEnergyRequest(750, 1250))!!) {
       assertThat(this).hasSize(1)
       assertThat(this[0].hasWakeLockAcquired()).isTrue()
     }
 
     //     t0              t1
     //  [---|--------------|---]
-    with(table.findEvents(newEnergyRequest(1100, 1450))!!) {
+    with(table.getEvents(newEnergyRequest(1100, 1450))!!) {
       assertThat(this).hasSize(1)
       assertThat(this[0].hasWakeLockAcquired()).isTrue()
     }
 
-    with(table.findEvents(newEnergyRequest(Long.MIN_VALUE, Long.MAX_VALUE, ANOTHER_SESSION))!!) {
+    with(table.getEvents(newEnergyRequest(Long.MIN_VALUE, Long.MAX_VALUE, ANOTHER_SESSION))!!) {
       assertThat(this).isEmpty()
     }
   }
@@ -216,12 +216,12 @@ class EnergyTableTest {
     TablePopulator().setWakeLockEventValues(10, 1000, 500).populate(table, MAIN_SESSION)
 
     for (id in 1..10) {
-      with(table.findEventGroup(newEnergyGroupRequest(id))!!) {
+      with(table.getEventGroup(newEnergyGroupRequest(id))!!) {
         assertWithMessage("Event group with ID ${id} is not empty").that(this).hasSize(2) // 2 events per event group
         this.forEach { energyEvent -> assertThat(energyEvent.eventId).isEqualTo(id) }
       }
 
-      with(table.findEventGroup(newEnergyGroupRequest(id, ANOTHER_SESSION))!!) {
+      with(table.getEventGroup(newEnergyGroupRequest(id, ANOTHER_SESSION))!!) {
         assertThat(this).isEmpty()
       }
     }

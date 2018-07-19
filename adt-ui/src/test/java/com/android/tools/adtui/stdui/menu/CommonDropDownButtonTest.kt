@@ -58,4 +58,32 @@ class CommonDropDownButtonTest {
       assertThat<PropertyChangeListener>(action.propertyChangeListeners).asList().containsExactly(dropdown)
     }
   }
+
+  @Test
+  fun testFindMenuRecursive() {
+    val parent = CommonAction("Parent", null)
+    val child = CommonAction("Child", null)
+    parent.addChildrenActions(child)
+    val grandChild = CommonAction("GrandChild", null)
+    child.addChildrenActions(grandChild)
+    val dropdown = CommonDropDownButton(parent)
+
+    // Note - we cannot trigger the popup to show in a headless test.
+    // here we trigger a propertyChanged event on the parent which forces the popup to populate
+    val child2 = CommonAction("Child2", null)
+    parent.addChildrenActions(child2)
+
+    val popup = dropdown.popup
+    val childMenu = dropdown.findMenuRecursive(popup, child)!!
+    assertThat(childMenu.action).isEqualTo(child)
+    val grandChildMenu = dropdown.findMenuRecursive(popup, grandChild)!!
+    assertThat(grandChildMenu.action).isEqualTo(grandChild)
+
+    val child3 = CommonAction("Child2", null)
+    var childMenu3 = dropdown.findMenuRecursive(popup, child3)
+    assertThat(childMenu3).isNull()
+    parent.addChildrenActions(child3)
+    childMenu3 = dropdown.findMenuRecursive(popup, child3)!!
+    assertThat(childMenu3.action).isEqualTo(child3)
+  }
 }

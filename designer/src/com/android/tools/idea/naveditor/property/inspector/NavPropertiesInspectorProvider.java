@@ -105,7 +105,7 @@ public abstract class NavPropertiesInspectorProvider implements InspectorProvide
         if (property != null) {
           if (propertyName.equals(SdkConstants.ATTR_START_DESTINATION)
               && property.getComponents().stream().anyMatch(
-                component -> NavComponentHelperKt.getDestinationType(component) == NavigationSchema.DestinationType.NAVIGATION
+                component -> NavComponentHelperKt.isNavigation(component)
                   && ((NavDesignSurface)propertiesManager.getDesignSurface()).getCurrentNavigation() != component)) {
             continue;
           }

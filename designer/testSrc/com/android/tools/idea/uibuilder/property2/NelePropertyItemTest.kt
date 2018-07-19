@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
@@ -26,7 +27,7 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 
 internal const val EXPECTED_ID_TOOLTIP = """
-android:id:  Supply an identifier name for this view, to later retrieve it
+android:id: Supply an identifier name for this view, to later retrieve it
              with {@link android.view.View#findViewById View.findViewById()} or
              {@link android.app.Activity#findViewById Activity.findViewById()}.
              This must be a
@@ -63,8 +64,8 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(property.value).isEqualTo("@string/demo")
     assertThat(property.isReference).isTrue()
     assertThat(property.resolvedValue).isEqualTo("Demo String")
-    assertThat(property.tooltipForName).isEqualTo("android:text:  Text to display. ")
-    assertThat(property.validate("Some")).isEmpty()
+    assertThat(property.tooltipForName).isEqualTo("android:text: Text to display.")
+    assertThat(property.editingSupport.validation("Some")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(property.libraryName).isEmpty()
     assertThat(property.components).hasSize(1)
     assertThat(property.components[0].tagName).isEqualTo(TEXT_VIEW)
@@ -97,8 +98,8 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(design.rawValue).isEqualTo("@string/design")
     assertThat(design.isReference).isTrue()
     assertThat(design.resolvedValue).isEqualTo("Design Demo")
-    assertThat(design.tooltipForName).isEqualTo("tools:text:  Text to display. ")
-    assertThat(design.validate("Some")).isEmpty()
+    assertThat(design.tooltipForName).isEqualTo("tools:text: Text to display.")
+    assertThat(property.editingSupport.validation("Some")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(design.libraryName).isEmpty()
     assertThat(design.components).hasSize(1)
     assertThat(design.components[0].tagName).isEqualTo(TEXT_VIEW)

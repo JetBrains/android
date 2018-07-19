@@ -1,0 +1,8 @@
+<resources>
+  <declare-styleable name="MyStyleable">
+    <!--
+    Having a styleable in res-auto that references a framework attr may cause AttributeDefinitions to be wrong. See b/111547198.
+    -->
+    <attr name="android:layout_width" format="fill_parent"/>
+  </declare-styleable>
+</resources>

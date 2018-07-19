@@ -961,7 +961,10 @@ public class Scene implements SelectionListener, Disposable {
     RenderService renderService = RenderService.getInstance(module.getProject());
     AndroidFacet facet = model.getFacet();
     RenderLogger logger = renderService.createLogger(facet);
-    final RenderTask task = renderService.createTask(facet, xmlFile, model.getConfiguration(), logger, null);
+    final RenderTask task = renderService.taskBuilder(facet, model.getConfiguration())
+                                         .withLogger(logger)
+                                         .withPsiFile(xmlFile)
+                                         .build();
     if (task == null) {
       return null;
     }

@@ -17,6 +17,7 @@ package com.android.tools.idea.stats;
 
 import com.android.annotations.NonNull;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.analytics.UsageTrackerWriter;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.wireless.android.play.playlog.proto.ClientAnalytics;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -48,7 +49,7 @@ public class StatisticsViewer extends JPanel implements Disposable {
   private final ConsoleViewImpl myConsoleView;
 
   private DialogWrapper myDialog;
-  private UsageTracker myOriginalUsageTracker;
+  private UsageTrackerWriter myOriginalUsageTracker;
 
   StatisticsViewer() {
     super(new BorderLayout(0, 0));
@@ -63,9 +64,9 @@ public class StatisticsViewer extends JPanel implements Disposable {
   }
 
   private void hookUsageTracker() {
-    myOriginalUsageTracker = UsageTracker.getInstanceForTest();
+    myOriginalUsageTracker = UsageTracker.getWriterForTest();
     // Use the setInstanceForTest API to temporary wrap the UsageTracker in our own usage tracker that logs to our console.
-    myOriginalUsageTracker = UsageTracker.setInstanceForTest(new UsageTracker(myOriginalUsageTracker.getAnalyticsSettings(), myOriginalUsageTracker.getScheduler()) {
+    myOriginalUsageTracker = UsageTracker.setWriterForTest(new UsageTrackerWriter() {
       @Override
       public void logDetails(@NonNull ClientAnalytics.LogEvent.Builder logEvent) {
         myOriginalUsageTracker.logDetails(logEvent);
@@ -161,6 +162,6 @@ public class StatisticsViewer extends JPanel implements Disposable {
   @Override
   public void dispose() {
     // Undo the wrapping of the UsageTracker
-    UsageTracker.setInstanceForTest(myOriginalUsageTracker);
+    UsageTracker.setWriterForTest(myOriginalUsageTracker);
   }
 }

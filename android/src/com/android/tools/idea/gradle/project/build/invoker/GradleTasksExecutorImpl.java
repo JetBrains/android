@@ -22,6 +22,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.fd.FlightRecorder;
 import com.android.tools.idea.fd.InstantRunBuildProgressListener;
 import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
@@ -227,6 +228,11 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         if (AndroidStudioGradleIdeSettings.getInstance().isEmbeddedMavenRepoEnabled() || isInTestingMode()) {
           GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
           attemptToUseEmbeddedGradle(project);
+        }
+
+        if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+          // Don't generate the R.java files. See CommandLineArgs for the same flags passed at sync time to affect the model.
+          commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_SEPARATE_R_CLASS_COMPILATION, true));
         }
 
         // Don't include passwords in the log

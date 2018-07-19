@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.stdui
 
-import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
+import com.android.tools.adtui.stdui.StandardDimensions.COMBO_LEFT_PADDING
 import com.intellij.util.ui.JBUI
 import java.awt.Component
 import javax.swing.JComponent
@@ -50,7 +50,7 @@ open class CommonComboBoxRenderer : BasicComboBoxRenderer() {
     // Otherwise use the standard padding of [HORIZONTAL_PADDING].
     // This method can be used by a custom cell renderer.
     fun padding(index: Int): Int {
-      return if (index < 0) 0 else HORIZONTAL_PADDING
+      return if (index < 0) 0 else COMBO_LEFT_PADDING
     }
   }
 

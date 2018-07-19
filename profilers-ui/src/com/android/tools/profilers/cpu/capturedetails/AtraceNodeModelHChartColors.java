@@ -45,11 +45,11 @@ class AtraceNodeModelHChartColors {
    * For cpu idle time (time the node is scheduled wall clock, but not thread time), we match thread colors.
    */
   static Color getIdleCpuColor(@NotNull CaptureNodeModel model,
-                               CaptureModel.Details.Type chartType,
+                               CaptureDetails.Type chartType,
                                boolean isUnmatched,
                                boolean isFocused) {
     Color color;
-    if (chartType == CaptureModel.Details.Type.CALL_CHART) {
+    if (chartType == CaptureDetails.Type.CALL_CHART) {
       threadColors.setColorIndex(isFocused ? 1 : 0);
       color = threadColors.getColor(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED);
     }
@@ -64,10 +64,10 @@ class AtraceNodeModelHChartColors {
    * We use the usage captured color. This gives the UI a consistent look
    * across CPU, Kernel, Threads, and trace nodes.
    */
-  static Color getFillColor(@NotNull CaptureNodeModel model, CaptureModel.Details.Type chartType, boolean isUnmatched, boolean isFocused) {
+  static Color getFillColor(@NotNull CaptureNodeModel model, CaptureDetails.Type chartType, boolean isUnmatched, boolean isFocused) {
     validateModel(model);
     Color color;
-    if (chartType == CaptureModel.Details.Type.CALL_CHART) {
+    if (chartType == CaptureDetails.Type.CALL_CHART) {
       threadColors.setColorIndex(isFocused ? 1 : 0);
       color = threadColors.getColor(CpuProfilerStage.ThreadState.RUNNING_CAPTURED);
     }

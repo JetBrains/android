@@ -17,9 +17,10 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
-import com.android.tools.idea.rendering.ImagePool;
+import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -137,7 +138,7 @@ public class ScreenViewLayerTest {
 
   @NotNull
   private static ImagePool.Image getTestImage(int imageWidth, int imageHeight) {
-    ImagePool imagePool = new ImagePool();
+    ImagePool imagePool = ImagePoolFactory.createImagePool();
     ImagePool.Image imageHQ = imagePool.create(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
     imageHQ.paint(g -> {
       g.setStroke(new BasicStroke(10));

@@ -42,7 +42,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
   @Mock private RecommendedPluginVersionUpgradeDialog.Factory myUpgradeDialogFactory;
   @Mock private RecommendedPluginVersionUpgradeDialog myUpgradeDialog;
   @Mock private TimeBasedUpgradeReminder myUpgradeReminder;
-  @Mock private AndroidPluginVersionUpdater myVersionUpdater;
+  private AndroidPluginVersionUpdater myVersionUpdater;
 
   private RecommendedPluginVersionUpgradeStep myUpgradeStep;
 
@@ -52,6 +52,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     initMocks(this);
 
     Project project = getProject();
+    myVersionUpdater = spy(AndroidPluginVersionUpdater.getInstance(project));
     new IdeComponents(project).replaceProjectService(AndroidPluginVersionUpdater.class, myVersionUpdater);
 
     when(myPluginInfo.getPluginGeneration()).thenReturn(myPluginGeneration);
@@ -158,6 +159,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.2.0"));
     GradleVersion latestPluginVersion = GradleVersion.parse("2.3.0");
     when(myPluginGeneration.getLatestKnownVersion()).thenReturn(latestPluginVersion.toString());
+    doReturn(true).when(myVersionUpdater).canDetectPluginVersionToUpdate(any());
 
     // Simulate user accepted upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(true);
@@ -168,6 +170,20 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     assertTrue(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
   }
 
+  public void testCheckAndPerformUpgradeFailsWhenWeCannotDetectVersion() {
+    simulateUpgradeReminderIsDue();
+
+    when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.2.0"));
+    GradleVersion latestPluginVersion = GradleVersion.parse("2.3.0");
+    when(myPluginGeneration.getLatestKnownVersion()).thenReturn(latestPluginVersion.toString());
+    doReturn(false).when(myVersionUpdater).canDetectPluginVersionToUpdate(any());
+
+    // Simulate user accepted upgrade.
+    when(myUpgradeDialog.showAndGet()).thenReturn(true);
+
+    assertFalse(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
+  }
+
   private void simulateUpgradeReminderIsDue() {
     when(myUpgradeReminder.shouldRecommendUpgrade(getProject())).thenReturn(true);
   }
@@ -176,6 +192,6 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     UpdateResult result = mock(UpdateResult.class);
     when(result.versionUpdateSuccess()).thenReturn(success);
     GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
-    when(myVersionUpdater.updatePluginVersionAndSync(eq(pluginVersion), eq(gradleVersion), anyBoolean())).thenReturn(result);
+    doReturn(result).when(myVersionUpdater).updatePluginVersionAndSync(eq(pluginVersion), eq(gradleVersion), anyBoolean());
   }
 }

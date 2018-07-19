@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.analytics;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.google.common.annotations.VisibleForTesting;
@@ -327,22 +329,24 @@ public class UsageTrackerUtil {
   @VisibleForTesting
   static NamespaceAndLibraryNamePair lookupAttributeResource(@NotNull AndroidFacet facet, @NotNull String attributeName) {
     ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
-    ResourceManager systemResourceManager = resourceManagers.getSystemResourceManager();
-    if (systemResourceManager == null) {
+    ResourceManager frameworkResourceManager = resourceManagers.getFrameworkResourceManager();
+    if (frameworkResourceManager == null) {
       return new NamespaceAndLibraryNamePair(AndroidAttribute.AttributeNamespace.APPLICATION);
     }
 
     ResourceManager localResourceManager = resourceManagers.getLocalResourceManager();
     AttributeDefinitions localAttributeDefinitions = localResourceManager.getAttributeDefinitions();
-    AttributeDefinitions systemAttributeDefinitions = systemResourceManager.getAttributeDefinitions();
+    AttributeDefinitions systemAttributeDefinitions = frameworkResourceManager.getAttributeDefinitions();
 
-    if (systemAttributeDefinitions != null && systemAttributeDefinitions.getAttributeNames().contains(attributeName)) {
+    if (systemAttributeDefinitions != null &&
+        systemAttributeDefinitions.getAttrs().contains(ResourceReference.attr(ResourceNamespace.ANDROID, attributeName))) {
       return new NamespaceAndLibraryNamePair(AndroidAttribute.AttributeNamespace.ANDROID);
     }
     if (localAttributeDefinitions == null) {
       return new NamespaceAndLibraryNamePair(AndroidAttribute.AttributeNamespace.APPLICATION);
     }
-    AttributeDefinition definition = localAttributeDefinitions.getAttrDefByName(attributeName);
+    AttributeDefinition definition =
+        localAttributeDefinitions.getAttrDefinition(ResourceReference.attr(ResourceNamespace.TODO(), attributeName));
     if (definition == null) {
       return new NamespaceAndLibraryNamePair(AndroidAttribute.AttributeNamespace.APPLICATION);
     }

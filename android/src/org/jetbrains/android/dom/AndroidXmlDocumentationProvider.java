@@ -35,7 +35,7 @@ import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.resourceManagers.SystemResourceManager;
+import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -52,12 +52,12 @@ import static com.intellij.psi.xml.XmlTokenType.*;
  */
 public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   private static final Key<SoftReference<Map<XmlName, CachedValue<String>>>> ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY =
-    Key.create("ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE");
+      Key.create("ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE");
 
   @Override
   public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
     if (element instanceof LazyValueResourceElementWrapper) {
-      final ValueResourceInfo info = ((LazyValueResourceElementWrapper)element).getResourceInfo();
+      ValueResourceInfo info = ((LazyValueResourceElementWrapper)element).getResourceInfo();
       return "value resource '" + info.getName() + "' [" + info.getContainingFile().getName() + "]";
     }
     return null;
@@ -73,6 +73,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     if (element instanceof ProvidedDocumentationPsiElement) {
       return ((ProvidedDocumentationPsiElement)element).getDocumentation();
     }
+
     if (element instanceof LazyValueResourceElementWrapper) {
       LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
       ValueResourceInfo resourceInfo = wrapper.getResourceInfo();
@@ -100,14 +101,14 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
           // Figure out if this resource is a framework file.
           // We really should store that info in the ValueResourceInfo instances themselves.
           // For now, attempt to figure it out
-          SystemResourceManager systemResourceManager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
+          FrameworkResourceManager frameworkResourceManager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
           VirtualFile containingFile = resourceInfo.getContainingFile();
-          if (systemResourceManager != null) {
+          if (frameworkResourceManager != null) {
             VirtualFile parent = containingFile.getParent();
             if (parent != null) {
               VirtualFile resDir = parent.getParent();
               if (resDir != null) {
-                isFramework = systemResourceManager.isResourceDir(resDir);
+                isFramework = frameworkResourceManager.isResourceDir(resDir);
               }
             }
           }
@@ -149,7 +150,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     }
 
     if (element instanceof PomTargetPsiElement && originalElement != null) {
-      final PomTarget target = ((PomTargetPsiElement)element).getTarget();
+      PomTarget target = ((PomTargetPsiElement)element).getTarget();
 
       if (target instanceof DomAttributeChildDescription) {
         synchronized (ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY) {
@@ -219,7 +220,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
           }
 
           // Return the doc of the value if searching for an enum value, otherwise return the doc of the enum itself
-          return StringUtil.trim(isXmlValue ? attributeDefinition.getValueDoc(value) : attributeDefinition.getDocValue(null));
+          return StringUtil.trim(isXmlValue ? attributeDefinition.getValueDescription(value) : attributeDefinition.getDescription(null));
         }
       }
 
@@ -229,7 +230,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
         if (attributeDefinition == null) {
           return null;
         }
-        return StringUtil.trim(attributeDefinition.getValueDoc(value));
+        return StringUtil.trim(attributeDefinition.getValueDescription(value));
       }
     }
     return null;
@@ -245,7 +246,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     if (facet == null) {
       return null;
     }
-    AttributeDefinitions definitions = getAttributeDefinitions(ModuleResourceManagers.getInstance(facet).getSystemResourceManager());
+    AttributeDefinitions definitions = getAttributeDefinitions(ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager());
     if (definitions == null) {
       return null;
     }
@@ -267,25 +268,25 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   }
 
   @Nullable
-  private static String generateDocForXmlAttribute(@NotNull DomAttributeChildDescription description, @NotNull final PsiElement originalElement) {
-    final XmlName xmlName = description.getXmlName();
+  private static String generateDocForXmlAttribute(@NotNull DomAttributeChildDescription description, @NotNull PsiElement originalElement) {
+    XmlName xmlName = description.getXmlName();
 
     Map<XmlName, CachedValue<String>> cachedDocsMap = SoftReference.dereference(
       originalElement.getUserData(ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY));
 
     if (cachedDocsMap != null) {
-      final CachedValue<String> cachedDoc = cachedDocsMap.get(xmlName);
+      CachedValue<String> cachedDoc = cachedDocsMap.get(xmlName);
 
       if (cachedDoc != null) {
         return cachedDoc.getValue();
       }
     }
-    final AndroidFacet facet = AndroidFacet.getInstance(originalElement);
+    AndroidFacet facet = AndroidFacet.getInstance(originalElement);
 
     if (facet == null) {
       return null;
     }
-    final String localName = xmlName.getLocalName();
+    String localName = xmlName.getLocalName();
     String namespace = xmlName.getNamespaceKey();
 
     if (namespace == null) {
@@ -295,19 +296,18 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       namespace = ANDROID_URI;
     }
 
-    if (namespace.startsWith(URI_PREFIX)) {
-      final String finalNamespace = namespace;
+    if (namespace.startsWith(URI_PREFIX) || namespace.equals(AUTO_URI)) {
+      String finalNamespace = namespace;
 
-      final CachedValue<String> cachedValue = CachedValuesManager.getManager(originalElement.getProject()).createCachedValue(
+      CachedValue<String> cachedValue = CachedValuesManager.getManager(originalElement.getProject()).createCachedValue(
         () -> {
-          final Pair<AttributeDefinition, String> pair = findAttributeDefinition(originalElement, facet, finalNamespace, localName);
-          final String doc = pair != null ? generateDocForXmlAttribute(pair.getFirst(), pair.getSecond()) : null;
+          Pair<AttributeDefinition, String> pair = findAttributeDefinition(originalElement, facet, finalNamespace, localName);
+          String doc = pair != null ? generateDocForXmlAttribute(pair.getFirst(), pair.getSecond()) : null;
           return CachedValueProvider.Result.create(doc, PsiModificationTracker.MODIFICATION_COUNT);
         }, false);
       if (cachedDocsMap == null) {
         cachedDocsMap = new HashMap<>();
-        originalElement.putUserData(ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY,
-                                    new SoftReference<>(cachedDocsMap));
+        originalElement.putUserData(ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY, new SoftReference<>(cachedDocsMap));
       }
       cachedDocsMap.put(xmlName, cachedValue);
       return cachedValue.getValue();
@@ -318,22 +318,22 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   @Nullable
   private static Pair<AttributeDefinition, String> findAttributeDefinition(@NotNull PsiElement originalElement,
                                                                            @NotNull AndroidFacet facet,
-                                                                           @NotNull final String namespace,
-                                                                           @NotNull final String localName) {
+                                                                           @NotNull String namespace,
+                                                                           @NotNull String localName) {
     if (!originalElement.isValid()) {
       return null;
     }
-    final XmlTag parentTag = PsiTreeUtil.getParentOfType(originalElement, XmlTag.class);
+    XmlTag parentTag = PsiTreeUtil.getParentOfType(originalElement, XmlTag.class);
 
     if (parentTag == null) {
       return null;
     }
-    final DomElement parentDomElement = DomManager.getDomManager(parentTag.getProject()).getDomElement(parentTag);
+    DomElement parentDomElement = DomManager.getDomManager(parentTag.getProject()).getDomElement(parentTag);
 
     if (!(parentDomElement instanceof AndroidDomElement)) {
       return null;
     }
-    final Ref<Pair<AttributeDefinition, String>> result = Ref.create();
+    Ref<Pair<AttributeDefinition, String>> result = Ref.create();
     try {
       AttributeProcessingUtil.processAttributes((AndroidDomElement)parentDomElement, facet, false, (xn, attrDef, parentStyleableName) -> {
         if (xn.getLocalName().equals(localName) && namespace.equals(xn.getNamespaceKey())) {
@@ -347,12 +347,12 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       // ignore
     }
 
-    final Pair<AttributeDefinition, String> pair = result.get();
+    Pair<AttributeDefinition, String> pair = result.get();
 
     if (pair != null) {
       return pair;
     }
-    final AttributeDefinition attrDef = findAttributeDefinitionGlobally(facet, namespace, localName);
+    AttributeDefinition attrDef = findAttributeDefinitionGlobally(facet, namespace, localName);
     return attrDef != null ? Pair.of(attrDef, (String)null) : null;
   }
 
@@ -362,17 +362,17 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
                                                                      @NotNull String localName) {
     ResourceManager resourceManager;
     if (ANDROID_URI.equals(namespace) || TOOLS_URI.equals(namespace)) {
-      resourceManager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
+      resourceManager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
     }
     else if (namespace.equals(AUTO_URI) || namespace.startsWith(URI_PREFIX)) {
         resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     }
     else {
-      resourceManager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
+      resourceManager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
     }
 
     if (resourceManager != null) {
-      final AttributeDefinitions attributes = resourceManager.getAttributeDefinitions();
+      AttributeDefinitions attributes = resourceManager.getAttributeDefinitions();
 
       if (attributes != null) {
         return attributes.getAttrDefByName(localName);
@@ -382,12 +382,12 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   }
 
   private static String generateDocForXmlAttribute(@NotNull AttributeDefinition definition, @Nullable String parentStyleable) {
-    final StringBuilder builder = new StringBuilder("<html><body>");
-    final Set<AttributeFormat> formats = definition.getFormats();
+    StringBuilder builder = new StringBuilder("<html><body>");
+    Set<AttributeFormat> formats = definition.getFormats();
 
     if (!formats.isEmpty()) {
       builder.append("Formats: ");
-      final List<String> formatLabels = new ArrayList<>(formats.size());
+      List<String> formatLabels = new ArrayList<>(formats.size());
 
       for (AttributeFormat format : formats) {
         formatLabels.add(format.name().toLowerCase(Locale.US));
@@ -402,14 +402,14 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
         }
       }
     }
-    final String[] values = definition.getValues();
+    String[] values = definition.getValues();
 
     if (values.length > 0) {
       if (builder.length() > 0) {
         builder.append("<br>");
       }
       builder.append("Values: ");
-      final String[] sortedValues = new String[values.length];
+      String[] sortedValues = new String[values.length];
       System.arraycopy(values, 0, sortedValues, 0, values.length);
       Arrays.sort(sortedValues);
 
@@ -421,7 +421,8 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
         }
       }
     }
-    final String docValue = definition.getDocValue(parentStyleable);
+    // TODO(namespaces): Remove use of the deprecated method.
+    String docValue = definition.getDescriptionByParentStyleableName(parentStyleable);
 
     if (docValue != null && !docValue.isEmpty()) {
       if (builder.length() > 0) {
@@ -456,28 +457,28 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   @Override
   public PsiElement getDocumentationElementForLookupItem(PsiManager psiManager, Object object, PsiElement element) {
     if (object instanceof ResourceReferenceConverter.DocumentationHolder) {
-      final ResourceReferenceConverter.DocumentationHolder holder = (ResourceReferenceConverter.DocumentationHolder)object;
+      ResourceReferenceConverter.DocumentationHolder holder = (ResourceReferenceConverter.DocumentationHolder)object;
       return new ProvidedDocumentationPsiElement(psiManager, Language.ANY, holder.getValue(), holder.getDocumentation());
     }
     if (!(element instanceof XmlAttributeValue) || !(object instanceof String)) {
       return null;
     }
-    final String value = (String)object;
-    final PsiElement parent = element.getParent();
+    String value = (String)object;
+    PsiElement parent = element.getParent();
 
     if (!(parent instanceof XmlAttribute)) {
       return null;
     }
-    final GenericAttributeValue domValue = DomManager.getDomManager(
+    GenericAttributeValue domValue = DomManager.getDomManager(
       parent.getProject()).getDomElement((XmlAttribute)parent);
 
     if (domValue == null) {
       return null;
     }
-    final Converter converter = domValue.getConverter();
+    Converter converter = domValue.getConverter();
 
     if (converter instanceof AttributeValueDocumentationProvider) {
-      final String doc = ((AttributeValueDocumentationProvider)converter).getDocumentation(value);
+      String doc = ((AttributeValueDocumentationProvider)converter).getDocumentation(value);
 
       if (doc != null) {
         return new MyDocElement(element, doc);

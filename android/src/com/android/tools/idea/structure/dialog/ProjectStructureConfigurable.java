@@ -15,18 +15,23 @@
  */
 package com.android.tools.idea.structure.dialog;
 
-import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
+import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.PSDEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.options.*;
+import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.options.SearchableConfigurable;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.project.ProjectManager;
@@ -40,6 +45,7 @@ import com.intellij.openapi.wm.ex.IdeFocusTraversalPolicy;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.Wrapper;
 import com.intellij.ui.navigation.BackAction;
 import com.intellij.ui.navigation.ForwardAction;
@@ -58,13 +64,12 @@ import java.util.EventListener;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker.getApplicationId;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.ui.navigation.Place.goFurther;
 import static com.intellij.util.ui.UIUtil.*;
 
-public class ProjectStructureConfigurable extends BaseConfigurable
-  implements SearchableConfigurable, Place.Navigator, Configurable.NoMargin, Configurable.NoScroll {
-
+public class ProjectStructureConfigurable implements SearchableConfigurable, Place.Navigator, Configurable.NoMargin, Configurable.NoScroll {
   public static final DataKey<ProjectStructureConfigurable> KEY = DataKey.create("ProjectStructureConfiguration");
   @NonNls public static final String CATEGORY = "category";
   @NonNls public static final String CATEGORY_NAME = "categoryName";
@@ -85,7 +90,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   private SidePanel mySidePanel;
   private JPanel myNotificationPanel;
   private JComponent myToolbarComponent;
-  private ConfigurationErrorsComponent myErrorsComponent;
+  private JBLabel myErrorsComponent;
   private JComponent myToFocus;
 
   private boolean myUiInitialized;
@@ -97,6 +102,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     EventDispatcher.create(ProjectStructureChangeListener.class);
 
   private MyDisposable myDisposable = new MyDisposable();
+  private long myOpenTimeMs;
 
   @NotNull
   public static ProjectStructureConfigurable getInstance(@NotNull Project project) {
@@ -176,6 +182,26 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     mySelectedConfigurable = toSelect;
     if (mySelectedConfigurable != null) {
       myUiState.lastEditedConfigurable = mySelectedConfigurable.getDisplayName();
+
+      String appId = getApplicationId(myProject);
+      if (appId != null) {
+        PSDEvent.Builder psdEvent =
+          PSDEvent
+            .newBuilder()
+            .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002);
+        if (mySelectedConfigurable instanceof TrackedConfigurable) {
+          ((TrackedConfigurable)mySelectedConfigurable).applyTo(psdEvent);
+        }
+        UsageTracker.log(
+          AndroidStudioEvent
+            .newBuilder()
+            .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+            .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
+            .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
+            .setRawProjectId(appId)
+            .setPsdEvent(psdEvent)
+        );
+      }
     }
 
     if (toSelect instanceof MasterDetailsComponent) {
@@ -193,14 +219,9 @@ public class ProjectStructureConfigurable extends BaseConfigurable
       mySidePanel.select(createPlaceFor(toSelect));
     }
 
-    JComponent toFocus = null;
-    if (mySelectedConfigurable instanceof BaseConfigurable) {
-      BaseConfigurable configurable = (BaseConfigurable)mySelectedConfigurable;
-      toFocus = configurable.getPreferredFocusedComponent();
-    }
-    else if (mySelectedConfigurable instanceof MasterDetailsComponent) {
-      MasterDetailsComponent configurable = (MasterDetailsComponent)mySelectedConfigurable;
-      toFocus = configurable.getMaster();
+    JComponent toFocus = mySelectedConfigurable == null ? null : mySelectedConfigurable.getPreferredFocusedComponent();
+    if (toFocus == null && mySelectedConfigurable instanceof MasterDetailsComponent) {
+      toFocus = ((MasterDetailsComponent)mySelectedConfigurable).getMaster();
     }
 
     if (toFocus == null && detailsContent != null) {
@@ -301,8 +322,8 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     };
 
     DefaultActionGroup toolbarGroup = new DefaultActionGroup();
-    toolbarGroup.add(new BackAction(component));
-    toolbarGroup.add(new ForwardAction(component));
+    toolbarGroup.add(new BackAction(component, myDisposable));
+    toolbarGroup.add(new ForwardAction(component, myDisposable));
 
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("AndroidProjectStructure", toolbarGroup, true);
     toolbar.setTargetComponent(component);
@@ -318,7 +339,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     mySplitter.setSecondComponent(myDetails);
 
     component.add(mySplitter, BorderLayout.CENTER);
-    myErrorsComponent = new ConfigurationErrorsComponent(myProject);
+    myErrorsComponent = new JBLabel(); // TODO(solodkyy): Configure for (multi-line?) HTML.
     component.add(myErrorsComponent, BorderLayout.SOUTH);
 
     myUiInitialized = true;
@@ -397,6 +418,24 @@ public class ProjectStructureConfigurable extends BaseConfigurable
 
   @Override
   public void apply() throws ConfigurationException {
+    long duration = System.currentTimeMillis() - myOpenTimeMs;
+    String appId = getApplicationId(myProject);
+    if (appId != null) {
+      UsageTracker.log(
+        AndroidStudioEvent
+          .newBuilder()
+          .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+          .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
+          .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
+          .setRawProjectId(appId)
+          .setPsdEvent(
+            PSDEvent
+              .newBuilder()
+              .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
+              .setDurationMs(duration)
+          )
+      );
+    }
     boolean applied = false;
     for (Configurable configurable : myConfigurables) {
       if (configurable.isModified()) {
@@ -461,7 +500,6 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     myConfigurables.forEach(Configurable::disposeUIResources);
     myConfigurables.clear();
 
-    Disposer.dispose(myErrorsComponent);
     Disposer.dispose(myDisposable);
 
     myUiInitialized = false;
@@ -534,6 +572,19 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     ProjectStructureChangeListener changeListener = () -> needsSync.set(true);
     add(changeListener);
     try {
+      myOpenTimeMs = System.currentTimeMillis();
+      String appId = getApplicationId(myProject);
+      if (appId != null) {
+        UsageTracker.log(
+          AndroidStudioEvent
+            .newBuilder()
+            .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+            .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_OPEN)
+            .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
+            .setRawProjectId(appId)
+            .setPsdEvent(PSDEvent.newBuilder().setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002))
+        );
+      }
       ((Runnable)() -> showDialog(() -> {
         if (place != null) {
           navigateTo(place, true);

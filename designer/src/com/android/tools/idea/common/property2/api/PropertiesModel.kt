@@ -41,10 +41,10 @@ interface PropertiesModel<out P: PropertyItem> {
   /**
    * The model should notify the properties of changes to the properties table above.
    */
-  fun addListener(listener: PropertiesModelListener)
+  fun addListener(listener: PropertiesModelListener<P>)
 
   /**
    * Remove a listener added with [addListener].
    */
-  fun removeListener(listener: PropertiesModelListener)
+  fun removeListener(listener: PropertiesModelListener<P>)
 }

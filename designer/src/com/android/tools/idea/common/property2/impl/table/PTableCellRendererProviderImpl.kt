@@ -16,27 +16,30 @@
 package com.android.tools.idea.common.property2.impl.table
 
 import com.android.tools.adtui.ptable2.*
-import com.android.tools.idea.common.property2.api.ControlTypeProvider
-import com.android.tools.idea.common.property2.api.EditorProvider
-import com.android.tools.idea.common.property2.api.PropertyItem
+import com.android.tools.idea.common.property2.api.*
 
 /**
  * Standard table cell renderer provider.
  *
  * Returns (cached) a table cell renderer based on the column displayed.
- * Eventually the renderer will be sensitive to the control type of
- * the [PropertyItem].
  */
-class PTableCellRendererProviderImpl<P : PropertyItem>(itemType: Class<P>,
-                                                       controlTypeProvider: ControlTypeProvider<P>,
-                                                       editorProvider: EditorProvider<P>) : PTableCellRendererProvider {
-  private val nameRenderer = NameTableCellRenderer()
-  private val textRenderer = ValueTableCellRenderer(itemType, controlTypeProvider, editorProvider)
+class PTableCellRendererProviderImpl<N : NewPropertyItem, P : PropertyItem>(
+  nameType: Class<N>,
+  nameControlTypeProvider: ControlTypeProvider<N>,
+  nameEditorProvider: EditorProvider<N>,
+  valueType: Class<P>,
+  valueControlTypeProvider: ControlTypeProvider<P>,
+  valueEditorProvider: EditorProvider<P>) : PTableCellRendererProvider {
+
+  private val defaultNameRenderer = DefaultNameTableCellRenderer()
+  private val defaultValueRenderer = DefaultValueTableCellRenderer()
+  private val nameRenderer = EditorBasedTableCellRenderer(nameType, nameControlTypeProvider, nameEditorProvider, defaultNameRenderer)
+  private val valueRenderer = EditorBasedTableCellRenderer(valueType, valueControlTypeProvider, valueEditorProvider, defaultValueRenderer)
 
   override fun invoke(table: PTable, item: PTableItem, column: PTableColumn): PTableCellRenderer {
     return when (column) {
       PTableColumn.NAME -> nameRenderer
-      PTableColumn.VALUE -> textRenderer
+      PTableColumn.VALUE -> valueRenderer
     }
   }
 }

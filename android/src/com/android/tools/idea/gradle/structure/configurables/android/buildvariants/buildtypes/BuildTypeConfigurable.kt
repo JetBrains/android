@@ -24,15 +24,16 @@ class BuildTypeConfigurable(private val buildType: PsBuildType) : ChildModelConf
   override fun createPanel(): BuildTypeConfigPanel = BuildTypeConfigPanel(buildType)
 }
 
-fun buildTypePropertiesModel() =
+fun buildTypePropertiesModel(isLibrary: Boolean) =
   PropertiesUiModel(
-    listOf(
+    listOfNotNull(
       uiProperty(PsBuildType.BuildTypeDescriptors.debuggable, ::simplePropertyEditor),
 // TODO(b/70501607): Decide on PsBuildType.BuildTypeDescriptors.embedMicroApp,
       uiProperty(PsBuildType.BuildTypeDescriptors.jniDebuggable, ::simplePropertyEditor),
       uiProperty(PsBuildType.BuildTypeDescriptors.renderscriptDebuggable, ::simplePropertyEditor),
       uiProperty(PsBuildType.BuildTypeDescriptors.renderscriptOptimLevel, ::simplePropertyEditor),
       uiProperty(PsBuildType.BuildTypeDescriptors.signingConfig, ::simplePropertyEditor),
+      if (isLibrary) uiProperty(PsBuildType.BuildTypeDescriptors.consumerProGuardFiles, ::listPropertyEditor) else null,
       uiProperty(PsBuildType.BuildTypeDescriptors.proGuardFiles, ::listPropertyEditor),
       uiProperty(PsBuildType.BuildTypeDescriptors.manifestPlaceholders, ::mapPropertyEditor),
       uiProperty(PsBuildType.BuildTypeDescriptors.minifyEnabled, ::simplePropertyEditor),
@@ -41,6 +42,7 @@ fun buildTypePropertiesModel() =
 // TODO(b/70501607): Decide on PsBuildType.BuildTypeDescriptors.testCoverageEnabled,
       uiProperty(PsBuildType.BuildTypeDescriptors.applicationIdSuffix, ::simplePropertyEditor),
       uiProperty(PsBuildType.BuildTypeDescriptors.versionNameSuffix, ::simplePropertyEditor),
-      uiProperty(PsBuildType.BuildTypeDescriptors.zipAlignEnabled, ::simplePropertyEditor)
+      uiProperty(PsBuildType.BuildTypeDescriptors.zipAlignEnabled, ::simplePropertyEditor),
+      uiProperty(PsBuildType.BuildTypeDescriptors.matchingFallbacks, ::listPropertyEditor)
     ))
 

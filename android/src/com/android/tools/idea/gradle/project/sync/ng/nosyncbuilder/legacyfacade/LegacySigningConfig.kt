@@ -40,3 +40,6 @@ open class LegacySigningConfig(private val signingConfig: SigningConfig) : OldSi
                                     "}"
 }
 
+class LegacySigningConfigStub(signingConfig: SigningConfig) : LegacySigningConfig(signingConfig) {
+  override fun isV1SigningEnabled(): Boolean = true
+}

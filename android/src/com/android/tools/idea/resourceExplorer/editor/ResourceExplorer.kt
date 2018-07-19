@@ -31,53 +31,59 @@ import java.awt.BorderLayout
 import javax.swing.Box
 import javax.swing.JPanel
 import javax.swing.JSlider
+import kotlin.properties.Delegates
+
+private const val withExternalBrowser: Boolean = false
+private const val withDetailView: Boolean = false
 
 /**
  * The resource explorer lets the user browse resources from the provided [AndroidFacet]
  */
 class ResourceExplorer private constructor(
   parentDisposable: Disposable,
-  facet: AndroidFacet,
-  withExternalBrowser: Boolean = false,
-  withDetailView: Boolean = false,
-  withSections: Boolean = false
+  facet: AndroidFacet
+
 ) : JPanel(BorderLayout()) {
+
+  var facet by Delegates.observable(facet) { _, _, newValue -> updateFacet(newValue) }
+
+  private val synchronizationManager = SynchronizationManager(facet)
+  private val projectResourcesBrowserViewModel = ProjectResourcesBrowserViewModel(facet, synchronizationManager)
 
   companion object {
 
     /**
-     * Create a new instance of [ResourceExplorerView] optimized to be used in an Editor tab
+     * Create a new instance of [ResourceExplorer] optimized to be used in an Editor tab
      */
-    fun createForEditor(parentDisposable: Disposable, facet: AndroidFacet): JPanel {
+    @Deprecated("use createForToolWindow instead",
+                replaceWith = ReplaceWith("ResourceExplorer.createForToolWindow(parentDisposable: Disposable, facet: AndroidFacet)"))
+    fun createForEditor(parentDisposable: Disposable, facet: AndroidFacet): ResourceExplorer {
       return ResourceExplorer(
         parentDisposable,
-        facet,
-        withDetailView = true,
-        withExternalBrowser = true,
-        withSections = true
+        facet
       )
     }
 
     /**
-     * Create a new instance of [ResourceExplorerView] optimized to be used in a [com.intellij.openapi.wm.ToolWindow]
+     * Create a new instance of [ResourceExplorer] optimized to be used in a [com.intellij.openapi.wm.ToolWindow]
      */
-    fun createForToolWindow(parentDisposable: Disposable, facet: AndroidFacet): JPanel {
+    @JvmStatic
+    fun createForToolWindow(parentDisposable: Disposable, facet: AndroidFacet): ResourceExplorer {
       return ResourceExplorer(
         parentDisposable,
-        facet,
-        withSections = true
+        facet
       )
     }
   }
 
   init {
-    val synchronizationManager = SynchronizationManager(facet)
-    val fileHelper = ResourceFileHelper.ResourceFileHelperImpl()
     val importersProvider = ImportersProvider()
     val configurationManager = ServiceManager.getService(facet.module.project, ImportConfigurationManager::class.java)
     val centerContainer = Box.createVerticalBox()
 
+    @Suppress("ConstantConditionIf")
     if (withExternalBrowser) {
+      val fileHelper = ResourceFileHelper.ResourceFileHelperImpl()
       val externalResourceBrowserViewModel = ExternalBrowserViewModel(facet, fileHelper, importersProvider, synchronizationManager)
       val qualifierPanelPresenter = QualifierMatcherPresenter(externalResourceBrowserViewModel::consumeMatcher, configurationManager)
       val qualifierParserPanel = QualifierMatcherPanel(qualifierPanelPresenter)
@@ -85,20 +91,25 @@ class ResourceExplorer private constructor(
       add(externalResourceBrowser, BorderLayout.EAST)
     }
 
-    val internalResourceBrowser = ResourceExplorerView(ProjectResourcesBrowserViewModel(facet, synchronizationManager))
-    centerContainer.add(internalResourceBrowser)
+    val resourceExplorerView = ResourceExplorerView(projectResourcesBrowserViewModel)
+    centerContainer.add(resourceExplorerView)
 
+    @Suppress("ConstantConditionIf")
     if (withDetailView) {
       val designAssetDetailView = DesignAssetDetailView(DesignAssetDetailViewModel(facet.module))
-      internalResourceBrowser.addSelectionListener(designAssetDetailView)
+      resourceExplorerView.addSelectionListener(designAssetDetailView)
       centerContainer.add(designAssetDetailView)
     }
     add(centerContainer, BorderLayout.CENTER)
     add(JSlider(JSlider.HORIZONTAL, 100, 300, 300).apply {
       addChangeListener { event ->
-        internalResourceBrowser.cellWidth = (event.source as JSlider).value
+        resourceExplorerView.cellWidth = (event.source as JSlider).value
       }
     }, BorderLayout.NORTH)
     Disposer.register(parentDisposable, synchronizationManager)
+  }
+
+  private fun updateFacet(facet: AndroidFacet) {
+    projectResourcesBrowserViewModel.facet = facet
   }
 }

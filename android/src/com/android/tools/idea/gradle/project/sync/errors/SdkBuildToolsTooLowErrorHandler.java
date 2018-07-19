@@ -15,32 +15,34 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixBuildToolsVersionHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.android.repository.Revision.parseRevision;
 import static com.android.sdklib.repository.meta.DetailsTypes.getBuildToolsPath;
@@ -81,15 +83,39 @@ public class SdkBuildToolsTooLowErrorHandler extends SyncErrorHandler {
       String gradlePath = matcher.group(2);
       Module module = findModuleByGradlePath(project, gradlePath);
       String minimumVersion = matcher.group(3);
-      return getQuickFixHyperlinks(minimumVersion, project, module);
+      VirtualFile file = module == null ? null : getGradleBuildFile(module);
+      Map<Module, VirtualFile> buildFileMap = (module != null && file != null) ? ImmutableMap.of(module, file) : ImmutableMap.of();
+      List<NotificationHyperlink> links =
+        getQuickFixHyperlinks(minimumVersion, file == null ? ImmutableList.of() : ImmutableList.of(module), buildFileMap);
+      if (file != null) {
+        links.add(new OpenFileHyperlink(file.getPath()));
+      }
+      return links;
     }
     return Collections.emptyList();
   }
 
+  private static boolean doesAndroidGradlePluginPackageBuildTools(@NotNull List<Module> modules) {
+    // All modules should be using the same version of the AGP
+    for (Module module : modules) {
+      if (AndroidFacet.getInstance(module) == null) {
+        continue;
+      }
+      AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(module.getProject());
+      if (pluginInfo != null) {
+        GradleVersion agpVersion = pluginInfo.getPluginVersion();
+        if (agpVersion != null && !agpVersion.isAtLeast(3, 0, 0)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   @NotNull
   public List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull String minimumVersion,
-                                                           @NotNull Project project,
-                                                           @Nullable Module module) {
+                                                           @NotNull List<Module> affectedModules,
+                                                           @NotNull Map<Module, VirtualFile> buildFileMap) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     boolean buildToolInstalled = false;
 
@@ -106,24 +132,19 @@ public class SdkBuildToolsTooLowErrorHandler extends SyncErrorHandler {
       buildToolInstalled = buildTool != null;
     }
 
-    if (module != null) {
-      VirtualFile buildFile = getGradleBuildFile(module);
-      AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.find(project);
-      if (!buildToolInstalled) {
-        if (androidPluginInfo != null && androidPluginInfo.isExperimental()) {
-          hyperlinks.add(new InstallBuildToolsHyperlink(minimumVersion, null));
-        }
-        else {
-          hyperlinks.add(new InstallBuildToolsHyperlink(minimumVersion, buildFile));
-        }
-      }
-      else if (buildFile != null && androidPluginInfo != null && !androidPluginInfo.isExperimental()) {
-        hyperlinks.add(new FixBuildToolsVersionHyperlink(buildFile, minimumVersion));
-      }
-      if (buildFile != null) {
-        hyperlinks.add(new OpenFileHyperlink(buildFile.getPath()));
-      }
+
+    List<VirtualFile> buildFiles =
+      affectedModules.stream().map(m -> buildFileMap.get(m)).filter(Objects::nonNull).collect(Collectors.toList());
+
+    if (!buildToolInstalled) {
+      hyperlinks
+        .add(new InstallBuildToolsHyperlink(minimumVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(affectedModules)));
     }
+    else if (!buildFiles.isEmpty()) {
+      hyperlinks
+        .add(new FixBuildToolsVersionHyperlink(minimumVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(affectedModules)));
+    }
+
     return hyperlinks;
   }
 }

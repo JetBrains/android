@@ -122,7 +122,7 @@ public class AndroidJavaDocRenderer {
   @NotNull
   private static String renderAttributeDoc(@NotNull Module module, @Nullable Configuration configuration, @NotNull String name) {
     AttributeDefinition def = ResolutionUtils.getAttributeDefinition(module, configuration, name);
-    String doc = (def == null) ? null : def.getDocValue(null);
+    String doc = (def == null) ? null : def.getDescription(null);
     HtmlBuilder builder = new HtmlBuilder();
     builder.openHtmlBody();
     builder.beginBold();
@@ -870,7 +870,7 @@ public class AndroidJavaDocRenderer {
   @NotNull
   private static ResourceReference urlToReference(ResourceUrl url) {
     // TODO: namespaces.
-    return new ResourceReference(url.type, url.name, url.isFramework());
+    return new ResourceReference(ResourceNamespace.fromBoolean(url.isFramework()), url.type, url.name);
   }
 
   private static class ArrayRenderer extends ResourceValueRenderer {

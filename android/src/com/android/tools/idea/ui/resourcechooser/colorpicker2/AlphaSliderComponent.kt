@@ -17,7 +17,6 @@ package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.android.tools.adtui.util.GraphicsUtil
 import com.intellij.ui.ColorUtil
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 
 import java.awt.*
@@ -41,10 +40,10 @@ class AlphaSliderComponent : SliderComponent<Int>(0) {
   override fun paintSlider(g2d: Graphics2D) {
     val transparent = ColorUtil.toAlpha(Color.WHITE, 0)
 
-    val clip = Rectangle(myLeftMargin, JBUI.scale(7), width - myLeftMargin - myRightMargin, JBUI.scale(12))
+    val clip = Rectangle(leftPadding, topPadding, width - leftPadding - rightPadding, height - topPadding - bottomPadding)
     GraphicsUtil.paintCheckeredBackground(g2d, Color.LIGHT_GRAY, Color.GRAY, clip, 6)
 
-    val sliderBackgroundWithoutAlpha = Color(sliderBackgroundColor.red, sliderBackgroundColor.green, sliderBackgroundColor.blue)
+    val sliderBackgroundWithoutAlpha = Color(sliderBackgroundColor.rgb and 0x00FFFFFF)
     g2d.paint = UIUtil.getGradientPaint(0f, 0f, transparent, width.toFloat(), 0f, sliderBackgroundWithoutAlpha)
     g2d.fillRect(clip.x, clip.y, clip.width, clip.height)
   }

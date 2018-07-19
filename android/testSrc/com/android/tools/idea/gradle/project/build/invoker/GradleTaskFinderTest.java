@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
@@ -32,6 +33,7 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -50,6 +52,7 @@ import static com.android.tools.idea.gradle.util.BuildMode.*;
 import static com.android.tools.idea.testing.Facets.*;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.module.Module.EMPTY_ARRAY;
+import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -238,7 +241,8 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     setUpModuleAsAndroidModule();
 
     File projectPath = getBaseDirPath(getProject());
-    ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, myModules, APK_FROM_BUNDLE, myTestCompileType);
+    ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, myModules, APK_FROM_BUNDLE,
+                                                                                 myTestCompileType);
     List<String> tasks = tasksPerProject.get(projectPath.toPath());
 
     assertThat(tasks).containsExactly(":testFindTasksToExecuteForApkFromBundle:apkFromBundleTask1");
@@ -324,8 +328,9 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR + module.getName();
 
     String gradlePath = GRADLE_PATH_SEPARATOR + module.getName();
-    GradleModuleModel model = new GradleModuleModel(module.getName(), Collections.emptyList(), gradlePath,
-                                                    getBaseDirPath(module.getProject()), null, null);
+    GradleProject gradleProjectStub = new GradleProjectStub(emptyList(), gradlePath, getBaseDirPath(module.getProject()));
+    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null);
+
     gradleFacet.setGradleModuleModel(model);
   }
 }

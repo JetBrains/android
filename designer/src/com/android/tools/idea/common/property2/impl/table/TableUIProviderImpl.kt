@@ -17,10 +17,19 @@ package com.android.tools.idea.common.property2.impl.table
 
 import com.android.tools.idea.common.property2.api.*
 
-class TableUIProviderImpl<P : PropertyItem>(itemType: Class<P>,
-                                            controlTypeProvider: ControlTypeProvider<P>,
-                                            editorProvider: EditorProvider<P>) : TableUIProvider {
+class TableUIProviderImpl<P : PropertyItem, N : NewPropertyItem>(
+  nameType: Class<N>,
+  nameControlTypeProvider: ControlTypeProvider<N>,
+  nameEditorProvider: EditorProvider<N>,
+  valueType: Class<P>,
+  valueControlTypeProvider: ControlTypeProvider<P>,
+  valueEditorProvider: EditorProvider<P>) : TableUIProvider {
 
-  override val tableCellRendererProvider = PTableCellRendererProviderImpl(itemType, controlTypeProvider, editorProvider)
-  override val tableCellEditorProvider = PTableCellEditorProviderImpl(itemType, controlTypeProvider, editorProvider)
+  override val tableCellRendererProvider = PTableCellRendererProviderImpl(
+    nameType, nameControlTypeProvider, nameEditorProvider,
+    valueType, valueControlTypeProvider, valueEditorProvider)
+
+  override val tableCellEditorProvider = PTableCellEditorProviderImpl(
+    nameType, nameControlTypeProvider, nameEditorProvider,
+    valueType, valueControlTypeProvider, valueEditorProvider)
 }

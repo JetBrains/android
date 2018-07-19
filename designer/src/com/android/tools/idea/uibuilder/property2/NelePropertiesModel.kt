@@ -34,6 +34,7 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.Future
 
 private const val UPDATE_QUEUE_NAME = "android.layout.propertysheet"
@@ -45,7 +46,7 @@ private const val UPDATE_DELAY_MSECS = 250
  */
 class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet) : PropertiesModel<NelePropertyItem>, Disposable {
   private val provider = NelePropertiesProvider(this)
-  private val listeners = mutableListOf<PropertiesModelListener>()
+  private val listeners = mutableListOf<PropertiesModelListener<NelePropertyItem>>()
   private val designSurfaceListener = PropertiesDesignSurfaceListener()
   private val renderListener = RenderListener { renderCompleted() }
   private var activeSurface: DesignSurface? = null
@@ -85,16 +86,21 @@ class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet)
     properties = PropertiesTable.emptyTable()
   }
 
-  override fun addListener(listener: PropertiesModelListener) {
+  override fun addListener(listener: PropertiesModelListener<NelePropertyItem>) {
     listeners.add(listener)
   }
 
-  override fun removeListener(listener: PropertiesModelListener) {
+  override fun removeListener(listener: PropertiesModelListener<NelePropertyItem>) {
     listeners.remove(listener)
   }
 
   override var properties: PropertiesTable<NelePropertyItem> = PropertiesTable.emptyTable()
     private set
+
+  @TestOnly
+  fun setPropertiesInTest(testProperties: PropertiesTable<NelePropertyItem>) {
+    properties = testProperties
+  }
 
   fun propertyValueChanged(property: NelePropertyItem) {
     NlUsageTrackerManager.getInstance(activeSurface).logPropertyChange(property, -1)

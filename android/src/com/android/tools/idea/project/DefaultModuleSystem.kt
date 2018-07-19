@@ -26,17 +26,15 @@ import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.projectsystem.*
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.roots.LibraryOrderEntry
-import com.intellij.openapi.roots.ModuleOrderEntry
-import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.roots.*
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 
-class DefaultModuleSystem(val module: Module) : AndroidModuleSystem {
+class DefaultModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFinder by ModuleBasedClassFileFinder(module) {
+
   override fun registerDependency(coordinate: GradleCoordinate) {}
 
   override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null

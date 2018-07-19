@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.profilers.*;
@@ -35,7 +36,6 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.tree.TreePath;
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
@@ -872,7 +872,7 @@ public class MemoryClassifierViewTest {
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Add a filter to remove That.is.Bar
-    myStage.selectCaptureFilter(Pattern.compile("^.*Foo.*$"));
+    myStage.getFilterHandler().setFilter(new Filter("Foo"));
 
     expected_0_to_4 = new LinkedList<>();
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 2, 1, 1, 1, 1));
@@ -938,7 +938,7 @@ public class MemoryClassifierViewTest {
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Apply an invalid filter
-    myStage.selectCaptureFilter(Pattern.compile("^.*BLAH.*$"));
+    myStage.getFilterHandler().setFilter(new Filter("BLAH"));
     Queue<MemoryObjectTreeNodeTestData> expect_none = new LinkedList<>();
     expect_none.add(new MemoryObjectTreeNodeTestData(0, "default heap", 0, 0, 0, 0, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expect_none, 0);
@@ -1058,7 +1058,7 @@ public class MemoryClassifierViewTest {
     assertThat(myStage.getSelectedInstanceObject()).isEqualTo(selectedInstance);
 
     // Apply an invalid filter
-    myStage.selectCaptureFilter(Pattern.compile("^.*BLAH.*$"));
+    myStage.getFilterHandler().setFilter(new Filter("BLAH"));
     // No path is selected and selected ClassSet is set to EMPTY_CLASS_SET
     assertThat(tree.getSelectionPath()).isNull();
     assertThat(myStage.getSelectedClassSet()).isEqualTo(ClassSet.EMPTY_SET);

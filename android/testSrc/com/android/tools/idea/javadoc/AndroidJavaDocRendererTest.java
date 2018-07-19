@@ -50,12 +50,12 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
      * the actual documentation returned and will be responsible for asserting expected values.
      */
   private void checkJavadoc(String fileName, String targetName, Consumer<String> javadocConsumer) {
-    final VirtualFile f = myFixture.copyFileToProject(getTestDataPath() + fileName, targetName);
+    VirtualFile f = myFixture.copyFileToProject(getTestDataPath() + fileName, targetName);
     myFixture.configureFromExistingVirtualFile(f);
     PsiElement originalElement = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
     assert originalElement != null;
-    final PsiElement docTargetElement = DocumentationManager.getInstance(getProject()).findTargetElement(
-      myFixture.getEditor(), myFixture.getFile(), originalElement);
+    PsiElement docTargetElement =
+        DocumentationManager.getInstance(getProject()).findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
     assert docTargetElement != null;
     DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
     javadocConsumer.consume(provider.generateDoc(docTargetElement, originalElement));
@@ -209,34 +209,34 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
 
   public void testSystemAttributes() {
     checkJavadoc("/javadoc/attrs/layout1.xml", "res/layout/layout.xml",
-                 "<html><body>Formats: enum<br>Values: horizontal, vertical<br><br> Should the layout be a column or a row?  Use \"horizontal\"\n" +
+                 "<html><body>Formats: enum<br>Values: horizontal, vertical<br><br>Should the layout be a column or a row?  Use \"horizontal\"\n" +
                  "             for a row, \"vertical\" for a column.  The default is\n" +
-                 "             horizontal. </body></html>");
+                 "             horizontal.</body></html>");
   }
 
   public void testLocalAttributes1() {
     doTestLocalAttributes("/javadoc/attrs/layout2.xml",
-                          "<html><body>Formats: boolean, integer<br><br> my attr 1 docs for MyView1 </body></html>");
+                          "<html><body>Formats: boolean, integer<br><br>my attr 1 docs for MyView1</body></html>");
   }
 
   public void testLocalAttributes2() {
     doTestLocalAttributes("/javadoc/attrs/layout3.xml",
-                          "<html><body>Formats: boolean, reference<br><br> my attr 2 docs for MyView1 </body></html>");
+                          "<html><body>Formats: boolean, reference<br><br>my attr 2 docs for MyView1</body></html>");
   }
 
   public void testLocalAttributes3() {
     doTestLocalAttributes("/javadoc/attrs/layout4.xml",
-                          "<html><body>Formats: boolean, integer<br><br> my attr 1 docs for MyView2 </body></html>");
+                          "<html><body>Formats: boolean, integer<br><br>my attr 1 docs for MyView2</body></html>");
   }
 
   public void testLocalAttributes4() {
     doTestLocalAttributes("/javadoc/attrs/layout5.xml",
-                          "<html><body>Formats: boolean, reference<br><br> my attr 2 docs for MyView2 </body></html>");
+                          "<html><body>Formats: boolean, reference<br><br>my attr 2 docs for MyView2</body></html>");
   }
 
   public void testLocalAttributes5() {
     doTestLocalAttributes("/javadoc/attrs/layout6.xml",
-                          "<html><body>Formats: boolean, integer<br><br> my attr 1 global docs </body></html>");
+                          "<html><body>Formats: boolean, integer<br><br>my attr 1 global docs</body></html>");
   }
 
   public void testLocalEnumAttributes1() {
@@ -260,11 +260,11 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
   public void testManifestAttributes() throws Exception {
     deleteManifest();
     checkJavadoc("/javadoc/attrs/manifest.xml", "AndroidManifest.xml",
-                 "<html><body>Formats: string<br><br> Required name of the class implementing the activity, deriving from\n" +
+                 "<html><body>Formats: string<br><br>Required name of the class implementing the activity, deriving from\n" +
                  "            {@link android.app.Activity}.  This is a fully\n" +
                  "            qualified class name (for example, com.mycompany.myapp.MyActivity); as a\n" +
                  "            short-hand if the first character of the class\n" +
-                 "            is a period then it is appended to your package name. </body></html>");
+                 "            is a period then it is appended to your package name.</body></html>");
   }
 
   public void testFrameworkColors2() {
@@ -332,8 +332,8 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/styles/AndroidManifest.xml", "AndroidManifest.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/styles/styles.xml", "res/values/styles.xml");
     checkJavadoc("/javadoc/styles/layout.xml", "res/layout/layout.xml",
-                 "<html><body><B>android:textAppearanceMedium</B><br/> Text color, typeface, size, and style for \"medium\" text. Defaults to primary text color. <br/><hr/><BR/>" +
-                 "?android:attr/textAppearanceMedium => @android:style/TextAppearance.Medium<BR/>" + "" +
+                 "<html><body><B>android:textAppearanceMedium</B><br/>Text color, typeface, size, and style for \"medium\" text. Defaults to primary text color.<br/><hr/><BR/>" +
+                 "?android:attr/textAppearanceMedium => @android:style/TextAppearance.Medium<BR/>" +
                  "<BR/>" +
                  "<hr><B>TextAppearance.Medium</B>:<BR/>" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textSize</B> = 18sp<BR/>" +

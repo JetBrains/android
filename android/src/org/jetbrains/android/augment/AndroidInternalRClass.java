@@ -10,7 +10,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier;
-import org.jetbrains.android.resourceManagers.SystemResourceManager;
+import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -22,14 +22,14 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidInternalRClass extends AndroidLightClassBase {
   private static final Key<Sdk> ANDROID_INTERNAL_R = Key.create("ANDROID_INTERNAL_R");
   private final PsiFile myFile;
-  private final SystemResourceManager mySystemResourceManager;
+  private final FrameworkResourceManager myFrameworkResourceManager;
   private final PsiClass[] myInnerClasses;
 
   public AndroidInternalRClass(@NotNull PsiManager psiManager, @NotNull AndroidPlatform platform, Sdk sdk) {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     myFile = PsiFileFactory.getInstance(myManager.getProject()).createFileFromText("R.java", JavaFileType.INSTANCE, "");
     myFile.getViewProvider().getVirtualFile().putUserData(ANDROID_INTERNAL_R, sdk);
-    mySystemResourceManager = new SystemResourceManager(psiManager.getProject(), platform, false);
+    myFrameworkResourceManager = new FrameworkResourceManager(psiManager.getProject(), platform, false);
 
     final ResourceType[] types = ResourceType.values();
     myInnerClasses = new PsiClass[types.length];
@@ -92,7 +92,7 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
     @NotNull
     @Override
     protected PsiField[] doGetFields() {
-      return buildResourceFields(mySystemResourceManager, mySystemResourceManager.getResourceRepository(), ResourceNamespace.ANDROID,
+      return buildResourceFields(myFrameworkResourceManager, myFrameworkResourceManager.getResourceRepository(), ResourceNamespace.ANDROID,
                                  FieldModifier.FINAL, myResourceType, AndroidInternalRClass.this);
     }
   }

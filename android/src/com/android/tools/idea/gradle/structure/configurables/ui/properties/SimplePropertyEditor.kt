@@ -130,7 +130,11 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       }
 
     internal fun reloadValue(annotatedPropertyValue: Annotated<PropertyValue<PropertyT>>) {
-      setValue(annotatedPropertyValue.value.parsedValue)
+      setValue(annotatedPropertyValue.value.parsedValue.let { annotatedParsedValue ->
+        if (annotatedParsedValue.annotation != null && knownValueRenderers.containsKey(annotatedParsedValue.value))
+          annotatedParsedValue.value.annotated()
+        else annotatedParsedValue
+      })
       setStatus(getStatusRenderer(annotatedPropertyValue.annotation))
       updateModified()
     }

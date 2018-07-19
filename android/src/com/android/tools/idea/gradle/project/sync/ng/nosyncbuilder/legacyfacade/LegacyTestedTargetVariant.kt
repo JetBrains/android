@@ -27,4 +27,3 @@ open class LegacyTestedTargetVariant(private val testedTargetVariant: TestedTarg
                                     "targetVariant=$targetVariant" +
                                     "}"
 }
-

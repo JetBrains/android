@@ -21,6 +21,7 @@ import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.testing.IdeComponents;
+import com.android.utils.NullLogger;
 import com.google.android.instantapps.sdk.api.Sdk;
 import com.google.android.instantapps.sdk.api.TelemetryManager.OptInStatus;
 import com.intellij.openapi.application.ApplicationInfo;
@@ -53,8 +54,8 @@ public class InstantAppSdksTest extends IdeaTestCase {
     new IdeComponents(getProject()).replaceApplicationService(ApplicationInfo.class, myApplicationInfo);
     myAnalyticsSettings = new AnalyticsSettings();
     AnalyticsSettings.setInstanceForTest(myAnalyticsSettings);
-    myUsageTracker = new TestUsageTracker(myAnalyticsSettings, myVirtualTimeScheduler);
-    UsageTracker.setInstanceForTest(myUsageTracker);
+    myUsageTracker = new TestUsageTracker(myVirtualTimeScheduler);
+    UsageTracker.setWriterForTest(myUsageTracker);
   }
 
   @Override
@@ -75,15 +76,16 @@ public class InstantAppSdksTest extends IdeaTestCase {
   }
 
   public void testGetSdkLibraryPassThroughOptIn() {
+    AnalyticsSettings.getInstance(new NullLogger()).setOptedIn(true);
     installFakeLib();
-    myAnalyticsSettings.setHasOptedIn(true);
+    myAnalyticsSettings.setOptedIn(true);
     Sdk loadedSdk = myInstantAppSdks.loadLibrary();
     assertThat(loadedSdk.getTelemetryManager().getOptInStatus()).isEqualTo(OptInStatus.OPTED_IN);
   }
 
   public void testGetSdkLibraryPassThroughOptOut() {
     installFakeLib();
-    myAnalyticsSettings.setHasOptedIn(false);
+    myAnalyticsSettings.setOptedIn(false);
     Sdk loadedSdk = myInstantAppSdks.loadLibrary();
     assertThat(loadedSdk.getTelemetryManager().getOptInStatus()).isEqualTo(OptInStatus.OPTED_OUT);
   }

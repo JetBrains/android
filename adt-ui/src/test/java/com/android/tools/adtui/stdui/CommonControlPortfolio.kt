@@ -16,11 +16,9 @@
 package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.common.secondaryPanelBackground
-import com.android.tools.adtui.model.stdui.CommonAction
-import com.android.tools.adtui.model.stdui.CommonTextFieldModel
-import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
-import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.adtui.model.stdui.*
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton
+import com.intellij.ide.ui.laf.IntelliJLaf
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.IconLoader
@@ -44,7 +42,7 @@ object CommonControlPortfolio {
   }
 
   private fun createAndShowGUI() {
-    setLAF(UIManager.getLookAndFeel())
+    setLAF(IntelliJLaf())
 
     //Create and set up the window.
     val frame = JFrame("Common Controls")
@@ -62,19 +60,17 @@ object CommonControlPortfolio {
 
   private fun addComponentsToPane(contentPane: Container) {
     var grid = JPanel(VerticalFlowLayout())
-    grid.add(makeTextField("Normal", true))
-    grid.add(makeTextField("Disabled", false))
-    grid.add(makeTextField("Error", true))
-    grid.add(makeTextField("", true))
+    grid.add(makeTextField("Normal"))
+    grid.add(makeTextField("Disabled"))
+    grid.add(makeTextField("Error"))
+    grid.add(makeTextField(""))
 
     val topPanel = CommonTabbedPane()
     topPanel.add(grid, "TextField")
 
     grid = JPanel(VerticalFlowLayout())
-    grid.add(makeComboBox("zero", enabled = true, editable = true, leftToRight = true))
-    grid.add(makeComboBox("zero", enabled = true, editable = false, leftToRight = true))
-    grid.add(makeComboBox("one", enabled = true, editable = true, leftToRight = false))
-    grid.add(makeComboBox("one", enabled = true, editable = false, leftToRight = false))
+    grid.add(makeComboBox("zero", enabled = true, editable = true))
+    grid.add(makeComboBox("zero", enabled = true, editable = false))
     topPanel.add(grid, "ComboBox")
 
     val menuPanel = JPanel(VerticalFlowLayout())
@@ -109,9 +105,8 @@ object CommonControlPortfolio {
 
   private fun makeLAFControl(): JComponent {
     val control = JCheckBox("Darcula")
-    control.putClientProperty("LAF", UIManager.getLookAndFeel())
     control.addItemListener { _ ->
-      val laf = if (control.isSelected) DarculaLaf() else control.getClientProperty("LAF") as LookAndFeel
+      val laf = if (control.isSelected) DarculaLaf() else IntelliJLaf()
       if (laf !== UIManager.getLookAndFeel()) {
         setLAF(laf)
         updateFonts(SwingUtilities.getWindowAncestor(control))
@@ -124,11 +119,10 @@ object CommonControlPortfolio {
   private fun setLAF(laf: LookAndFeel) {
     try {
       UIManager.setLookAndFeel(laf)
-      JBColor.setDark(laf is DarculaLaf)
+      JBColor.setDark(UIUtil.isUnderDarcula())
     } catch (ex: Exception) {
       ex.printStackTrace()
     }
-
   }
 
   private fun updateFonts(component: Component) {
@@ -140,30 +134,9 @@ object CommonControlPortfolio {
     }
   }
 
-  private fun makeTextField(text: String, enabled: Boolean): JComponent {
-    val model = object : CommonTextFieldModel {
-      override val value = text
-
-      override var text: String = text
-
-      override val enabled: Boolean
-        get() = enabled
-
-      override val placeHolderValue: String
-        get() = "@+id/name"
-
-      override fun validate(editedValue: String): String {
-        return if (editedValue == "Error") "Invalid text content" else ""
-      }
-
-      override fun addListener(listener: ValueChangedListener) {
-
-      }
-
-      override fun removeListener(listener: ValueChangedListener) {
-
-      }
-    }
+  private fun makeTextField(text: String): JComponent {
+    val model = TestCommonTextFieldModel(text)
+    model.placeHolderValue = "@+id/name"
     val field = CommonTextField(model)
     field.isOpaque = false
     if (text == "Disabled") {
@@ -172,15 +145,14 @@ object CommonControlPortfolio {
     return field
   }
 
-  private fun makeComboBox(initialValue: String, enabled: Boolean, editable: Boolean, leftToRight: Boolean): JComponent {
-    val model = DefaultCommonComboBoxModel(initialValue, listOf("one", "two", "three", "four", "five", "six"))
+  private fun makeComboBox(initialValue: String, enabled: Boolean, editable: Boolean): JComponent {
+    val model = TestCommonComboBoxModel(initialValue, listOf("one", "two", "three", "four", "five", "six"))
     model.enabled = enabled
     model.editable = editable
     model.placeHolderValue = "@+id/name"
 
     val combo = CommonComboBox(model)
     combo.isOpaque = false
-    combo.componentOrientation = if (leftToRight) ComponentOrientation.LEFT_TO_RIGHT else ComponentOrientation.RIGHT_TO_LEFT
     combo.updateUI()
     return combo
   }
@@ -195,6 +167,7 @@ object CommonControlPortfolio {
         action.setAction(
             {
               action.isSelected = !action.isSelected
+              label.text = String.format("Clicked: %s", action)
               label.text = String.format("Clicked: %s", action)
             }
         )
@@ -227,4 +200,23 @@ object CommonControlPortfolio {
       }
     }
   }
+}
+
+class TestEditingSupport: EditingSupport {
+  override val validation = fun (editedValue: String): Pair<EditingErrorCategory, String> {
+    return when(editedValue) {
+      "Error" -> Pair(EditingErrorCategory.ERROR, "Error is not a valid value")
+      "Warning" -> Pair(EditingErrorCategory.WARNING, "Be careful about warnings")
+      else -> EDITOR_NO_ERROR
+    }
+  }
+}
+
+class TestCommonTextFieldModel(initialValue: String) : DefaultCommonTextFieldModel(initialValue) {
+  override val editingSupport = TestEditingSupport()
+}
+
+class TestCommonComboBoxModel(initialValue: String, elements: List<String>)
+  : DefaultCommonComboBoxModel<String>(initialValue, elements) {
+  override val editingSupport = TestEditingSupport()
 }

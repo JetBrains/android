@@ -17,7 +17,6 @@ package com.android.tools.idea.stats
 
 import com.android.ddmlib.IDevice
 import com.android.testutils.VirtualTimeScheduler
-import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.google.common.truth.Truth
@@ -41,8 +40,8 @@ class RunStatsServiceTest {
   @Before
   fun setup() {
     myRunStatsService = RunStatsServiceImpl()
-    myUsageTracker = TestUsageTracker(AnalyticsSettings(), VirtualTimeScheduler())
-    UsageTracker.setInstanceForTest(myUsageTracker)
+    myUsageTracker = TestUsageTracker(VirtualTimeScheduler())
+    UsageTracker.setWriterForTest(myUsageTracker)
   }
 
   @After

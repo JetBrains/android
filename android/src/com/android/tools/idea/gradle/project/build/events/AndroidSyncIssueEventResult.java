@@ -36,46 +36,11 @@ public class AndroidSyncIssueEventResult implements MessageEventResult, FailureR
   @NotNull private final List<Failure> myFailures;
   @NotNull private final MessageEvent.Kind myKind;
   @NotNull private final String myDetails;
-  @NotNull private final Notification myNotification;
 
   public AndroidSyncIssueEventResult(@NotNull NotificationData notificationData) {
-    Failure failure = new Failure() {
-      @NotNull
-      @Override
-      public String getMessage() {
-        return notificationData.getTitle();
-      }
-
-      @NotNull
-      @Override
-      public String getDescription() {
-        return notificationData.getMessage();
-      }
-
-      @Override
-      public List<? extends Failure> getCauses() {
-        return null;
-      }
-
-      @NotNull
-      @Override
-      public Notification getNotification() {
-        return myNotification;
-      }
-
-      @Nullable
-      @Override
-      public Navigatable getNavigatable() {
-        return notificationData.getNavigatable();
-      }
-    };
-    myFailures = Collections.singletonList(failure);
+    myFailures = Collections.singletonList(AndroidSyncFailure.create(notificationData));
     myKind = convertCategory(notificationData.getNotificationCategory());
     myDetails = notificationData.getMessage();
-    myNotification = new Notification(GRADLE_SYSTEM_ID.getReadableName() + " sync", notificationData.getTitle(),
-                                      notificationData.getMessage(),
-                                      notificationData.getNotificationCategory().getNotificationType(),
-                                      notificationData.getListener());
   }
 
   @NotNull

@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.scene;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.*;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
@@ -765,8 +766,8 @@ public class LayoutlibSceneManager extends SceneManager {
       if (myRenderTask != null && !myRenderTask.isDisposed()) {
         myRenderTask.dispose();
       }
-      myRenderTask = renderService.createTask(facet, getModel().getFile(), configuration);
-      setupRenderTask(myRenderTask);
+      RenderService.RenderTaskBuilder builder = renderService.taskBuilder(facet, configuration).withPsiFile(getModel().getFile());
+      myRenderTask = setupRenderTaskBuilder(builder).build();
       if (myRenderTask != null) {
         myRenderTask.getLayoutlibCallback()
           .setAdaptiveIconMaskPath(getDesignSurface().getAdaptiveIconShape().getPathDescription());
@@ -817,7 +818,9 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @VisibleForTesting
-  protected void setupRenderTask(@Nullable RenderTask task) {
+  @NotNull
+  protected RenderService.RenderTaskBuilder setupRenderTaskBuilder(@NotNull RenderService.RenderTaskBuilder taskBuilder) {
+    return taskBuilder;
   }
 
   /**
@@ -910,9 +913,12 @@ public class LayoutlibSceneManager extends SceneManager {
       myRenderResultLock.writeLock().unlock();
     }
     try {
+      long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
+      NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
+                                                                  myRenderResult.getRenderedImage().getWidth() * myRenderResult.getRenderedImage().getHeight() * 4);
       NlUsageTrackerManager.getInstance(surface).logRenderResult(trigger,
                                                                  myRenderResult,
-                                                                 System.currentTimeMillis() - renderStartTimeMs);
+                                                                 renderTimeMs);
     }
     finally {
       myRenderResultLock.readLock().unlock();

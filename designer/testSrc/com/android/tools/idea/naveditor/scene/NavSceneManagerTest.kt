@@ -19,12 +19,18 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.State
+import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.editor.Destination
+import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
+import com.intellij.openapi.command.WriteCommandAction
 import org.mockito.Mockito
+import java.awt.Point
 
 class NavSceneManagerTest : NavTestCase() {
 
@@ -137,5 +143,71 @@ class NavSceneManagerTest : NavTestCase() {
     component = scene.getSceneComponent("fragment1")!!
     assertEquals(153, component.drawWidth)
     assertEquals(256, component.drawHeight)
+  }
+
+  fun testNewDestination() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+        fragment("f2")
+      }
+    }
+
+    val scale = 0.5
+    val initialOffset = (40 / scale).toInt()
+    val incrementalOffset = (30 / scale).toInt()
+    val scrollPosition = Point(400, 410)
+
+    val scene = model.surface.scene!!
+    val sceneManager = scene.sceneManager as NavSceneManager
+    scene.getSceneComponent("f1")!!.setPosition(0, 0)
+    scene.getSceneComponent("f2")!!.setPosition(1000, 1000)
+    sceneManager.save(listOf(scene.getSceneComponent("f1")!!, scene.getSceneComponent("f2")!!))
+    sceneManager.update()
+
+    val designSurface = sceneManager.designSurface
+    Mockito.`when`(designSurface.scrollPosition).thenAnswer { Point(scrollPosition) }
+
+    val currentNavigation = designSurface.currentNavigation
+
+    val p = Point((scrollPosition.x / scale).toInt() + initialOffset + scene.root!!.drawX,
+                  (scrollPosition.y / scale).toInt() + initialOffset + scene.root!!.drawY)
+
+    listOf("first", "second", "third", "fourth", "fifth").forEach {
+      val destination = Destination.RegularDestination(currentNavigation, "fragment", idBase = it)
+      WriteCommandAction.runWriteCommandAction(project) { destination.addToGraph() }
+      destination.component!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
+      sceneManager.update()
+
+      val component = scene.getSceneComponent(it)!!
+      assertEquals(p.x, component.drawX)
+      assertEquals(p.y, component.drawY)
+
+      p.translate(incrementalOffset, incrementalOffset)
+    }
+  }
+
+  fun testActivateUpdates() {
+    lateinit var root: NavModelBuilderUtil.NavigationComponentDescriptor
+
+    val modelBuilder = modelBuilder("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }.also { root = it }
+    }
+    val model = modelBuilder.build()
+
+    val sceneManager = model.surface.sceneManager as NavSceneManager
+    sceneManager.update()
+    val scene = model.surface.scene!!
+    assertEquals(1, scene.root!!.childCount)
+
+    root.fragment("f2")
+    modelBuilder.updateModel(model)
+
+    assertEquals(1, scene.root!!.childCount)
+    model.activate(this)
+
+    assertEquals(2, scene.root!!.childCount)
   }
 }

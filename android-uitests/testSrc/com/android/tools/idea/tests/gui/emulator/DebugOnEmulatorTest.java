@@ -85,7 +85,7 @@ public class DebugOnEmulatorTest {
     ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
     ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
 
-    ideFrameFixture.getAndroidToolWindow()
+    ideFrameFixture.getAndroidLogcatToolWindow()
                    .selectDevicesTab()
                    .selectProcess(PROCESS_NAME);
     ideFrameFixture.stopApp();

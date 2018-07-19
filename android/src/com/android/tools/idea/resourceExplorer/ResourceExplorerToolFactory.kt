@@ -17,11 +17,13 @@ package com.android.tools.idea.resourceExplorer
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.resourceExplorer.editor.ResourceExplorer
+import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
-import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -37,52 +39,74 @@ import org.jetbrains.android.facet.AndroidFacet
 class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware, Condition<Any> {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    val connection = project.messageBus.connect(project)
-    connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, MyFileEditorListener(project, toolWindow))
+    var facet: AndroidFacet?
+
+    // Find facet for opened file
+    facet = FileEditorManager.getInstance(project).selectedFiles
+      .asSequence()
+      .mapNotNull { ModuleUtilCore.findModuleForFile(it, project) }
+      .mapNotNull { it.androidFacet }
+      .firstOrNull()
+
+    // If no facet has been found, find the first project's module with a facet
+    if (facet == null) {
+      facet = ModuleManager.getInstance(project).modules
+        .asSequence()
+        .mapNotNull { it.androidFacet }
+        .firstOrNull()
+    }
+
+    if (facet != null) {
+      val resourceExplorer: ResourceExplorer = displayInToolWindow(facet, project, toolWindow)
+      val connection = project.messageBus.connect(project)
+      connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, MyFileEditorListener(project, toolWindow, resourceExplorer))
+    }
   }
 
 
-  class MyFileEditorListener(val project: Project, val toolWindow: ToolWindow) : FileEditorManagerListener {
-    private var currentModule: Module? = null
-
+  private class MyFileEditorListener(val project: Project,
+                                     val toolWindow: ToolWindow,
+                                     val resourceExplorer: ResourceExplorer?) : FileEditorManagerListener {
     override fun selectionChanged(event: FileEditorManagerEvent) {
       val editor = event.newEditor ?: return
-      editorFocused(editor, toolWindow, project)
+      editorFocused(editor, project, resourceExplorer)
     }
 
     override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
-      editorFocused(source.getSelectedEditor(file) ?: return, toolWindow, project)
+      editorFocused(source.getSelectedEditor(file) ?: return, project, resourceExplorer)
     }
-
-    override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
-      toolWindow.contentManager.removeAllContents(true)
-      currentModule = null
-    }
-
 
     private fun editorFocused(
       editor: FileEditor,
-      toolWindow: ToolWindow,
-      project: Project
+      project: Project,
+      resourceExplorer: ResourceExplorer?
     ) {
-      val module = ModuleUtilCore.findModuleForFile(editor.file ?: return, project)
+      val module = editor.file?.let {
+        ModuleUtilCore.findModuleForFile(it, project)
+      } ?: return
 
-      if (module == null || module == currentModule) {
-        return
+      toolWindow.contentManager.getContent(0)?.displayName = module.name
+      val facet = AndroidFacet.getInstance(module)
+      if (facet != null && facet != resourceExplorer?.facet) {
+        resourceExplorer?.facet = facet
       }
-      currentModule = module
-      AndroidFacet.getInstance(module)
-        ?.let { ResourceExplorer.createForToolWindow(editor, it) }
-        ?.let {
-          val contentManager = toolWindow.contentManager
-          contentManager.removeAllContents(true)
-          val content = contentManager.factory.createContent(it, "Resource Explorer", false)
-          contentManager.addContent(content)
-        }
     }
   }
 
   override fun shouldBeAvailable(project: Project) = StudioFlags.RESOURCE_MANAGER_ENABLED.get()
 
   override fun value(o: Any) = StudioFlags.RESOURCE_MANAGER_ENABLED.get()
+
+
+  private fun displayInToolWindow(facet: AndroidFacet,
+                                  disposable: Disposable,
+                                  toolWindow: ToolWindow
+  ): ResourceExplorer {
+    val resourceExplorer = ResourceExplorer.createForToolWindow(disposable, facet)
+    val contentManager = toolWindow.contentManager
+    contentManager.removeAllContents(true)
+    val content = contentManager.factory.createContent(resourceExplorer, facet.module.name, false)
+    contentManager.addContent(content)
+    return resourceExplorer
+  }
 }

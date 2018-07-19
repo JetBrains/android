@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea;
 
+import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueRegister;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.CheckAndroidModuleWithoutVariantsStep;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -50,6 +53,8 @@ public class JavaModuleSetupTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
     myModuleSetup = new JavaModuleSetup(mySetupStep1, mySetupStep2);
+    when(myContext.getModule()).thenReturn(myModule);
+    when(myJavaModel.getSyncIssues()).thenReturn(ImmutableList.of());
   }
 
   public void testSetUpModule() {
@@ -110,5 +115,23 @@ public class JavaModuleSetupTest extends IdeaTestCase {
     ContentEntry contentEntry = contentEntries[0];
     assertThat(contentEntry.getSourceFolders()).isEmpty();
     assertThat(contentEntry.getExcludeFolderUrls()).isEmpty();
+  }
+
+  public void testSetUpAndroidModuleRegistersSyncIssues() {
+    SyncIssue syncIssue = mock(SyncIssue.class);
+    when(myJavaModel.getSyncIssues()).thenReturn(ImmutableList.of(syncIssue));
+
+    myModuleSetup.setUpModule(myContext, myJavaModel, false /* sync not skipped */);
+    SyncIssueRegister register = SyncIssueRegister.getInstance(myProject);
+    assertThat(register.getSyncIssueMap()).containsExactly(myModule, ImmutableList.of(syncIssue));
+  }
+
+  public void testSetUpAndroidModuleRegistersSyncIssuesSkipped() {
+    SyncIssue syncIssue = mock(SyncIssue.class);
+    when(myJavaModel.getSyncIssues()).thenReturn(ImmutableList.of(syncIssue));
+
+    myModuleSetup.setUpModule(myContext, myJavaModel, true /* sync skipped */);
+    SyncIssueRegister register = SyncIssueRegister.getInstance(myProject);
+    assertThat(register.getSyncIssueMap()).containsExactly(myModule, ImmutableList.of(syncIssue));
   }
 }

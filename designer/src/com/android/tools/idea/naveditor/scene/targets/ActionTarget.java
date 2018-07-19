@@ -162,7 +162,13 @@ public class ActionTarget extends BaseTarget {
       return;
     }
 
-    myDestRect = Coordinates.getSwingRect(sceneContext, myDestination.fillRect(null));
+    Rectangle destRect = myDestination.fillRect(null);
+    myDestination.getTargets().forEach(t -> {
+      if (t instanceof NavBaseTarget) {
+        destRect.add(((NavBaseTarget)t).getBounds());
+      }
+    });
+    myDestRect = Coordinates.getSwingRect(sceneContext, destRect);
     mySourceRect = sourceRect;
 
     boolean selected = getComponent().getScene().getSelection().contains(myNlComponent);

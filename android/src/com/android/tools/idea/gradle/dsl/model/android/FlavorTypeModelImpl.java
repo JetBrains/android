@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel;
+import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.SigningConfigPropertyModel;
@@ -47,6 +47,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NonNls private static final String BUILD_CONFIG_FIELD = "buildConfigField";
   @NonNls private static final String CONSUMER_PROGUARD_FILES = "consumerProguardFiles";
   @NonNls private static final String MANIFEST_PLACEHOLDERS = "manifestPlaceholders";
+  @NonNls private static final String MATCHING_FALLBACKS = "matchingFallbacks";
   @NonNls private static final String MULTI_DEX_ENABLED = "multiDexEnabled";
   @NonNls private static final String MULTI_DEX_KEEP_FILE = "multiDexKeepFile";
   @NonNls private static final String MULTI_DEX_KEEP_PROGUARD = "multiDexKeepProguard";
@@ -126,6 +127,12 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NotNull
   public ResolvedPropertyModel manifestPlaceholders() {
     return getModelForProperty(MANIFEST_PLACEHOLDERS);
+  }
+
+  @NotNull
+  @Override
+  public ResolvedPropertyModel matchingFallbacks() {
+    return getModelForProperty(MATCHING_FALLBACKS);
   }
 
   @Override

@@ -24,6 +24,7 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.NotNullLazyValue;
 import com.intellij.ui.LayeredIcon;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -37,17 +38,16 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
   private static final String ANDROID_JUNIT_DESCRIPTION = "Android JUnit test configuration";
   private static final String ANDROID_JUNIT_NAME = "Android JUnit";
   private static final String ANDROID_JUNIT_ID = "AndroidJUnit";
-
-  private static class Lazy {
-    private static final Icon ANDROID_TEST_ICON;
-
-    static {
+  private static final NotNullLazyValue<Icon> ANDROID_TEST_ICON = new NotNullLazyValue<Icon>() {
+    @NotNull
+    @Override
+    protected Icon compute() {
       LayeredIcon icon = new LayeredIcon(2);
       icon.setIcon(AndroidIcons.AndroidModule, 0);
       icon.setIcon(AllIcons.Nodes.JunitTestMark, 1);
-      ANDROID_TEST_ICON = icon;
+      return icon;
     }
-  }
+  };
 
   private final ConfigurationFactory myFactory;
 
@@ -82,7 +82,7 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
   @Override
   public Icon getIcon() {
     // Uses the standard JUnit icon if in AndroidStudio and otherwise, another icon
-    return IdeInfo.getInstance().isAndroidStudio() ? AllIcons.RunConfigurations.Junit : Lazy.ANDROID_TEST_ICON;
+    return IdeInfo.getInstance().isAndroidStudio() ? AllIcons.RunConfigurations.Junit : ANDROID_TEST_ICON.getValue();
   }
 
   @Override

@@ -16,13 +16,12 @@
 package com.android.tools.idea.naveditor.actions
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.naveditor.model.destinationType
+import com.android.tools.idea.naveditor.model.isActivity
 import com.android.tools.idea.naveditor.model.isStartDestination
 import com.android.tools.idea.naveditor.model.setAsStartDestination
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
-import org.jetbrains.android.dom.navigation.NavigationSchema
 
 class StartDestinationAction(private val component: NlComponent) : AnAction("Set as Start Destination") {
   init {
@@ -41,5 +40,5 @@ class StartDestinationAction(private val component: NlComponent) : AnAction("Set
   }
 
   private val isEnabled
-    get() = component.destinationType != NavigationSchema.DestinationType.ACTIVITY && !component.isStartDestination
+    get() = !component.isActivity && !component.isStartDestination
 }

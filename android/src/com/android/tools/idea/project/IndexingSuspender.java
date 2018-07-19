@@ -17,6 +17,7 @@ package com.android.tools.idea.project;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.VisibleForTesting;
+import com.android.builder.model.AaptOptions;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.BuildContext;
@@ -28,6 +29,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.npw.model.MultiTemplateRenderer;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
@@ -40,8 +42,11 @@ import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 
@@ -148,10 +153,11 @@ public class IndexingSuspender {
         }
         break;
       case BUILD_STARTED:
-        if (myActivationEvent != ActivationEvent.TEMPLATE_RENDERING_STARTED) {
-          // If the current suspension is caused by template rendering, it's OK to continue the sentinel dumb mode till
-          // the end of the build, as there isn't much we can do in the IDE anyway, but extending the sentinel dumb mode
-          // would improve batching (i.e., less 'Reindexed files' iterations).
+        if (myActivationEvent != ActivationEvent.TEMPLATE_RENDERING_STARTED && !hasNamespacedModules()) {
+          // If the current suspension is caused by template rendering, it's OK to continue the sentinel dumb mode till the end of the
+          // build, as there isn't much we can do in the IDE anyway, but extending the sentinel dumb mode would improve batching (i.e., less
+          // 'Reindexed files' iterations). In case of projects with namespaced modules, we need to keep the dumb mode on, because the
+          // res.apk files may not exist until the build is finished.
           ensureNoSentinelDumbMode();
         }
         if (!myActivated) {
@@ -186,6 +192,15 @@ public class IndexingSuspender {
     else {
       LOG.info("IndexingSuspender deactivation event received and ignored: " + event.toString());
     }
+  }
+
+  private boolean hasNamespacedModules() {
+    return ProjectFacetManager.getInstance(myProject)
+                              .getFacets(AndroidFacet.ID)
+                              .stream()
+                              .map(f -> f.getConfiguration().getModel())
+                              .filter(Objects::nonNull)
+                              .anyMatch(m -> m.getNamespacing() == AaptOptions.Namespacing.REQUIRED);
   }
 
   private static void reportStateError(@NotNull String message) {

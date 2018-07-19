@@ -331,22 +331,24 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   @Nullable
-  public GradleDslElement getPropertyElementBefore(@Nullable GradleDslElement element, @NotNull String property) {
+  public GradleDslElement getPropertyElementBefore(@Nullable GradleDslElement element, @NotNull String property, boolean includeSelf) {
     if (element == null) {
       return getElementWhere(property, PROPERTY_FILTER);
     }
     else {
-      return myProperties.getElementBeforeChildWhere(e -> PROPERTY_FILTER.test(e) && e.myElement.getName().equals(property), element);
+      return myProperties
+        .getElementBeforeChildWhere(e -> PROPERTY_FILTER.test(e) && e.myElement.getName().equals(property), element, includeSelf);
     }
   }
 
   @Nullable
-  GradleDslElement getElementBefore(@Nullable GradleDslElement element, @NotNull String property) {
+  GradleDslElement getElementBefore(@Nullable GradleDslElement element, @NotNull String property, boolean includeSelf) {
     if (element == null) {
       return getElementWhere(property, ANY_FILTER);
     }
     else {
-      return myProperties.getElementBeforeChildWhere(e -> ANY_FILTER.test(e) && e.myElement.getName().equals(property), element);
+      return myProperties
+        .getElementBeforeChildWhere(e -> ANY_FILTER.test(e) && e.myElement.getName().equals(property), element, includeSelf);
     }
   }
 
@@ -421,7 +423,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     int index = elements.size() - 1;
     for (int i = 0; i < elements.size() - 1; i++) {
       if (clazz.isInstance(elements.get(i))) {
-         index = i;
+        index = i;
       }
     }
     addNewElementAt(index, newElement);
@@ -721,7 +723,9 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
      * this {@link GradlePropertiesDslElement} then every element is checked and the last one (if any) returned.
      */
     @Nullable
-    private GradleDslElement getElementBeforeChildWhere(@NotNull Predicate<ElementItem> predicate, @NotNull GradleDslElement child) {
+    private GradleDslElement getElementBeforeChildWhere(@NotNull Predicate<ElementItem> predicate,
+                                                        @NotNull GradleDslElement child,
+                                                        boolean includeSelf) {
       GradleDslElement lastElement = null;
       for (ElementItem i : myElements) {
         // Skip removed or hidden elements.
@@ -730,7 +734,9 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         }
 
         if (predicate.test(i)) {
-          lastElement = i.myElement;
+          if (includeSelf || child != i.myElement) {
+            lastElement = i.myElement;
+          }
         }
 
         if (i.myElement == child) {

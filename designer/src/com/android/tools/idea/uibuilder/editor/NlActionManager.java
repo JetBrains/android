@@ -174,7 +174,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
 
   private void createLayoutOnlyActions(@Nullable NlComponent leafComponent, @NotNull DefaultActionGroup group) {
     if (leafComponent != null && StudioFlags.NELE_CONVERT_VIEW.get()) {
-      group.add(new MorphComponentAction(leafComponent, mySurface));
+      group.add(new MorphComponentAction(leafComponent));
     }
     if (ConvertToConstraintLayoutAction.ENABLED) {
       group.add(new ConvertToConstraintLayoutAction(mySurface));
@@ -193,18 +193,47 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
                                      @NotNull List<NlComponent> selection) {
     // Look up view handlers
     int prevCount = group.getChildrenCount();
-    NlComponent parent = !component.isRoot() ? component.getParent() : null;
-    addActions(group, component, parent, selection, false);
+    addActions(group, component, selection, false);
     if (group.getChildrenCount() > prevCount) {
       group.addSeparator();
     }
   }
 
+  @Nullable
+  private static NlComponent findSharedParent(@NotNull List<NlComponent> newSelection) {
+    NlComponent parent = null;
+    for (NlComponent selected : newSelection) {
+      if (parent == null) {
+        parent = selected.getParent();
+        if (newSelection.size() == 1 && selected.isRoot() && (parent == null || parent.isRoot())) {
+          // If you select a root layout, offer selection actions on it as well
+          return selected;
+        }
+      }
+      else if (parent != selected.getParent()) {
+        parent = null;
+        break;
+      }
+    }
+    return parent;
+  }
+
   @Override
-  public void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component, @Nullable NlComponent parent,
+  public void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component,
                          @NotNull List<NlComponent> newSelection, boolean toolbar) {
+    NlComponent parent;
+    if (component == null) {
+      parent = findSharedParent(newSelection);
+      if (parent == null) {
+        return;
+      }
+    }
+    else {
+      parent = component.getParent();
+    }
+
     SceneView screenView = mySurface.getCurrentSceneView();
-    if (screenView == null || (parent == null && component == null)) {
+    if (screenView == null) {
       return;
     }
 

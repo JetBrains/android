@@ -18,17 +18,22 @@ package com.android.tools.adtui.stdui
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.UIUtil
-import javax.swing.JTextField
+import javax.swing.JComboBox
+import javax.swing.JComponent
 import javax.swing.event.DocumentEvent
 import javax.swing.text.PlainDocument
 
+const val OUTLINE_PROPERTY = "JComponent.outline"
+const val ERROR_VALUE = "error"
+
 /**
- * Android Studio TextField with Standard Borders.
- *
- * TODO: Add Text Completion.
+ * TextField controlled by an [editorModel].
  */
-open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JTextField() {
+open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JBTextField() {
+
+  private var updatingFromModel = false
 
   init {
     isFocusable = true
@@ -38,12 +43,12 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JT
     editorModel.addListener(ValueChangedListener { updateFromModel() })
     document.addDocumentListener(object: DocumentAdapter() {
       override fun textChanged(event: DocumentEvent) {
-        editorModel.text = text
+        if (!updatingFromModel) {
+          editorModel.text = text
+          updateOutline()
+        }
       }
     })
-
-    @Suppress("LeakingThis")
-    UIUtil.addUndoRedoActions(this)
   }
 
   protected open fun updateFromModel() {
@@ -51,14 +56,17 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JT
   }
 
   private fun setFromModel() {
-    text = editorModel.value
-    isEnabled = editorModel.enabled
-    isEditable = editorModel.editable
-  }
-
-  override fun updateUI() {
-    setUI(CommonTextFieldUI(this))
-    revalidate()
+    updatingFromModel = true
+    try {
+      text = editorModel.value
+      isEnabled = editorModel.enabled
+      isEditable = editorModel.editable
+      emptyText.text = editorModel.placeHolderValue
+      updateOutline()
+    }
+    finally {
+      updatingFromModel = false
+    }
   }
 
   override fun setText(text: String?) {
@@ -66,6 +74,21 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JT
     if (!text.equals(super.getText())) {
       super.setText(text)
       UIUtil.resetUndoRedoActions(this)
+    }
+  }
+
+  // Update the outline property on component such that the Darcula border will
+  // be able to indicate an error by painting a red border.
+  private fun updateOutline() {
+    // If this text field is an editor in a ComboBox set the property on the ComboBox,
+    // otherwise set the property on this text field.
+    val component = parent as? JComboBox<*> ?: this as JComponent
+    val current = component.getClientProperty(OUTLINE_PROPERTY)
+    val (code, _) = editorModel.editingSupport.validation(editorModel.text)
+    val newOutline = code.outline
+    if (current != newOutline) {
+      component.putClientProperty(OUTLINE_PROPERTY, newOutline)
+      component.repaint()
     }
   }
 }

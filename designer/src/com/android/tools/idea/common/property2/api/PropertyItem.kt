@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.property2.api
 
+import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.ptable2.PTableItem
 import javax.swing.Icon
 
@@ -67,11 +68,10 @@ interface PropertyItem : PTableItem {
     get() = ""
 
   /**
-   * A validation method.
-   *
-   * @return an error message, or an empty string if there is no error.
+   * Editing support while editing this property
    */
-  fun validate(editedValue: String): String = ""
+  val editingSupport: EditingSupport
+    get() = EditingSupport.INSTANCE
 
   /**
    * The matching design property, i.e. tools attribute

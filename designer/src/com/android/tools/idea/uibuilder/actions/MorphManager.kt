@@ -18,9 +18,10 @@ package com.android.tools.idea.uibuilder.actions
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.model.isOrHasSuperclass
+import com.android.tools.idea.util.mapAndroidxName
 
 /**
- *
+ * This class returns suggestion of possible conversion for a given [NlComponent]
  */
 class MorphManager {
 
@@ -28,12 +29,11 @@ class MorphManager {
     fun getMorphSuggestion(component: NlComponent): MutableList<String> {
       val suggestions: MutableList<String>
       if (component.isOrHasSuperclass(SdkConstants.CLASS_VIEWGROUP)) {
+        val module = component.model.module
         suggestions = mutableListOf(
-            SdkConstants.CONSTRAINT_LAYOUT.oldName(),
-            SdkConstants.CONSTRAINT_LAYOUT.newName(),
+            module.mapAndroidxName(SdkConstants.CONSTRAINT_LAYOUT),
             SdkConstants.LINEAR_LAYOUT,
-            SdkConstants.COORDINATOR_LAYOUT.newName(),
-            SdkConstants.COORDINATOR_LAYOUT.oldName(),
+            module.mapAndroidxName(SdkConstants.COORDINATOR_LAYOUT),
             SdkConstants.RELATIVE_LAYOUT,
             SdkConstants.FRAME_LAYOUT)
       }

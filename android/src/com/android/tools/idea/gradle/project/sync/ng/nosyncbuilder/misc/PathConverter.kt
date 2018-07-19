@@ -16,33 +16,36 @@
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc
 
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.FileProto
+import com.google.common.io.Files
 import java.io.File
+import java.io.FileNotFoundException
+import java.nio.file.Paths
 
-class PathConverter(moduleDirFile: File, sdkDirFile: File, libraryDirFile: File, outDirFile: File) {
+class PathConverter(moduleDirFile: File, sdkDirFile: File, offlineRepo: File) {
   enum class DirType {
     MODULE,
     SDK,
-    LIBRARY,
-    OUT
+    OFFLINE_REPO
   }
 
-  private val knownDirs = mapOf(
+  val knownDirs = mapOf(
     DirType.MODULE to moduleDirFile.toPath(),
     DirType.SDK to sdkDirFile.toPath(),
-    DirType.LIBRARY to libraryDirFile.toPath(), // Gradle cached libraries
-    DirType.OUT to outDirFile.toPath() // output directory where artifacts are stored
+    DirType.OFFLINE_REPO to offlineRepo.toPath()
   )
 
   private fun toRelativePath(fileFile: File, dirType: DirType): String {
     val file = fileFile.toPath()
     val dir = knownDirs[dirType]!!
-    if (!file.startsWith(dir)) {
-      throw Exception("File ${fileFile} is not in the $dirType directory ${dir}") // TODO: custom exception?
+    if (file.startsWith(dir)) {
+      return dir.relativize(file).toString()
     }
-    return dir.relativize(file).toString()
+    throw FileNotFoundException("File ${fileFile} is not in the $dirType directory ${dir}")
   }
 
-  private fun toAbsolutePath(relative: String, dirType: DirType): File = File(knownDirs[dirType]!!.toFile(), relative)
+  private fun toAbsolutePath(relative: String, dirType: DirType): File {
+    return File(knownDirs[dirType]!!.toFile(), relative)
+  }
 
   fun fileFromProto(proto: FileProto.File) = toAbsolutePath(proto.relativePath, DirType.valueOf(proto.relativeTo.name))
 

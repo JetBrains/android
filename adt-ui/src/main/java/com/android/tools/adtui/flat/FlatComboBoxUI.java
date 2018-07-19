@@ -33,9 +33,6 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-/**
- * TODO deprecate in preference of {@link com.android.tools.adtui.stdui.CommonComboBoxUI}
- */
 class FlatComboBoxUI extends BasicComboBoxUI {
   private static final int LIGHT_THEME_PADDING = 5;
   private static final int DARK_THEME_PADDING = 2;

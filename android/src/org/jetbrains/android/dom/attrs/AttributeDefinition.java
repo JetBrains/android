@@ -16,74 +16,81 @@
 package org.jetbrains.android.dom.attrs;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 /**
- * @author yole
+ * Information about an attr resource. The same attr resource may be declared in multiple places in XML
+ * including declarations at the top level and inside styleables. This class combines information about
+ * the attr resource from all its declarations.
  */
-public class AttributeDefinition implements Cloneable {
-  private String myName;
-  private final List<String> myParentStyleables;
-  private final Set<AttributeFormat> myFormats;
-  private LinkedList<String> myValues;
-  /** Keys are names of styleables, values are doc strings for this attr in the context of the styleable. */
-  private final Map<String, String> myStyleable2DocValue;
-  /** Keys are attr values, values are the corresponding doc strings. */
-  private HashMap<String, String> myValueDoc;
-  /** Mapping of flag/enum names to their int value. */
-  private HashMap<String, Integer> myValueMappings;
-  private String myGlobalDocValue;
-  private String myAttrGroup;
-  private final String myLibraryName;
+public final class AttributeDefinition implements Cloneable {
+  @NotNull private final ResourceReference myAttr;
+  @Nullable private final String myLibraryName;
+  @Nullable private String myGlobalDescription;
+  /** @see com.android.ide.common.rendering.api.AttrResourceValue#getGroupName() */
+  @Nullable private String myGroupName;
+  /** Mapping of flag/enum names to their integer values. */
+  @NotNull private Map<String, Integer> myValueMappings = Collections.emptyMap();
+  /** Keys are flag/enum names, values are their descriptions. */
+  @NotNull private Map<String, String> myValueDescriptions = Collections.emptyMap();
+  @NotNull private Set<AttributeFormat> myFormats;
+  @Nullable private List<ResourceReference> myParentStyleables;
+  // TODO: Consider moving style-specific descriptions to StyleableDefinitionImpl.
+  /** Keys are styleables, values are descriptions for this attribute in the context of the styleable. */
+  @Nullable private Map<ResourceReference, String> myDescriptionsInStyleableContexts;
 
-  public AttributeDefinition(@NotNull String name) {
-    this(name, null, null, Collections.emptySet());
+  public AttributeDefinition(@NotNull ResourceNamespace namespace, @NotNull String name) {
+    this(namespace, name, null, null);
   }
 
-  public AttributeDefinition(@NotNull String name,
+  public AttributeDefinition(@NotNull ResourceNamespace namespace,
+                             @NotNull String name,
                              @Nullable String libraryName,
-                             @Nullable String parentStyleableName,
-                             @NotNull Collection<AttributeFormat> formats) {
-    myName = name;
+                             @Nullable Collection<AttributeFormat> formats) {
+    assert name.indexOf(':') < 0;
+    myAttr = ResourceReference.attr(namespace, name);
     myLibraryName = libraryName;
-    myParentStyleables = parentStyleableName == null ? ContainerUtil.newSmartList() : ContainerUtil.newSmartList(parentStyleableName);
-    myFormats = formats.isEmpty() ? EnumSet.noneOf(AttributeFormat.class) : EnumSet.copyOf(formats);
-    myStyleable2DocValue = new HashMap<>();
+    myFormats = formats == null || formats.isEmpty() ? EnumSet.noneOf(AttributeFormat.class) : EnumSet.copyOf(formats);
   }
 
-  public void addValue(@NotNull String name) {
-    if (myValues == null) {
-      myValues = new LinkedList<>();
-    }
-
-    myValues.add(name);
-  }
-
-  public void addValueMapping(@NotNull String flagName, @NotNull Integer intValue) {
-    if (myValueMappings == null) {
-      myValueMappings = new HashMap<>();
-    }
-
-    myValueMappings.put(flagName, intValue);
+  public AttributeDefinition(@NotNull AttributeDefinition other) {
+    myAttr = other.myAttr;
+    myLibraryName = other.myLibraryName;
+    myGlobalDescription = other.myGlobalDescription;
+    myGroupName = other.myGroupName;
+    myValueMappings = other.myValueMappings;
+    myValueDescriptions = other.myValueDescriptions;
+    myFormats = EnumSet.copyOf(other.myFormats);
+    myParentStyleables = other.myParentStyleables == null ? null : new SmartList<>(other.myParentStyleables);
+    myDescriptionsInStyleableContexts = other.myDescriptionsInStyleableContexts == null ?
+        null : new HashMap<>(other.myDescriptionsInStyleableContexts);
   }
 
   /**
-   * For flag or enum attributes, it returns the int value of the value name or null if the mapping does not exist
+   * For flag or enum attributes, it returns the int value for the value name, or null if the mapping does not exist.
    */
   @Nullable
   public Integer getValueMapping(@NotNull String flagName) {
-    return myValueMappings != null ? myValueMappings.get(flagName) : null;
+    return myValueMappings.get(flagName);
+  }
+
+  @NotNull
+  public ResourceReference getResourceReference() {
+    return myAttr;
   }
 
   @NotNull
   public String getName() {
-    return myName;
+    return myAttr.getName();
   }
 
   @Nullable
@@ -92,8 +99,8 @@ public class AttributeDefinition implements Cloneable {
   }
 
   @NotNull
-  public List<String> getParentStyleables() {
-    return myParentStyleables;
+  public List<ResourceReference> getParentStyleables() {
+    return myParentStyleables == null ? Collections.emptyList() : myParentStyleables;
   }
 
   @NotNull
@@ -101,87 +108,107 @@ public class AttributeDefinition implements Cloneable {
     return Collections.unmodifiableSet(myFormats);
   }
 
+  /**
+   * @see com.android.ide.common.rendering.api.AttrResourceValue#getGroupName()
+   */
   @Nullable
-  public String getAttrGroup() {
-    return myAttrGroup;
-  }
-
-  public void setAttrGroup(@Nullable String attrGroup) {
-    myAttrGroup = attrGroup;
-  }
-
-  public void addFormats(@NotNull Collection<AttributeFormat> formats) {
-    myFormats.addAll(formats);
+  public String getGroupName() {
+    return myGroupName;
   }
 
   @NotNull
   public String[] getValues() {
-    return myValues == null ? ArrayUtil.EMPTY_STRING_ARRAY : ArrayUtil.toStringArray(myValues);
+    return myValueMappings.isEmpty() ? ArrayUtil.EMPTY_STRING_ARRAY : ArrayUtil.toStringArray(myValueMappings.keySet());
   }
 
   @Nullable
-  public String getDocValue(@Nullable String parentStyleable) {
-    if (parentStyleable == null || !myStyleable2DocValue.containsKey(parentStyleable)) {
-      return myGlobalDocValue;
-    }
-    return myStyleable2DocValue.get(parentStyleable);
+  public String getDescription(@Nullable ResourceReference parentStyleable) {
+    String description = parentStyleable == null || myDescriptionsInStyleableContexts == null ?
+        null : myDescriptionsInStyleableContexts.get(parentStyleable);
+    return description == null ? myGlobalDescription : description;
   }
 
-  public void addDocValue(@NotNull String docValue, @Nullable String parentStyleable) {
-    if (parentStyleable == null || myGlobalDocValue == null) {
-      myGlobalDocValue = docValue;
+  /**
+   * @deprecated Use {@link #getDescription(ResourceReference)}.
+   */
+  @Deprecated
+  @Nullable
+  public String getDescriptionByParentStyleableName(@Nullable String parentStyleable) {
+    if (parentStyleable == null || myDescriptionsInStyleableContexts == null) {
+      return myGlobalDescription;
+    }
+    String description = myDescriptionsInStyleableContexts.get(ResourceReference.styleable(ResourceNamespace.TODO(), parentStyleable));
+    if (description == null) {
+      description = myDescriptionsInStyleableContexts.get(ResourceReference.styleable(ResourceNamespace.ANDROID, parentStyleable));
+    }
+    return description == null ? myGlobalDescription : description;
+  }
+
+  @Nullable
+  public String getValueDescription(@NotNull String value) {
+    return myValueDescriptions.get(value);
+  }
+
+  /**
+   * Checks whether attribute is deprecated by looking up "deprecated" in its description.
+   */
+  public boolean isAttributeDeprecated() {
+    return myGlobalDescription != null && StringUtil.containsIgnoreCase(myGlobalDescription, "deprecated");
+  }
+
+  public boolean isValueDeprecated(@NotNull String value) {
+    String description = getValueDescription(value);
+    return description != null && StringUtil.containsIgnoreCase(description, "deprecated");
+  }
+
+  void addParent(@NotNull ResourceReference styleable) {
+    if (myParentStyleables == null) {
+      myParentStyleables = new SmartList<>(styleable);
+    } else {
+      myParentStyleables.add(styleable);
+    }
+  }
+
+  void addFormats(@NotNull Collection<AttributeFormat> formats) {
+    myFormats.addAll(formats);
+  }
+
+  public void setValueMappings(@NotNull Map<String, Integer> valueMappings) {
+    if (!myValueMappings.isEmpty() && !myValueMappings.equals(valueMappings)) {
+      getLog().warn("An attempt to redefine value mappings of " + myAttr.getQualifiedName());
+    }
+    myValueMappings = Collections.unmodifiableMap(valueMappings);
+  }
+
+  void setValueDescriptions(@NotNull Map<String, String> valueDescriptions) {
+    if (!myValueDescriptions.isEmpty() && !myValueDescriptions.equals(valueDescriptions)) {
+      getLog().warn("An attempt to redefine value descriptions of " + myAttr.getQualifiedName());
+    }
+    myValueDescriptions = Collections.unmodifiableMap(valueDescriptions);
+  }
+
+  void setGroupName(@Nullable String groupName) {
+    myGroupName = groupName;
+  }
+
+  void setDescription(@NotNull String description, @Nullable ResourceReference parentStyleable) {
+    if (parentStyleable == null || myGlobalDescription == null) {
+      myGlobalDescription = description;
     }
     if (parentStyleable != null) {
-      myStyleable2DocValue.put(parentStyleable, docValue);
+      if (myDescriptionsInStyleableContexts == null) {
+        myDescriptionsInStyleableContexts = new HashMap<>(3);
+      }
+      myDescriptionsInStyleableContexts.put(parentStyleable, description);
     }
   }
 
   @Override
   public String toString() {
-    return myName + " [" + myFormats + ']';
+    return myAttr.getQualifiedName() + " [" + myFormats + ']';
   }
 
-  public void addValueDoc(@NotNull String value, @NotNull String doc) {
-    if (myValueDoc == null) {
-      myValueDoc = new HashMap<>();
-    }
-
-    myValueDoc.put(value, doc);
-  }
-
-  @Nullable
-  public String getValueDoc(@NotNull String value) {
-    return myValueDoc != null ? myValueDoc.get(value) : null;
-  }
-
-  /**
-   * Checks whether attribute is deprecated by looking up "deprecated" in its documenting comment
-   */
-  public boolean isAttributeDeprecated() {
-    final String doc = getDocValue(null);
-    return doc != null && StringUtil.containsIgnoreCase(doc, "deprecated");
-  }
-
-  public boolean isValueDeprecated(@NotNull String value) {
-    final String doc = getValueDoc(value);
-    return doc != null && StringUtil.containsIgnoreCase(doc, "deprecated");
-  }
-
-  /**
-   * Returns a shallow copy of this attribute definition under a different name.
-   *
-   * @param name the name to give the new attribute definition
-   * @return the new attribute definition
-   */
-  @NotNull
-  public AttributeDefinition cloneWithName(@NotNull String name) {
-    try {
-      AttributeDefinition copy = (AttributeDefinition)super.clone();
-      copy.myName = name;
-      return copy;
-    }
-    catch (CloneNotSupportedException e) {
-      throw new AssertionError();
-    }
+  private static Logger getLog() {
+    return Logger.getInstance(AttributeDefinition.class);
   }
 }

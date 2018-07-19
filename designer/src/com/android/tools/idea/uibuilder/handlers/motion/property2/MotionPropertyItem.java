@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
+import com.android.tools.adtui.model.stdui.EditingSupport;
 import com.android.tools.adtui.ptable2.PTableItem;
 import com.android.tools.idea.common.property2.api.PropertyItem;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
@@ -30,10 +31,12 @@ import static com.android.SdkConstants.AUTO_URI;
 public class MotionPropertyItem implements PropertyItem, PTableItem {
   private final String myName;
   private final MotionSceneModel.BaseTag myTag;
+  private final EditingSupport myEditingSupport;
 
   public MotionPropertyItem(@NotNull String name, @NotNull MotionSceneModel.BaseTag tag) {
     myName = name;
     myTag = tag;
+    myEditingSupport = EditingSupport.Companion.getINSTANCE();
   }
 
   @NotNull
@@ -111,8 +114,8 @@ public class MotionPropertyItem implements PropertyItem, PTableItem {
 
   @NotNull
   @Override
-  public String validate(@NotNull String editedValue) {
-    return "";
+  public EditingSupport getEditingSupport() {
+    return myEditingSupport;
   }
 
   @NotNull

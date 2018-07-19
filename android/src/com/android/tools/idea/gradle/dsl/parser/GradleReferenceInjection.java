@@ -43,6 +43,9 @@ public class GradleReferenceInjection {
                                   @Nullable GradleDslElement injection,
                                   @NotNull PsiElement psiInjection,
                                   @NotNull String name) {
+    if (originElement == injection) {
+      throw new IllegalStateException("Can't create a reference injection linking the same element to itself. Element: " + originElement);
+    }
     myOriginElement = originElement;
     myToBeInjected = injection;
     myPsiInjection = psiInjection;

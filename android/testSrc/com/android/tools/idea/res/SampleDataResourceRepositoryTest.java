@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValueImpl;
-import com.android.ide.common.rendering.api.SampleDataResourceValue;
+import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -313,6 +310,22 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     assertContainsElements(fileNames, "image1.png", "image2.png", "image3.png");
   }
 
+  public void testSubsetSampleData() {
+    @Language("XML")
+    String layoutText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                        "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                        "    android:layout_width=\"match_parent\"\n" +
+                        "    android:layout_height=\"match_parent\" />";
+
+    PsiFile layout = myFixture.addFileToProject("res/layout/layout.xml", layoutText);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout.getVirtualFile());
+    ResourceResolver resolver = configuration.getResourceResolver();
+    ResourceValue sampledLorem =
+        new ResourceValueImpl(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA, "lorem_data", "@sample/lorem[4:10]");
+    assertEquals("Lorem ipsum dolor sit amet.", resolver.dereference(sampledLorem).getValue());
+    assertEquals("Lorem ipsum dolor sit amet, consectetur.", resolver.dereference(sampledLorem).getValue());
+  }
+
   // Temporarily disabled to debug the failed leak test
   public void ignorePredefinedSources() {
     // No project sources defined so only predefined sources should be available
@@ -322,6 +335,6 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
     // Check that none of the items are empty or fail
     assertFalse(repo.getMap(null, ResourceType.SAMPLE_DATA, false).values().stream()
-      .anyMatch(item -> item.getResourceValue().getValue().isEmpty()));
+        .anyMatch(item -> item.getResourceValue().getValue().isEmpty()));
   }
 }

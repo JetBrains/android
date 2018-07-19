@@ -38,6 +38,7 @@ import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.collect.Lists;
 import com.intellij.execution.BeforeRunTask;
+import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
@@ -78,9 +79,10 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private GradleProjectBuilder myProjectBuilder;
   @Mock private CommonModuleValidator.Factory myModuleValidatorFactory;
   @Mock private CommonModuleValidator myModuleValidator;
-  @Mock private RunManagerImpl myRunManager;
+  @Mock private RunManagerEx myRunManager;
   @Mock private ProvisionTasks myProvisionTasks;
   @Mock private ExternalSystemTaskId myTaskId;
+  @Mock private EnableDisableSingleVariantSyncStep myEnableDisableSingleVariantSyncStep;
 
   private ProjectStructureStub myProjectStructure;
   private ProgressIndicator myProgressIndicator;
@@ -103,7 +105,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     mySetup = new PostSyncProjectSetup(project, myIdeInfo, myProjectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
                                        myDependencySetupIssues, myProjectSetup, myModuleSetup, myVersionUpgrade,
                                        myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory, myRunManager,
-                                       myProvisionTasks);
+                                       myProvisionTasks, myEnableDisableSingleVariantSyncStep);
   }
 
   @Override
@@ -137,7 +139,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     BeforeRunTask newTask = taskProvider.createTask(runConfiguration);
     newTask.setEnabled(true);
     tasks.add(newTask);
-    myRunManager.setBeforeRunTasks(runConfiguration, tasks, false);
+    myRunManager.setBeforeRunTasks(runConfiguration, tasks);
 
     mySetup.setUpProject(request, myProgressIndicator, myTaskId);
     assertSize(2, myRunManager.getBeforeRunTasks(runConfiguration));
@@ -174,6 +176,26 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     request.lastSyncTimestamp = 1L;
 
     mySetup.setUpProject(request, myProgressIndicator, myTaskId);
+
+    verify(mySyncState, times(1)).syncFailed(any());
+    verify(mySyncState, never()).syncEnded();
+  }
+
+  public void testWithExceptionDuringProjectSetup() {
+    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
+    doThrow(new RuntimeException()).when(myProjectSetup).setUpProject(myProgressIndicator, false);
+
+    PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
+    request.usingCachedGradleModels = false;
+    request.lastSyncTimestamp = 1L;
+
+    try {
+      mySetup.setUpProject(request, myProgressIndicator, myTaskId);
+      fail();
+    }
+    catch (Throwable t) {
+      // Exception is expected
+    }
 
     verify(mySyncState, times(1)).syncFailed(any());
     verify(mySyncState, never()).syncEnded();
@@ -254,7 +276,6 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     // Reset only in one of the configurations (e.g. open old projects with run configs already created)
     myRunManager.setBeforeRunTasks(androidRunConfiguration, Lists.newArrayList());
-    myRunManager.fireBeforeRunTasksUpdated();
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
     mySetup.setUpProject(request, myProgressIndicator, myTaskId);

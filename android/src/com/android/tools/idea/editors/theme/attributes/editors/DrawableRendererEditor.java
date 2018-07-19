@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
@@ -63,7 +62,9 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     assert facet != null;
     final RenderService service = RenderService.getInstance(module.getProject());
     RenderLogger logger = new RenderLogger("ThemeEditorLogger", null);
-    RenderTask task = service.createTask(facet, null, configuration, logger, null);
+    RenderTask task = service.taskBuilder(facet, configuration)
+      .withLogger(logger)
+      .build();
     assert task != null;
     task.getLayoutlibCallback().setLogger(logger);
     return task;

@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.tools.idea.gradle.structure.GradleResolver
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.*
+import java.util.concurrent.TimeUnit
 
 internal fun <T> ResolvedValue<T>.asTestValue(): T? = (this as? ResolvedValue.Set<T>)?.resolved
-internal fun <T> Annotated<ParsedValue<T>>.asTestValue(): T? = (value as? ParsedValue.Set.Parsed<T>)?.value
+internal fun <T> Annotated<ParsedValue<T>>.asTestValue(): T? = value.maybeValue
 internal fun <T : Any> T.asParsed(): ParsedValue<T> = ParsedValue.Set.Parsed(this, DslText.Literal)
 internal fun <T> Annotated<ParsedValue<T>>.asUnparsedValue(): String? =
   ((value as? ParsedValue.Set.Parsed<T>)?.dslText as? DslText.OtherUnparsedDslText)?.text
 internal val <T> Annotated<PropertyValue<T>>.resolved get() = value.resolved
 internal val <T> Annotated<PropertyValue<T>>.parsedValue get() = value.parsedValue
 
+fun PsProjectImpl.testResolve() {
+  refreshFrom(GradleResolver().requestProjectResolved(ideProject, ideProject).get(30, TimeUnit.SECONDS))
+}

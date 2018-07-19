@@ -34,12 +34,12 @@ class HorizontalEditorPanel(private val model: HorizontalEditorPanelModel): AdtS
   init {
     registerKeyboardAction({ model.prior() }, KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     registerKeyboardAction({ model.next() }, KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    model.addListener(ValueChangedListener { updateFromModel() })
   }
 
   fun add(modelAndEditor: Pair<PropertyEditorModel, JComponent>) {
     model.add(modelAndEditor.first)
     add(modelAndEditor.second)
-    model.addListener(ValueChangedListener { updateFromModel() })
   }
 
   private fun updateFromModel() {

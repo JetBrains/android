@@ -153,9 +153,12 @@ public class RenderTestUtil {
     PsiFile psiFile = PsiManager.getInstance(module.getProject()).findFile(file);
     assertNotNull(psiFile);
     RenderService renderService = RenderService.getInstance(module.getProject());
-    final RenderTask task = renderService.createTask(facet, psiFile, configuration, logger, null);
+    final RenderTask task = renderService.taskBuilder(facet, configuration)
+                                         .withLogger(logger)
+                                         .withPsiFile(psiFile)
+                                         .disableSecurityManager()
+                                         .build();
     assertNotNull(task);
-    task.disableSecurityManager();
     return task;
   }
 

@@ -109,15 +109,16 @@ message AndroidSourceSet {
 message VariantConfig {
     optional string name = 1; // required
     map<string, ClassField> res_values = 2;
-    repeated File consumer_proguard_files = 3;
-    map<string, string> manifest_placeholders = 4;
-    optional bool debuggable = 5; // required
-    optional string application_id = 6;
-    optional int32 version_code = 7;
-    optional string version_name = 8;
-    optional ApiVersion min_sdk_version = 9;
-    optional ApiVersion target_sdk_version = 10;
-    repeated string resource_configurations = 11;
+    repeated File proguard_files = 3;
+    repeated File consumer_proguard_files = 4;
+    map<string, string> manifest_placeholders = 5;
+    optional bool debuggable = 6; // required
+    optional string application_id = 7;
+    optional int32 version_code = 8;
+    optional string version_name = 9;
+    optional ApiVersion min_sdk_version = 10;
+    optional ApiVersion target_sdk_version = 11;
+    repeated string resource_configurations = 12;
 }
 
 message ClassField {

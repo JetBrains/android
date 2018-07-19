@@ -50,6 +50,13 @@ public class GradleProjectStub implements GradleProject {
     }
   }
 
+  // Used for GradleModuleModel construction
+  public GradleProjectStub(@NotNull List<String> taskNames,
+                           @NotNull String path,
+                           @NotNull File rootDir) {
+    this("", path, rootDir, new File("/"), taskNames.toArray(new String[0]));
+  }
+
   @Override
   public DomainObjectSet<? extends GradleTask> getTasks() {
     return ImmutableDomainObjectSet.of(myTasks);

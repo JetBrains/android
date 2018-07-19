@@ -30,4 +30,3 @@ open class LegacyInstantRun(private val instantRun: InstantRun) : OldInstantRun 
                                     "supportStatus=$supportStatus" +
                                     "}"
 }
-

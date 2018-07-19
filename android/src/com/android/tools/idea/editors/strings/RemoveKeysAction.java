@@ -38,7 +38,7 @@ final class RemoveKeysAction extends AnAction {
   private final StringResourceViewPanel myPanel;
 
   RemoveKeysAction(@NotNull StringResourceViewPanel panel) {
-    super("Remove Keys", null, AllIcons.ToolbarDecorator.Remove);
+    super("Remove Keys", null, AllIcons.General.Remove);
     myPanel = panel;
   }
 

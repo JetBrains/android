@@ -17,12 +17,13 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.li
 
 import com.android.ide.common.gradle.model.level2.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.ModuleDependency
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldJavaDependency
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.LibraryProto
 
 data class NewModuleDependency(
   override val buildId: String,
   override val projectPath: String,
-  override val variant: String,
+  override val variant: String?, // not null only for Android modules
   override val artifactAddress: String
 ) : ModuleDependency {
   constructor(library: IdeModuleLibrary) : this(
@@ -32,10 +33,17 @@ data class NewModuleDependency(
     library.artifactAddress
   )
 
+  constructor(library: OldJavaDependency) : this(
+    library.buildId!!,
+    library.project!!,
+    null,
+    library.name
+  )
+
   constructor(proto: LibraryProto.ModuleDependency) : this(
     proto.buildId,
     proto.projectPath,
-    proto.variant,
+    if (proto.hasVariant()) proto.variant else null,
     proto.library.artifactAddress
   )
 }

@@ -117,7 +117,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
         <LinearLayout
             xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
-            app:libAttr="layout">
+            app:libAttr="@string/libString">
           <TextView android:text="@string/appString" app:libAttr="view" />
           <TextView android:text="@string/libString" />
         </LinearLayout>
@@ -164,7 +164,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
             xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:lib="http://schemas.android.com/apk/res/com.example.lib"
-            lib:libAttr="layout">
+            lib:libAttr="@lib:string/libString">
           <TextView android:text="@string/appString" lib:libAttr="view" />
           <TextView android:text="@lib:string/libString" />
         </LinearLayout>
@@ -388,33 +388,33 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
       "/res/layout/layout.xml",
       // language=xml
       """
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
-
-        <TextView
-            android:id="@+id/toolbar"
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
-            android:layout_height="?attr/libAttr"
-            android:background="?attr/anotherLibAttr"
-            app:libAttr="@style/LibStyle" />
+            android:layout_height="match_parent">
 
-    </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:theme="@style/AppTheme.AppBarOverlay">
 
-    <TextView
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end" />
+                <TextView
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/libAttr"
+                    android:background="?attr/anotherLibAttr"
+                    app:libAttr="@style/LibStyle" />
 
-</LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end" />
+
+        </LinearLayout>
       """.trimIndent()
     )
 
@@ -424,34 +424,73 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
       "/res/layout/layout.xml",
       // language=xml
       """
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:lib="http://schemas.android.com/apk/res/com.example.lib"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
-
-        <TextView
-            android:id="@+id/toolbar"
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:lib="http://schemas.android.com/apk/res/com.example.lib"
             android:layout_width="match_parent"
-            android:layout_height="?lib:attr/libAttr"
-            android:background="?lib:attr/anotherLibAttr"
-            lib:libAttr="@style/LibStyle" />
+            android:layout_height="match_parent">
 
-    </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:theme="@style/AppTheme.AppBarOverlay">
 
-    <TextView
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end" />
+                <TextView
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?lib:attr/libAttr"
+                    android:background="?lib:attr/anotherLibAttr"
+                    lib:libAttr="@style/LibStyle" />
 
-</LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end" />
+
+        </LinearLayout>
+      """.trimIndent(),
+      true
+    )
+  }
+
+  /** Tests that attributes in files other than layouts are also rewritten. */
+  fun testOtherAttributes() {
+    myFixture.addFileToProject(
+      "/res/menu/menu_main.xml",
+      // language=xml
+      """
+        <menu
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto">
+            <item
+                android:id="@+id/action_settings"
+                android:orderInCategory="100"
+                android:title="@string/libString"
+                app:libAttr="never" />
+        </menu>
+      """.trimIndent()
+    )
+
+    refactorAndSync()
+
+    myFixture.checkResult(
+      "/res/menu/menu_main.xml",
+      // language=xml
+      """
+        <menu
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:lib="http://schemas.android.com/apk/res/com.example.lib">
+            <item
+                android:id="@+id/action_settings"
+                android:orderInCategory="100"
+                android:title="@lib:string/libString"
+                lib:libAttr="never" />
+        </menu>
       """.trimIndent(),
       true
     )

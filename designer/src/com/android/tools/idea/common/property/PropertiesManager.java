@@ -36,6 +36,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Divider;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SideBorder;
@@ -241,7 +242,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
       Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(myFacet, this, components);
 
       UIUtil.invokeLaterIfNeeded(() -> {
-        if (myProject.isDisposed()) {
+        if (Disposer.isDisposed(this) || myProject.isDisposed()) {
           return;
         }
         getPropertiesPanel().setItems(components, properties);

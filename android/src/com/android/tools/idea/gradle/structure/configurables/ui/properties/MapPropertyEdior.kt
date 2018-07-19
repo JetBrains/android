@@ -91,11 +91,11 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
   override fun createColumnModel(): TableColumnModel {
     return DefaultTableColumnModel().apply {
       addColumn(TableColumn(0, 50).apply {
-        headerValue = "K"
+        headerValue = "Key"
         cellEditor = MyKeyCellEditor()
       })
       addColumn(TableColumn(1).apply {
-        headerValue = "V"
+        headerValue = "Value"
         cellEditor = MyCellEditor()
         cellRenderer = MyCellRenderer()
       })

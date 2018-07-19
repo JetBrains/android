@@ -64,8 +64,10 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
   public void run(@NotNull ProgressIndicator indicator) {
     LayoutInspectorCaptureOptions options = new LayoutInspectorCaptureOptions();
     options.setTitle(myWindow.getDisplayName());
+    ProtocolVersion version =
+      determineProtocolVersion(myClient.getDevice().getVersion().getApiLevel(), StudioFlags.LAYOUT_INSPECTOR_V2_PROTOCOL_ENABLED.get());
     options.setVersion(
-      determineProtocolVersion(myClient.getDevice().getVersion().getApiLevel(), StudioFlags.LAYOUT_INSPECTOR_V2_PROTOCOL_ENABLED.get()));
+      version);
 
     // Capture view hierarchy
     indicator.setText("Capturing View Hierarchy");
@@ -74,6 +76,12 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
     long startTimeMs = System.currentTimeMillis();
     LayoutInspectorResult result = LayoutInspectorBridge.captureView(myWindow, options);
     long captureDurationMs = System.currentTimeMillis() - startTimeMs;
+    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
+             .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(myClient.getDevice()))
+             .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
+                                        .setType(LayoutInspectorEvent.LayoutInspectorEventType.CAPTURE)
+                                        .setDurationInMs(captureDurationMs)
+                                        .setDataSize(result.getError().isEmpty() ? result.getData().length : 0)));
 
     String projectId = myClient.getClientData().getPackageName();
     UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
@@ -84,6 +92,7 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
                                                                                     .setType(
                                                                                       LayoutInspectorEvent.LayoutInspectorEventType.CAPTURE)
                                                                                     .setDurationInMs(captureDurationMs)
+                                                                                    .setVersion(version.ordinal() + 1)
                                                                                     .setDataSize(result.getError().isEmpty()
                                                                                                  ? result.getData().length
                                                                                                  : 0)));

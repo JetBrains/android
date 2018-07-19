@@ -437,7 +437,7 @@ final class MemoryClassifierView extends AspectObserver {
       }
     }
 
-    if (myStage.getCaptureFilter() != null) {
+    if (!myStage.getFilterHandler().getFilter().isEmpty()) {
       MemoryClassifierTreeNode treeNode = myTreeRoot;
       while (treeNode != null) {
         if (treeNode.getAdapter().getIsMatched()) {

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.li
 
 import com.android.ide.common.gradle.model.level2.IdeJavaLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.JavaLibrary
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldJavaDependency
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.LibraryProto
 import java.io.File
@@ -25,6 +26,11 @@ data class NewJavaLibrary(override val artifact: File, override val artifactAddr
   constructor(library: IdeJavaLibrary) : this(
     library.artifact,
     library.artifactAddress
+  )
+
+  constructor(library: OldJavaDependency) : this(
+    library.jarFile!!,
+    library.name
   )
 
   constructor(proto: LibraryProto.JavaLibrary, converter: PathConverter) : this(

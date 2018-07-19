@@ -46,7 +46,7 @@ class GradleModuleSystemTest : IdeaTestCase() {
     super.setUp()
     gradleDependencyManager = IdeComponents(myProject).mockProjectService(GradleDependencyManager::class.java)
     gradleProjectSystem = GradleProjectSystem(myModule.project, mavenRepository)
-    gradleModuleSystem = GradleModuleSystem(myModule, mavenRepository)
+    gradleModuleSystem = GradleModuleSystem(myModule)
   }
 
   fun testRegisterDependency() {

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.android.SdkConstants;
 import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
@@ -48,8 +47,8 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
     super.setUp();
 
     scheduler = new VirtualTimeScheduler();
-    myUsageTracker = new TestUsageTracker(new AnalyticsSettings(), scheduler);
-    UsageTracker.setInstanceForTest(myUsageTracker);
+    myUsageTracker = new TestUsageTracker(scheduler);
+    UsageTracker.setWriterForTest(myUsageTracker);
   }
 
   @Override

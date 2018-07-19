@@ -251,11 +251,12 @@ public class ChooseResourceDialogTest {
     // string here, but after switching away from HTML labels to IntelliJ's ColoredTableCellRenderer,
     // this is no longer visible from the table fixture.
     dialog.getSearchField().enterText("app");
-    assertEquals("Project                                                                         \n" +
-                 "app_name                                                                        \n" +
-                 "android                                                                         \n" +
-                 "Theme attributes                                                                \n",
-                 tableToString(nameTable, 0, 6, 0, 1, 80));
+    assertThat(tableToString(nameTable, 0, 6, 0, 1, 80))
+      .isEqualTo(
+        "Project                                                                         \n" +
+        "app_name                                                                        \n" +
+        "android                                                                         \n"
+      );
 
     JTableFixture valueTable = dialog.getResourceValueTable();
     assertEquals("Default                                 Simple Application                      \n" +
@@ -361,10 +362,8 @@ public class ChooseResourceDialogTest {
     tabs.requireTabTitles("Drawable", "Color");
     dialog.clickOnTab("Color");
 
-    dialog.getSearchField().enterText("actionMenuTextColor");
-    JListFixture themeAttrList = dialog.getList("Theme attributes", 1);
-
-    Wait.seconds(1).expecting("theme attributes to be filtered").until(() -> listToString(themeAttrList).isEmpty());
+    dialog.getSearchField().enterText("color_state");
+    assertThat(dialog.getAllListsInSelectedTab()).doesNotContain("Project");
 
     dialog.clickCancel();
   }

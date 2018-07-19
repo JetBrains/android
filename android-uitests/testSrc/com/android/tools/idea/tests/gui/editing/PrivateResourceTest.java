@@ -64,7 +64,7 @@ public class PrivateResourceTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/111399767
   public void verifyNoPrivateResourcesSuggested() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("PrivateResource");
 
@@ -83,7 +83,9 @@ public class PrivateResourceTest {
 
     String[] autoCompleteSuggestions = editor.waitUntilErrorAnalysisFinishes()
       .select("(\"@string/app_name\")")
-      .enterText("\"@string/")
+      .enterText("\"\"")
+      .moveBetween("\"", "\"")
+      .enterText("@string/")
       .getAutoCompleteWindow()
       .contents();
 

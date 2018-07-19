@@ -21,10 +21,10 @@ import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.util.PositionInFile;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.util.PositionInFile;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -141,8 +141,9 @@ public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
 
     assertNull(mySyncMessagesStub.getFirstReportedMessage());
 
-    NotificationData notification = mySyncMessagesStub.getNotification();
-    assertNotNull(notification);
+    List<NotificationData> notifications = mySyncMessagesStub.getNotifications();
+    assertSize(1, notifications);
+    assertNotNull(notifications.get(0));
 
     assertTrue(myErrorHandler.isInvoked());
   }

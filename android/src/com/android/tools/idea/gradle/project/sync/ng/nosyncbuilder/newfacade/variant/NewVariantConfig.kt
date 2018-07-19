@@ -27,6 +27,7 @@ import java.io.File
 data class NewVariantConfig(
   override val name: String,
   override val resValues: Map<String, ClassField>,
+  override val proguardFiles: Collection<File>,
   override val consumerProguardFiles: Collection<File>,
   override val manifestPlaceholders: Map<String, String>,
   override val isDebuggable: Boolean,
@@ -42,6 +43,7 @@ data class NewVariantConfig(
     mergedFlavor.resValues.mapValues {
       NewClassField(it.value)
     },
+    mergedFlavor.proguardFiles,
     mergedFlavor.consumerProguardFiles,
     mergedFlavor.manifestPlaceholders.mapValues { it.value.toString() },
     isDebuggable,
@@ -56,6 +58,7 @@ data class NewVariantConfig(
   constructor(proto: VariantProto.VariantConfig, converter: PathConverter) : this(
     proto.name,
     proto.resValuesMap.mapValues { NewClassField(it.value) },
+    proto.proguardFilesList.map { converter.fileFromProto(it) },
     proto.consumerProguardFilesList.map { converter.fileFromProto(it) },
     proto.manifestPlaceholdersMap,
     proto.debuggable,

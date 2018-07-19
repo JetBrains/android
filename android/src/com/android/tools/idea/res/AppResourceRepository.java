@@ -18,7 +18,10 @@ package com.android.tools.idea.res;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.util.PathString;
+import com.android.projectmodel.AarLibrary;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.aar.AarResourceRepositoryCache;
 import com.android.tools.idea.res.aar.AarSourceResourceRepository;
@@ -30,7 +33,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +40,6 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.FD_RES;
-import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 
 /**
  * @see ResourceRepositoryManager#getAppResources(boolean)
@@ -84,10 +85,9 @@ class AppResourceRepository extends MultiResourceRepository {
 
   private static List<LocalResourceRepository> computeRepositories(@NotNull AndroidFacet facet,
                                                                    List<AarSourceResourceRepository> libraries) {
-    List<LocalResourceRepository> repositories = new ArrayList<>(10);
-    LocalResourceRepository resources = ResourceRepositoryManager.getProjectResources(facet);
+    List<LocalResourceRepository> repositories = new ArrayList<>(libraries.size() + 2);
     repositories.addAll(libraries);
-    repositories.add(resources);
+    repositories.add(ResourceRepositoryManager.getProjectResources(facet));
     repositories.add(SampleDataResourceRepository.getInstance(facet));
     return repositories;
   }
@@ -97,39 +97,34 @@ class AppResourceRepository extends MultiResourceRepository {
       LOG.debug("computeLibraries");
     }
 
-    List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
-    // Sort alphabetically to ensure that we keep a consistent order of these libraries.
-    // Otherwise when we jump from libraries initialized from IntelliJ library binary paths
-    // to gradle project state, the order difference will cause the merged project resource
-    // maps to be recomputed.
-    Map<File, String> aarDirs = new TreeMap<>(ResourceRepositoryManager.findAarLibraries(facet, dependentFacets));
-
-    if (aarDirs.isEmpty()) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("  No AARs");
-      }
-
-      return Collections.emptyList();
-    }
-
-    if (LOG.isDebugEnabled()) {
-      for (String libraryName : aarDirs.values()) {
-        LOG.debug("  Dependency: " + anonymizeClassName(libraryName));
-      }
-    }
-
     AaptOptions.Namespacing namespacing = ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing();
-    List<AarSourceResourceRepository> resources = new ArrayList<>(aarDirs.size());
-    // TODO: Load AAR repositories on multiple threads.
-    for (Map.Entry<File, String> entry : aarDirs.entrySet()) {
-      File directory = entry.getKey();
-      String libraryName = entry.getValue();
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("  Dependency: " + anonymizeClassName(libraryName));
+    Map<String, AarLibrary> aarDependencies = AndroidProjectModelUtils.findAarDependencies(facet.getModule());
+    List<AarSourceResourceRepository> result = new ArrayList<>(aarDependencies.size());
+    for (AarLibrary aarLibrary: aarDependencies.values()) {
+      if (namespacing == AaptOptions.Namespacing.DISABLED) {
+        File resFolder = aarLibrary.getResFolder().toFile();
+        if (resFolder == null) {
+          LOG.warn("Cannot find res folder for " + aarLibrary.getAddress());
+          continue;
+        }
+        result.add(AarResourceRepositoryCache.getInstance().getSourceRepository(resFolder, aarLibrary.getAddress()));
+      } else {
+        PathString resApkPath = aarLibrary.getResApkFile();
+        if (resApkPath == null) {
+          LOG.warn("No res.apk for " + aarLibrary.getAddress());
+          continue;
+        }
+
+        File resApkFile = resApkPath.toFile();
+        if (resApkFile == null) {
+          LOG.warn("Cannot find res.apk for " + aarLibrary.getAddress());
+          continue;
+        }
+
+        result.add(AarResourceRepositoryCache.getInstance().getProtoRepository(resApkFile, aarLibrary.getAddress()));
       }
-      resources.add(AarResourceRepositoryCache.getInstance().get(directory, namespacing, libraryName));
     }
-    return resources;
+    return result;
   }
 
   protected AppResourceRepository(@NotNull AndroidFacet facet,

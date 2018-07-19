@@ -15,10 +15,7 @@
  */
 package com.android.tools.adtui.ptable2.impl
 
-import com.android.tools.adtui.ptable2.PTableColumn
-import com.android.tools.adtui.ptable2.PTableGroupItem
-import com.android.tools.adtui.ptable2.PTableItem
-import com.android.tools.adtui.ptable2.PTableModel
+import com.android.tools.adtui.ptable2.*
 import javax.swing.table.AbstractTableModel
 
 /**
@@ -30,6 +27,14 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
 
   init {
     items.addAll(tableModel.items)
+    tableModel.addListener(object : PTableModelUpdateListener {
+      override fun itemsUpdated() {
+        items.clear()
+        items.addAll(tableModel.items)
+        expandedItems.forEach { restoreExpanded(it) }
+        fireTableDataChanged()
+      }
+    })
   }
 
   override fun getRowCount() = items.count()
@@ -74,8 +79,14 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     if (index < 0 || index >= items.size) {
       return null
     }
-
     return items[index] as? PTableGroupItem
+  }
+
+  private fun restoreExpanded(item: PTableGroupItem) {
+    val index = items.indexOf(item)
+    if (index >= 0) {
+      items.addAll(index + 1, item.children)
+    }
   }
 
   private fun expand(item: PTableGroupItem, index: Int) {

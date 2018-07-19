@@ -21,12 +21,11 @@ import com.intellij.util.ui.JBUI
  * Standard UI Component Dimensions.
  */
 object StandardDimensions {
+  val COMBO_LEFT_PADDING = JBUI.scale(7)
   val HORIZONTAL_PADDING = JBUI.scale(6)
   val VERTICAL_PADDING = JBUI.scale(1)
   val INNER_BORDER_WIDTH = JBUI.scale(1f)
   val OUTER_BORDER_WIDTH = JBUI.scale(2f)
-  val TEXT_FIELD_CORNER_RADIUS = JBUI.scale(1f)
-  val DROPDOWN_CORNER_RADIUS = JBUI.scale(4f)
   val DROPDOWN_ARROW_WIDTH = JBUI.scale(8f)
   val DROPDOWN_ARROW_HEIGHT = JBUI.scale(5f)
   val DROPDOWN_ARROW_HORIZONTAL_PADDING = JBUI.scale(4f)

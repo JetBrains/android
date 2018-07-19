@@ -20,14 +20,17 @@ import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.fields.ExtendableTextComponent
 import com.intellij.ui.components.fields.ExtendableTextField
+import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.StatusText
-import java.awt.Component
-import java.awt.Graphics
-import java.awt.Insets
+import java.awt.*
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
-import javax.swing.*
+import javax.swing.DefaultComboBoxModel
+import javax.swing.JList
+import javax.swing.JTextField
+import javax.swing.ListCellRenderer
 import javax.swing.border.Border
 import javax.swing.plaf.basic.BasicComboBoxEditor
 
@@ -45,7 +48,7 @@ abstract class RenderedComboBox<T>(
   private val itemsModel: DefaultComboBoxModel<T>
 ) : ComboBox<T>() {
 
-  interface Extension : ExtendableTextField.Extension
+  interface Extension : ExtendableTextComponent.Extension
 
   protected var lastValueSet: T? = null
     private set
@@ -87,14 +90,16 @@ abstract class RenderedComboBox<T>(
     }
   }
 
+  private var currentStatusTriggerText: String? = null
+
   override fun selectedItemChanged() {
     @Suppress("UNCHECKED_CAST")
     val value = selectedItem as T?
     super.selectedItemChanged()
     val jbTextField = comboBoxEditor.editorComponent
+    currentStatusTriggerText = toEditorText(value)
     val emptyText = jbTextField.emptyText
     emptyText.clear()
-    jbTextField.setTextToTriggerEmptyTextStatus(toEditorText(value))
     emptyText.toRenderer().renderCell(value)
   }
 
@@ -106,9 +111,14 @@ abstract class RenderedComboBox<T>(
   fun setKnownValues(knownValues: List<T>) {
     beingLoaded = true
     try {
+      val prevItemCount = itemsModel.size
       val selectedItem = itemsModel.selectedItem
       itemsModel.removeAllElements()
       knownValues.forEach { itemsModel.addElement(it) }
+      if (isPopupVisible &&prevItemCount == 0) {
+        hidePopup()
+        showPopup()
+      }
       itemsModel.selectedItem = selectedItem
     }
     finally {
@@ -128,31 +138,30 @@ abstract class RenderedComboBox<T>(
     override fun createEditorComponent(): JTextField {
       val field =
         object : ExtendableTextField() {
-          var ignoreBorderChange: Boolean = false
-
           init {
             setExtensions(createEditorExtensions())
           }
 
-          override fun setBorder(border: Border?) {
-            // ComboBox sets empty borders and we need to reserve space for icons. If [ExtendableTextField] is used as a standalone
-            // component it creates DarculaTextBorder which which similarly reserves the required space.
-            // We do not check whether [border] is [DarculaTextBorder] here to avoid not necessary dependencies.
-            ignoreBorderChange = true
-            try {
-              super.setBorder(border?.adjustBorder(this))
-            }
-            finally {
-              ignoreBorderChange = false
-            }
-          }
+          override fun paintComponent(g: Graphics) {
+            super.paintComponent(g)
+            if (!currentStatusTriggerText.isNullOrEmpty() && !isFocusOwner) {
+              g.color = background
 
-          override fun firePropertyChange(propertyName: String?, oldValue: Any?, newValue: Any?) {
-            // Prevent a StackOverflow caused by both this class and MacIntelliJComboBoxUI hooking setBorder in the same way.
-            if (ignoreBorderChange && propertyName == "border") return
-            super.firePropertyChange(propertyName, oldValue, newValue)
+              val rect = Rectangle(size)
+              val insets = insets
+              JBInsets.removeFrom(rect, insets)
+              JBInsets.removeFrom(rect, margin)
+              (g as Graphics2D).fill(rect)
+
+              g.setColor(foreground)
+            }
+            emptyText.component.font = font
+            setTextToTriggerEmptyTextStatus(currentStatusTriggerText)
+            emptyText.paint(this, g)
+            setTextToTriggerEmptyTextStatus("")
           }
         }
+
       field.addFocusListener(object : FocusListener {
         override fun focusGained(e: FocusEvent) {
           update(e)

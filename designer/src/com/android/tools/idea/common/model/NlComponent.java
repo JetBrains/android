@@ -748,7 +748,7 @@ public class NlComponent implements NlAttributesHolder {
     }
     receiver.addChild(this, before);
     if (receiver.getTag() != getTag()) {
-      transferNamespaces();
+      transferNamespaces(receiver);
       XmlTag prev = getTag();
       if (before != null) {
         setTag((XmlTag)receiver.getTag().addBefore(getTag(), before.getTag()));
@@ -760,7 +760,6 @@ public class NlComponent implements NlAttributesHolder {
         prev.delete();
       }
     }
-    removeNamespaceAttributes();
   }
 
   public void postCreateFromTransferrable(@NotNull DnDTransferComponent dndComponent) {
@@ -779,16 +778,43 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   /**
-   * Given a root tag which is not yet part of the current document, (1) look up any namespaces defined on that root tag, transfer
-   * those to the current document, and (2) update all attribute prefixes for namespaces to match those in the current document
+   * Given a tag on the current component which is not yet part of the current
+   * document and a receiver component where the tag is going to be added:
+   * <ul>
+   *   <li>look up any namespaces defined on the receiver or its parents</li>
+   *   <li>look up any namespaces defined on the current new tag</li>
+   * </ul>
+   * and transfer all those namespace declarations to the current document
    */
-  private void transferNamespaces() {
-    // Transfer namespace attributes
-    XmlFile file = getModel().getFile();
-    XmlDocument xmlDocument = file.getDocument();
-    assert xmlDocument != null;
-    XmlTag rootTag = xmlDocument.getRootTag();
-    assert rootTag != null;
+  private void transferNamespaces(@NotNull NlComponent receiver) {
+    XmlTag rootTag = getDocumentRoot();
+    XmlTag tag = receiver.getTag();
+    while (tag != null && tag != rootTag) {
+      if (!tag.getLocalNamespaceDeclarations().isEmpty()) {
+        // This is done to cleanup after a manual change of the Xml file.
+        // See b/78318923
+        receiver.transferLocalNamespaces();
+      }
+
+      receiver = receiver.getParent();
+      tag = receiver != null ? receiver.getTag() : null;
+    }
+    transferLocalNamespaces();
+  }
+
+  /**
+   * Given a tag on the current component:
+   * <ul>
+   *   <li>transfer any namespaces to the rootTag of the current document</li>
+   *   <li>update all attribute prefixes for namespaces to match those in the rootTag</li>
+   * </ul>
+   */
+  private void transferLocalNamespaces() {
+    XmlTag rootTag = getDocumentRoot();
+    if (rootTag == this) {
+      return;
+    }
+    // Transfer namespace attributes to the root tag
     Map<String, String> prefixToNamespace = rootTag.getLocalNamespaceDeclarations();
     Map<String, String> namespaceToPrefix = Maps.newHashMap();
     for (Map.Entry<String, String> entry : prefixToNamespace.entrySet()) {
@@ -802,6 +828,7 @@ public class NlComponent implements NlAttributesHolder {
       String currentPrefix = namespaceToPrefix.get(namespace);
       if (currentPrefix == null) {
         // The namespace isn't used in the document. Import it.
+        XmlFile file = getModel().getFile();
         String newPrefix = AndroidResourceUtil.ensureNamespaceImported(file, namespace, prefix);
         if (!prefix.equals(newPrefix)) {
           // We imported the namespace, but the prefix used in the new document isn't available
@@ -820,6 +847,18 @@ public class NlComponent implements NlAttributesHolder {
     if (!oldPrefixToPrefix.isEmpty()) {
       updatePrefixes(getTag(), oldPrefixToPrefix);
     }
+
+    removeNamespaceAttributes();
+  }
+
+  @NotNull
+  private XmlTag getDocumentRoot() {
+    XmlFile file = getModel().getFile();
+    XmlDocument xmlDocument = file.getDocument();
+    assert xmlDocument != null;
+    XmlTag rootTag = xmlDocument.getRootTag();
+    assert rootTag != null;
+    return rootTag;
   }
 
   /**

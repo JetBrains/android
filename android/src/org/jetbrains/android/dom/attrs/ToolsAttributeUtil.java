@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom.attrs;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -56,7 +57,7 @@ public class ToolsAttributeUtil {
   public static final String ATTR_REPLACE = "replace";
   public static final String ATTR_OVERRIDE_LIBRARY = "overrideLibrary";
 
-  /** List of all the tools namespace attributes and its attribute format */
+  /** List of all the tools namespace attributes and their formats. */
   private static final ImmutableMap<String, List<AttributeFormat>> ATTRIBUTES = ImmutableMap.<String, List<AttributeFormat>>builder()
     // Layout files attributes
     .put(ATTR_ACTION_BAR_NAV_MODE, singletonList(AttributeFormat.FLAGS))
@@ -137,15 +138,6 @@ public class ToolsAttributeUtil {
     }
 
     Collection<AttributeFormat> formats = ATTRIBUTES.get(name);
-    AttributeDefinition def = new ToolsAttributeDefinition(name);
-    def.addFormats(formats);
-
-    return def;
-  }
-
-  public static class ToolsAttributeDefinition extends AttributeDefinition {
-    public ToolsAttributeDefinition(@NotNull String name) {
-      super(name);
-    }
+    return new AttributeDefinition(ResourceNamespace.TOOLS, name, null, formats);
   }
 }

@@ -38,7 +38,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule);
@@ -52,7 +52,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = moduleWithoutSyncedModel(project, "app")
     assertNotNull(appModule);
@@ -66,7 +66,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -78,7 +78,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.applyChanges()
 
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
@@ -91,7 +91,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -99,12 +99,13 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.removeFlavorDimension("bar")
     // A product flavor must be removed for successful sync.
     appModule.removeProductFlavor(appModule.findProductFlavor("bar")!!)
+    appModule.removeProductFlavor(appModule.findProductFlavor("otherBar")!!)
     var flavorDimensions = getFlavorDimensions(appModule)
     assertThat(flavorDimensions).containsExactly("foo", "bar").inOrder()
     appModule.applyChanges()
 
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
@@ -120,7 +121,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -143,7 +144,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = moduleWithoutSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -166,7 +167,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -187,7 +188,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
@@ -204,37 +205,37 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
     var productFlavors = appModule.productFlavors
     assertThat(productFlavors.map { it.name })
-      .containsExactly("basic", "paid", "bar").inOrder()
+      .containsExactly("basic", "paid", "bar", "otherBar").inOrder()
 
     appModule.removeProductFlavor(appModule.findProductFlavor("paid")!!)
 
     productFlavors = appModule.productFlavors
     assertThat(productFlavors.map { it.name })
-      .containsExactly("basic", "bar").inOrder()
+      .containsExactly("basic", "bar", "otherBar").inOrder()
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
     productFlavors = appModule.productFlavors
     assertThat(productFlavors.map { it.name })
-      .containsExactly("basic", "bar").inOrder()
+      .containsExactly("basic", "bar", "otherBar").inOrder()
   }
 
   fun testBuildTypes() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val libModule = moduleWithSyncedModel(project, "lib")
     assertNotNull(libModule)
@@ -257,7 +258,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val libModule = moduleWithoutSyncedModel(project, "lib")
     assertNotNull(libModule)
@@ -275,7 +276,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -296,7 +297,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
@@ -313,30 +314,30 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
     var buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
-      .containsExactly("release", "debug").inOrder()
+      .containsExactly("release", "specialRelease", "debug").inOrder()
 
     appModule.removeBuildType(appModule.findBuildType("release")!!)
 
     buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
-      .containsExactly("debug")
+      .containsExactly("specialRelease", "debug")
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
     buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
-      .containsExactly("debug", "release").inOrder()  // "release" is not declared and goes last.
+      .containsExactly("specialRelease", "debug", "release").inOrder()  // "release" is not declared and goes last.
 
     val release = appModule.findBuildType("release")
     assertNotNull(release)
@@ -347,7 +348,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -380,7 +381,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -396,7 +397,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(BASIC)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
@@ -417,7 +418,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(BASIC)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
@@ -436,7 +437,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
 
@@ -448,7 +449,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(BASIC)
 
     val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject)
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
@@ -464,7 +465,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     appModule.applyChanges()
     requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
 
@@ -476,12 +477,12 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(BASIC)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
 
-    appModule.buildTypes[0].jniDebuggable = true.asParsed()
+    appModule.buildTypes.toList()[0].jniDebuggable = true.asParsed()
     project.applyChanges()
     assertThat(appModule).isSameAs(project.findModuleByGradlePath(":") as PsAndroidModule?)
 
@@ -503,7 +504,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     (project.findModuleByGradlePath(":app") as PsAndroidModule?).let { appModule ->
       assertNotNull(appModule); appModule!!
@@ -524,8 +525,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
         assertThat(debugBuildType.jniDebuggable).isEqualTo(true.asParsed())
         assertThat(PsBuildType.BuildTypeDescriptors.jniDebuggable.bind(debugBuildType).getValue().annotation).isNull()
 
-        assertThat(appModule.buildTypes.map { it.name }).containsExactly("debug", "release")
-        assertThat(appModule.productFlavors.map { it.name }).containsExactly("basic", "paid", "bar")
+        assertThat(appModule.buildTypes.map { it.name }).containsExactly("debug", "release", "specialRelease")
+        assertThat(appModule.productFlavors.map { it.name }).containsExactly("basic", "paid", "bar", "otherBar")
         assertThat(appModule.signingConfigs.map { it.name }).containsExactly("myConfig", "debug")
         assertThat(appModule.dependencies.items.map { "${it.joinedConfigurationNames} ${it.name}" }).containsExactly("api appcompat-v7")
       }
@@ -568,7 +569,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(BASIC)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val module = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(module); module!!
@@ -584,7 +585,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
@@ -592,46 +593,85 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(appModule.getConfigurations()).containsExactly(
       "implementation",
       "releaseImplementation",
+      "specialReleaseImplementation",
       "debugImplementation",
       "basicImplementation",
       "basicReleaseImplementation",
+      "basicSpecialReleaseImplementation",
       "basicDebugImplementation",
       "paidImplementation",
       "paidReleaseImplementation",
+      "paidSpecialReleaseImplementation",
       "paidDebugImplementation",
       "barImplementation",
       "barReleaseImplementation",
+      "barSpecialReleaseImplementation",
       "barDebugImplementation",
+      "otherBarImplementation",
+      "otherBarReleaseImplementation",
+      "otherBarSpecialReleaseImplementation",
+      "otherBarDebugImplementation",
       "basicBarImplementation",
       "basicBarReleaseImplementation",
+      "basicBarSpecialReleaseImplementation",
       "basicBarDebugImplementation",
       "paidBarImplementation",
       "paidBarReleaseImplementation",
+      "paidBarSpecialReleaseImplementation",
       "paidBarDebugImplementation",
+      "basicOtherBarImplementation",
+      "basicOtherBarReleaseImplementation",
+      "basicOtherBarSpecialReleaseImplementation",
+      "basicOtherBarDebugImplementation",
+      "paidOtherBarImplementation",
+      "paidOtherBarReleaseImplementation",
+      "paidOtherBarSpecialReleaseImplementation",
+      "paidOtherBarDebugImplementation",
       "testImplementation",
       "testReleaseImplementation",
+      "testSpecialReleaseImplementation",
       "testDebugImplementation",
       "testBasicImplementation",
       "testBasicReleaseImplementation",
+      "testBasicSpecialReleaseImplementation",
       "testBasicDebugImplementation",
       "testPaidImplementation",
       "testPaidReleaseImplementation",
+      "testPaidSpecialReleaseImplementation",
       "testPaidDebugImplementation",
       "testBarImplementation",
       "testBarReleaseImplementation",
+      "testBarSpecialReleaseImplementation",
       "testBarDebugImplementation",
+      "testOtherBarImplementation",
+      "testOtherBarReleaseImplementation",
+      "testOtherBarSpecialReleaseImplementation",
+      "testOtherBarDebugImplementation",
       "testBasicBarImplementation",
       "testBasicBarReleaseImplementation",
+      "testBasicBarSpecialReleaseImplementation",
       "testBasicBarDebugImplementation",
       "testPaidBarImplementation",
       "testPaidBarReleaseImplementation",
+      "testPaidBarSpecialReleaseImplementation",
       "testPaidBarDebugImplementation",
+      "testBasicOtherBarImplementation",
+      "testBasicOtherBarReleaseImplementation",
+      "testBasicOtherBarSpecialReleaseImplementation",
+      "testBasicOtherBarDebugImplementation",
+      "testPaidOtherBarImplementation",
+      "testPaidOtherBarReleaseImplementation",
+      "testPaidOtherBarSpecialReleaseImplementation",
+      "testPaidOtherBarDebugImplementation",
       "androidTestImplementation",
       "androidTestBasicImplementation",
       "androidTestPaidImplementation",
       "androidTestBarImplementation",
       "androidTestBasicBarImplementation",
-      "androidTestPaidBarImplementation")
+      "androidTestPaidBarImplementation",
+      "androidTestOtherBarImplementation",
+      "androidTestBasicOtherBarImplementation",
+      "androidTestPaidOtherBarImplementation")
   }
 }
 

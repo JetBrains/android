@@ -42,6 +42,7 @@ public abstract class GradleDslBlockModel implements GradleDslModel {
     myDslElement = dslElement;
   }
 
+  @Override
   @Nullable
   public PsiElement getPsiElement() {
     return myDslElement.getPsiElement();

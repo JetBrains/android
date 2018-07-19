@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
@@ -111,10 +112,9 @@ public class NlPropertyItemTest extends PropertyTestCase {
   }
 
   public void testCreateForToolAttributes() {
-    AttributeDefinition definition = mock(AttributeDefinition.class);
-    when(definition.getName()).thenReturn(ATTR_CONTEXT);
+    AttributeDefinition definition = new AttributeDefinition(ResourceNamespace.TOOLS, ATTR_CONTEXT);
     NlPropertyItem item =
-      NlPropertyItem.create(new XmlName(ATTR_CONTEXT, TOOLS_URI), definition, ImmutableList.of(myMerge), myPropertiesManager);
+        NlPropertyItem.create(new XmlName(ATTR_CONTEXT, TOOLS_URI), definition, ImmutableList.of(myMerge), myPropertiesManager);
     assertThat(item).isNotInstanceOf(NlFlagPropertyItem.class);
     assertThat(item).isNotInstanceOf(NlIdPropertyItem.class);
     assertThat(item.getName()).isEqualTo(ATTR_CONTEXT);
@@ -241,7 +241,6 @@ public class NlPropertyItemTest extends PropertyTestCase {
     text.setValue("Hello World");
     UIUtil.dispatchAllInvocationEvents();
     assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_TEXT)).isEqualTo("Hello World");
-    verify(myUsageTracker).logPropertyChange(text, PropertiesViewMode.INSPECTOR, -1);
   }
 
   public void testSetValueWithDefaultValue() {
@@ -266,7 +265,6 @@ public class NlPropertyItemTest extends PropertyTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     assertThat(myMerge.getAttribute(TOOLS_URI, ATTR_PARENT_TAG)).isEqualTo(LINEAR_LAYOUT);
-    verify(myUsageTracker).logPropertyChange(parentTag, PropertiesViewMode.INSPECTOR, -1);
     assertThat(myPropertiesManager.getUpdateCount()).isEqualTo(originalUpdateCount + 1);
     assertThat(getDescriptor(myMerge, ATTR_ORIENTATION)).isNotNull();
   }
@@ -291,7 +289,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
     NlPropertyItem text = createFrom(myTextView, ATTR_TEXT);
 
     assertThat(text.toString()).isEqualTo("@android:text");
-    assertThat(text.getTooltipText()).startsWith("@android:text:  Text to display.");
+    assertThat(text.getTooltipText()).isEqualTo("@android:text: Text to display.");
     assertThat(text.isEditable(1)).isTrue();
   }
 

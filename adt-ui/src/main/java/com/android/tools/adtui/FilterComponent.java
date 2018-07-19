@@ -16,34 +16,30 @@
 package com.android.tools.adtui;
 
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.adtui.model.filter.FilterModel;
 import com.android.tools.adtui.stdui.CommonToggleButton;
-import com.android.tools.adtui.model.FilterModel;
 import com.intellij.openapi.keymap.KeymapUtil;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.SearchTextField;
 import com.intellij.util.Alarm;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.function.BiConsumer;
-import java.util.regex.Pattern;
-
-import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static java.awt.event.InputEvent.META_DOWN_MASK;
+import java.text.DecimalFormat;
 
 /**
  * A modified version of IJ's FilterComponent that allows users to specify a custom delay between typing and
  * the filter box triggering a change event.
  */
 
-public class FilterComponent extends JPanel {
+public final class FilterComponent extends JPanel {
   static final String OPEN_AND_FOCUS_ACTION = "OpenAndFocusSearchAction";
   static final String CLOSE_ACTION = "CloseSearchAction";
   static final KeyStroke FILTER_KEY_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask());
@@ -54,12 +50,13 @@ public class FilterComponent extends JPanel {
 
   private JCheckBox myRegexCheckBox;
   private JCheckBox myMatchCaseCheckBox;
-  private final SearchTextField myFilter;
+  private JLabel myCountLabel;
+  private final SearchTextField mySearchField;
   private final Alarm myUpdateAlarm = new Alarm();
   private final int myDelayMs;
 
   public FilterComponent(int textFieldWidth, int historySize, int delayMs) {
-    super(new TabularLayout("4px," + textFieldWidth + "px,5px,Fit-,5px,Fit-", "Fit-"));
+    super(new TabularLayout("4px," + textFieldWidth + "px,5px,Fit-,5px,Fit-,20px,Fit-", "Fit-"));
     myDelayMs = delayMs;
     myModel = new FilterModel();
     addComponentListener(new ComponentAdapter() {
@@ -71,19 +68,19 @@ public class FilterComponent extends JPanel {
     });
 
     // Configure filter text field
-    myFilter = new SearchTextField() {
+    mySearchField = new SearchTextField() {
       @Override
       protected Runnable createItemChosenCallback(JList list) {
         final Runnable callback = super.createItemChosenCallback(list);
         return () -> {
           callback.run();
-          filter();
+          updateModel();
         };
       }
 
       @Override
       protected Component getPopupLocationComponent() {
-        return FilterComponent.this.getPopupLocationComponent();
+        return mySearchField;
       }
 
       @Override
@@ -92,41 +89,43 @@ public class FilterComponent extends JPanel {
         super.onFocusLost();
       }
     };
-    myFilter.getTextEditor().addKeyListener(new KeyAdapter() {
+    mySearchField.getTextEditor().addKeyListener(new KeyAdapter() {
       //to consume enter in combo box - do not process this event by default button from DialogWrapper
       @Override
       public void keyPressed(final KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
           e.consume();
-          myFilter.addCurrentTextToHistory();
-          filter();
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-          onEscape(e);
+          mySearchField.addCurrentTextToHistory();
+          updateModel();
         }
       }
     });
 
-    myFilter.addDocumentListener(new DocumentListener() {
+    mySearchField.addDocumentListener(new DocumentListener() {
       @Override
       public void insertUpdate(DocumentEvent e) {
-        onChange();
+        onChanged();
       }
 
       @Override
       public void removeUpdate(DocumentEvent e) {
-        onChange();
+        onChanged();
       }
 
       @Override
       public void changedUpdate(DocumentEvent e) {
-        onChange();
+        onChanged();
+      }
+
+      private void onChanged() {
+        myUpdateAlarm.cancelAllRequests();
+        myUpdateAlarm.addRequest(() -> updateModel(), myDelayMs);
       }
     });
 
-    myFilter.setHistorySize(historySize);
+    mySearchField.setHistorySize(historySize);
 
-    add(myFilter, new TabularLayout.Constraint(0, 1));
+    add(mySearchField, new TabularLayout.Constraint(0, 1));
 
     // Configure check boxes
     myMatchCaseCheckBox = new JCheckBox(MATCH_CASE);
@@ -135,7 +134,7 @@ public class FilterComponent extends JPanel {
     myMatchCaseCheckBox.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
-        myModel.setIsMatchCase(e.getStateChange() == ItemEvent.SELECTED);
+        updateModel();
       }
     });
     add(myMatchCaseCheckBox, new TabularLayout.Constraint(0, 3));
@@ -145,50 +144,35 @@ public class FilterComponent extends JPanel {
     myRegexCheckBox.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
-        myModel.setIsRegex(e.getStateChange() == ItemEvent.SELECTED);
+        updateModel();
       }
     });
     add(myRegexCheckBox, new TabularLayout.Constraint(0, 5));
+
+    myCountLabel = new JLabel();
+    myCountLabel.setFont(myCountLabel.getFont().deriveFont(Font.BOLD));
+    add(myCountLabel, new TabularLayout.Constraint(0, 7));
+
+    myModel.addMatchResultListener(result -> {
+      String text = "";
+      if (result.isFilterEnabled()) {
+        int count = result.getMatchCount();
+        if (count == 0) {
+          text = "No matches";
+        }
+        else if (count == 1) {
+          text = "One match";
+        }
+        else {
+          text = new DecimalFormat("#,###").format(count) + " matches";
+        }
+      }
+      myCountLabel.setText(text);
+    });
   }
 
-  protected JComponent getPopupLocationComponent() {
-    return myFilter;
-  }
-
-  public JTextField getTextEditor() {
-    return myFilter.getTextEditor();
-  }
-
-  private void onChange() {
-    myUpdateAlarm.cancelAllRequests();
-    myUpdateAlarm.addRequest(() -> filter(), myDelayMs);
-  }
-
-  public void reset() {
-    myFilter.reset();
-  }
-
-  protected void onEscape(KeyEvent e) {
-  }
-
-  public String getFilter() {
-    return myFilter.getText();
-  }
-
-  public void setSelectedItem(final String filter) {
-    myFilter.setSelectedItem(filter);
-  }
-
-  public void setFilter(final String filter) {
-    myFilter.setText(filter);
-  }
-
-  public void selectText() {
-    myFilter.selectText();
-  }
-
-  private void filter() {
-    myModel.setFilterString(getFilter());
+  public void setFilterText(final String filterText) {
+    mySearchField.setText(filterText);
   }
 
   @NotNull
@@ -198,26 +182,17 @@ public class FilterComponent extends JPanel {
 
   @Override
   public boolean requestFocusInWindow() {
-    return myFilter.requestFocusInWindow();
+    return mySearchField.requestFocusInWindow();
   }
 
-  public void dispose() {
-    myUpdateAlarm.cancelAllRequests();
+  @VisibleForTesting
+  @NotNull
+  JLabel getCountLabel() {
+    return myCountLabel;
   }
 
-  @TestOnly
-  JCheckBox getMatchCaseCheckBox() {
-    return myMatchCaseCheckBox;
-  }
-
-  @TestOnly
-  JCheckBox getRegexCheckBox() {
-    return myRegexCheckBox;
-  }
-
-
-  public void addOnFilterChange(@NotNull BiConsumer<Pattern, FilterModel> callback) {
-    myModel.addOnFilterChange(callback);
+  private void updateModel() {
+    myModel.setFilter(new Filter(mySearchField.getText(), myMatchCaseCheckBox.isSelected(), myRegexCheckBox.isSelected()));
   }
 
   /**
@@ -240,7 +215,7 @@ public class FilterComponent extends JPanel {
     showHideButton.addActionListener(event -> {
       filterComponent.setVisible(showHideButton.isSelected());
       // Reset the filter content.
-      filterComponent.setFilter("");
+      filterComponent.setFilterText("");
       if (showHideButton.isSelected()) {
         filterComponent.requestFocusInWindow();
       }

@@ -52,8 +52,8 @@ public class AndroidXmlDocumentationProviderTest extends AndroidTestCase {
       myFixture.getEditor(), myFixture.getFile(), ref.getElement());
     DocumentationProvider documentationProvider = DocumentationManager.getProviderFromElement(docTargetElement);
     assertThat(documentationProvider.generateDoc(docTargetElement, ref.getElement())).isEqualTo(
-      "<html><body>Formats: color, reference<br><br> Defines the drawable to draw over the content. This can be used as an overlay.\n" +
+      "<html><body>Formats: color, reference<br><br>Defines the drawable to draw over the content. This can be used as an overlay.\n" +
       "             The foreground drawable participates in the padding of the content if the gravity\n" +
-      "             is set to fill. </body></html>");
+      "             is set to fill.</body></html>");
   }
 }

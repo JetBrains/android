@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.project.Project
 import org.hamcrest.core.IsEqual.equalTo
@@ -41,7 +42,7 @@ class TargetModulesTreeStructureTest: DependencyTestCase() {
 
   private fun reparse() {
     resolvedProject = myFixture.project
-    project = PsProjectImpl(resolvedProject)
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
   }
 
   fun testTreeStructure() {

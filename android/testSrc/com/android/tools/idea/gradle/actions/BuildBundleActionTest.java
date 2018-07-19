@@ -27,30 +27,27 @@ import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
+import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.android.tools.idea.testing.Facets;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestMessagesDialog;
-import com.android.tools.idea.util.FutureUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.testFramework.IdeaTestCase;
+import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
-
-import java.util.Collections;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -108,7 +105,7 @@ public class BuildBundleActionTest extends IdeaTestCase {
 
     myAction.actionPerformed(event);
 
-    verify(myBuildInvoker).bundle(eq(appModules), eq(Collections.emptyList()), any(OutputBuildAction.class));
+    verify(myBuildInvoker).bundle(eq(appModules), eq(emptyList()), any(OutputBuildAction.class));
   }
 
   public void testUpdateGradlePluginNotification() {
@@ -191,8 +188,9 @@ public class BuildBundleActionTest extends IdeaTestCase {
     String gradlePath = GRADLE_PATH_SEPARATOR + module.getName();
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
 
-    GradleModuleModel model = new GradleModuleModel(module.getName(), Collections.emptyList(), gradlePath,
-                                                    getBaseDirPath(module.getProject()), null, null);
+    GradleProject gradleProjectStub = new GradleProjectStub(emptyList(), gradlePath, getBaseDirPath(module.getProject()));
+    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null);
+
     gradleFacet.setGradleModuleModel(model);
   }
 }

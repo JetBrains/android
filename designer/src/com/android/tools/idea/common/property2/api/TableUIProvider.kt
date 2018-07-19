@@ -17,6 +17,7 @@ package com.android.tools.idea.common.property2.api
 
 import com.android.tools.adtui.ptable2.PTableCellEditorProvider
 import com.android.tools.adtui.ptable2.PTableCellRendererProvider
+import com.android.tools.idea.common.property2.impl.support.SimpleControlTypeProvider
 import com.android.tools.idea.common.property2.impl.table.TableUIProviderImpl
 
 interface TableUIProvider {
@@ -24,10 +25,33 @@ interface TableUIProvider {
   val tableCellEditorProvider: PTableCellEditorProvider
 
   companion object {
-    fun <P : PropertyItem> create(itemType: Class<P>,
-                                  controlTypeProvider: ControlTypeProvider<P>,
-                                  editorProvider: EditorProvider<P>): TableUIProvider {
-      return TableUIProviderImpl(itemType, controlTypeProvider, editorProvider)
+
+    /**
+     * A [TableUIProvider] for editing of property values and property names.
+     */
+    fun <P : PropertyItem, N : NewPropertyItem> create(
+      nameType: Class<N>,
+      nameControlTypeProvider: ControlTypeProvider<N>,
+      nameEditorProvider: EditorProvider<N>,
+      valueType: Class<P>,
+      valueControlTypeProvider: ControlTypeProvider<P>,
+      valueEditorProvider: EditorProvider<P>): TableUIProvider {
+
+      return TableUIProviderImpl(nameType, nameControlTypeProvider, nameEditorProvider,
+                                 valueType, valueControlTypeProvider, valueEditorProvider)
+    }
+
+    /**
+     * A [TableUIProvider] for editing of property values only.
+     */
+    fun <P : PropertyItem> create(
+      valueType: Class<P>,
+      valueControlTypeProvider: ControlTypeProvider<P>,
+      valueEditorProvider: EditorProvider<P>): TableUIProvider {
+
+      return TableUIProviderImpl(
+        NewPropertyItem::class.java, SimpleControlTypeProvider(ControlType.TEXT_EDITOR), EditorProvider.createForNames(),
+        valueType, valueControlTypeProvider, valueEditorProvider)
     }
   }
 }

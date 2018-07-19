@@ -106,8 +106,10 @@ interface PropertyEditorModel {
    * Cancel editing and revert to the value of the property.
    *
    * i.e. discard changes by the editor that are not yet applied.
+   * The return value is used if this is a table cell editor.
+   * Return true to stop cell editing, false to remain editing the cell.
    */
-  fun cancelEditing()
+  fun cancelEditing(): Boolean
 
   /**
    * Add a listener that respond to value changes.

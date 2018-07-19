@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.idea.common.editor.NlEditorPanel;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.common.editor.NlEditorPanel;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
@@ -33,8 +33,7 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ToolWindowType;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
-import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +61,7 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
     myToolWindow.setAutoHide(false);
     myPreviousWindowType = myToolWindow.getType();
     myPreviousWindowAnchor = getEditorMode();
-    ((ToolWindowManagerEx)ToolWindowManager.getInstance(myProject)).addToolWindowManagerListener(new ToolWindowManagerAdapter() {
+    myProject.getMessageBus().connect(this).subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       @Override
       public void stateChanged() {
         if (myProject.isDisposed()) {
@@ -81,7 +80,7 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
           myPreviousWindowAnchor = newWindowAnchor;
         }
       }
-    }, myProject);
+    });
     initGearActions();
   }
 

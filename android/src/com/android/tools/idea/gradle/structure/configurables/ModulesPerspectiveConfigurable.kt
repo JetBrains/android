@@ -18,13 +18,19 @@ package com.android.tools.idea.gradle.structure.configurables
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AndroidModuleRootConfigurable
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.structure.dialog.TrackedConfigurable
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.ui.NamedConfigurable
 
 const val MODULES_PERSPECTIVE_PLACE_NAME: String = "modules.place"
 const val MODULES_PERSPECTIVE_DISPLAY_NAME: String = "Modules"
 
-class ModulesPerspectiveConfigurable(context: PsContext) : BasePerspectiveConfigurable(context) {
+class ModulesPerspectiveConfigurable(context: PsContext)
+  : BasePerspectiveConfigurable(context), TrackedConfigurable {
+
   private val configurablesByGradlePath: Map<String, BaseNamedConfigurable<PsModule>> = HashMap()
+
+  override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_MODULES
 
   override fun getId() = "android.psd.modules"
 

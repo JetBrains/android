@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.common;
 
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
@@ -106,8 +108,11 @@ public class CommandLineArgs {
       }
     }
 
-    // Disable SDK auto-download until studio can properly handle auto-download failures. See b/71642261.
-    args.add(createProjectProperty("android.builder.sdkDownload", false));
+    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      // Don't put the R.java folder in the model. See GradleTaskExecutorImpl for the same flags passed at build time to not generate
+      // those classes either.
+      args.add(createProjectProperty(PROPERTY_SEPARATE_R_CLASS_COMPILATION, true));
+    }
 
     Application application = ApplicationManager.getApplication();
     boolean isTestingMode = isInTestingMode();

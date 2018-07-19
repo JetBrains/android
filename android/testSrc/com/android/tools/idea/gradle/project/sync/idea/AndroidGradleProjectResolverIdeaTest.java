@@ -17,13 +17,12 @@ package com.android.tools.idea.gradle.project.sync.idea;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
+import com.android.builder.model.SyncIssue;
+import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.*;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -48,6 +47,7 @@ import org.mockito.Mock;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,6 +79,8 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
   private IdeaModuleStub myNativeAndroidModuleModel;
   private IdeaModuleStub myJavaModuleModel;
 
+  private AndroidProjectStub myAndroidProjectStub;
+
   private ProjectResolverContext myResolverCtx;
   private AndroidGradleProjectResolver myProjectResolver;
 
@@ -89,18 +91,18 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
     IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory = new IdeaJavaModuleModelFactory();
     myProjectModel = new IdeaProjectStub("multiProject");
-    AndroidProjectStub androidProject = TestProjects.createBasicProject(myProjectModel.getRootDir());
+    myAndroidProjectStub = TestProjects.createBasicProject(myProjectModel.getRootDir());
 
     when(myNativeAndroidProject.getName()).thenReturn("app");
     when(myNativeAndroidProjectFactory.create(myNativeAndroidProject)).thenReturn(myIdeNativeAndroidProject);
 
-    myAndroidModuleModel = myProjectModel.addModule(androidProject.getName(), "androidTask");
+    myAndroidModuleModel = myProjectModel.addModule(myAndroidProjectStub.getName(), "androidTask");
     myNativeAndroidModuleModel = myProjectModel.addModule(myNativeAndroidProject.getName(), "nativeAndroidTask");
     myJavaModuleModel = myProjectModel.addModule("util", "compileJava", "jar", "classes");
     myProjectModel.addModule("notReallyAGradleProject");
 
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
-    allModels.addExtraProject(androidProject, AndroidProject.class, myAndroidModuleModel);
+    allModels.addExtraProject(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
     allModels.addExtraProject(myNativeAndroidProject, NativeAndroidProject.class, myNativeAndroidModuleModel);
 
     ExternalSystemTaskId id = ExternalSystemTaskId.create(SYSTEM_ID, RESOLVE_PROJECT, myProjectModel.getName());
@@ -149,6 +151,29 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     catch (IllegalStateException e) {
       assertThat(e.getMessage()).startsWith("The project is using an unsupported version of the Android Gradle plug-in (0.0.1)");
     }
+  }
+
+  public void testSyncIssuesPropagatedOnJavaModules() {
+    ProjectData project = myProjectResolver.createProject();
+    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModuleModel, projectNode);
+
+    SyncIssue syncIssue = mock(SyncIssue.class);
+    myAndroidProjectStub.setSyncIssues(syncIssue);
+
+    ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
+    allModels.addExtraProject(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
+    myResolverCtx.setModels(allModels);
+
+    myProjectResolver.populateModuleContentRoots(myAndroidModuleModel, moduleDataNode);
+
+    Collection<DataNode<AndroidModuleModel>> androidModelNodes = getChildren(moduleDataNode, ANDROID_MODEL);
+    assertThat(androidModelNodes).isEmpty();
+
+    Collection<DataNode<JavaModuleModel>> javaModelNodes = getChildren(moduleDataNode, JAVA_MODULE_MODEL);
+    assertSize(1, javaModelNodes);
+    JavaModuleModel javaModuleModel = javaModelNodes.iterator().next().getData();
+    assertThat(javaModuleModel.getSyncIssues()).containsExactly(syncIssue);
   }
 
   public void testPopulateModuleContentRootsWithNativeAndroidProject() {

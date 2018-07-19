@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.android
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.ExternalNativeBuildOptionsModelImpl
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptionsModelImpl
@@ -2274,5 +2275,281 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
                      }
                    }""".trimIndent()
     verifyFileContents(myBuildFile, expected)
+  }
+
+  @Test
+  fun testParseMatchingFallbacks() {
+    val text = """
+      android {
+        productFlavors {
+          demo {
+            matchingFallbacks = ['trial', 'free']
+          }
+        }
+      }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+    val demoFlavour = buildModel.android().productFlavors()[0]!!
+    val resolvedPropertyModel = demoFlavour.matchingFallbacks()
+    verifyListProperty(resolvedPropertyModel, listOf("trial", "free"))
+  }
+
+  @Test
+  fun testWriteMatchingFallbacks() {
+    val text = ""
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+    val demoFlavour = buildModel.android().addProductFlavor("demo")
+    val resolvedPropertyModel = demoFlavour.matchingFallbacks()
+    assertMissingProperty(resolvedPropertyModel)
+    resolvedPropertyModel.convertToEmptyList().addListValue().setValue("trial")
+    resolvedPropertyModel.addListValue().setValue("free")
+    verifyListProperty(resolvedPropertyModel, listOf("trial", "free"))
+
+    applyChangesAndReparse(buildModel)
+    verifyListProperty(buildModel.android().productFlavors()[0].matchingFallbacks(), listOf("trial", "free"))
+  }
+
+  @Test
+  fun testAppendMatchingFallbacks() {
+    val text = """
+      android {
+        productFlavors {
+          demo {
+            matchingFallbacks = ['trial']
+          }
+        }
+      }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+    val demoFlavour = buildModel.android().productFlavors()[0]!!
+    val resolvedPropertyModel = demoFlavour.matchingFallbacks()
+    verifyListProperty(resolvedPropertyModel, listOf("trial"))
+
+    resolvedPropertyModel.addListValue().setValue("free")
+
+    applyChangesAndReparse(buildModel)
+    verifyListProperty(buildModel.android().productFlavors()[0].matchingFallbacks(), listOf("trial", "free"))
+  }
+
+  @Test
+  fun deleteMatchingFallbacks() {
+    val text = """
+      android {
+        flavorDimensions 'tier'
+        productFlavors {
+          demo {
+            dimension 'tier'
+            matchingFallbacks = ['trial']
+          }
+        }
+      }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+    val demoFlavour = buildModel.android().productFlavors()[0]!!
+    val resolvedPropertyModel = demoFlavour.matchingFallbacks()
+    verifyListProperty(resolvedPropertyModel, listOf("trial"))
+
+    resolvedPropertyModel.delete()
+
+    applyChangesAndReparse(buildModel)
+    assertMissingProperty(buildModel.android().productFlavors()[0].matchingFallbacks())
+  }
+
+  private val MISSING_DIMENSION_TEXT = """
+      android {
+        defaultConfig{
+        missingDimensionStrategy 'minApi', 'minApi18'
+        missingDimensionStrategy 'abi', 'x86'
+        }
+        flavorDimensions 'tier'
+        productFlavors {
+            free {
+                dimension 'tier'
+                missingDimensionStrategy 'minApi', 'minApi23'
+            }
+            paid {}
+        }
+      }""".trimIndent()
+
+  @Test
+  fun testMissingDimensionStrategy() {
+    writeToBuildFile(MISSING_DIMENSION_TEXT)
+
+    val buildModel = gradleBuildModel
+
+    val strategies = buildModel.android().defaultConfig().missingDimensionStrategies()
+    assertSize(2, strategies)
+    verifyListProperty(strategies[0], listOf("minApi", "minApi18"))
+    verifyListProperty(strategies[1], listOf("abi", "x86"))
+
+    val freeStrategies = buildModel.android().productFlavors()[0].missingDimensionStrategies()
+    assertSize(1, freeStrategies)
+    verifyListProperty(freeStrategies[0], listOf("minApi", "minApi23"))
+  }
+
+  @Test
+  fun testAddMissingDimensionStrategy() {
+    val text = """
+               ext.refToVal = "boo"
+               """.trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val newDim = buildModel.android().defaultConfig().addMissingDimensionStrategy("dim", "val1", "val2")
+      verifyListProperty(newDim, listOf("dim", "val1", "val2"))
+    }
+
+    applyChangesAndReparse(buildModel)
+    run {
+      val newDim = buildModel.android().defaultConfig().missingDimensionStrategies()[0]
+      verifyListProperty(newDim, listOf("dim", "val1", "val2"))
+
+      val otherDim = buildModel.android().defaultConfig().addMissingDimensionStrategy("otherDim", ReferenceTo("refToVal"))
+      verifyListProperty(otherDim, listOf("otherDim", "boo"))
+    }
+
+    applyChangesAndReparse(buildModel)
+    val strategies = buildModel.android().defaultConfig().missingDimensionStrategies()
+    assertSize(2, strategies)
+    verifyListProperty(strategies[0], listOf("dim", "val1", "val2"))
+    verifyListProperty(strategies[1], listOf("otherDim", "boo"))
+
+    val expected = """
+                   ext.refToVal = "boo"
+
+                   android {
+                     defaultConfig {
+                       missingDimensionStrategy 'dim', 'val1', 'val2'
+                       missingDimensionStrategy 'otherDim', refToVal
+                     }
+                   }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
+
+  @Test
+  fun testRemoveMissingDimensionStrategy() {
+    writeToBuildFile(MISSING_DIMENSION_TEXT)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val strategies = buildModel.android().defaultConfig().missingDimensionStrategies()
+      assertSize(2, strategies)
+      verifyListProperty(strategies[0], listOf("minApi", "minApi18"))
+      verifyListProperty(strategies[1], listOf("abi", "x86"))
+
+      val freeStrategies = buildModel.android().productFlavors()[0].missingDimensionStrategies()
+      assertSize(1, freeStrategies)
+      verifyListProperty(freeStrategies[0], listOf("minApi", "minApi23"))
+
+      strategies[1].delete()
+      freeStrategies[0].delete()
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val strategies = buildModel.android().defaultConfig().missingDimensionStrategies()
+      assertSize(1, strategies)
+      verifyListProperty(strategies[0], listOf("minApi", "minApi18"))
+
+      val freeStrategies = buildModel.android().productFlavors()[0].missingDimensionStrategies()
+      assertEmpty(freeStrategies)
+    }
+
+    val expected = """
+      android {
+        defaultConfig{
+        missingDimensionStrategy 'minApi', 'minApi18'
+        }
+        flavorDimensions 'tier'
+        productFlavors {
+            free {
+                dimension 'tier'
+            }
+            paid {}
+        }
+      }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
+
+  @Test
+  fun testMissingDimensionStrategiesAreModifiedWithChange() {
+    writeToBuildFile(MISSING_DIMENSION_TEXT)
+
+    val buildModel = gradleBuildModel
+    assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+    buildModel.android().defaultConfig().missingDimensionStrategies()[0].addListValue().setValue("minApi17")
+    assertTrue(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+    buildModel.android().defaultConfig().missingDimensionStrategies()[0].toList()!![2].delete()
+    assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+    buildModel.android().defaultConfig().missingDimensionStrategies()[0].toList()!![1].setValue("maxApi17")
+    assertTrue(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+
+    applyChangesAndReparse(buildModel)
+
+    assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+    buildModel.android().defaultConfig().missingDimensionStrategies()[0].toList()!![1].setValue("minApi17")
+    assertTrue(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+  }
+
+  @Test
+  fun testMissingDimensionStrategiesAreModifiedWithAddition() {
+    writeToBuildFile(MISSING_DIMENSION_TEXT)
+
+    val buildModel = gradleBuildModel
+    assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+    buildModel.android().defaultConfig().addMissingDimensionStrategy("dim", "val1")
+    assertTrue(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+    buildModel.android().defaultConfig().missingDimensionStrategies()[2].delete()
+    assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+  }
+
+  @Test
+  fun testMissingDimensionStrategiesAreUnmodifiedWithAdditionAfterApply() {
+    writeToBuildFile(MISSING_DIMENSION_TEXT)
+
+    val buildModel = gradleBuildModel
+    assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+    buildModel.android().defaultConfig().addMissingDimensionStrategy("dim", "val1")
+    assertTrue(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+
+    applyChangesAndReparse(buildModel)
+
+    assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+    buildModel.android().defaultConfig().missingDimensionStrategies()[2].delete()
+    assertTrue(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+  }
+
+  @Test
+  fun testMissingDimensionStrategiesAreModifiedWithDeletion() {
+    writeToBuildFile(MISSING_DIMENSION_TEXT)
+
+    val buildModel = gradleBuildModel
+    assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+    buildModel.android().defaultConfig().missingDimensionStrategies()[1].delete()
+    assertTrue(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+    buildModel.android().defaultConfig().addMissingDimensionStrategy("abi", "x86")
+    assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+  }
+
+
+  @Test
+  fun testMissingDimensionStrategiesAreUnmodifiedWithDeletionAfterApply() {
+    writeToBuildFile(MISSING_DIMENSION_TEXT)
+
+    val buildModel = gradleBuildModel
+    assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+    buildModel.android().defaultConfig().missingDimensionStrategies()[1].delete()
+    assertTrue(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+
+    applyChangesAndReparse(buildModel)
+
+    assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
+    buildModel.android().defaultConfig().addMissingDimensionStrategy("abi", "x86")
+    assertTrue(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
   }
 }

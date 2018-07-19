@@ -100,7 +100,6 @@ private class TestDesignSurface(project: Project, disposible: Disposable): Desig
 
     override fun addActions(group: DefaultActionGroup,
                             component: NlComponent?,
-                            parent: NlComponent?,
                             newSelection: MutableList<NlComponent>,
                             toolbar: Boolean) = Unit
   }

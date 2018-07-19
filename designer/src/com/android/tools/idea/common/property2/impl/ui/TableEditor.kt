@@ -19,28 +19,34 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.ptable2.PTable
 import com.android.tools.adtui.ptable2.PTableCellEditorProvider
 import com.android.tools.adtui.ptable2.PTableCellRendererProvider
-import com.android.tools.idea.common.property2.impl.model.TableLineModel
+import com.android.tools.idea.common.property2.impl.model.TableLineModelImpl
+import javax.swing.JTable
 
 /**
  * A standard table control for editing multiple properties in a tabular form.
  */
-class TableEditor(val lineModel: TableLineModel,
+class TableEditor(val lineModel: TableLineModelImpl,
                   rendererProvider: PTableCellRendererProvider,
                   editorProvider: PTableCellEditorProvider) {
 
   private val table = PTable.create(lineModel.tableModel, lineModel, rendererProvider, editorProvider)
-
-  val component = table.component
+  val component = table.component as JTable
 
   init {
     lineModel.addValueChangedListener(ValueChangedListener { handleValueChanged() })
+    component.selectionModel.addListSelectionListener {
+      val model = lineModel.tableModel
+      val index = component.selectedRow
+      val item = if (index >= 0 && index < model.items.size) model.items[index] else null
+      lineModel.selectedItem = item
+    }
   }
 
   private fun handleValueChanged() {
     component.isVisible = lineModel.visible
     table.filter = lineModel.filter
-    if (lineModel.startEditing) {
-      table.startNextEditor()
+    if (lineModel.updateEditing) {
+      table.startEditing(lineModel.rowToEdit)
     }
   }
 }

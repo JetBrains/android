@@ -382,7 +382,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @NotNull
   private static List<String> getProfilingOptions(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> devices) throws IOException {
-    if (!StudioFlags.PROFILER_ENABLED.get() || !(configuration instanceof AndroidRunConfigurationBase) || devices.isEmpty()) {
+    if (!(configuration instanceof AndroidRunConfigurationBase) || devices.isEmpty()) {
       return Collections.emptyList();
     }
 

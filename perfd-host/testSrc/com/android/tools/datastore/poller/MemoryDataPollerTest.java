@@ -33,6 +33,7 @@ import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
 
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.any;
@@ -424,6 +425,46 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     StreamObserver<LegacyAllocationEventsResponse> observer = mock(StreamObserver.class);
     myMemoryService.getLegacyAllocationEvents(request, observer);
     validateResponse(observer, expected);
+  }
+
+  @Test
+  public void testImportLegacyAllocationRecords() {
+    LegacyAllocationEventsResponse allocations = LegacyAllocationEventsResponse.newBuilder()
+                                                                               .setStatus(LegacyAllocationEventsResponse.Status.SUCCESS)
+                                                                               .addEvents(LegacyAllocationEvent.newBuilder().setSize(1).setThreadId(2).setClassId(3).setStackId(4).build())
+                                                                               .addEvents(LegacyAllocationEvent.newBuilder().setSize(5).setThreadId(6).setClassId(7).setStackId(8).build())
+                                                                               .build();
+    AllocationContextsResponse contexts = AllocationContextsResponse.newBuilder()
+                                                                    .addAllocatedClasses(AllocatedClass.newBuilder().setClassId(1).build())
+                                                                    .addAllocatedClasses(AllocatedClass.newBuilder().setClassId(2).build())
+                                                                    .addAllocationStacks(AllocationStack.newBuilder().setStackId(3).build())
+                                                                    .addAllocationStacks(AllocationStack.newBuilder().setStackId(4).build())
+                                                                    .build();
+
+    AllocationsInfo info = AllocationsInfo.newBuilder().setLegacy(true).setStartTime(1).build();
+    ImportLegacyAllocationsRequest request = ImportLegacyAllocationsRequest.newBuilder()
+                                                                           .setSession(TEST_SESSION)
+                                                                           .setInfo(info)
+                                                                           .setAllocations(allocations)
+                                                                           .setContexts(contexts)
+                                                                           .build();
+    ImportLegacyAllocationsResponse expected = ImportLegacyAllocationsResponse.newBuilder()
+                                                                              .setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS).build();
+    StreamObserver<ImportLegacyAllocationsResponse> importObserver = mock(StreamObserver.class);
+    myMemoryService.importLegacyAllocations(request, importObserver);
+    validateResponse(importObserver, expected);
+
+    StreamObserver<LegacyAllocationEventsResponse> eventObserver = mock(StreamObserver.class);
+    myMemoryService.getLegacyAllocationEvents(
+      LegacyAllocationEventsRequest.newBuilder().setSession(TEST_SESSION).setStartTime(info.getStartTime()).build(), eventObserver);
+    validateResponse(eventObserver, allocations);
+
+    StreamObserver<AllocationContextsResponse> contextObserver = mock(StreamObserver.class);
+    myMemoryService.getLegacyAllocationContexts(
+      LegacyAllocationContextsRequest.newBuilder()
+                                     .setSession(TEST_SESSION).addAllClassIds(Arrays.asList(1, 2)).addAllStackIds(Arrays.asList(3, 4))
+                                     .build(), contextObserver);
+    validateResponse(contextObserver, contexts);
   }
 
   private void getHeapDumpError(long dumpTime, DumpDataResponse.Status error) {

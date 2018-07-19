@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.api;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,6 +53,9 @@ public interface ProjectBuildModel {
 
   @Nullable
   GradleBuildModel getModuleBuildModel(@NotNull File modulePath);
+
+  @NotNull
+  GradleBuildModel getModuleBuildModel(@NotNull VirtualFile file);
 
   /**
    * @return the settings model for this project, or null if no settings file could be found.

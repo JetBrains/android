@@ -23,8 +23,10 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.util.BuildMode
+import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.mock.MockDumbService
 import com.intellij.openapi.application.ApplicationManager
@@ -37,7 +39,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.testFramework.IdeaTestCase
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.util.messages.MessageBusConnection
-
+import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.mock
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
@@ -63,6 +65,8 @@ class IndexingSuspenderTest : IdeaTestCase() {
     if (!canRun()) {
       return
     }
+
+    AndroidTestCase.addAndroidFacet(module)
 
     val dumbService = ThreadingAwareDumbService(project)
     val indexingSuspenderService = IndexingSuspender(project, true)
@@ -234,6 +238,46 @@ class IndexingSuspenderTest : IdeaTestCase() {
     assertEquals(0, currentBatchUpdateLevel)
   }
 
+  /**
+   * Same as [testGradleSyncAndBuild] but checks that if there are namespaced modules after sync, Studio stays in dumb mode until the
+   * build is finished.
+   */
+  fun testGradleSyncAndBuildNamespaced() {
+    if (!canRun()) {
+      return
+    }
+
+    setUpIndexingSpecificExpectations(dumbModeCount = 1, batchUpdateCount = 1)
+    val dumbService = DumbService.getInstance(project)
+    val syncState = GradleSyncState.getInstance(project)
+    syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+
+    // Perform "setup" by marking the module as namespaced:
+    syncState.setupStarted()
+    module.androidFacet!!.configuration.model = TestAndroidModel.namespaced(module.androidFacet!!)
+
+    val buildContext = BuildContext(project, listOf(":app:something"), BuildMode.DEFAULT_BUILD_MODE)
+    val buildState = GradleBuildState.getInstance(project)
+    val buildRequest = mock(GradleBuildInvoker.Request::class.java)
+    buildState.buildExecutorCreated(buildRequest)
+    syncState.syncEnded()
+
+    // Make sure we're still in dumb mode.
+    assertEquals(1, currentBatchUpdateLevel)
+    assertTrue(dumbService.isDumb)
+
+    buildState.buildStarted(buildContext)
+    assertEquals(1, currentBatchUpdateLevel)
+    assertTrue(dumbService.isDumb)
+
+    // We leave dumb mode only after the build is finished.
+    buildState.buildFinished(BuildStatus.SUCCESS)
+    dumbService.waitForSmartMode()
+    assertFalse(buildState.isBuildInProgress)
+    assertFalse(dumbService.isDumb)
+    assertEquals(0, currentBatchUpdateLevel)
+  }
+
   fun testTemplateRenderingRegularEventsWorkflow() {
     setUpIndexingSpecificExpectations(dumbModeCount = 1, batchUpdateCount = 1)
 
@@ -364,7 +408,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
    * adjusted DumbService mock would lead to a dead-lock, and this class solves this problem by asserting the type of task being
    * queued and executing it on a separate thread.
    *
-   * @see IndexingSuspender.startSentinelDumbMode
+   * @see IndexingSuspender.startSentinelDumbModeIfNeeded
    */
   private class ThreadingAwareDumbService(project: Project) : MockDumbService(project) {
     var actualDumbModeCount = 0

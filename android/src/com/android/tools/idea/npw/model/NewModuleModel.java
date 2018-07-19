@@ -21,18 +21,22 @@ import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.observable.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
@@ -265,6 +269,7 @@ public final class NewModuleModel extends WizardModel {
       File projectRoot = new File(project.getBasePath());
       File moduleRoot = new File(projectRoot, moduleName);
       Template template = Template.createFromPath(myTemplateFile.getValue());
+      List<File> filesToOpen = new ArrayList<>();
 
       // @formatter:off
       RenderingContext context = RenderingContext.Builder.newContext(template, project)
@@ -274,10 +279,18 @@ public final class NewModuleModel extends WizardModel {
         .withPerformSync(false)
         .withOutputRoot(projectRoot)
         .withModuleRoot(moduleRoot)
+        .intoOpenFiles(filesToOpen)
         .withParams(templateState)
         .build();
       // @formatter:on
-      return template.render(context, dryRun);
+
+      boolean renderResult = template.render(context, dryRun);
+      if (renderResult && !dryRun) {
+        // calling smartInvokeLater will make sure that files are open only when the project is ready
+        DumbService.getInstance(project).smartInvokeLater(() -> TemplateUtils.openEditors(project, filesToOpen, false));
+      }
+
+      return renderResult;
     }
   }
 

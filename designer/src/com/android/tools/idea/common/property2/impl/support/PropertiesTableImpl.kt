@@ -50,4 +50,7 @@ class PropertiesTableImpl<out P: PropertyItem>(private val table: Table<String, 
 
   override val values: Collection<P>
     get() = table.values()
+
+  override val namespaces: Collection<String>
+    get() = table.rowKeySet()
 }

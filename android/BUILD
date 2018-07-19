@@ -51,7 +51,6 @@ iml_module(
         "//tools/idea/plugins/maven:intellij.maven[module]",
         "//tools/idea:intellij.java.impl[module]",
         "//tools/idea/plugins/properties:intellij.properties[module]",
-        "//tools/idea/.idea/libraries:xpp3-1.1.4-min",
         "//tools/idea/plugins/testng:intellij.testng[module]",
         "//tools/adt/idea/build-common:intellij.android.buildCommon[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
@@ -89,6 +88,7 @@ iml_module(
         "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl[module]",
         "//tools/idea/.idea/libraries:Gradle",
         "//tools/idea/plugins/gradle:intellij.gradle[module]",
+        "//tools/idea/plugins/gradle/java:intellij.gradle.java[module]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
         "//tools/idea/.idea/libraries:baksmali",
         "//tools/idea/.idea/libraries:dexlib2",
@@ -124,6 +124,7 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android/src/com/android/tools/idea/gradle/project/sync/ng/nosyncbuilder/proto:nosyncbuilder-jarjar",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module]",
     ],
 )
 
@@ -206,6 +207,7 @@ iml_module(
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
+        "//tools/idea/.idea/libraries:Mocks[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
@@ -271,6 +273,7 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
     ],
 )
 

@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.AndroidProject;
+import com.android.repository.api.ProgressIndicator;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
@@ -24,6 +26,7 @@ import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetu
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -80,8 +83,16 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
     String compileTarget = androidProject.getCompileTarget();
     Sdk sdk = myAndroidSdks.findSuitableAndroidSdk(compileTarget);
     if (sdk == null) {
-      sdk = ApplicationManager.getApplication()
-                              .runWriteAction((Computable<Sdk>)() -> myAndroidSdks.tryToCreate(androidSdkHomePath, compileTarget));
+      // We may have had an Sdk downloaded by the AGP, we need to ensure it is visible to studio.
+      AndroidSdkHandler sdkHandler = myAndroidSdks.tryToChooseSdkHandler();
+      ProgressIndicator progress = new StudioLoggerProgressIndicator(SdkModuleSetupStep.class);
+      sdkHandler.getSdkManager(progress).reloadLocalIfNeeded(progress);
+
+      final Sdk[] finalSdk = new Sdk[1];
+      ApplicationManager.getApplication().invokeAndWait(() ->
+        finalSdk[0] = ApplicationManager.getApplication().runWriteAction(
+          (Computable<Sdk>)() -> myAndroidSdks.tryToCreate(androidSdkHomePath, compileTarget)));
+      sdk = finalSdk[0];
 
       if (sdk == null) {
         // If SDK was not created, this might be an add-on.

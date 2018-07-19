@@ -29,6 +29,8 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.rendering.imagepool.ImagePool;
+import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
@@ -149,7 +151,7 @@ public class RenderService implements Disposable {
 
   private final Object myCredential = new Object();
 
-  private final ImagePool myImagePool = new ImagePool();
+  private final ImagePool myImagePool = ImagePoolFactory.createImagePool();
 
   /**
    * @return the {@linkplain RenderService} for the given facet.
@@ -223,119 +225,12 @@ public class RenderService implements Disposable {
   }
 
   /**
-   * Creates a new {@link RenderService} associated with the given editor.
-   *
-   * @return a {@link RenderService} which can perform rendering services
+   * Returns a {@link RenderTaskBuilder} that can be used to build a new {@link RenderTask}
    */
-  @Nullable
-  final public RenderTask createTask(@NotNull AndroidFacet facet,
-                               @Nullable PsiFile psiFile,
-                               @NotNull Configuration configuration) {
-    return createTask(facet, psiFile, configuration, null);
-  }
-
-  /**
-   * Creates a new {@link RenderService} associated with the given editor.
-   *
-   * @return a {@link RenderService} which can perform rendering services
-   */
-  @Nullable
-  final public RenderTask createTask(@NotNull AndroidFacet facet,
-                               @Nullable PsiFile psiFile,
-                               @NotNull Configuration configuration,
-                               @Nullable ILayoutPullParserFactory parserFactory) {
-    return createTask(facet, psiFile, configuration, createLogger(facet), parserFactory);
-
-  }
-
-  /**
-   * Creates a new {@link RenderService} associated with the given editor.
-   *
-   * @return a {@link RenderService} which can perform rendering services
-   */
-  @Nullable
-  public RenderTask createTask(@NotNull AndroidFacet facet,
-                               @Nullable PsiFile psiFile,
-                               @NotNull Configuration configuration,
-                               @NotNull RenderLogger logger,
-                               @Nullable ILayoutPullParserFactory parserFactory) {
-    AndroidPlatform platform = getPlatform(facet, logger);
-    if (platform == null) {
-      return null;
-    }
-
-    IAndroidTarget target = configuration.getTarget();
-    if (target == null) {
-      logger.addMessage(RenderProblem.createPlain(ERROR, "No render target was chosen"));
-      return null;
-    }
-
-    Module module = facet.getModule();
-    LayoutLibrary layoutLib;
-    try {
-      layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(module.getProject());
-      if (layoutLib == null) {
-        String message = AndroidBundle.message("android.layout.preview.cannot.load.library.error");
-        logger.addMessage(RenderProblem.createPlain(ERROR, message));
-        return null;
-      }
-    }
-    catch (UnsupportedJavaRuntimeException e) {
-      RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);
-      javaVersionProblem.getHtmlBuilder()
-        .add(e.getPresentableMessage())
-        .newline()
-        .addLink("Install a supported JDK", JDK_INSTALL_URL);
-      logger.addMessage(javaVersionProblem);
-      return null;
-    }
-    catch (RenderingException e) {
-      String message = e.getPresentableMessage();
-      message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
-      logger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), logger.getLinkManager(), e));
-      return null;
-    }
-    catch (IOException e) {
-      final String message = e.getMessage();
-      logger.error(null, "I/O error: " + (message != null ? ": " + message : ""), null, e);
-      return null;
-    }
-
-    if (psiFile != null &&
-        TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(psiFile)) &&
-        !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
-      // This means that user is using an outdated version of layoutlib. A warning to update has already been
-      // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
-      logger.addMessage(RenderProblem.createPlain(ERROR, "This version of the rendering library does not support rendering Preferences. " +
-                                                         "Update it using the SDK Manager"));
-
-      return null;
-    }
-
-    Device device = configuration.getDevice();
-    if (device == null) {
-      logger.addMessage(RenderProblem.createPlain(ERROR, "No device selected"));
-      return null;
-    }
-
-    try {
-      RenderTask task =
-        new RenderTask(facet, this, configuration, logger, layoutLib,
-                       device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
-                       parserFactory);
-      if (psiFile instanceof XmlFile) {
-        task.setXmlFile((XmlFile)psiFile);
-      }
-
-      return task;
-    } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
-      // Ignore the exception if it was generated when the facet is being disposed (project is being closed)
-      if (!module.isDisposed()) {
-        throw e;
-      }
-    }
-
-    return null;
+  @NotNull
+  public RenderTaskBuilder taskBuilder(@NotNull AndroidFacet facet,
+                                       @NotNull Configuration configuration) {
+    return new RenderTaskBuilder(this, facet, configuration, myImagePool, myCredential);
   }
 
   @Override
@@ -513,6 +408,11 @@ public class RenderService implements Disposable {
     return null;
   }
 
+  @NotNull
+  public ImagePool getSharedImagePool() {
+    return myImagePool;
+  }
+
   /** This is the View.MeasureSpec mode shift */
   private static final int MEASURE_SPEC_MODE_SHIFT = 30;
 
@@ -524,4 +424,161 @@ public class RenderService implements Disposable {
    * quite a long way compared to the current relevant screen pixel ranges.
    */
   private static final int MAX_MAGNITUDE = 1 << (MEASURE_SPEC_MODE_SHIFT - 5);
+
+  public static class RenderTaskBuilder {
+    private final RenderService myService;
+    private final AndroidFacet myFacet;
+    private final Configuration myConfiguration;
+    private final Object myCredential;
+    @NotNull private ImagePool myImagePool;
+    @Nullable private PsiFile myPsiFile;
+    @Nullable private RenderLogger myLogger;
+    @Nullable private ILayoutPullParserFactory myParserFactory;
+    private boolean isSecurityManagerEnabled = true;
+
+    private RenderTaskBuilder(@NotNull RenderService service,
+                              @NotNull AndroidFacet facet,
+                              @NotNull Configuration configuration,
+                              @NotNull ImagePool defaultImagePool,
+                              @NotNull Object credential) {
+      myService = service;
+      myFacet = facet;
+      myConfiguration = configuration;
+      myImagePool = defaultImagePool;
+      myCredential = credential;
+    }
+
+    @NotNull
+    public RenderTaskBuilder withPsiFile(@NotNull PsiFile psiFile) {
+      this.myPsiFile = psiFile;
+      return this;
+    }
+
+    @NotNull
+    public RenderTaskBuilder withLogger(@NotNull RenderLogger logger) {
+      this.myLogger = logger;
+      return this;
+    }
+
+    @NotNull
+    public RenderTaskBuilder withParserFactory(@NotNull ILayoutPullParserFactory parserFactory) {
+      this.myParserFactory = parserFactory;
+      return this;
+    }
+
+    /**
+     * Disables the image pooling for this render task
+     */
+    @SuppressWarnings("unused")
+    @NotNull
+    public RenderTaskBuilder disableImagePool() {
+      this.myImagePool = ImagePoolFactory.getNonPooledPool();
+      return this;
+    }
+
+    /**
+     * Disables the security manager for the {@link RenderTask}.
+     * Bazel has its own security manager. We allow rendering tests to disable the security manager by calling this method. If this method
+     * is not called from a test method, it will throw an {@link IllegalStateException}
+     */
+    @TestOnly
+    @VisibleForTesting
+    @NotNull
+    public RenderTaskBuilder disableSecurityManager() {
+      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+        throw new IllegalStateException("This method can only be called in unit test mode");
+      }
+      this.isSecurityManagerEnabled = false;
+      return this;
+    }
+
+    /**
+     * Builds a new {@link RenderTask}
+     */
+    @Nullable
+    public RenderTask build() {
+      if (myLogger == null) {
+        withLogger(myService.createLogger(myFacet));
+      }
+
+      AndroidPlatform platform = getPlatform(myFacet, myLogger);
+      if (platform == null) {
+        return null;
+      }
+
+      IAndroidTarget target = myConfiguration.getTarget();
+      if (target == null) {
+        myLogger.addMessage(RenderProblem.createPlain(ERROR, "No render target was chosen"));
+        return null;
+      }
+
+      Module module = myFacet.getModule();
+      LayoutLibrary layoutLib;
+      try {
+        layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(module.getProject());
+        if (layoutLib == null) {
+          String message = AndroidBundle.message("android.layout.preview.cannot.load.library.error");
+          myLogger.addMessage(RenderProblem.createPlain(ERROR, message));
+          return null;
+        }
+      }
+      catch (UnsupportedJavaRuntimeException e) {
+        RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);
+        javaVersionProblem.getHtmlBuilder()
+                          .add(e.getPresentableMessage())
+                          .newline()
+                          .addLink("Install a supported JDK", JDK_INSTALL_URL);
+        myLogger.addMessage(javaVersionProblem);
+        return null;
+      }
+      catch (RenderingException e) {
+        String message = e.getPresentableMessage();
+        message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
+        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e));
+        return null;
+      }
+      catch (IOException e) {
+        final String message = e.getMessage();
+        myLogger.error(null, "I/O error: " + (message != null ? ": " + message : ""), e, null, null);
+        return null;
+      }
+
+      if (myPsiFile != null &&
+          TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(myPsiFile)) &&
+          !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
+        // This means that user is using an outdated version of layoutlib. A warning to update has already been
+        // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
+        myLogger
+          .addMessage(RenderProblem.createPlain(ERROR, "This version of the rendering library does not support rendering Preferences. " +
+                                                       "Update it using the SDK Manager"));
+
+        return null;
+      }
+
+      Device device = myConfiguration.getDevice();
+      if (device == null) {
+        myLogger.addMessage(RenderProblem.createPlain(ERROR, "No device selected"));
+        return null;
+      }
+
+      try {
+        RenderTask task =
+          new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
+                         device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
+                         myParserFactory, isSecurityManagerEnabled);
+        if (myPsiFile instanceof XmlFile) {
+          task.setXmlFile((XmlFile)myPsiFile);
+        }
+
+        return task;
+      } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
+        // Ignore the exception if it was generated when the facet is being disposed (project is being closed)
+        if (!module.isDisposed()) {
+          throw e;
+        }
+      }
+
+      return null;
+    }
+  }
 }

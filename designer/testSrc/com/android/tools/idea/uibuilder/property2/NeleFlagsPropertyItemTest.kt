@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.*
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
@@ -81,8 +83,9 @@ class NeleFlagsPropertyItemTest : PropertyTestCase() {
   private fun createFlagsPropertyItem(attrName: String, type: NelePropertyType, components: List<NlComponent>): NeleFlagsPropertyItem {
     val model = NelePropertiesModel(testRootDisposable, myFacet)
     val resourceManagers = ModuleResourceManagers.getInstance(myFacet)
-    val systemResourceManager = resourceManagers.systemResourceManager
-    val definition = systemResourceManager?.attributeDefinitions?.getAttrDefByName(attrName)
+    val frameworkResourceManager = resourceManagers.frameworkResourceManager
+    val definition =
+        frameworkResourceManager?.attributeDefinitions?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
     return NeleFlagsPropertyItem(ANDROID_URI, attrName, type, definition!!, "", model, components)
   }
 }

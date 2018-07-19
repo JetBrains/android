@@ -20,12 +20,12 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.util.concurrent.FutureCallback;
@@ -705,7 +705,10 @@ public class AppBarConfigurationDialog extends JDialog {
     AndroidFacet facet = myEditor.getModel().getFacet();
     RenderService renderService = RenderService.getInstance(myEditor.getModel().getProject());
     RenderLogger logger = renderService.createLogger(facet);
-    final RenderTask task = renderService.createTask(facet, xmlFile, myEditor.getConfiguration(), logger, null);
+    final RenderTask task = renderService.taskBuilder(facet, myEditor.getConfiguration())
+                                         .withLogger(logger)
+                                         .withPsiFile(xmlFile)
+                                         .build();
     RenderResult result = null;
     if (task != null) {
       task.setRenderingMode(SessionParams.RenderingMode.NORMAL);

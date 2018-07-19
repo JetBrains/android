@@ -10,8 +10,7 @@ message File {
         RELATIVE_TO_UNSPECIFIED = 0;
         MODULE = 1;
         SDK = 2;
-        LIBRARY = 3;
-        OUT = 4;
+        OFFLINE_REPO = 3;
     }
     optional string relative_path = 1; // required
     optional RelativeTo relative_to = 2; // required

@@ -391,7 +391,7 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
   }
 
   static class TopDownDetailsView extends TreeDetailsView<TopDownNode> {
-    TopDownDetailsView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.TopDown topDown) {
+    TopDownDetailsView(@NotNull CpuProfilerStageView view, @NotNull CaptureDetails.TopDown topDown) {
       super(view, topDown.getModel());
       TopDownTreeModel model = topDown.getModel();
       if (model == null) {
@@ -422,7 +422,7 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
   }
 
   static class BottomUpDetailsView extends TreeDetailsView<BottomUpNode> {
-    BottomUpDetailsView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.BottomUp bottomUp) {
+    BottomUpDetailsView(@NotNull CpuProfilerStageView view, @NotNull CaptureDetails.BottomUp bottomUp) {
       super(view, bottomUp.getModel());
       BottomUpTreeModel model = bottomUp.getModel();
       if (model == null) {

@@ -36,6 +36,8 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -72,6 +74,7 @@ import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.*;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -314,7 +317,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     try {
       ModuleSourceAutogenerating.getInstance(facet);
       fail("Shouldn't be able to construct a source generator for Gradle projects");
-    } catch (IllegalArgumentException e) {
+    }
+    catch (IllegalArgumentException e) {
       assertEquals("app is built by an external build system and should not require the IDE to generate sources", e.getMessage());
     }
   }
@@ -448,15 +452,14 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     }
 
     // Verify sync issues are reported properly.
-    List<SyncMessage> messages = syncMessages.getReportedMessages();
+    List<NotificationData> messages = syncMessages.getNotifications();
     assertThat(messages).hasSize(4);
-    SyncMessage message = messages.get(0);
-    // @formatter:off
-    // Verify text contains both of single line and multi-line message from SyncIssue.
-    assertAbout(syncMessage()).that(message).hasType(MessageType.ERROR)
-                                            .hasGroup("Unresolved dependencies")
-                                            .hasMessageLine("Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.", 0);
-    // @formatter:on
+    NotificationData message = messages.get(0);
+
+    assertEquals(ERROR, message.getNotificationCategory());
+    assertEquals("Unresolved dependencies", message.getTitle());
+    assertThat(message.getMessage())
+      .contains("Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:");
   }
 
   public void testSyncWithAARDependencyAddsSources() throws Exception {
@@ -467,15 +470,15 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     Module appModule = getModule("app");
 
     ApplicationManager.getApplication().invokeAndWait(() -> runWriteCommandAction(
-        project, () -> {
-          GradleBuildModel buildModel = GradleBuildModel.get(appModule);
+      project, () -> {
+        GradleBuildModel buildModel = GradleBuildModel.get(appModule);
 
-          buildModel.repositories().addFlatDirRepository(getTestDataPath() + "/res/aar-lib-sources/");
+        buildModel.repositories().addFlatDirRepository(getTestDataPath() + "/res/aar-lib-sources/");
 
-          String newDependency = "com.foo.bar:bar:0.1@aar";
-          buildModel.dependencies().addArtifact(COMPILE, newDependency);
-          buildModel.applyChanges();
-        }));
+        String newDependency = "com.foo.bar:bar:0.1@aar";
+        buildModel.dependencies().addArtifact(COMPILE, newDependency);
+        buildModel.applyChanges();
+      }));
 
     requestSyncAndWait();
 

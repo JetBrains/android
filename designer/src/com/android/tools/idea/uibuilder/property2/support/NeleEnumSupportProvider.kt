@@ -18,6 +18,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.uibuilder.model.viewHandler
+import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import java.util.*
@@ -30,12 +31,10 @@ private const val TEXT_APPEARANCE_SUFFIX = "TextAppearance"
 class NeleEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
 
   /**
-   * Return the [EnumSupport] for a given property.
-   *
-   * @param property the property we want the [EnumSupport] for.
-   * @return the [EnumSupport] for the property or null if not applicable.
+   * Return the [EnumSupport] for the given [actual] property or null if not applicable.
    */
-  override fun invoke(property: NelePropertyItem): EnumSupport? {
+  override fun invoke(actual: NelePropertyItem): EnumSupport? {
+    val property = (actual as? NeleNewPropertyItem)?.delegate ?: actual
     return provideEnumSupportFromViewHandler(property.name, property.components) ?:
         getDropDownValuesFromSpecialCases(property) ?:
         property.definition?.let { provideEnumSupportFromAttributeDefinition(it) }
@@ -94,7 +93,7 @@ class NeleEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
     val parents = IdentityHashMap<NlComponent, NlComponent>()
     components.stream()
         .map { it.parent }
-        .forEach { if (it != null) parents.put(it, it) }
+        .forEach { if (it != null) parents[it] = it }
     return parents.keys
   }
 

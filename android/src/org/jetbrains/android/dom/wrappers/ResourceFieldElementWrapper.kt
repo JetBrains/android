@@ -16,8 +16,11 @@
 package org.jetbrains.android.dom.wrappers
 
 import com.intellij.navigation.NavigationItem
+import com.intellij.psi.ElementDescriptionLocation
+import com.intellij.psi.ElementDescriptionProvider
 import com.intellij.psi.PsiElement
 import com.intellij.refactoring.rename.RenameProcessor
+import com.intellij.usageView.UsageViewTypeLocation
 import org.jetbrains.android.AndroidResourceRenameResourceProcessor
 import org.jetbrains.android.augment.AndroidLightField
 
@@ -26,10 +29,20 @@ import org.jetbrains.android.augment.AndroidLightField
  * [AndroidResourceRenameResourceProcessor].
  */
 class ResourceFieldElementWrapper(
-  private val wrappee: AndroidLightField
+  private val wrappedElement: AndroidLightField
 ) : ResourceElementWrapper,
-    PsiElement by wrappee,
-    NavigationItem by wrappee {
-  override fun getWrappee(): AndroidLightField = wrappee
+    PsiElement by wrappedElement,
+    NavigationItem by wrappedElement {
+  override fun getWrappedElement(): AndroidLightField = wrappedElement
   override fun isWritable(): Boolean = true
+
+  class DescriptionProvider : ElementDescriptionProvider {
+    override fun getElementDescription(element: PsiElement, location: ElementDescriptionLocation): String? {
+      val field = (element as? ResourceFieldElementWrapper)?.wrappedElement ?: return null
+      return when (location) {
+        UsageViewTypeLocation.INSTANCE -> "resource ${field.name}"
+        else -> field.name
+      }
+    }
+  }
 }

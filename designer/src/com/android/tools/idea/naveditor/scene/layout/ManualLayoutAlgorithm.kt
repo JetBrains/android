@@ -19,11 +19,12 @@ import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.common.editor.NlEditor
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.naveditor.model.idPath
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isInclude
-import com.android.tools.idea.uibuilder.model.parentSequence
+import com.android.tools.idea.naveditor.model.isNavigation
+import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
 import com.intellij.openapi.command.WriteCommandAction
@@ -49,7 +50,7 @@ const val SKIP_PERSISTED_LAYOUT = "skipPersistedLayout"
 /**
  * [NavSceneLayoutAlgorithm] that puts screens in locations that have been specified by the user
  */
-class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutAlgorithm() {
+class ManualLayoutAlgorithm(private val module: Module, private val sceneManager: NavSceneManager) : SingleComponentLayoutAlgorithm() {
   private var _schema: NavigationSchema? = null
   private var _storage: Storage? = null
   private val tagPositionMap: BiMap<SmartPsiElementPointer<XmlTag>, LayoutPositions> = HashBiMap.create()
@@ -80,7 +81,7 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
     val connection = module.project.messageBus.connect()
     connection.subscribe(FileEditorManagerListener.Before.FILE_EDITOR_MANAGER, object : FileEditorManagerListener.Before.Adapter() {
       override fun beforeFileClosed(source: FileEditorManager, file: VirtualFile) {
-        if ((PsiUtil.getPsiFile(module.project, file) as? XmlFile)?.let { NavigationDomFileDescription.isNavFile(it)} == true) {
+        if ((PsiUtil.getPsiFile(module.project, file) as? XmlFile)?.let { NavigationDomFileDescription.isNavFile(it) } == true) {
           for (editor in source.getAllEditors(file).filterIsInstance<NlEditor>()) {
             val layoutPositions = storage.state[file.name] ?: continue
             editor.component.surface.model?.let { rectifyIds(it.components.flatMap { it.children }, layoutPositions) }
@@ -91,7 +92,8 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
   }
 
   @VisibleForTesting
-  constructor(schema: NavigationSchema, state: LayoutPositions, module: Module) : this(module) {
+  constructor(schema: NavigationSchema, state: LayoutPositions, module: Module, sceneManager: NavSceneManager)
+    : this(module, sceneManager) {
     _schema = schema
     _storage = Storage()
     storage.rootPositions = state
@@ -106,8 +108,7 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
       return false
     }
     reload(component.nlComponent.model.file)
-    val type = schema.getDestinationType(component.nlComponent.tagName)
-    if (type == NavigationSchema.DestinationType.NAVIGATION && component.parent == null) {
+    if (component.nlComponent.isNavigation && component.parent == null) {
       return true
     }
 
@@ -161,73 +162,67 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
       val model = component.nlComponent.model
       if (oldPoint != null) {
         WriteCommandAction.writeCommandAction(model.file).withName("Move Destination").run<Exception> {
+          val path = component.nlComponent.idPath
           val action = object : BasicUndoableAction(model.virtualFile) {
             override fun undo() {
               component.setPosition(oldPoint.x, oldPoint.y)
-              getPositions(component)?.myPosition = oldPoint
-              rectifyIds(model.components.flatMap { it.children }, storage.state[getFileName(component)]!!)
+              val positions = getPositionsFromPath(path)
+              positions.myPosition = oldPoint
+              tagPositionMap.inverse().remove(positions)
+              sceneManager.requestRender()
             }
 
             override fun redo() {
               component.setPosition(newPoint.x, newPoint.y)
-              savePosition(component, newPoint, model)
+              val positions = getPositionsFromPath(path)
+              positions.myPosition = newPoint
+              tagPositionMap.inverse().remove(positions)
+              sceneManager.requestRender()
             }
           }
           UndoManager.getInstance(component.nlComponent.model.project).undoableActionPerformed(action)
         }
       }
-      getPositions(component)?.myPosition = newPoint
-      rectifyIds(model.components.flatMap { it.children }, storage.state[getFileName(component)]!!)
+      val newPositions = getPositions(component)
+      newPositions?.myPosition = newPoint
+      tagPositionMap.inverse().remove(newPositions)
+      tagPositionMap[component.nlComponent.tagPointer] = newPositions
+      val fileName = component.nlComponent.model.virtualFile.name
+      rectifyIds(model.components.flatMap { it.children }, storage.state[fileName]!!)
     }
-  }
-
-  private fun savePosition(component: SceneComponent, newPoint: Point, model: NlModel) {
-    getPositions(component)?.myPosition = newPoint
-    rectifyIds(model.components.flatMap { it.children }, storage.state[getFileName(component)]!!)
   }
 
   private fun getPositions(component: SceneComponent): LayoutPositions? {
     val tag = component.nlComponent.tagPointer
     var componentPositions = tagPositionMap[tag]
     if (componentPositions == null) {
-      var positions = storage.state
+      val nlComponent = component.nlComponent
 
-      val parentIterator: Iterator<NlComponent> = component.nlComponent.parentSequence().asIterable().reversed().iterator()
-      while (parentIterator.hasNext()) {
-        val parentComponent = parentIterator.next()
-        val id = when {
-          parentComponent.isRoot -> getFileName(component)
-          parentComponent.tagName == TAG_INCLUDE -> parentComponent.getAttribute(AUTO_URI, ATTR_GRAPH)?.substring(NAVIGATION_PREFIX.length)
-          else -> parentComponent.id
-        } ?: return null
-        var newPositions = positions[id]
-        if (newPositions == null) {
-          newPositions = LayoutPositions()
-          positions.put(id, newPositions)
-        }
-        positions = newPositions
-
-        if (parentComponent.isRoot) {
-          filePositionMap[parentComponent.model.file] = newPositions
-        }
-        else {
-          // if a tag is recreated (e.g. by delete/undo) we might be coming in with the same "positions"
-          // but a new tag. Delete the existing entry first.
-          tagPositionMap.inverse().remove(newPositions)
-
-          tagPositionMap[parentComponent.tagPointer] = newPositions
-        }
-      }
-      componentPositions = positions
+      val path: List<String?> = nlComponent.idPath
+      componentPositions = getPositionsFromPath(path)
     }
     return componentPositions
   }
 
-  override fun restorePositionData(component: SceneComponent, position: Any) {
+  private fun getPositionsFromPath(pathWithNulls: List<String?>): LayoutPositions {
+    val path = pathWithNulls.map { it ?: "_null" }
+    var positions = storage.state
+    for (parentId in path) {
+      var newPositions = positions[parentId]
+      if (newPositions == null) {
+        newPositions = LayoutPositions()
+        positions.put(parentId, newPositions)
+      }
+      positions = newPositions
+    }
+    return positions
+  }
+
+  override fun restorePositionData(path: List<String>, position: Any) {
     if (position !is LayoutPositions) {
       return
     }
-    val existing = getPositions(component) ?: return
+    val existing = getPositionsFromPath(path)
     existing.myPosition = position.myPosition
     existing.myPositions = position.myPositions
   }
@@ -245,7 +240,8 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
       val cachedPositions = tagPositionMap[tag] ?: LayoutPositions()
       val id = if (component.isInclude) {
         component.getAttribute(AUTO_URI, ATTR_GRAPH)?.substring(NAVIGATION_PREFIX.length)
-      } else {
+      }
+      else {
         component.id
       }
       val persistedPositions = layoutPositions[id]
@@ -267,23 +263,8 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
     layoutPositions.myPositions.keys.retainAll(seenComponents)
   }
 
-  private fun getFileName(component: SceneComponent): String {
-    return component.nlComponent.model.virtualFile.name
-  }
-
   @VisibleForTesting
-  class Point {
-    var x: Int = 0
-    var y: Int = 0
-
-    // Invoked by reflection
-    constructor()
-
-    constructor(x: Int, y: Int) {
-      this.x = x
-      this.y = y
-    }
-  }
+  data class Point @JvmOverloads constructor(var x: Int = 0, var y: Int = 0)
 
   @VisibleForTesting
   class LayoutPositions {

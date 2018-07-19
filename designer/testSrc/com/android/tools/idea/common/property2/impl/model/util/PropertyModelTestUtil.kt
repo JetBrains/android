@@ -29,7 +29,7 @@ import javax.swing.ListCellRenderer
 
 object PropertyModelTestUtil {
 
-  interface TestPropertyItem : PropertyItem {
+  interface TestPropertyItem : NewPropertyItem {
     override var resolvedValue: String?
   }
 
@@ -47,8 +47,7 @@ object PropertyModelTestUtil {
       override val namespaceIcon: Icon?
         get() = if (namespace == TOOLS_URI) StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY else null
 
-      override val name: String
-        get() = name
+      override var name: String = name
 
       override var value: String? = initialValue
         set(value) {
@@ -142,7 +141,9 @@ object PropertyModelTestUtil {
 
       override var onEnter = {}
 
-      override fun cancelEditing() {}
+      override fun cancelEditing(): Boolean {
+        return true
+      }
 
       override fun requestFocus() {
         focusWasRequested = true

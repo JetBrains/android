@@ -138,7 +138,8 @@ class SerializationTest : TestCase() {
     // Unfortunately the serialization doesn't include the actual image, so we'll always deserialize as "preview unavailable"
     val factory = { s: String -> DrawNavScreen(s) }
 
-    testSerialization("DrawNavScreen,10x20x30x40", DrawNavScreen(Rectangle(10, 20, 30, 40), null), factory)
+    testSerialization("DrawNavScreen,10x20x30x40", DrawNavScreen(Rectangle(10, 20, 30, 40), CompletableFuture.completedFuture(null)),
+                      factory)
     testSerialization("DrawNavScreen,10x20x30x40", DrawNavScreen(Rectangle(10, 20, 30, 40), CompletableFuture.completedFuture(
       BufferedImage(1, 1, TYPE_INT_RGB))), factory)
   }

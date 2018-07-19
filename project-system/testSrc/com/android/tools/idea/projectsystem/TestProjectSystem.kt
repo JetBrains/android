@@ -76,7 +76,7 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
       override fun getDependentLibraries(): Collection<Library> {
-        TODO("not implemented")
+        return emptySet()
       }
 
       override fun registerDependency(coordinate: GradleCoordinate) {
@@ -100,6 +100,8 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
       override fun getInstantRunSupport(): CapabilityStatus {
         return CapabilityNotSupported()
       }
+
+      override fun findClassFile(fqcn: String): VirtualFile? = null
     }
   }
 

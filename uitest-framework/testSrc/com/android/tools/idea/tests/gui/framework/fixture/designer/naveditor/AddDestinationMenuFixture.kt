@@ -17,19 +17,22 @@ import com.android.tools.idea.naveditor.editor.AddDestinationMenu
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureTemplateParametersWizardFixture
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Computable
+import com.intellij.util.ui.AsyncProcessIcon
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
 import org.fest.swing.finder.WindowFinder
 import org.fest.swing.fixture.JListFixture
+import org.fest.swing.timing.Wait
 import javax.swing.JDialog
 import javax.swing.JPanel
 
 class AddDestinationMenuFixture(private val robot: Robot, private val menu: AddDestinationMenu) :
-    ComponentFixture<AddDestinationMenuFixture, JPanel>(AddDestinationMenuFixture::class.java, robot, menu.mainPanel) {
+  ComponentFixture<AddDestinationMenuFixture, JPanel>(AddDestinationMenuFixture::class.java, robot, menu.mainPanel) {
 
   fun selectDestination(label: String) {
     val index = ProgressManager.getInstance().runProcess(Computable {
@@ -38,6 +41,12 @@ class AddDestinationMenuFixture(private val robot: Robot, private val menu: AddD
       })
     }, EmptyProgressIndicator())
     JListFixture(robot, menu.destinationsList).clickItem(index)
+  }
+
+  fun waitForContents(): AddDestinationMenuFixture {
+    val processIcon = robot.finder().find(menu.destinationsList, Matchers.byType(AsyncProcessIcon::class.java))
+    Wait.seconds(15).expecting("destination menu contents").until { !processIcon.isRunning }
+    return this
   }
 
   fun visibleItemCount(): Int {

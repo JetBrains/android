@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.naveditor
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -41,10 +40,10 @@ class DestinationListTest {
   val guiTest = GuiTestRule()
 
   @Before
-  fun setUp() = StudioFlags.ENABLE_NAV_EDITOR.override(true)
+  fun setUp() = beforeNavTest()
 
   @After
-  fun tearDown() = StudioFlags.ENABLE_NAV_EDITOR.clearOverride()
+  fun tearDown() = afterNavTest()
 
   /**
    * Make sure the DestinationList is updated correctly when the nav file is updated outside studio.

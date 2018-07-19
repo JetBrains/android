@@ -72,11 +72,6 @@ public final class StudioFlags {
     true);
 
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
-  public static final Flag<Boolean> PROFILER_ENABLED = Flag.create(
-    PROFILER, "enabled", "Enable \"Profiler\" toolbar",
-    "Enable the new Android Profiler toolbar, which replaces the Android Monitor toolbar " +
-    "and provides more advanced CPU, event, memory, and network profiling information.",
-    true);
 
   public static final Flag<Boolean> PROFILER_SHOW_SESSIONS = Flag.create(
     PROFILER, "show.session", "Enable the sessions panel",
@@ -222,6 +217,11 @@ public final class StudioFlags {
     "Enable the use of androidx dependencies by default when the old support library is not present",
     true);
 
+  public static final Flag<Boolean> NELE_RENDER_DIAGNOSTICS = Flag.create(
+    NELE, "diagnostics", "Enable rendering on-screen stats",
+    "If enabled, the surface displays some debug information to diagnose performance",
+    false);
+
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",
@@ -248,27 +248,34 @@ public final class StudioFlags {
     "Enable new Color Picker in layout Editor",
     false);
 
-  private static final FlagGroup RUNDEBUG_GROUP = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
+  private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
-    RUNDEBUG_GROUP, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
+    RUNDEBUG, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
     "When running or debugging an Android process, output the logcat output of the process in the console window.",
     true);
   public static final Flag<Boolean> RUNDEBUG_USE_AIA_SDK_LIBRARY = Flag.create(
-    RUNDEBUG_GROUP, "instantapps.sdklib.enabled", "Use external SDK library to launch Instant Apps",
+    RUNDEBUG, "instantapps.sdklib.enabled", "Use external SDK library to launch Instant Apps",
     "When provisioning devices and launching Instant Apps, use the AIA SDK library JAR to perform these functions if available",
     true);
 
   public static final Flag<Boolean> RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED = Flag.create(
-    RUNDEBUG_GROUP, "android.bundle.build.enabled", "Enable the Build Bundle action",
+    RUNDEBUG, "android.bundle.build.enabled", "Enable the Build Bundle action",
     "If enabled, the \"Build Bundle(s)\" menu item is enabled. " +
     "Changing the value of this flag requires restarting Android Studio.",
     true);
 
   public static final Flag<Boolean> SELECT_DEVICE_COMBO_BOX_ACTION_VISIBLE = Flag.create(
-    RUNDEBUG_GROUP,
+    RUNDEBUG,
     "select.device.combo.box.action.visible",
     "Show the Select Device combo box action",
     "Show the Select Device combo box action next to the Select Run/Debug Configuration one in the toolbar",
+    false);
+
+  public static final Flag<Boolean> JVMTI_REFRESH = Flag.create(
+    RUNDEBUG,
+    "jvmti.refresh",
+    "Application refresh with JVMTI",
+    "Use JVMTI to support application refresh. This implies incremental deployment",
     false);
 
   private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle Project System");
@@ -287,10 +294,18 @@ public final class StudioFlags {
     "Turns on the new infrastructure for \"Gradle Sync\", resulting in faster Sync executions.", false);
   public static final Flag<Boolean> NEW_PSD_ENABLED = Flag.create(
     GRADLE_IDE, "new.psd", "Enable new \"Project Structure\" dialog",
-    "Turns on the new \"Project Structure\" dialog.", false);
+    "Turns on the new \"Project Structure\" dialog.", true);
   public static final Flag<Boolean> SINGLE_VARIANT_SYNC_ENABLED = Flag.create(
     GRADLE_IDE, "single.variant.sync", "Enable new \"Single-Variant Sync\"",
     "Turns on Single-Variant Sync.", false);
+  public static final Flag<Boolean> COMPOUND_SYNC_ENABLED = Flag.create(
+    GRADLE_IDE, "compound.sync", "Enable new \"Compound Sync\"",
+    "Turns on Compound Sync.", false);
+  public static final Flag<Boolean> SHIPPED_SYNC_ENABLED = Flag.create(
+    GRADLE_IDE, "shipped.sync", "Enable \"Shipped Sync\"",
+    "Use shipped Gradle Sync when possible e.g. in freshly created projects. Allows to avoid running an actual Gradle Sync.",
+    false);
+
   // REMOVE or change default to true after http://b/80245603 is fixed.
   public static final Flag<Boolean> L4_DEPENDENCY_MODEL = Flag.create(
     GRADLE_IDE, "level4.dependency.model", "Use L4 DependencyGraph Model",

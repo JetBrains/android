@@ -149,8 +149,18 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     parser = ::parseString
   )
 
+  val consumerProGuardFiles: ListProperty<PsAndroidModuleDefaultConfig, File> = listProperty(
+    "Consumer ProGuard Files",
+    resolvedValueGetter = { consumerProguardFiles.toList() },
+    parsedPropertyGetter = { consumerProguardFiles() },
+    getter = { asFile() },
+    setter = { setValue(it.toString()) },
+    parser = ::parseFile,
+    knownValuesGetter = { _, model -> proGuardFileValues(model.module) }
+  )
+
   val proGuardFiles: ListProperty<PsAndroidModuleDefaultConfig, File> = listProperty(
-    "Proguard Files",
+    "ProGuard Files",
     resolvedValueGetter = { proguardFiles.toList() },
     parsedPropertyGetter = { proguardFiles() },
     getter = { asFile() },

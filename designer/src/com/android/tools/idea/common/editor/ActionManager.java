@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 /**
  * Provides and handles actions for an {@link NlEditor}.
@@ -90,6 +91,6 @@ public abstract class ActionManager<S extends DesignSurface> {
   public abstract DefaultActionGroup createPopupMenu(@NotNull com.intellij.openapi.actionSystem.ActionManager actionManager,
                                                         @Nullable NlComponent leafComponent);
 
-  public abstract void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component, @Nullable NlComponent parent,
-                                  @NotNull java.util.List<NlComponent> newSelection, boolean toolbar);
+  public abstract void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component,
+                                  @NotNull List<NlComponent> newSelection, boolean toolbar);
 }

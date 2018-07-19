@@ -36,6 +36,7 @@ class ExtractNewVariableExtension<T : Any, PropertyCoreT : ModelPropertyCore<T>>
     editor: ModelPropertyEditor<T>,
     editorFactory: ModelPropertyEditorFactory<T, PropertyCoreT>) {
 
+    editor.updateProperty()
     val dialog = ExtractVariableDialog(project,
                                        module.variables,
                                        property,

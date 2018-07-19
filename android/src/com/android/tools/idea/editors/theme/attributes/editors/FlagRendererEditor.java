@@ -202,7 +202,7 @@ public class FlagRendererEditor extends TypedCellRendererEditor<EditedStyleItem,
       if (attrDefinition != null) {
         String[] flagNames = attrDefinition.getValues();
         for (String flagName : flagNames) {
-          FlagCheckBox flag = new FlagCheckBox(flagName, attrDefinition.getValueDoc(flagName));
+          FlagCheckBox flag = new FlagCheckBox(flagName, attrDefinition.getValueDescription(flagName));
           if (mySelectedFlags.contains(flagName)) {
             flag.setSelected(true);
           }

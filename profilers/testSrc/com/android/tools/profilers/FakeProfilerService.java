@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.*;
@@ -66,6 +67,8 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
       Common.Device device = Common.Device.newBuilder()
         .setDeviceId(FAKE_DEVICE_ID)
         .setSerial(FAKE_DEVICE_NAME)
+        .setApiLevel(AndroidVersion.VersionCodes.O)
+        .setFeatureLevel(AndroidVersion.VersionCodes.O)
         .setModel(FAKE_DEVICE_NAME)
         .setState(Common.Device.State.ONLINE)
         .build();

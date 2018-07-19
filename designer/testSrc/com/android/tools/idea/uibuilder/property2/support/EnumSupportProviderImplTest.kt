@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants.*
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
@@ -126,10 +128,8 @@ class EnumSupportProviderImplTest: AndroidTestCase() {
 
   fun testFromAttributeDefinition() {
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
-    val definition = AttributeDefinition(ATTR_VISIBILITY, "", TEXT_VIEW, emptyList())
-    definition.addValue("visible")
-    definition.addValue("invisible")
-    definition.addValue("gone")
+    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_VISIBILITY)
+    definition.setValueMappings(mapOf("visible" to 1, "invisible" to 2, "gone" to 3))
     val property = util.makeProperty(ANDROID_URI, definition)
     val provider = NeleEnumSupportProvider()
     val enumSupport = provider(property) ?: error("No EnumSupport Found")

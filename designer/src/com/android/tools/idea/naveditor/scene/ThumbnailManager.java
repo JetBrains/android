@@ -50,6 +50,7 @@ public class ThumbnailManager extends AndroidFacetScopedService {
   private static final Key<ThumbnailManager> KEY = Key.create(ThumbnailManager.class.getName());
 
   private final Table<VirtualFile, Configuration, SoftReference<BufferedImage>> myImages = HashBasedTable.create();
+  private final Table<VirtualFile, Configuration, SoftReference<BufferedImage>> myOldImages = HashBasedTable.create();
   private final Table<VirtualFile, Configuration, Long> myRenderVersions = HashBasedTable.create();
   private final Table<VirtualFile, Configuration, Long> myRenderModStamps = HashBasedTable.create();
   private final LocalResourceRepository myResourceRepository;
@@ -100,20 +101,31 @@ public class ThumbnailManager extends AndroidFacetScopedService {
   }
 
   @Nullable
+  public BufferedImage getOldThumbnail(@NotNull VirtualFile file, @NotNull Configuration configuration) {
+    SoftReference<BufferedImage> imageRef = myOldImages.get(file, configuration);
+    return imageRef == null ? null : imageRef.get();
+  }
+
+  @NotNull
   public CompletableFuture<BufferedImage> getThumbnail(@NotNull XmlFile xmlFile, @NotNull Configuration configuration) {
     VirtualFile file = xmlFile.getVirtualFile();
     SoftReference<BufferedImage> cachedReference = myImages.get(file, configuration);
     BufferedImage cached = cachedReference != null ? cachedReference.get() : null;
-    if (cached != null
-        && myRenderVersions.get(file, configuration) == myResourceRepository.getModificationCount()
-        && myRenderModStamps.get(file, configuration) == file.getModificationStamp()) {
-      return CompletableFuture.completedFuture(cached);
+    if (cached != null) {
+      if (myRenderVersions.get(file, configuration) == myResourceRepository.getModificationCount()
+          && myRenderModStamps.get(file, configuration) == file.getTimeStamp()) {
+        return CompletableFuture.completedFuture(cached);
+      }
+      else {
+        myOldImages.put(file, configuration, cachedReference);
+      }
     }
 
     CompletableFuture<BufferedImage> result = new CompletableFuture<>();
     synchronized (DISPOSAL_LOCK) {
       if (myDisposed) {
-        return null;
+        result.complete(null);
+        return result;
       }
       CompletableFuture<BufferedImage> inProgress = myPendingFutures.get(file);
       if (inProgress != null) {
@@ -135,6 +147,7 @@ public class ThumbnailManager extends AndroidFacetScopedService {
         }
         try {
           result.complete(getImage(xmlFile, file, configuration));
+          myOldImages.remove(file, configuration);
         }
         catch (Exception e) {
           result.completeExceptionally(e);
@@ -170,7 +183,7 @@ public class ThumbnailManager extends AndroidFacetScopedService {
       image = renderResult.get().getRenderedImage().getCopy();
       myImages.put(file, configuration, new SoftReference<>(image));
       myRenderVersions.put(file, configuration, myResourceRepository.getModificationCount());
-      myRenderModStamps.put(file, configuration, file.getModificationStamp());
+      myRenderModStamps.put(file, configuration, file.getTimeStamp());
     }
     return image;
   }
@@ -180,7 +193,9 @@ public class ThumbnailManager extends AndroidFacetScopedService {
                                   @NotNull XmlFile file,
                                   @NotNull Configuration configuration,
                                   RenderService renderService) {
-    RenderTask task = renderService.createTask(facet, file, configuration);
+    RenderTask task = renderService.taskBuilder(facet, configuration)
+      .withPsiFile(file)
+      .build();
     if (task != null) {
       task.setDecorations(false);
     }

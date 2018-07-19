@@ -19,8 +19,10 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.internal.util.function.TriFunction;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
@@ -443,25 +445,19 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
     }
   }
 
-  static class GradleDependencyUsageInfo extends MigrateToAppCompatUsageInfo {
+  abstract static class GradleUsageInfo extends MigrateToAppCompatUsageInfo {
+    public GradleUsageInfo(@NotNull PsiElement element) {
+      super(element);
+    }
+  }
+
+  static class GradleDependencyUsageInfo extends GradleUsageInfo {
     // (groupName, artifactName, defaultVersion) -> version
     @NotNull
     private final TriFunction<String, String, String, String> myGetLibraryRevisionFunction;
     private final GradleMigrationEntry mapEntry;
-    @Nullable
     private final ArtifactDependencyModel myModel;
-    @Nullable
     private final ProjectBuildModel myBuildModel;
-
-    public GradleDependencyUsageInfo(@NotNull PsiElement element,
-                                     @NonNull GradleMigrationEntry entry,
-                                     @NotNull TriFunction<String, String, String, String> versionProvider) {
-      super(element);
-      mapEntry = entry;
-      myGetLibraryRevisionFunction = versionProvider;
-      myModel = null;
-      myBuildModel = null;
-    }
 
     public GradleDependencyUsageInfo(@NotNull PsiElement element,
                                      @NotNull ProjectBuildModel buildModel,
@@ -683,7 +679,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
     }
   }
 
-  static class GradleStringUsageInfo extends MigrateToAppCompatUsageInfo {
+  static class GradleStringUsageInfo extends GradleUsageInfo {
 
     @NotNull private final String myNewValue;
 
@@ -706,6 +702,26 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       }
 
       return element;
+    }
+  }
+
+  static class AddGoogleRepositoryUsageInfo extends GradleUsageInfo {
+    private final RepositoriesModel myRepositoriesModel;
+    private final ProjectBuildModel myProjectBuildModel;
+
+    public AddGoogleRepositoryUsageInfo(@NotNull ProjectBuildModel projectBuildModel,
+                                        @NotNull RepositoriesModel repositoriesModel) {
+      super(repositoriesModel.getPsiElement());
+      myProjectBuildModel = projectBuildModel;
+      myRepositoriesModel = repositoriesModel;
+    }
+
+    @Nullable
+    @Override
+    public PsiElement applyChange(@NotNull PsiMigration migration) {
+      myRepositoriesModel.addGoogleMavenRepository(getProject());
+      myProjectBuildModel.applyChanges();
+      return getElement();
     }
   }
 }

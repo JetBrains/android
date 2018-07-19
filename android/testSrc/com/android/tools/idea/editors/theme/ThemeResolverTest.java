@@ -30,7 +30,6 @@ import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.extensions.Extensions;

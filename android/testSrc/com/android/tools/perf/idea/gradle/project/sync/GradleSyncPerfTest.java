@@ -16,8 +16,7 @@
 package com.android.tools.perf.idea.gradle.project.sync;
 
 import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.analytics.AnalyticsSettings;
-import com.android.tools.analytics.JournalingUsageTracker;
+import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -49,7 +48,7 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRA
  * Tests to collect performance data for Gradle Sync
  */
 public class GradleSyncPerfTest extends AndroidGradleTestCase {
-  private JournalingUsageTracker myUsageTracker;
+  private TestUsageTracker myUsageTracker;
   private VirtualTimeScheduler myScheduler;
 
   @Override
@@ -65,7 +64,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
       // Use project directory so it will be cleaned up in tearDown
       spoolLocation = getProject().getBasePath();
     }
-    myUsageTracker = new JournalingUsageTracker(new AnalyticsSettings(), myScheduler, Paths.get(spoolLocation));
+    myUsageTracker = new TestUsageTracker(myScheduler);
 
     Project project = getProject();
     GradleProjectSettings projectSettings = new GradleProjectSettings();
@@ -274,7 +273,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
         requestSyncAndWait();
         requestSyncAndWait();
 
-        UsageTracker.setInstanceForTest(myUsageTracker); // Start logging data for performance dashboard
+        UsageTracker.setWriterForTest(myUsageTracker); // Start logging data for performance dashboard
         requestSyncAndWait();
       } catch(Exception e) {
         throw new RuntimeException(e);

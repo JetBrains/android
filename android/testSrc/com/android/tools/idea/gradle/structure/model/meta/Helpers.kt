@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
-internal fun <T : Any> ModelPropertyCore<T>.testValue() = (getParsedValue().value as? ParsedValue.Set.Parsed<T>)?.value
+internal fun <T : Any> ModelPropertyCore<T>.testValue() = getParsedValue().value.maybeValue
 internal fun <T : Any> ModelPropertyCore<T>.testSetValue(value: T?) =
   setParsedValue(if (value != null) ParsedValue.Set.Parsed(value, DslText.Literal) else ParsedValue.NotSet)
 

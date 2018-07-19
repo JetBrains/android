@@ -24,7 +24,6 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.StringAttributeDelegate
 import com.android.tools.idea.common.model.StringAutoAttributeDelegate
 import com.android.tools.idea.uibuilder.model.IdAutoAttributeDelegate
-import com.android.tools.idea.uibuilder.model.parentSequence
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.intellij.openapi.vfs.VfsUtil
@@ -126,10 +125,13 @@ val NlComponent.isAction: Boolean
   get() = tagName == NavigationSchema.TAG_ACTION
 
 val NlComponent.isFragment: Boolean
-  get() = destinationType == NavigationSchema.DestinationType.FRAGMENT
+  get() = model.schema.isFragmentTag(tagName)
+
+val NlComponent.isActivity: Boolean
+  get() = model.schema.isActivityTag(tagName)
 
 val NlComponent.isNavigation: Boolean
-  get() = destinationType == NavigationSchema.DestinationType.NAVIGATION
+  get() = model.schema.isNavigationTag(tagName)
 
 val NlComponent.isInclude: Boolean
   get() = tagName == TAG_INCLUDE
@@ -269,6 +271,24 @@ val NlComponent.effectiveDestinationId: String?
     actionDestinationId?.let { return it }
     return if (inclusive) null else popUpTo
   }
+
+/**
+ * Sequence of NlComponents starting with this and going down the parent tree to the root.
+ */
+fun NlComponent.parentSequence(): Sequence<NlComponent> = generateSequence(this) { it.parent }
+
+/**
+ * The "path" to this. The first element is the filename, and the following elements are the ids of the elements containing this.
+ */
+val NlComponent.idPath: List<String?>
+  get() = parentSequence().asIterable().reversed().map {
+    when {
+      it.isRoot -> model.virtualFile.name
+      it.tagName == TAG_INCLUDE -> it.getAttribute(AUTO_URI, ATTR_GRAPH)?.substring(NAVIGATION_PREFIX.length)
+      else -> it.id
+    }
+  }
+
 
 @VisibleForTesting
 class NavComponentMixin(component: NlComponent)

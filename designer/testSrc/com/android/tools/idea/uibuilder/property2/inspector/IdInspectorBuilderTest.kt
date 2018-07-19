@@ -21,59 +21,56 @@ import com.android.tools.idea.uibuilder.model.PreferenceUtils
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 
+@RunsInEdt
 class IdInspectorBuilderTest {
   @JvmField @Rule
   val projectRule = AndroidProjectRule.inMemory()
 
+  @JvmField @Rule
+  val edtRule = EdtRule()
+
   @Test
   fun testAvailableWhenIdIsPresent() {
-    runInEdtAndWait {
-      val util = InspectorTestUtil(projectRule, TEXT_VIEW)
-      val builder = IdInspectorBuilder(util.editorProvider)
-      util.addProperty(ANDROID_URI, ATTR_ID, NelePropertyType.ID)
-      builder.attachToInspector(util.inspector, util.properties)
-      assertThat(util.inspector.lines).hasSize(1)
-      assertThat(util.inspector.lines[0].editorModel?.property?.name).isEqualTo(ATTR_ID)
-    }
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW)
+    val builder = IdInspectorBuilder(util.editorProvider)
+    util.addProperty(ANDROID_URI, ATTR_ID, NelePropertyType.ID)
+    builder.attachToInspector(util.inspector, util.properties)
+    assertThat(util.inspector.lines).hasSize(1)
+    assertThat(util.inspector.lines[0].editorModel?.property?.name).isEqualTo(ATTR_ID)
   }
 
   @Test
   fun testNotAvailableWhenIdIsAbsent() {
-    runInEdtAndWait {
-      val util = InspectorTestUtil(projectRule, TEXT_VIEW)
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW)
+    val builder = IdInspectorBuilder(util.editorProvider)
+    builder.attachToInspector(util.inspector, util.properties)
+    assertThat(util.inspector.lines).isEmpty()
+  }
+
+  @Test
+  fun testNotAvailableForPreferenceTags() {
+    for (tagName in PreferenceUtils.VALUES) {
+      val util = InspectorTestUtil(projectRule, tagName)
       val builder = IdInspectorBuilder(util.editorProvider)
+      util.addProperty(ANDROID_URI, ATTR_ID, NelePropertyType.ID)
       builder.attachToInspector(util.inspector, util.properties)
       assertThat(util.inspector.lines).isEmpty()
     }
   }
 
   @Test
-  fun testNotAvailableForPreferenceTags() {
-    runInEdtAndWait {
-      for (tagName in PreferenceUtils.VALUES) {
-        val util = InspectorTestUtil(projectRule, tagName)
-        val builder = IdInspectorBuilder(util.editorProvider)
-        util.addProperty(ANDROID_URI, ATTR_ID, NelePropertyType.ID)
-        builder.attachToInspector(util.inspector, util.properties)
-        assertThat(util.inspector.lines).isEmpty()
-      }
-    }
-  }
-
-  @Test
   fun testNotAvailableForMenuTags() {
-    runInEdtAndWait {
-      for (tagName in arrayOf(TAG_MENU, TAG_ITEM, TAG_GROUP)) {
-        val util = InspectorTestUtil(projectRule, tagName)
-        val builder = IdInspectorBuilder(util.editorProvider)
-        util.addProperty(ANDROID_URI, ATTR_ID, NelePropertyType.ID)
-        builder.attachToInspector(util.inspector, util.properties)
-        assertThat(util.inspector.lines).isEmpty()
-      }
+    for (tagName in arrayOf(TAG_MENU, TAG_ITEM, TAG_GROUP)) {
+      val util = InspectorTestUtil(projectRule, tagName)
+      val builder = IdInspectorBuilder(util.editorProvider)
+      util.addProperty(ANDROID_URI, ATTR_ID, NelePropertyType.ID)
+      builder.attachToInspector(util.inspector, util.properties)
+      assertThat(util.inspector.lines).isEmpty()
     }
   }
 }

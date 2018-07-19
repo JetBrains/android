@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.editors.translations;
 
-import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.FrozenColumnTableFixture;
@@ -56,13 +53,12 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.OptionalInt;
-import java.util.stream.IntStream;
 
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 @RunWith(GuiTestRemoteRunner.class)
 public final class TranslationsEditorTest {
@@ -270,34 +266,6 @@ public final class TranslationsEditorTest {
     dialog.clickOk();
 
     assertEquals(Collections.singletonList("hello_world"), translationsEditor.getTable().columnAt(KEY_COLUMN));
-  }
-
-  @Test
-  public void setModel() throws IOException {
-    importSimpleApplication();
-
-    StringResourceTable table = (StringResourceTable)myGuiTest.ideFrame().getEditor().getTranslationsEditor().getTable().target();
-    OptionalInt optionalWidth = table.getKeyColumnPreferredWidth();
-
-    if (optionalWidth.isPresent()) {
-      assertEquals(optionalWidth.getAsInt(), table.getColumn(KEY_COLUMN).getPreferredWidth());
-    }
-    else {
-      fail();
-    }
-
-    optionalWidth = table.getDefaultValueAndLocaleColumnPreferredWidths();
-
-    if (optionalWidth.isPresent()) {
-      int width = optionalWidth.getAsInt();
-
-      IntStream.range(DEFAULT_VALUE_COLUMN, table.getColumnCount())
-               .mapToObj(table::getColumn)
-               .forEach(column -> assertEquals(width, column.getPreferredWidth()));
-    }
-    else {
-      fail();
-    }
   }
 
   @Test

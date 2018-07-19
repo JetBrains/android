@@ -53,7 +53,7 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
     if (!(sourceElement instanceof PsiIdentifier)) {
       return null;
     }
-    final PsiFile file = sourceElement.getContainingFile();
+    PsiFile file = sourceElement.getContainingFile();
 
     if (file == null) {
       return null;
@@ -63,7 +63,7 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
       return null;
     }
 
-    final PsiReferenceExpression refExp = PsiTreeUtil.getParentOfType(sourceElement, PsiReferenceExpression.class);
+    PsiReferenceExpression refExp = PsiTreeUtil.getParentOfType(sourceElement, PsiReferenceExpression.class);
     if (refExp == null) {
       return null;
     }
@@ -84,9 +84,10 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
     if (info == null) {
       return null;
     }
-    final String nestedClassName = info.getClassName();
-    final String fieldName = info.getFieldName();
-    final List<PsiElement> resourceList = new ArrayList<>();
+
+    String nestedClassName = info.getClassName();
+    String fieldName = info.getFieldName();
+    List<PsiElement> resourceList = new ArrayList<>();
 
     if (info.isFromManifest()) {
       collectManifestElements(nestedClassName, fieldName, facet, resourceList);
@@ -94,7 +95,7 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
     else {
       ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
       ResourceManager manager = info.getNamespace() == ResourceNamespace.ANDROID
-                                    ? resourceManagers.getSystemResourceManager(false)
+                                    ? resourceManagers.getFrameworkResourceManager(false)
                                     : resourceManagers.getLocalResourceManager();
       if (manager == null) {
         return null;
@@ -102,7 +103,7 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
       manager.collectLazyResourceElements(info.getNamespace(), nestedClassName, fieldName, false, refExp, resourceList);
 
       if (manager instanceof LocalResourceManager) {
-        final LocalResourceManager lrm = (LocalResourceManager)manager;
+        LocalResourceManager lrm = (LocalResourceManager)manager;
 
         if (nestedClassName.equals(ResourceType.ATTR.getName())) {
           for (Attr attr : lrm.findAttrs(fieldName)) {
@@ -133,7 +134,7 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
                                               @NotNull String fieldName,
                                               @NotNull AndroidFacet facet,
                                               @NotNull List<PsiElement> result) {
-    final Manifest manifest = facet.getManifest();
+    Manifest manifest = facet.getManifest();
 
     if (manifest == null) {
       return;
@@ -150,11 +151,11 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
       return;
     }
     for (ManifestElementWithRequiredName domElement : list) {
-      final AndroidAttributeValue<String> nameAttribute = domElement.getName();
-      final String unqualifiedName = StringUtil.getShortName(StringUtil.notNullize(nameAttribute.getValue()));
+      AndroidAttributeValue<String> nameAttribute = domElement.getName();
+      String unqualifiedName = StringUtil.getShortName(StringUtil.notNullize(nameAttribute.getValue()));
 
       if (AndroidUtils.equal(unqualifiedName, fieldName, false)) {
-        final XmlElement psiElement = nameAttribute.getXmlAttributeValue();
+        XmlElement psiElement = nameAttribute.getXmlAttributeValue();
 
         if (psiElement != null) {
           result.add(psiElement);

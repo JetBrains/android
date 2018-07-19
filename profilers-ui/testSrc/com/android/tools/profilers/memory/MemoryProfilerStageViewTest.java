@@ -277,6 +277,19 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   }
 
   @Test
+  public void testLoadLegacyAllocationRecordsFromFile() throws Exception {
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+
+    // Create and import a temp allocation records file
+    File file = FileUtil.createTempFile("fake_allocation_records", ".alloc", true);
+    assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
+
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
+    MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
+    assertThat(stage.getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
+  }
+
+  @Test
   public void testContextMenu() {
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
     FakeIdeProfilerComponents ideProfilerComponents = (FakeIdeProfilerComponents)stageView.getIdeComponents();

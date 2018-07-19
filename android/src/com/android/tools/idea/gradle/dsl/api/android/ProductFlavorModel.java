@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
-import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.ExternalNativeBuildOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.NdkOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.VectorDrawablesOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public interface ProductFlavorModel extends FlavorTypeModel {
   @NotNull
@@ -39,6 +40,22 @@ public interface ProductFlavorModel extends FlavorTypeModel {
 
   @NotNull
   ResolvedPropertyModel minSdkVersion();
+
+  /**
+   * @return resolved property model representing a missing dimension strategy, this will be in the form of a LIST_TYPE with the first item
+   * the dimension and the succeeding items the fallbacks. This property should be kept as a LIST_TYPE property. They can be deleted by
+   * calling {@link ResolvedPropertyModel#delete()} on the strategy.
+   */
+  @NotNull
+  List<ResolvedPropertyModel> missingDimensionStrategies();
+
+  @NotNull
+  ResolvedPropertyModel addMissingDimensionStrategy(@NotNull String dimension, @NotNull Object... fallbacks);
+
+  /**
+   * @return whether of new any missingDimensionStrategy has been changed, added or removed.
+   */
+  boolean areMissingDimensionStrategiesModified();
 
   @NotNull
   NdkOptionsModel ndk();

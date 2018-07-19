@@ -42,8 +42,6 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import static com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY;
-
 /**
  * Repository of resources defined in an AAR file where resources are stored in protocol buffer format.
  * See https://developer.android.com/studio/projects/android-library.html.
@@ -66,7 +64,7 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
   // The signed mantissa is stored in the higher 24 bits of the value.
   private static final int COMPLEX_MANTISSA_SHIFT = 8;
 
-  @NotNull private final File myAarDirectory;
+  @NotNull private final File myResApkFileOrFolder;
   /**
    * Either "apk" or "file"" depending on whether the repository was loaded from res.apk
    * or its unzipped contents.
@@ -84,32 +82,29 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
   private String myResourceUrlPrefix;
   private ResourceUrlParser myUrlParser;
 
-  private AarProtoResourceRepository(@NotNull File aarFolder, @NotNull ResourceNamespace namespace, @Nullable String libraryName) {
-    super(new File(aarFolder, "res"), namespace, libraryName);
-    myAarDirectory = aarFolder;
+  private AarProtoResourceRepository(@NotNull File apkFileOrFolder, @NotNull ResourceNamespace namespace, @Nullable String libraryName) {
+    super(apkFileOrFolder.getParentFile(), namespace, libraryName);
+    myResApkFileOrFolder = apkFileOrFolder;
   }
 
   /**
-   * Creates a resource repository for an AAR file. The provided folder may either contain unpacked contents
-   * of an AAR file, or unpacked contents of res.apk file extracted from an AAR file.
+   * Creates a resource repository for an AAR file.
    *
-   * @param aarFolder the folder containing unpacked contents of an AAR, or unpacked contents of res.apk
+   * @param apkFileOrFolder the res.apk file or a folder with its unzipped contents
    * @param libraryName the name of the library
    * @return the created resource repository, or null if {@code aarFolder} does not contain either "res.apk" or "resources.pb"
    */
-  @Nullable
-  public static AarProtoResourceRepository createIfProtoAar(@NotNull File aarFolder, @Nullable String libraryName) {
-    DataLoader loader = new DataLoader(aarFolder);
+  @NotNull
+  public static AarProtoResourceRepository createProtoRepository(@NotNull File apkFileOrFolder, @Nullable String libraryName) {
+    DataLoader loader = new DataLoader(apkFileOrFolder);
     try {
       loader.load();
-    } catch (FileNotFoundException e) {
-      return null;
     } catch (IOException e) {
       LOG.error(e);
-      return new AarProtoResourceRepository(aarFolder, getNamespace(loader.packageName), libraryName); // Return an empty repository.
+      return new AarProtoResourceRepository(apkFileOrFolder, getNamespace(loader.packageName), libraryName); // Return an empty repository.
     }
 
-    AarProtoResourceRepository repository = new AarProtoResourceRepository(aarFolder, getNamespace(loader.packageName), libraryName);
+    AarProtoResourceRepository repository = new AarProtoResourceRepository(apkFileOrFolder, getNamespace(loader.packageName), libraryName);
     repository.load(loader);
     return repository;
   }
@@ -123,10 +118,10 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
     loadResourceTable(loader.resourceTableMsg);
     if (loader.loadedFromResApk) {
       myFilesystemProtocol = "apk";
-      myResourcePathPrefix = new File(myAarDirectory, FN_RESOURCE_STATIC_LIBRARY).getPath() + URLUtil.JAR_SEPARATOR;
+      myResourcePathPrefix = myResApkFileOrFolder.getPath() + URLUtil.JAR_SEPARATOR;
     } else {
       myFilesystemProtocol = "file";
-      myResourcePathPrefix = myAarDirectory.getAbsolutePath() + File.separator;
+      myResourcePathPrefix = myResApkFileOrFolder.getAbsolutePath() + File.separator;
     }
     myResourceUrlPrefix = myFilesystemProtocol + "://" + myResourcePathPrefix;
   }
@@ -665,22 +660,21 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
   }
 
   private static class DataLoader {
-    private final File aarDir;
+    private final File resApkFileOrFolder;
     Resources.ResourceTable resourceTableMsg;
     String packageName;
     boolean loadedFromResApk;
 
-    DataLoader(@NotNull File aarDir) {
-      this.aarDir = aarDir;
+    DataLoader(@NotNull File resApkFileOrFolder) {
+      this.resApkFileOrFolder = resApkFileOrFolder;
     }
 
     void load() throws IOException {
       try {
-        resourceTableMsg = readResourceTableFromResourcesPbFile(aarDir);
-        packageName = AndroidManifestUtils.getPackageNameFromManifestFile(new File(aarDir, SdkConstants.FN_ANDROID_MANIFEST_XML));
+        resourceTableMsg = readResourceTableFromResourcesPbFile();
+        packageName = AndroidManifestUtils.getPackageNameFromManifestFile(new File(resApkFileOrFolder, SdkConstants.FN_ANDROID_MANIFEST_XML));
       } catch (FileNotFoundException e) {
-        File resApkFile = new File(aarDir, FN_RESOURCE_STATIC_LIBRARY);
-        try (ZipFile zipFile = new ZipFile(resApkFile)) {
+        try (ZipFile zipFile = new ZipFile(resApkFileOrFolder)) {
           resourceTableMsg = readResourceTableFromResApk(zipFile);
           packageName = AndroidManifestUtils.getPackageNameFromResApk(zipFile);
         }
@@ -694,8 +688,8 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
      * @return the resource table proto message, or null if the resources.pb file does not exist
      */
     @Nullable
-    private static Resources.ResourceTable readResourceTableFromResourcesPbFile(@NotNull File aarDir) throws IOException {
-      File file = new File(aarDir, RESOURCE_TABLE_ENTRY);
+    private Resources.ResourceTable readResourceTableFromResourcesPbFile() throws IOException {
+      File file = new File(resApkFileOrFolder, RESOURCE_TABLE_ENTRY);
       try (InputStream stream = new BufferedInputStream(new FileInputStream(file))) {
         return Resources.ResourceTable.parseFrom(stream);
       }

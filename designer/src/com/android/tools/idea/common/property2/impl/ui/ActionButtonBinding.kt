@@ -37,7 +37,7 @@ import javax.swing.JPanel
  *
  * The editor component is wrapped in panel with a possible icon to the right displaying of the editor.
  */
-class ActionButtonBinding(val model: PropertyEditorModel, private val editor: JComponent): JPanel(BorderLayout()) {
+class ActionButtonBinding(val model: PropertyEditorModel, private val editor: JComponent): CellPanel() {
   private val boundImage = JBLabel()
 
   init {

@@ -22,10 +22,10 @@ import org.jetbrains.annotations.Nullable;
 
 final class SelectDeviceAction extends AnAction {
   private final SelectDeviceComboBoxAction myComboBoxAction;
-  private final Object myDevice;
+  private final Device myDevice;
 
-  SelectDeviceAction(@NotNull Object device, @NotNull SelectDeviceComboBoxAction comboBoxAction) {
-    super(device.toString());
+  SelectDeviceAction(@NotNull Device device, @NotNull SelectDeviceComboBoxAction comboBoxAction) {
+    super(device.getName(), null, device.getIcon());
 
     myComboBoxAction = comboBoxAction;
     myDevice = device;

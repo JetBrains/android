@@ -66,7 +66,6 @@ import com.intellij.util.xml.WrappingConverter
 import org.jetbrains.android.dom.converters.AndroidResourceReference
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 import org.jetbrains.android.dom.converters.StyleItemNameConverter
-import org.jetbrains.android.dom.layout.LayoutElement
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
@@ -130,36 +129,27 @@ private sealed class ResourceUsageInfo(element: PsiElement, startOffset: Int, en
 }
 
 private class DomValueUsageInfo(
+  /** DOM value that needs to be rewritten. It cannot be stored because it may become invalid during the refactoring. */
+  val resourceValue: ResourceValue,
+
+  /** Converter used by the DOM value being rewritten, used to compute the new string value. */
+  val converter: ResourceReferenceConverter,
+
+  /** Reference used to highlight the right part of [xmlElement] in the preview window. */
   ref: PsiReference,
 
-  /**
-   * [XmlElement] whose [GenericDomValue] needs to be changed.
-   *
-   * We cannot store the DOM objects, as they may become invalid when modifying underlying XML.
-   */
-  private val xmlElement: XmlElement
+  /** [XmlElement] whose [GenericDomValue] needs to be changed. */
+  val xmlElement: XmlElement
 ) : ResourceUsageInfo( // We don't use the UsageInfo(PsiReference) constructor to avoid resolving the reference.
   ref.element,
   ref.rangeInElement.startOffset,
   ref.rangeInElement.endOffset
 ) {
 
-  @Suppress("UNCHECKED_CAST") // We know xmlElement is either a tag or attribute that can be converted to ResourceValue.
-  val domValue: GenericDomValue<ResourceValue> get() {
-    val domManager = DomManager.getDomManager(xmlElement.project)
-    val domValue = if (xmlElement is XmlTag) {
-      domManager.getDomElement(xmlElement)
-    }
-    else {
-      domManager.getDomElement(xmlElement as XmlAttribute)
-    }
-    return domValue as GenericDomValue<ResourceValue>
-  }
-
   override val resourceType: ResourceType
-    get() = domValue.value!!.type!!
+    get() = resourceValue.type!!
   override val name: String
-    get() = domValue.value!!.resourceName!!
+    get() = resourceValue.resourceName!!
 }
 
 private class CodeUsageInfo(
@@ -176,7 +166,7 @@ private class XmlAttributeUsageInfo(attribute: XmlAttribute) : ResourceUsageInfo
   override val name: String = attribute.localName
 }
 
-private class StyleItemUsageInfo(val domValue: GenericDomValue<*>, url: ResourceUrl) : ResourceUsageInfo(domValue.xmlElement!!) {
+private class StyleItemUsageInfo(val xmlAttribute: XmlAttribute, url: ResourceUrl) : ResourceUsageInfo(xmlAttribute) {
   override val resourceType: ResourceType = url.type
   override val name: String = url.name
 }
@@ -284,7 +274,7 @@ class MigrateToResourceNamespacesProcessor(
     val progressIndicator = ProgressManager.getInstance().progressIndicator
     progressIndicator.text2 = xmlFile.virtualFile.path
 
-    val result = mutableSetOf<ResourceUsageInfo>()
+    val result = mutableListOf<ResourceUsageInfo>()
     val domManager = DomManager.getDomManager(myProject)
     val moduleRepo = ResourceRepositoryManager.getModuleResources(currentFacet)
 
@@ -295,23 +285,26 @@ class MigrateToResourceNamespacesProcessor(
     xmlFile.accept(object : XmlRecursiveElementVisitor() {
       override fun visitXmlTag(tag: XmlTag) {
         val domElement = domManager.getDomElement(tag)
-
-        when (domElement) {
-          is LayoutElement -> {
-            for (attribute in tag.attributes) {
-              if (attribute.namespace == AUTO_URI) {
-                result += XmlAttributeUsageInfo(attribute)
-              }
-            }
-          }
-          is GenericDomValue<*> -> handleGenericDomValue(domElement, tag)
+        if (domElement is GenericDomValue<*>) {
+          handleGenericDomValue(domElement, tag)
         }
 
         super.visitXmlTag(tag)
       }
 
       override fun visitXmlAttribute(attribute: XmlAttribute) {
-        handleGenericDomValue(domManager.getDomElement(attribute) as? GenericDomValue<*> ?: return, attribute)
+        val domElement = domManager.getDomElement(attribute)
+        if (domElement is GenericDomValue<*>) {
+          // This attribute is part of our DOM definition, including the dynamic extensions from AttributeProcessingUtil. Check if the
+          // attribute itself and its value need to be rewritten. Note that rewriting the attribute value after the attribute name has been
+          // changed is harder (because the DOM layer no longer recognizes the attribute), so handle the attribute name first to make sure
+          // this is covered by tests. When not running in headless mode the order is changed by the "preview usages" window so cannot be
+          // easily controlled.
+          if (attribute.namespace == AUTO_URI) {
+            result += XmlAttributeUsageInfo(attribute)
+          }
+          handleGenericDomValue(domElement, attribute)
+        }
         super.visitXmlAttribute(attribute)
       }
 
@@ -336,7 +329,7 @@ class MigrateToResourceNamespacesProcessor(
                   val name = resourceValue.resourceName.nullize(nullizeSpaces = true) ?: continue@references
                   val resourceType = resourceValue.type ?: continue@references
                   if (referenceNeedsRewriting(resourceType, name)) {
-                    result += DomValueUsageInfo(reference, sourceXmlElement)
+                    result += DomValueUsageInfo(resourceValue, converter, reference, sourceXmlElement)
                   }
                 }
               }
@@ -345,7 +338,7 @@ class MigrateToResourceNamespacesProcessor(
           is StyleItemNameConverter -> {
             val url = domValue.stringValue?.let(ResourceUrl::parseAttrReference) ?: return
             if (url.namespace == null && referenceNeedsRewriting(url.type, url.name)) {
-              result += StyleItemUsageInfo(domValue, url)
+              result += StyleItemUsageInfo(psiElement.parentOfType()!!, url)
             }
           }
         // TODO(b/78765120): handle other relevant converters.
@@ -359,7 +352,7 @@ class MigrateToResourceNamespacesProcessor(
 
   private fun findCodeUsages(): Collection<ResourceUsageInfo> {
     val psiFacade = JavaPsiFacade.getInstance(myProject)
-    val result = mutableSetOf<ResourceUsageInfo>()
+    val result = mutableListOf<ResourceUsageInfo>()
 
     for (facet in allFacets) {
       val moduleRepo = ResourceRepositoryManager.getModuleResources(facet)
@@ -394,57 +387,73 @@ class MigrateToResourceNamespacesProcessor(
   }
 
   override fun performRefactoring(usages: Array<UsageInfo>) {
-    val psiMigration = PsiMigrationManager.getInstance(myProject).startMigration()
     val progressIndicator = ProgressManager.getInstance().progressIndicator
     progressIndicator.isIndeterminate = false
 
     progressIndicator.text = "Rewriting resource references..."
-    val totalUsages = usages.size.toDouble()
-    usages.forEachIndexed { index, usageInfo ->
-      if (usageInfo !is ResourceUsageInfo) error("Don't know how to handle ${usageInfo.javaClass.name}.")
+    val psiMigration = PsiMigrationManager.getInstance(myProject).startMigration()
+    try {
+      val totalUsages = usages.size.toDouble()
+      usages.forEachIndexed { index, usageInfo ->
+        if (usageInfo !is ResourceUsageInfo) error("Don't know how to handle ${usageInfo.javaClass.name}.")
 
-      val inferredPackage = usageInfo.inferredPackage ?: return@forEachIndexed
-      when (usageInfo) {
-        is DomValueUsageInfo -> {
-          val oldResourceValue = usageInfo.domValue.value ?: return@forEachIndexed
-          val tag = usageInfo.domValue.xmlTag ?: return@forEachIndexed
-          val prefix = findOrCreateNamespacePrefix(tag, inferredPackage)
-          val newResourceValue = ResourceValue.referenceTo(
-            oldResourceValue.prefix,
-            prefix,
-            oldResourceValue.resourceType,
-            oldResourceValue.resourceName
-          )
-          usageInfo.domValue.value = newResourceValue
-        }
-        is XmlAttributeUsageInfo -> {
-          val element = usageInfo.element as? XmlAttribute ?: return@forEachIndexed
-          val prefix = findOrCreateNamespacePrefix(element.parent, inferredPackage)
-          element.references
-            .find { it is SchemaPrefixReference }
-            ?.handleElementRename(prefix)
-        }
-        is StyleItemUsageInfo -> {
-          val tag = usageInfo.domValue.xmlTag ?: return@forEachIndexed
-          val prefix = findOrCreateNamespacePrefix(tag, inferredPackage)
-          val newUrl = ResourceUrl.create(prefix, ResourceType.ATTR, usageInfo.name)
-          usageInfo.domValue.stringValue = newUrl.qualifiedName
-        }
-        is CodeUsageInfo -> {
-          usageInfo.classReference.bindToElement(
-            findOrCreateClass(
-              myProject,
-              psiMigration,
-              AndroidResourceUtil.packageToRClass(inferredPackage)
+        val inferredPackage = usageInfo.inferredPackage ?: return@forEachIndexed
+        when (usageInfo) {
+          is DomValueUsageInfo -> {
+            val xmlElement = usageInfo.xmlElement
+            val tag = when (xmlElement) {
+              is XmlTag -> xmlElement
+              is XmlAttribute -> xmlElement.parent
+              else -> return@forEachIndexed
+            }
+            val namespace = findOrCreateNamespacePrefix(tag, inferredPackage)
+            val resourceValue = usageInfo.resourceValue
+            val newStringValue = usageInfo.converter.toString(
+              ResourceValue.referenceTo(
+                resourceValue.prefix,
+                namespace,
+                resourceValue.resourceType,
+                resourceValue.resourceName
+              ),
+              null
+            ) ?: ""
+
+            when (xmlElement) {
+              is XmlTag -> xmlElement.value.text = newStringValue
+              is XmlAttribute -> xmlElement.value = newStringValue
+              else -> error("Don't know how to handle $xmlElement")
+            }
+          }
+          is XmlAttributeUsageInfo -> {
+            val element = usageInfo.element as? XmlAttribute ?: return@forEachIndexed
+            val prefix = findOrCreateNamespacePrefix(element.parent, inferredPackage)
+            element.references
+              .find { it is SchemaPrefixReference }
+              ?.handleElementRename(prefix)
+          }
+          is StyleItemUsageInfo -> {
+            val tag = usageInfo.xmlAttribute.parent
+            val prefix = findOrCreateNamespacePrefix(tag, inferredPackage)
+            val newUrl = ResourceUrl.create(prefix, ResourceType.ATTR, usageInfo.name)
+            usageInfo.xmlAttribute.value = newUrl.qualifiedName
+          }
+          is CodeUsageInfo -> {
+            usageInfo.classReference.bindToElement(
+              findOrCreateClass(
+                myProject,
+                psiMigration,
+                AndroidResourceUtil.packageToRClass(inferredPackage)
+              )
             )
-          )
+          }
         }
+
+        progressIndicator.fraction = (index + 1) / totalUsages
       }
 
-      progressIndicator.fraction = (index + 1) / totalUsages
+    } finally {
+      psiMigration.finish()
     }
-
-    psiMigration.finish()
 
     progressIndicator.text = "Updating Gradle build files..."
     progressIndicator.fraction = 0.0
@@ -454,7 +463,7 @@ class MigrateToResourceNamespacesProcessor(
     val totalFacets = allFacets.size.toDouble()
     allFacets.forEachIndexed { index, facet ->
       val moduleBuildModel = projectBuildModel.getModuleBuildModel(facet.module) ?: return@forEachIndexed
-      moduleBuildModel.android()?.aaptOptions()?.namespaced()?.setValue(true)
+      moduleBuildModel.android().aaptOptions().namespaced().setValue(true)
       moduleBuildModel.applyChanges()
       progressIndicator.fraction = (index + 1) / totalFacets
     }
