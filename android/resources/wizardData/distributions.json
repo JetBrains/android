@@ -3,7 +3,7 @@
   "name": "Ice Cream Sandwich",
   "version": "4.0",
   "apiLevel": 15,
-  "distributionPercentage": 0.008,
+  "distributionPercentage": 0.004,
   "url": "https://developer.android.com/about/versions/android-4.0.html",
   "descriptionBlocks" : [
                           {
@@ -52,7 +52,7 @@
   "name": "Jelly Bean",
   "version": "4.1",
   "apiLevel": 16,
-  "distributionPercentage": 0.032,
+  "distributionPercentage": 0.015,
   "url": "https://developer.android.com/about/versions/android-4.1.html",
   "descriptionBlocks" : [
                           {
@@ -101,7 +101,7 @@
   "name": "Jelly Bean",
   "version": "4.2",
   "apiLevel": 17,
-  "distributionPercentage": 0.046,
+  "distributionPercentage": 0.022,
   "url": "https://developer.android.com/about/versions/android-4.2.html",
   "descriptionBlocks" : [
                           {
@@ -134,7 +134,7 @@
   "name": "Jelly Bean",
   "version": "4.3",
   "apiLevel": 18,
-  "distributionPercentage": 0.013,
+  "distributionPercentage": 0.006,
   "url": "https://developer.android.com/about/versions/android-4.3.html",
   "descriptionBlocks" : [
                           {
@@ -191,7 +191,7 @@
   "name": "KitKat",
   "version": "4.4",
   "apiLevel": 19,
-  "distributionPercentage": 0.188,
+  "distributionPercentage": 0.103,
   "url": "https://developer.android.com/about/versions/android-4.4.html",
   "descriptionBlocks" : [
                             {
@@ -232,7 +232,7 @@
   "name": "Lollipop",
   "version": "5.0",
   "apiLevel": 21,
-  "distributionPercentage": 0.087,
+  "distributionPercentage": 0.048,
   "url": "https://developer.android.com/about/versions/android-5.0.html",
   "descriptionBlocks" : [
 
@@ -294,7 +294,7 @@
   "name": "Lollipop",
   "version": "5.1",
   "apiLevel": 22,
-  "distributionPercentage": 0.233,
+  "distributionPercentage": 0.176,
   "url": "https://developer.android.com/about/versions/android-5.1.html",
   "descriptionBlocks" : [
                           {
@@ -311,7 +311,7 @@
   "name": "Marshmallow",
   "version": "6.0",
   "apiLevel": 23,
-  "distributionPercentage": 0.312,
+  "distributionPercentage": 0.255,
   "url": "https://developer.android.com/about/versions/marshmallow/android-6.0.html",
   "descriptionBlocks" : [
                           {
@@ -348,7 +348,7 @@
   "name": "Nougat",
   "version": "7.0",
   "apiLevel": 24,
-  "distributionPercentage": 0.066,
+  "distributionPercentage": 0.229,
   "url": "https://developer.android.com/about/versions/nougat/android-7.0.html",
   "descriptionBlocks" : [
     {
@@ -401,7 +401,7 @@
   "name": "Nougat",
   "version": "7.1",
   "apiLevel": 25,
-  "distributionPercentage": 0.005,
+  "distributionPercentage": 0.082,
   "url": "https://developer.android.com/about/versions/nougat/android-7.1.html",
   "descriptionBlocks" : [
     {
@@ -429,5 +429,63 @@
       "body": "New Screen Densities for Wear Devices"
     }
   ]
-}
+},
+  {
+    "name": "Oreo",
+    "version": "8.0",
+    "apiLevel": 26,
+    "distributionPercentage": 0.049,
+    "url": "https://developer.android.com/about/versions/oreo/android-8.0",
+    "descriptionBlocks" : [
+      {
+        "title": "System",
+        "body": "Custom data store<br>JobScheduler improvements<br>Cached data"
+      },
+      {
+        "title": "User Interface",
+        "body": "Picture-in-Picture mode<br>Improved Notifications<br>Autofill framework<br>Downloadable fonts<br>Multi-display support<br>Adaptive icons"
+      },
+      {
+        "title": "Media",
+        "body": "VolumeShaper<br>Audio focus enhancements<br>Media metrics<br>MediaPlayer and MediaRecorder improvements<br>Improved media file access"
+      },
+      {
+        "title": "Wireless & Connectivity",
+        "body": "Wi-Fi Aware<br>Bluetooth updates<br>Companion device pairing"
+      },
+      {
+        "title": "Security & Privacy",
+        "body": "New permissions<br>New account access and discovery APIs"
+      },
+      {
+        "title": "Runtime & Tools",
+        "body": "Platform optimizations<br>Updated Java language support<br>Updated ICU4J Android Framework APIs"
+      }
+    ]
+  },
+  {
+    "name": "Oreo",
+    "version": "8.1",
+    "apiLevel": 27,
+    "distributionPercentage": 0.008,
+    "url": "https://developer.android.com/about/versions/oreo/android-8.1",
+    "descriptionBlocks" : [
+      {
+        "title": "System",
+        "body": "Android Go<br>Neural Networks API<br>Programmatic Safe Browsing actions<br>Shared memory API"
+      },
+      {
+        "title": "User Interface",
+        "body": "Improved Notifications<br>EditText update<br>WallpaperColors API"
+      },
+      {
+        "title": "Media",
+        "body": "Video thumbnail extractor"
+      },
+      {
+        "title": "Security & Privacy",
+        "body": "Fingerprint updates<br>Cryptography updates"
+      }
+    ]
+  }
 ]
