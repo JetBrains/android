@@ -30,6 +30,7 @@ import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +52,6 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   private final Map<Long, PollRunner> mySymbolizationRunners = new HashMap<>();
   private final MemoryStatsTable myStatsTable;
   private final MemoryLiveAllocationTable myAllocationsTable;
-  private final ProfilerTable myProfilerTable;
   private final Consumer<Runnable> myFetchExecutor;
   private final DataStoreService myService;
   private final LogService myLogService;
@@ -63,7 +63,6 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     myService = dataStoreService;
     myStatsTable = new MemoryStatsTable();
     myAllocationsTable = new MemoryLiveAllocationTable(myLogService);
-    myProfilerTable = new ProfilerTable();
   }
 
   @Override
@@ -72,12 +71,17 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     if (client != null) {
       observer.onNext(client.startMonitoringApp(request));
       observer.onCompleted();
+
       Common.Session session = request.getSession();
+      DeviceId deviceId = DeviceId.fromSession(session);
       long sessionId = session.getSessionId();
+
       myJvmtiRunners.put(sessionId, new MemoryJvmtiDataPoller(session, myAllocationsTable, client));
       myRunners.put(sessionId, new MemoryDataPoller(session, myStatsTable, client, myFetchExecutor));
-      mySymbolizationRunners.put(sessionId, new NativeSymbolsPoller(session, myAllocationsTable, myProfilerTable,
-                                                                    myService.getNativeSymbolizer(), myLogService));
+      mySymbolizationRunners.put(sessionId,
+                                 new NativeSymbolsPoller(session, myAllocationsTable, myService.getNativeSymbolizer(),
+                                                         myService.getProfilerClient(deviceId), myLogService));
+
       myFetchExecutor.accept(mySymbolizationRunners.get(sessionId));
       myFetchExecutor.accept(myJvmtiRunners.get(sessionId));
       myFetchExecutor.accept(myRunners.get(sessionId));
@@ -378,7 +382,6 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     assert getBackingNamespaces().contains(namespace);
     if (namespace.equals(BackingNamespace.DEFAULT_SHARED_NAMESPACE)) {
       myStatsTable.initialize(connection);
-      myProfilerTable.initializeConnectionOnly(connection);
     }
     else {
       myAllocationsTable.initialize(connection);

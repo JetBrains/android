@@ -24,6 +24,7 @@ import com.android.tools.nativeSymbolizer.Symbol;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
 import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,31 +33,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NativeSymbolsPoller extends PollRunner {
+  private static final int MAX_SYMBOLS_PER_REQUEST = 1000;
+
   @NotNull
   private final MemoryLiveAllocationTable myLiveAllocationTable;
-  @NotNull
-  private final ProfilerTable myProfilerTable;
   @NotNull
   private final Common.Session mySession;
   @NotNull
   private final NativeSymbolizer mySymbolizer;
   @NotNull
+  private ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
+  @NotNull
   private final LogService myLogService;
-  private final int MAX_SYMBOLS_PER_REQUEST = 1000;
 
   @Nullable
   private Common.Process myProcess = null;
 
   public NativeSymbolsPoller(@NotNull Common.Session session,
                              @NotNull MemoryLiveAllocationTable liveAllocationTable,
-                             @NotNull ProfilerTable profilerTable,
                              @NotNull NativeSymbolizer symbolizer,
+                             @NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub profilerService,
                              @NotNull LogService logService) {
     super(POLLING_DELAY_NS);
     mySession = session;
     myLiveAllocationTable = liveAllocationTable;
-    myProfilerTable = profilerTable;
     mySymbolizer = symbolizer;
+    myProfilerService = profilerService;
     myLogService = logService;
   }
 
@@ -91,8 +93,8 @@ public class NativeSymbolsPoller extends PollRunner {
   @Nullable
   private Common.Process findProcess() {
     Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setDeviceId(mySession.getDeviceId()).build();
-    Profiler.GetProcessesResponse resonse = myProfilerTable.getProcesses(request);
-    for (Common.Process process : resonse.getProcessList()) {
+    Profiler.GetProcessesResponse response = myProfilerService.getProcesses(request);
+    for (Common.Process process : response.getProcessList()) {
       if (process.getPid() == mySession.getPid()) {
         return process;
       }
