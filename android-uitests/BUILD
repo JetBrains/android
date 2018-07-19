@@ -1082,6 +1082,112 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+# fast test
+java_test(
+    name = "ThemeEditorTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:buildprop",
+        "//prebuilts/studio/layoutlib:data/fonts",
+        "//prebuilts/studio/layoutlib:data/res",
+        "//prebuilts/studio/sdk:platforms/android-25",
+        "//tools/adt/idea/android/lib:androidWidgets",
+    ] + glob([
+        "testData/SimpleLocalApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ThemeEditorTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
+        "qa_unreliable",  # b/111399767
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "ConstraintLayoutResizeHandleTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:buildprop",
+        "//prebuilts/studio/layoutlib:data/fonts",
+        "//prebuilts/studio/layoutlib:data/res",
+        "//tools/adt/idea/android/lib:androidWidgets",
+    ] + glob([
+        "testData/LayoutLocalTest/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ConstraintLayoutResizeHandleTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
+        "qa_unreliable",  # b/111399767
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "ConstraintLayoutAnchorExemptionTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:buildprop",
+        "//prebuilts/studio/layoutlib:data/fonts",
+        "//prebuilts/studio/layoutlib:data/res",
+        "//tools/adt/idea/android/lib:androidWidgets",
+    ] + glob([
+        "testData/LayoutLocalTest/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ConstraintLayoutAnchorExemptionTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
+        "qa_unreliable",  # b/111399767
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "ClearConstraintTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:buildprop",
+        "//prebuilts/studio/layoutlib:data/fonts",
+        "//prebuilts/studio/layoutlib:data/res",
+        "//tools/adt/idea/android/lib:androidWidgets",
+    ] + glob([
+        "testData/LayoutLocalTest/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ClearConstraintTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
+        "qa_unreliable",  # b/111399767
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "CreateBaselineConnectionTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:buildprop",
+        "//prebuilts/studio/layoutlib:data/fonts",
+        "//prebuilts/studio/layoutlib:data/res",
+        "//tools/adt/idea/android/lib:androidWidgets",
+    ] + glob([
+        "testData/LayoutLocalTest/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.CreateBaselineConnectionTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
+        "qa_unreliable",  # b/111399767
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 genrule(
     name = "aswb_plugin",
     srcs = ["@blaze//third_party/intellij/bazel/plugin/aswb:aswb_bazel_zip"],
