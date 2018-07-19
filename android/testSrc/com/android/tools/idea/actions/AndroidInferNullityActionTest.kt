@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.testFramework.PlatformTestUtil
@@ -62,15 +63,15 @@ public class TestNullity {
   fun testSupportLibAnnotations() {
     myProjectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_ANNOTATIONS, myModule, GradleVersion(1, 1))
     runInferNullityAction()
-    assertEquals("android.support.annotation.Nullable", myNullityManager.myDefaultNullable)
-    assertEquals("android.support.annotation.NonNull", myNullityManager.myDefaultNotNull)
+    assertThat(myNullityManager.myDefaultNullable).isEqualTo("android.support.annotation.Nullable")
+    assertThat(myNullityManager.myDefaultNotNull).isEqualTo("android.support.annotation.NonNull")
   }
 
   fun testAndroidxAnnotations() {
     myProjectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS, myModule, GradleVersion(1, 1))
     runInferNullityAction()
-    assertEquals("androidx.annotation.Nullable", myNullityManager.myDefaultNullable)
-    assertEquals("androidx.annotation.NonNull", myNullityManager.myDefaultNotNull)
+    assertThat(myNullityManager.myDefaultNullable).isEqualTo("androidx.annotation.Nullable")
+    assertThat(myNullityManager.myDefaultNotNull).isEqualTo("androidx.annotation.NonNull")
   }
 
   // TODO: Make this finish without error
@@ -84,8 +85,7 @@ public class TestNullity {
     catch (e: RuntimeException) {
       // Having set a JPS project without the annotations library, we're going to end up here.
       // But that is ok since currently the tests only check what the default annotations are, and don't rely on the analysis succeeding.
-      assertTrue(e.message!!.startsWith(
-        "It is required that JetBrains annotations be available in all your project sources."))
+      assertThat(e.message).startsWith("It is required that JetBrains annotations be available in all your project sources.")
     }
   }
 }
