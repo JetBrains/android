@@ -623,7 +623,8 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(tooltip.getThreadState()).isNull();
 
     // Thread series: 1 - running - 8 - dead - 11
-    ThreadStateDataSeries series = new ThreadStateDataSeries(myStage, ProfilersTestData.SESSION_DATA, 1);
+    ThreadStateDataSeries series =
+      new ThreadStateDataSeries(myStage.getStudioProfilers().getClient().getCpuClient(), ProfilersTestData.SESSION_DATA, 1);
     tooltip.setThread("myThread", series);
 
     assertThat(tooltip.getThreadName()).isEqualTo("myThread");
