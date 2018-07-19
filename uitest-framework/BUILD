@@ -51,6 +51,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils[module, test]",
         "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module, test]",
         "//tools/idea/platform/testFramework/bootstrap:intellij.tools.testsBootstrap[module, test]",
+        "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module, test]",
     ],
 )
 

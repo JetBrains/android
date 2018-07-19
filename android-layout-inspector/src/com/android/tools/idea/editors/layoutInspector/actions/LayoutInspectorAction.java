@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.layoutInspector.actions;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.layoutinspector.model.ClientWindow;
 import com.android.tools.idea.ddms.DeviceContext;
@@ -55,10 +56,20 @@ public class LayoutInspectorAction extends AbstractClientAction {
     private List<ClientWindow> myWindows;
     private String myError;
 
-    public GetClientWindowsTask(@Nullable Project project, @NotNull Client client) {
+    @NotNull
+    private final ClientWindowRetriever myClientWindowRetriever;
+
+    @VisibleForTesting
+    GetClientWindowsTask(@Nullable Project project, @NotNull Client client, @NotNull ClientWindowRetriever windowRetriever) {
       super(project, "Obtaining Windows");
       myClient = client;
       myError = null;
+
+      myClientWindowRetriever = windowRetriever;
+    }
+
+    public GetClientWindowsTask(@Nullable Project project, @NotNull Client client) {
+      this(project, client, new ClientWindowRetriever() {});
     }
 
     @Override
@@ -66,7 +77,7 @@ public class LayoutInspectorAction extends AbstractClientAction {
       indicator.setIndeterminate(true);
 
       try {
-        myWindows = ClientWindow.getAll(myClient, 5, TimeUnit.SECONDS);
+        myWindows = myClientWindowRetriever.getAllWindows(myClient, 5, TimeUnit.SECONDS);
 
         if (myWindows == null) {
           myError = "Unable to obtain list of windows used by " +
@@ -107,6 +118,13 @@ public class LayoutInspectorAction extends AbstractClientAction {
 
       LayoutInspectorCaptureTask captureTask = new LayoutInspectorCaptureTask(myProject, myClient, window);
       captureTask.queue();
+    }
+  }
+
+  @VisibleForTesting
+  interface ClientWindowRetriever {
+    default List<ClientWindow> getAllWindows(@NotNull Client client, long timeout, @NotNull TimeUnit timeoutUnits) throws IOException {
+      return ClientWindow.getAll(client, timeout, timeoutUnits);
     }
   }
 }

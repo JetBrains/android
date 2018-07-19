@@ -15,16 +15,21 @@
  */
 package com.android.tools.idea.editors.layoutInspector.actions;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
+import com.android.tools.idea.editors.layoutInspector.AndroidLayoutInspectorService;
 import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import icons.StudioIcons;
 import org.jetbrains.android.actions.AndroidProcessChooserDialog;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidRunLayoutInspectorAction extends AnAction {
   public AndroidRunLayoutInspectorAction() {
@@ -56,7 +61,7 @@ public class AndroidRunLayoutInspectorAction extends AnAction {
     if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
       Client client = dialog.getClient();
       if (client != null) {
-        new LayoutInspectorAction.GetClientWindowsTask(project, client).queue();
+        ServiceManager.getService(project, AndroidLayoutInspectorService.class).getTask(project, client).queue();
       }
       else {
         Logger.getInstance(AndroidRunLayoutInspectorAction.class).warn("Not launching layout inspector - no client selected");
