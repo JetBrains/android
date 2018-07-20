@@ -65,6 +65,7 @@ class ResourceExplorerView(
 
   private val sectionListModel: SectionListModel = SectionListModel()
   private val sectionList: SectionList = SectionList(sectionListModel)
+  private val dragHandler = resourceDragHandler()
 
   private val listPanel: JBScrollPane
 
@@ -88,6 +89,7 @@ class ResourceExplorerView(
         sectionListModel.addSection(AssetSection(type.displayName + " ${libName}", JList<DesignAssetSet>().apply {
           model = CollectionListModel(assets)
           cellRenderer = getRendererForType(type, this)
+          dragHandler.registerSource(this)
           setupListUI()
         }))
       }
