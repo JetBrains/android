@@ -355,6 +355,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       if (!preSyncOverride) {
         File rClassesFolder = generatedFolders.stream().filter(f -> f.getName().equals("r")).findFirst().orElse(null);
         assertNotNull(rClassesFolder);
+        // Here we simulate an old AGP version that creates R.java despite being asked not to.
         writeToFile(new File(rClassesFolder, join("com", "application", "R.java")),
                     "package com.application; public final class R {}");
       }
