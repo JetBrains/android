@@ -20,6 +20,8 @@ import com.android.annotations.VisibleForTesting;
 import com.android.repository.api.Downloader;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.SettingsController;
+import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
 import com.intellij.openapi.util.io.FileUtil;
@@ -93,7 +95,20 @@ public class StudioDownloader implements Downloader {
   }
 
   @Override
-  public void downloadFully(@NotNull URL url, @NotNull File target, @Nullable String checksum, @NotNull ProgressIndicator indicator)
+  public void downloadFully(@NotNull URL url, @NotNull File target, @Nullable String checksum,
+                            @NotNull ProgressIndicator indicator) throws IOException {
+    doDownloadFully(url, target, checksum, false, indicator);
+  }
+
+  @Override
+  public void downloadFullyWithCaching(@NotNull URL url, @NotNull File target,
+                                       @Nullable String checksum,
+                                       @NotNull ProgressIndicator indicator) throws IOException {
+    doDownloadFully(url, target, checksum, true, indicator);
+  }
+
+  private void doDownloadFully(@NotNull URL url, @NotNull File target, @Nullable String checksum,
+                            boolean allowNetworkCaches, @NotNull ProgressIndicator indicator)
     throws IOException {
     if (target.exists() && checksum != null) {
       if (checksum.equals(Downloader.hash(new BufferedInputStream(new FileInputStream(target)), target.length(), indicator))) {
@@ -114,6 +129,14 @@ public class StudioDownloader implements Downloader {
       // enacted here.
       rb.forceHttps(false);
     }
+    // Whether to allow network caches depends on the semantics of this download request, which is only known
+    // to the caller. For example, there are certain requests where caching must not be used, e.g., checks
+    // for software updates availability. In that case requests should go directly to the original server
+    // and the caller context would pass false. On the other hand, for a large file download which is not
+    // expected to change often on the original server, using network caches may beneficial (e.g.,
+    // for a considerable number of who are users behind a proxy, such as in a corporate environment).
+    rb.tuner(c -> c.setUseCaches(allowNetworkCaches));
+
     rb.connect(request -> {
       long contentLength = request.getConnection().getContentLength();
       return request.saveToFile(target, new DownloadProgressIndicator(indicator, contentLength));
