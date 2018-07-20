@@ -16,6 +16,7 @@
 package org.jetbrains.android.refactoring
 
 import com.android.builder.model.AndroidProject
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.daemon.impl.analysis.XmlUnusedNamespaceInspection
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -70,15 +71,16 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
       """.trimIndent()
     )
 
-    // This is necessary to get the augmenting mechanism started.
-    myFixture.addFileToProject(
-      "gen/com/example/app/R.java",
-      """
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.addFileToProject(
+        "gen/com/example/app/R.java",
+        """
         package com.example.app;
 
         public class R {}
       """.trimIndent()
       )
+    }
 
     // This may trigger creation of resource repositories, so let's do last to make local runs less flaky.
     runUndoTransparentWriteAction {
