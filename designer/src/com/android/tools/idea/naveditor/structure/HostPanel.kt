@@ -19,14 +19,19 @@ import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.adtui.common.AdtSecondaryPanel
+import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiReference
+import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
@@ -51,9 +56,10 @@ import javax.swing.JList
 class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardLayout()) {
 
   private val asyncIcon = AsyncProcessIcon("find NavHostFragments")
-  private val model = DefaultListModel<XmlTag>()
-  private val list = JBList<XmlTag>(model)
+  private val model = DefaultListModel<SmartPsiElementPointer<XmlTag>>()
+  @VisibleForTesting val list = JBList<SmartPsiElementPointer<XmlTag>>(model)
   private val cardLayout = layout as CardLayout
+  private var resourceVersion = 0L
 
   init {
     val loadingPanel = AdtSecondaryPanel(BorderLayout())
@@ -88,9 +94,9 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
       }
     }
 
-    list.cellRenderer = object : ColoredListCellRenderer<XmlTag>() {
-      override fun customizeCellRenderer(list: JList<out XmlTag>,
-                                         value: XmlTag?,
+    list.cellRenderer = object : ColoredListCellRenderer<SmartPsiElementPointer<XmlTag>>() {
+      override fun customizeCellRenderer(list: JList<out SmartPsiElementPointer<XmlTag>>,
+                                         value: SmartPsiElementPointer<XmlTag>?,
                                          index: Int,
                                          selected: Boolean,
                                          hasFocus: Boolean) {
@@ -98,8 +104,9 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
           return
         }
         icon = StudioIcons.NavEditor.Tree.ACTIVITY
-        append(FileUtil.getNameWithoutExtension(value.containingFile.name))
-        append(" (${NlComponent.stripId(value.getAttributeValue(ATTR_ID, ANDROID_URI)) ?: "no id"})")
+        val containingFile = value.containingFile?.name ?: "Unknown File"
+        append(FileUtil.getNameWithoutExtension(containingFile))
+        append(" (${NlComponent.stripId(value.element?.getAttributeValue(ATTR_ID, ANDROID_URI)) ?: "no id"})")
       }
     }
     list.addMouseListener(object : MouseAdapter() {
@@ -107,11 +114,26 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
         if (e.clickCount == 2) {
           val index = list.locationToIndex(e.point)
           if (index != -1) {
-            FileEditorManager.getInstance(surface.project).openFile(list.model.getElementAt(index).containingFile.virtualFile, true)
+            val containingFile = list.model.getElementAt(index).containingFile
+            if (containingFile != null) {
+              FileEditorManager.getInstance(surface.project).openFile(containingFile.virtualFile, true)
+            }
           }
         }
       }
     })
+    surface.model?.facet?.let {
+      val resourceRepository = ResourceRepositoryManager.getAppResources(it)
+      surface.model?.addListener(object : ModelListener {
+        override fun modelActivated(model: NlModel) {
+          val modCount = resourceRepository.modificationCount
+          if (resourceVersion < modCount) {
+            resourceVersion = modCount
+            startLoading()
+          }
+        }
+      })
+    }
 
     startLoading()
   }
@@ -126,12 +148,10 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
 
       ProgressManager.getInstance().executeProcessUnderProgress(
         {
-          ApplicationManager.getApplication().runReadAction(
-            {
-              for (tag in findReferences(psi)) {
-                model.addElement(tag)
-              }
-            })
+          ApplicationManager.getApplication().runReadAction {
+            model.clear()
+            findReferences(psi).forEach { model.addElement(SmartPointerManager.createPointer(it)) }
+          }
         }, EmptyProgressIndicator())
       cardLayout.show(this, "LIST")
     }
