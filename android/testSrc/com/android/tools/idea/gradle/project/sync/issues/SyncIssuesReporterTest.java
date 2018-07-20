@@ -190,7 +190,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     Map<Integer, BaseSyncIssuesReporter> strategies = reporter.getStrategies();
-    assertThat(strategies).hasSize(7);
+    assertThat(strategies).hasSize(8);
 
     strategy = strategies.get(TYPE_UNRESOLVED_DEPENDENCY);
     assertThat(strategy).isInstanceOf(UnresolvedDependenciesReporter.class);
@@ -213,7 +213,11 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_MIN_SDK_VERSION_IN_MANIFEST);
-    assertThat(strategy).isInstanceOf(SdkInManifestIssuesReporter.class);
+    assertThat(strategy).isInstanceOf(MinSdkInManifestIssuesReporter.class);
+    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
+
+    strategy = strategies.get(TYPE_TARGET_SDK_VERSION_IN_MANIFEST);
+    assertThat(strategy).isInstanceOf(TargetSdkInManifestIssuesReporter.class);
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_DEPRECATED_CONFIGURATION);

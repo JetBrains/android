@@ -37,6 +37,7 @@ public class DeprecatedConfigurationReporter extends SimpleDeduplicatingSyncIssu
   }
 
   @Override
+  @NotNull
   protected OpenFileHyperlink createModuleLink(@NotNull Project project,
                                                @NotNull Module module,
                                                @NotNull ProjectBuildModel projectBuildModel,

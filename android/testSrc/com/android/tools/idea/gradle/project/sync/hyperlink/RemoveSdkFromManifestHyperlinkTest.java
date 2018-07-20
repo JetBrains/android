@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import com.android.tools.idea.gradle.project.sync.issues.SdkInManifestIssuesReporter.SdkProperty;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -28,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
@@ -58,14 +61,14 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
       // Sync issues are expected.
     }
 
-    myHyperlink = new RemoveSdkFromManifestHyperlink(appModule);
+    myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.MIN);
     myHyperlink.execute(project);
 
     // Verify the text is accurate.
     assertThat(myHyperlink.toHtml()).contains("Remove minSdkVersion and sync project");
 
     // Verify that minSdkVersion, and the empty uses-sdk is removed from manifest file.
-    String manifestContent = Files.toString(getManifestFile(appModule), Charsets.UTF_8);
+    String manifestContent = Files.asCharSource(getManifestFile(appModule), Charsets.UTF_8).read();
     assertThat(manifestContent).isEqualTo(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -74,7 +77,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
     );
 
     // Verify that minSdkVersion in build file is not changed.
-    String actualBuildFileContent = Files.toString(buildFile, Charsets.UTF_8);
+    String actualBuildFileContent = Files.asCharSource(buildFile, Charsets.UTF_8).read();
     assertThat(actualBuildFileContent).isEqualTo(
       "apply plugin: 'com.android.application'\n" +
       "android {\n" +
@@ -104,30 +107,77 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
       // Sync issues are expected.
     }
 
-    myHyperlink = new RemoveSdkFromManifestHyperlink(appModule);
+    myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.MIN);
     myHyperlink.execute(project);
 
     // Verify the text is accurate.
     assertThat(myHyperlink.toHtml()).contains("Remove minSdkVersion and sync project");
 
     // Verify that minSdkVersion is removed from manifest file, and other attributes are not changed.
-    String manifestContent = Files.toString(getManifestFile(appModule), Charsets.UTF_8);
+    String manifestContent = Files.asCharSource(getManifestFile(appModule), Charsets.UTF_8).read();
     assertThat(manifestContent).isEqualTo(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
       "    package=\"google.simpleapplication\" >\n" +
-      "<uses-sdk android:targetSdkVersion='27'/>\n" +
+      "<uses-sdk  android:targetSdkVersion='27'/>\n" +
       "</manifest>\n"
     );
 
     // Verify that minSdkVersion in build file is not changed.
-    String actualBuildFileContent = Files.toString(buildFile, Charsets.UTF_8);
+    String actualBuildFileContent = Files.asCharSource(buildFile, Charsets.UTF_8).read();
     assertThat(actualBuildFileContent).isEqualTo(
       "apply plugin: 'com.android.application'\n" +
       "android {\n" +
       "    compileSdkVersion " + BuildEnvironment.getInstance().getCompileSdkVersion() + "\n" +
       "    defaultConfig {\n" +
       "        minSdkVersion 23\n" +
+      "    }\n" +
+      "}\n"
+    );
+  }
+
+  public void testMoveTargetSdkVersionWithOtherSdkAttributes() throws Exception {
+    loadSimpleApplication();
+    Project project = getProject();
+    Module appModule = getModule("app");
+
+    // Rewrite the manifest file so that it contains maxSdkVersion and targetSdkVersion.
+    writeManifestWithUsesSdkVersion(appModule, "<uses-sdk android:maxSdkVersion='21' android:targetSdkVersion='27'/>\n");
+
+    // Rewrite the build file so that it doesn't contain targetSdkVersion.
+    File buildFile = new File(getProjectFolderPath(), join("app", FN_BUILD_GRADLE));
+    writeBuildFile(buildFile, "");
+    try {
+      requestSyncAndWait();
+    }
+    catch (Throwable expected) {
+      // Sync issues are expected.
+    }
+
+    myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.TARGET);
+    myHyperlink.execute(project);
+
+    // Verify the text is accurate.
+    assertThat(myHyperlink.toHtml()).contains("Move targetSdkVersion to build file and sync project");
+
+    // Verify that targetSdkVersion is removed from manifest file, and other attributes are not changed.
+    String manifestContent = Files.asCharSource(getManifestFile(appModule), Charsets.UTF_8).read();
+    assertThat(manifestContent).isEqualTo(
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "    package=\"google.simpleapplication\" >\n" +
+      "<uses-sdk android:maxSdkVersion='21' />\n" +
+      "</manifest>\n"
+    );
+
+    // Verify that targetSdkVersion in build file is not changed.
+    String actualBuildFileContent = Files.asCharSource(buildFile, Charsets.UTF_8).read();
+    assertThat(actualBuildFileContent).isEqualTo(
+      "apply plugin: 'com.android.application'\n" +
+      "android {\n" +
+      "    compileSdkVersion " + BuildEnvironment.getInstance().getCompileSdkVersion() + "\n" +
+      "    defaultConfig {\n" +
+      "            targetSdkVersion 27\n" +
       "    }\n" +
       "}\n"
     );
@@ -152,14 +202,14 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
       // Sync issues are expected.
     }
 
-    myHyperlink = new RemoveSdkFromManifestHyperlink(appModule);
+    myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.MIN);
     myHyperlink.execute(project);
 
     // Verify the text is accurate.
     assertThat(myHyperlink.toHtml()).contains("Move minSdkVersion to build file and sync project");
 
     // Verify that minSdkVersion is removed from manifest file.
-    String actualManifestContent = Files.toString(getManifestFile(appModule), Charsets.UTF_8);
+    String actualManifestContent = Files.asCharSource(getManifestFile(appModule), Charsets.UTF_8).read();
     assertThat(actualManifestContent).isEqualTo(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -168,7 +218,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
     );
 
     // Verify that minSdkVersion is added to build file.
-    String actualBuildFileContent = Files.toString(buildFile, Charsets.UTF_8);
+    String actualBuildFileContent = Files.asCharSource(buildFile, Charsets.UTF_8).read();
     assertThat(actualBuildFileContent).isEqualTo(
       "apply plugin: 'com.android.application'\n" +
       "android {\n" +
@@ -180,8 +230,78 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
     );
   }
 
+  public void testMoveMinSdkVersionOnMultipleModules() throws Exception {
+    loadProject(DEPENDENT_MODULES);
+    Project project = getProject();
+    Module appModule = getModule("app");
+    Module libModule = getModule("lib");
+
+    // Rewrite the manifest file so that it contains minSdkVersion and targetSdkVersion.
+    writeManifestWithUsesSdkVersion(appModule, "<uses-sdk android:minSdkVersion='21' android:targetSdkVersion='27'/>\n");
+    writeManifestWithUsesSdkVersion(libModule, "<uses-sdk android:minSdkVersion='24' android:targetSdkVersion='26'/>\n");
+
+    // Rewrite the build file so that it contains a different minSdkVersion.
+    File appBuildFile = new File(getProjectFolderPath(), join("app", FN_BUILD_GRADLE));
+    File libBuildFile = new File(getProjectFolderPath(), join("lib", FN_BUILD_GRADLE));
+    writeBuildFile(appBuildFile, "minSdkVersion 23\n");
+    writeBuildFile(libBuildFile, "minSdkVersion 25\n");
+    try {
+      requestSyncAndWait();
+    }
+    catch (Throwable expected) {
+      // Sync issues are expected.
+    }
+
+    myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule, libModule), SdkProperty.MIN);
+    myHyperlink.execute(project);
+
+    // Verify the text is accurate.
+    assertThat(myHyperlink.toHtml()).contains("Remove minSdkVersion and sync project");
+
+    // Verify that minSdkVersion is removed from manifest file, and other attributes are not changed.
+    String appManifestContent = Files.asCharSource(getManifestFile(appModule), Charsets.UTF_8).read();
+    assertThat(appManifestContent).isEqualTo(
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "    package=\"google.simpleapplication\" >\n" +
+      "<uses-sdk  android:targetSdkVersion='27'/>\n" +
+      "</manifest>\n"
+    );
+
+    String libManifestContent = Files.asCharSource(getManifestFile(libModule), Charsets.UTF_8).read();
+    assertThat(libManifestContent).isEqualTo(
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "    package=\"google.simpleapplication\" >\n" +
+      "<uses-sdk  android:targetSdkVersion='26'/>\n" +
+      "</manifest>\n"
+    );
+
+    // Verify that minSdkVersion in build file is not changed.
+    String appBuildFileContent = Files.asCharSource(appBuildFile, Charsets.UTF_8).read();
+    assertThat(appBuildFileContent).isEqualTo(
+      "apply plugin: 'com.android.application'\n" +
+      "android {\n" +
+      "    compileSdkVersion " + BuildEnvironment.getInstance().getCompileSdkVersion() + "\n" +
+      "    defaultConfig {\n" +
+      "        minSdkVersion 23\n" +
+      "    }\n" +
+      "}\n"
+    );
+
+    String libBuildFileContent = Files.asCharSource(libBuildFile, Charsets.UTF_8).read();
+    assertThat(libBuildFileContent).isEqualTo(
+      "apply plugin: 'com.android.application'\n" +
+      "android {\n" +
+      "    compileSdkVersion " + BuildEnvironment.getInstance().getCompileSdkVersion() + "\n" +
+      "    defaultConfig {\n" +
+      "        minSdkVersion 25\n" +
+      "    }\n" +
+      "}\n"
+    );
+  }
+
   private static void writeManifestWithUsesSdkVersion(@NotNull Module module, @NotNull String usesSdk) throws IOException {
-    // Rewrite the manifest file so that it contains minSdkVersion.
     String manifestContent =
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
