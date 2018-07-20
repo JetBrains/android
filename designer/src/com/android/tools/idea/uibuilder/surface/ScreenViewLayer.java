@@ -92,20 +92,32 @@ public class ScreenViewLayer extends Layer {
     Disposer.register(screenView.getSurface(), this);
   }
 
+  /**
+   * Renders a preview image trying to reuse the existing buffer when possible.
+   */
   @NotNull
   private static BufferedImage getPreviewImage(@NotNull GraphicsConfiguration configuration,
                                                @NotNull ImagePool.Image renderedImage,
                                                int screenViewX, int screenViewY,
                                                @NotNull Rectangle screenViewVisibleSize,
-                                               double xScaleFactor, double yScaleFactor) {
-    BufferedImage image = configuration.createCompatibleImage(screenViewVisibleSize.width, screenViewVisibleSize.height);
-    assert image != null;
+                                               double xScaleFactor, double yScaleFactor,
+                                               @Nullable BufferedImage existingBuffer) {
     // Extract from the result image only the visible rectangle. The result image might be bigger or smaller than the actual ScreenView
     // size so we need to also rescale.
     int sx1 = (int)Math.round((screenViewVisibleSize.x - screenViewX) * xScaleFactor);
     int sy1 = (int)Math.round((screenViewVisibleSize.y - screenViewY) * yScaleFactor);
     int sx2 = sx1 + (int)Math.round(screenViewVisibleSize.width * xScaleFactor);
     int sy2 = sy1 + (int)Math.round(screenViewVisibleSize.height * yScaleFactor);
+    BufferedImage image;
+    if (existingBuffer != null &&
+        existingBuffer.getWidth() == screenViewVisibleSize.width &&
+        existingBuffer.getHeight() == screenViewVisibleSize.height) {
+      image = existingBuffer;
+    }
+    else {
+      image = configuration.createCompatibleImage(screenViewVisibleSize.width, screenViewVisibleSize.height);
+      assert image != null;
+    }
     Graphics2D cacheImageGraphics = image.createGraphics();
     cacheImageGraphics.setRenderingHints(HQ_RENDERING_HINTS);
     renderedImage.drawImageTo(cacheImageGraphics,
@@ -127,9 +139,13 @@ public class ScreenViewLayer extends Layer {
       return;
     }
 
+    // In some cases, we will try to re-use the previous image to paint on top of it, assuming that it still matches the right dimensions.
+    // This way we can save the allocation.
+    BufferedImage previousVisibleImage = null;
     RenderResult renderResult = myScreenView.getResult();
     if (renderResultHasChanged(renderResult)) {
       myLastRenderResult = renderResult;
+      previousVisibleImage = myCachedVisibleImage;
       myCachedVisibleImage = null;
     }
 
@@ -143,7 +159,8 @@ public class ScreenViewLayer extends Layer {
       g.clip(screenShape);
     }
 
-    if (myCachedVisibleImage == null || !myScreenViewVisibleSize.equals(myCachedScreenViewDisplaySize)) {
+    BufferedImage cachedVisibleImage = myCachedVisibleImage;
+    if (cachedVisibleImage == null || !myScreenViewVisibleSize.equals(myCachedScreenViewDisplaySize)) {
       int resultImageWidth = myLastRenderResult.getRenderedImage().getWidth();
       int resultImageHeight = myLastRenderResult.getRenderedImage().getHeight();
 
@@ -158,12 +175,15 @@ public class ScreenViewLayer extends Layer {
         requestHighQualityScaledImage();
       }
 
-      myCachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(),
+      cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(),
                                              myLastRenderResult.getRenderedImage(),
                                              myScreenView.getX(), myScreenView.getY(),
-                                             myScreenViewVisibleSize, xScaleFactor, yScaleFactor);
+                                             myScreenViewVisibleSize, xScaleFactor, yScaleFactor,
+                                             previousVisibleImage);
+      myCachedVisibleImage = cachedVisibleImage;
+
     }
-    UIUtil.drawImage(g, myCachedVisibleImage, myScreenViewVisibleSize.x, myScreenViewVisibleSize.y, null);
+    UIUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleSize.x, myScreenViewVisibleSize.y, null);
     g.dispose();
   }
 
