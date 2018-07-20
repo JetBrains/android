@@ -18,6 +18,7 @@ package com.android.tools.idea.common.scene.target;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.NonPlaceholderDragTarget;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -35,7 +36,7 @@ import java.util.List;
 /**
  * Base class for dragging targets.
  */
-public abstract class DragBaseTarget extends BaseTarget implements MultiComponentTarget {
+public abstract class DragBaseTarget extends BaseTarget implements MultiComponentTarget, NonPlaceholderDragTarget {
 
   private static final boolean DEBUG_RENDERER = false;
 

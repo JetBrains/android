@@ -20,6 +20,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawComponentBackground;
 import com.android.tools.idea.common.scene.draw.DrawComponentFrame;
+import com.android.tools.idea.flags.StudioFlags;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -115,13 +116,23 @@ public class SceneDecorator {
                                    @NotNull SceneComponent component) {
     List<SceneComponent> children = component.getChildren();
     if (!children.isEmpty()) {
-      Rectangle rect = new Rectangle();
-      component.fillRect(rect);
-      DisplayList.UNClip unClip = list.addClip(sceneContext, rect);
-      for (SceneComponent child : children) {
-        child.buildDisplayList(time, list, sceneContext);
+      if (StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
+        // The CommonDragTarget is render by the dragged SceneComponent, which may need to render the placeholder for other SceneComponents
+        // So we should not clip its bound.
+        // FIXME: Makes CommonDragTarget is not rendered here.
+        for (SceneComponent child : children) {
+          child.buildDisplayList(time, list, sceneContext);
+        }
       }
-      list.add(unClip);
+      else {
+        Rectangle rect = new Rectangle();
+        component.fillRect(rect);
+        DisplayList.UNClip unClip = list.addClip(sceneContext, rect);
+        for (SceneComponent child : children) {
+          child.buildDisplayList(time, list, sceneContext);
+        }
+        list.add(unClip);
+      }
     }
   }
 

@@ -1,0 +1,82 @@
+<!--
+  ~ Copyright (C) 2018 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- For better readability, Please open this file in the browser -->
+
+**Design Doc of Placeholder**
+
+*Last updated: August 8th 2018*
+
+Overview
+=====
+
+`Placeholder` is designed for drag-and-drop interaction in Layout Editor. It is a replacement of all `DragTarget`s.
+
+`Placeholder` describes the area for dropping mouse, how component snaps it, and the callback function when dropping the component on it.
+The callback function is used for setting the attributes after dropping the Widget.
+
+We also has `CommonDragTarget` which takes responsibilities to update component position and interact with
+`Placeholder`s.
+
+
+How It Works
+=====
+
+When user starts dragging a component, we create a `CommonDragTarget` which traces the mouse position and collect `Placeholder`s from
+`Scene`. `CommonDragTarget` snaps to the collected `Placeholder`s and update the proper positions of dragged component. Once mouse is
+released, `CommonDragTarget` finds the effect `Placeholder` and apply the callback of it to update the attributes.
+
+Implement a `Placeholder`
+=====
+
+For creating a new Placeholder, simply extends the `Placeholder` interface and custom the part you need.
+
+There are 4 functions for overriding:
+- `val region: Region`
+- `fun snap(left: Int, top: Int, right: Int, bottom: Int): Boolean`
+- `fun updateAttributes(SceneComponent): Boolean`
+- (optional) `val nextComponent: SceneComponent?`
+
+
+`val region: Region`
+-----
+For describing the receivable area. `CommonDragTarget` renders this region as well.
+It also has `level` attribute, which is used to determine the priority when regions are overlapped.
+For now all region is a rectangle.
+
+`fun snap(left: Int, top: Int, right: Int, bottom: Int): Boolean`
+-----
+The arguments describe the expected area of dragged widget. `snap` function checks if the dragged widget should effect to this `Placeholder`
+
+`fun updateAttributes(SceneComponent): Boolean`
+-----
+Callback for updating specified attributes when this `Placeholder` is applied.
+
+(optional) `val nextComponent: SceneComponent?`
+-----
+If the applied widget has to be inserted to specified position in Xml file, override this value to the next `SceneComponent` of it.
+By default this value is `null`, which means the applied widget will be inserted to the end of it parent.
+
+
+After having a custom `Placeholder`, override `getPlaceholders(SceneComponent)` function in associated `ViewHandler` to provide them.<br>
+The `CommonDragTarget` will collect and interact with them automatically.
+
+References
+=====
+
+[DesignDoc](https://docs.google.com/document/d/1HbxrqHMkdzjFAYhVJikp6bQVpBbaUsjmALtLpg-g_iw/edit?usp=sharing)
+
+<!-- Markdeep: --><style class="fallback">body{visibility:hidden;white-space:pre;font-family:monospace}</style><script src="markdeep.min.js"></script><script src="https://casual-effects.com/markdeep/latest/markdeep.min.js"></script><script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>

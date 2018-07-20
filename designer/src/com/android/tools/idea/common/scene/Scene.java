@@ -33,6 +33,9 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -868,5 +871,32 @@ public class Scene implements SelectionListener, Disposable {
     viewInfo = RenderService.getSafeBounds(viewInfo);
     return new Dimension(Coordinates.pxToDp(getDesignSurface(), viewInfo.getRight() - viewInfo.getLeft()),
                          Coordinates.pxToDp(getDesignSurface(), viewInfo.getBottom() - viewInfo.getTop()));
+  }
+
+  /**
+   * Get the {@link Placeholder}s in the Scene without the ones belong to the {@param requester} and its children.
+   * @param requester the component which request {@link Placeholder}s
+   * @return list of the {@link Placeholder}s for requester
+   */
+  public List<Placeholder> getPlaceholders(@Nullable SceneComponent requester) {
+    ImmutableList.Builder<Placeholder> builder = new ImmutableList.Builder<>();
+    doGetPlaceholders(builder, myRoot, requester);
+    return builder.build();
+  }
+
+  private static void doGetPlaceholders(@NotNull ImmutableList.Builder<Placeholder> builder,
+                                        @NotNull SceneComponent component,
+                                        @Nullable SceneComponent requester) {
+    if (component == requester) {
+      return;
+    }
+    NlComponent nlComponent = component.getNlComponent();
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(nlComponent);
+    if (handler != null) {
+      builder.addAll(handler.getPlaceholders(component));
+    }
+    for (SceneComponent child : component.getChildren()) {
+      doGetPlaceholders(builder, child, requester);
+    }
   }
 }

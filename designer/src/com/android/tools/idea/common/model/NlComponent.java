@@ -735,9 +735,10 @@ public class NlComponent implements NlAttributesHolder {
     if (mixin != null) {
       mixin.beforeMove(type, receiver, ids);
     }
+    NlComponent oldParent = getParent();
     addTags(receiver, before, type);
     if (mixin != null) {
-      mixin.afterMove(type, receiver, surface);
+      mixin.afterMove(type, oldParent, receiver, surface);
     }
   }
 
@@ -942,7 +943,10 @@ public class NlComponent implements NlAttributesHolder {
 
     public void beforeMove(@NotNull InsertType insertType, @NotNull NlComponent receiver, @NotNull Set<String> ids) {}
 
-    public void afterMove(@NotNull InsertType insertType, @NotNull NlComponent receiver, @Nullable DesignSurface surface) {}
+    public void afterMove(@NotNull InsertType insertType,
+                          @Nullable NlComponent previousParent,
+                          @NotNull NlComponent receiver,
+                          @Nullable DesignSurface surface) {}
 
     public boolean postCreate(@Nullable DesignSurface surface, @NotNull InsertType insertType) {
       return true;

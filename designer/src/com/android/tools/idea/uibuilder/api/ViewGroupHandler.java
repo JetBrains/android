@@ -160,6 +160,12 @@ public class ViewGroupHandler extends ViewHandler {
                               @NotNull InsertType insertType) {
   }
 
+  public void onChildRemoved(@NotNull ViewEditor editor,
+                             @NotNull NlComponent layout,
+                             @NotNull NlComponent newChild,
+                             @NotNull InsertType insertType) {
+  }
+
   @Override
   public FillPolicy getFillPolicy() {
     return FillPolicy.BOTH;
