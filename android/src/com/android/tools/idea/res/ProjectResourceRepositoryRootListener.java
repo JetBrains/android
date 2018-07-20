@@ -53,16 +53,18 @@ public class ProjectResourceRepositoryRootListener {
    * the {@linkplain ProjectResourceRepository} instances (but only those that
    * have already been initialized) and updates the roots, if necessary.
    *
-   * @param project the project whose module roots changed.
+   * @param project the project whose module roots changed
    */
   private static void moduleRootsChanged(@NotNull Project project) {
     DumbService.getInstance(project).queueTask(new DumbModeTask() {
       @Override
       public void performInDumbMode(@NotNull ProgressIndicator indicator) {
-        indicator.setText("Updating resource repository roots");
-        ModuleManager moduleManager = ModuleManager.getInstance(project);
-        for (Module module : moduleManager.getModules()) {
-          moduleRootsChanged(module);
+        if (!project.isDisposed()) {
+          indicator.setText("Updating resource repository roots");
+          ModuleManager moduleManager = ModuleManager.getInstance(project);
+          for (Module module : moduleManager.getModules()) {
+              moduleRootsChanged(module);
+          }
         }
       }
     });
@@ -79,25 +81,14 @@ public class ProjectResourceRepositoryRootListener {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
       if (facet.requiresAndroidModel() && facet.getConfiguration().getModel() == null) {
-        // Project not yet fully initialized; no need to do a sync now because our
-        // GradleProjectAvailableListener will be called as soon as it is and do a proper sync
+        // Project not yet fully initialized. No need to do a sync now because our
+        // GradleProjectAvailableListener will be called as soon as it is and do a proper sync.
         return;
       }
       ResourceFolderManager.getInstance(facet).invalidate();
+
       ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
-      repoManager.resetVisibility();
-
-      // TODO(b/76128326): move this to ResourceRepositoryManager
-      ProjectResourceRepository projectResources = (ProjectResourceRepository)repoManager.getProjectResources(false);
-      if (projectResources != null) {
-        projectResources.updateRoots();
-
-        AppResourceRepository appResources = (AppResourceRepository)repoManager.getAppResources(false);
-        if (appResources != null) {
-          appResources.invalidateCache(projectResources);
-          appResources.updateRoots();
-        }
-      }
+      repoManager.updateRoots();
     }
   }
 }

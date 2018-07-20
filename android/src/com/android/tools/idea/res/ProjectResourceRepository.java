@@ -56,8 +56,8 @@ final class ProjectResourceRepository extends MultiResourceRepository {
     }
 
     List<LocalResourceRepository> resources = new ArrayList<>(dependentFacets.size() + 1);
-    // Add the dependent facets in reverse order to the overrides are handled correctly. Resources in n + 1 will override elements in n
-    for (int i = dependentFacets.size() - 1; i >= 0; i--) {
+    // Add the dependent facets in reverse order to the overrides are handled correctly. Resources in n + 1 will override elements in n.
+    for (int i = dependentFacets.size(); --i >= 0;) {
       resources.add(ResourceRepositoryManager.getModuleResources(dependentFacets.get(i)));
     }
     resources.add(main);
@@ -65,7 +65,6 @@ final class ProjectResourceRepository extends MultiResourceRepository {
     return resources;
   }
 
-  @VisibleForTesting
   void updateRoots() {
     List<LocalResourceRepository> repositories = computeRepositories(myFacet);
     updateRoots(repositories);
