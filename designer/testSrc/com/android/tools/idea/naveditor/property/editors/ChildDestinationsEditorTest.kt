@@ -48,8 +48,8 @@ class ChildDestinationsEditorTest : NavTestCase() {
         .showPopup()
         .expectChoices(
           "none", null,
-          "f1", "@+id/f1",
           "activity1", "@+id/activity1",
+          "f1", "@+id/f1",
           "subnav1", "@+id/subnav1",
           "subnav2", "@+id/subnav2"
         )
