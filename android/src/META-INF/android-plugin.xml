@@ -1289,6 +1289,8 @@
                     interface="com.android.tools.idea.ui.GuiTestingStatusProvider" />
     <extensionPoint qualifiedName="com.android.tools.gradleModelProvider"
                     interface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider" />
+    <extensionPoint qualifiedName="com.android.rendering.renderSecurityManagerOverrides"
+                    interface="com.android.tools.idea.rendering.RenderSecurityManagerOverrides"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
