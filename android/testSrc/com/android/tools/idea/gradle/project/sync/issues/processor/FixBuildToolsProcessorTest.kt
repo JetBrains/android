@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.issues
+package com.android.tools.idea.gradle.project.sync.issues.processor
 
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.collect.ImmutableList
@@ -31,19 +30,19 @@ import org.junit.Test
 class FixBuildToolsProcessorTest : AndroidGradleTestCase() {
   @Test
   fun testRemoveUsageViewDescriptor() {
-    val processor = FixBuildToolsProcessor(project, ImmutableList.of(),
-                                                                                                       "77.7.7", false, true)
+    val processor = FixBuildToolsProcessor(project, ImmutableList.of(), "77.7.7", false, true)
     val usageDescriptor = processor.createUsageViewDescriptor(UsageInfo.EMPTY_ARRAY)
-    assertEquals("Values to remove " + UsageViewBundle.getReferencesString(1, 1), usageDescriptor.getCodeReferencesText(1, 1))
+    assertEquals("Values to remove " + UsageViewBundle.getReferencesString(1, 1),
+                 usageDescriptor.getCodeReferencesText(1, 1))
     assertEquals("Remove Android Build Tools Versions", usageDescriptor.processedElementsHeader)
   }
 
   @Test
   fun testUpdateUsageViewDescriptor() {
-    val processor = FixBuildToolsProcessor(project, ImmutableList.of(),
-                                                                                                       "77.7.7", false, false)
+    val processor = FixBuildToolsProcessor(project, ImmutableList.of(), "77.7.7", false, false)
     val usageDescriptor = processor.createUsageViewDescriptor(UsageInfo.EMPTY_ARRAY)
-    assertEquals("Values to update " + UsageViewBundle.getReferencesString(1, 1), usageDescriptor.getCodeReferencesText(1, 1))
+    assertEquals("Values to update " + UsageViewBundle.getReferencesString(1, 1),
+                 usageDescriptor.getCodeReferencesText(1, 1))
     assertEquals("Update Android Build Tools Versions", usageDescriptor.processedElementsHeader)
   }
 
@@ -53,8 +52,7 @@ class FixBuildToolsProcessorTest : AndroidGradleTestCase() {
     val module = getModule("app")
     val file = getGradleBuildFile(module)!!
 
-    val processor = FixBuildToolsProcessor(project, ImmutableList.of(file),
-                                                                                                       "77.7.7", false, false)
+    val processor = FixBuildToolsProcessor(project, ImmutableList.of(file), "77.7.7", false, false)
     val usages = processor.findUsages()
     assertSize(1, usages)
     assertEquals('"' + SdkConstants.CURRENT_BUILD_TOOLS_VERSION + '"', usages[0].element!!.text)
@@ -66,8 +64,7 @@ class FixBuildToolsProcessorTest : AndroidGradleTestCase() {
     val module = getModule("app")
     val file = getGradleBuildFile(module)!!
 
-    val processor = FixBuildToolsProcessor(project, ImmutableList.of(file),
-                                                                                                       "77.7.7", false, false)
+    val processor = FixBuildToolsProcessor(project, ImmutableList.of(file), "77.7.7", false, false)
     val usages = processor.findUsages()
     GradleSyncState.subscribe(project, object : GradleSyncListener {
       override fun syncStarted(project: Project, skipped: Boolean, sourceGenerationRequested: Boolean) {
@@ -88,8 +85,7 @@ class FixBuildToolsProcessorTest : AndroidGradleTestCase() {
     val module = getModule("app")
     val file = getGradleBuildFile(module)!!
 
-    val processor = FixBuildToolsProcessor(project, ImmutableList.of(file),
-                                                                                                       "77.7.7", true, false)
+    val processor = FixBuildToolsProcessor(project, ImmutableList.of(file), "77.7.7", true, false)
     val usages = processor.findUsages()
     var synced = false
     GradleSyncState.subscribe(project, object : GradleSyncListener {

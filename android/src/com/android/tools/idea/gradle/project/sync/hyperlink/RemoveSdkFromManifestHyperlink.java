@@ -15,98 +15,52 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.issues.SdkInManifestIssuesReporter.SdkProperty;
+import com.android.tools.idea.gradle.project.sync.issues.processor.RemoveSdkFromManifestProcessor;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlElement;
-import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.dom.manifest.UsesSdk;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
-import static com.google.common.base.Strings.nullToEmpty;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 public class RemoveSdkFromManifestHyperlink extends NotificationHyperlink {
-  @NotNull private final Module myModule;
+  @NotNull private final Collection<Module> myModules;
+  @NotNull private final SdkProperty mySdkProperty;
 
-  public RemoveSdkFromManifestHyperlink(@NotNull Module module) {
-    super("remove.sdk.from.manifest", getMessage(module));
-    myModule = module;
+  public RemoveSdkFromManifestHyperlink(@NotNull Collection<Module> modules, @NotNull SdkProperty property) {
+    super("remove.sdk.from.manifest", getMessage(modules, property));
+    myModules = modules;
+    mySdkProperty = property;
   }
 
   @NotNull
-  private static String getMessage(@NotNull Module module) {
-    GradleBuildModel buildModel = getBuildModel(module);
-    if (buildModel != null) {
-      ResolvedPropertyModel minSdkInBuildFile = getMinSdkInBuildModel(buildModel);
-      if (minSdkInBuildFile.getValueType() == NONE) {
-        // minSdkVersion is not in build file.
-        return "Move minSdkVersion to build file and sync project";
+  private static String getMessage(@NotNull Collection<Module> modules, @NotNull SdkProperty property) {
+    assert !modules.isEmpty();
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(modules.iterator().next().getProject());
+    for (Module module : modules) {
+      GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(module);
+      if (buildModel != null) {
+        ResolvedPropertyModel propertyInBuildFile = property.getBuildFileFunction().apply(buildModel.android().defaultConfig());
+        if (propertyInBuildFile.getValueType() == NONE) {
+          // property is not in build file.
+          return String.format("Move %s to build file%s and sync project", property.getPropertyName(), modules.size() > 1 ? "s" : "");
+        }
       }
     }
-    // Build file doesn't exist, or minSdkVersion has been defined in build file.
-    return "Remove minSdkVersion and sync project";
-  }
-
-  @Nullable
-  private static GradleBuildModel getBuildModel(@NotNull Module module) {
-    return ProjectBuildModel.get(module.getProject()).getModuleBuildModel(module);
-  }
-
-  @NotNull
-  private static ResolvedPropertyModel getMinSdkInBuildModel(@NotNull GradleBuildModel buildModel) {
-    return buildModel.android().defaultConfig().minSdkVersion();
+    // Build file doesn't exist, or property has been defined in build file.
+    return String.format("Remove %s and sync project", property.getPropertyName());
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    AndroidFacet androidFacet = AndroidFacet.getInstance(myModule);
-    if (androidFacet != null) {
-      int minSdkInManifest = SdkVersionInfo.LOWEST_ACTIVE_API;
-      Manifest manifest = androidFacet.getManifest();
-      if (manifest != null) {
-        // Read and remove the value of minSdkVersion from manifest.
-        for (UsesSdk usesSdk : manifest.getUsesSdks()) {
-          try {
-            minSdkInManifest = Integer.parseInt(nullToEmpty(usesSdk.getMinSdkVersion().getStringValue()));
-          }
-          catch (NumberFormatException ignored) {
-            // Invalid value, use default value.
-          }
-          XmlElement element = usesSdk.getMinSdkVersion().getXmlElement();
-          if (element != null) {
-            runWriteCommandAction(project, () -> {
-              element.delete();
-              // Remove usesSdk if it's empty after removing minSdkVersion.
-              if (usesSdk.getXmlTag().getAttributes().length == 0) {
-                usesSdk.getXmlTag().delete();
-              }
-              FileDocumentManager.getInstance().saveAllDocuments();
-            });
-          }
-        }
-
-        // Write minSdkVersion to build file if it is not already defined there.
-        GradleBuildModel buildModel = getBuildModel(myModule);
-        if (buildModel != null) {
-          ResolvedPropertyModel minSdkInBuildFile = getMinSdkInBuildModel(buildModel);
-          if (minSdkInBuildFile.getValueType() == NONE) {
-            minSdkInBuildFile.setValue(minSdkInManifest);
-            runWriteCommandAction(project, buildModel::applyChanges);
-          }
-        }
-      }
-    }
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+    RemoveSdkFromManifestProcessor processor = new RemoveSdkFromManifestProcessor(project, myModules, mySdkProperty);
+    processor.setPreviewUsages(true);
+    processor.run();
   }
 }

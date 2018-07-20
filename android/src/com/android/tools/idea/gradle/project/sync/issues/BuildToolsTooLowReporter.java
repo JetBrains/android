@@ -21,10 +21,8 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowErrorHandler;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -55,6 +53,7 @@ class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
   }
 
   @Override
+  @NotNull
   protected OpenFileHyperlink createModuleLink(@NotNull Project project,
                                                @NotNull Module module,
                                                @NotNull ProjectBuildModel projectBuildModel,
