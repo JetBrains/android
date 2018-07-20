@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsResolvedModuleAndroidDependency;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
@@ -49,10 +50,12 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleAndroid
 
   private void setUp(@NotNull PsModuleAndroidDependency moduleDependency) {
     myName = moduleDependency.toText(PLAIN_TEXT);
-    PsAndroidArtifact referredModuleMainArtifact = moduleDependency.findReferredArtifact();
-    if (referredModuleMainArtifact != null) {
-      List<AbstractPsModelNode<?>> children = createNodesForResolvedDependencies(this, referredModuleMainArtifact);
-      myChildren.addAll(children);
+    if (moduleDependency instanceof PsResolvedModuleAndroidDependency) {
+      PsAndroidArtifact referredModuleMainArtifact = ((PsResolvedModuleAndroidDependency)moduleDependency).findReferredArtifact();
+      if (referredModuleMainArtifact != null) {
+        List<AbstractPsModelNode<?>> children = createNodesForResolvedDependencies(this, referredModuleMainArtifact);
+        myChildren.addAll(children);
+      }
     }
   }
 

@@ -26,10 +26,9 @@ class PsDeclaredModuleAndroidDependency internal constructor(
   gradlePath: String,
   artifacts: Collection<PsAndroidArtifact>,
   override val configurationName: String,
-  moduleVariant: String?,
   override val parsedModel: ModuleDependencyModel
 ) : PsModuleAndroidDependency(
-  parent, gradlePath, artifacts, moduleVariant
+  parent, gradlePath, artifacts
 ), PsDeclaredDependency {
   override val name: String = parsedModel.name()
   override val isDeclared: Boolean = true
@@ -40,34 +39,29 @@ class PsResolvedModuleAndroidDependency internal constructor(
   parent: PsAndroidModule,
   gradlePath: String,
   artifacts: Collection<PsAndroidArtifact>,
-  moduleVariant: String?,
-  private val targetModule: PsModule,
+  private val moduleVariant: String?,
+  targetModule: PsModule,
   override val declaredDependencies: List<PsDeclaredDependency>
 ) : PsModuleAndroidDependency(
-  parent, gradlePath, artifacts, moduleVariant
+  parent, gradlePath, artifacts
 ), PsResolvedDependency {
   override val name: String = targetModule.name
   override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
+
+  fun findReferredArtifact(): PsAndroidArtifact? {
+    if (moduleVariant == null) return null
+    return (parent.parent.findModuleByGradlePath(gradlePath) as? PsAndroidModule)
+      ?.findVariant(moduleVariant)
+      ?.findArtifact(ARTIFACT_MAIN)
+  }
 }
 
 abstract class PsModuleAndroidDependency internal constructor(
   parent: PsAndroidModule,
   override val gradlePath: String,
-  artifacts: Collection<PsAndroidArtifact>,
-  private val moduleVariant: String?
+  artifacts: Collection<PsAndroidArtifact>
 ) : PsAndroidDependency(parent, artifacts), PsModuleDependency {
 
   override fun toText(type: PsDependency.TextType): String = name
   override val icon: Icon = parent.parent.findModuleByGradlePath(gradlePath)?.icon ?: LIBRARY_ICON
-
-  fun findReferredArtifact(): PsAndroidArtifact? {
-    val referred = parent.parent.findModuleByGradlePath(gradlePath)
-    if (moduleVariant != null && referred is PsAndroidModule) {
-      val moduleVariant = referred.findVariant(moduleVariant)
-      if (moduleVariant != null) {
-        return moduleVariant.findArtifact(ARTIFACT_MAIN)
-      }
-    }
-    return null
-  }
 }
