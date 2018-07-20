@@ -28,10 +28,10 @@ public class ColorDeserializer implements JsonDeserializer<Color> {
                            @NotNull JsonDeserializationContext context) {
     final JsonObject jsonObject = json.getAsJsonObject();
 
-    final int alpha = jsonObject.get("alpha").getAsInt();
-    final int blue = jsonObject.get("blue").getAsInt();
-    final int green = jsonObject.get("green").getAsInt();
-    final int red = jsonObject.get("red").getAsInt();
+    final int alpha = (int) Math.round(jsonObject.get("alpha").getAsDouble() * 255);
+    final int blue =  (int) Math.round(jsonObject.get("blue").getAsDouble() * 255);
+    final int green = (int) Math.round(jsonObject.get("green").getAsDouble() * 255);
+    final int red = (int) Math.round(jsonObject.get("red").getAsDouble() * 255);
 
     return new Color(red, green, blue, alpha);
   }

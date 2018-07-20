@@ -18,25 +18,27 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.geom.Point2D;
+
 public class SketchCurvePoint {
   @SerializedName("do_objectID")
   private final int objectId;
   private final int cornerRadius;
-  private final String curveFrom;
+  private final Point2D.Double curveFrom;
   private final short curveMode;
-  private final String curveTo;
+  private final Point2D.Double curveTo;
   private final boolean hasCurveFrom;
   private final boolean hasCurveTo;
-  private final String point;
+  private final Point2D.Double point;
 
   public SketchCurvePoint(int objectId,
                           int cornerRadius,
-                          @NotNull String curveFrom,
+                          @NotNull Point2D.Double curveFrom,
                           short curveMode,
-                          @NotNull String curveTo,
+                          @NotNull Point2D.Double curveTo,
                           boolean hasCurveFrom,
                           boolean hasCurveTo,
-                          @NotNull String point) {
+                          @NotNull Point2D.Double point) {
     this.objectId = objectId;
     this.cornerRadius = cornerRadius;
     this.curveFrom = curveFrom;
@@ -55,7 +57,7 @@ public class SketchCurvePoint {
     return cornerRadius;
   }
 
-  public String getCurveFrom() {
+  public Point2D.Double getCurveFrom() {
     return curveFrom;
   }
 
@@ -63,19 +65,19 @@ public class SketchCurvePoint {
     return curveMode;
   }
 
-  public String getCurveTo() {
+  public Point2D.Double getCurveTo() {
     return curveTo;
   }
 
-  public boolean isHasCurveFrom() {
+  public boolean hasCurveFrom() {
     return hasCurveFrom;
   }
 
-  public boolean isHasCurveTo() {
+  public boolean hasCurveTo() {
     return hasCurveTo;
   }
 
-  public String getPoint() {
+  public Point2D.Double getPoint() {
     return point;
   }
 }

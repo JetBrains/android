@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SketchStyle {
-  private final SketchBorderOptions borderOptions;  // optional field (some files don't have them set)
-  private final SketchBorder[] borders;  // optional
-  private final SketchFill[] fills;  // optional
-  private final short miterLimit;  // TODO how to implement?
+  private final SketchBorderOptions borderOptions;
+  private final SketchBorder[] borders;
+  private final SketchFill[] fills;
+  private final short miterLimit;
   private final short windingRule;
 
-  public SketchStyle(@NotNull SketchBorderOptions borderOptions,
-                     @NotNull SketchBorder[] borders,
-                     @NotNull SketchFill[] fills,
+  public SketchStyle(@Nullable SketchBorderOptions borderOptions,
+                     @Nullable SketchBorder[] borders,
+                     @Nullable SketchFill[] fills,
                      short miterLimit,
                      short windingRule) {
     this.borderOptions = borderOptions;

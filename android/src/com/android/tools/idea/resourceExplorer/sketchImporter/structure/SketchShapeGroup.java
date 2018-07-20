@@ -21,10 +21,10 @@ import java.awt.*;
 
 public class SketchShapeGroup extends SketchLayer {
   private final SketchStyle style;
-  private final SketchLayer[] layers;  // TODO deserialiser
-  private final short clippingMaskMode;  // TODO what does this do?
-  private final boolean hasClippingMask;  // TODO what does this do?
-  private final short windingRule;  // TODO what does this do?
+  private final SketchLayer[] layers;
+  private final short clippingMaskMode;
+  private final boolean hasClippingMask;
+  private final short windingRule;
 
   public SketchShapeGroup(@NotNull String classType,
                           @NotNull String objectId,
