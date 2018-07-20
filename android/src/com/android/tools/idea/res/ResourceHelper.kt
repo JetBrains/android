@@ -684,19 +684,18 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
  * Converts a file resource path from [String] to [PathString]. The supported formats:
  * - file path, e.g. "/foo/bar/res/layout/my_layout.xml"
  * - file URL, e.g. "file:///foo/bar/res/layout/my_layout.xml"
- * - URL of a zipped element inside an APK file, e.g. "apk:/foo/bar/res.apk!/res/layout/my_layout.xml"
+ * - URL of a zipped element inside an APK file, e.g. "apk:///foo/bar/res.apk!/res/layout/my_layout.xml"
  *
  * @param resourcePath the file resource path to convert
  * @return the converted resource path, or null if the `resourcePath` doesn't point to a file resource
  */
 fun toFileResourcePathString(resourcePath: String): PathString? {
   if (resourcePath.startsWith("apk:")) {
-    val prefixLength = "apk:".length
-    val separatorPos = resourcePath.lastIndexOf(JAR_SEPARATOR)
-    if (separatorPos < prefixLength) {
-      throw IllegalArgumentException("Invalid resource path \"$resourcePath\"")
+    var prefixLength = "apk:".length
+    if (resourcePath.startsWith("//", prefixLength)) {
+      prefixLength += "//".length
     }
-    return PathString("apk", resourcePath.substring(separatorPos + JAR_SEPARATOR.length))
+    return PathString("apk", resourcePath.substring(prefixLength))
   }
 
   if (resourcePath.startsWith("file:")) {
