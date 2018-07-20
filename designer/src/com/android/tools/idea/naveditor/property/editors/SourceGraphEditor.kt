@@ -36,6 +36,7 @@ class SourceGraphEditor(listener: NlEditingListener, comboBox: CustomComboBox) :
 
       return resourceManager!!.findResourceFiles(ResourceFolderType.NAVIGATION)
           .filter { myProperty.model.file != it }
+          .sortedBy { it.name }
           .map { ValueWithDisplayString(it.name, "$NAVIGATION_PREFIX${it.virtualFile.nameWithoutExtension}") }
     }
 

@@ -49,15 +49,15 @@ class AllDestinationsEditorTest : NavTestCase() {
         .showPopup()
         .expectChoices(
           "none", null,
-          "root", "@+id/root",
-          "f1", "@+id/f1",
           "activity1", "@+id/activity1",
-          "subnav1", "@+id/subnav1",
+          "f1", "@+id/f1",
           "f2", "@+id/f2",
           "f3", "@+id/f3",
-          "subnav2", "@+id/subnav2",
-          "f4", "@+id/f4"
-        )
+          "f4", "@+id/f4",
+          "root", "@+id/root",
+          "subnav1", "@+id/subnav1",
+          "subnav2", "@+id/subnav2"
+          )
     }
 
     `when`(property.components).thenReturn(listOf(model.find("a2")))
@@ -67,14 +67,14 @@ class AllDestinationsEditorTest : NavTestCase() {
         .showPopup()
         .expectChoices(
           "none", null,
-          "root", "@+id/root",
-          "f1", "@+id/f1",
           "activity1", "@+id/activity1",
-          "subnav1", "@+id/subnav1",
+          "f1", "@+id/f1",
           "f2", "@+id/f2",
           "f3", "@+id/f3",
-          "subnav2", "@+id/subnav2",
-          "f4", "@+id/f4"
+          "f4", "@+id/f4",
+          "root", "@+id/root",
+          "subnav1", "@+id/subnav1",
+          "subnav2", "@+id/subnav2"
         )
     }
   }
