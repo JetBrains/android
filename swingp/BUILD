@@ -9,9 +9,11 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/idea/platform/util:intellij.platform.util[module]",
         "//tools/idea/.idea/libraries:ASM",
         "//tools/idea/.idea/libraries:gson",
         "//tools/idea/.idea/libraries:Guava",
+        "//tools/idea/.idea/libraries:http-client",
         "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:truth[test]",
@@ -36,6 +38,8 @@ java_binary(
         "//tools/base/third_party:com.google.code.gson_gson",
         "//tools/base/third_party:com.google.guava_guava",
         "//tools/idea/.idea/libraries:ASM",
+        "//tools/idea/.idea/libraries:http-client",
         "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
+        "//tools/idea/platform/util:intellij.platform.util",
     ],
 )

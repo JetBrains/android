@@ -8,9 +8,11 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="library" name="ASM" level="project" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="http-client" level="project" />
     <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
