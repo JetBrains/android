@@ -26,6 +26,7 @@ import com.intellij.ui.CollectionListModel
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -65,20 +66,17 @@ class ResourceExplorerView(
   private val sectionListModel: SectionListModel = SectionListModel()
   private val sectionList: SectionList = SectionList(sectionListModel)
 
-  init {
+  private val listPanel: JBScrollPane
 
+  init {
     sectionList.setSectionListCellRenderer(createSectionListCellRenderer())
     resourcesBrowserViewModel.updateCallback = ::populateResourcesLists
     populateResourcesLists()
 
-    val mainComponent = sectionList.mainComponent
-    mainComponent.border = JBUI.Borders.empty(8)
-    add(mainComponent)
-
-    val sections = sectionList.sectionsComponent
-    sections.preferredSize = JBUI.size(132, -1)
-    sections.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, 0, 1)
-    add(sections, BorderLayout.WEST)
+    listPanel = sectionList.mainComponent
+    listPanel.border = JBUI.Borders.empty(8)
+    listPanel.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+    add(listPanel)
   }
 
   private fun populateResourcesLists() {
@@ -153,7 +151,7 @@ class ResourceExplorerView(
     }
   }
 
-  class AssetSection<T>(
+  private class AssetSection<T>(
     override var name: String,
     override var list: JList<T>
   ) : Section<T> {
