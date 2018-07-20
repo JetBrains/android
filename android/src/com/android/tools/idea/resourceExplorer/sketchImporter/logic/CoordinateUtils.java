@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchCurvePoint;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -24,27 +23,61 @@ import java.util.ArrayList;
 
 public class CoordinateUtils {
 
-  public static StringPoint calculateAbsolutePositionString(@NotNull SketchCurvePoint point, @NotNull Rectangle.Double frame) {
-
-    Point2D.Double coordsPoint = point.getPoint();
-    return calculateAbsolutePositionString(coordsPoint, frame);
+  public static Point2D.Double percentagesToRelativePosition(@NotNull Point2D.Double percentage,
+                                                             @NotNull Rectangle.Double frame) {
+    return new Point2D.Double(percentage.getX() * frame.getWidth(),
+                              percentage.getY() * frame.getHeight());
   }
 
-  public static StringPoint calculateAbsolutePositionString(@NotNull Point2D.Double percentages,
-                                                            @NotNull Rectangle.Double frame) {
-
-    return new StringPoint(Double.toString(percentages.getX() * frame.getWidth() + frame.getX()),
-                           Double.toString(percentages.getY() * frame.getHeight() + frame.getY()));
+  public static StringPoint makeAbsolutePositionString(@NotNull StringPoint relativePoint,
+                                                       @NotNull Rectangle.Double shapeGroupFrame,
+                                                       @NotNull Rectangle.Double ownFrame) {
+    return new StringPoint(Double.toString(Double.parseDouble(relativePoint.getX()) + shapeGroupFrame.getX() + ownFrame.getX()),
+                           Double.toString(Double.parseDouble(relativePoint.getY()) + shapeGroupFrame.getY() + ownFrame.getY()));
   }
 
-  public static ArrayList<StringPoint> calculateStringFrameCorners(@NotNull Rectangle.Double frame) {
+  public static StringPoint makeAbsolutePositionString(@NotNull Point2D.Double relativePoint,
+                                                       @NotNull Rectangle.Double shapeGroupFrame,
+                                                       @NotNull Rectangle.Double ownFrame) {
+    return new StringPoint(Double.toString(relativePoint.getX() + shapeGroupFrame.getX() + ownFrame.getX()),
+                           Double.toString(relativePoint.getY() + shapeGroupFrame.getY() + ownFrame.getY()));
+  }
+
+
+  public static Point2D.Double makeAbsolutePositionDouble(@NotNull Point2D.Double relativePoint,
+                                                          @NotNull Rectangle.Double shapeGroupFrame,
+                                                          @NotNull Rectangle.Double ownFrame) {
+    return new Point2D.Double(relativePoint.getX() + shapeGroupFrame.getX() + ownFrame.getX(),
+                              relativePoint.getY() + shapeGroupFrame.getY() + ownFrame.getY());
+  }
+
+  public static Point2D.Double makeAbsolutePositionDoubleRectangle(@NotNull Point2D.Double relativePoint,
+                                                                   @NotNull Rectangle.Double shapeGroupFrame) {
+    return new Point2D.Double(relativePoint.getX() + shapeGroupFrame.getX(),
+                              relativePoint.getY() + shapeGroupFrame.getY());
+  }
+
+  public static ArrayList<StringPoint> calculateStringFrameCorners(@NotNull Rectangle.Double rectangleFrame,
+                                                                   @NotNull Rectangle.Double shapeGroupFrame) {
 
     ArrayList<StringPoint> corners = new ArrayList<>();
 
-    corners.add(new StringPoint(Double.toString(frame.getX()), Double.toString(frame.getY())));
-    corners.add(new StringPoint(Double.toString(frame.getWidth() + frame.getX()), Double.toString(frame.getY())));
-    corners.add(new StringPoint(Double.toString(frame.getWidth() + frame.getX()), Double.toString(frame.getHeight() + frame.getY())));
-    corners.add(new StringPoint(Double.toString(frame.getX()), Double.toString(frame.getHeight() + frame.getY())));
+    Point2D.Double upLeftCorner =
+      makeAbsolutePositionDoubleRectangle(new Point2D.Double(rectangleFrame.getX(), rectangleFrame.getY()), shapeGroupFrame);
+    Point2D.Double upRightCorner =
+      makeAbsolutePositionDoubleRectangle(new Point2D.Double(rectangleFrame.getX() + rectangleFrame.getWidth(), rectangleFrame.getY()),
+                                          shapeGroupFrame);
+    Point2D.Double downRightCorner = makeAbsolutePositionDoubleRectangle(
+      new Point2D.Double(rectangleFrame.getX() + rectangleFrame.getWidth(), rectangleFrame.getY() + rectangleFrame.getHeight()),
+      shapeGroupFrame);
+    Point2D.Double downLeftCorner =
+      makeAbsolutePositionDoubleRectangle(new Point2D.Double(rectangleFrame.getX(), rectangleFrame.getY() + rectangleFrame.getHeight()),
+                                          shapeGroupFrame);
+
+    corners.add(new StringPoint(upLeftCorner));
+    corners.add(new StringPoint(upRightCorner));
+    corners.add(new StringPoint(downRightCorner));
+    corners.add(new StringPoint(downLeftCorner));
 
     return corners;
   }

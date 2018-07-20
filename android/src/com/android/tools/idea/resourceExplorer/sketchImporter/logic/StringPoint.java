@@ -15,14 +15,24 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 
+import java.awt.geom.Point2D;
+
 public class StringPoint {
 
   private String coordX;
   private String coordY;
 
+  public StringPoint(Point2D.Double point) {
+    this(Double.toString(point.getX()), Double.toString(point.getY()));
+  }
+
   public StringPoint(String x, String y) {
     coordX = x;
     coordY = y;
+  }
+
+  public StringPoint(Double x, Double y) {
+    this(Double.toString(x), Double.toString(y));
   }
 
   public String getX() {

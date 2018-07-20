@@ -40,7 +40,7 @@ public class Sandbox {
                                                           (short)0);
 
   public static void main(String[] args) {
-    checkRectangleStringBuild();
+    checkOvalStringBuild();
   }
 
   private static void checkLineStringBuild() {
@@ -124,6 +124,116 @@ public class Sandbox {
                                                            "abc",
                                                            -1,
                                                            new Rectangle.Double(1, 26, 77, 20),
+                                                           false,
+                                                           false,
+                                                           true,
+                                                           "Line",
+                                                           0,
+                                                           false,
+                                                           sketchStyle,
+                                                           layers,
+                                                           (short)0,
+                                                           false,
+                                                           (short)(0));
+
+    String pathData = PathDataUtils.buildShapeString(lineShapeGroup);
+    System.out.println(pathData);
+  }
+
+  private static void checkOvalStringBuild() {
+    SketchCurvePoint[] points = new SketchCurvePoint[]{
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0.77, 1), (short)0, new SketchPoint2D(0.22, 1), true, true,
+                           new SketchPoint2D(0.5, 1)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(1, 0.22), (short)0, new SketchPoint2D(1, 0.77), true, true,
+                           new SketchPoint2D(1, 0.5)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0.22, 0), (short)0, new SketchPoint2D(0.77, 0), true, true,
+                           new SketchPoint2D(0.5, 0)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0.77), (short)0, new SketchPoint2D(0, 0.22), true, true,
+                           new SketchPoint2D(0, 0.5))
+    };
+
+    SketchLayer[] layers = new SketchLayer[]{
+      new SketchShapePath(OVAL_CLASS_TYPE,
+                          "abc",
+                          -1,
+                          new Rectangle.Double(1, 2, 77, 16),
+                          false,
+                          false,
+                          true,
+                          "Line",
+                          0,
+                          false,
+                          true,
+                          points)
+    };
+
+    SketchShapeGroup lineShapeGroup = new SketchShapeGroup(SHAPE_GROUP_CLASS_TYPE,
+                                                           "abc",
+                                                           -1,
+                                                           new Rectangle.Double(2, 73, 77, 16),
+                                                           false,
+                                                           false,
+                                                           true,
+                                                           "Line",
+                                                           0,
+                                                           false,
+                                                           sketchStyle,
+                                                           layers,
+                                                           (short)0,
+                                                           false,
+                                                           (short)(0));
+
+    String pathData = PathDataUtils.buildShapeString(lineShapeGroup);
+    System.out.println(pathData);
+  }
+
+  private static void checkStarStringBuild() {
+    SketchCurvePoint[] points = new SketchCurvePoint[]{
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.5, 0.85)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.25, 0.93)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.19, 0.67)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0, 0.5)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.19, 0.32)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.25, 0.06)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.5, 0.14)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.75, 0.06)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.8, 0.32)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(1, 0.5)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.8, 0.67)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.75, 0.93))
+    };
+
+    SketchLayer[] layers = new SketchLayer[]{
+      new SketchShapePath(STAR_CLASS_TYPE,
+                          "abc",
+                          -1,
+                          new Rectangle.Double(0, 0, 260.5, 260.5),
+                          false,
+                          false,
+                          true,
+                          "Star",
+                          0,
+                          false,
+                          true,
+                          points)
+    };
+
+    SketchShapeGroup lineShapeGroup = new SketchShapeGroup(SHAPE_GROUP_CLASS_TYPE,
+                                                           "abc",
+                                                           -1,
+                                                           new Rectangle.Double(70, 70, 260.5, 260.5),
                                                            false,
                                                            false,
                                                            true,
