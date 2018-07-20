@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.builder.model.AaptOptions;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.util.PathString;
+import com.android.projectmodel.AarLibrary;
+import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.res.aar.AarResourceRepositoryCache;
+import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.Disposable;
@@ -53,8 +54,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
-
-import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
 
 public class ResourceRepositoryManager implements Disposable {
   private static final Key<ResourceRepositoryManager> KEY = Key.create(ResourceRepositoryManager.class.getName());
@@ -81,6 +80,12 @@ public class ResourceRepositoryManager implements Disposable {
 
   @GuardedBy("MODULE_RESOURCES_LOCK")
   private LocalResourceRepository myModuleResources;
+
+  /** Libraries and their corresponding resource repositories. */
+  @GuardedBy("myLibraryLock")
+  private Map<AarLibrary, AarSourceResourceRepository> myLibraryResourceMap;
+
+  private final Object myLibraryLock = new Object();
 
   @NotNull
   public static ResourceRepositoryManager getOrCreateInstance(@NotNull AndroidFacet facet) {
@@ -229,90 +234,6 @@ public class ResourceRepositoryManager implements Disposable {
     list.addAll(androidModuleModel.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries());
   }
 
-  @NotNull
-  static Map<File, String> findAarLibraries(@NotNull AndroidFacet facet, @NotNull List<AndroidFacet> dependentFacets) {
-    // Use the gradle model if available, but if not, fall back to using plain IntelliJ library dependencies
-    // which have been persisted since the most recent sync
-    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
-    if (androidModuleModel != null) {
-      List<Library> libraries = new ArrayList<>();
-      addGradleLibraries(libraries, androidModuleModel);
-      for (AndroidFacet dependentFacet : dependentFacets) {
-        AndroidModuleModel dependentGradleModel = AndroidModuleModel.get(dependentFacet);
-        if (dependentGradleModel != null) {
-          addGradleLibraries(libraries, dependentGradleModel);
-        }
-      }
-      GradleVersion modelVersion = androidModuleModel.getModelVersion();
-      assert modelVersion != null;
-      return findAarLibrariesFromGradle(dependentFacets, libraries);
-    }
-    Project project = facet.getModule().getProject();
-    if (GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
-      project.putUserData(AppResourceRepository.TEMPORARY_RESOURCE_CACHE, true);
-    }
-    return findAarLibrariesFromIntelliJ(facet, dependentFacets);
-  }
-
-  /**
-   * Reads IntelliJ library definitions ({@link com.intellij.openapi.roots.LibraryOrSdkOrderEntry}) and if possible, finds a corresponding
-   * {@code .aar} resource library to include. This works before the Gradle project has been initialized.
-   */
-  @NotNull
-  private static Map<File, String> findAarLibrariesFromIntelliJ(@NotNull AndroidFacet facet, @NotNull List<AndroidFacet> dependentFacets) {
-    // Find .aar libraries from old IntelliJ library definitions
-    Map<File, String> dirs = new HashMap<>();
-    addAarsFromModuleLibraries(facet, dirs);
-    for (AndroidFacet f : dependentFacets) {
-      addAarsFromModuleLibraries(f, dirs);
-    }
-    return dirs;
-  }
-
-  /**
-   * Looks up the library dependencies from the Gradle tools model and returns the corresponding {@code .aar}
-   * resource directories.
-   */
-  @NotNull
-  private static Map<File, String> findAarLibrariesFromGradle(@NotNull List<AndroidFacet> dependentFacets,
-                                                              @NotNull List<Library> libraries) {
-    // Pull out the unique directories, in case multiple modules point to the same .aar folder.
-    Map<File, String> files = new HashMap<>(libraries.size());
-
-    Set<String> moduleNames = new HashSet<>();
-    for (AndroidFacet f : dependentFacets) {
-      moduleNames.add(f.getModule().getName());
-    }
-    try {
-      for (Library library : libraries) {
-        // We should only add .aar dependencies if they aren't already provided as modules.
-        // For now, the way we associate them with each other is via the library name.
-        // In the future the model will provide this for us.
-        String libraryName = library.getArtifactAddress();
-        if (!moduleNames.contains(libraryName)) {
-          File resFolder = new File(library.getResFolder());
-          if (new File(library.getFolder(), SdkConstants.FN_RESOURCE_STATIC_LIBRARY).exists()) {
-            // TODO(b/74425399): Add getResApk() to Library and populate it in the model.
-            // TODO(b/74425399): decide what Gradle will do with AARv2 files and pass around the path to res.apk directly.
-            files.put(library.getFolder(), libraryName);
-            moduleNames.add(libraryName);
-          } else if (resFolder.exists()) {
-            files.put(resFolder, libraryName);
-            // Don't add it again!
-            moduleNames.add(libraryName);
-          }
-        }
-      }
-    }
-    catch (UnsupportedOperationException e) {
-      // This happens when there is an incompatibility between the builder-model interfaces embedded in Android Studio and the cached model.
-      // If we got here, it is because this code got invoked before project sync happened (e.g. when reopening a project with open editors).
-      // Project sync now is smart enough to handle this case and will trigger a full sync.
-      LOG.warn("Incompatibility found between the IDE's builder-model and the cached Gradle model", e);
-    }
-    return files;
-  }
-
   /**
    * Returns the repository with all non-framework resources available to a given module (in the current variant). This includes not just
    * the resources defined in this module, but in any other modules that this module depends on, as well as any libraries those modules may
@@ -330,7 +251,7 @@ public class ResourceRepositoryManager implements Disposable {
     return ApplicationManager.getApplication().runReadAction((Computable<AppResourceRepository>)() -> {
       synchronized (APP_RESOURCES_LOCK) {
         if (myAppResources == null && createIfNecessary) {
-          myAppResources = AppResourceRepository.create(myFacet);
+          myAppResources = AppResourceRepository.create(myFacet, getLibraryResources());
           Disposer.register(this, myAppResources);
         }
         return myAppResources;
@@ -421,6 +342,7 @@ public class ResourceRepositoryManager implements Disposable {
 
   public void resetResources() {
     resetVisibility();
+    resetLibraries();
 
     synchronized (MODULE_RESOURCES_LOCK) {
       if (myModuleResources != null) {
@@ -457,8 +379,42 @@ public class ResourceRepositoryManager implements Disposable {
     AarResourceRepositoryCache.getInstance().clear();
   }
 
-  public void resetVisibility() {
+  private void resetVisibility() {
     myResourceVisibilityProvider = null;
+  }
+
+  private void resetLibraries() {
+    synchronized (myLibraryLock) {
+      myLibraryResourceMap = null;
+    }
+  }
+
+  void updateRoots() {
+    resetVisibility();
+
+    getProjectResources(false);
+    ProjectResourceRepository projectResources = (ProjectResourceRepository)getProjectResources(false);
+    if (projectResources != null) {
+      projectResources.updateRoots();
+
+      AppResourceRepository appResources = (AppResourceRepository)getAppResources(false);
+      if (appResources != null) {
+        appResources.invalidateCache(projectResources);
+
+        Map<AarLibrary, AarSourceResourceRepository> oldLibraryResourceMap;
+        synchronized (myLibraryLock) {
+          // Preserve the old library resources during update to prevent them from being garbage collected prematurely.
+          oldLibraryResourceMap = myLibraryResourceMap;
+          myLibraryResourceMap = null;
+        }
+
+        appResources.updateRoots(getLibraryResources());
+
+        if (oldLibraryResourceMap != null) {
+          oldLibraryResourceMap.size(); // Access oldLibraryResourceMap to make sure that it is still in scope at this point.
+        }
+      }
+    }
   }
 
   @NotNull
@@ -535,25 +491,65 @@ public class ResourceRepositoryManager implements Disposable {
     }
   }
 
-
+  /**
+   * Looks up a resource repository for the given library.
+   *
+   * @param library the library to get resources for
+   * @return the corresponding resource repository, or null if not found
+   */
   @Nullable
-  public LocalResourceRepository findRepositoryFor(@NotNull File aarDirectory) {
-    // TODO(b/76128326): manage the libraries here.
-    synchronized (APP_RESOURCES_LOCK) {
-      getAppResources(true);
-      return myAppResources.findRepositoryFor(aarDirectory);
-    }
+  public LocalResourceRepository findLibraryResources(@NotNull AarLibrary library) {
+    return getLibraryResourceMap().get(library);
   }
 
   /**
-   * Returns the libraries among the app resources, if any.
+   * Returns resource repositories for all libraries the app depends upon directly or indirectly.
    */
   @NotNull
-  public List<? extends LocalResourceRepository> getLibraries() {
-    // TODO(b/76128326): manage the libraries here.
-    synchronized (APP_RESOURCES_LOCK) {
-      getAppResources(true);
-      return myAppResources.getLibraries();
+  public List<AarSourceResourceRepository> getLibraryResources() {
+    return ImmutableList.copyOf(getLibraryResourceMap().values());
+  }
+
+  @NotNull
+  private Map<AarLibrary, AarSourceResourceRepository> getLibraryResourceMap() {
+    synchronized (myLibraryLock) {
+      if (myLibraryResourceMap == null) {
+        myLibraryResourceMap = computeLibraryResourceMap();
+      }
+      return myLibraryResourceMap;
     }
+  }
+
+  @NotNull
+  private Map<AarLibrary, AarSourceResourceRepository> computeLibraryResourceMap() {
+    Collection<AarLibrary> libraries = AndroidProjectModelUtils.findAarDependencies(myFacet.getModule()).values();
+    Map<AarLibrary, AarSourceResourceRepository> result = new LinkedHashMap<>(libraries.size());
+    for (AarLibrary library: libraries) {
+      AarSourceResourceRepository aarRepository;
+      if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
+        File resFolder = library.getResFolder().toFile();
+        if (resFolder == null) {
+          LOG.warn("Cannot find res folder for " + library.getAddress());
+          continue;
+        }
+        aarRepository = AarResourceRepositoryCache.getInstance().getSourceRepository(resFolder, library.getAddress());
+      } else {
+        PathString resApkPath = library.getResApkFile();
+        if (resApkPath == null) {
+          LOG.warn("No res.apk for " + library.getAddress());
+          continue;
+        }
+
+        File resApkFile = resApkPath.toFile();
+        if (resApkFile == null) {
+          LOG.warn("Cannot find res.apk for " + library.getAddress());
+          continue;
+        }
+
+        aarRepository = AarResourceRepositoryCache.getInstance().getProtoRepository(resApkFile, library.getAddress());
+      }
+      result.put(library, aarRepository);
+    }
+    return Collections.unmodifiableMap(result);
   }
 }

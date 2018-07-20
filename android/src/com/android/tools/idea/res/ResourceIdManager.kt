@@ -128,7 +128,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
     assert(resource.resourceType == ResourceType.ID)
 
     return ResourceRepositoryManager.getOrCreateInstance(facet)
-      .libraries
+      .libraryResources
       .asSequence()
       .mapNotNull { (it as AarSourceResourceRepository).allDeclaredIds?.get(resource.name) }
       .any()

@@ -373,7 +373,7 @@ public class AndroidJavaDocRenderer {
       if (resources != null) {
         if (hasGradleModel) {
           // Go through all the binary libraries and look for additional resources there
-          for (LocalResourceRepository dependency : ResourceRepositoryManager.getOrCreateInstance(facet).getLibraries()) {
+          for (LocalResourceRepository dependency : ResourceRepositoryManager.getOrCreateInstance(facet).getLibraryResources()) {
             addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, false, type, resourceName, results);
           }
         }

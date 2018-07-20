@@ -45,27 +45,6 @@ import static com.android.tools.idea.res.FileResourceReader.PROTO_XML_LEAD_BYTE;
  */
 public class AndroidManifestUtils {
   /**
-   * Reads package name from the AndroidManifest.xml of an AAR. Both, AARv1 and AARv2, formats are supported.
-   *
-   * @param aarDir the directory containing unpacked contents of an AAR, or unpacked contents of res.apk
-   * @return the package name from the manifest
-   * @deprecated this method assumes a certain layout of the unzipped AAR folder, when possible use other methods directly on the file you
-   *             want to read.
-   */
-  @Nullable
-  @Deprecated
-  public static String getAarPackageName(@NotNull File aarDir) throws IOException {
-    try {
-      return getPackageNameFromManifestFile(new File(aarDir, FN_ANDROID_MANIFEST_XML));
-    } catch (FileNotFoundException e) {
-      File resApkFile = new File(aarDir, FN_RESOURCE_STATIC_LIBRARY);
-      try (ZipFile zipFile = new ZipFile(resApkFile)) {
-        return getPackageNameFromResApk(zipFile);
-      }
-    }
-  }
-
-  /**
    * Reads package name from the AndroidManifest.xml file in the given directory. The the AndroidManifest.xml
    * file can be in either text or proto format.
    *
@@ -136,7 +115,7 @@ public class AndroidManifestUtils {
   }
 
   public static boolean isRequiredAttribute(@NotNull XmlName attrName, @NotNull DomElement element) {
-    if (element instanceof CompatibleScreensScreen && SdkConstants.NS_RESOURCES.equals(attrName.getNamespaceKey())) {
+    if (element instanceof CompatibleScreensScreen && NS_RESOURCES.equals(attrName.getNamespaceKey())) {
       final String localName = attrName.getLocalName();
       return "screenSize".equals(localName) || "screenDensity".equals(localName);
     }
