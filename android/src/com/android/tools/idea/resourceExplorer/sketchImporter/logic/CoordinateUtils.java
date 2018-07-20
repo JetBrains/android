@@ -28,7 +28,7 @@ public class CoordinateUtils {
 
   public static StringPoint calculateAbsolutePositionString(@NotNull SketchCurvePoint point, @NotNull Rectangle.Double frame) {
 
-    Point2D.Double coordsPoint = SketchParser.getPosition(point.getPoint());
+    Point2D.Double coordsPoint = point.getPoint();
     return calculateAbsolutePositionString(coordsPoint, frame);
   }
 

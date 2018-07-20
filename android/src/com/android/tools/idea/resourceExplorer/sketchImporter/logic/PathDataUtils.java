@@ -80,14 +80,14 @@ public class PathDataUtils {
       StringPoint previousPointCurveFromCoords = calculateAbsolutePositionString(previousPoint, frame);
       StringPoint currentPointCurveToCoords = currentPointCoords;
 
-      if (previousPoint.isHasCurveFrom()) {
-        previousPointCurveFromCoords = calculateAbsolutePositionString(SketchParser.getPosition(previousPoint.getCurveFrom()), frame);
+      if (previousPoint.hasCurveFrom()) {
+        previousPointCurveFromCoords = calculateAbsolutePositionString(previousPoint.getCurveFrom(), frame);
       }
-      if (currentPoint.isHasCurveTo()) {
-        currentPointCurveToCoords = calculateAbsolutePositionString(SketchParser.getPosition(currentPoint.getCurveTo()), frame);
+      if (currentPoint.hasCurveTo()) {
+        currentPointCurveToCoords = calculateAbsolutePositionString(currentPoint.getCurveTo(), frame);
       }
 
-      if (!previousPoint.isHasCurveTo() && !currentPoint.isHasCurveFrom()) {
+      if (!previousPoint.hasCurveTo() && !currentPoint.hasCurveFrom()) {
         if (previousPointCoords.getY().equals(currentPointCoords.getY())) {
           vectorPathBuilder.append(HORIZONTAL_LINE_COMMAND_ABSOLUTE);
         }

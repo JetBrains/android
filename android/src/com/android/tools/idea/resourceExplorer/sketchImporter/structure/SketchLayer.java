@@ -25,6 +25,14 @@ public abstract class SketchLayer {
   private final String classType;
   @SerializedName("do_objectID")
   private final String objectId;
+  /**
+   * Signifies combined shapes operations as such:
+   *   None/Basic: -1
+   *   Union: 0
+   *   Substract: 1
+   *   Intersect: 2
+   *   Difference: 3
+   */
   private final int booleanOperation;
   private final Rectangle.Double frame;
   private final boolean isFlippedHorizontal;
@@ -36,7 +44,7 @@ public abstract class SketchLayer {
    * [0, 359] is sometimes equivalent to [0, 180] U [-179, -1] for some reason
    */
   private final int rotation;
-  private final boolean shouldBreakMaskChain;  // TODO what does this do?
+  private final boolean shouldBreakMaskChain;
 
   public SketchLayer(@NotNull String classType,
                      @NotNull String objectId,

@@ -20,6 +20,7 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.structure.*;
 import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.*;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 
 public class Sandbox {
 
@@ -45,22 +46,22 @@ public class Sandbox {
 
   private static void checkLineStringBuild() {
     SketchCurvePoint[] points = new SketchCurvePoint[]{
-      new SketchCurvePoint(0, 0, "0", (short)0, "0", false, false,
-                           "{0.349989, 0.108385}"),
-      new SketchCurvePoint(0, 0, "{0.967420, 0.457810}", (short)0, "{0.840633, 0.144571}", true, true,
-                           "{0.904027, 0.301191}"),
-      new SketchCurvePoint(0, 0, "{0.674224, 0.573126}", (short)0, "{0.526997, 0.503739}", true, true,
-                           "{0.600610, 0.538433}"),
-      new SketchCurvePoint(0, 0, "{0.784220, 1.073774}", (short)0, "{1.136359, 0.695013}", true, true,
-                           "{0.960289, 0.884393}"),
-      new SketchCurvePoint(0, 0, "{0, 0.533436}", (short)0, "{0, 1.024791}", true, true,
-                           "{0, 0.779114}"),
-      new SketchCurvePoint(0, 0, "{0.904027, 0.533436}", (short)0, "{0.389611, 0.140970}", true, true,
-                           "{0.646819, 0.337203}"),
-      new SketchCurvePoint(0, 0, "{0.349989, 0.809782}", (short)0, "{0.851232, 0.748445}", true, true,
-                           "{0.600610, 0.779114}"),
-      new SketchCurvePoint(0, 0, "{0,0}", (short)0, "{0.840633, 0.144571}", false, false,
-                           "{0.5, 0}"),
+      new SketchCurvePoint(0, 0, new Point2D.Double(0, 0), (short)0, new Point2D.Double(0, 0), false, false,
+                           new Point2D.Double(0.35, 0.10)),
+      new SketchCurvePoint(0, 0, new Point2D.Double(0.96, 0.45), (short)0, new Point2D.Double(0.84, 0.14), true, true,
+                           new Point2D.Double(0.9, 0.3)),
+      new SketchCurvePoint(0, 0, new Point2D.Double(0.67, 0.57), (short)0, new Point2D.Double(0.52, 0.50), true, true,
+                           new Point2D.Double(0.6, 0.53)),
+      new SketchCurvePoint(0, 0, new Point2D.Double(0.78, 1.07), (short)0, new Point2D.Double(1.13, 0.69), true, true,
+                           new Point2D.Double(0.96, 0.88)),
+      new SketchCurvePoint(0, 0, new Point2D.Double(0, 0.53), (short)0, new Point2D.Double(0, 1.02), true, true,
+                           new Point2D.Double(0, 0.77)),
+      new SketchCurvePoint(0, 0, new Point2D.Double(0.9, 0.53), (short)0, new Point2D.Double(0.38, 0.14), true, true,
+                           new Point2D.Double(0.64, 0.33)),
+      new SketchCurvePoint(0, 0, new Point2D.Double(0.34, 0.8), (short)0, new Point2D.Double(0.85, 0.74), true, true,
+                           new Point2D.Double(0.6, 0.77)),
+      new SketchCurvePoint(0, 0, new Point2D.Double(0, 0), (short)0, new Point2D.Double(0, 0), false, false,
+                           new Point2D.Double(0.5, 0)),
     };
 
     SketchLayer[] layers = new SketchLayer[]{
@@ -100,8 +101,8 @@ public class Sandbox {
 
   private static void checkRectangleStringBuild() {
     SketchCurvePoint[] points = new SketchCurvePoint[]{
-      new SketchCurvePoint(0, 0, "0", (short)0, "0", false, false,
-                           "{0.349989, 0.108385}"),
+      new SketchCurvePoint(0, 0, new Point2D.Double(0, 0), (short)0, new Point2D.Double(0, 0), false, false,
+                           new Point2D.Double(0.35, 0.1)),
     };
 
 

@@ -22,6 +22,11 @@ import java.awt.*;
 public class SketchFill {
   private final boolean isEnabled;
   private final Color color;
+  /**
+   * Flat Color: 0
+   * Linear Gradient: 1
+   * TODO
+   */
   private final short fillType;
 
   public SketchFill(boolean isEnabled, @NotNull Color color, short fillType) {

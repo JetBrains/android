@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.ColorDeserializer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.PointDeserializer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -37,6 +38,7 @@ public class SketchParser {
       Gson gson = new GsonBuilder()
         .registerTypeAdapter(SketchLayer.class, new SketchLayerDeserializer())
         .registerTypeAdapter(Color.class, new ColorDeserializer())
+        .registerTypeAdapter(Point2D.Double.class, new PointDeserializer())
         .create();
       return gson.fromJson(reader, SketchPage.class);
     }
@@ -45,15 +47,5 @@ public class SketchParser {
     }
 
     return null;
-  }
-
-  /**
-   * @param positionString e.g. '{0.5, 0.67135115527602085}'
-   * @return pair of (floating-point) coords
-   */
-  public static Point2D.Double getPosition(@NotNull String positionString) {
-    String[] parts = positionString.split("[{}, ]");
-
-    return new Point2D.Double(Double.parseDouble(parts[1]), Double.parseDouble(parts[3]));
   }
 }

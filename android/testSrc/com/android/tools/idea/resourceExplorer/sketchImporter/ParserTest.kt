@@ -18,7 +18,7 @@ package com.android.tools.idea.resourceExplorer.sketchImporter
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.*
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Test
-import java.lang.Math.abs
+import java.awt.geom.Point2D
 import kotlin.test.*
 
 class ParserTest {
@@ -26,7 +26,7 @@ class ParserTest {
 
   @Test
   fun checkParsedPageData() {
-    val page: SketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "123.json") !!
+    val page: SketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "real-file.json")!!
 
     assertEquals("page", page.classType)
     assertEquals("4A20F10B-61D2-4A1B-8BF1-623ACF2E7637", page.objectId)
@@ -53,7 +53,7 @@ class ParserTest {
 
   @Test
   fun checkParsedSliceData() {
-    val page: SketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "123.json") !!
+    val page: SketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "real-file.json")!!
 
     assertTrue(page.layers[0] is SketchSlice)
     val slice = page.layers[0] as SketchSlice
@@ -74,16 +74,18 @@ class ParserTest {
     assertEquals(0, slice.rotation)
     assertEquals(false, slice.shouldBreakMaskChain())
 
-    assertEquals(1, slice.backgroundColor.alpha)
-    assertEquals(1, slice.backgroundColor.blue)
-    assertEquals(1, slice.backgroundColor.green)
-    assertEquals(1, slice.backgroundColor.red)
+    assertEquals(255, slice.backgroundColor.alpha)
+    assertEquals(255, slice.backgroundColor.blue)
+    assertEquals(255, slice.backgroundColor.green)
+    assertEquals(255, slice.backgroundColor.red)
     assertEquals(false, slice.hasBackgroundColor())
+
+    assertEquals("ffffffff", Integer.toHexString(slice.backgroundColor.rgb))
   }
 
   @Test
   fun checkParsedShapeGroupData() {
-    val page: SketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "123.json") !!
+    val page: SketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "real-file.json")!!
 
     assertTrue(page.layers[1] is SketchShapeGroup)
     val shapeGroup = page.layers[1] as SketchShapeGroup
@@ -111,7 +113,7 @@ class ParserTest {
 
   @Test
   fun checkStyleData() {
-    val page: SketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "123.json") !!
+    val page: SketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "real-file.json")!!
 
     assertTrue(page.layers[1] is SketchShapeGroup)
     val style = (page.layers[1] as SketchShapeGroup).style
@@ -121,25 +123,25 @@ class ParserTest {
     assertEquals(0, style.borderOptions.lineJoinStyle)
 
     assertEquals(true, style.borders[0].isEnabled)
-    assertEquals(1, style.borders[0].color.alpha)
-    assertTrue(style.borders[0].color.blue < 1)
-    assertTrue(style.borders[0].color.green < 1)
-    assertTrue(style.borders[0].color.red < 1)
+    assertEquals(255, style.borders[0].color.alpha)
+    assertEquals(151, style.borders[0].color.blue)
+    assertEquals(151, style.borders[0].color.green)
+    assertEquals(151, style.borders[0].color.red)
     assertEquals(0, style.borders[0].fillType)
     assertEquals(0, style.borders[0].position)
     assertEquals(1, style.borders[0].thickness)
 
     assertEquals(false, style.fills[0].isEnabled)
-    assertEquals(1, style.fills[0].color.alpha)
-    assertTrue(style.fills[0].color.blue < 1)
-    assertTrue(style.fills[0].color.green < 1)
-    assertTrue(style.fills[0].color.red < 1)
+    assertEquals(255, style.fills[0].color.alpha)
+    assertEquals(216, style.fills[0].color.blue)
+    assertEquals(216, style.fills[0].color.green)
+    assertEquals(216, style.fills[0].color.red)
     assertEquals(0, style.fills[0].fillType)
   }
 
   @Test
   fun checkShapePathData() {
-    val page: SketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "123.json") !!
+    val page: SketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "real-file.json")!!
 
     assertTrue(page.layers[1] is SketchShapeGroup)
     assertTrue((page.layers[1] as SketchShapeGroup).layers[0] is SketchShapePath)
@@ -166,34 +168,27 @@ class ParserTest {
 
   @Test
   fun checkPointsData() {
-    val page: SketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "123.json") !!
+    val page: SketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "real-file.json")!!
 
     assertTrue(page.layers[1] is SketchShapeGroup)
     assertTrue((page.layers[1] as SketchShapeGroup).layers[0] is SketchShapePath)
     val points = ((page.layers[1] as SketchShapeGroup).layers[0] as SketchShapePath).points
 
     assertEquals(0, points[0].cornerRadius)
-    assertEquals("{0.0034722222222222246, 1}", points[0].curveFrom)
+    assertEquals(Point2D.Double(0.0034722222222222246, 1.0), points[0].curveFrom)
+    assertEquals(1.0, points[0].curveFrom.y)
     assertEquals(1, points[0].curveMode)
-    assertEquals("{0.0034722222222222246, 1}", points[0].curveFrom)
-    assertEquals(false, points[0].isHasCurveFrom)
-    assertEquals(false, points[0].isHasCurveTo)
-    assertEquals("{0.0017361111111111123, 0.99374999999999969}", points[0].point)
+    assertEquals(Point2D.Double(0.0034722222222222246, 1.0), points[0].curveFrom)
+    assertEquals(false, points[0].hasCurveFrom())
+    assertEquals(false, points[0].hasCurveTo())
+    assertEquals(Point2D.Double(0.0017361111111111123, 0.99374999999999969), points[0].point)
 
     assertEquals(0, points[1].cornerRadius)
-    assertEquals("{0.0069444444444444493, 1.0125000000000002}", points[1].curveFrom)
+    assertEquals(Point2D.Double(0.0069444444444444493, 1.0125000000000002), points[1].curveFrom)
     assertEquals(1, points[1].curveMode)
-    assertEquals("{0.0069444444444444493, 1.0125000000000002}", points[1].curveFrom)
-    assertEquals(false, points[1].isHasCurveFrom)
-    assertEquals(false, points[1].isHasCurveTo)
-    assertEquals("{0.99826388888888884, 0.0062500000000000003}", points[1].point)
-  }
-
-  @Test
-  fun checkParsedPosition() {
-    val position = SketchParser.getPosition("{0.5, 0.67135115527602085}")
-
-    assertTrue(abs(position.x - 0.5) < errorMargin)
-    assertTrue(abs(position.y - 0.67135115527602085) < errorMargin)
+    assertEquals(Point2D.Double(0.0069444444444444493, 1.0125000000000002), points[1].curveFrom)
+    assertEquals(false, points[1].hasCurveFrom())
+    assertEquals(false, points[1].hasCurveTo())
+    assertEquals(Point2D.Double(0.99826388888888884, 0.0062500000000000003), points[1].point)
   }
 }
