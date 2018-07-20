@@ -21,9 +21,8 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.target.ActionGroupTarget;
-import com.android.tools.idea.common.scene.target.ActionTarget;
-import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.scene.target.*;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
@@ -233,6 +232,19 @@ public class SceneComponent {
 
   private void setParent(@NotNull SceneComponent parent) {
     myParent = parent;
+  }
+
+  /**
+   * @return the depth from root to this instance. Return 0 if this instance is root.
+   */
+  public int getDepth() {
+    int depth = 0;
+    SceneComponent current = myParent;
+    while (current != null) {
+      current = current.myParent;
+      depth += 1;
+    }
+    return depth;
   }
 
   private TargetProvider getTargetProvider() {
@@ -892,6 +904,16 @@ public class SceneComponent {
     // update the Targets of children
     for (SceneComponent child : getChildren()) {
       child.updateTargets();
+    }
+
+    if (StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
+      boolean hasDragTarget;
+      synchronized (myTargets) {
+        hasDragTarget = myTargets.removeIf(it -> it instanceof NonPlaceholderDragTarget);
+      }
+      if (hasDragTarget) {
+        addTarget(new CommonDragTarget());
+      }
     }
   }
 

@@ -231,6 +231,11 @@ public final class StudioFlags {
     "Enable new Color Picker in layout Editor",
     false);
 
+  public static final Flag<Boolean> NELE_DRAG_PLACEHOLDER = Flag.create(
+    NELE, "drag.placeholder", "Dragging widgets with Placeholders",
+    "New architecture for dragging widgets in Layout Editor",
+    false);
+
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
     RUNDEBUG, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
