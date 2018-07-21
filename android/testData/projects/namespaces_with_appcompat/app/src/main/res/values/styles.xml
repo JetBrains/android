@@ -1,0 +1,11 @@
+<resources xmlns:appcompat="http://schemas.android.com/apk/res/android.support.v7.appcompat">
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="appcompat:Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="appcompat:colorPrimary">@color/colorPrimary</item>
+        <item name="appcompat:colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="appcompat:colorAccent">@color/colorAccent</item>
+    </style>
+
+</resources>

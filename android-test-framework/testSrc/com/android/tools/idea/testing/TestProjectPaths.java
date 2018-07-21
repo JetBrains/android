@@ -41,6 +41,7 @@ public final class TestProjectPaths {
   public static final String MOVE_WITH_RESOURCES = "projects/moveWithResources";
   public static final String MULTI_FEATURE = "projects/multiFeature";
   public static final String NAMESPACES = "projects/namespaces";
+  public static final String NAMESPACES_WITH_APPCOMPAT = "projects/namespaces_with_appcompat";
   public static final String NAVIGATION_EDITOR_BASIC = "projects/navigationEditor/basic";
   public static final String NAVIGATOR_PACKAGEVIEW_COMMONROOTS = "projects/navigator/packageview/commonroots";
   public static final String NAVIGATOR_PACKAGEVIEW_SIMPLE = "projects/navigator/packageview/simple";
