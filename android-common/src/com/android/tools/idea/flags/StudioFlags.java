@@ -408,6 +408,12 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS = Flag.create(
+    UAB, "enable.ia.run.configs", "Enable new instant app run configuration options",
+    "If enabled, shows the new instant app deploy checkbox in the run configuration dialog and allows new instant app deploy workflow.",
+    false
+  );
+
   private StudioFlags() {
   }
 }
