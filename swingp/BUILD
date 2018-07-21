@@ -10,6 +10,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/.idea/libraries:ASM",
+        "//tools/idea/.idea/libraries:gson",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
         "//tools/idea/.idea/libraries:JUnit4[test]",
@@ -32,6 +33,7 @@ java_binary(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//tools/base/third_party:com.google.code.gson_gson",
         "//tools/base/third_party:com.google.guava_guava",
         "//tools/idea/.idea/libraries:ASM",
         "//tools/idea/.idea/libraries:jetbrains-annotations-java5",

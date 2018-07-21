@@ -15,6 +15,7 @@
  */
 package com.android.tools.swingp;
 
+import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -41,5 +42,19 @@ public class WindowPaintMethodStat extends MethodStat {
         myLocation = owner.getLocationOnScreen();
       }
     }
+  }
+
+  @Override
+  protected void addAttributeDescriptions(@NotNull JsonObject description) {
+    super.addAttributeDescriptions(description);
+
+    description.addProperty("__windowId", System.identityHashCode(myOwner.get()));
+
+    int[] location = new int[]{myLocation.x, myLocation.y};
+    description.add("__location", SerializationHelpers.arrayToJsonArray(location));
+
+    double[] matrix = new double[6];
+    myTransform.getMatrix(matrix);
+    description.add("__xform", SerializationHelpers.arrayToJsonArray(matrix));
   }
 }

@@ -15,25 +15,24 @@
  */
 package com.android.tools.swingp;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.geom.AffineTransform;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 
-public class PaintChildrenMethodStat extends MethodStat {
-  private final AffineTransform myTransform;
-
-  public PaintChildrenMethodStat(@NotNull JComponent owner, @NotNull AffineTransform transform) {
-    super(owner);
-    myTransform = transform;
+public class SerializationHelpers {
+  @NotNull
+  protected static JsonArray arrayToJsonArray(int[] values) {
+    JsonArray jsonArray = new JsonArray();
+    IntStream.of(values).forEach(value -> jsonArray.add(value));
+    return jsonArray;
   }
 
-  @Override
-  protected void addAttributeDescriptions(@NotNull JsonObject description) {
-    super.addAttributeDescriptions(description);
-    double[] matrix = new double[6];
-    myTransform.getMatrix(matrix);
-    description.add("__xform", SerializationHelpers.arrayToJsonArray(matrix));
+  @NotNull
+  protected static JsonArray arrayToJsonArray(double[] values) {
+    JsonArray jsonArray = new JsonArray();
+    DoubleStream.of(values).forEach(value -> jsonArray.add(value));
+    return jsonArray;
   }
 }

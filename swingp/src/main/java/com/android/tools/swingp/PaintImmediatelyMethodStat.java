@@ -15,6 +15,7 @@
  */
 package com.android.tools.swingp;
 
+import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;
 import sun.java2d.SunGraphics2D;
 
@@ -55,5 +56,22 @@ public class PaintImmediatelyMethodStat extends MethodStat {
     myY = y;
     myW = w;
     myH = h;
+  }
+
+  @Override
+  protected void addAttributeDescriptions(@NotNull JsonObject description) {
+    super.addAttributeDescriptions(description);
+
+    description.add("__constrain", SerializationHelpers.arrayToJsonArray(new int[]{myConstrainX, myConstrainY}));
+    description.add("__bounds", SerializationHelpers.arrayToJsonArray(new int[]{myX, myY, myW, myH}));
+
+    double[] matrix = new double[6];
+    myTransform.getMatrix(matrix);
+    description.add("__xform", SerializationHelpers.arrayToJsonArray(matrix));
+
+    description.add("__bufferBounds", SerializationHelpers
+      .arrayToJsonArray(new int[]{myBufferComponent.getX(), myBufferComponent.getY(), myBufferComponent.getWidth(), myBufferComponent.getHeight()}));
+    description.addProperty("__bufferType", myBufferComponent.getClass().getSimpleName());
+    description.addProperty("__bufferId", System.identityHashCode(myBufferComponent));
   }
 }

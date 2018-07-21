@@ -15,6 +15,7 @@
  */
 package com.android.tools.swingp;
 
+import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;
 import sun.awt.image.BufImgSurfaceData;
 import sun.java2d.SunGraphics2D;
@@ -52,5 +53,18 @@ public class PaintComponentMethodStat extends MethodStat {
     else {
       myIsImage = false;
     }
+  }
+
+  @Override
+  protected void addAttributeDescriptions(@NotNull JsonObject description) {
+    super.addAttributeDescriptions(description);
+
+    description.addProperty("__isImage", myIsImage);
+
+    double[] matrix = new double[6];
+    myTransform.getMatrix(matrix);
+    description.add("__xform", SerializationHelpers.arrayToJsonArray(matrix));
+
+    description.add("__clip", SerializationHelpers.arrayToJsonArray(myClip));
   }
 }
