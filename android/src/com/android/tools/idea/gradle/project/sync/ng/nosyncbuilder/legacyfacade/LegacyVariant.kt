@@ -38,6 +38,7 @@ open class LegacyVariant(private val variant: Variant) : OldVariant {
 
   override fun getBuildType(): String = throw UnusedModelMethodException("getBuildType")
   override fun getProductFlavors(): List<String> = throw UnusedModelMethodException("getProductFlavors")
+  override fun isInstantAppCompatible(): Boolean = throw UnusedModelMethodException("isInstantAppCompatible")
 
   override fun toString(): String = "LegacyBaseArtifact{" +
                                     "name=$name," +
@@ -61,4 +62,5 @@ class LegacyVariantStub(val variant: Variant) : LegacyVariant(variant) {
 
   override fun getBuildType(): String = BUILD_TYPE_NAME
   override fun getProductFlavors(): List<String> = listOf()
+  override fun isInstantAppCompatible(): Boolean = false
 }

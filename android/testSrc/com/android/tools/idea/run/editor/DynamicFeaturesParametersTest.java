@@ -70,7 +70,7 @@ public class DynamicFeaturesParametersTest {
     List<Module> features = new ArrayList<>();
     features.add(myFeature1);
     features.add(myFeature2);
-    parameters.setFeatureList(features);
+    parameters.addFeatureList(features, DynamicFeaturesParameters.AvailableDeployTypes.INSTALLED_ONLY);
 
     assertThat(fakeUi.getRoot().isVisible()).isTrue();
     assertThat(parameters.getDisabledDynamicFeatures()).isEmpty();

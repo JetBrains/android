@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
@@ -35,8 +37,25 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DynamicFeaturesParameters {
+  /** Specifies how these features may be deployed in this run configuration */
+  public enum AvailableDeployTypes {
+    /** Run configuration is deployable in installed state only, don't annotate instant status
+     *  or prevent selection of non-instant features when checkbox is selected */
+    INSTALLED_ONLY,
+    /** Run configuration is deployable as installed or instant, annotate instant status of
+     *  features and disable non-instant features when checkbox is selected */
+    INSTANT_AND_INSTALLED
+  }
+
+  public enum FeatureType {
+    BASE_FEATURE,
+    NON_INSTANT_DYNAMIC_FEATURE,
+    DYNAMIC_FEATURE
+  }
+
   private static final int PREFERRED_HEIGHT_IN_ROWS = 4;
 
   @NotNull
@@ -65,7 +84,7 @@ public class DynamicFeaturesParameters {
     // Setup column rendering: First column is a check box, second column is a label (i.e. the feature name)
     TableColumnModel columnModel = myTable.getColumnModel();
     TableColumn checkMarkColumn = columnModel.getColumn(DynamicFeaturesTableModel.CHECK_MARK_COLUMN_INDEX);
-    checkMarkColumn.setCellRenderer(new EnabledCellRenderer(myTable.getDefaultRenderer(Boolean.class)));
+    checkMarkColumn.setCellRenderer(new CheckBoxCellRenderer(myTable.getDefaultRenderer(Boolean.class)));
     TableUtil.setupCheckboxColumn(myTable, DynamicFeaturesTableModel.CHECK_MARK_COLUMN_INDEX);
     columnModel.getColumn(DynamicFeaturesTableModel.FEATURE_NAME_COLUMN_INDEX).setCellRenderer(new FeatureNameCellRenderer());
 
@@ -87,6 +106,9 @@ public class DynamicFeaturesParameters {
     return myTable;
   }
 
+  @TestOnly
+  Object getTableDisplayValueAt(int rowIndex, int columnIndex) { return myTableModel.getDisplayValueAt(rowIndex, columnIndex); }
+  
   /**
    * Returns the list of disabled feature names
    */
@@ -99,32 +121,58 @@ public class DynamicFeaturesParameters {
    * Update the list of features after a new {@link Module} is activated
    * @param module
    */
-  public void setActiveModule(@Nullable Module module) {
+  public void setActiveModule(@Nullable Module module, AvailableDeployTypes deployType) {
     setDisabledDynamicFeatures(new ArrayList<>());
     if (module == null) {
       disable();
       return;
     }
 
+    myTableModel.clear();
+    addBaseModule(module);
     java.util.List<Module> features = DynamicAppUtils.getDependentFeatureModules(module);
     if (features.isEmpty()) {
       disable();
       return;
     }
 
-    setFeatureList(features);
+    addFeatureList(features, deployType);
   }
 
   /**
-   * Set the list of features from a list of {@link Module modules}
+   * Add a list of {@link Module modules} to the list of features
    */
-  public void setFeatureList(@NotNull List<Module> features) {
-    myTableModel.clear();
+  public void addFeatureList(@NotNull List<Module> features, AvailableDeployTypes deployType) {
     features.stream()
             .sorted((o1, o2) -> StringUtil.compare(o1.getName(), o2.getName(), true))
-            .map(f -> new DynamicFeatureRow(f.getName(), isFeatureEnabled(f.getName())))
+            .map(f -> createRow(f, deployType))
             .forEach(row -> myTableModel.addRow(row));
     enable();
+  }
+
+  private DynamicFeatureRow createRow(@NotNull Module module, AvailableDeployTypes deployType) {
+    if (deployType == AvailableDeployTypes.INSTANT_AND_INSTALLED) {
+      if (AndroidModuleModel.get(module).getSelectedVariant().isInstantAppCompatible()) {
+        return new DynamicFeatureRow(module.getName(), isFeatureEnabled(module.getName()));
+      } else {
+        return new DynamicFeatureRow(module.getName(), isFeatureEnabled(module.getName()), true, FeatureType.NON_INSTANT_DYNAMIC_FEATURE);
+      }
+    } else {
+      return new DynamicFeatureRow(module.getName(), isFeatureEnabled(module.getName()));
+    }
+  }
+
+  public void addBaseModule(@NotNull Module module) {
+    if (StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get()) {
+      Module baseFeature = DynamicAppUtils.getBaseFeature(module);
+      if (baseFeature == null && AndroidModuleModel.get(module).getAndroidProject().isBaseSplit()) {
+        baseFeature = module;
+      }
+      else {
+        return;
+      }
+      myTableModel.addRow(new DynamicFeatureRow(baseFeature.getName(), true, false, FeatureType.BASE_FEATURE));
+    }
   }
 
   /**
@@ -136,7 +184,27 @@ public class DynamicFeaturesParameters {
     myDisabledDynamicFeatures.addAll(disabledDynamicFeatures);
 
     // Update enabled/disabled state of features in active model
-    myTableModel.myFeatures.forEach(x -> x.isChecked = isFeatureEnabled(x.name));
+    myTableModel.myFeatures.forEach(x -> x.isChecked = isFeatureEnabled(x.getFeatureName()));
+    myTableModel.fireTableDataChanged();
+  }
+
+  public void updateBasedOnInstantState(@NotNull Module module, boolean instantAppDeploy) {
+    java.util.List<Module> features = DynamicAppUtils.getDependentInstantFeatureModules(module);
+    java.util.List<String> featurenames = features.stream().map(x -> x.getName()).collect(Collectors.toList());
+    if (instantAppDeploy) {
+      myTableModel.myFeatures.forEach(x -> {
+        if (!featurenames.contains(x.getFeatureName()) && !x.isBaseFeature()) {
+          x.isChecked = false;
+          x.setEnabled(false);
+        }
+      });
+    } else {
+      myTableModel.myFeatures.forEach(x -> {
+        if (!x.isBaseFeature()) {
+          x.setEnabled(true);
+        }
+      });
+    }
     myTableModel.fireTableDataChanged();
   }
 
@@ -162,12 +230,42 @@ public class DynamicFeaturesParameters {
   }
 
   private static class DynamicFeatureRow {
-    @NotNull public final String name;
+    @NotNull private final String featureName;
     public boolean isChecked;
+    public boolean isEnabled;
+    public FeatureType featureType;
+
+    public DynamicFeatureRow(@NotNull String name, boolean isChecked, boolean isEnabled, FeatureType featureType) {
+      this.featureName = name;
+      this.isChecked = isChecked;
+      this.isEnabled = isEnabled;
+      this.featureType = featureType;
+    }
 
     public DynamicFeatureRow(@NotNull String name, boolean isChecked) {
-      this.name = name;
-      this.isChecked = isChecked;
+      this(name, isChecked, true, FeatureType.DYNAMIC_FEATURE);
+    }
+
+    public void setEnabled(boolean enabled) {
+      isEnabled = enabled;
+    }
+
+    public String getDisplayName() {
+      if (featureType == FeatureType.BASE_FEATURE) {
+        return this.featureName + " (base)";
+      } else if (featureType == FeatureType.NON_INSTANT_DYNAMIC_FEATURE) {
+        return this.featureName + " (not instant app enabled)";
+      } else {
+        return this.featureName;
+      }
+    }
+
+    public String getFeatureName() {
+      return featureName;
+    }
+
+    public boolean isBaseFeature() {
+      return this.featureType == FeatureType.BASE_FEATURE;
     }
   }
 
@@ -205,7 +303,17 @@ public class DynamicFeaturesParameters {
         return myFeatures.get(rowIndex).isChecked;
       }
       else if (columnIndex == FEATURE_NAME_COLUMN_INDEX) {
-        return myFeatures.get(rowIndex).name;
+        return myFeatures.get(rowIndex).getFeatureName();
+      }
+      return null;
+    }
+
+    public Object getDisplayValueAt(int rowIndex, int columnIndex) {
+      if (columnIndex == CHECK_MARK_COLUMN_INDEX) {
+        return myFeatures.get(rowIndex).isChecked;
+      }
+      else if (columnIndex == FEATURE_NAME_COLUMN_INDEX) {
+        return myFeatures.get(rowIndex).getDisplayName();
       }
       return null;
     }
@@ -216,10 +324,10 @@ public class DynamicFeaturesParameters {
       if (columnIndex == CHECK_MARK_COLUMN_INDEX) {
         row.isChecked = aValue == null || ((Boolean)aValue).booleanValue();
         if (row.isChecked) {
-          myDisabledDynamicFeatures.remove(row.name);
+          myDisabledDynamicFeatures.remove(row.getFeatureName());
         }
         else {
-          myDisabledDynamicFeatures.add(row.name);
+          myDisabledDynamicFeatures.add(row.getFeatureName());
         }
       }
       fireTableRowsUpdated(rowIndex, rowIndex);
@@ -236,7 +344,7 @@ public class DynamicFeaturesParameters {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-      if (columnIndex == CHECK_MARK_COLUMN_INDEX) {
+      if (columnIndex == CHECK_MARK_COLUMN_INDEX && myFeatures.get(rowIndex).isEnabled) {
         return true;
       }
       return false;
@@ -267,16 +375,16 @@ public class DynamicFeaturesParameters {
       }
       UIManager.put(UIUtil.TABLE_FOCUS_CELL_BACKGROUND_PROPERTY, color);
       DynamicFeatureRow featureRow = myTableModel.myFeatures.get(row);
-      component.setEnabled(isSelected || featureRow.isChecked);
+      component.setEnabled(isSelected || featureRow.isEnabled);
       return component;
     }
   }
 
 
-  private static class EnabledCellRenderer extends StripedRowCellRenderer {
+  private class CheckBoxCellRenderer extends StripedRowCellRenderer {
     private final TableCellRenderer myDelegate;
 
-    public EnabledCellRenderer(TableCellRenderer delegate) {
+    public CheckBoxCellRenderer(TableCellRenderer delegate) {
       myDelegate = delegate;
     }
 
@@ -284,7 +392,8 @@ public class DynamicFeaturesParameters {
     public Component getTableCellRendererComponent(JTable table, Object value,
                                                    boolean isSelected, boolean hasFocus, int row, int column) {
       Component component = myDelegate.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-      component.setEnabled(true);
+      DynamicFeatureRow featureRow = myTableModel.myFeatures.get(row);
+      component.setEnabled(featureRow.isEnabled);
       return component;
     }
   }
