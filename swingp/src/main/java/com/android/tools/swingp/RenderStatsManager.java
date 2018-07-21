@@ -15,6 +15,9 @@
  */
 package com.android.tools.swingp;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -45,6 +48,29 @@ public final class RenderStatsManager {
   public static void setIsEnabled(boolean isEnabled) {
     ourIsEnabled = isEnabled;
     ourGlobalThreadStats.forEach(threadStat -> threadStat.setIsRecording(ourIsEnabled));
+  }
+
+  @NotNull
+  public static JsonElement getJson() {
+    if (ourGlobalThreadStats.isEmpty()) {
+      return JsonNull.INSTANCE;
+    }
+
+    JsonArray threads = new JsonArray();
+    Set<ThreadStat> staleThreads = new HashSet<>();
+    // Using an entrySet followed by a forEach results in only two locks, instead of N locks (N being the number of elements).
+    ourGlobalThreadStats.forEach(threadStat -> {
+      Thread thread = threadStat.getThread();
+      if (thread == null || !thread.isAlive()) {
+        staleThreads.add(threadStat); // Clean up once the thread is dead or has been GC'ed.
+      }
+      JsonElement threadElement = threadStat.getDescription();
+      if (threadElement != JsonNull.INSTANCE) {
+        threads.add(threadElement);
+      }
+    });
+    ourGlobalThreadStats.removeAll(staleThreads); // Can't remove in the forEach, or it will cause a ConcurrentModificationException.
+    return threads.size() == 0 ? JsonNull.INSTANCE : threads;
   }
 
   static void push(@NotNull MethodStat methodStat) {

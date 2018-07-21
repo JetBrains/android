@@ -15,11 +15,16 @@
  */
 package com.android.tools.swingp;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 
 /**
  * A stat counter that surrounds and captures timing and call information of a sequence of calls within a stack frame.
@@ -38,6 +43,28 @@ public abstract class MethodStat {
     myOwner = new SoftReference<>(owner);
     // TODO: instrument caller with try-catch as well.
     RenderStatsManager.push(this);
+  }
+
+  @NotNull
+  public final JsonElement getDescription() {
+    JsonObject description = new JsonObject();
+    description.addProperty("__type", getClass().getSimpleName());
+    description.addProperty("__startTime", getStartTime());
+    addAttributeDescriptions(description);
+    return description;
+  }
+
+  /**
+   * Subclasses of this class should override this method with more relevant attribute/child attributes related to the implementing stats.
+   */
+  protected void addAttributeDescriptions(@NotNull JsonObject description) {
+    Object owner = myOwner.get();
+    description.addProperty("__owner", owner == null ? "<gc>" : owner.getClass().getSimpleName());
+    description.addProperty("__endTime", getEndTime());
+
+    JsonArray callees = new JsonArray();
+    myChildStats.stream().map(methodStat -> methodStat.getDescription()).forEach(jsonElement -> callees.add(jsonElement));
+    description.add("__callee", callees);
   }
 
   /**

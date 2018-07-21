@@ -15,10 +15,16 @@
  */
 package com.android.tools.swingp;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.SoftReference;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -83,5 +89,27 @@ class ThreadStat {
   public ThreadStat setIsRecording(boolean recording) {
     myIsRecording = recording;
     return this;
+  }
+
+  @NotNull
+  public JsonElement getDescription() {
+    // Don't write anything unless we have at least one complete stat.
+    if (myRootStats.isEmpty()) {
+      return JsonNull.INSTANCE;
+    }
+
+    JsonObject description = new JsonObject();
+
+    description.addProperty("__type", getClass().getSimpleName());
+    description.addProperty("__tId", myThreadId);
+    description.addProperty("__tName", myThreadName);
+
+    List<MethodStat> methodStatList = new ArrayList<>();
+    myRootStats.drainTo(methodStatList);
+    JsonArray events = new JsonArray();
+    methodStatList.stream().map(methodStat -> methodStat.getDescription()).forEach(jsonElement -> events.add(jsonElement));
+    description.add("__events", events);
+
+    return description;
   }
 }
