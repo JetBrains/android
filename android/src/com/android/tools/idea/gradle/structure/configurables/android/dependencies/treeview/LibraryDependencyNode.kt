@@ -57,8 +57,8 @@ class LibraryDependencyNode : AbstractDependencyNode<PsLibraryAndroidDependency>
   private fun setUp(dependency: PsLibraryAndroidDependency, collection: PsAndroidArtifactDependencyCollection?, forceGroupId: Boolean) {
     myName = getText(dependency, forceGroupId)
     // TODO(b/74380202): Setup children from Pom dependencies without a PsAndroidDependencyCollection.
-    if (collection != null) {
-      val transitiveDependencies = dependency.getTransitiveDependencies(collection)
+    if (collection != null && dependency is PsResolvedLibraryAndroidDependency) {
+      val transitiveDependencies = dependency.getTransitiveDependencies()
 
       myChildren.addAll(
         transitiveDependencies

@@ -68,7 +68,7 @@ public final class DependencyNodes {
       else {
         mayBeTransitive.add((PsAndroidDependency)dependency);
       }
-      addTransitive(dependency, collection, allTransitive);
+      addTransitive(dependency, allTransitive);
     }
 
     // Any other dependencies that are not declared, but somehow were not found as transitive.
@@ -91,14 +91,13 @@ public final class DependencyNodes {
   }
 
   private static void addTransitive(@NotNull PsDependency dependency,
-                                    @NotNull PsAndroidArtifactDependencyCollection collection,
                                     @NotNull Set<String> allTransitive) {
-    if (dependency instanceof PsLibraryAndroidDependency) {
-      PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;
+    if (dependency instanceof PsResolvedLibraryAndroidDependency) {
+      PsResolvedLibraryAndroidDependency libraryDependency = (PsResolvedLibraryAndroidDependency)dependency;
 
-      for (PsLibraryAndroidDependency transitive : libraryDependency.getTransitiveDependencies(collection)) {
+      for (PsLibraryAndroidDependency transitive : libraryDependency.getTransitiveDependencies()) {
         if (allTransitive.add(transitive.getSpec().compactNotation())) {
-          addTransitive(transitive, collection, allTransitive);
+          addTransitive(transitive, allTransitive);
         }
       }
     }

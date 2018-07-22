@@ -35,4 +35,5 @@ interface PsDeclaredLibraryDependency: PsLibraryDependency, PsDeclaredDependency
 
 interface PsResolvedLibraryDependency : PsLibraryDependency, PsResolvedDependency {
   fun hasPromotedVersion(): Boolean
+  fun getTransitiveDependencies(): Set<PsResolvedLibraryDependency> = setOf()
 }

@@ -20,8 +20,11 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
+import com.android.tools.idea.gradle.structure.model.PsDependencyCollection;
 import com.android.tools.idea.gradle.structure.model.PsModel;
+import com.android.tools.idea.gradle.structure.model.PsModuleDependencyKt;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifactDependencyCollection;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsResolvedModuleAndroidDependency;
 import com.google.common.collect.Lists;
@@ -51,8 +54,12 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleAndroid
   private void setUp(@NotNull PsModuleAndroidDependency moduleDependency) {
     myName = moduleDependency.toText(PLAIN_TEXT);
     if (moduleDependency instanceof PsResolvedModuleAndroidDependency) {
-      PsAndroidArtifact referredModuleMainArtifact = ((PsResolvedModuleAndroidDependency)moduleDependency).findReferredArtifact();
-      if (referredModuleMainArtifact != null) {
+      // TODO(solodkyy): Rework in the following CLs.
+      PsDependencyCollection<?, ?, ?> resolvedDependencies =
+        PsModuleDependencyKt.getTargetModuleResolvedDependencies((PsResolvedModuleAndroidDependency)moduleDependency);
+      if (resolvedDependencies != null) {
+        PsAndroidArtifact referredModuleMainArtifact =
+          ((PsAndroidArtifactDependencyCollection)resolvedDependencies).getArtifact();
         List<AbstractPsModelNode<?>> children = createNodesForResolvedDependencies(this, referredModuleMainArtifact);
         myChildren.addAll(children);
       }
