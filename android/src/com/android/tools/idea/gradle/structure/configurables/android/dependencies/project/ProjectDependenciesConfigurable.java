@@ -36,8 +36,8 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
 
   private MainPanel myMainPanel;
 
-  public ProjectDependenciesConfigurable(@NotNull PsAllModulesFakeModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
-    super(module, context, extraTopModules);
+  public ProjectDependenciesConfigurable(@NotNull PsAllModulesFakeModule module, @NotNull PsContext context, @NotNull List<PsModule> extraModules) {
+    super(module, context, extraModules);
     myModule = module;
     setDisplayName("<All Modules>");
   }
@@ -50,7 +50,7 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
   @Override
   public MainPanel createOptionsPanel() {
     if (myMainPanel == null) {
-      myMainPanel = new MainPanel(myModule, getContext(), getExtraTopModules());
+      myMainPanel = new MainPanel(myModule, getContext(), getExtraModules());
       myMainPanel.setHistory(getHistory());
     }
     return myMainPanel;

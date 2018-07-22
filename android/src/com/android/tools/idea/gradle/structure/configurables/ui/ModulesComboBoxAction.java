@@ -31,12 +31,12 @@ import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 
 public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @NotNull private final PsContext myContext;
-  @NotNull private final List<PsModule> myExtraTopModules;
+  @NotNull private final List<PsModule> myExtraModules;
 
-  public ModulesComboBoxAction(@NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
+  public ModulesComboBoxAction(@NotNull PsContext context, @NotNull List<PsModule> extraModules) {
     super("Module: ");
     myContext = context;
-    myExtraTopModules = extraTopModules;
+    myExtraModules = extraModules;
   }
 
   @Override
@@ -51,7 +51,7 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   protected DefaultActionGroup createPopupActionGroup(JComponent button) {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    for (PsModule module : myExtraTopModules) {
+    for (PsModule module : myExtraModules) {
       group.add(new ModuleAction(module));
     }
 

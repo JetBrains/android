@@ -30,8 +30,8 @@ public abstract class AbstractMainDependenciesPanel extends AbstractMainPanel {
   }
 
   protected AbstractMainDependenciesPanel(@NotNull PsContext context,
-                                          @NotNull List<PsModule> extraTopModules) {
-    super(context, extraTopModules);
+                                          @NotNull List<PsModule> extraModules) {
+    super(context, extraModules);
   }
 
   @NotNull

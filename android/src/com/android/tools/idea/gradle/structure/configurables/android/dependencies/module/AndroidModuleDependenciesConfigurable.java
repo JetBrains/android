@@ -33,14 +33,14 @@ public class AndroidModuleDependenciesConfigurable extends AbstractDependenciesC
 
   public AndroidModuleDependenciesConfigurable(@NotNull PsAndroidModule module,
                                                @NotNull PsContext context,
-                                               @NotNull List<PsModule> extraTopModules) {
-    super(module, context, extraTopModules);
+                                               @NotNull List<PsModule> extraModules) {
+    super(module, context, extraModules);
   }
 
   @Override
   public MainPanel createOptionsPanel() {
     if (myMainPanel == null) {
-      myMainPanel = new MainPanel(getModule(), getContext(), getExtraTopModules());
+      myMainPanel = new MainPanel(getModule(), getContext(), getExtraModules());
       myMainPanel.setHistory(getHistory());
     }
     return myMainPanel;

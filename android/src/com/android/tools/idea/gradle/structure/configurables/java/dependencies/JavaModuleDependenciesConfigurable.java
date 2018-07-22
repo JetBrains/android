@@ -32,8 +32,8 @@ public class JavaModuleDependenciesConfigurable extends AbstractDependenciesConf
 
   public JavaModuleDependenciesConfigurable(@NotNull PsJavaModule module,
                                             @NotNull PsContext context,
-                                            @NotNull List<PsModule> extraTopModules) {
-    super(module, context, extraTopModules);
+                                            @NotNull List<PsModule> extraModules) {
+    super(module, context, extraModules);
   }
 
   @Override
