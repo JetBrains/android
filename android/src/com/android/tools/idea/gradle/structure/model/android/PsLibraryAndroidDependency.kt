@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchResults
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
-import com.google.common.collect.ImmutableSet
 import com.google.common.util.concurrent.Futures
 import kotlin.reflect.KProperty
 
@@ -99,36 +98,27 @@ open class PsResolvedLibraryAndroidDependency(
   val artifact: PsAndroidArtifact,
   override val declaredDependencies: List<PsDeclaredLibraryAndroidDependency>
 ) : PsLibraryAndroidDependency(parent, listOf(artifact)), PsResolvedDependency, PsResolvedLibraryDependency {
+  internal val pomDependencies = mutableListOf<PsArtifactDependencySpec>()
   override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
 
   override fun hasPromotedVersion(): Boolean = getReverseDependencies().any { it.isPromoted }
 
   fun getReverseDependencies(): Set<ReverseDependency> =
     artifact.dependencies.reverseDependencies[spec.toLibraryKey()].orEmpty()
+
+  override fun getTransitiveDependencies(): Set<PsResolvedLibraryAndroidDependency> =
+    pomDependencies.flatMap { artifact.dependencies.findLibraryDependencies(it.group, it.name) }.toSet()
+
+  internal fun setDependenciesFromPomFile(value: List<PsArtifactDependencySpec>) {
+    pomDependencies.clear()
+    pomDependencies.addAll(value)
+  }
 }
 
 abstract class PsLibraryAndroidDependency internal constructor(
   parent: PsAndroidModule,
   containers: Collection<PsAndroidArtifact>
 ) : PsAndroidDependency(parent, containers), PsLibraryDependency {
-  internal val pomDependencies = mutableListOf<PsArtifactDependencySpec>()
-
-
-  internal fun setDependenciesFromPomFile(value: List<PsArtifactDependencySpec>) {
-    pomDependencies.clear()
-    pomDependencies.addAll(value)
-  }
-
-  fun getTransitiveDependencies(artifactDependencies: PsAndroidArtifactDependencyCollection): Set<PsLibraryAndroidDependency> {
-    val transitive = ImmutableSet.builder<PsLibraryAndroidDependency>()
-    for (dependency in pomDependencies) {
-      // TODO(b/74948244): Include the requested version as a parsed model so that we see any promotions.
-      val found = artifactDependencies.findLibraryDependencies(dependency.group, dependency.name)
-      transitive.addAll(found)
-    }
-
-    return transitive.build()
-  }
 
   override val name: String get() = spec.name
 

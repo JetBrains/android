@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.PsResolvedModuleAndroidDependency
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
+
 interface PsModuleDependency : PsBaseDependency {
   val gradlePath: String
 }
@@ -22,3 +27,17 @@ interface PsModuleDependency : PsBaseDependency {
 interface PsDeclaredModuleDependency: PsDeclaredDependency, PsModuleDependency
 interface PsResolvedModuleDependency: PsResolvedDependency, PsModuleDependency
 
+val PsResolvedModuleDependency.targetModuleResolvedDependencies: PsDependencyCollection<*, *, *>?
+  get() {
+    val targetModule = parent.parent.findModuleByGradlePath(gradlePath)
+    return when (targetModule) {
+      is PsAndroidModule ->
+        targetModule
+          .variants
+          .firstOrNull { it.name == (this as? PsResolvedModuleAndroidDependency)?.moduleVariant }
+          ?.findArtifact(ARTIFACT_MAIN)
+          ?.dependencies
+      is PsJavaModule -> targetModule.resolvedDependencies
+      else -> throw AssertionError()
+    }
+  }

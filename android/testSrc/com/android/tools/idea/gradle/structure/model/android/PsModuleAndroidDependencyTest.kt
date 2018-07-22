@@ -20,6 +20,7 @@ import com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
+import com.android.tools.idea.gradle.structure.model.targetModuleResolvedDependencies
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.project.Project
 import org.hamcrest.CoreMatchers.*
@@ -50,7 +51,7 @@ class PsModuleAndroidDependencyTest : DependencyTestCase() {
     val moduleDependency = artifactDependencies.findModuleDependency(":mainModule")
     assertThat(moduleDependency, notNullValue())
 
-    val referredArtifact = moduleDependency?.findReferredArtifact()
+    val referredArtifact = (moduleDependency?.targetModuleResolvedDependencies as? PsAndroidArtifactDependencyCollection)?.artifact
     assertThat(referredArtifact, notNullValue())
     assertThat(referredArtifact!!.parent.name, equalTo("freeRelease"))
     assertThat(referredArtifact.resolvedName, equalTo(ARTIFACT_MAIN))
@@ -65,7 +66,7 @@ class PsModuleAndroidDependencyTest : DependencyTestCase() {
     val moduleDependency = artifactDependencies.findModuleDependency(":mainModule")
     assertThat(moduleDependency, notNullValue())
 
-    val referredArtifact = moduleDependency?.findReferredArtifact()
+    val referredArtifact = (moduleDependency?.targetModuleResolvedDependencies as? PsAndroidArtifactDependencyCollection)?.artifact
     assertThat(referredArtifact, notNullValue())
     assertThat(referredArtifact!!.parent.name, equalTo("freeRelease"))
     assertThat(referredArtifact.resolvedName, equalTo(ARTIFACT_MAIN))

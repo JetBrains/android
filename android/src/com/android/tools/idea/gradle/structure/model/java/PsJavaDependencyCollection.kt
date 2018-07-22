@@ -49,9 +49,14 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
     PsJavaDependencyCollection<PsResolvedLibraryJavaDependency, PsResolvedModuleJavaDependency> {
   override fun collectResolvedDependencies(container: PsJavaModule) {
     val gradleModel = parent.resolvedModel
-    gradleModel?.jarLibraryDependencies?.forEach { addLibrary(it) }
-    gradleModel?.javaModuleDependencies?.forEach { moduleDependency ->
-      parent.parent.findModuleByGradlePath(moduleDependency.moduleId)
+    gradleModel
+      ?.jarLibraryDependencies
+      ?.filter { it.scope.equals("COMPILE", ignoreCase = true) || it.scope.equals("PROVIDED", ignoreCase = true) }
+      ?.forEach { addLibrary(it) }
+    gradleModel
+      ?.javaModuleDependencies
+      ?.forEach { moduleDependency ->
+      parent.parent.findModuleByGradlePath(moduleDependency.moduleId.replaceBefore(':', "").substring(1))
         ?.let { module -> addModule(module, moduleDependency.scope ?: "") }
     }
   }
@@ -67,9 +72,14 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
         .findLibraryDependencies(coordinates.groupId, coordinates.artifactId!!)
         // TODO(b/110774403): Support Java module dependency scopes.
         .filter { library.moduleVersion != null }
-      addLibraryDependency(PsResolvedLibraryJavaDependency(parent, library, matchingDeclaredDependencies))
+      addLibraryDependency(PsResolvedLibraryJavaDependency(parent, library, matchingDeclaredDependencies).also {
+        library.binaryPath?.let { file ->
+          it.setDependenciesFromPomFile(parent.parent.pomDependencyCache.getPomDependencies(file))
+        }
+      })
     }
   }
+
 
   private fun addModule(module: PsModule, scope: String) {
     val gradlePath = module.gradlePath!!
