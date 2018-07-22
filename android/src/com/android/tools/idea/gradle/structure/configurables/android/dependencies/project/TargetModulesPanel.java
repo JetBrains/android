@@ -51,7 +51,7 @@ class TargetModulesPanel extends ToolWindowPanel {
   @NotNull private final NodeHyperlinkSupport<TargetAndroidModuleNode> myHyperlinkSupport;
 
   TargetModulesPanel(@NotNull PsContext context) {
-    super("Target Modules", AllIcons.Nodes.ModuleGroup, ToolWindowAnchor.RIGHT);
+    super("Target Modules/Artifacts", AllIcons.Nodes.ModuleGroup, ToolWindowAnchor.RIGHT);
     myContext = context;
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
