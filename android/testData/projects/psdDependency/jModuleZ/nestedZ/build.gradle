@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'com.android.library'
-
-android {
-  compileSdkVersion 19 // This will be replaced by AndroidGradleTestCase
-}
+apply plugin: 'java-library'
 
 dependencies {
-  api 'com.android.support:appcompat-v7:+'
-  api fileTree(dir: 'libs', include: ['*.jar'])
-  implementation project(":jModuleL")
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "com.example.jlib:lib4:0.6"
 }
+
+sourceCompatibility = "1.6"
+targetCompatibility = "1.6"
