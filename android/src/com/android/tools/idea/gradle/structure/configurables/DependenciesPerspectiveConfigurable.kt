@@ -36,7 +36,7 @@ class DependenciesPerspectiveConfigurable(context: PsContext)
   : BasePerspectiveConfigurable(context), TrackedConfigurable {
 
   private val myConfigurablesByGradlePath = mutableMapOf<String, AbstractDependenciesConfigurable<out PsModule>>()
-  private val myExtraTopModules = mutableListOf<PsModule>()
+  private val myExtraModules = mutableListOf<PsModule>()
   private val myExtraTopConfigurables = mutableMapOf<PsModule, AbstractDependenciesConfigurable<out PsModule>>()
 
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_DEPENDENCIES
@@ -50,21 +50,21 @@ class DependenciesPerspectiveConfigurable(context: PsContext)
   override fun getConfigurable(module: PsModule): NamedConfigurable<out PsModule>? =
     when (module) {
       is PsAllModulesFakeModule -> myExtraTopConfigurables.getOrPut(module) {
-        ProjectDependenciesConfigurable(module, context, extraTopModules).also { it.history = myHistory }
+        ProjectDependenciesConfigurable(module, context, extraModules).also { it.history = myHistory }
       }
       is PsAndroidModule -> myConfigurablesByGradlePath.getOrPut(module.gradlePath) {
-        AndroidModuleDependenciesConfigurable(module, context, extraTopModules).also { it.history = myHistory }
+        AndroidModuleDependenciesConfigurable(module, context, extraModules).also { it.history = myHistory }
       }
       is PsJavaModule -> myConfigurablesByGradlePath.getOrPut(module.gradlePath) {
-        JavaModuleDependenciesConfigurable(module, context, extraTopModules).also { it.history = myHistory }
+        JavaModuleDependenciesConfigurable(module, context, extraModules).also { it.history = myHistory }
       }
       else -> null
     }
 
   override fun createComponent(): JComponent = super.createComponent().also { it.name = DEPENDENCIES_VIEW }
 
-  override fun getExtraTopModules(): List<PsModule> =
-    myExtraTopModules.also {
+  override fun getExtraModules(): List<PsModule> =
+    myExtraModules.also {
       if (it.isEmpty()) {
         it.add(PsAllModulesFakeModule(context.project))
       }

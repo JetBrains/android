@@ -30,7 +30,7 @@ import javax.swing.JComponent
 class AndroidModuleSuggestionsConfigurable(
     private val context: PsContext,
     module: PsModule,
-    private val extraTopModules: List<PsModule>
+    private val extraModules: List<PsModule>
 ) : BaseNamedConfigurable<PsModule>(module) {
   private var panel: AbstractMainPanel? = null
   private var uiDisposed = false
@@ -57,7 +57,7 @@ class AndroidModuleSuggestionsConfigurable(
     return created
   }
 
-  private fun createPanel() = object : AbstractMainPanel(context, extraTopModules) {
+  private fun createPanel() = object : AbstractMainPanel(context, extraModules) {
     private val panel = createInnerPanel().also {
       add(it.panel, BorderLayout.CENTER)
     }

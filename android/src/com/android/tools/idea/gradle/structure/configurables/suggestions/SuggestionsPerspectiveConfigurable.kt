@@ -30,7 +30,7 @@ import javax.swing.JComponent
 class SuggestionsPerspectiveConfigurable(context: PsContext)
   : AbstractCounterDisplayConfigurable(context), TrackedConfigurable {
   private val configurablesByGradlePath: Map<String, BaseNamedConfigurable<PsModule>> = HashMap()
-  private var extraTopModules: MutableList<PsModule>? = null
+  private var extraModules: MutableList<PsModule>? = null
   private var messageCount: Int = 0
 
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_SUGGESTIONS
@@ -49,11 +49,11 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
   override fun getDisplayName(): String = "Suggestions"
 
 
-  override fun getExtraTopModules(): MutableList<PsModule> {
-    if (extraTopModules == null) {
-      extraTopModules = mutableListOf(PsAllModulesFakeModule(context.project))
+  override fun getExtraModules(): MutableList<PsModule> {
+    if (extraModules == null) {
+      extraModules = mutableListOf(PsAllModulesFakeModule(context.project))
     }
-    return extraTopModules!!
+    return extraModules!!
   }
 
   override fun getCount(): Int = messageCount
@@ -71,5 +71,5 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
       configurablesByGradlePath[module.gradlePath] ?: createConfigurable(module)
 
   private fun createConfigurable(module: PsModule) =
-      AndroidModuleSuggestionsConfigurable(context, module, getExtraTopModules()).apply { setHistory(myHistory) }
+      AndroidModuleSuggestionsConfigurable(context, module, getExtraModules()).apply { setHistory(myHistory) }
 }

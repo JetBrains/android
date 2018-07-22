@@ -41,8 +41,8 @@ class MainPanel extends AbstractMainDependenciesPanel {
   @NotNull private final TargetModulesPanel myTargetModulesPanel;
   @NotNull private final JPanel myAltPanel;
 
-  MainPanel(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
-    super(context, extraTopModules);
+  MainPanel(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraModules) {
+    super(context, extraModules);
     myTargetModulesPanel = new TargetModulesPanel(context);
 
     myDependencyGraphPanel = new DependencyGraphPanel(module, context);
