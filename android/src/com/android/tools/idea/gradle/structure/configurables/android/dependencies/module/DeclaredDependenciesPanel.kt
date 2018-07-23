@@ -25,10 +25,9 @@ import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeE
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDependenciesPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.DeclaredDependenciesTableView
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.google.common.collect.Lists
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
@@ -50,14 +49,14 @@ import javax.swing.JComponent
  * Panel that displays the table of "editable" dependencies.
  */
 internal class DeclaredDependenciesPanel(
-  val module: PsAndroidModule, context: PsContext
+  val module: PsModule, context: PsContext
 ) : AbstractDependenciesPanel("Declared Dependencies", context, module), DependencySelection {
 
   private val dependenciesTableModel: DeclaredDependenciesTableModel
-  private val dependenciesTable: DeclaredDependenciesTableView<PsAndroidDependency>
+  private val dependenciesTable: DeclaredDependenciesTableView<PsBaseDependency>
   private val placeName: String
 
-  private val eventDispatcher = SelectionChangeEventDispatcher<PsAndroidDependency>()
+  private val eventDispatcher = SelectionChangeEventDispatcher<PsBaseDependency>()
 
   private var skipSelectionChangeNotification: Boolean = false
 
@@ -82,16 +81,13 @@ internal class DeclaredDependenciesPanel(
     module.addDependencyChangedListener(this) { event ->
       val oldSelection = dependenciesTable.selection
       dependenciesTableModel.reset()
-      var toSelect: PsAndroidDependency? = null
+      var toSelect: PsBaseDependency? = null
       if (event is PsModule.LibraryDependencyAddedEvent) {
         dependenciesTable.clearSelection()
         toSelect = dependenciesTableModel.findDependency(event.spec)
       }
       else if (event is PsModule.DependencyModifiedEvent) {
-        val dependency = event.dependency
-        if (dependency is PsAndroidDependency) {
-          toSelect = dependency
-        }
+        toSelect = event.dependency
       }
       dependenciesTable.selection = toSelect?.let { listOf(it) } ?: oldSelection
     }
@@ -131,14 +127,14 @@ internal class DeclaredDependenciesPanel(
     Disposer.dispose(dependenciesTable)
   }
 
-  fun add(listener: SelectionChangeListener<PsAndroidDependency>) {
+  fun add(listener: SelectionChangeListener<PsBaseDependency>) {
     eventDispatcher.addListener(listener, this)
     notifySelectionChanged()
   }
 
-  override fun getSelection(): PsAndroidDependency? = dependenciesTable.selectionIfSingle
+  override fun getSelection(): PsBaseDependency? = dependenciesTable.selectionIfSingle
 
-  override fun setSelection(selection: PsAndroidDependency?): ActionCallback {
+  override fun setSelection(selection: PsBaseDependency?): ActionCallback {
     skipSelectionChangeNotification = true
     if (selection == null) {
       dependenciesTable.clearSelection()
@@ -171,7 +167,7 @@ internal class DeclaredDependenciesPanel(
     }
   }
 
-  private fun updateIssues(selected: PsAndroidDependency?) {
+  private fun updateIssues(selected: PsBaseDependency?) {
     displayIssues(context.analyzerDaemon.issues.findIssues(selected?.path, null), selected?.path)
   }
 

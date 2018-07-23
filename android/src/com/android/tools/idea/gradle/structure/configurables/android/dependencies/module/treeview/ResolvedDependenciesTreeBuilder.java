@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
+import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +29,7 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
   @NotNull private final DependencySelection myDependencySelectionSource;
   @NotNull private final DependencySelection myDependencySelectionDestination;
 
-  public ResolvedDependenciesTreeBuilder(@NotNull PsAndroidModule module,
+  public ResolvedDependenciesTreeBuilder(@NotNull PsModule module,
                                          @NotNull JTree tree,
                                          @NotNull DefaultTreeModel treeModel,
                                          @NotNull DependencySelection dependencySelectionSource,
@@ -43,7 +43,7 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
   @Override
   protected void onAllNodesExpanded() {
     getReady(this).doWhenDone(() -> {
-      PsAndroidDependency selection = myDependencySelectionSource.getSelection();
+      PsBaseDependency selection = myDependencySelectionSource.getSelection();
       myDependencySelectionDestination.setSelection(selection);
     });
   }
@@ -57,7 +57,7 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
   }
 
   private void queueUpdateAndRestoreSelection() {
-    PsAndroidDependency selected = myDependencySelectionSource.getSelection();
+    PsBaseDependency selected = myDependencySelectionSource.getSelection();
     queueUpdate().doWhenDone(() -> myDependencySelectionDestination.setSelection(selected));
   }
 }

@@ -19,10 +19,9 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDeclaredDependenciesTableModel;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.PsModule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,28 +31,21 @@ import java.util.List;
 /**
  * Model for the table displaying the "editable" dependencies of a module.
  */
-class DeclaredDependenciesTableModel extends AbstractDeclaredDependenciesTableModel<PsAndroidDependency> {
-  DeclaredDependenciesTableModel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
+class DeclaredDependenciesTableModel extends AbstractDeclaredDependenciesTableModel<PsBaseDependency> {
+  DeclaredDependenciesTableModel(@NotNull PsModule module, @NotNull PsContext context) {
     super(module, context);
   }
 
   @Override
-  @NotNull
-  protected PsAndroidModule getModule() {
-    return (PsAndroidModule)super.getModule();
-  }
-
-  @Override
   public void reset() {
-    List<PsAndroidDependency> dependencies = getModule().getDependencies().getItems();
+    List<PsBaseDependency> dependencies = getModule().getDependencies().getItems();
     Collections.sort(dependencies, new PsDependencyComparator(getContext().getUiSettings()));
     setItems(dependencies);
   }
 
   @Override
   @Nullable
-  public PsLibraryAndroidDependency findDependency(@NotNull PsArtifactDependencySpec spec) {
-    PsLibraryDependency found = super.findDependency(spec);
-    return found instanceof PsLibraryAndroidDependency ? (PsLibraryAndroidDependency)found : null;
+  public PsLibraryDependency findDependency(@NotNull PsArtifactDependencySpec spec) {
+    return super.findDependency(spec);
   }
 }

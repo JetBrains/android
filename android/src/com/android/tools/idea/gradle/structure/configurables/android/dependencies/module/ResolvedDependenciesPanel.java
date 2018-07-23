@@ -26,10 +26,9 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
+import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.ActionCallback;
@@ -60,18 +59,18 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   @NotNull private final PsContext myContext;
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
 
-  @NotNull private final SelectionChangeEventDispatcher<PsAndroidDependency> myEventDispatcher = new SelectionChangeEventDispatcher<>();
+  @NotNull private final SelectionChangeEventDispatcher<PsBaseDependency> myEventDispatcher = new SelectionChangeEventDispatcher<>();
 
   private boolean myIgnoreTreeSelectionEvents;
 
-  public ResolvedDependenciesPanel(@NotNull PsAndroidModule module,
+  public ResolvedDependenciesPanel(@NotNull PsModule module,
                                    @NotNull PsContext context,
                                    @NotNull DependencySelection dependencySelection) {
     this("Resolved Dependencies", module, context, dependencySelection, ToolWindowAnchor.RIGHT);
   }
 
-  public ResolvedDependenciesPanel(@NotNull String title,
-                                   @NotNull PsAndroidModule module,
+  private ResolvedDependenciesPanel(@NotNull String title,
+                                   @NotNull PsModule module,
                                    @NotNull PsContext context,
                                    @NotNull DependencySelection dependencySelection,
                                    @Nullable ToolWindowAnchor anchor) {
@@ -113,7 +112,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
         return;
       }
 
-      PsAndroidDependency selected = getSelection();
+      PsBaseDependency selected = getSelection();
       if (selected == null) {
         AbstractPsModelNode selectedNode = getSelectionIfSingle();
         if (selectedNode != null && !(selectedNode instanceof AbstractDependencyNode)) {
@@ -136,7 +135,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, false);
   }
 
-  private void notifySelectionChanged(@Nullable PsAndroidDependency selected) {
+  private void notifySelectionChanged(@Nullable PsBaseDependency selected) {
     myEventDispatcher.selectionChanged(selected);
   }
 
@@ -232,7 +231,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   }
 
   @Override
-  public ActionCallback setSelection(@Nullable PsAndroidDependency selection) {
+  public ActionCallback setSelection(@Nullable PsBaseDependency selection) {
     if (selection == null) {
       myTreeBuilder.clearSelection();
       return ActionCallback.DONE;
@@ -248,19 +247,19 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     }
   }
 
-  public void add(@NotNull SelectionChangeListener<PsAndroidDependency> listener) {
+  public void add(@NotNull SelectionChangeListener<PsBaseDependency> listener) {
     myEventDispatcher.addListener(listener, this);
   }
 
   @Override
   @Nullable
-  public PsAndroidDependency getSelection() {
+  public PsBaseDependency getSelection() {
     AbstractPsModelNode selection = getSelectionIfSingle();
     if (selection instanceof AbstractDependencyNode) {
       AbstractDependencyNode node = (AbstractDependencyNode)selection;
       List<?> models = node.getModels();
       if (!models.isEmpty()) {
-        return (PsAndroidDependency)models.get(0);
+        return (PsBaseDependency)models.get(0);
       }
     }
     return null;
