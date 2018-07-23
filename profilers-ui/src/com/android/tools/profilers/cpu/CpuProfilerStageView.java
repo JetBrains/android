@@ -396,10 +396,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myCaptureButton.setToolTipText("Stop recording");
         myProfilingConfigurationView.getComponent().setEnabled(false);
         break;
-      case PARSING:
-        break;
-      case PARSING_FAILURE:
-        break;
       case STARTING:
         myCaptureButton.setEnabled(false);
         myCaptureButton.setToolTipText("");
