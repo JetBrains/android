@@ -94,7 +94,7 @@ class PsAndroidModuleAnalyzer(context: PsContext) : PsModuleAnalyzer<PsAndroidMo
       val (path, spec, promotedTo) = promotion
       val scopes = scopeAggregator.aggregate(
         resolvedDependencies
-          .map { PsMessageScope(it.artifact.parent.buildTypeName, it.artifact.parent.productFlavors, it.artifact.name) }
+          .map { PsMessageScope(it.artifact.parent.buildTypeName, it.artifact.parent.productFlavorNames, it.artifact.name) }
           .toSet())
       val declaredVersion = spec.version
       // TODO(b/110690694): Provide a detailed message showing all known places which request different versions of the same library.

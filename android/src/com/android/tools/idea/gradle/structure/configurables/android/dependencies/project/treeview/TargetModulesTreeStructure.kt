@@ -54,7 +54,7 @@ class TargetModulesTreeStructure(var uiSettings: PsUISettings) : AbstractBaseTre
         ?.groupBy { it.artifact }
         .orEmpty()
       val moduleDeclaredLibraryModels = declaredLibraryModels[module]
-        ?.flatMap { dependency -> dependency.containers.mapNotNull { it.findArtifact(dependency.parent, false)?.let { it to dependency } } }
+        ?.flatMap { dependency -> dependency.containers.mapNotNull { it.findArtifact(dependency.parent)?.let { it to dependency } } }
         ?.groupBy({ it.first }, { it.second })
         .orEmpty()
 

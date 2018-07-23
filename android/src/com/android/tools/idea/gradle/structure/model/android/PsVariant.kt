@@ -15,54 +15,63 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.annotations.VisibleForTesting
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.structure.model.PsChildModel
-import com.google.common.collect.ImmutableList
+import com.android.utils.combineAsCamelCase
+import com.intellij.openapi.diagnostic.Logger
 import icons.AndroidIcons
-import org.jetbrains.annotations.TestOnly
 import javax.swing.Icon
 
-open class PsVariant(override val parent: PsAndroidModule,
-                     override val name: String) : PsChildModel() {
+private val LOG = Logger.getInstance(PsVariant::class.java)
 
-  private var myBuildType: String = ""
-  private var myProductFlavors: List<String> = listOf()
+data class PsVariantKey(val buildType: String, val productFlavors: List<String>) {
+  val name: String get() = (productFlavors + buildType).combineAsCamelCase()
+}
+
+open class PsVariant(
+  override val parent: PsAndroidModule,
+  val key: PsVariantKey
+) : PsChildModel() {
+  final override var name: String = key.name; private set
+
+  val buildTypeName: String get() = key.buildType
+  val productFlavorNames: List<String> get() = key.productFlavors
   var resolvedModel: IdeVariant? = null ; private set
   private var myArtifactCollection: PsAndroidArtifactCollection? = null
-  val artifacts: Collection<PsAndroidArtifact> get() = orCreateArtifactCollection.items()
 
-  internal fun init(buildType: String, productFlavors: List<String>, resolvedModel: IdeVariant?) {
-    myBuildType = buildType
-    myProductFlavors = productFlavors
+  val artifacts: Collection<PsAndroidArtifact> get() = artifactCollection.items()
+  open val buildType: PsBuildType get() = parent.findBuildType(buildTypeName)!!
+
+  internal fun init(resolvedModel: IdeVariant?) {
     this.resolvedModel = resolvedModel
-
+    if (resolvedModel != null) {
+      if (name != resolvedModel.name) {
+        LOG.warn("Predicted variant name $name differs from resolved name ${resolvedModel.name}")
+      }
+      name = resolvedModel.name
+    }
     myArtifactCollection?.refresh()
   }
 
-  open val buildType: PsBuildType get() = parent.findBuildType(myBuildType)!!
-  val buildTypeName get() = myBuildType
-
-  private val orCreateArtifactCollection: PsAndroidArtifactCollection
+  @VisibleForTesting
+  val artifactCollection: PsAndroidArtifactCollection
     get() = myArtifactCollection ?: PsAndroidArtifactCollection(this).also { myArtifactCollection = it }
-
-  val productFlavors: List<String>
-    @TestOnly
-    get() = ImmutableList.copyOf(myProductFlavors)
 
   override val isDeclared: Boolean = false
 
   override val icon: Icon? = AndroidIcons.Variant
 
   fun findArtifact(name: String): PsAndroidArtifact? {
-    return orCreateArtifactCollection.findElement(name)
+    return artifactCollection.findElement(name)
   }
 
   fun forEachArtifact(consumer: (PsAndroidArtifact) -> Unit) {
-    orCreateArtifactCollection.forEach(consumer)
+    artifactCollection.forEach(consumer)
   }
 
   open fun forEachProductFlavor(consumer: (PsProductFlavor) -> Unit) {
-    for (name in myProductFlavors) {
+    for (name in productFlavorNames) {
       val productFlavor = parent.findProductFlavor(name)
       consumer(productFlavor!!)
     }
