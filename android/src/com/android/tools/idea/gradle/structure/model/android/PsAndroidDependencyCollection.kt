@@ -32,7 +32,7 @@ interface PsAndroidDependencyCollection<out LibraryDependencyT, out ModuleDepend
         ModuleDependencyT : PsAndroidDependency,
         ModuleDependencyT : PsModuleDependency
 {
-  val items: List<PsAndroidDependency> get() = modules + libraries
+  override val items: List<PsAndroidDependency> get() = modules + libraries
 }
 
 /**

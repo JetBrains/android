@@ -27,6 +27,7 @@ interface PsDependencyCollection<out ModuleT, out LibraryDependencyT, out Module
   val parent: ModuleT
   val libraries: List<LibraryDependencyT>
   val modules: List<ModuleDependencyT>
+  val items: List<PsBaseDependency> get() = modules + libraries
 
   fun isEmpty(): Boolean
 
