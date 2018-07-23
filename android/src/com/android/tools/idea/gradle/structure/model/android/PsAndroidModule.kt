@@ -69,7 +69,7 @@ class PsAndroidModule(
   val buildTypes: Collection<PsBuildType> get() = getOrCreateBuildTypeCollection().items()
   val productFlavors: Collection<PsProductFlavor> get() = getOrCreateProductFlavorCollection().items()
   val variants: Collection<PsVariant> get() = getOrCreateVariantCollection().items()
-  val dependencies: PsAndroidModuleDependencyCollection get() = getOrCreateDependencyCollection()
+  override val dependencies: PsAndroidModuleDependencyCollection get() = getOrCreateDependencyCollection()
   val signingConfigs: Collection<PsSigningConfig> get() = getOrCreateSigningConfigCollection().items()
   val defaultConfig = PsAndroidModuleDefaultConfig(this)
   val flavorDimensions: Collection<String>
