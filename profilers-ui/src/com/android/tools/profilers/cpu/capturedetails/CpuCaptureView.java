@@ -58,6 +58,7 @@ public class CpuCaptureView {
            .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails)
            .onChange(CpuProfilerAspect.CAPTURE_STATE, this::updateCapturePane)
            .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCapturePane);
+    myStage.getCaptureParser().getAspect().addDependency(myObserver).onChange(CpuProfilerAspect.CAPTURE_PARSING, this::updateCapturePane);
     updateCapturePane();
   }
 
@@ -74,13 +75,15 @@ public class CpuCaptureView {
 
   @NotNull
   private CapturePane createCapturePane() {
-    if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.PARSING) {
+    if (myStage.getCaptureParser().isParsing()) {
       return new LoadingPane(myStageView);
     }
 
     if (myStage.getCapture() == null) {
+      // TODO(b/111779496): check if status is recording and not API initiated, and update the panel accordingly (status: recording).
       return new HelpTipPane(myStageView);
-    } else {
+    }
+    else {
       return new DetailsCapturePane(myStageView);
     }
   }
