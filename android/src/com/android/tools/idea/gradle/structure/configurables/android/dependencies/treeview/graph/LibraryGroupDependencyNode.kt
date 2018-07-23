@@ -17,15 +17,15 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
+import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsLibraryKey
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency
 import com.intellij.ui.treeStructure.SimpleNode
 
 class LibraryGroupDependencyNode(parent: AbstractPsNode,
                                  val library: PsLibraryKey,
-                                 val dependencies: List<PsLibraryAndroidDependency>
-) : AbstractDependencyNode<PsLibraryAndroidDependency>(parent, dependencies) {
+                                 val dependencies: List<PsLibraryDependency>
+) : AbstractDependencyNode<PsLibraryDependency>(parent, dependencies) {
   internal var children: List<SimpleNode> = listOf()
   override fun getChildren(): Array<SimpleNode> = children.toTypedArray()
-  override fun nameOf(model: PsLibraryAndroidDependency): String = model.spec.getDisplayText(true, false)
+  override fun nameOf(model: PsLibraryDependency): String = model.spec.getDisplayText(true, false)
 }

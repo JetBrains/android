@@ -18,13 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
-import com.android.tools.idea.gradle.structure.model.PsBaseDependency
-import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
-import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
-import com.android.tools.idea.gradle.structure.model.android.PsResolvedLibraryAndroidDependency
-import com.android.tools.idea.gradle.structure.model.android.PsResolvedModuleAndroidDependency
-import com.android.tools.idea.gradle.structure.model.java.PsResolvedLibraryJavaDependency
-import com.android.tools.idea.gradle.structure.model.java.PsResolvedModuleJavaDependency
+import com.android.tools.idea.gradle.structure.model.*
 
 abstract class AbstractDependencyNode<T : PsBaseDependency> : AbstractPsModelNode<T> {
 
@@ -37,10 +31,8 @@ abstract class AbstractDependencyNode<T : PsBaseDependency> : AbstractPsModelNod
     fun createResolvedNode(parent: AbstractPsNode,
                            dependency: PsBaseDependency): AbstractDependencyNode<*>? =
       when (dependency) {
-        is PsResolvedLibraryAndroidDependency -> createResolvedLibraryDependencyNode(parent, dependency, forceGroupId = false)
-        is PsResolvedModuleAndroidDependency -> ModuleDependencyNode(parent, dependency)
-        is PsResolvedLibraryJavaDependency ->  createResolvedLibraryDependencyNode(parent, dependency, forceGroupId = false)
-        is PsResolvedModuleJavaDependency -> ModuleDependencyNode(parent, dependency)
+        is PsResolvedLibraryDependency -> createResolvedLibraryDependencyNode(parent, dependency, forceGroupId = false)
+        is PsResolvedModuleDependency -> ModuleDependencyNode(parent, dependency)
         else -> null
       }
 

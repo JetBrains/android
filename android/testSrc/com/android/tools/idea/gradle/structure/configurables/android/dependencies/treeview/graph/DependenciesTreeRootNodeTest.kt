@@ -63,21 +63,23 @@ class DependenciesTreeRootNodeTest : DependencyTestCase() {
           com.android.support:support-vector-drawable:27.1.1
           com.example.jlib:lib3
               lib3:0.6
-              lib3:1.0
               lib3:0.9.1
+              lib3:1.0
           com.example.jlib:lib4
-              lib4:1.0
+              lib4:0.6
               lib4:0.9.1
+              lib4:1.0
           com.example.libs:lib1
-              lib1:1.0
-              lib1:0.9.1
               lib1:0.+
+              lib1:0.9.1
+              lib1:1.0
           com.example.libs:lib2
-              lib2:1.0
               lib2:0.9.1
+              lib2:1.0
           jModuleK
           jModuleL
-          mainModule""".trimIndent()
+          mainModule
+          nestedZ""".trimIndent()
     val treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Assert.assertThat(treeStructure.toString(), CoreMatchers.equalTo(expectedProjectStructure))

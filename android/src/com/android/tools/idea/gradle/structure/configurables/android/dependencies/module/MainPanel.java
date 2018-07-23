@@ -19,9 +19,8 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractMainDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBSplitter;
@@ -36,7 +35,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
 
-class MainPanel extends AbstractMainDependenciesPanel {
+public class MainPanel extends AbstractMainDependenciesPanel {
   @NotNull private final JBSplitter myVerticalSplitter;
 
   @NotNull private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
@@ -45,7 +44,7 @@ class MainPanel extends AbstractMainDependenciesPanel {
 
   private int myQueuedSelectionCounter = 0;
 
-  MainPanel(@NotNull PsAndroidModule module, @NotNull PsContext context, @NotNull List<PsModule> extraModules) {
+  public MainPanel(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraModules) {
     super(context, extraModules);
 
     myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(module, context);
@@ -60,17 +59,17 @@ class MainPanel extends AbstractMainDependenciesPanel {
     add(myVerticalSplitter, BorderLayout.CENTER);
 
     myDeclaredDependenciesPanel.updateTableColumnSizes();
-    myDeclaredDependenciesPanel.add(new SelectionChangeListener<PsAndroidDependency>() {
+    myDeclaredDependenciesPanel.add(new SelectionChangeListener<PsBaseDependency>() {
       @Override
-      public void selectionChanged(@Nullable PsAndroidDependency newSelection) {
+      public void selectionChanged(@Nullable PsBaseDependency newSelection) {
         myQueuedSelectionCounter++;
         myResolvedDependenciesPanel.setSelection(newSelection).doWhenProcessed(() -> myQueuedSelectionCounter--);
       }
     });
 
-    myResolvedDependenciesPanel.add(new SelectionChangeListener<PsAndroidDependency>() {
+    myResolvedDependenciesPanel.add(new SelectionChangeListener<PsBaseDependency>() {
       @Override
-      public void selectionChanged(@Nullable PsAndroidDependency newSelection) {
+      public void selectionChanged(@Nullable PsBaseDependency newSelection) {
         if (myQueuedSelectionCounter == 0) {
           if (newSelection != null) {
             myDeclaredDependenciesPanel.selectDependency(newSelection.toText());
