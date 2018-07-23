@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.details;
 
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
-import com.android.tools.idea.gradle.structure.model.PsDependency;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,7 +25,7 @@ public interface DependencyDetails {
   @NotNull
   JPanel getPanel();
 
-  void display(@NotNull PsDependency dependency);
+  void display(@NotNull PsBaseDependency dependency);
 
   @NotNull
   Class<? extends PsBaseDependency> getSupportedModelType();

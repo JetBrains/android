@@ -17,10 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor;
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency;
-import com.android.tools.idea.gradle.structure.model.PsDependency;
-import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.*;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
 import kotlin.Unit;
@@ -55,7 +52,7 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
   }
 
   @Override
-  public void display(@NotNull PsDependency dependency) {
+  public void display(@NotNull PsBaseDependency dependency) {
     myDependency = (PsDeclaredLibraryDependency)dependency;
     PsArtifactDependencySpec spec = myDependency.getSpec();
 

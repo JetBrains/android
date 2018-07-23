@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractMainDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
-import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -74,7 +73,7 @@ class MainPanel extends AbstractMainDependenciesPanel {
       public void selectionChanged(@Nullable PsAndroidDependency newSelection) {
         if (myQueuedSelectionCounter == 0) {
           if (newSelection != null) {
-            myDeclaredDependenciesPanel.selectDependency(newSelection.toText(PsDependency.TextType.FOR_NAVIGATION));
+            myDeclaredDependenciesPanel.selectDependency(newSelection.toText());
           }
           else {
             myDeclaredDependenciesPanel.selectDependency(null);

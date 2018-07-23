@@ -47,7 +47,7 @@ class PsDeclaredLibraryJavaDependency(
 
   override val name: String get() = spec.name
 
-  override fun toText(type: PsDependency.TextType): String = spec.toString()
+  override fun toText(): String = spec.toString()
 
   var version by PsDeclaredLibraryJavaDependency.Descriptor.version
 
@@ -104,7 +104,7 @@ class PsResolvedLibraryJavaDependency(
 
   override val name: String get() = spec.name
 
-  override fun toText(type: PsDependency.TextType): String = spec.toString()
+  override fun toText(): String = spec.toString()
 
   override fun getTransitiveDependencies(): Set<PsResolvedLibraryJavaDependency> =
     pomDependencies.flatMap { parent.resolvedDependencies.findLibraryDependencies(it.group, it.name) }.toSet()

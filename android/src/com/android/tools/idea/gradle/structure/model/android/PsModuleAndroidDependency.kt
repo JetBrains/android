@@ -53,6 +53,6 @@ abstract class PsModuleAndroidDependency internal constructor(
   override val gradlePath: String,
   artifacts: Collection<PsAndroidArtifact>
 ) : PsAndroidDependency(parent, artifacts), PsModuleDependency {
-  override fun toText(type: PsDependency.TextType): String = name
+  override fun toText(): String = name
   override val icon: Icon = parent.parent.findModuleByGradlePath(gradlePath)?.icon ?: LIBRARY_ICON
 }

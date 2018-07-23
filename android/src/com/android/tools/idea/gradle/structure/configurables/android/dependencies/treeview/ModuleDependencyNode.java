@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencyNodesKt.createNodesForResolvedDependencies;
-import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 
 public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDependency> {
   private final List<AbstractPsModelNode<?>> myChildren = Lists.newArrayList();
@@ -38,14 +37,14 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDepende
   public ModuleDependencyNode(@NotNull AbstractPsNode parent,
                               @NotNull PsResolvedModuleDependency dependency) {
     super(parent, dependency);
-    myName = dependency.toText(PLAIN_TEXT);
+    myName = dependency.toText();
     setUp(dependency);
   }
 
   public ModuleDependencyNode(@NotNull AbstractPsNode parent,
                               @NotNull Collection<PsDeclaredModuleDependency> dependencies) {
     super(parent, dependencies.stream().map(it -> (PsModuleDependency)it).collect(Collectors.toList()));
-    myName = getFirstModel().toText(PLAIN_TEXT);
+    myName = getFirstModel().toText();
   }
 
   private void setUp(@NotNull PsResolvedModuleDependency moduleDependency) {

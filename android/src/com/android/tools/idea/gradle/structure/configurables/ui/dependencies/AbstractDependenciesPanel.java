@@ -56,7 +56,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
 import static com.intellij.icons.AllIcons.Nodes.Module;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
@@ -128,7 +127,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     ApplicationManager.getApplication().invokeLater(() -> myInfoScrollPane.getVerticalScrollBar().setValue(0));
   }
 
-  protected void updateDetails(@Nullable PsDependency selected) {
+  protected void updateDetails(@Nullable PsBaseDependency selected) {
     if (selected != null) {
       myCurrentDependencyDetails = findDetails(selected);
       if (myCurrentDependencyDetails != null) {
@@ -143,7 +142,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   }
 
   @Nullable
-  private DependencyDetails findDetails(@NotNull PsDependency selected) {
+  private DependencyDetails findDetails(@NotNull PsBaseDependency selected) {
     for (DependencyDetails details : myDependencyDetails) {
       if (details.getSupportedModelType().isInstance(selected)) {
         return details;
@@ -266,7 +265,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     if (details != null) {
       PsBaseDependency model = details.getModel();
       if (model != null) {
-        dependency = model.toText(FOR_NAVIGATION);
+        dependency = model.toText();
       }
     }
     putPath(place, dependency);

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.details;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.model.PsDependency;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
@@ -64,7 +64,7 @@ public class ModuleDependencyDetails implements DependencyDetails {
   }
 
   @Override
-  public void display(@NotNull PsDependency dependency) {
+  public void display(@NotNull PsBaseDependency dependency) {
     myDependency = (PsModuleDependency)dependency;
     myNameLabel.setText(myDependency.getName());
     myGradlePathLabel.setText(myDependency.getGradlePath());
