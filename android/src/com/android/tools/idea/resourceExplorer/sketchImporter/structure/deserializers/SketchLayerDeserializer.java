@@ -16,7 +16,10 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.*;
-import com.google.gson.*;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 

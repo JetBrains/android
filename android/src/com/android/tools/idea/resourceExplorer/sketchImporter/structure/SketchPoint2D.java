@@ -13,23 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
+package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
-public class StringPoint {
+import java.awt.geom.Point2D;
 
-  private String coordX;
-  private String coordY;
-
-  public StringPoint(String x, String y) {
-    coordX = x;
-    coordY = y;
-  }
-
-  public String getX() {
-    return coordX;
-  }
-
-  public String getY() {
-    return coordY;
+public class SketchPoint2D extends Point2D.Double {
+  public SketchPoint2D(double x, double y) {
+    super(x, y);
   }
 }

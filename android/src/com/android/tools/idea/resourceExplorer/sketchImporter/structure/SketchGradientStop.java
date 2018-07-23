@@ -15,44 +15,22 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.awt.*;
 
-public class SketchFill {
-  private final boolean isEnabled;
+public class SketchGradientStop {
   private final Color color;
-  /**
-   * Flat Color: 0
-   * Gradient: 1
-   */
-  private final short fillType;
-  private final SketchGradient gradient;
+  private final int position;
 
-  public SketchFill(boolean isEnabled,
-                    @NotNull Color color,
-                    short fillType,
-                    @Nullable SketchGradient gradient) {
-    this.isEnabled = isEnabled;
+  public SketchGradientStop(Color color, int position) {
     this.color = color;
-    this.fillType = fillType;
-    this.gradient = gradient;
-  }
-
-  public boolean isEnabled() {
-    return isEnabled;
+    this.position = position;
   }
 
   public Color getColor() {
     return color;
   }
 
-  public short getFillType() {
-    return fillType;
-  }
-
-  public SketchGradient getGradient() {
-    return gradient;
+  public int getPosition() {
+    return position;
   }
 }

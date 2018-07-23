@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchParser;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchCurvePoint;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-
-import java.awt.*;
 
 public class CoordinateUtils {
 

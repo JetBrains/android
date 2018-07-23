@@ -39,6 +39,7 @@ public class SketchParser {
         .registerTypeAdapter(SketchLayer.class, new SketchLayerDeserializer())
         .registerTypeAdapter(Color.class, new ColorDeserializer())
         .registerTypeAdapter(Point2D.Double.class, new PointDeserializer())
+        .registerTypeAdapter(SketchPoint2D.class, new PointDeserializer())
         .create();
       return gson.fromJson(reader, SketchPage.class);
     }

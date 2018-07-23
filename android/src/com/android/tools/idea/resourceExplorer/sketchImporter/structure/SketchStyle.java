@@ -20,19 +20,35 @@ import org.jetbrains.annotations.Nullable;
 public class SketchStyle {
   private final SketchBorderOptions borderOptions;
   private final SketchBorder[] borders;
+  /**
+   * If this field does not exist, the default values are considered:
+   * - blendMode: 0
+   * - opacity: 1
+   */
+  private final SketchContextSettings contextSettings;
   private final SketchFill[] fills;
   private final short miterLimit;
+  private final SketchShadow[] shadows;
   private final short windingRule;
 
   public SketchStyle(@Nullable SketchBorderOptions borderOptions,
                      @Nullable SketchBorder[] borders,
+                     @Nullable SketchContextSettings contextSettings,
                      @Nullable SketchFill[] fills,
                      short miterLimit,
+                     @Nullable SketchShadow[] shadows,
                      short windingRule) {
     this.borderOptions = borderOptions;
     this.borders = borders;
+    if (contextSettings == null) {
+      this.contextSettings = new SketchContextSettings((short)0, (short)1);
+    }
+    else {
+      this.contextSettings = contextSettings;
+    }
     this.fills = fills;
     this.miterLimit = miterLimit;
+    this.shadows = shadows;
     this.windingRule = windingRule;
   }
 
@@ -44,12 +60,20 @@ public class SketchStyle {
     return borders;
   }
 
+  public SketchContextSettings getContextSettings() {
+    return contextSettings;
+  }
+
   public SketchFill[] getFills() {
     return fills;
   }
 
   public short getMiterLimit() {
     return miterLimit;
+  }
+
+  public SketchShadow[] getShadows() {
+    return shadows;
   }
 
   public short getWindingRule() {

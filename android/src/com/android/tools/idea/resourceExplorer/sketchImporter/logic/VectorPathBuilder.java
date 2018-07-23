@@ -17,9 +17,6 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-import java.util.ArrayList;
-
 public class VectorPathBuilder {
 
   private StringBuilder stringBuilder;

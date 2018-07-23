@@ -16,16 +16,16 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchCurvePoint;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPoint2D;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchShapePath;
 import org.junit.Test;
 
+import java.awt.*;
+
 import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathDataUtils.buildPathString;
 import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathDataUtils.buildRectangleString;
-import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.*;
-import static org.junit.Assert.*;
-
-import java.awt.*;
-import java.awt.geom.Point2D;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.SHAPE_PATH_CLASS_TYPE;
+import static org.junit.Assert.assertEquals;
 
 public class PathsTest {
 
@@ -33,10 +33,10 @@ public class PathsTest {
   public void obliqueLinePathTest() {
 
     SketchCurvePoint[] points = new SketchCurvePoint[]{
-      new SketchCurvePoint(0, 0, new Point2D.Double(0, 0), (short)0, new Point2D.Double(0, 0), false, false,
-                           new Point2D.Double(0.2, 0.7)),
-      new SketchCurvePoint(0, 0, new Point2D.Double(0, 0), (short)0, new Point2D.Double(0, 0), false, false,
-                           new Point2D.Double(0.8, 0.3))
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.2, 0.7)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.8, 0.3))
     };
 
     SketchShapePath shapePath = new SketchShapePath(SHAPE_PATH_CLASS_TYPE,
@@ -61,10 +61,10 @@ public class PathsTest {
   public void verticalLinePathTest() {
 
     SketchCurvePoint[] points = new SketchCurvePoint[]{
-      new SketchCurvePoint(0, 0, new Point2D.Double(0, 0), (short)0, new Point2D.Double(0, 0), false, false,
-                           new Point2D.Double(0.2, 0.7)),
-      new SketchCurvePoint(0, 0, new Point2D.Double(0, 0), (short)0, new Point2D.Double(0, 0), false, false,
-                           new Point2D.Double(0.2, 0.3))
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.2, 0.7)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.2, 0.3))
     };
 
     SketchShapePath shapePath = new SketchShapePath(SHAPE_PATH_CLASS_TYPE,
@@ -89,10 +89,10 @@ public class PathsTest {
   public void horizontalLinePathTest() {
 
     SketchCurvePoint[] points = new SketchCurvePoint[]{
-      new SketchCurvePoint(0, 0, new Point2D.Double(0, 0), (short)0, new Point2D.Double(0, 0), false, false,
-                           new Point2D.Double(0.2, 0.7)),
-      new SketchCurvePoint(0, 0, new Point2D.Double(0, 0), (short)0, new Point2D.Double(0, 0), false, false,
-                           new Point2D.Double(0.8, 0.7))
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.2, 0.7)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
+                           new SketchPoint2D(0.8, 0.7))
     };
 
     SketchShapePath shapePath = new SketchShapePath(SHAPE_PATH_CLASS_TYPE,
@@ -117,12 +117,12 @@ public class PathsTest {
   public void curvePathTest() {
 
     SketchCurvePoint[] points = new SketchCurvePoint[]{
-      new SketchCurvePoint(0, 0, new Point2D.Double(0.1, 0.2), (short)0, new Point2D.Double(0, 0), true, false,
-                           new Point2D.Double(0.1, 0.5)),
-      new SketchCurvePoint(0, 0, new Point2D.Double(0.8, 0.1), (short)0, new Point2D.Double(0.2, 0.1), true, true,
-                           new Point2D.Double(0.5, 0.1)),
-      new SketchCurvePoint(0, 0, new Point2D.Double(0, 0), (short)0, new Point2D.Double(0.9, 0.2), false, true,
-                           new Point2D.Double(0.9, 0.5))
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0.1, 0.2), (short)0, new SketchPoint2D(0, 0), true, false,
+                           new SketchPoint2D(0.1, 0.5)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0.8, 0.1), (short)0, new SketchPoint2D(0.2, 0.1), true, true,
+                           new SketchPoint2D(0.5, 0.1)),
+      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0.9, 0.2), false, true,
+                           new SketchPoint2D(0.9, 0.5))
     };
 
     SketchShapePath shapePath = new SketchShapePath(SHAPE_PATH_CLASS_TYPE,

@@ -27,11 +27,11 @@ public abstract class SketchLayer {
   private final String objectId;
   /**
    * Signifies combined shapes operations as such:
-   *   None/Basic: -1
-   *   Union: 0
-   *   Substract: 1
-   *   Intersect: 2
-   *   Difference: 3
+   * None/Basic: -1
+   * Union: 0
+   * Substract: 1
+   * Intersect: 2
+   * Difference: 3
    */
   private final int booleanOperation;
   private final Rectangle.Double frame;
@@ -40,8 +40,8 @@ public abstract class SketchLayer {
   private final boolean isVisible;
   private final String name;
   /**
-   * rotation in degrees (counter-clockwise [0, 359]
-   * [0, 359] is sometimes equivalent to [0, 180] U [-179, -1] for some reason
+   * Rotation in degrees (counter-clockwise) ∈ [0, 359]
+   * [0, 359] is sometimes equivalent to [0, 180] ∪ [-179, -1] with no apparent rule
    */
   private final int rotation;
   private final boolean shouldBreakMaskChain;

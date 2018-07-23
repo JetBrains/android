@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.*;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchCurvePoint;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchLayer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchShapeGroup;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchShapePath;
 
 import java.awt.*;
 import java.util.ArrayList;
 
-import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.CoordinateUtils.*;
-import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.*;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.CoordinateUtils.calculateAbsolutePositionString;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.CoordinateUtils.calculateStringFrameCorners;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.RECTANGLE_CLASS_TYPE;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.SHAPE_PATH_CLASS_TYPE;
 
 public class PathDataUtils {
 
