@@ -93,128 +93,128 @@ class TargetModulesTreeStructureTest: DependencyTestCase() {
       (null)
           mainModule
               freeDebug
-                  com.example.libs:lib1:1.0
+                  lib1:1.0 (com.example.libs)
                       implementation
                       debugImplementation
               freeRelease
-                  com.example.libs:lib1:1.0
+                  lib1:1.0 (com.example.libs)
                       implementation
                       releaseImplementation
               paidDebug
-                  com.example.libs:lib1:1.0
+                  lib1:1.0 (com.example.libs)
                       implementation
                       debugImplementation
               paidRelease
-                  com.example.libs:lib1:1.0
+                  lib1:1.0 (com.example.libs)
                       implementation
                       releaseImplementation
               freeDebug (androidTest)
-                  com.example.libs:lib1:1.0
+                  lib1:1.0 (com.example.libs)
               paidDebug (androidTest)
-                  com.example.libs:lib1:1.0
+                  lib1:1.0 (com.example.libs)
               freeDebug (test)
-                  com.example.libs:lib1:1.0
+                  lib1:1.0 (com.example.libs)
               freeRelease (test)
-                  com.example.libs:lib1:1.0
+                  lib1:1.0 (com.example.libs)
               paidDebug (test)
-                  com.example.libs:lib1:1.0
+                  lib1:1.0 (com.example.libs)
               paidRelease (test)
-                  com.example.libs:lib1:1.0
+                  lib1:1.0 (com.example.libs)
           modulePlus
               debug
-                  com.example.libs:lib1:0.9.1
+                  lib1:0.9.1 (com.example.libs)
                       implementation
               release
-                  com.example.libs:lib1:0.9.1
+                  lib1:0.9.1 (com.example.libs)
                       implementation
               debug (androidTest)
-                  com.example.libs:lib1:0.9.1
+                  lib1:0.9.1 (com.example.libs)
               debug (test)
-                  com.example.libs:lib1:0.9.1
+                  lib1:0.9.1 (com.example.libs)
               release (test)
-                  com.example.libs:lib1:0.9.1""".trimIndent()
+                  lib1:0.9.1 (com.example.libs)""".trimIndent()
     treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
 
     targetModulesTreeStructure.displayTargetModules(findModelsForSelection("com.example.jlib", "lib4"))
-    // Note: indentation matters!
     expectedProjectStructure = """
       (null)
           mainModule
               freeDebug
-                  com.example.jlib:lib3:1.0
-                      com.example.libs:lib2:1.0
-                          com.example.libs:lib1:1.0
+                  lib3:1.0 (com.example.jlib)
+                      lib2:1.0 (com.example.libs)
+                          lib1:1.0 (com.example.libs)
                               implementation
                               debugImplementation
                       freeImplementation
               freeRelease
-                  com.example.jlib:lib3:1.0
-                      com.example.libs:lib2:1.0
-                          com.example.libs:lib1:1.0
+                  lib3:1.0 (com.example.jlib)
+                      lib2:1.0 (com.example.libs)
+                          lib1:1.0 (com.example.libs)
                               implementation
                               releaseImplementation
                       freeImplementation
               paidDebug
-                  com.example.jlib:lib3:1.0
-                      com.example.libs:lib2:1.0
-                          com.example.libs:lib1:1.0
+                  lib3:1.0 (com.example.jlib)
+                      lib2:1.0 (com.example.libs)
+                          lib1:1.0 (com.example.libs)
                               implementation
                               debugImplementation
               paidRelease
-                  com.example.jlib:lib3:1.0
-                      com.example.libs:lib2:1.0
-                          com.example.libs:lib1:1.0
+                  lib3:1.0 (com.example.jlib)
+                      lib2:1.0 (com.example.libs)
+                          lib1:1.0 (com.example.libs)
                               implementation
                               releaseImplementation
               freeDebug (androidTest)
-                  com.example.jlib:lib3:1.0
-                      com.example.libs:lib2:1.0
-                          com.example.libs:lib1:1.0
+                  lib3:1.0 (com.example.jlib)
+                      lib2:1.0 (com.example.libs)
+                          lib1:1.0 (com.example.libs)
               paidDebug (androidTest)
-                  com.example.jlib:lib3:1.0
-                      com.example.libs:lib2:1.0
-                          com.example.libs:lib1:1.0
+                  lib3:1.0 (com.example.jlib)
+                      lib2:1.0 (com.example.libs)
+                          lib1:1.0 (com.example.libs)
               freeDebug (test)
-                  com.example.jlib:lib3:1.0
-                      com.example.libs:lib2:1.0
-                          com.example.libs:lib1:1.0
+                  lib3:1.0 (com.example.jlib)
+                      lib2:1.0 (com.example.libs)
+                          lib1:1.0 (com.example.libs)
               freeRelease (test)
-                  com.example.jlib:lib3:1.0
-                      com.example.libs:lib2:1.0
-                          com.example.libs:lib1:1.0
+                  lib3:1.0 (com.example.jlib)
+                      lib2:1.0 (com.example.libs)
+                          lib1:1.0 (com.example.libs)
               paidDebug (test)
-                  com.example.jlib:lib3:1.0
-                      com.example.libs:lib2:1.0
-                          com.example.libs:lib1:1.0
+                  lib3:1.0 (com.example.jlib)
+                      lib2:1.0 (com.example.libs)
+                          lib1:1.0 (com.example.libs)
               paidRelease (test)
-                  com.example.jlib:lib3:1.0
-                      com.example.libs:lib2:1.0
-                          com.example.libs:lib1:1.0
+                  lib3:1.0 (com.example.jlib)
+                      lib2:1.0 (com.example.libs)
+                          lib1:1.0 (com.example.libs)
           modulePlus
               debug
-                  com.example.jlib:lib3:0.9.1
-                      com.example.libs:lib2:0.9.1
-                          com.example.libs:lib1:0.9.1
+                  lib3:0.9.1 (com.example.jlib)
+                      lib2:0.9.1 (com.example.libs)
+                          lib1:0.9.1 (com.example.libs)
                               implementation
               release
-                  com.example.jlib:lib3:0.9.1
-                      com.example.libs:lib2:0.9.1
-                          com.example.libs:lib1:0.9.1
+                  lib3:0.9.1 (com.example.jlib)
+                      lib2:0.9.1 (com.example.libs)
+                          lib1:0.9.1 (com.example.libs)
                               implementation
               debug (androidTest)
-                  com.example.jlib:lib3:0.9.1
-                      com.example.libs:lib2:0.9.1
-                          com.example.libs:lib1:0.9.1
+                  lib3:0.9.1 (com.example.jlib)
+                      lib2:0.9.1 (com.example.libs)
+                          lib1:0.9.1 (com.example.libs)
               debug (test)
-                  com.example.jlib:lib3:0.9.1
-                      com.example.libs:lib2:0.9.1
-                          com.example.libs:lib1:0.9.1
+                  lib3:0.9.1 (com.example.jlib)
+                      lib2:0.9.1 (com.example.libs)
+                          lib1:0.9.1 (com.example.libs)
               release (test)
-                  com.example.jlib:lib3:0.9.1
-                      com.example.libs:lib2:0.9.1
-                          com.example.libs:lib1:0.9.1""".trimIndent()
+                  lib3:0.9.1 (com.example.jlib)
+                      lib2:0.9.1 (com.example.libs)
+                          lib1:0.9.1 (com.example.libs)""".trimIndent()
+    // Note: indentation matters!
     treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))

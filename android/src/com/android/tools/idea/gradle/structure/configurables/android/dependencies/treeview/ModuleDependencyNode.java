@@ -19,50 +19,41 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
-import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
-import com.android.tools.idea.gradle.structure.model.PsDependencyCollection;
-import com.android.tools.idea.gradle.structure.model.PsModel;
-import com.android.tools.idea.gradle.structure.model.PsModuleDependencyKt;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifactDependencyCollection;
-import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsResolvedModuleAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.*;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencyNodes.createNodesForResolvedDependencies;
+import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencyNodesKt.createNodesForResolvedDependencies;
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 
-public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleAndroidDependency> {
+public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDependency> {
   private final List<AbstractPsModelNode<?>> myChildren = Lists.newArrayList();
 
   public ModuleDependencyNode(@NotNull AbstractPsNode parent,
-                              @NotNull PsModuleAndroidDependency dependency) {
+                              @NotNull PsResolvedModuleDependency dependency) {
     super(parent, dependency);
+    myName = dependency.toText(PLAIN_TEXT);
     setUp(dependency);
   }
 
   public ModuleDependencyNode(@NotNull AbstractPsNode parent,
-                              @NotNull List<PsModuleAndroidDependency> dependencies) {
-    super(parent, dependencies);
-    setUp(dependencies.get(0));
+                              @NotNull Collection<PsDeclaredModuleDependency> dependencies) {
+    super(parent, dependencies.stream().map(it -> (PsModuleDependency)it).collect(Collectors.toList()));
+    myName = getFirstModel().toText(PLAIN_TEXT);
   }
 
-  private void setUp(@NotNull PsModuleAndroidDependency moduleDependency) {
-    myName = moduleDependency.toText(PLAIN_TEXT);
-    if (moduleDependency instanceof PsResolvedModuleAndroidDependency) {
-      // TODO(solodkyy): Rework in the following CLs.
-      PsDependencyCollection<?, ?, ?> resolvedDependencies =
-        PsModuleDependencyKt.getTargetModuleResolvedDependencies((PsResolvedModuleAndroidDependency)moduleDependency);
-      if (resolvedDependencies != null) {
-        PsAndroidArtifact referredModuleMainArtifact =
-          ((PsAndroidArtifactDependencyCollection)resolvedDependencies).getArtifact();
-        List<AbstractPsModelNode<?>> children = createNodesForResolvedDependencies(this, referredModuleMainArtifact);
-        myChildren.addAll(children);
-      }
+  private void setUp(@NotNull PsResolvedModuleDependency moduleDependency) {
+    @Nullable PsDependencyCollection<?, ?, ?> dependencies = PsModuleDependencyKt.getTargetModuleResolvedDependencies(moduleDependency);
+    if (dependencies != null) {
+      List<AbstractPsModelNode<?>> children =
+        createNodesForResolvedDependencies(this, dependencies, null);
+      myChildren.addAll(children);
     }
   }
 
@@ -78,8 +69,8 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleAndroid
     if (model instanceof PsDeclaredDependency) {
       PsDeclaredDependency other = (PsDeclaredDependency)model;
 
-      List<PsModuleAndroidDependency> models = getModels();
-      for (PsModuleAndroidDependency ourModel : models) {
+      List<PsModuleDependency> models = getModels();
+      for (PsModuleDependency ourModel : models) {
         List<DependencyModel> ourParsedModels = Companion.getDependencyParsedModels(ourModel);
         if (ourParsedModels == null) continue;
         for (DependencyModel resolvedFromParsedDependency : ourParsedModels) {

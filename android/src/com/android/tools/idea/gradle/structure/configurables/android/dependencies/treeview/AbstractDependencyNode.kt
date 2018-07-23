@@ -18,15 +18,15 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
-import com.android.tools.idea.gradle.structure.model.PsDependency
 import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifactDependencyCollection
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency
-import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency
+import com.android.tools.idea.gradle.structure.model.android.PsResolvedLibraryAndroidDependency
+import com.android.tools.idea.gradle.structure.model.android.PsResolvedModuleAndroidDependency
+import com.android.tools.idea.gradle.structure.model.java.PsResolvedLibraryJavaDependency
+import com.android.tools.idea.gradle.structure.model.java.PsResolvedModuleJavaDependency
 
-abstract class AbstractDependencyNode<T : PsAndroidDependency> : AbstractPsModelNode<T> {
+abstract class AbstractDependencyNode<T : PsBaseDependency> : AbstractPsModelNode<T> {
 
   val isDeclared: Boolean get() = models.any { it.isDeclared }
 
@@ -34,16 +34,17 @@ abstract class AbstractDependencyNode<T : PsAndroidDependency> : AbstractPsModel
   protected constructor(parent: AbstractPsNode, dependencies: List<T>) : super(parent, dependencies, parent.uiSettings)
 
   companion object {
-    fun createNode(parent: AbstractPsNode,
-                   collection: PsAndroidArtifactDependencyCollection?,
-                   dependency: PsDependency): AbstractDependencyNode<*>? =
+    fun createResolvedNode(parent: AbstractPsNode,
+                           dependency: PsBaseDependency): AbstractDependencyNode<*>? =
       when (dependency) {
-        is PsLibraryAndroidDependency -> LibraryDependencyNode(parent, collection, dependency, forceGroupId = false)
-        is PsModuleAndroidDependency -> ModuleDependencyNode(parent, dependency)
+        is PsResolvedLibraryAndroidDependency -> createResolvedLibraryDependencyNode(parent, dependency, forceGroupId = false)
+        is PsResolvedModuleAndroidDependency -> ModuleDependencyNode(parent, dependency)
+        is PsResolvedLibraryJavaDependency ->  createResolvedLibraryDependencyNode(parent, dependency, forceGroupId = false)
+        is PsResolvedModuleJavaDependency -> ModuleDependencyNode(parent, dependency)
         else -> null
       }
 
-    fun getDependencyParsedModels(model: PsDependency): List<DependencyModel> =
+    fun getDependencyParsedModels(model: PsBaseDependency): List<DependencyModel> =
       when (model) {
         is PsResolvedDependency -> model.getParsedModels()
         is PsDeclaredDependency -> listOf(model.parsedModel)

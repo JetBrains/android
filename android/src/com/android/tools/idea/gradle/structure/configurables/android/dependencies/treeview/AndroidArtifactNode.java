@@ -17,28 +17,36 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
+import com.android.tools.idea.gradle.structure.model.PsChildModel;
+import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
-import com.android.tools.idea.gradle.structure.model.android.PsVariant;
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencyNodes.createNodesForResolvedDependencies;
+import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencyNodesKt.createNodesForResolvedDependencies;
 
-public class AndroidArtifactNode extends AbstractPsModelNode<PsAndroidArtifact> {
+public class AndroidArtifactNode extends AbstractPsModelNode<PsChildModel> {
   @NotNull private final List<AbstractPsModelNode<?>> myChildren;
 
   public AndroidArtifactNode(@NotNull AbstractPsNode parent, @NotNull PsAndroidArtifact artifact) {
     super(parent, artifact, parent.getUiSettings());
     setAutoExpandNode(!(parent instanceof AndroidArtifactNode));
-    myChildren = createNodesForResolvedDependencies(this, artifact);
+    myChildren = createNodesForResolvedDependencies(this, artifact.getDependencies(), artifact);
+  }
+
+  public AndroidArtifactNode(@NotNull AbstractPsNode parent, @NotNull PsJavaModule javaModule) {
+    super(parent, javaModule, parent.getUiSettings());
+    setAutoExpandNode(!(parent instanceof AndroidArtifactNode));
+    myChildren = createNodesForResolvedDependencies(this, javaModule.getResolvedDependencies(), null);
   }
 
   @Override
   @NotNull
-  protected String nameOf(PsAndroidArtifact artifact) {
-    PsVariant variant = artifact.getParent();
+  protected String nameOf(PsChildModel artifact) {
+    PsModel variant = artifact.getParent();
     return variant.getName() + artifact.getName();
   }
 
