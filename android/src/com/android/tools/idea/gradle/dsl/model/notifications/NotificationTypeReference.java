@@ -33,6 +33,8 @@ public class NotificationTypeReference<T extends BuildModelNotification> {
     new NotificationTypeReference<>(IncompleteParsingNotification.class, IncompleteParsingNotification::new);
   public static final NotificationTypeReference<PropertyPlacementNotification> PROPERTY_PLACEMENT =
     new NotificationTypeReference<>(PropertyPlacementNotification.class, PropertyPlacementNotification::new);
+  public static final NotificationTypeReference<InvalidExpressionNotification> INVALID_EXPRESSION =
+    new NotificationTypeReference<>(InvalidExpressionNotification.class, InvalidExpressionNotification::new);
 
   @NotNull private final Class<T> myClazz;
   @NotNull private final Producer<T> myConstructor;
