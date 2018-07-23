@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomCollationNameImpl extends AbstractRoomNameElement implements RoomCollationName {
 
-  public RoomCollationNameImpl(ASTNode node) {
+  public RoomCollationNameImpl(@NotNull ASTNode node) {
     super(node);
   }
 

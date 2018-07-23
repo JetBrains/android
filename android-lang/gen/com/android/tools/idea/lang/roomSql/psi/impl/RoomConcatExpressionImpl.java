@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomConcatExpressionImpl extends RoomExpressionImpl implements RoomConcatExpression {
 
-  public RoomConcatExpressionImpl(ASTNode node) {
+  public RoomConcatExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

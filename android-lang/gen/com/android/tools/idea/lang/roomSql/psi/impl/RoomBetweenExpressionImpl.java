@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomBetweenExpressionImpl extends RoomExpressionImpl implements RoomBetweenExpression {
 
-  public RoomBetweenExpressionImpl(ASTNode node) {
+  public RoomBetweenExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

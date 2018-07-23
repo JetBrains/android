@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomForeignKeyClauseImpl extends ASTWrapperPsiElement implements RoomForeignKeyClause {
 
-  public RoomForeignKeyClauseImpl(ASTNode node) {
+  public RoomForeignKeyClauseImpl(@NotNull ASTNode node) {
     super(node);
   }
 

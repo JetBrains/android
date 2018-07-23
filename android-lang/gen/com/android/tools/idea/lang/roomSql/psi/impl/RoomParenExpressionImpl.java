@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomParenExpressionImpl extends RoomExpressionImpl implements RoomParenExpression {
 
-  public RoomParenExpressionImpl(ASTNode node) {
+  public RoomParenExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

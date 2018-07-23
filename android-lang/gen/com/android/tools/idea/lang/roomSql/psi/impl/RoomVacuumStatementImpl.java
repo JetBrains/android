@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomVacuumStatementImpl extends ASTWrapperPsiElement implements RoomVacuumStatement {
 
-  public RoomVacuumStatementImpl(ASTNode node) {
+  public RoomVacuumStatementImpl(@NotNull ASTNode node) {
     super(node);
   }
 

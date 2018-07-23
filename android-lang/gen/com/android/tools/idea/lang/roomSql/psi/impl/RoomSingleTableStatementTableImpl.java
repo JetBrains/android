@@ -31,7 +31,7 @@ import com.android.tools.idea.lang.roomSql.resolution.SqlTable;
 
 public class RoomSingleTableStatementTableImpl extends ASTWrapperPsiElement implements RoomSingleTableStatementTable {
 
-  public RoomSingleTableStatementTableImpl(ASTNode node) {
+  public RoomSingleTableStatementTableImpl(@NotNull ASTNode node) {
     super(node);
   }
 

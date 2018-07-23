@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomConflictClauseImpl extends ASTWrapperPsiElement implements RoomConflictClause {
 
-  public RoomConflictClauseImpl(ASTNode node) {
+  public RoomConflictClauseImpl(@NotNull ASTNode node) {
     super(node);
   }
 

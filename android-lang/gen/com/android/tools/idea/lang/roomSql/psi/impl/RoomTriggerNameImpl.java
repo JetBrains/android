@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomTriggerNameImpl extends AbstractRoomNameElement implements RoomTriggerName {
 
-  public RoomTriggerNameImpl(ASTNode node) {
+  public RoomTriggerNameImpl(@NotNull ASTNode node) {
     super(node);
   }
 

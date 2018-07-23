@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomDropTriggerStatementImpl extends ASTWrapperPsiElement implements RoomDropTriggerStatement {
 
-  public RoomDropTriggerStatementImpl(ASTNode node) {
+  public RoomDropTriggerStatementImpl(@NotNull ASTNode node) {
     super(node);
   }
 

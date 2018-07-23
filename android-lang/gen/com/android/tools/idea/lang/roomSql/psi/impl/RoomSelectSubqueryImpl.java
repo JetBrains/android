@@ -31,7 +31,7 @@ import com.android.tools.idea.lang.roomSql.resolution.SqlTable;
 
 public class RoomSelectSubqueryImpl extends ASTWrapperPsiElement implements RoomSelectSubquery {
 
-  public RoomSelectSubqueryImpl(ASTNode node) {
+  public RoomSelectSubqueryImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomEquivalenceExpressionImpl extends RoomExpressionImpl implements RoomEquivalenceExpression {
 
-  public RoomEquivalenceExpressionImpl(ASTNode node) {
+  public RoomEquivalenceExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

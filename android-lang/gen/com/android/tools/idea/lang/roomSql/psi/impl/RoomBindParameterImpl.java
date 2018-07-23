@@ -31,7 +31,7 @@ import com.intellij.psi.PsiReference;
 
 public class RoomBindParameterImpl extends ASTWrapperPsiElement implements RoomBindParameter {
 
-  public RoomBindParameterImpl(ASTNode node) {
+  public RoomBindParameterImpl(@NotNull ASTNode node) {
     super(node);
   }
 

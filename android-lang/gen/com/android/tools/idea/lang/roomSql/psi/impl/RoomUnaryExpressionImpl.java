@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomUnaryExpressionImpl extends RoomExpressionImpl implements RoomUnaryExpression {
 
-  public RoomUnaryExpressionImpl(ASTNode node) {
+  public RoomUnaryExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 
