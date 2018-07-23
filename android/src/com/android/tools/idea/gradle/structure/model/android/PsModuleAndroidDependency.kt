@@ -29,7 +29,7 @@ class PsDeclaredModuleAndroidDependency internal constructor(
   override val parsedModel: ModuleDependencyModel
 ) : PsModuleAndroidDependency(
   parent, gradlePath, artifacts
-), PsDeclaredDependency {
+), PsDeclaredModuleDependency {
   override val name: String = parsedModel.name()
   override val isDeclared: Boolean = true
   override val joinedConfigurationNames: String = configurationName
@@ -38,13 +38,13 @@ class PsDeclaredModuleAndroidDependency internal constructor(
 class PsResolvedModuleAndroidDependency internal constructor(
   parent: PsAndroidModule,
   gradlePath: String,
-  artifacts: Collection<PsAndroidArtifact>,
+  artifact: PsAndroidArtifact,
   private val moduleVariant: String?,
   targetModule: PsModule,
   override val declaredDependencies: List<PsDeclaredDependency>
 ) : PsModuleAndroidDependency(
-  parent, gradlePath, artifacts
-), PsResolvedDependency {
+  parent, gradlePath, listOf(artifact)
+), PsResolvedModuleDependency {
   override val name: String = targetModule.name
   override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
 

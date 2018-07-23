@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model
 import javax.swing.Icon
 
 interface PsBaseDependency : PsModel {
+  override val parent: PsModule
   val joinedConfigurationNames: String
   fun toText(type: PsDependency.TextType): String
   override val icon: Icon

@@ -20,7 +20,6 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.android.tools.idea.gradle.structure.model.*
-import com.google.common.collect.ImmutableList
 
 
 /**
@@ -161,7 +160,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
       PsResolvedModuleAndroidDependency(
         parent,
         gradlePath,
-        ImmutableList.of(artifact),
+        artifact,
         projectVariant,
         module,
         matchingParsedDependency)

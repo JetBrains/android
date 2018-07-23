@@ -18,3 +18,7 @@ package com.android.tools.idea.gradle.structure.model
 interface PsModuleDependency : PsBaseDependency {
   val gradlePath: String
 }
+
+interface PsDeclaredModuleDependency: PsDeclaredDependency, PsModuleDependency
+interface PsResolvedModuleDependency: PsResolvedDependency, PsModuleDependency
+
