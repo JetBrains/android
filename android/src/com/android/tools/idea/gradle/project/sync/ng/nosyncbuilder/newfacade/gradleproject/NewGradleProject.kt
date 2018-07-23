@@ -29,10 +29,12 @@ data class NewGradleProject(
   private val tasks: Collection<NewGradleTask>,
   private val name: String,
   private val projectIdentifier: ProjectIdentifier,
-  private val description: String?,
-  private var parent: GradleProject? = null,
-  private var children: MutableSet<NewGradleProject> = mutableSetOf()
+  private val description: String?
 ) : GradleProject {
+
+  // This is not in the main constructor because it breaks toString() etc. with infinite recursion
+  private var parent: GradleProject? = null
+  private var children: MutableSet<NewGradleProject> = mutableSetOf()
 
   constructor(proto: GradleProjectProto.GradleProject, converter: PathConverter): this(
     NewGradleScript(proto.buildScript, converter),
