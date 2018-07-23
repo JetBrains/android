@@ -81,16 +81,6 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
   }
 
   @Override
-  public boolean isModified() {
-    return myModule.isModified();
-  }
-
-  @Override
-  public void apply() throws ConfigurationException {
-    myModule.applyChanges();
-  }
-
-  @Override
   @NotNull
   public Icon getIcon(boolean expanded) {
     return AllIcons.Nodes.ModuleGroup;
