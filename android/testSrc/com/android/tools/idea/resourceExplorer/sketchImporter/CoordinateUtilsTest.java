@@ -17,15 +17,15 @@ package com.android.tools.idea.resourceExplorer.sketchImporter;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.logic.StringPoint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.logic.VectorPathBuilder;
-import com.android.utils.Pair;
 import org.junit.Test;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
-import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.CoordinateUtils.*;
-import static org.junit.Assert.*;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.CoordinateUtils.calculateAbsolutePositionString;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.CoordinateUtils.calculateStringFrameCorners;
+import static org.junit.Assert.assertEquals;
 
 public class CoordinateUtilsTest {
 
@@ -87,7 +87,7 @@ public class CoordinateUtilsTest {
 
     ArrayList<StringPoint> resultCorners = calculateStringFrameCorners(frame);
 
-    for(int i = 0; i < resultCorners.size(); i++){
+    for (int i = 0; i < resultCorners.size(); i++) {
       assertEquals(corners.get(i).getX(), resultCorners.get(i).getX());
       assertEquals(corners.get(i).getY(), resultCorners.get(i).getY());
     }

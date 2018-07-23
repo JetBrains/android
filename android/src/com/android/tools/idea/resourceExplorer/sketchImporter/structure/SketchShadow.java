@@ -16,43 +16,59 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
-public class SketchFill {
+public class SketchShadow {
   private final boolean isEnabled;
+  private final int blurRadius;
   private final Color color;
-  /**
-   * Flat Color: 0
-   * Gradient: 1
-   */
-  private final short fillType;
-  private final SketchGradient gradient;
+  private final SketchContextSettings contextSettings;
+  private final int offsetX;
+  private final int offsetY;
+  private final short spread;
 
-  public SketchFill(boolean isEnabled,
-                    @NotNull Color color,
-                    short fillType,
-                    @Nullable SketchGradient gradient) {
-    this.isEnabled = isEnabled;
+  public SketchShadow(boolean enabled,
+                      int blurRadius,
+                      @NotNull Color color,
+                      @NotNull SketchContextSettings settings,
+                      int offsetX,
+                      int offsetY,
+                      short spread) {
+    isEnabled = enabled;
+    this.blurRadius = blurRadius;
     this.color = color;
-    this.fillType = fillType;
-    this.gradient = gradient;
+    contextSettings = settings;
+    this.offsetX = offsetX;
+    this.offsetY = offsetY;
+    this.spread = spread;
   }
 
   public boolean isEnabled() {
     return isEnabled;
   }
 
+  public int getBlurRadius() {
+    return blurRadius;
+  }
+
   public Color getColor() {
     return color;
   }
 
-  public short getFillType() {
-    return fillType;
+  public SketchContextSettings getContextSettings() {
+    return contextSettings;
   }
 
-  public SketchGradient getGradient() {
-    return gradient;
+  public int getOffsetX() {
+    return offsetX;
+  }
+
+  public int getOffsetY() {
+    return offsetY;
+  }
+
+  public short getSpread() {
+    return spread;
   }
 }

@@ -18,27 +18,25 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.geom.Point2D;
-
 public class SketchCurvePoint {
   @SerializedName("do_objectID")
   private final int objectId;
   private final int cornerRadius;
-  private final Point2D.Double curveFrom;
+  private final SketchPoint2D curveFrom;
   private final short curveMode;
-  private final Point2D.Double curveTo;
+  private final SketchPoint2D curveTo;
   private final boolean hasCurveFrom;
   private final boolean hasCurveTo;
-  private final Point2D.Double point;
+  private final SketchPoint2D point;
 
   public SketchCurvePoint(int objectId,
                           int cornerRadius,
-                          @NotNull Point2D.Double curveFrom,
+                          @NotNull SketchPoint2D curveFrom,
                           short curveMode,
-                          @NotNull Point2D.Double curveTo,
+                          @NotNull SketchPoint2D curveTo,
                           boolean hasCurveFrom,
                           boolean hasCurveTo,
-                          @NotNull Point2D.Double point) {
+                          @NotNull SketchPoint2D point) {
     this.objectId = objectId;
     this.cornerRadius = cornerRadius;
     this.curveFrom = curveFrom;
@@ -57,7 +55,7 @@ public class SketchCurvePoint {
     return cornerRadius;
   }
 
-  public Point2D.Double getCurveFrom() {
+  public SketchPoint2D getCurveFrom() {
     return curveFrom;
   }
 
@@ -65,7 +63,7 @@ public class SketchCurvePoint {
     return curveMode;
   }
 
-  public Point2D.Double getCurveTo() {
+  public SketchPoint2D getCurveTo() {
     return curveTo;
   }
 
@@ -77,7 +75,7 @@ public class SketchCurvePoint {
     return hasCurveTo;
   }
 
-  public Point2D.Double getPoint() {
+  public SketchPoint2D getPoint() {
     return point;
   }
 }

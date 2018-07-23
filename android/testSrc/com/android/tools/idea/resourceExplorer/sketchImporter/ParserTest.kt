@@ -18,8 +18,8 @@ package com.android.tools.idea.resourceExplorer.sketchImporter
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.*
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Test
-import java.awt.geom.Point2D
-import kotlin.test.*
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class ParserTest {
   private val errorMargin = 0.0000001
@@ -175,20 +175,20 @@ class ParserTest {
     val points = ((page.layers[1] as SketchShapeGroup).layers[0] as SketchShapePath).points
 
     assertEquals(0, points[0].cornerRadius)
-    assertEquals(Point2D.Double(0.0034722222222222246, 1.0), points[0].curveFrom)
+    assertEquals(SketchPoint2D(0.0034722222222222246, 1.0), points[0].curveFrom)
     assertEquals(1.0, points[0].curveFrom.y)
     assertEquals(1, points[0].curveMode)
-    assertEquals(Point2D.Double(0.0034722222222222246, 1.0), points[0].curveFrom)
+    assertEquals(SketchPoint2D(0.0034722222222222246, 1.0), points[0].curveFrom)
     assertEquals(false, points[0].hasCurveFrom())
     assertEquals(false, points[0].hasCurveTo())
-    assertEquals(Point2D.Double(0.0017361111111111123, 0.99374999999999969), points[0].point)
+    assertEquals(SketchPoint2D(0.0017361111111111123, 0.99374999999999969), points[0].point)
 
     assertEquals(0, points[1].cornerRadius)
-    assertEquals(Point2D.Double(0.0069444444444444493, 1.0125000000000002), points[1].curveFrom)
+    assertEquals(SketchPoint2D(0.0069444444444444493, 1.0125000000000002), points[1].curveFrom)
     assertEquals(1, points[1].curveMode)
-    assertEquals(Point2D.Double(0.0069444444444444493, 1.0125000000000002), points[1].curveFrom)
+    assertEquals(SketchPoint2D(0.0069444444444444493, 1.0125000000000002), points[1].curveFrom)
     assertEquals(false, points[1].hasCurveFrom())
     assertEquals(false, points[1].hasCurveTo())
-    assertEquals(Point2D.Double(0.99826388888888884, 0.0062500000000000003), points[1].point)
+    assertEquals(SketchPoint2D(0.99826388888888884, 0.0062500000000000003), points[1].point)
   }
 }
