@@ -358,22 +358,22 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     val paidDebug = appModule.findVariant("paidDebug")
     assertNotNull(paidDebug)
-    var flavors = paidDebug!!.productFlavors
+    var flavors = paidDebug!!.productFlavorNames
     assertThat(flavors).containsExactly("paid")
 
     val paidRelease = appModule.findVariant("paidRelease")
     assertNotNull(paidRelease)
-    flavors = paidRelease!!.productFlavors
+    flavors = paidRelease!!.productFlavorNames
     assertThat(flavors).containsExactly("paid")
 
     val basicDebug = appModule.findVariant("basicDebug")
     assertNotNull(basicDebug)
-    flavors = basicDebug!!.productFlavors
+    flavors = basicDebug!!.productFlavorNames
     assertThat(flavors).containsExactly("basic")
 
     val basicRelease = appModule.findVariant("basicRelease")
     assertNotNull(basicRelease)
-    flavors = basicRelease!!.productFlavors
+    flavors = basicRelease!!.productFlavorNames
     assertThat(flavors).containsExactly("basic")
   }
 

@@ -15,23 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.structure.model.PsDependency
-
-abstract class PsAndroidDependency internal constructor(
-  final override val parent: PsAndroidModule,
-  containers: Collection<PsAndroidArtifact>
-) : PsDependency() {
-
-  private val containerCollection = mutableSetOf<PsArtifactKey>()
-  val containers: Collection<PsArtifactKey> = containerCollection
-
-  init {
-    for (container in containers) {
-      addContainer(container)
-    }
-  }
-
-  private fun addContainer(artifact: PsAndroidArtifact) {
-    containerCollection.add(PsArtifactKey(artifact.parent.key, artifact.resolvedName))
-  }
+data class PsArtifactKey(
+  val variantKey: PsVariantKey,
+  val artifactName: String
+) {
+  fun findArtifact(module: PsAndroidModule): PsAndroidArtifact? = module.findVariant(variantKey)?.findArtifact(artifactName)
+  override fun toString(): String = "${variantKey.name} $artifactName"
 }
