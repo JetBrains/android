@@ -38,6 +38,9 @@ import com.android.tools.profilers.energy.EnergyUsageDataSeries
 import com.android.tools.profilers.energy.MergedEnergyEventsDataSeries
 import com.android.tools.profilers.event.ActivityEventDataSeries
 import com.android.tools.profilers.event.SimpleEventDataSeries
+import com.android.tools.profilers.network.NetworkOpenConnectionsDataSeries
+import com.android.tools.profilers.network.NetworkRadioDataSeries
+import com.android.tools.profilers.network.NetworkTrafficDataSeries
 import io.grpc.inprocess.InProcessChannelBuilder
 import org.junit.After
 import org.junit.Before
@@ -101,7 +104,11 @@ class DataSeriesPerformanceTest {
                                                                    EnergyDuration.Kind.JOB)),
                                  Pair("Cpu Usage", CpuUsageDataSeries(client.cpuClient, false, session)),
                                  Pair("Cpu Thread Count", CpuThreadCountDataSeries(client.cpuClient, session)),
-                                 Pair("Cpu Thread State", ThreadStateDataSeries(client.cpuClient, session, 1))
+                                 Pair("Cpu Thread State", ThreadStateDataSeries(client.cpuClient, session, 1)),
+                                 Pair("Network Open Connections", NetworkOpenConnectionsDataSeries(client.networkClient, session)),
+                                 Pair("Network Radio", NetworkRadioDataSeries(client.networkClient, session)),
+                                 Pair("Network Traffic",
+                                      NetworkTrafficDataSeries(client.networkClient, session, NetworkTrafficDataSeries.Type.BYTES_RECEIVED))
     )
     val nameToMetrics = mutableMapOf<String, Metric>()
     val queryStep = QUERY_INTERVAL / 2
