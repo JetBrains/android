@@ -31,7 +31,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ui.ColumnInfo;
 
-import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -71,7 +70,7 @@ public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
   public void testShowArtifactDependencySpec() {
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.Companion.create("com.android.support", "appcompat-v7", "23.1.0");
     when(myLibraryDependency.getSpec()).thenReturn(spec);
-    when(myLibraryDependency.toText(PLAIN_TEXT)).thenReturn("com.android.support:appcompat-v7:23.1.0");
+    when(myLibraryDependency.toText()).thenReturn("com.android.support:appcompat-v7:23.1.0");
 
     ColumnInfo[] columnInfos = myTableModel.getColumnInfos();
 

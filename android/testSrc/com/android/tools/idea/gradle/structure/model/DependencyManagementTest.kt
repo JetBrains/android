@@ -714,8 +714,7 @@ private fun <T> PsDeclaredDependencyCollection<*, T, *>.findLibraryDependency(
   configuration: String? = null
 ): List<T>?
   where T : PsDeclaredDependency,
-        T : PsLibraryDependency,
-        T : PsDependency =
+        T : PsLibraryDependency =
   PsArtifactDependencySpec.create(compactNotation)?.let { spec ->
     findLibraryDependencies(
       spec.group,
@@ -727,8 +726,7 @@ private fun <T> PsDeclaredDependencyCollection<*, T, *>.findLibraryDependency(
 
 private fun <T> PsResolvedDependencyCollection<*, *, T, *>.findLibraryDependency(compactNotation: String): List<T>?
   where T : PsResolvedDependency,
-        T : PsLibraryDependency,
-        T : PsDependency =
+        T : PsLibraryDependency =
   PsArtifactDependencySpec.create(compactNotation)?.let { spec ->
     findLibraryDependencies(
       spec.group,

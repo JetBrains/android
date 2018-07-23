@@ -33,7 +33,6 @@ fun <T> createResolvedLibraryDependencyNode(
   where T : PsResolvedLibraryDependency,
         T : PsLibraryDependency,
         T : PsResolvedDependency,
-        T : PsDependency,
         T : PsBaseDependency {
 
   fun setUpChildren(parent: AbstractPsNode, dependency: T): List<LibraryDependencyNode> =
@@ -60,7 +59,6 @@ fun <T> createLibraryDependencyNode(
   forceGroupId: Boolean
 ): LibraryDependencyNode
   where T : PsLibraryDependency,
-        T : PsDependency,
         T : PsBaseDependency {
 
   val name = getText(parent, dependencies[0], forceGroupId, parent.uiSettings)

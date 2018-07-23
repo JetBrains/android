@@ -28,7 +28,7 @@ class PsDeclaredModuleJavaDependency(
   override val name: String get() = parsedModel.name()
   override val isDeclared: Boolean = true
   override val joinedConfigurationNames: String get() = parsedModel.configurationName()
-  override fun toText(type: TextType): String = name
+  override fun toText(): String = name
   override val icon: Icon = parent.parent.findModuleByGradlePath(gradlePath)?.icon ?: PlatformIcons.LIBRARY_ICON
   override val gradlePath: String get() = parsedModel.path().forceString()
   override val configurationName: String get() = parsedModel.configurationName()
@@ -44,7 +44,7 @@ class PsResolvedModuleJavaDependency(
   override val name: String get() = targetModule.name
   override val isDeclared: Boolean get() = declaredDependencies.isNotEmpty()
   override val joinedConfigurationNames: String = scope
-  override fun toText(type: TextType): String = name
+  override fun toText(): String = name
   override val icon: Icon = parent.parent.findModuleByGradlePath(gradlePath)?.icon ?: PlatformIcons.LIBRARY_ICON
   override fun getParsedModels(): List<DependencyModel> = declaredDependencies.map { it.parsedModel }
 }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.details;
 
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsDependency;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +39,7 @@ public class MultipleLibraryDependenciesDetails implements DependencyDetails {
   }
 
   @Override
-  public void display(@NotNull PsDependency dependency) {
+  public void display(@NotNull PsBaseDependency dependency) {
     myDependency = (PsLibraryDependency)dependency;
 
     PsArtifactDependencySpec resolvedSpec = myDependency.getSpec();

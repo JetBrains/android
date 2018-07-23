@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.structure.model.*
-import com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchResults
@@ -122,9 +121,9 @@ abstract class PsLibraryAndroidDependency internal constructor(
 
   override val name: String get() = spec.name
 
-  override fun toText(type: PsDependency.TextType): String = spec.toString()
+  override fun toText(): String = spec.toString()
 
-  override fun toString(): String = toText(PLAIN_TEXT)
+  override fun toString(): String = toText()
 }
 
 fun ArtifactRepositorySearchResults.toVersionValueDescriptors(): List<ValueDescriptor<String>> =
