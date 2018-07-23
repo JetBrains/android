@@ -17,17 +17,14 @@ package com.android.tools.idea.gradle.structure.model.java
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
-import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
-import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.PsModuleDependency
-import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
+import com.android.tools.idea.gradle.structure.model.*
 import com.intellij.util.PlatformIcons
 import javax.swing.Icon
 
 class PsDeclaredModuleJavaDependency(
   parent: PsJavaModule,
   override val parsedModel: ModuleDependencyModel
-) : PsJavaDependency(parent), PsModuleDependency, PsDeclaredDependency {
+) : PsJavaDependency(parent), PsDeclaredModuleDependency {
   override val name: String get() = parsedModel.name()
   override val isDeclared: Boolean = true
   override val joinedConfigurationNames: String get() = parsedModel.configurationName()
@@ -43,7 +40,7 @@ class PsResolvedModuleJavaDependency(
   scope: String,
   private val targetModule: PsModule,
   override val declaredDependencies: List<PsDeclaredModuleJavaDependency>
-  ) : PsJavaDependency(parent), PsModuleDependency, PsResolvedDependency {
+  ) : PsJavaDependency(parent), PsResolvedModuleDependency {
   override val name: String get() = targetModule.name
   override val isDeclared: Boolean get() = declaredDependencies.isNotEmpty()
   override val joinedConfigurationNames: String = scope
