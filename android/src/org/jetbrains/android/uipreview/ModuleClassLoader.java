@@ -458,7 +458,10 @@ public final class ModuleClassLoader extends RenderClassLoader {
       LOG.debug(String.format("ModuleClassLoader.get(%s)", anonymize(module)));
     }
 
-    ModuleClassLoader loader = ourCache.get(module);
+    ModuleClassLoader loader;
+    synchronized (ourCache) {
+      loader = ourCache.get(module);
+    }
     if (loader != null) {
       if (library != loader.myLibrary) {
         if (LOG.isDebugEnabled()) {
@@ -496,7 +499,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
         LOG.debug("  New class loader");
       }
       loader = new ModuleClassLoader(library, module);
-      ourCache.put(module, loader);
+      synchronized (ourCache) {
+        ourCache.put(module, loader);
+      }
     } else if (LOG.isDebugEnabled()) {
       LOG.debug("  Re-used class loader");
     }
@@ -506,12 +511,16 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   /** Flush any cached class loaders */
   public static void clearCache() {
-    ourCache.clear();
+    synchronized (ourCache) {
+      ourCache.clear();
+    }
   }
 
   /** Remove the cached class loader for the module. */
   public static void clearCache(Module module) {
-    ourCache.remove(module);
+    synchronized (ourCache) {
+      ourCache.remove(module);
+    }
   }
 
   public boolean isClassLoaded(String className) {
@@ -520,5 +529,5 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   /** Temporary hack: Store this in a weak hash map cached by modules. In the next version we should move this
    * into a proper persistent render service. */
-  private static Map<Module,ModuleClassLoader> ourCache = ContainerUtil.createWeakMap();
+  private static final Map<Module,ModuleClassLoader> ourCache = ContainerUtil.createWeakMap();
 }
