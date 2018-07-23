@@ -47,6 +47,7 @@ abstract class PsModule protected constructor(
   private var myVariables: PsVariablesScope? = null
   private val dependenciesChangeEventDispatcher = EventDispatcher.create(DependenciesChangeListener::class.java)
 
+  abstract val dependencies: PsDependencyCollection<PsModule, *, *>
   val parsedDependencies: PsParsedDependencies
     get() = myParsedDependencies ?: PsParsedDependencies(parsedModel).also { myParsedDependencies = it }
 

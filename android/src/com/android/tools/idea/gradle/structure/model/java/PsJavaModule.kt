@@ -43,7 +43,7 @@ class PsJavaModule(
     myDependencyCollection = null
   }
 
-  val dependencies: PsDeclaredJavaDependencyCollection
+  override val dependencies: PsDeclaredJavaDependencyCollection
     get() = myDependencyCollection ?: PsDeclaredJavaDependencyCollection(this).also { myDependencyCollection = it }
 
   val resolvedDependencies: PsResolvedJavaDependencyCollection
