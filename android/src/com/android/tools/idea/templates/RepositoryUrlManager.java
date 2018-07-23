@@ -95,7 +95,7 @@ public class RepositoryUrlManager {
   }
 
   @VisibleForTesting
-  RepositoryUrlManager(GoogleMavenRepository repository, boolean forceRepositoryChecks) {
+  public RepositoryUrlManager(GoogleMavenRepository repository, boolean forceRepositoryChecks) {
     myForceRepositoryChecksInTests = forceRepositoryChecks;
     myGoogleMavenRepository = repository;
   }
