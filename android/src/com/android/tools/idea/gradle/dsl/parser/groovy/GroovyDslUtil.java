@@ -404,7 +404,6 @@ public final class GroovyDslUtil {
       map.addAfter(GroovyPsiElementFactory.getInstance(map.getProject()).createWhiteSpace(), map.getLBrack());
       final ASTNode astNode = map.getNode();
       astNode.addLeaf(mCOMMA, ",", map.getLBrack().getNextSibling().getNode());
-      CodeStyleManager.getInstance(map.getProject()).reformat(map);
     }
     else {
       // Empty maps are defined by [:], we need to delete the colon before adding the first element.
