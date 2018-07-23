@@ -5,12 +5,13 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.projectmodel.AarLibrary;
+import com.android.projectmodel.Library;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
@@ -300,8 +301,11 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   private static void registerResources(@NotNull Module module) {
-    for (AarLibrary library : new HashSet<>(AndroidProjectModelUtils.findAarDependencies(module).values())) {
-      registerLibraryResources(module, library);
+    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+    for (Library library : moduleSystem.getDependentLibraries()) {
+      if (library instanceof AarLibrary) {
+        registerLibraryResources(module, (AarLibrary)library);
+      }
     }
   }
 
