@@ -33,6 +33,7 @@ class TargetTransitiveDependencyNode(
   override fun update(presentation: PresentationData) {
     super.update(presentation)
     presentation.clearText()
+    presentation.addText("(via) ", SimpleTextAttributes.GRAY_ATTRIBUTES)
     presentation.addText("${spec.name}${SdkConstants.GRADLE_PATH_SEPARATOR}${spec.version}", SimpleTextAttributes.REGULAR_ATTRIBUTES)
     if (spec.group != null) {
       presentation.addText(" (${spec.group})", SimpleTextAttributes.GRAY_ATTRIBUTES)
