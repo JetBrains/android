@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyp
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.google.common.collect.Lists;
@@ -95,7 +96,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
         if (id == MOUSE_PRESSED) {
           ModuleDependencyNode node = myHyperlinkSupport.getIfHyperlink(e);
           if (node != null) {
-            PsModuleAndroidDependency moduleDependency = node.getFirstModel();
+            PsModuleDependency moduleDependency = node.getFirstModel();
             String name = moduleDependency.getName();
             myContext.setSelectedModule(name, DependencyGraphPanel.this);
             // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.
@@ -200,7 +201,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
     ModuleDependencyNode node = myHyperlinkSupport.getNodeForLocation(x, y);
 
     if (node != null) {
-      PsModuleAndroidDependency moduleDependency = node.getFirstModel();
+      PsModuleDependency moduleDependency = node.getFirstModel();
 
       String name = moduleDependency.getName();
       DefaultActionGroup group = new DefaultActionGroup();

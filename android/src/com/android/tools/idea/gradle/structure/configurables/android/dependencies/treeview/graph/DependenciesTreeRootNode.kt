@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencyNodeComparator
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode
@@ -30,7 +27,7 @@ class DependenciesTreeRootNode(model: PsProject, uiSettings: PsUISettings) : Abs
   private val dependencyNodeComparator: DependencyNodeComparator = DependencyNodeComparator(
     PsDependencyComparator(PsUISettings().apply { DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true }))
 
-  override fun createChildren(): List<AbstractDependencyNode<out PsAndroidDependency>> {
+  override fun createChildren(): List<AbstractDependencyNode<out PsBaseDependency>> {
     val collector = DependencyCollector()
     firstModel.forEachModule(Consumer { module -> collectDependencies(module, collector) })
 
@@ -39,15 +36,15 @@ class DependenciesTreeRootNode(model: PsProject, uiSettings: PsUISettings) : Abs
         .map { (key, dependencies) ->
           when {
             dependencies.distinctBy { it.spec }.size == 1 ->
-              LibraryDependencyNode(this, null, dependencies, forceGroupId = true)
+              createLibraryDependencyNode(this, dependencies, forceGroupId = true)
             else ->
               LibraryGroupDependencyNode(this, key, dependencies).apply {
-                children = dependencies.groupBy { it.spec }.map { (_, list) -> LibraryDependencyNode(this, null, list, false) }
+                children = dependencies.groupBy { it.spec }.map { (_, list) -> createLibraryDependencyNode(this, list, false) }
               }
           }
         }
     val moduleNodes = collector.moduleDependenciesByGradlePath.values
-      .map { ModuleDependencyNode(this, it) }
+      .map { ModuleDependencyNode(this, it.toList()) }
     return (libraryNodes + moduleNodes).sortedWith(dependencyNodeComparator)
   }
 
@@ -65,7 +62,7 @@ class DependenciesTreeRootNode(model: PsProject, uiSettings: PsUISettings) : Abs
 
   class DependencyCollector {
     internal val libraryDependenciesBySpec = mutableMapOf<PsLibraryKey, MutableList<PsLibraryAndroidDependency>>()
-    internal val moduleDependenciesByGradlePath = mutableMapOf<String, MutableList<PsModuleAndroidDependency>>()
+    internal val moduleDependenciesByGradlePath = mutableMapOf<String, MutableList<PsDeclaredModuleAndroidDependency>>()
 
     internal fun add(dependency: PsDeclaredModuleAndroidDependency) {
       addModule(dependency)
@@ -83,7 +80,7 @@ class DependenciesTreeRootNode(model: PsProject, uiSettings: PsUISettings) : Abs
       libraryDependenciesBySpec.getOrPut(dependency.spec.toLibraryKey(), { mutableListOf() }).add(dependency)
     }
 
-    private fun addModule(dependency: PsModuleAndroidDependency) {
+    private fun addModule(dependency: PsDeclaredModuleAndroidDependency) {
       moduleDependenciesByGradlePath.getOrPut(dependency.gradlePath, { mutableListOf() }).add(dependency)
     }
   }

@@ -17,89 +17,100 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
-import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
-import com.android.tools.idea.gradle.structure.model.PsModel
-import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifactDependencyCollection
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency
-import com.android.tools.idea.gradle.structure.model.android.PsResolvedLibraryAndroidDependency
-import com.android.tools.idea.gradle.structure.model.toLibraryKey
-import com.google.common.collect.Lists
+import com.android.tools.idea.gradle.structure.model.*
 import com.intellij.openapi.util.text.StringUtil.isNotEmpty
 import com.intellij.ui.treeStructure.SimpleNode
 
-class LibraryDependencyNode : AbstractDependencyNode<PsLibraryAndroidDependency> {
-  private val myChildren = Lists.newArrayList<AbstractDependencyNode<*>>()
-  private val dependencyComparator: PsDependencyComparator
 
-  constructor(
-    parent: AbstractPsNode,
-    collection: PsAndroidArtifactDependencyCollection?,
-    dependency: PsLibraryAndroidDependency,
-    forceGroupId: Boolean
-  ) : super(parent, dependency) {
-    dependencyComparator = PsDependencyComparator(uiSettings)
-    setUp(dependency, collection, forceGroupId)
-  }
+fun <T> createResolvedLibraryDependencyNode(
+  parent: AbstractPsNode,
+  dependency: T,
+  forceGroupId: Boolean
+): LibraryDependencyNode
+  where T : PsResolvedLibraryDependency,
+        T : PsLibraryDependency,
+        T : PsResolvedDependency,
+        T : PsDependency,
+        T : PsBaseDependency {
 
-  constructor(
-    parent: AbstractPsNode,
-    collection: PsAndroidArtifactDependencyCollection?,
-    dependencies: List<PsLibraryAndroidDependency>,
-    forceGroupId: Boolean
-  ) : super(parent, dependencies) {
-    dependencyComparator = PsDependencyComparator(uiSettings)
-    setUp(dependencies[0], collection, forceGroupId)
-  }
-
-  private fun setUp(dependency: PsLibraryAndroidDependency, collection: PsAndroidArtifactDependencyCollection?, forceGroupId: Boolean) {
-    myName = getText(dependency, forceGroupId)
-    // TODO(b/74380202): Setup children from Pom dependencies without a PsAndroidDependencyCollection.
-    if (collection != null && dependency is PsResolvedLibraryAndroidDependency) {
+  fun setUpChildren(parent: AbstractPsNode, dependency: T): List<LibraryDependencyNode> =
+  // TODO(b/74380202): Setup children from Pom dependencies without a PsAndroidDependencyCollection.
+    if (true) {
       val transitiveDependencies = dependency.getTransitiveDependencies()
-
-      myChildren.addAll(
-        transitiveDependencies
-          .sortedWith(dependencyComparator)
-          .map { transitiveLibrary -> LibraryDependencyNode(this, collection, transitiveLibrary, forceGroupId) })
+      transitiveDependencies
+        .sortedWith(PsDependencyComparator(parent.uiSettings))
+        .map { transitiveLibrary ->
+          @Suppress("UNCHECKED_CAST")
+          createResolvedLibraryDependencyNode(parent, transitiveLibrary as T, forceGroupId)
+        }
     }
+    else listOf()
+
+
+  val name = getText(parent, dependency, forceGroupId, parent.uiSettings)
+  return LibraryDependencyNode(parent, listOf(dependency), name).also { it.children = setUpChildren(it, dependency) }
+}
+
+fun <T> createLibraryDependencyNode(
+  parent: AbstractPsNode,
+  dependencies: List<T>,
+  forceGroupId: Boolean
+): LibraryDependencyNode
+  where T : PsLibraryDependency,
+        T : PsDependency,
+        T : PsBaseDependency {
+
+  val name = getText(parent, dependencies[0], forceGroupId, parent.uiSettings)
+  return LibraryDependencyNode(parent, dependencies, name)
+}
+
+private fun getText(parent: AbstractPsNode, dependency: PsLibraryDependency, forceGroupId: Boolean, uiSettings: PsUISettings): String {
+  val resolvedSpec = dependency.spec
+  // TODO(b/74948244): Display POM dependency promotions correctly.
+  if (dependency is PsResolvedLibraryDependency &&
+      dependency.hasPromotedVersion() &&
+      parent !is LibraryDependencyNode) {
+    // Show only "promoted" version for declared nodes.
+    // TODO(b/74424544): Find a better representation for multiple versions here.
+    val declaredSpecs =
+      (dependency as PsResolvedDependency)
+        .getParsedModels()
+        .filterIsInstance<ArtifactDependencyModel>()
+        .joinToString(separator = ",") { it.version().toString() }
+
+    val version = declaredSpecs + "→" + resolvedSpec.version
+    return getTextForSpec(resolvedSpec.name, version, resolvedSpec.group,
+                          uiSettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID)
   }
+  return resolvedSpec.getDisplayText(forceGroupId || uiSettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID, true)
+}
 
-  private fun getText(dependency: PsLibraryAndroidDependency, forceGroupId: Boolean): String {
-    val resolvedSpec = dependency.spec
-    // TODO(b/74948244): Display POM dependency promotions correctly.
-    if (dependency is PsResolvedLibraryAndroidDependency &&
-        dependency.hasPromotedVersion() &&
-        parent !is LibraryDependencyNode) {
-      // Show only "promoted" version for declared nodes.
-      // TODO(b/74424544): Find a better representation for multiple versions here.
-      val declaredSpecs =
-        (dependency as PsResolvedDependency)
-          .getParsedModels()
-          .filterIsInstance<ArtifactDependencyModel>()
-          .joinToString(separator = ",") { it.version().toString() }
-
-      val version = declaredSpecs + "→" + resolvedSpec.version
-      return getTextForSpec(resolvedSpec.name, version, resolvedSpec.group,
-                            uiSettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID)
-    }
-    return resolvedSpec.getDisplayText(forceGroupId || uiSettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID, true)
-  }
-
-  private fun getTextForSpec(name: String, version: String, group: String?, showGroupId: Boolean): String =
-    buildString {
-      if (showGroupId && isNotEmpty(group)) {
-        append(group)
-        append(GRADLE_PATH_SEPARATOR)
-      }
-      append(name)
+private fun getTextForSpec(name: String, version: String, group: String?, showGroupId: Boolean): String =
+  buildString {
+    if (showGroupId && isNotEmpty(group)) {
+      append(group)
       append(GRADLE_PATH_SEPARATOR)
-      append(version)
     }
+    append(name)
+    append(GRADLE_PATH_SEPARATOR)
+    append(version)
+  }
 
-  override fun getChildren(): Array<SimpleNode> = myChildren.toTypedArray()
+class LibraryDependencyNode(
+  parent: AbstractPsNode,
+  dependencies: List<PsLibraryDependency>,
+  name: String
+) : AbstractDependencyNode<PsLibraryDependency>(parent, dependencies) {
+  init {
+    myName = name
+  }
+
+  internal var children: List<AbstractDependencyNode<*>> = listOf()
+
+  override fun getChildren(): Array<SimpleNode> = children.toTypedArray()
 
   override fun matches(model: PsModel): Boolean {
     return when (model) {

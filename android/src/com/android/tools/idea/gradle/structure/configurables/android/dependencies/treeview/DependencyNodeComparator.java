@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
@@ -30,8 +30,8 @@ public class DependencyNodeComparator implements Comparator<AbstractDependencyNo
 
   @Override
   public int compare(AbstractDependencyNode n1, AbstractDependencyNode n2) {
-    PsAndroidDependency d1 = (PsAndroidDependency)n1.getFirstModel();
-    PsAndroidDependency d2 = (PsAndroidDependency)n2.getFirstModel();
+    PsBaseDependency d1 = (PsBaseDependency)n1.getFirstModel();
+    PsBaseDependency d2 = (PsBaseDependency)n2.getFirstModel();
     return myDependencyComparator.compare(d1, d2);
   }
 }
