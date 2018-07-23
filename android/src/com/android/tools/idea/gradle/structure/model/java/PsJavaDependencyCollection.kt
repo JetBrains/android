@@ -27,7 +27,7 @@ interface PsJavaDependencyCollection<out LibraryDependencyT, out ModuleDependenc
         LibraryDependencyT : PsLibraryDependency,
         ModuleDependencyT : PsJavaDependency,
         ModuleDependencyT : PsModuleDependency {
-  val items: List<PsJavaDependency> get() = modules + libraries
+  override val items: List<PsJavaDependency> get() = modules + libraries
 }
 
 class PsDeclaredJavaDependencyCollection(parent: PsJavaModule)
