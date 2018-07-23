@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
 import com.intellij.ide.projectView.PresentationData
+import com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
 import com.intellij.ui.treeStructure.SimpleNode
 
@@ -35,6 +36,7 @@ internal class TargetConfigurationNode(
   override fun update(presentation: PresentationData) {
     super.update(presentation)
     presentation.clearText()
+    presentation.addText("(by) ", GRAY_ATTRIBUTES)
     presentation.addText(myName, REGULAR_ATTRIBUTES)
   }
 }
