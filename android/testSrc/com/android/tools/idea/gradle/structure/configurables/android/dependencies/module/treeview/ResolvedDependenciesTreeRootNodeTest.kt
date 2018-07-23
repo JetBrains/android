@@ -134,6 +134,32 @@ class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
     assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
   }
 
+  fun testTreeStructure_javaModule() {
+    val module = project.findModuleByGradlePath(":jModuleZ")!!
+    val node = ResolvedDependenciesTreeRootNode(module, PsUISettings())
+
+    // Note: indentation matters!
+    val expectedProjectStructure = """
+jModuleZ
+    testTreeStructure_javaModulejModuleZ
+        lib4:0.6
+        jModuleK
+            lib3:0.9.1
+                lib4:0.9.1
+            lib4:0.9.1
+            jModuleL
+                lib3:1.0
+                    lib4:1.0
+        jModuleL
+            lib3:1.0
+                lib4:1.0
+        nestedZ
+            lib4:0.6""".trimIndent()
+    val treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
+    // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
+    assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
+  }
+
   fun testLibraryMatchingStructure() {
     val appModule = project.findModuleByGradlePath(":mainModule") as PsAndroidModule
     val lib1_09 = appModule.dependencies.findLibraryDependencies("com.example.libs", "lib1").firstOrNull { it.spec.version == "0.9.1" }

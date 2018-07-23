@@ -19,19 +19,25 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode
+import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsVariant
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 
-class ResolvedDependenciesTreeRootNode(module: PsAndroidModule, uiSettings: PsUISettings) :
-  AbstractPsResettableNode<PsAndroidModule>(module, uiSettings) {
+class ResolvedDependenciesTreeRootNode(val module: PsModule, uiSettings: PsUISettings) :
+  AbstractPsResettableNode<PsModule>(module, uiSettings) {
 
-  override fun createChildren(): List<AbstractPsModelNode<*>> {
-    val variantsByName = mutableMapOf<String, PsVariant>()
-    for (module in models) {
-      module.variants.forEach { variant -> variantsByName[variant.name] = variant }
+  override fun createChildren(): List<AbstractPsModelNode<*>> =
+    when (module) {
+      is PsAndroidModule -> {
+        createChildren(module.variants.associateBy { it.name })
+      }
+      is PsJavaModule -> {
+        listOf(AndroidArtifactNode(this, module))
+      }
+      else -> listOf()
     }
-    return createChildren(variantsByName)
-  }
+
 
   private fun createChildren(variantsByName: Map<String, PsVariant>): List<AndroidArtifactNode> {
     val childrenNodes = mutableListOf<AndroidArtifactNode>()
