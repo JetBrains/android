@@ -36,7 +36,7 @@ public class CreateBaselineConnectionTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   /**
-   * To verify vertical constraints are removed to a widget when creating a baseline constraint connection
+   * To verify vertical constraints are removed from a widget when creating a baseline constraint connection
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>

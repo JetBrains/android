@@ -37,7 +37,7 @@ public class ConstraintLayoutResizeHandleTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   /**
-   * To verify that a widget in a constraint layout can be rezied in the design view.
+   * To verify that a widget in a constraint layout can be resized in the design view.
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
