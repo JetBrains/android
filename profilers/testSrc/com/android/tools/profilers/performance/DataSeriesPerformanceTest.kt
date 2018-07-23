@@ -17,7 +17,9 @@ package com.android.tools.profilers.performance
 
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.model.DataSeries
+import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.model.SeriesData
 import com.android.tools.datastore.DataStoreDatabase
 import com.android.tools.datastore.DataStoreService
 import com.android.tools.datastore.DeviceId
@@ -26,8 +28,7 @@ import com.android.tools.datastore.poller.PollRunner
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profilers.FakeGrpcChannel
-import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.*
 import com.android.tools.profilers.cpu.CpuThreadCountDataSeries
 import com.android.tools.profilers.cpu.CpuUsageDataSeries
 import com.android.tools.profilers.cpu.FakeCpuService
@@ -38,9 +39,15 @@ import com.android.tools.profilers.energy.EnergyUsageDataSeries
 import com.android.tools.profilers.energy.MergedEnergyEventsDataSeries
 import com.android.tools.profilers.event.ActivityEventDataSeries
 import com.android.tools.profilers.event.SimpleEventDataSeries
+import com.android.tools.profilers.memory.AllocStatsDataSeries
+import com.android.tools.profilers.memory.GcStatsDataSeries
+import com.android.tools.profilers.memory.MemoryDataSeries
+import com.android.tools.profilers.memory.MemoryProfilerStage
+import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject
 import com.android.tools.profilers.network.NetworkOpenConnectionsDataSeries
 import com.android.tools.profilers.network.NetworkRadioDataSeries
 import com.android.tools.profilers.network.NetworkTrafficDataSeries
+import com.google.common.util.concurrent.MoreExecutors
 import io.grpc.inprocess.InProcessChannelBuilder
 import org.junit.After
 import org.junit.Before
@@ -84,6 +91,7 @@ class DataSeriesPerformanceTest {
         // Adding variability in the timing so generators can use it to better represent sparse data.
         manager.generateData(i)
       }
+      db.connection.commit()
       session = manager.endSession()
     }
     client = ProfilerClient("TestService")
@@ -96,6 +104,9 @@ class DataSeriesPerformanceTest {
 
   @Test
   fun runPerformanceTest() {
+    val timer = FakeTimer()
+    val studioProfilers = StudioProfilers(grpcChannel.getClient(), FakeIdeProfilerServices(), timer)
+    studioProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
     val dataSeriesToTest = mapOf(Pair("Event Activities", ActivityEventDataSeries(client, session, false)),
                                  Pair("Event Interactions", SimpleEventDataSeries(client, session)),
                                  Pair("Energy Usage", EnergyUsageDataSeries(client, session)),
@@ -107,8 +118,13 @@ class DataSeriesPerformanceTest {
                                  Pair("Cpu Thread State", ThreadStateDataSeries(client.cpuClient, session, 1)),
                                  Pair("Network Open Connections", NetworkOpenConnectionsDataSeries(client.networkClient, session)),
                                  Pair("Network Radio", NetworkRadioDataSeries(client.networkClient, session)),
-                                 Pair("Network Traffic",
-                                      NetworkTrafficDataSeries(client.networkClient, session, NetworkTrafficDataSeries.Type.BYTES_RECEIVED))
+                                 Pair("Network Traffic", NetworkTrafficDataSeries(client.networkClient, session,
+                                                                                  NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
+                                 Pair("Memory GC Stats", GcStatsDataSeries(client.memoryClient, session)),
+                                 Pair("Memory Series", MemoryDataSeries(client.memoryClient, session, { sample -> sample.timestamp })),
+                                 Pair("Memory Allocation",
+                                      AllocStatsDataSeries(studioProfilers, client.memoryClient, { sample -> sample.timestamp })),
+                                 Pair("Memory LiveAllocation", TestLiveAllocationSeries(grpcChannel, client, session))
     )
     val nameToMetrics = mutableMapOf<String, Metric>()
     val queryStep = QUERY_INTERVAL / 2
@@ -129,6 +145,24 @@ class DataSeriesPerformanceTest {
     series.getDataForXRange(Range(offset.toDouble(), (offset + QUERY_INTERVAL).toDouble()))
     if (recordMetric) {
       metric.addSamples(benchmark, Metric.MetricSample(Instant.now().toEpochMilli(), (System.nanoTime() - startTime)))
+    }
+  }
+
+  private class TestLiveAllocationSeries(grpcChannel: FakeGrpcChannel, client: ProfilerClient, session: Common.Session) : DataSeries<Long> {
+    companion object {
+      val LOAD_JOINER = MoreExecutors.directExecutor()
+    }
+
+    override fun getDataForXRange(xRange: Range?): MutableList<SeriesData<Long>> {
+      liveAllocation.load(xRange, LOAD_JOINER)
+      return mutableListOf()
+    }
+
+    val liveAllocation: LiveAllocationCaptureObject
+
+    init {
+      val stage = MemoryProfilerStage(StudioProfilers(grpcChannel.getClient(), FakeIdeProfilerServices(), FakeTimer()))
+      liveAllocation = LiveAllocationCaptureObject(client.memoryClient, session, 0, MoreExecutors.newDirectExecutorService(), stage)
     }
   }
 
