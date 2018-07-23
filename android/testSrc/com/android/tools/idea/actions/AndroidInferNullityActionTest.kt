@@ -63,16 +63,15 @@ public class TestNullity {
   fun testSupportLibAnnotations() {
     myProjectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_ANNOTATIONS, myModule, GradleVersion(1, 1))
     runInferNullityAction()
-    assertThat(myNullityManager.myDefaultNullable).isEqualTo("android.support.annotation.Nullable")
-    assertThat(myNullityManager.myDefaultNotNull).isEqualTo("android.support.annotation.NonNull")
+    assertThat(myNullityManager.defaultNullable).isEqualTo("android.support.annotation.Nullable")
+    assertThat(myNullityManager.defaultNotNull).isEqualTo("android.support.annotation.NonNull")
   }
 
-  // fails after IDEA 182.2949.4 merge
-  fun ignore_testAndroidxAnnotations() {
+  fun testAndroidxAnnotations() {
     myProjectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS, myModule, GradleVersion(1, 1))
     runInferNullityAction()
-    assertThat(myNullityManager.myDefaultNullable).isEqualTo("androidx.annotation.Nullable")
-    assertThat(myNullityManager.myDefaultNotNull).isEqualTo("androidx.annotation.NonNull")
+    assertThat(myNullityManager.defaultNullable).isEqualTo("androidx.annotation.Nullable")
+    assertThat(myNullityManager.defaultNotNull).isEqualTo("androidx.annotation.NonNull")
   }
 
   // TODO: Make this finish without error
