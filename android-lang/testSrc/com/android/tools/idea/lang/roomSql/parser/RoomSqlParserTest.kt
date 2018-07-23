@@ -48,7 +48,7 @@ abstract class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_S
     val lexer = RoomSqlLexer()
     lexer.start(input)
     while (lexer.tokenType != null) {
-      assert(lexer.tokenType != TokenType.BAD_CHARACTER, { "BAD_CHARACTER ${lexer.tokenText}" })
+      assert(lexer.tokenType != TokenType.BAD_CHARACTER) { "BAD_CHARACTER ${lexer.tokenText}" }
       lexer.advance()
     }
   }
@@ -880,19 +880,17 @@ class ErrorMessagesTest : RoomSqlParserTest() {
         toParseTreeText("SELECT * FROM user WHERE id = ?"))
   }
 
-  // fails after IDEA 182.2949.4 merge
-  fun ignore_testJustSelect() {
+  fun testJustSelect() {
     assertEquals("""
           FILE
             PsiElement(SELECT)('SELECT')
-            PsiErrorElement:<result column>, ALL or DISTINCT expected, unexpected end of file
+            PsiErrorElement:<result column>, ALL or DISTINCT expected
               <empty list>
           """.trimIndent(),
         toParseTreeText("SELECT "))
   }
 
-  // fails after IDEA 182.2949.4 merge
-  fun ignore_testMissingFrom() {
+  fun testMissingFrom() {
     assertEquals("""
           FILE
             RoomSelectStatementImpl(SELECT_STATEMENT)
@@ -905,7 +903,7 @@ class ErrorMessagesTest : RoomSqlParserTest() {
                         RoomColumnNameImpl(COLUMN_NAME)
                           PsiElement(IDENTIFIER)('foo')
             PsiElement(FROM)('FROM')
-            PsiErrorElement:<table or subquery> expected, unexpected end of file
+            PsiErrorElement:<table or subquery> expected
               <empty list>
           """.trimIndent(),
         toParseTreeText("SELECT foo FROM "))
@@ -1401,24 +1399,22 @@ class ErrorMessagesTest : RoomSqlParserTest() {
         toParseTreeText("SELECT (WITH x AS (VALUES(17)) SELECT x) + (WITH y AS (VALUES(42)) SELECT y)"))
   }
 
-  // fails after IDEA 182.2949.4 merge
-  fun ignore_testJustDelete() {
+  fun testJustDelete() {
     assertEquals("""
           FILE
             PsiElement(DELETE)('DELETE')
-            PsiErrorElement:FROM expected, unexpected end of file
+            PsiErrorElement:FROM expected
               <empty list>
           """.trimIndent(),
         toParseTreeText("DELETE "))
   }
 
-  // fails after IDEA 182.2949.4 merge
-  fun ignore_testInvalidDelete() {
+  fun testInvalidDelete() {
     assertEquals("""
           FILE
             PsiElement(DELETE)('DELETE')
             PsiElement(FROM)('FROM')
-            PsiErrorElement:<single table statement table> expected, unexpected end of file
+            PsiErrorElement:<single table statement table> expected
               <empty list>
           """.trimIndent(),
         toParseTreeText("DELETE FROM"))
