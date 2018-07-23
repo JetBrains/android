@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.AbstractDependenciesConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.module.MainPanel;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.openapi.util.ActionCallback;

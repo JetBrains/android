@@ -16,12 +16,12 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.MultipleLibraryDependenciesDetails;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeRootNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeStructure;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.details.ModuleDependencyDetails;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.details.MultipleLibraryDependenciesDetails;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.*;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph.DependenciesTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph.DependenciesTreeRootNode;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph.DependenciesTreeStructure;
 import com.android.tools.idea.gradle.structure.configurables.issues.DependencyViewIssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
@@ -35,7 +35,6 @@ import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.actionSystem.*;
