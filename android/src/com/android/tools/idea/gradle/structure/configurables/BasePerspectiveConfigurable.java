@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MasterDetailsComponent;
@@ -398,5 +399,15 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   @Nullable
   public Runnable enableSearch(String option) {
     return null;
+  }
+
+  @Override
+  public boolean isModified() {
+    return myContext.getProject().isModified();
+  }
+
+  @Override
+  public void apply() throws ConfigurationException {
+    myContext.getProject().applyChanges();
   }
 }

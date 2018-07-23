@@ -329,6 +329,8 @@ class DependencyManagementTest : DependencyTestCase() {
     var module = project.findModuleByName("moduleA") as PsAndroidModule
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
     module.addLibraryDependency("com.example.libs:lib1:1.0".asParsed(), listOf("implementation"))
+    assertThat(module.isModified, equalTo(true))
+    assertThat(project.isModified, equalTo(true))
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
 
     module.addLibraryDependency("com.example.libs:lib2:1.0".asParsed(), listOf("implementation"))
@@ -434,6 +436,10 @@ class DependencyManagementTest : DependencyTestCase() {
     module.setLibraryDependencyVersion(PsArtifactDependencySpec.create("com.example.libs:lib1:1.0")!!, "implementation", "0.9.1")
     jModule.setLibraryDependencyVersion(PsArtifactDependencySpec.create("com.example.jlib:lib3:0.9.1")!!, "implementation", "1.0")
 
+    assertThat(module.isModified, equalTo(true))
+    assertThat(jModule.isModified, equalTo(true))
+    assertThat(project.isModified, equalTo(true))
+
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation"), nullValue())
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1", "implementation"), notNullValue())
 
@@ -518,6 +524,10 @@ class DependencyManagementTest : DependencyTestCase() {
     declaredDependency!![0].version = "1.0".asParsed()
     jDeclaredDependency!![0].version = "0.9.1".asParsed()
 
+    assertThat(module.isModified, equalTo(true))
+    assertThat(jModule.isModified, equalTo(true))
+    assertThat(project.isModified, equalTo(true))
+
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "releaseImplementation"), notNullValue())
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1", "releaseImplementation"), nullValue())
 
@@ -579,6 +589,9 @@ class DependencyManagementTest : DependencyTestCase() {
     module.addModuleDependency(":moduleA", listOf("implementation"))
     assertThat(module.dependencies.findModuleDependency(":moduleA"), notNullValue())
 
+    assertThat(module.isModified, equalTo(true))
+    assertThat(project.isModified, equalTo(true))
+
     module.addModuleDependency(":moduleB", listOf("implementation"))
     assertThat(module.dependencies.findModuleDependency(":moduleA"), notNullValue())
     assertThat(module.dependencies.findModuleDependency(":moduleB"), notNullValue())
@@ -633,6 +646,9 @@ class DependencyManagementTest : DependencyTestCase() {
     assertThat(module.dependencies.findModuleDependency(":jModuleM"), nullValue())
     module.addModuleDependency(":jModuleM", listOf("implementation"))
     assertThat(module.dependencies.findModuleDependency(":jModuleM"), notNullValue())
+
+    assertThat(module.isModified, equalTo(true))
+    assertThat(project.isModified, equalTo(true))
 
     project.applyChanges()
     requestSyncAndWait()
