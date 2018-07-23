@@ -50,7 +50,7 @@ public class ApkFileSystem extends ArchiveFileSystem {
     SdkConstants.EXT_AAR,
     SdkConstants.EXT_INSTANTAPP_PACKAGE,
     SdkConstants.EXT_ZIP,
-    SdkConstants.EXT_BUNDLE
+    SdkConstants.EXT_APP_BUNDLE
   );
 
   public static final String PROTOCOL = "apk";
