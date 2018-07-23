@@ -37,13 +37,13 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  * TODO: Refactor code to use {@link com.android.tools.idea.npw.template.TemplateValueInjector}
  * TODO: It's possible that after refactoring, this class is so thin that can be inlined and deleted.
  */
-class TestNewProjectWizardState {
+public class TestNewProjectWizardState {
   private static final String APPLICATION_NAME = "My Application";
   private final Template myProjectTemplate;
   private final TestTemplateWizardState myModuleState = new TestTemplateWizardState();
   private final TestTemplateWizardState myActivityState = new TestTemplateWizardState();
 
-  TestNewProjectWizardState(@NotNull Template moduleTemplate) {
+  public TestNewProjectWizardState(@NotNull Template moduleTemplate) {
     myModuleState.myTemplate = moduleTemplate;
     myProjectTemplate = Template.createFromName(CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
 

@@ -19,3 +19,5 @@ import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils
 import java.io.File
 
 fun projectNameFromProjectLocation(location: String) = StringUtils.substringAfterLast(location, File.separator)!!
+
+fun getProjectCacheDir(activity: String, minApi: Int, targetApi: Int) = "${activity}_min_${minApi}_build_and_target_${targetApi}"
