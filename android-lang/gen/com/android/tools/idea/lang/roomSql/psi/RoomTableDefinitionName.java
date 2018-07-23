@@ -29,6 +29,6 @@ public interface RoomTableDefinitionName extends PsiNamedElement, RoomNameElemen
   String getName();
 
   @NotNull
-  RoomTableDefinitionName setName(String newName);
+  RoomTableDefinitionName setName(@NotNull String newName);
 
 }

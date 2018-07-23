@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomJoinConstraintImpl extends ASTWrapperPsiElement implements RoomJoinConstraint {
 
-  public RoomJoinConstraintImpl(ASTNode node) {
+  public RoomJoinConstraintImpl(@NotNull ASTNode node) {
     super(node);
   }
 

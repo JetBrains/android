@@ -29,6 +29,6 @@ public interface RoomTableAliasName extends PsiNamedElement, RoomNameElement {
   String getName();
 
   @NotNull
-  RoomTableAliasName setName(String newName);
+  RoomTableAliasName setName(@NotNull String newName);
 
 }

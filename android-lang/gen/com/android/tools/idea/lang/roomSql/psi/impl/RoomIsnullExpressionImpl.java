@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomIsnullExpressionImpl extends RoomExpressionImpl implements RoomIsnullExpression {
 
-  public RoomIsnullExpressionImpl(ASTNode node) {
+  public RoomIsnullExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

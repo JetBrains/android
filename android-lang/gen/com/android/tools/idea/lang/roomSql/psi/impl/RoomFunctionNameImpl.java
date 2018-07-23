@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomFunctionNameImpl extends AbstractRoomNameElement implements RoomFunctionName {
 
-  public RoomFunctionNameImpl(ASTNode node) {
+  public RoomFunctionNameImpl(@NotNull ASTNode node) {
     super(node);
   }
 

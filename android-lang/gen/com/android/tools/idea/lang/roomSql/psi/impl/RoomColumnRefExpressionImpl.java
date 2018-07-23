@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomColumnRefExpressionImpl extends RoomExpressionImpl implements RoomColumnRefExpression {
 
-  public RoomColumnRefExpressionImpl(ASTNode node) {
+  public RoomColumnRefExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

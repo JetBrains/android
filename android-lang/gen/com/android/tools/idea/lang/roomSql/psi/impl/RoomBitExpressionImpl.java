@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomBitExpressionImpl extends RoomExpressionImpl implements RoomBitExpression {
 
-  public RoomBitExpressionImpl(ASTNode node) {
+  public RoomBitExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

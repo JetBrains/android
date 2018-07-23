@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomDeleteStatementImpl extends ASTWrapperPsiElement implements RoomDeleteStatement {
 
-  public RoomDeleteStatementImpl(ASTNode node) {
+  public RoomDeleteStatementImpl(@NotNull ASTNode node) {
     super(node);
   }
 

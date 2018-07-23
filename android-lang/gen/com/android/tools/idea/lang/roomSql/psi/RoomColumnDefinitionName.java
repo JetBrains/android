@@ -29,6 +29,6 @@ public interface RoomColumnDefinitionName extends PsiNamedElement, RoomNameEleme
   String getName();
 
   @NotNull
-  RoomColumnDefinitionName setName(String newName);
+  RoomColumnDefinitionName setName(@NotNull String newName);
 
 }

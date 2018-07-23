@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomWithClauseTableDefImpl extends ASTWrapperPsiElement implements RoomWithClauseTableDef {
 
-  public RoomWithClauseTableDefImpl(ASTNode node) {
+  public RoomWithClauseTableDefImpl(@NotNull ASTNode node) {
     super(node);
   }
 
