@@ -29,14 +29,12 @@ import com.android.tools.idea.tests.gui.framework.guitestsystem.CurrentGuiTestPr
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.GeneralSettings;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.testGuiFramework.impl.GuiTestThread;
-import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.WaitTimedOutError;
@@ -84,7 +82,12 @@ public class GuiTestRule implements TestRule {
   private final LeakCheck myLeakCheck = new LeakCheck();
   private final CurrentGuiTestProjectSystem myCurrentProjectSystem = new CurrentGuiTestProjectSystem();
 
-  private Timeout myTimeout = new Timeout(3, TimeUnit.MINUTES);
+  /* By nesting a pair of timeouts (one around just the test, one around the entire rule chain), we ensure that Rule code executing
+   * before/after the test gets a chance to run, while preventing the whole rule chain from running forever.
+   */
+  private static final int DEFAULT_TEST_TIMEOUT_MINUTES = 3;
+  private Timeout myInnerTimeout = new Timeout(DEFAULT_TEST_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+  private Timeout myOuterTimeout = new Timeout(DEFAULT_TEST_TIMEOUT_MINUTES + 1, TimeUnit.MINUTES);
 
   private final PropertyChangeListener myGlobalFocusListener = e -> {
     Object oldValue = e.getOldValue();
@@ -108,6 +111,7 @@ public class GuiTestRule implements TestRule {
   @Override
   public Statement apply(final Statement base, final Description description) {
     RuleChain chain = RuleChain.emptyRuleChain()
+      .around(myOuterTimeout)
       .around(new LogStartAndStop())
       .around(new IdeControl())
       .around(new BlockReloading())
@@ -119,7 +123,7 @@ public class GuiTestRule implements TestRule {
       .around(new NpwControl())
       .around(new ScreenshotOnFailure())
       .around(new SavePerformanceOnFailure())
-      .around(myTimeout);
+      .around(myInnerTimeout);
 
     // Perf logging currently writes data to the Bazel-specific TEST_UNDECLARED_OUTPUTS_DIR. Skipp logging if running outside of Bazel.
     if (TestUtils.runningFromBazel()) {
@@ -459,7 +463,8 @@ public class GuiTestRule implements TestRule {
   }
 
   public GuiTestRule withTimeout(long timeout, @NotNull TimeUnit timeUnits) {
-    myTimeout = new Timeout(timeout, timeUnits);
+    myInnerTimeout = new Timeout(timeout, timeUnits);
+    myOuterTimeout = new Timeout(timeUnits.toSeconds(timeout) + 60, TimeUnit.SECONDS);
     return this;
   }
 }
