@@ -115,7 +115,7 @@ val NlComponent.includeFileName: String?
 
 val NlComponent.isStartDestination: Boolean
   get() {
-    val actualStart = parent?.startDestination
+    val actualStart = parent?.startDestinationId
     return actualStart != null && actualStart == id
   }
 
@@ -189,7 +189,7 @@ var NlComponent.typeAttr: String? by StringAttributeDelegate(AUTO_URI, ATTR_TYPE
 var NlComponent.defaultValue: String? by StringAttributeDelegate(ANDROID_URI, ATTR_DEFAULT_VALUE)
 var NlComponent.nullable: Boolean by BooleanAutoAttributeDelegate(ATTR_NULLABLE)
 
-var NlComponent.startDestination: String? by IdAutoAttributeDelegate(ATTR_START_DESTINATION)
+var NlComponent.startDestinationId: String? by IdAutoAttributeDelegate(ATTR_START_DESTINATION)
 
 val NlComponent.actionDestination: NlComponent?
   get() {
@@ -204,6 +204,9 @@ val NlComponent.effectiveDestination: NlComponent?
     val targetId = effectiveDestinationId ?: return null
     return findVisibleDestination(targetId)
   }
+
+val NlComponent.startDestination: NlComponent?
+  get() = startDestinationId?.let { start -> children.find { it.id == start } }
 
 /**
  * [actionSetup] should include everything needed to set the default id (destination, popTo, and popToInclusive).
@@ -254,7 +257,7 @@ fun NlComponent.createReturnToSourceAction(): NlComponent {
 }
 
 fun NlComponent.setAsStartDestination() {
-  parent?.startDestination = id
+  parent?.startDestinationId = id
 }
 
 fun NlComponent.createNestedGraph(): NlComponent {

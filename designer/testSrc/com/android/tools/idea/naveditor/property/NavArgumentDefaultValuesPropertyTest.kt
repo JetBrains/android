@@ -21,7 +21,7 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.testFramework.UsefulTestCase
 import org.mockito.Mockito
 
-class NavActionArgumentsPropertyTest : NavTestCase() {
+class NavArgumentDefaultValuesPropertyTest : NavTestCase() {
   private lateinit var model: SyncNlModel
 
   override fun setUp() {
@@ -37,25 +37,31 @@ class NavActionArgumentsPropertyTest : NavTestCase() {
             argument("arg2", value = "actionval2")
           }
           action("a3", destination = "f3")
+          action("a4", destination = "subnav")
+        }
+        navigation("subnav", startDestination = "f4") {
+          fragment("f4") {
+            argument("subarg", "string")
+          }
         }
       }
     }
   }
 
   fun testMultipleArguments() {
-    val property = NavActionArgumentsProperty(listOf(model.find("a1")!!), Mockito.mock(NavPropertiesManager::class.java))
+    val property = NavArgumentDefaultValuesProperty(listOf(model.find("a1")!!), Mockito.mock(NavPropertiesManager::class.java))
     assertEquals(mapOf("arg1" to null, "arg2" to "actionval2"),
         property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
   }
 
   fun testNoArguments() {
-    val property = NavActionArgumentsProperty(listOf(model.find("a3")!!), Mockito.mock(NavPropertiesManager::class.java))
+    val property = NavArgumentDefaultValuesProperty(listOf(model.find("a3")!!), Mockito.mock(NavPropertiesManager::class.java))
     assertEmpty(property.properties)
   }
 
   fun testModify() {
     val fragment = model.find("f3")!!
-    val property = NavActionArgumentsProperty(listOf(model.find("a3")!!), Mockito.mock(NavPropertiesManager::class.java))
+    val property = NavArgumentDefaultValuesProperty(listOf(model.find("a3")!!), Mockito.mock(NavPropertiesManager::class.java))
     val argument = model.find("f1")!!.getChild(0)!!
     fragment.addChild(argument)
     property.refreshList()
@@ -64,5 +70,15 @@ class NavActionArgumentsPropertyTest : NavTestCase() {
     fragment.removeChild(argument)
     property.refreshList()
     UsefulTestCase.assertEmpty(property.properties)
+  }
+
+  fun testActionToSubnav() {
+    val property = NavArgumentDefaultValuesProperty(listOf(model.find("a4")!!), Mockito.mock(NavPropertiesManager::class.java))
+    assertEquals(listOf("subarg"), property.properties.map { it.value })
+  }
+
+  fun testSubnavArgs() {
+    val property = NavArgumentDefaultValuesProperty(listOf(model.find("subnav")!!), Mockito.mock(NavPropertiesManager::class.java))
+    assertEquals(listOf("subarg"), property.properties.map { it.value })
   }
 }

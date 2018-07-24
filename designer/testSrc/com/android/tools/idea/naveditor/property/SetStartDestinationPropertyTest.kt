@@ -19,7 +19,7 @@ import com.android.SdkConstants.ATTR_START_DESTINATION
 import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 
 class SetStartDestinationPropertyTest : NavTestCase() {
 
@@ -29,8 +29,13 @@ class SetStartDestinationPropertyTest : NavTestCase() {
         fragment("f1")
         fragment("f2")
         navigation("subnav", startDestination = "activity") {
+          argument("arg1", value = "v1")
+          argument("arg2", value = "v2")
           fragment("f3")
-          activity("activity")
+          activity("activity") {
+            argument("arg1")
+            argument("arg2")
+          }
         }
       }
     }
@@ -54,8 +59,10 @@ class SetStartDestinationPropertyTest : NavTestCase() {
     property = SetStartDestinationProperty(listOf(model.find("f1")!!))
     assertNull(property.value)
 
+    assertTrue(model.find("subnav")?.children?.any { it.tagName == TAG_ARGUMENT } ?: false)
     property = SetStartDestinationProperty(listOf(model.find("f3")!!))
     property.setValue("true")
+    assertTrue(model.find("subnav")?.children?.none { it.tagName == TAG_ARGUMENT } ?: false)
     assertEquals("@id/f3", model.find("subnav")!!.getAttribute(AUTO_URI, ATTR_START_DESTINATION))
     assertEquals("@id/f2", model.find("root")!!.getAttribute(AUTO_URI, ATTR_START_DESTINATION))
     assertNotNull(property.value)

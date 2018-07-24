@@ -20,8 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.model.actionDestinationId
-import com.android.tools.idea.naveditor.model.findVisibleDestination
+import com.android.tools.idea.naveditor.model.*
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.util.xml.XmlName
@@ -33,7 +32,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 /**
  * Property representing all the arguments (possibly zero) for an action.
  */
-class NavActionArgumentsProperty(components: List<NlComponent>, propertiesManager: NavPropertiesManager)
+class NavArgumentDefaultValuesProperty(components: List<NlComponent>, propertiesManager: NavPropertiesManager)
   : NavArgumentsProperty(components, propertiesManager) {
 
   init {
@@ -53,23 +52,28 @@ class NavActionArgumentsProperty(components: List<NlComponent>, propertiesManage
 
     val destinationToLocal: Map<NlComponent, NlComponent?> =
       components.mapNotNull { component ->
-        component.actionDestinationId?.let {
-          component.findVisibleDestination(it)
+        if (component.isAction) {
+          component.actionDestination?.let {
+            if (it.isNavigation) it.startDestination else it
+          }
+        }
+        else {
+          component.startDestination
         }
       }
         .flatMap { it.children }
         .filter { it.tagName == TAG_ARGUMENT && !it.getAttribute(ANDROID_URI, ATTR_NAME).isNullOrEmpty() }
         .associate { it to localArguments[it.getAttribute(ANDROID_URI, ATTR_NAME)] }
 
-    destinationToLocal.mapTo(properties) { (dest, local) -> NavActionArgumentProperty(dest, local, components, attrDefs, this) }
+    destinationToLocal.mapTo(properties) { (dest, local) -> NavArgumentDefaultValueProperty(dest, local, components, attrDefs, this) }
   }
 }
 
-class NavActionArgumentProperty(destinationArgument: NlComponent,
-                                private val actionArgument: NlComponent?,
-                                private val parents: List<NlComponent>,
-                                attrDefs: AttributeDefinitions,
-                                private val navArgumentsProperty: NavActionArgumentsProperty) :
+class NavArgumentDefaultValueProperty(destinationArgument: NlComponent,
+                                      private val actionArgument: NlComponent?,
+                                      private val parents: List<NlComponent>,
+                                      attrDefs: AttributeDefinitions,
+                                      private val navArgumentsProperty: NavArgumentDefaultValuesProperty) :
   NlPropertyItem(XmlName(ATTR_NAME, ANDROID_URI),
                  attrDefs.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_NAME)),
                  listOf(destinationArgument),
@@ -82,7 +86,7 @@ class NavActionArgumentProperty(destinationArgument: NlComponent,
       override fun setValue(value: Any?) {
         super.setValue(value)
         WriteCommandAction.runWriteCommandAction(null) {
-          tag?.setAttribute(ATTR_NAME, ANDROID_URI, this@NavActionArgumentProperty.value)
+          tag?.setAttribute(ATTR_NAME, ANDROID_URI, this@NavArgumentDefaultValueProperty.value)
         }
       }
     }
