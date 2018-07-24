@@ -119,19 +119,19 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
     val parent = parents[0]
     val actions: MutableList<AnAction> = mutableListOf(
         object : AnAction("Add Action...") {
-          override fun actionPerformed(e: AnActionEvent?) {
+          override fun actionPerformed(e: AnActionEvent) {
             addItem(null, parent, resourceResolver, AddActionDialog.Defaults.NORMAL)
           }
         },
         object : AnAction("Return to Source...") {
-          override fun actionPerformed(e: AnActionEvent?) {
+          override fun actionPerformed(e: AnActionEvent) {
             addItem(null, parent, resourceResolver, AddActionDialog.Defaults.RETURN_TO_SOURCE)
           }
         })
     if (parent != surface.currentNavigation) {
       actions.add(Separator.getInstance())
       actions.add(object : AnAction("Add Global...") {
-        override fun actionPerformed(e: AnActionEvent?) {
+        override fun actionPerformed(e: AnActionEvent) {
           addItem(null, parent, resourceResolver, AddActionDialog.Defaults.GLOBAL)
         }
       })

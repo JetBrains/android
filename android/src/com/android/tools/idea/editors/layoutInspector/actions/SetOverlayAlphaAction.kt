@@ -33,9 +33,7 @@ import javax.swing.event.ChangeListener
 class SetOverlayAlphaAction(private val myPreview: ViewNodeActiveDisplay) :
     AnAction("Overlay Alpha", "Set Overlay Alpha", null), CustomComponentAction, ChangeListener {
 
-  override fun update(e: AnActionEvent?) {
-    super.update(e)
-    if (e == null) return
+  override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = myPreview.hasOverlay()
   }
 
@@ -56,7 +54,7 @@ class SetOverlayAlphaAction(private val myPreview: ViewNodeActiveDisplay) :
     }
   }
 
-  override fun actionPerformed(e: AnActionEvent?) {
+  override fun actionPerformed(e: AnActionEvent) {
     // noop, action is handled in alphaSlider's change listener
   }
 

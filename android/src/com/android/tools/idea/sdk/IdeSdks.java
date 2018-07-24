@@ -30,7 +30,9 @@ import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.ServiceManager;
@@ -398,11 +400,15 @@ public class IdeSdks {
   @NotNull
   public List<Sdk> createAndroidSdkPerAndroidTarget(@NotNull File androidSdkPath) {
     List<Sdk> sdks = createAndroidSdkPerAndroidTarget(androidSdkPath, null);
+    updateWelcomeRunAndroidSdkAction();
+    return sdks;
+  }
+
+  public static void updateWelcomeRunAndroidSdkAction() {
     AnAction sdkManagerAction = ActionManager.getInstance().getAction("WelcomeScreen.RunAndroidSdkManager");
     if (sdkManagerAction != null) {
-      sdkManagerAction.update(null);
+      sdkManagerAction.update(AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, dataId -> null));
     }
-    return sdks;
   }
 
   /**

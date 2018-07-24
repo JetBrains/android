@@ -17,13 +17,13 @@ package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.resources.ResourceResolver
+import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.common.property.inspector.InspectorComponent
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.common.property.inspector.InspectorProvider
-import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.naveditor.property.ListProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -220,7 +220,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
             shortcutSet = CustomShortcutSet(KeyStroke.getKeyStroke(VK_ENTER, 0))
           }
 
-          override fun actionPerformed(e: AnActionEvent?) {
+          override fun actionPerformed(e: AnActionEvent) {
             provider.addItem(items[0], components, markerProperties[0].resolver)
             refresh()
           }
@@ -232,7 +232,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
           shortcutSet = CustomShortcutSet(KeyStroke.getKeyStroke(VK_BACK_SPACE, 0))
         }
 
-        override fun actionPerformed(e: AnActionEvent?) {
+        override fun actionPerformed(e: AnActionEvent) {
           items[0].model.delete(items)
           refresh()
         }

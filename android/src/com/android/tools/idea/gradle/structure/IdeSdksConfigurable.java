@@ -30,7 +30,6 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
@@ -256,7 +255,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       ideSdks.setAndroidSdkPath(getSdkLocation(), myProject);
 
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        ActionManager.getInstance().getAction("WelcomeScreen.RunAndroidSdkManager").update(null);
+        IdeSdks.updateWelcomeRunAndroidSdkAction();
       }
     });
   }

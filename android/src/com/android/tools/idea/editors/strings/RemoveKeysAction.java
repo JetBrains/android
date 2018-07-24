@@ -43,6 +43,10 @@ final class RemoveKeysAction extends AnAction {
 
   @Override
   public void actionPerformed(@Nullable AnActionEvent event) {
+    perform();
+  }
+
+  void perform() {
     StringResourceTable table = myPanel.getTable();
     StringResourceTableModel model = table.getModel();
     StringResourceRepository repository = model.getRepository();

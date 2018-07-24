@@ -32,6 +32,8 @@ import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
@@ -117,7 +119,8 @@ public final class SdkQuickfixUtils {
   }
 
   public static void showAndroidSdkManager() {
-    ActionManager.getInstance().getAction("Android.RunAndroidSdkManager").actionPerformed(null);
+    ActionManager.getInstance().getAction("Android.RunAndroidSdkManager").actionPerformed(
+      AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, dataId -> null));
   }
 
   private static AndroidSdkHandler getSdkHandler() {
