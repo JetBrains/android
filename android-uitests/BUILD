@@ -1187,6 +1187,90 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+# fast test
+java_test(
+    name = "LayoutEditorTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:buildprop",
+        "//prebuilts/studio/layoutlib:data/fonts",
+        "//prebuilts/studio/layoutlib:data/res",
+        "//tools/adt/idea/android/lib:androidWidgets",
+    ] + glob([
+        "testData/SimpleLocalApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.LayoutEditorTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
+        "qa_unreliable",  # b/111399767
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "AndroidVectorDrawableToolTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:buildprop",
+        "//prebuilts/studio/layoutlib:data/fonts",
+        "//prebuilts/studio/layoutlib:data/res",
+        "//tools/adt/idea/android/lib:androidWidgets",
+    ] + glob([
+        "testData/SimpleLocalApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.AndroidVectorDrawableToolTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
+        "qa_unreliable",  # b/111399767
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "ImageAssetGradleTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:buildprop",
+        "//prebuilts/studio/layoutlib:data/fonts",
+        "//prebuilts/studio/layoutlib:data/res",
+        "//tools/adt/idea/android/lib:androidWidgets",
+    ] + glob([
+        "testData/SimpleLocalApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ImageAssetGradleTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
+        "qa_unreliable",  # b/111399767
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "ImageAssetErrorCheckTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:buildprop",
+        "//prebuilts/studio/layoutlib:data/fonts",
+        "//prebuilts/studio/layoutlib:data/res",
+        "//tools/adt/idea/android/lib:androidWidgets",
+    ] + glob([
+        "testData/SimpleLocalApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ImageAssetErrorCheckTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
+        "qa_unreliable",  # b/111399767
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 genrule(
     name = "aswb_plugin",
     srcs = ["@blaze//third_party/intellij/bazel/plugin/aswb:aswb_bazel_zip"],
