@@ -243,7 +243,7 @@ public class NavigationSchema implements Disposable {
       return ImmutableSetMultimap.of(NavArgumentElement.class, TAG_ARGUMENT);
     }
     DestinationType type = getDestinationType(tagName);
-    if (type == null || tagName.equals(TAG_INCLUDE)) {
+    if (type == null || isIncludeTag(tagName)) {
       return ImmutableListMultimap.of();
     }
     Multimap<Class<? extends AndroidDomElement>, String> result = HashMultimap.create();
@@ -346,7 +346,7 @@ public class NavigationSchema implements Disposable {
   @NotNull
   public String getTagLabel(@NotNull String tag, boolean isRoot) {
     String text = null;
-    if (TAG_INCLUDE.equals(tag)) {
+    if (isIncludeTag(tag)) {
       text = INCLUDE_GRAPH_LABEL;
     }
     else if (TAG_ACTION.equals(tag)) {
@@ -451,4 +451,13 @@ public class NavigationSchema implements Disposable {
   public Boolean isNavigationTag(@NotNull String tag) {
     return getDestinationType(tag) == NAVIGATION;
   }
+
+  public Boolean isOtherTag(@NotNull String tag) {
+    return getDestinationType(tag) == OTHER;
+  }
+
+  public Boolean isIncludeTag(@NotNull String tag) {
+    return tag.equals(TAG_INCLUDE);
+  }
+
 }

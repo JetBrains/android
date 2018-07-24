@@ -20,7 +20,6 @@ import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
@@ -48,7 +47,6 @@ import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 
-import static com.android.SdkConstants.TAG_INCLUDE;
 import static icons.StudioIcons.NavEditor.Tree.*;
 import static java.awt.event.KeyEvent.*;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
@@ -113,7 +111,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
           append(" - Start", SimpleTextAttributes.GRAY_ATTRIBUTES);
         }
         Icon icon = FRAGMENT;
-        if (component.getTagName().equals(TAG_INCLUDE)) {
+        if (NavComponentHelperKt.isInclude(component)) {
           icon = INCLUDE_GRAPH;
         }
         else if (NavComponentHelperKt.isActivity(component)) {

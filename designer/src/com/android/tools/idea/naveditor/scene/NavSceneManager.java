@@ -57,8 +57,6 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.OTHER;
-
 /**
  * {@link SceneManager} for the navigation editor.
  */
@@ -252,9 +250,7 @@ public class NavSceneManager extends SceneManager {
       shouldCreateHierarchy = shouldCreateActionHierarchy(component);
     }
     else {
-      NavigationSchema.DestinationType destinationType = NavComponentHelperKt.getDestinationType(component);
-
-      if (destinationType != null && destinationType != OTHER) {
+      if (NavComponentHelperKt.isDestination(component) && !NavComponentHelperKt.isOther(component)) {
         // TODO: handle the OTHER case
         shouldCreateHierarchy = shouldCreateDestinationHierarchy(component);
       }

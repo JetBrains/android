@@ -81,7 +81,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.ATTR_GRAPH;
-import static com.android.SdkConstants.TAG_INCLUDE;
 import static com.android.annotations.VisibleForTesting.Visibility;
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
@@ -355,10 +354,9 @@ public class NavDesignSurface extends DesignSurface {
     if (myCurrentNavigation == component) {
       return;
     }
-    String tagName = component.getTagName();
     String id;
-    if (getSceneManager().getSchema().isNavigationTag(tagName)) {
-      if (tagName.equals(TAG_INCLUDE)) {
+    if (NavComponentHelperKt.isNavigation(component)) {
+      if (NavComponentHelperKt.isInclude(component)) {
         id = component.getAttribute(SdkConstants.AUTO_URI, ATTR_GRAPH);
         if (id == null) {
           // includes are always supposed to have a graph specified, but if not, give up.
