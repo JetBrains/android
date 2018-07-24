@@ -91,7 +91,7 @@ public class RenderTask {
                                                              : GraphicsEnvironment.getLocalGraphicsEnvironment()
                                                                                   .getDefaultScreenDevice()
                                                                                   .getDefaultConfiguration()
-                                                                                  .createCompatibleImage(width, height);
+                                                                                  .createCompatibleImage(width, height, Transparency.TRANSLUCENT);
       image.setAccelerationPriority(1f);
 
       return image;
