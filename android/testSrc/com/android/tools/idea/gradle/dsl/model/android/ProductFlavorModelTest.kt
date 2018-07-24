@@ -2552,4 +2552,62 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     buildModel.android().defaultConfig().addMissingDimensionStrategy("abi", "x86")
     assertTrue(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
   }
+
+  @Test
+  fun testResConfigsInListMethodCall() {
+    val text = """
+               android {
+                 defaultConfig {
+                   resConfigs(["en", "fr"])
+                 }
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val resConfigs = buildModel.android().defaultConfig().resConfigs()
+    verifyListProperty(resConfigs, listOf("en", "fr"))
+
+    resConfigs.addListValue().setValue("it")
+    verifyListProperty(resConfigs, listOf("en", "fr", "it"))
+
+    applyChangesAndReparse(buildModel)
+    verifyListProperty(resConfigs, listOf("en", "fr", "it"))
+
+    val expected = """
+               android {
+                 defaultConfig {
+                   resConfigs(["en", "fr", 'it'])
+                 }
+               }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
+
+  @Test
+  fun testRemoveResConfigInListMethodCall() {
+    val text = """
+               android {
+                 defaultConfig {
+                   resConfigs(["en", "fr"])
+                 }
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val resConfigs = buildModel.android().defaultConfig().resConfigs()
+    verifyListProperty(resConfigs, listOf("en", "fr"))
+
+    resConfigs.toList()!![0].delete()
+    verifyListProperty(resConfigs, listOf("fr"))
+
+    applyChangesAndReparse(buildModel)
+    verifyListProperty(resConfigs, listOf("fr"))
+
+    val expected = """
+               android {
+                 defaultConfig {
+                   resConfigs(["fr"])
+                 }
+               }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
 }
