@@ -115,7 +115,7 @@ public class ScreenViewLayer extends Layer {
       image = existingBuffer;
     }
     else {
-      image = configuration.createCompatibleImage(screenViewVisibleSize.width, screenViewVisibleSize.height);
+      image = configuration.createCompatibleImage(screenViewVisibleSize.width, screenViewVisibleSize.height, Transparency.TRANSLUCENT);
       assert image != null;
     }
     Graphics2D cacheImageGraphics = image.createGraphics();
