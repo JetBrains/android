@@ -94,6 +94,8 @@ android {
         otherBar {
             dimension "bar"
             matchingFallbacks = ["bar"]
+            resConfig "en"
+            resConfigs "hdpi", "xhdpi"
         }
     }
 }

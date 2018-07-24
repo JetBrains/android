@@ -189,6 +189,15 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     knownValuesGetter = { _, model -> proGuardFileValues(model.module) }
   )
 
+  val resConfigs: ListProperty<PsAndroidModuleDefaultConfig, String> = listProperty(
+    "Resource Configs",
+    resolvedValueGetter = { resourceConfigurations.toList() },
+    parsedPropertyGetter = { resConfigs() },
+    getter = { asString() },
+    setter = { setValue(it) },
+    parser = ::parseString
+  )
+
   val manifestPlaceholders: MapProperty<PsAndroidModuleDefaultConfig, String> = mapProperty(
     "Manifest Placeholders",
     resolvedValueGetter = { manifestPlaceholders.mapValues { it.value.toString() } },
