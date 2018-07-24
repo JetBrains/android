@@ -114,14 +114,14 @@ fun offerToCreateBackupAndRun(project: Project, title: String, runRefactoring: (
   val okCancelResult = Messages.showCheckboxMessageDialog(
     ACTION_WARNING_TEXT.trim(),
     title,
-    arrayOf("Cancel", "Migrate"),
+    arrayOf("Migrate", "Cancel"),
     "Backup project as Zip file",
     true,
     0, 0,
     Messages.getWarningIcon()
   ) { index: Int, checkbox: JCheckBox ->
     when {
-      index != 1 -> RESULT_CANCEL
+      index != 0 -> RESULT_CANCEL
       checkbox.isSelected -> RESULT_MIGRATE_WITH_BACKUP
       else -> RESULT_MIGRATE
     }
@@ -134,7 +134,7 @@ fun offerToCreateBackupAndRun(project: Project, title: String, runRefactoring: (
       ActionUtil.invokeAction(
         exportZip,
         SimpleDataContext.getProjectContext(project),
-        "Migrate to AndroidX",
+        title,
         null,
         Runnable(runRefactoring)
       )
