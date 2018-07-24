@@ -15,205 +15,174 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchCurvePoint;
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPoint2D;
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchShapePath;
-import org.junit.Ignore;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
+import org.jetbrains.android.AndroidTestBase;
 import org.junit.Test;
 
-import java.awt.*;
+import java.util.List;
 
-import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathDataUtils.*;
-import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.RECTANGLE_CLASS_TYPE;
-import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.SHAPE_PATH_CLASS_TYPE;
 import static org.junit.Assert.assertEquals;
-
-import java.awt.geom.Rectangle2D;
 
 public class PathsTest {
 
   @Test
-  public void obliqueLinePathTest() {
+  public void linePathTest() {
 
-    SketchCurvePoint[] points = new SketchCurvePoint[]{
-      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
-                           new SketchPoint2D(0.2, 0.7)),
-      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
-                           new SketchPoint2D(0.8, 0.3))
-    };
+    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "linePath.json");
 
-    SketchShapePath shapePath = new SketchShapePath(SHAPE_PATH_CLASS_TYPE,
-                                                    "abc",
-                                                    -1,
-                                                    new Rectangle.Double(0, 0, 10, 10),
-                                                    false,
-                                                    false,
-                                                    true,
-                                                    "Line",
-                                                    0,
-                                                    false,
-                                                    false,
-                                                    points);
+    List<String> artboardPaths = getArtboardPaths(sketchPage);
 
-    Rectangle.Double frame = new Rectangle.Double(5, 3, 10, 10);
-
-    assertEquals("M7.0,10.0 L13.0,6.0 ", buildGenericPathString(shapePath, frame));
+    assertEquals("M5.0,12.0 L11.0,8.0 z", artboardPaths.get(0));
   }
 
   @Test
-  public void verticalLinePathTest() {
-
-    SketchCurvePoint[] points = new SketchCurvePoint[]{
-      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
-                           new SketchPoint2D(0.2, 0.7)),
-      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
-                           new SketchPoint2D(0.2, 0.3))
-    };
-
-    SketchShapePath shapePath = new SketchShapePath(SHAPE_PATH_CLASS_TYPE,
-                                                    "abc",
-                                                    -1,
-                                                    new Rectangle.Double(2, 2, 10, 10),
-                                                    false,
-                                                    false,
-                                                    true,
-                                                    "Line",
-                                                    0,
-                                                    false,
-                                                    false,
-                                                    points);
-
-    Rectangle.Double frame = new Rectangle.Double(5, 3, 10, 10);
-
-    assertEquals("M9.0,12.0 V8.0 ", buildGenericPathString(shapePath, frame));
-  }
-
-  @Test
-  public void horizontalLinePathTest() {
-
-    SketchCurvePoint[] points = new SketchCurvePoint[]{
-      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
-                           new SketchPoint2D(0.2, 0.7)),
-      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
-                           new SketchPoint2D(0.8, 0.7))
-    };
-
-    SketchShapePath shapePath = new SketchShapePath(SHAPE_PATH_CLASS_TYPE,
-                                                    "abc",
-                                                    -1,
-                                                    new Rectangle.Double(3, 1, 10, 10),
-                                                    false,
-                                                    false,
-                                                    true,
-                                                    "Line",
-                                                    0,
-                                                    false,
-                                                    false,
-                                                    points);
-
-    Rectangle.Double frame = new Rectangle.Double(5, 3, 10, 10);
-
-    assertEquals("M10.0,11.0 H16.0 ", buildGenericPathString(shapePath, frame));
-  }
-
-  @Test
-  @Ignore
   public void curvePathTest() {
 
-    SketchCurvePoint[] points = new SketchCurvePoint[]{
-      new SketchCurvePoint(0, 0, new SketchPoint2D(0.1, 0.2), (short)0, new SketchPoint2D(0, 0), true, false,
-                           new SketchPoint2D(0.1, 0.5)),
-      new SketchCurvePoint(0, 0, new SketchPoint2D(0.8, 0.1), (short)0, new SketchPoint2D(0.2, 0.1), true, true,
-                           new SketchPoint2D(0.5, 0.1)),
-      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0.9, 0.2), false, true,
-                           new SketchPoint2D(0.9, 0.5))
-    };
+    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "curvePath.json");
 
-    SketchShapePath shapePath = new SketchShapePath(SHAPE_PATH_CLASS_TYPE,
-                                                    "abc",
-                                                    -1,
-                                                    new Rectangle.Double(1, 2, 10, 10),
-                                                    false,
-                                                    false,
-                                                    true,
-                                                    "Line",
-                                                    0,
-                                                    false,
-                                                    true,
-                                                    points);
+    List<String> artboardPaths = getArtboardPaths(sketchPage);
 
-    Rectangle.Double frame = new Rectangle.Double(5, 3, 10, 10);
-
-    assertEquals("M7.0,10.0 C7.0,7.0 8.0,6.0 11.0,6.0 C14.0,6.0 15.0,7.0 15.0,10.0 z", buildGenericPathString(shapePath, frame));
+    assertEquals("M6.0,11.0 C6.0,8.0 7.0,7.0 10.0,7.0 C13.0,7.0 14.0,8.0 14.0,11.0 z", artboardPaths.get(0));
   }
 
   @Test
   public void rectanglePathTest() {
+    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "rectanglePath.json");
 
-    Rectangle.Double shapeGroupFrame = new Rectangle.Double(1, 26, 77, 20);
-    Rectangle.Double frame = new Rectangle.Double(0, 0, 77, 20);
+    List<String> artboardPaths = getArtboardPaths(sketchPage);
 
-    assertEquals("M1.0,26.0 H78.0 V46.0 H1.0 z", buildRectanglePathString(frame, shapeGroupFrame));
+    assertEquals("M26.0,1.0 L103.0,1.0 L103.0,21.0 L26.0,21.0 z", artboardPaths.get(0));
   }
 
   @Test
-  
-  public void roundRectanglePathTest(){
-    SketchCurvePoint[] points = new SketchCurvePoint[]{
-      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
-                           new SketchPoint2D(0, 0)),
-      new SketchCurvePoint(0, 20, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
-                           new SketchPoint2D(1, 0)),
-      new SketchCurvePoint(0, 40, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
-                           new SketchPoint2D(1, 1)),
-      new SketchCurvePoint(0, 40, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
-                           new SketchPoint2D(0, 1))
-    };
 
-    SketchShapePath shapePath = new SketchShapePath(RECTANGLE_CLASS_TYPE,
-                                                    "abc",
-                                                    -1,
-                                                    new Rectangle.Double(0, 0, 80, 100),
-                                                    false,
-                                                    false,
-                                                    true,
-                                                    "Line",
-                                                    0,
-                                                    false,
-                                                    true,
-                                                    points);
+  public void roundRectanglePathTest() {
+    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "roundRectanglePath.json");
 
-    Rectangle.Double frame = new Rectangle.Double(30, 20, 80, 100);
+    List<String> artboardPaths = getArtboardPaths(sketchPage);
 
-    assertEquals("M30.0,20.0 L90.0,20.0 Q110.0,20.0 110.0,40.0 L110.0,80.0 Q110.0,120.0 70.0,120.0 Q30.0,120.0 30.0,80.0 z", buildRoundRectanglePathString(shapePath, frame));
+
+    assertEquals("M30.0,20.0 L30.0,20.0 L90.0,20.0 Q110.0,20.0 110.0,40.0 L110.0,80.0 Q110.0,120.0 70.0,120.0 Q30.0,120.0 30.0,80.0 z",
+                 artboardPaths.get(0));
   }
 
   @Test
-  public void singleShapePathTest(){
-    Rectangle2D.Double frame = new Rectangle2D.Double(97,59,104,245);
+  public void singleShapePathTest() {
+    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "singleShapePath.json");
 
-    SketchCurvePoint[] points = new SketchCurvePoint[]{
-      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
-                           new SketchPoint2D(0.5, 0)),
-      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
-                           new SketchPoint2D(1, 1)),
-      new SketchCurvePoint(0, 0, new SketchPoint2D(0, 0), (short)0, new SketchPoint2D(0, 0), false, false,
-                           new SketchPoint2D(0, 1))
-    };
+    List<String> artboardPaths = getArtboardPaths(sketchPage);
 
-    SketchShapePath shapePath = new SketchShapePath(SHAPE_PATH_CLASS_TYPE,
-                                                    "abc",
-                                                    -1,
-                                                    new Rectangle.Double(0, 0, 104, 245),
-                                                    false,
-                                                    false,
-                                                    true,
-                                                    "Line",
-                                                    0,
-                                                    false,
-                                                    true,
-                                                    points);
+    assertEquals("M149.0,59.0 L201.0,304.0 L97.0,304.0 z", artboardPaths.get(0));
+  }
 
-    assertEquals("M149.0,59.0 L201.0,304.0 H97.0 z", buildSingleShapeString(shapePath, frame));
+  @Test
+  public void shapeUnionTest() {
+    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "shapeUnion.json");
+
+    List<String> artboardPaths = getArtboardPaths(sketchPage);
+
+    assertEquals(
+      "M268.5,34.0 C227.22681106905614,34.0 194.76227556749063,66.29839590772073 194.50158121846573,107.5 L50.0,107.5 L50.0,325.5 L226.5027875876822,325.5 C226.5009307973233,325.66640960999274 226.5,325.83307787808866 226.5,326.0 C226.5,348.68 244.98000000000002,368.0 268.5,368.0 C291.18,368.0 310.5,348.68 310.5,326.0 C310.5,302.48 291.18,284.0 268.5,284.0 C268.3329080451577,284.0 268.1660704609547,284.00093269234424 267.99949206635785,284.0027932580658 L268.0,284.0027932580658 L268.0,181.9983471275387 L268.00000002679803,181.9983471275387 C268.166521767314,181.99944843113553 268.33318893989207,182.0 268.5,182.0 C308.46000000000004,182.0 342.5,147.96 342.5,108.0 C342.5,66.56 308.46000000000004,34.0 268.5,34.0 z",
+      artboardPaths.get(0));
+  }
+
+  @Test
+  public void shapeSubstractionTest() {
+    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "shapeSubstraction.json");
+
+    List<String> artboardPaths = getArtboardPaths(sketchPage);
+
+    assertEquals(
+      "M50.0,107.5 L50.0,325.5 L226.5027875876822,325.5 C226.76070136586222,302.3852035272229 244.88476870409968,284.26096876789927 267.99949206635785,284.0027932580658 L268.0,284.0027932580658 L268.0,181.9983471275387 L268.00000002679803,181.9983471275387 C226.79839592172561,181.7258573333742 194.5,147.79914647775308 194.5,108.0 C194.5,107.83318893094386 194.50052758766608,107.66652174943303 194.50158121846573,107.5 z",
+      artboardPaths.get(0));
+  }
+
+  @Test
+  public void shapeDifferenceTest() {
+    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "shapeDifference.json");
+
+    List<String> artboardPaths = getArtboardPaths(sketchPage);
+
+    assertEquals(
+      "M268.5,34.0 C227.22681106905614,34.0 194.76227556749063,66.29839590772073 194.50158121846573,107.5 L268.0,107.5 L268.0,181.99834712720335 L267.99999997609257,181.99834712720335 C226.79839589522658,181.72585730553925 194.5,147.79914646142657 194.5,108.0 C194.5,107.83318893094386 194.50052758766608,107.66652174943303 194.50158121846573,107.5 L50.0,107.5 L50.0,325.5 L226.5027875876822,325.5 C226.76070136586222,302.3852035272229 244.88476870409968,284.26096876789927 267.99949206635785,284.0027932580658 L268.0,284.0027932580658 L268.0,181.9983471275387 L268.00000002679803,181.9983471275387 C268.166521767314,181.99944843113553 268.33318893989207,182.0 268.5,182.0 C308.46000000000004,182.0 342.5,147.96 342.5,108.0 C342.5,66.56 308.46000000000004,34.0 268.5,34.0 zM268.5,284.0 C268.3329080451577,284.0 268.1660704609547,284.00093269234424 267.99949206635785,284.0027932580658 L268.0,284.0027932580658 L268.0,325.5 L226.5027875876822,325.5 C226.5009307973233,325.66640960999274 226.5,325.83307787808866 226.5,326.0 C226.5,348.68 244.98000000000002,368.0 268.5,368.0 C291.18,368.0 310.5,348.68 310.5,326.0 C310.5,302.48 291.18,284.0 268.5,284.0 z",
+      artboardPaths.get(0));
+  }
+
+  @Test
+  public void shapeIntersectTest() {
+
+    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "shapeIntersect.json");
+
+    List<String> artboardPaths = getArtboardPaths(sketchPage);
+
+    assertEquals(
+      "M194.50158121846576,107.5 L194.50158121846573,107.5 C194.50052758766608,107.66652174943303 194.5,107.83318893094386 194.5,108.0 C194.5,147.79914646142657 226.79839589522658,181.72585730553925 267.99999997609257,181.99834712720335 L268.0,181.99834712720335 L268.0,107.5 z",
+      artboardPaths.get(0));
+  }
+
+  @Test
+  public void combinationsSingleArtboardTest() {
+
+    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "combinationsSingleArtboard.json");
+
+    List<String> artboardPaths = getArtboardPaths(sketchPage);
+
+    assertEquals(
+      "M71.0,180.0 C94.19595949160001,180.0 113.0,198.8040405084 113.0,222.0 C113.0,245.1959594916 94.19595949160001,264.0 71.0,264.0 C47.8040405084,264.0 29.0,245.1959594916 29.0,222.0 C29.0,198.8040405084 47.8040405084,180.0 71.0,180.0 zM292.0,225.0 C290.53687702269923,225.0 289.0912280038278,225.0748149097022 287.66666981740974,225.22082785508263 L287.666704987032,225.22082785508263 C296.67716365264556,237.48052750929673 302.0,252.61865623396764 302.0,269.0 C302.0,283.72161440201893 297.70112376503965,297.4391724612367 290.29021176429956,308.9658337084727 L290.29025900147064,308.9658337084727 C290.8573512194103,308.98853894809037 291.42733717365394,309.0 292.0,309.0 C315.1959594916,309.0 334.0,290.1959594916 334.0,267.0 C334.0,243.8040405084 315.1959594916,225.0 292.0,225.0 zM10.0,163.99999999999997 L10.0,382.47307526750274 L77.00260938615055,382.47307526750274 C77.00087131065143,382.315590047711 77.0,382.1578967766088 77.0,382.0 C77.0,358.8040405084 95.80404050839999,340.0 119.0,340.0 C142.1959594916,340.0 161.0,358.8040405084 161.0,382.0 C161.0,382.1578967766088 160.99912868934857,382.315590047711 160.99739061384943,382.47307526750274 L228.4730752675027,382.47307526750274 L228.4730752675027,342.9985195540348 L228.47307524465882,342.9985195540348 C254.42448203866866,342.83605474284224 277.2069316341925,329.31508870534464 290.29021176429956,308.9658337084727 L290.29025900147064,308.9658337084727 C267.8870316698388,308.06885323742677 250.0,289.6232966652539 250.0,267.0 C250.0,245.26716348570076 266.50666436957954,227.38966500695207 287.66666981740974,225.22082785508263 L287.666704987032,225.22082785508263 C274.28424119848603,207.01254426269597 252.7673911474541,195.1536782265297 228.4734076148015,195.00148252744913 L228.4730752675027,195.00148252744913 L228.4730752675027,163.99999999999997 z",
+      artboardPaths.get(0));
+    assertEquals(
+      "M347.0,206.0 C370.1959594916,206.0 389.0,187.1959594916 389.0,164.0 C389.0,140.8040405084 370.1959594916,122.0 347.0,122.0 C323.8040405084,122.0 305.0,140.8040405084 305.0,164.0 C305.0,187.1959594916 323.8040405084,206.0 347.0,206.0 z",
+      artboardPaths.get(1));
+    assertEquals(
+      "M263.0,106.0 C281.2253967434,106.0 296.0,91.22539674340001 296.0,73.0 C296.0,54.7746032566 281.2253967434,40.0 263.0,40.0 C244.7746032566,40.0 230.0,54.7746032566 230.0,73.0 C230.0,91.22539674340001 244.7746032566,106.0 263.0,106.0 z",
+      artboardPaths.get(2));
+    assertEquals(
+      "M188.439999999999,106.0 C169.41931321688756,106.0 154.0,120.66715159655159 154.0,138.75999999999908 C154.0,141.9673818060776 154.48456547141762,145.0671080788118 155.38785897678403,147.99655296304837 L155.3879166234406,147.99655296304837 Q158.6256380393401,147.99999999999997 162.0,148.0 L181.279999999999,148.0 Q189.2799999999991,147.9999999999987 189.279999999999,140.0 L189.279999999999,114.0 Q189.279999999999,109.82321093318852 189.26351080632355,106.00918412723715 L189.26361949313366,106.00918412723715 C188.9898580326834,106.00307273816797 188.71530625652792,106.0 188.439999999999,106.0 z",
+      artboardPaths.get(3));
+  }
+
+  @Test
+  public void combinationsMultipleArtboardsTest() {
+
+    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "combinationsMultipleArtboards.json");
+
+    List<SketchArtboard> artboards = sketchPage.getArtboards();
+
+    List<String> firstrtboardPaths = artboards.get(0).getPaths();
+
+    assertEquals(
+      "M71.0,180.0 C94.19595949160001,180.0 113.0,198.8040405084 113.0,222.0 C113.0,245.1959594916 94.19595949160001,264.0 71.0,264.0 C47.8040405084,264.0 29.0,245.1959594916 29.0,222.0 C29.0,198.8040405084 47.8040405084,180.0 71.0,180.0 zM292.0,225.0 C290.53687702269923,225.0 289.0912280038278,225.0748149097022 287.66666981740974,225.22082785508263 L287.666704987032,225.22082785508263 C296.67716365264556,237.48052750929673 302.0,252.61865623396764 302.0,269.0 C302.0,283.72161440201893 297.70112376503965,297.4391724612367 290.29021176429956,308.9658337084727 L290.29025900147064,308.9658337084727 C290.8573512194103,308.98853894809037 291.42733717365394,309.0 292.0,309.0 C315.1959594916,309.0 334.0,290.1959594916 334.0,267.0 C334.0,243.8040405084 315.1959594916,225.0 292.0,225.0 zM10.0,163.99999999999997 L10.0,382.47307526750274 L77.00260938615055,382.47307526750274 C77.00087131065143,382.315590047711 77.0,382.1578967766088 77.0,382.0 C77.0,358.8040405084 95.80404050839999,340.0 119.0,340.0 C142.1959594916,340.0 161.0,358.8040405084 161.0,382.0 C161.0,382.1578967766088 160.99912868934857,382.315590047711 160.99739061384943,382.47307526750274 L228.4730752675027,382.47307526750274 L228.4730752675027,342.9985195540348 L228.47307524465882,342.9985195540348 C254.42448203866866,342.83605474284224 277.2069316341925,329.31508870534464 290.29021176429956,308.9658337084727 L290.29025900147064,308.9658337084727 C267.8870316698388,308.06885323742677 250.0,289.6232966652539 250.0,267.0 C250.0,245.26716348570076 266.50666436957954,227.38966500695207 287.66666981740974,225.22082785508263 L287.666704987032,225.22082785508263 C274.28424119848603,207.01254426269597 252.7673911474541,195.1536782265297 228.4734076148015,195.00148252744913 L228.4730752675027,195.00148252744913 L228.4730752675027,163.99999999999997 z",
+      firstrtboardPaths.get(0));
+    assertEquals(
+      "M347.0,206.0 C370.1959594916,206.0 389.0,187.1959594916 389.0,164.0 C389.0,140.8040405084 370.1959594916,122.0 347.0,122.0 C323.8040405084,122.0 305.0,140.8040405084 305.0,164.0 C305.0,187.1959594916 323.8040405084,206.0 347.0,206.0 z",
+      firstrtboardPaths.get(1));
+    assertEquals(
+      "M263.0,106.0 C281.2253967434,106.0 296.0,91.22539674340001 296.0,73.0 C296.0,54.7746032566 281.2253967434,40.0 263.0,40.0 C244.7746032566,40.0 230.0,54.7746032566 230.0,73.0 C230.0,91.22539674340001 244.7746032566,106.0 263.0,106.0 z",
+      firstrtboardPaths.get(2));
+    assertEquals(
+      "M188.439999999999,106.0 C169.41931321688756,106.0 154.0,120.66715159655159 154.0,138.75999999999908 C154.0,141.9673818060776 154.48456547141762,145.0671080788118 155.38785897678403,147.99655296304837 L155.3879166234406,147.99655296304837 Q158.6256380393401,147.99999999999997 162.0,148.0 L181.279999999999,148.0 Q189.2799999999991,147.9999999999987 189.279999999999,140.0 L189.279999999999,114.0 Q189.279999999999,109.82321093318852 189.26351080632355,106.00918412723715 L189.26361949313366,106.00918412723715 C188.9898580326834,106.00307273816797 188.71530625652792,106.0 188.439999999999,106.0 z",
+      firstrtboardPaths.get(3));
+
+    List<String> secondArtboardPaths = artboards.get(1).getPaths();
+
+    assertEquals(
+      "M71.0,180.0 C94.19595949160001,180.0 113.0,198.8040405084 113.0,222.0 C113.0,245.1959594916 94.19595949160001,264.0 71.0,264.0 C47.8040405084,264.0 29.0,245.1959594916 29.0,222.0 C29.0,198.8040405084 47.8040405084,180.0 71.0,180.0 zM292.0,225.0 C290.53687702269923,225.0 289.0912280038278,225.0748149097022 287.66666981740974,225.22082785508263 L287.666704987032,225.22082785508263 C296.67716365264556,237.48052750929673 302.0,252.61865623396764 302.0,269.0 C302.0,283.72161440201893 297.70112376503965,297.4391724612367 290.29021176429956,308.9658337084727 L290.29025900147064,308.9658337084727 C290.8573512194103,308.98853894809037 291.42733717365394,309.0 292.0,309.0 C315.1959594916,309.0 334.0,290.1959594916 334.0,267.0 C334.0,243.8040405084 315.1959594916,225.0 292.0,225.0 zM10.0,163.99999999999997 L10.0,382.47307526750274 L77.00260938615055,382.47307526750274 C77.00087131065143,382.315590047711 77.0,382.1578967766088 77.0,382.0 C77.0,358.8040405084 95.80404050839999,340.0 119.0,340.0 C142.1959594916,340.0 161.0,358.8040405084 161.0,382.0 C161.0,382.1578967766088 160.99912868934857,382.315590047711 160.99739061384943,382.47307526750274 L228.4730752675027,382.47307526750274 L228.4730752675027,342.9985195540348 L228.47307524465882,342.9985195540348 C254.42448203866866,342.83605474284224 277.2069316341925,329.31508870534464 290.29021176429956,308.9658337084727 L290.29025900147064,308.9658337084727 C267.8870316698388,308.06885323742677 250.0,289.6232966652539 250.0,267.0 C250.0,245.26716348570076 266.50666436957954,227.38966500695207 287.66666981740974,225.22082785508263 L287.666704987032,225.22082785508263 C274.28424119848603,207.01254426269597 252.7673911474541,195.1536782265297 228.4734076148015,195.00148252744913 L228.4730752675027,195.00148252744913 L228.4730752675027,163.99999999999997 z",
+      secondArtboardPaths.get(0));
+    assertEquals(
+      "M347.0,206.0 C370.1959594916,206.0 389.0,187.1959594916 389.0,164.0 C389.0,140.8040405084 370.1959594916,122.0 347.0,122.0 C323.8040405084,122.0 305.0,140.8040405084 305.0,164.0 C305.0,187.1959594916 323.8040405084,206.0 347.0,206.0 z",
+      secondArtboardPaths.get(1));
+    assertEquals(
+      "M263.0,106.0 C281.2253967434,106.0 296.0,91.22539674340001 296.0,73.0 C296.0,54.7746032566 281.2253967434,40.0 263.0,40.0 C244.7746032566,40.0 230.0,54.7746032566 230.0,73.0 C230.0,91.22539674340001 244.7746032566,106.0 263.0,106.0 z",
+      secondArtboardPaths.get(2));
+    assertEquals(
+      "M188.439999999999,106.0 C169.41931321688756,106.0 154.0,120.66715159655159 154.0,138.75999999999908 C154.0,141.9673818060776 154.48456547141762,145.0671080788118 155.38785897678403,147.99655296304837 L155.3879166234406,147.99655296304837 Q158.6256380393401,147.99999999999997 162.0,148.0 L181.279999999999,148.0 Q189.2799999999991,147.9999999999987 189.279999999999,140.0 L189.279999999999,114.0 Q189.279999999999,109.82321093318852 189.26351080632355,106.00918412723715 L189.26361949313366,106.00918412723715 C188.9898580326834,106.00307273816797 188.71530625652792,106.0 188.439999999999,106.0 z",
+      secondArtboardPaths.get(3));
+  }
+
+  private List<String> getArtboardPaths(SketchPage sketchPage) {
+    List<SketchArtboard> artboards = sketchPage.getArtboards();
+
+    return artboards.get(0).getPaths();
   }
 }

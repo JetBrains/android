@@ -18,6 +18,10 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+
+import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathDataUtils.buildShapeString;
 
 public class SketchShapeGroup extends SketchLayer {
   private final SketchStyle style;
@@ -70,6 +74,11 @@ public class SketchShapeGroup extends SketchLayer {
 
   public short getWindingRule() {
     return windingRule;
+  }
+
+  @Override
+  public void setAbsoluteLocation(ArrayList<String> paths, Point2D.Double parentCoords) {
+    paths.add(buildShapeString(this, parentCoords));
   }
 }
 

@@ -15,10 +15,34 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
+import com.android.tools.layoutlib.annotations.NotNull;
+
+import java.awt.*;
 import java.awt.geom.Point2D;
 
 public class SketchPoint2D extends Point2D.Double {
   public SketchPoint2D(double x, double y) {
     super(x, y);
+  }
+
+  /**
+   * Method called on a point whose coordinates are the exact percentages extracted from JSON
+   *
+   * @param parentFrame
+   * @param ownFrame
+   */
+  public SketchPoint2D makeAbsolutePosition(@NotNull Rectangle.Double parentFrame, @NotNull Rectangle.Double ownFrame) {
+    return new SketchPoint2D(getX() * ownFrame.getWidth() + parentFrame.getX() + ownFrame.getX(),
+                             getY() * ownFrame.getHeight() + parentFrame.getY() + ownFrame.getY());
+  }
+
+  /**
+   * Method called on a point whose coordinates are the ones relative to the frame of the shapePath
+   *
+   * @param parentFrame
+   */
+  public SketchPoint2D makeAbsolutePosition(@NotNull Rectangle.Double parentFrame) {
+    return new SketchPoint2D(getX() + parentFrame.getX(),
+                             getY() + parentFrame.getY());
   }
 }
