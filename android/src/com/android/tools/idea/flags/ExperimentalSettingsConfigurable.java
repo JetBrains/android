@@ -61,7 +61,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myUseL2DependenciesCheckBox.setVisible(false);
 
     Hashtable qualityLabels = new Hashtable();
-    qualityLabels.put(new Integer(0), new JLabel("Fastests"));
+    qualityLabels.put(new Integer(0), new JLabel("Fastest"));
     qualityLabels.put(new Integer(100), new JLabel("Slowest"));
     myLayoutEditorQualitySlider.setLabelTable(qualityLabels);
     myLayoutEditorQualitySlider.setPaintLabels(true);
