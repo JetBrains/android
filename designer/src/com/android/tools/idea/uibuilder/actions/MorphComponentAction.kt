@@ -209,7 +209,7 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
     document.replaceString(myTagNameRange.startOffset, myTagNameRange.endOffset, newName)
   }
 
-  override fun actionPerformed(e: AnActionEvent?): Unit = showMorphPopup()
+  override fun actionPerformed(e: AnActionEvent): Unit = showMorphPopup()
 
   /**
    * Render showing a remove or add icon and running the provided [runnable] when clicking
@@ -219,7 +219,7 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
     val myIcon: Icon = if (keep) AllIcons.General.Remove else AllIcons.General.Add
 
     override fun getClickAction() = object : AnAction() {
-      override fun actionPerformed(e: AnActionEvent?) = runnable.run()
+      override fun actionPerformed(e: AnActionEvent) = runnable.run()
     }
 
     override fun getIcon(): Icon = myIcon

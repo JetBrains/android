@@ -27,9 +27,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -98,7 +96,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   }
 
   public void removeSelectedKeys() {
-    myRemoveKeysAction.actionPerformed(null);
+    myRemoveKeysAction.perform();
   }
 
   void addDocumentListener(@NotNull DocumentListener listener) {

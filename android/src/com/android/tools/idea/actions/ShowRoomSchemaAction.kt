@@ -36,8 +36,8 @@ private val LOG = Logger.getInstance(ShowRoomSchemaAction::class.java)
  * action multiple times in a row, the schema is recomputed every time.
  */
 class ShowRoomSchemaAction : AnAction("Show Room schema") {
-  override fun actionPerformed(e: AnActionEvent?) {
-    val project = e!!.project!!
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project!!
     val output = StringWriter()
     val writer = PrintWriter(output)
 

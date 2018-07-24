@@ -34,7 +34,7 @@ class SigningConfigsPanel(val treeModel: SigningConfigsTreeModel) :
     ) {
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction("Remove Signing Config", "Remove Signing Config", IconUtil.getRemoveIcon()) {
-      override fun actionPerformed(e: AnActionEvent?) {
+      override fun actionPerformed(e: AnActionEvent) {
         TODO("Implement remove signing config")
       }
     }
@@ -43,14 +43,14 @@ class SigningConfigsPanel(val treeModel: SigningConfigsTreeModel) :
   override fun getCreateActions(): List<AnAction> {
     return listOf<DumbAwareAction>(
         object : DumbAwareAction("Add Signing Config", "", IconUtil.getAddIcon()) {
-          override fun actionPerformed(e: AnActionEvent?) {
+          override fun actionPerformed(e: AnActionEvent) {
             val newName =
                 Messages.showInputDialog(
-                    e?.project,
-                    "Enter a new signing config name:",
-                    "Create New Signing Config",
-                    null,
-                    "", object : InputValidator {
+                  e.project,
+                  "Enter a new signing config name:",
+                  "Create New Signing Config",
+                  null,
+                  "", object : InputValidator {
                   override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
                   override fun canClose(inputString: String?): Boolean = !inputString.isNullOrBlank()
                 })
