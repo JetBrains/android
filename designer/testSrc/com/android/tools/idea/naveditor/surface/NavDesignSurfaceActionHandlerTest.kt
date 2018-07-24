@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.TestNlEditor
+import com.android.tools.idea.naveditor.model.startDestination
 import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.command.undo.UndoManager
@@ -27,9 +28,10 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 class NavDesignSurfaceActionHandlerTest : NavTestCase() {
+
   fun testDelete() {
     val model = model("nav.xml") {
-      navigation {
+      navigation("root", startDestination = "fragment2") {
         fragment("fragment1") {
           action("a1", destination = "fragment2")
         }
@@ -55,6 +57,8 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     assertSameElements(model.flattenComponents().toArray(),
                        model.components[0], model.find("fragment1"), model.find("fragment3"), model.find("a3"))
     assertEquals(surface.selectionModel.selection, listOf(model.find("fragment3")))
+    val root = model.find("root")!!
+    assertNull(root.startDestination)
 
     surface.selectionModel.setSelection(listOf(model.find("a3")))
     handler.deleteElement(context)
