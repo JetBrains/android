@@ -53,10 +53,10 @@ class CallGraphTest : AndroidTestCase() {
 
   private fun doTest(ext: String) {
     myFixture.testDataPath = PathManager.getHomePath() + "/../adt/idea/kotlin-integration/testData"
-    val virtualFile = myFixture.copyFileToProject("callgraph/CallGraph" + ext, "src/CallGraph" + ext)
+    val virtualFile = myFixture.copyFileToProject("callgraph/CallGraph$ext", "src/CallGraph$ext")
     val (_, receiverEval, graph) = buildInterproceduralAnalysesForTest(virtualFile, myFixture.project)
     val contextualGraph = graph.buildContextualCallGraph(receiverEval)
-    val nodeMap = graph.nodes.associateBy({ it.shortName })
+    val nodeMap = graph.nodes.associateBy { it.shortName }
 
     fun String.assertCalls(vararg callees: String) {
       val node = nodeMap[this] ?: if (callees.isEmpty()) return else throw Error("No node found for ${this}")
