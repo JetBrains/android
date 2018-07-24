@@ -39,7 +39,7 @@ class ElkLayeredLayoutAlgorithmTest : NavTestCase() {
           action("a7", destination = "match")
         }
         fragment("winner") {
-          action("a8", destination = "match")
+          action("a8", popUpTo = "match")
           action("a9", destination = "leaderboard")
         }
         fragment("match") {

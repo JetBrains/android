@@ -17,10 +17,7 @@ package com.android.tools.idea.naveditor.scene.layout
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
-import com.android.tools.idea.naveditor.model.actionDestination
-import com.android.tools.idea.naveditor.model.isAction
-import com.android.tools.idea.naveditor.model.isDestination
-import com.android.tools.idea.naveditor.model.isStartDestination
+import com.android.tools.idea.naveditor.model.*
 import org.eclipse.elk.alg.layered.options.LayerConstraint
 import org.eclipse.elk.alg.layered.options.LayeredMetaDataProvider
 import org.eclipse.elk.core.RecursiveGraphLayoutEngine
@@ -56,7 +53,7 @@ class ElkLayeredLayoutAlgorithm : NavSceneLayoutAlgorithm {
     for (component in destinations.filter { it.nlComponent.isDestination }) {
       for (action in component.nlComponent.flatten().filter { it.isAction }) {
         val source = componentNodeMap[component.nlComponent]
-        val destination = componentNodeMap[action.actionDestination]
+        val destination = componentNodeMap[action.effectiveDestination]
         // Maybe one of them was laid out previously, or we simply have an invalid action.
         if (source != null && destination != null) {
           ElkGraphUtil.createSimpleEdge(source, destination)

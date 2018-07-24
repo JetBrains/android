@@ -184,6 +184,29 @@ class NavComponentHelperTest2 : NavTestCase() {
     assertNull(action.actionDestinationId)
   }
 
+  fun testEffectiveDestination() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+        fragment("f2")
+        navigation("nav1") {
+          fragment("f3") {
+            action("a1", popUpTo = "f1")
+            action("a2", popUpTo = "f1", inclusive = true)
+            action("a3", destination = "f1", popUpTo = "f2")
+          }
+        }
+      }
+    }
+
+    val action1 = model.find("a1")!!
+    assertEquals(action1.effectiveDestination, model.find("f1"))
+    val action2 = model.find("a2")!!
+    assertNull(action2.effectiveDestination)
+    val action3 = model.find("a3")!!
+    assertEquals(action3.effectiveDestination, model.find("f1"))
+  }
+
   fun testEffectiveDestinationId() {
     val model = model("nav.xml") {
       navigation("root") {

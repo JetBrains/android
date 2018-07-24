@@ -194,14 +194,15 @@ var NlComponent.startDestination: String? by IdAutoAttributeDelegate(ATTR_START_
 val NlComponent.actionDestination: NlComponent?
   get() {
     assert(isAction)
-    var p: NlComponent = parent ?: return null
     val targetId = actionDestinationId ?: return null
-    while (true) {
-      p.children.firstOrNull { it.id == targetId }?.let { return it }
-      p = p.parent ?: break
-    }
-    // The above won't check the root itself
-    return model.components.firstOrNull { it.id == targetId }
+    return findVisibleDestination(targetId)
+  }
+
+val NlComponent.effectiveDestination: NlComponent?
+  get() {
+    assert(isAction)
+    val targetId = effectiveDestinationId ?: return null
+    return findVisibleDestination(targetId)
   }
 
 /**
