@@ -53,12 +53,14 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.openapi.wm.impl.StripeButton;
 import com.intellij.util.ThreeState;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
+import org.fest.swing.fixture.JToggleButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
@@ -703,6 +705,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @SuppressWarnings("UnusedReturnValue")
   public IdeFrameFixture setIdeFrameSize(@NotNull Dimension size) {
     target().setSize(size);
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture closeProjectPanel() {
+    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "1: Project"))).deselect();
     return this;
   }
 }
