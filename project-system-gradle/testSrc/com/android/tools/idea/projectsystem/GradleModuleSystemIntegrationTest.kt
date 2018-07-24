@@ -93,6 +93,24 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     assertThat(moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "99.+"))).isNull()
   }
 
+  @Throws(Exception::class)
+  fun testGetResolvedAarDependencies() {
+    loadSimpleApplication()
+
+    // appcompat-v7 is a dependency with an AAR.
+    assertThat(myModules.appModule.getModuleSystem().getResolvedDependency(
+      GradleCoordinate("com.android.support", "appcompat-v7", "+"))).isNotNull()
+  }
+
+  @Throws(Exception::class)
+  fun testGetResolvedJarDependencies() {
+    loadSimpleApplication()
+
+    // guava is a dependency with a JAR.
+    assertThat(myModules.appModule.getModuleSystem().getResolvedDependency(
+      GradleCoordinate("com.google.guava", "guava", "+"))).isNotNull()
+  }
+
   private fun isSameArtifact(first: GradleCoordinate?, second: GradleCoordinate?) =
     GradleCoordinate.COMPARE_PLUS_LOWER.compare(first, second) == 0
 }

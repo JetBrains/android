@@ -16,7 +16,6 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.util.PathString
 import com.android.projectmodel.AarLibrary
 import com.android.projectmodel.JavaLibrary
@@ -27,7 +26,10 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNam
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.CapabilityStatus
+import com.android.tools.idea.projectsystem.ClassFileFinder
+import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import java.util.*
@@ -35,12 +37,9 @@ import java.util.*
 class GradleModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFinder by GradleClassFileFinder(module) {
 
   override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
-    // Check for android library dependencies from the build model
-    val androidModuleModel = AndroidModuleModel.get(module) ?: return null
-
-    return androidModuleModel.selectedMainCompileLevel2Dependencies.androidLibraries
+    return getDependentLibraries()
       .asSequence()
-      .mapNotNull { GradleCoordinate.parseCoordinateString(it.artifactAddress) }
+      .mapNotNull { GradleCoordinate.parseCoordinateString(it.address) }
       .find { it.matches(coordinate) }
   }
 
