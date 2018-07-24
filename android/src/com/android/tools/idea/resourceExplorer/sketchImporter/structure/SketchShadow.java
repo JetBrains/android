@@ -19,11 +19,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
+/**
+ * Refers to objects that have the "_class" field set to be one of the following:
+ * "innerShadow"
+ * "shadow"
+ */
 public class SketchShadow {
   private final boolean isEnabled;
   private final int blurRadius;
   private final Color color;
-  private final SketchContextSettings contextSettings;
+  private final SketchGraphicContextSettings contextSettings;
   private final int offsetX;
   private final int offsetY;
   private final short spread;
@@ -31,7 +36,7 @@ public class SketchShadow {
   public SketchShadow(boolean enabled,
                       int blurRadius,
                       @NotNull Color color,
-                      @NotNull SketchContextSettings settings,
+                      @NotNull SketchGraphicContextSettings settings,
                       int offsetX,
                       int offsetY,
                       short spread) {
@@ -56,7 +61,7 @@ public class SketchShadow {
     return color;
   }
 
-  public SketchContextSettings getContextSettings() {
+  public SketchGraphicContextSettings getContextSettings() {
     return contextSettings;
   }
 

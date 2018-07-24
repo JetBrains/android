@@ -19,6 +19,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
+/**
+ * Refers to objects that have the "_class" field set to be one of the following:
+ * "shapePath"
+ * "rectangle"
+ * "oval"
+ * "star"
+ * "polygon"
+ *
+ * {@link com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer}
+ */
 public class SketchShapePath extends SketchLayer {
   private final boolean isClosed;
   private final SketchCurvePoint[] points;

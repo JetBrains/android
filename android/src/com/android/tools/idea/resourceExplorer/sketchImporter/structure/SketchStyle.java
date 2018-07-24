@@ -18,14 +18,17 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 import org.jetbrains.annotations.Nullable;
 
 public class SketchStyle {
+  public final SketchGraphicContextSettings DEFAULT_CONTEXT_SETTINGS = new SketchGraphicContextSettings((short)0, (short)1);
+
   private final SketchBorderOptions borderOptions;
   private final SketchBorder[] borders;
   /**
    * If this field does not exist, the default values are considered:
-   * - blendMode: 0
-   * - opacity: 1
+   * blendMode: 0
+   * opacity: 1
    */
-  private final SketchContextSettings contextSettings;
+  private final SketchGraphicContextSettings contextSettings;
+  private final SketchColorControls colorControls;
   private final SketchFill[] fills;
   private final short miterLimit;
   private final SketchShadow[] shadows;
@@ -33,19 +36,16 @@ public class SketchStyle {
 
   public SketchStyle(@Nullable SketchBorderOptions borderOptions,
                      @Nullable SketchBorder[] borders,
-                     @Nullable SketchContextSettings contextSettings,
+                     @Nullable SketchGraphicContextSettings contextSettings,
+                     @Nullable SketchColorControls colorControls,
                      @Nullable SketchFill[] fills,
                      short miterLimit,
                      @Nullable SketchShadow[] shadows,
                      short windingRule) {
     this.borderOptions = borderOptions;
     this.borders = borders;
-    if (contextSettings == null) {
-      this.contextSettings = new SketchContextSettings((short)0, (short)1);
-    }
-    else {
-      this.contextSettings = contextSettings;
-    }
+    this.colorControls = colorControls;
+    this.contextSettings = contextSettings != null ? contextSettings : DEFAULT_CONTEXT_SETTINGS;
     this.fills = fills;
     this.miterLimit = miterLimit;
     this.shadows = shadows;
@@ -60,8 +60,12 @@ public class SketchStyle {
     return borders;
   }
 
-  public SketchContextSettings getContextSettings() {
+  public SketchGraphicContextSettings getContextSettings() {
     return contextSettings;
+  }
+
+  public SketchColorControls getColorControls() {
+    return colorControls;
   }
 
   public SketchFill[] getFills() {
