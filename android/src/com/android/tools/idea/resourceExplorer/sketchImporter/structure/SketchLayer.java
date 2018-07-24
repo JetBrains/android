@@ -19,22 +19,20 @@ import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
 
 public abstract class SketchLayer {
+
+  public static final int BOOLEAN_OPERATION_UNION = 0;
+  public static final int BOOLEAN_OPERATION_SUBSTRACTION = 1;
+  public static final int BOOLEAN_OPERATION_INTERSECTION = 2;
+  public static final int BOOLEAN_OPERATION_DIFFERENCE = 3;
+
   @SerializedName("_class")
   private final String classType;
   @SerializedName("do_objectID")
   private final String objectId;
-  /**
-   * Signifies combined shapes operations as such:
-   * <ul>
-   * <li>None/Basic: -1</li>
-   * <li>Union: 0</li>
-   * <li>Substract: 1</li>
-   * <li>Intersect: 2</li>
-   * <li>Difference: 3</li>
-   * </ul>
-   */
   private final int booleanOperation;
   private final Rectangle.Double frame;
   private final boolean isFlippedHorizontal;
@@ -112,6 +110,10 @@ public abstract class SketchLayer {
 
   public boolean shouldBreakMaskChain() {
     return shouldBreakMaskChain;
+  }
+
+  public void setAbsoluteLocation(ArrayList<String> paths, Point2D.Double parentCoords) {
+    //TODO
   }
 }
 

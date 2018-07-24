@@ -1,0 +1,268 @@
+{
+  "_class": "page",
+  "do_objectID": "94207FB9-0FD1-47B3-BDED-D82858AE1F0B",
+  "booleanOperation": -1,
+  "exportOptions": {
+    "_class": "exportOptions",
+    "exportFormats": [],
+    "includedLayerIds": [],
+    "layerOptions": 0,
+    "shouldTrim": false
+  },
+  "frame": {
+    "_class": "rect",
+    "constrainProportions": false,
+    "height": 0,
+    "width": 0,
+    "x": 0,
+    "y": 0
+  },
+  "isFixedToViewport": false,
+  "isFlippedHorizontal": false,
+  "isFlippedVertical": false,
+  "isLocked": false,
+  "isVisible": true,
+  "layerListExpandedType": 0,
+  "name": "Page 1",
+  "nameIsFixed": false,
+  "resizingConstraint": 63,
+  "resizingType": 0,
+  "rotation": 0,
+  "shouldBreakMaskChain": false,
+  "style": {
+    "_class": "style",
+    "endMarkerType": 0,
+    "miterLimit": 10,
+    "startMarkerType": 0,
+    "windingRule": 1
+  },
+  "hasClickThrough": true,
+  "layers": [
+    {
+      "_class": "artboard",
+      "do_objectID": "04741544-F2DE-40C8-AD6F-071951D18503",
+      "booleanOperation": -1,
+      "exportOptions": {
+        "_class": "exportOptions",
+        "exportFormats": [],
+        "includedLayerIds": [],
+        "layerOptions": 0,
+        "shouldTrim": false
+      },
+      "frame": {
+        "_class": "rect",
+        "constrainProportions": false,
+        "height": 401,
+        "width": 401,
+        "x": 100,
+        "y": 122
+      },
+      "isFixedToViewport": false,
+      "isFlippedHorizontal": false,
+      "isFlippedVertical": false,
+      "isLocked": false,
+      "isVisible": true,
+      "layerListExpandedType": 2,
+      "name": "Icon",
+      "nameIsFixed": true,
+      "resizingConstraint": 63,
+      "resizingType": 0,
+      "rotation": 0,
+      "shouldBreakMaskChain": true,
+      "style": {
+        "_class": "style",
+        "endMarkerType": 0,
+        "miterLimit": 10,
+        "startMarkerType": 0,
+        "windingRule": 1
+      },
+      "hasClickThrough": true,
+      "layers": [
+        {
+          "_class": "shapeGroup",
+          "do_objectID": "5FA23628-396A-4651-B5B1-DB7878F41008",
+          "booleanOperation": -1,
+          "exportOptions": {
+            "_class": "exportOptions",
+            "do_objectID": "D1310767-3210-42E6-9459-78576D5483EC",
+            "exportFormats": [],
+            "includedLayerIds": [],
+            "layerOptions": 0,
+            "shouldTrim": false
+          },
+          "frame": {
+            "_class": "rect",
+            "do_objectID": "DA462B82-160A-46AD-AE4E-2F4FF1BAF2F7",
+            "constrainProportions": false,
+            "height": 10,
+            "width": 10,
+            "x": 3,
+            "y": 5
+          },
+          "isFixedToViewport": false,
+          "isFlippedHorizontal": false,
+          "isFlippedVertical": false,
+          "isLocked": false,
+          "isVisible": true,
+          "layerListExpandedType": 1,
+          "name": "Shape",
+          "nameIsFixed": false,
+          "resizingConstraint": 63,
+          "resizingType": 0,
+          "rotation": 0,
+          "shouldBreakMaskChain": false,
+          "style": {
+            "_class": "style",
+            "do_objectID": "AFAE16B6-CACD-4C05-9BE0-1CB97FDE241F",
+            "borders": [
+              {
+                "_class": "border",
+                "isEnabled": true,
+                "color": {
+                  "_class": "color",
+                  "alpha": 1,
+                  "blue": 0.592,
+                  "green": 0.592,
+                  "red": 0.592
+                },
+                "fillType": 0,
+                "position": 1,
+                "thickness": 1
+              }
+            ],
+            "endMarkerType": 0,
+            "fills": [
+              {
+                "_class": "fill",
+                "isEnabled": true,
+                "color": {
+                  "_class": "color",
+                  "alpha": 1,
+                  "blue": 0.847,
+                  "green": 0.847,
+                  "red": 0.847
+                },
+                "fillType": 0,
+                "noiseIndex": 0,
+                "noiseIntensity": 0,
+                "patternFillType": 1,
+                "patternTileScale": 1
+              }
+            ],
+            "miterLimit": 10,
+            "startMarkerType": 0,
+            "windingRule": 0
+          },
+          "hasClickThrough": false,
+          "layers": [
+            {
+              "_class": "shapePath",
+              "do_objectID": "58177B89-0D9A-409F-B3C6-2A5C387AE412",
+              "booleanOperation": -1,
+              "exportOptions": {
+                "_class": "exportOptions",
+                "do_objectID": "CA75A151-6AF4-408B-8394-BD453B8868AF",
+                "exportFormats": [],
+                "includedLayerIds": [],
+                "layerOptions": 0,
+                "shouldTrim": false
+              },
+              "frame": {
+                "_class": "rect",
+                "do_objectID": "9A96FBE4-13A1-415B-AEF8-987F39E9A524",
+                "constrainProportions": false,
+                "height": 10,
+                "width": 10,
+                "x": 2,
+                "y": 1
+              },
+              "isFixedToViewport": false,
+              "isFlippedHorizontal": false,
+              "isFlippedVertical": false,
+              "isLocked": false,
+              "isVisible": true,
+              "layerListExpandedType": 0,
+              "name": "Oval 2 Copy 5",
+              "nameIsFixed": false,
+              "resizingConstraint": 63,
+              "resizingType": 0,
+              "rotation": 0,
+              "shouldBreakMaskChain": false,
+              "edited": false,
+              "isClosed": true,
+              "pointRadiusBehaviour": 1,
+              "points": [
+                {
+                  "_class": "curvePoint",
+                  "cornerRadius": 0,
+                  "curveFrom": "{0.1, 0.2}",
+                  "curveMode": 2,
+                  "curveTo": "{0.22385762510000001, 1}",
+                  "hasCurveFrom": true,
+                  "hasCurveTo": false,
+                  "point": "{0.1, 0.5}"
+                },
+                {
+                  "_class": "curvePoint",
+                  "cornerRadius": 0,
+                  "curveFrom": "{0.8, 0.1}",
+                  "curveMode": 2,
+                  "curveTo": "{0.2, 0.1}",
+                  "hasCurveFrom": true,
+                  "hasCurveTo": true,
+                  "point": "{0.5, 0.1}"
+                },
+                {
+                  "_class": "curvePoint",
+                  "cornerRadius": 0,
+                  "curveFrom": "{0.22385762510000001, 0}",
+                  "curveMode": 2,
+                  "curveTo": "{0.9, 0.2}",
+                  "hasCurveFrom": false,
+                  "hasCurveTo": true,
+                  "point": "{0.9, 0.5}"
+                }
+              ]
+            }
+          ],
+          "clippingMaskMode": 0,
+          "hasClippingMask": false,
+          "windingRule": 0
+        }
+      ],
+      "backgroundColor": {
+        "_class": "color",
+        "alpha": 1,
+        "blue": 1,
+        "green": 1,
+        "red": 1
+      },
+      "hasBackgroundColor": false,
+      "horizontalRulerData": {
+        "_class": "rulerData",
+        "base": 0,
+        "guides": []
+      },
+      "includeBackgroundColorInExport": true,
+      "includeInCloudUpload": true,
+      "isFlowHome": false,
+      "resizesContent": false,
+      "verticalRulerData": {
+        "_class": "rulerData",
+        "base": 0,
+        "guides": []
+      }
+    }
+  ],
+  "horizontalRulerData": {
+    "_class": "rulerData",
+    "base": 0,
+    "guides": []
+  },
+  "includeInCloudUpload": true,
+  "verticalRulerData": {
+    "_class": "rulerData",
+    "base": 0,
+    "guides": []
+  }
+}

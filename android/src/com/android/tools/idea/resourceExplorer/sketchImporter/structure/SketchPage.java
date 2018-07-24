@@ -18,6 +18,11 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
+import java.util.List;
+import java.util.ArrayList;
+
+import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.ARTBOARD_CLASS_TYPE;
 
 /**
  * Refers to objects that have the "_class" field set to be one of the following:
@@ -59,5 +64,27 @@ public class SketchPage extends SketchLayer {
   @NotNull
   public SketchLayer[] getLayers() {
     return layers;
+  }
+
+  public List<SketchArtboard> getArtboards() {
+
+    ArrayList<SketchArtboard> artboards = new ArrayList<>();
+
+    for (SketchLayer layer : getLayers()) {
+      if (ARTBOARD_CLASS_TYPE.equals(layer.getClassType())) {
+        artboards.add((SketchArtboard)layer);
+      }
+    }
+
+    return artboards;
+  }
+
+  @Override
+  public void setAbsoluteLocation(ArrayList<String> paths, Point2D.Double parentCoords) {
+    parentCoords.setLocation(parentCoords.getX() + getFrame().getX(),
+                             parentCoords.getY() + getFrame().getY());
+    for (SketchLayer groupLayer : this.getLayers()) {
+      groupLayer.setAbsoluteLocation(paths, parentCoords);
+    }
   }
 }

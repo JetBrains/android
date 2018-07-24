@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.logic.StringPoint;
-import com.android.tools.idea.resourceExplorer.sketchImporter.logic.VectorPathBuilder;
+import com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathStringBuilder;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -26,63 +25,43 @@ public class VectorPathBuilderTest {
   @Test
   public void createBezierCurveTest() {
 
-    VectorPathBuilder vectorPathBuilder = new VectorPathBuilder();
+    PathStringBuilder pathStringBuilder = new PathStringBuilder();
 
-    vectorPathBuilder.createBezierCurve(new StringPoint(1.0, 1.0),
-                                        new StringPoint(2.0, 2.0),
-                                        new StringPoint(3.0, 3.0));
+    double[] coordinates = {1.0, 1.0, 2.0, 2.0, 3.0, 3.0};
 
-    assertEquals("C1.0,1.0 2.0,2.0 3.0,3.0 ", vectorPathBuilder.getVectorString());
+    pathStringBuilder.createBezierCurve(coordinates);
+
+    assertEquals("C1.0,1.0 2.0,2.0 3.0,3.0 ", pathStringBuilder.build());
   }
 
   @Test
   public void createQuadCurveTest() {
 
-    VectorPathBuilder vectorPathBuilder = new VectorPathBuilder();
+    PathStringBuilder pathStringBuilder = new PathStringBuilder();
 
-    vectorPathBuilder.createQuadCurve(new StringPoint(1.0, 1.0),
-                                        new StringPoint(2.0, 2.0));
+    pathStringBuilder.createQuadCurve(1.0, 1.0,
+                                      2.0, 2.0);
 
-    assertEquals("Q1.0,1.0 2.0,2.0 ", vectorPathBuilder.getVectorString());
-  }
-
-  @Test
-  public void createHorizontalLineTest() {
-
-    VectorPathBuilder vectorPathBuilder = new VectorPathBuilder();
-
-    vectorPathBuilder.createHorizontalLine(new StringPoint(1.0, 2.0));
-
-    assertEquals("H1.0 ", vectorPathBuilder.getVectorString());
-  }
-
-  @Test
-  public void createVerticalLineTest() {
-
-    VectorPathBuilder vectorPathBuilder = new VectorPathBuilder();
-
-    vectorPathBuilder.createVerticalLine(new StringPoint(1.0, 2.0));
-
-    assertEquals("V2.0 ", vectorPathBuilder.getVectorString());
+    assertEquals("Q1.0,1.0 2.0,2.0 ", pathStringBuilder.build());
   }
 
   @Test
   public void createLineTest() {
 
-    VectorPathBuilder vectorPathBuilder = new VectorPathBuilder();
+    PathStringBuilder pathStringBuilder = new PathStringBuilder();
 
-    vectorPathBuilder.createLine(new StringPoint(1.0, 2.0));
+    pathStringBuilder.createLine(1.0, 2.0);
 
-    assertEquals("L1.0,2.0 ", vectorPathBuilder.getVectorString());
+    assertEquals("L1.0,2.0 ", pathStringBuilder.build());
   }
 
   @Test
   public void startPathTest() {
 
-    VectorPathBuilder vectorPathBuilder = new VectorPathBuilder();
+    PathStringBuilder pathStringBuilder = new PathStringBuilder();
 
-    vectorPathBuilder.startPath(new StringPoint(2.0, 2.0));
+    pathStringBuilder.startPath(2.0, 2.0);
 
-    assertEquals("M2.0,2.0 ", vectorPathBuilder.getVectorString());
+    assertEquals("M2.0,2.0 ", pathStringBuilder.build());
   }
 }
