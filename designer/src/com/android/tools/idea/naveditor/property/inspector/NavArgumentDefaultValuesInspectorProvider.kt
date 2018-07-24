@@ -21,6 +21,8 @@ import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.common.property.inspector.InspectorComponent
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.common.property.inspector.InspectorProvider
+import com.android.tools.idea.naveditor.model.actionDestinationId
+import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.property.NavArgumentDefaultValuesProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.editors.TextEditor
@@ -50,6 +52,9 @@ class NavArgumentDefaultValuesInspectorProvider : InspectorProvider<NavPropertie
       return false
     }
     if (properties.values.none { it is NavArgumentDefaultValuesProperty }) {
+      return false
+    }
+    if (components[0].isAction && components[0].actionDestinationId == null) {
       return false
     }
 
