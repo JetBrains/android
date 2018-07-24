@@ -218,6 +218,7 @@ final class SubTable extends JBTable implements DataProvider, PasteProvider {
       column.setModelIndex(modelColumnIndex);
     }
 
+    column.setHeaderValue(null);
     return column;
   }
 
