@@ -229,9 +229,30 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   public void addToParsedExpressionList(@NotNull String property, @NotNull GradleDslElement element) {
-    PsiElement psiElement = element.getPsiElement();
-    if (psiElement == null) {
+    if (element.getPsiElement() == null) {
       return;
+    }
+
+    List<GradleDslElement> newElements = new ArrayList<>();
+    PsiElement psiElement = element.getPsiElement();
+    if (element instanceof GradleDslMethodCall) {
+      List<GradleDslExpression> args = ((GradleDslMethodCall)element).getArguments();
+      if (!args.isEmpty()) {
+        if (args.size() == 1 && args.get(0) instanceof GradleDslExpressionList) {
+          newElements.addAll(((GradleDslExpressionList)args.get(0)).getExpressions());
+          PsiElement newElement = args.get(0).getPsiElement();
+          psiElement = newElement != null ? newElement : psiElement;
+        }
+        else {
+          newElements.add(element);
+        }
+      }
+    }
+    else if (element instanceof GradleDslSimpleExpression) {
+      newElements.add(element);
+    }
+    else if (element instanceof GradleDslExpressionList) {
+      newElements.addAll(((GradleDslExpressionList)element).getExpressions());
     }
 
     GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
@@ -242,16 +263,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     else {
       gradleDslExpressionList.setPsiElement(psiElement);
     }
-
-    if (element instanceof GradleDslSimpleExpression) {
-      gradleDslExpressionList.addParsedExpression((GradleDslSimpleExpression)element);
-    }
-    else if (element instanceof GradleDslExpressionList) {
-      List<GradleDslExpression> gradleExpressions = ((GradleDslExpressionList)element).getExpressions();
-      for (GradleDslExpression expression : gradleExpressions) {
-        gradleDslExpressionList.addParsedExpression(expression);
-      }
-    }
+    newElements.forEach(gradleDslExpressionList::addParsedElement);
   }
 
   @NotNull
