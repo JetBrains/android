@@ -52,8 +52,8 @@ final class AddLocaleAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent event) {
     long count = myPanel.getTable().getModel().getKeys().stream()
-      .filter(key -> key.getDirectory() != null)
-      .count();
+                        .filter(key -> key.getDirectory() != null)
+                        .count();
 
     event.getPresentation().setEnabled(count != 0);
   }
@@ -66,8 +66,8 @@ final class AddLocaleAction extends AnAction {
     JList list = new LocaleList(getLocales(data.getLocaleSet()));
 
     JBPopup popup = JBPopupFactory.getInstance().createListPopupBuilder(list)
-      .setItemChoosenCallback(() -> createItem((Locale)list.getSelectedValue()))
-      .createPopup();
+                                  .setItemChoosenCallback(() -> createItem((Locale)list.getSelectedValue()))
+                                  .createPopup();
 
     popup.showUnderneathOf(event.getInputEvent().getComponent());
   }
@@ -76,16 +76,16 @@ final class AddLocaleAction extends AnAction {
   @VisibleForTesting
   static Collection<Locale> getLocales(@NotNull Collection<Locale> localesToRemove) {
     return LocaleManager.getLanguageCodes(true).stream()
-      .flatMap(AddLocaleAction::getLocales)
-      .filter(locale -> !localesToRemove.contains(locale))
-      .sorted(Locale.LANGUAGE_NAME_COMPARATOR)
-      .collect(Collectors.toList());
+                        .flatMap(AddLocaleAction::getLocales)
+                        .filter(locale -> !localesToRemove.contains(locale))
+                        .sorted(Locale.LANGUAGE_NAME_COMPARATOR)
+                        .collect(Collectors.toList());
   }
 
   @NotNull
   private static Stream<Locale> getLocales(@NotNull String language) {
     Stream<Locale> regionStream = LocaleManager.getRelevantRegions(language).stream()
-      .map(region -> Locale.create(new LocaleQualifier(null, language, region, null)));
+                                               .map(region -> Locale.create(new LocaleQualifier(null, language, region, null)));
 
     return Stream.concat(Stream.of(createLocale(language)), regionStream);
   }
@@ -129,8 +129,8 @@ final class AddLocaleAction extends AnAction {
     }
 
     Optional<StringResource> optionalResource = data.getResources().stream()
-      .filter(resource -> resource.getKey().getDirectory() != null)
-      .findFirst();
+                                                    .filter(resource -> resource.getKey().getDirectory() != null)
+                                                    .findFirst();
 
     return optionalResource.orElseThrow(IllegalStateException::new);
   }
