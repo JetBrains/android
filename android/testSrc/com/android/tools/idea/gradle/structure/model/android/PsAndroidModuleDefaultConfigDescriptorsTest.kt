@@ -30,86 +30,103 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
-    val appModule = project.findModuleByName("app") as PsAndroidModule
-    assertThat(appModule, notNullValue())
-    val defaultConfig = appModule.defaultConfig
+    run {
+      val appModule = project.findModuleByName("app") as PsAndroidModule
+      assertThat(appModule, notNullValue())
+      val defaultConfig = appModule.defaultConfig
 
-    val applicationId = PsAndroidModuleDefaultConfigDescriptors.applicationId.bind(defaultConfig).getValue()
-    val applicationIdSuffix = PsAndroidModuleDefaultConfigDescriptors.applicationIdSuffix.bind(defaultConfig).getValue()
-    val maxSdkVersion = PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion.bind(defaultConfig).getValue()
-    val minSdkVersion = PsAndroidModuleDefaultConfigDescriptors.minSdkVersion.bind(defaultConfig).getValue()
-    val multiDexEnabled = PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled.bind(defaultConfig).getValue()
-    val signingConfig = PsAndroidModuleDefaultConfigDescriptors.signingConfig.bind(defaultConfig).getValue()
-    val targetSdkVersion = PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion.bind(defaultConfig).getValue()
-    val testApplicationId = PsAndroidModuleDefaultConfigDescriptors.testApplicationId.bind(defaultConfig).getValue()
-    val testFunctionalTest = PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest.bind(defaultConfig).getValue()
-    val testHandleProfiling = PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling.bind(defaultConfig).getValue()
-    val testInstrumentationRunner = PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner.bind(defaultConfig).getValue()
-    val versionCode = PsAndroidModuleDefaultConfigDescriptors.versionCode.bind(defaultConfig).getValue()
-    val versionName = PsAndroidModuleDefaultConfigDescriptors.versionName.bind(defaultConfig).getValue()
-    val versionNameSuffix = PsAndroidModuleDefaultConfigDescriptors.versionNameSuffix.bind(defaultConfig).getValue()
-    val proGuardFiles = PsAndroidModuleDefaultConfigDescriptors.proGuardFiles.bind(defaultConfig).getValue()
-    val manifestPlaceholders = PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).getValue()
-    val editableManifestPlaceholders =
-      PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).getEditableValues()
-        .mapValues { it.value.getValue() }
+      val applicationId = PsAndroidModuleDefaultConfigDescriptors.applicationId.bind(defaultConfig).getValue()
+      val applicationIdSuffix = PsAndroidModuleDefaultConfigDescriptors.applicationIdSuffix.bind(defaultConfig).getValue()
+      val maxSdkVersion = PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion.bind(defaultConfig).getValue()
+      val minSdkVersion = PsAndroidModuleDefaultConfigDescriptors.minSdkVersion.bind(defaultConfig).getValue()
+      val multiDexEnabled = PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled.bind(defaultConfig).getValue()
+      val signingConfig = PsAndroidModuleDefaultConfigDescriptors.signingConfig.bind(defaultConfig).getValue()
+      val targetSdkVersion = PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion.bind(defaultConfig).getValue()
+      val testApplicationId = PsAndroidModuleDefaultConfigDescriptors.testApplicationId.bind(defaultConfig).getValue()
+      val testFunctionalTest = PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest.bind(defaultConfig).getValue()
+      val testHandleProfiling = PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling.bind(defaultConfig).getValue()
+      val testInstrumentationRunner = PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner.bind(defaultConfig).getValue()
+      val versionCode = PsAndroidModuleDefaultConfigDescriptors.versionCode.bind(defaultConfig).getValue()
+      val versionName = PsAndroidModuleDefaultConfigDescriptors.versionName.bind(defaultConfig).getValue()
+      val versionNameSuffix = PsAndroidModuleDefaultConfigDescriptors.versionNameSuffix.bind(defaultConfig).getValue()
+      val proGuardFiles = PsAndroidModuleDefaultConfigDescriptors.proGuardFiles.bind(defaultConfig).getValue()
+      val resConfigs = PsAndroidModuleDefaultConfigDescriptors.resConfigs.bind(defaultConfig).getValue()
+      val manifestPlaceholders = PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).getValue()
+      val editableManifestPlaceholders =
+        PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).getEditableValues()
+          .mapValues { it.value.getValue() }
 
-    assertThat(applicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.default"))
-    assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.default"))
+      assertThat(applicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.default"))
+      assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.default"))
 
-    assertThat(applicationIdSuffix.resolved.asTestValue(), equalTo("defaultSuffix"))
-    assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("defaultSuffix"))
+      assertThat(applicationIdSuffix.resolved.asTestValue(), equalTo("defaultSuffix"))
+      assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("defaultSuffix"))
 
-    assertThat(maxSdkVersion.resolved.asTestValue(), equalTo(26))
-    assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(26))
+      assertThat(maxSdkVersion.resolved.asTestValue(), equalTo(26))
+      assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(26))
 
-    assertThat(minSdkVersion.resolved.asTestValue(), equalTo("9"))
-    assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("9"))
+      assertThat(minSdkVersion.resolved.asTestValue(), equalTo("9"))
+      assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("9"))
 
-    assertThat(multiDexEnabled.resolved.asTestValue(), nullValue())
-    assertThat(multiDexEnabled.parsedValue.asTestValue(), nullValue())
+      assertThat(multiDexEnabled.resolved.asTestValue(), nullValue())
+      assertThat(multiDexEnabled.parsedValue.asTestValue(), nullValue())
 
-    assertThat(signingConfig.resolved.asTestValue(), nullValue())
-    assertThat(signingConfig.parsedValue.asTestValue(), nullValue())
+      assertThat(signingConfig.resolved.asTestValue(), nullValue())
+      assertThat(signingConfig.parsedValue.asTestValue(), nullValue())
 
-    assertThat(targetSdkVersion.resolved.asTestValue(), equalTo("19"))
-    // TODO(b/71988818) assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("19"))
+      assertThat(targetSdkVersion.resolved.asTestValue(), equalTo("19"))
+      // TODO(b/71988818) assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("19"))
 
-    assertThat(testApplicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.default.test"))
-    assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.default.test"))
+      assertThat(testApplicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.default.test"))
+      assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.default.test"))
 
-    assertThat(testInstrumentationRunner.resolved.asTestValue(), nullValue())
-    assertThat(testInstrumentationRunner.parsedValue.asTestValue(), nullValue())
+      assertThat(testInstrumentationRunner.resolved.asTestValue(), nullValue())
+      assertThat(testInstrumentationRunner.parsedValue.asTestValue(), nullValue())
 
-    // TODO(b/111630584): assertThat(testFunctionalTest.resolved.asTestValue(), equalTo(false))
-    assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(false))
+      // TODO(b/111630584): assertThat(testFunctionalTest.resolved.asTestValue(), equalTo(false))
+      assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(false))
 
-    // TODO(b/111630584): assertThat(testHandleProfiling.resolved.asTestValue(), nullValue())
-    assertThat(testHandleProfiling.parsedValue.asTestValue(), nullValue())
+      // TODO(b/111630584): assertThat(testHandleProfiling.resolved.asTestValue(), nullValue())
+      assertThat(testHandleProfiling.parsedValue.asTestValue(), nullValue())
 
-    assertThat(versionCode.resolved.asTestValue(), equalTo(1))
-    assertThat(versionCode.parsedValue.asTestValue(), equalTo(1))
+      assertThat(versionCode.resolved.asTestValue(), equalTo(1))
+      assertThat(versionCode.parsedValue.asTestValue(), equalTo(1))
 
-    assertThat(versionName.resolved.asTestValue(), equalTo("1.0"))
-    assertThat(versionName.parsedValue.asTestValue(), equalTo("1.0"))
+      assertThat(versionName.resolved.asTestValue(), equalTo("1.0"))
+      assertThat(versionName.parsedValue.asTestValue(), equalTo("1.0"))
 
-    assertThat(versionNameSuffix.resolved.asTestValue(), equalTo("vns"))
-    assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("vns"))
+      assertThat(versionNameSuffix.resolved.asTestValue(), equalTo("vns"))
+      assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("vns"))
 
-    assertThat(proGuardFiles.resolved.asTestValue(), equalTo(listOf()))
-    assertThat(proGuardFiles.parsedValue.asTestValue(), nullValue())
+      assertThat(proGuardFiles.resolved.asTestValue(), equalTo(listOf()))
+      assertThat(proGuardFiles.parsedValue.asTestValue(), nullValue())
 
-    assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf("aa" to "aaa", "bb" to "bbb", "cc" to "ccc")))
-    assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf("aa" to "aaa", "bb" to "bbb", "cc" to "ccc")))
+      assertThat(resConfigs.resolved.asTestValue(), equalTo(listOf()))
+      assertThat(resConfigs.parsedValue.asTestValue(), nullValue())
 
-    assertThat(editableManifestPlaceholders["aa"]?.resolved?.asTestValue(), equalTo("aaa"))
-    assertThat(editableManifestPlaceholders["aa"]?.parsedValue?.asTestValue(), equalTo("aaa"))
+      assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf("aa" to "aaa", "bb" to "bbb", "cc" to "ccc")))
+      assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf("aa" to "aaa", "bb" to "bbb", "cc" to "ccc")))
 
-    assertThat(editableManifestPlaceholders["bb"]?.resolved?.asTestValue(), equalTo("bbb"))
-    assertThat(editableManifestPlaceholders["bb"]?.parsedValue?.asTestValue(), equalTo("bbb"))
+      assertThat(editableManifestPlaceholders["aa"]?.resolved?.asTestValue(), equalTo("aaa"))
+      assertThat(editableManifestPlaceholders["aa"]?.parsedValue?.asTestValue(), equalTo("aaa"))
 
-    assertThat(editableManifestPlaceholders["cc"]?.resolved?.asTestValue(), equalTo("ccc"))
-    assertThat(editableManifestPlaceholders["cc"]?.parsedValue?.asTestValue(), equalTo("ccc"))
+      assertThat(editableManifestPlaceholders["bb"]?.resolved?.asTestValue(), equalTo("bbb"))
+      assertThat(editableManifestPlaceholders["bb"]?.parsedValue?.asTestValue(), equalTo("bbb"))
+
+      assertThat(editableManifestPlaceholders["cc"]?.resolved?.asTestValue(), equalTo("ccc"))
+      assertThat(editableManifestPlaceholders["cc"]?.parsedValue?.asTestValue(), equalTo("ccc"))
+    }
+
+    run {
+      val module = project.findModuleByGradlePath(":nested1:deep") as PsAndroidModule
+      assertThat(module, notNullValue())
+      val defaultConfig = module.defaultConfig
+
+      val resConfigs = PsAndroidModuleDefaultConfigDescriptors.resConfigs.bind(defaultConfig).getValue()
+      assertThat(resConfigs.resolved.asTestValue()?.toSet(), equalTo(setOf("en", "fr")))
+      // TODO(b/111779356): Uncommented when fixed.
+      // assertThat(resConfigs.parsedValue.asTestValue()?.toSet(), equalTo(setOf("en", "fr")))
+    }
   }
 
   fun testSetProperties() {

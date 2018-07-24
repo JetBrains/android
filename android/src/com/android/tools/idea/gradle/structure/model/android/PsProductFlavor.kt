@@ -53,6 +53,7 @@ open class PsProductFlavor(
   var versionCode by ProductFlavorDescriptors.versionCode
   var versionName by ProductFlavorDescriptors.versionName
   var versionNameSuffix by ProductFlavorDescriptors.versionNameSuffix
+  var resConfigs by ProductFlavorDescriptors.resConfigs
   var manifestPlaceholders by ProductFlavorDescriptors.manifestPlaceholders
   var testInstrumentationRunnerArguments by ProductFlavorDescriptors.testInstrumentationRunnerArguments
 
@@ -243,6 +244,15 @@ open class PsProductFlavor(
       setter = { setValue(it.toString()) },
       parser = ::parseFile,
       knownValuesGetter = { _, model -> proGuardFileValues(model.parent) }
+    )
+
+    val resConfigs: ListProperty<PsProductFlavor, String> = listProperty(
+      "Resource Configs",
+      resolvedValueGetter = { resourceConfigurations.toList() },
+      parsedPropertyGetter = { resConfigs() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString
     )
 
     val manifestPlaceholders: MapProperty<PsProductFlavor, String> = mapProperty(

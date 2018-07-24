@@ -30,6 +30,7 @@ class PsAndroidModuleDefaultConfig(val module: PsAndroidModule) {
   var versionName by PsAndroidModuleDefaultConfigDescriptors.versionName
   var versionNameSuffix by PsAndroidModuleDefaultConfigDescriptors.versionNameSuffix
   var proGuardFiles by PsAndroidModuleDefaultConfigDescriptors.proGuardFiles
+  var resConfigs by PsAndroidModuleDefaultConfigDescriptors.resConfigs
   var manifestPlaceholders by PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders
   var testInstrumentationRunnerArguments by PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunnerArguments
 }

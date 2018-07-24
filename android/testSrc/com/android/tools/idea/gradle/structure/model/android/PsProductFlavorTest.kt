@@ -53,6 +53,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       val versionName = PsProductFlavor.ProductFlavorDescriptors.versionName.bind(productFlavor).getValue()
       val versionNameSuffix = PsProductFlavor.ProductFlavorDescriptors.versionNameSuffix.bind(productFlavor).getValue()
       val matchingFallbacks = PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).getValue()
+      val resConfigs = PsProductFlavor.ProductFlavorDescriptors.resConfigs.bind(productFlavor).getValue()
       val manifestPlaceholders = PsProductFlavor.ProductFlavorDescriptors.manifestPlaceholders.bind(productFlavor).getValue()
       val testInstrumentationRunnerArguments =
         PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).getValue()
@@ -108,6 +109,9 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(matchingFallbacks.resolved.asTestValue(), nullValue())
       assertThat(matchingFallbacks.parsedValue.asTestValue(), nullValue())
 
+      assertThat(resConfigs.resolved.asTestValue(), equalTo(listOf()))
+      assertThat(resConfigs.parsedValue.asTestValue(), nullValue())
+
       assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf()))
       assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
 
@@ -135,9 +139,13 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       val productFlavor = appModule.findProductFlavor("otherBar")
       assertThat(productFlavor, notNullValue()); productFlavor!!
       val matchingFallbacks = PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).getValue()
+      val resConfigs = PsProductFlavor.ProductFlavorDescriptors.resConfigs.bind(productFlavor).getValue()
 
       assertThat(matchingFallbacks.resolved.asTestValue(), nullValue())
       assertThat(matchingFallbacks.parsedValue.asTestValue(), equalTo(listOf("bar")))
+
+      assertThat(resConfigs.resolved.asTestValue()?.toSet(), equalTo(setOf("en", "hdpi", "xhdpi")))
+      assertThat(resConfigs.parsedValue.asTestValue()?.toSet(), equalTo(setOf("en", "hdpi", "xhdpi")))
     }
   }
 
@@ -188,6 +196,10 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     PsProductFlavor.ProductFlavorDescriptors.signingConfig.bind(productFlavor).setParsedValue(
       ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.myConfig")))
     PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).addItem(0).setParsedValue("free".asParsed())
+    PsProductFlavor.ProductFlavorDescriptors.resConfigs.bind(productFlavor).run {
+      addItem(0).setParsedValue("en".asParsed())
+      addItem(1).setParsedValue("fr".asParsed())
+    }
     PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).changeEntryKey("b", "e")
     PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor)
       .getEditableValues()["a"]?.setParsedValue("AAA".asParsed())
@@ -215,6 +227,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       val versionName = PsProductFlavor.ProductFlavorDescriptors.versionName.bind(productFlavor).getValue()
       val versionNameSuffix = PsProductFlavor.ProductFlavorDescriptors.versionNameSuffix.bind(productFlavor).getValue()
       val matchingFallbacks = PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).getValue()
+      val resConfigs = PsProductFlavor.ProductFlavorDescriptors.resConfigs.bind(productFlavor).getValue()
       val testInstrumentationRunnerArguments =
         PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).getValue()
 
@@ -232,6 +245,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))
       assertThat(matchingFallbacks.parsedValue.asTestValue(), equalTo(listOf("free")))
+      assertThat(resConfigs.parsedValue.asTestValue(), equalTo(listOf("en", "fr")))
       assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo("com.runner"))
       // TODO(b/79531524): find out why it fails.
       // assertThat(versionCode.parsedValue.asTestValue(), equalTo("3"))
@@ -264,6 +278,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
         )
       // TODO(b/111630584): assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(testFunctionalTest.resolved.asTestValue()))
       // TODO(b/111630584): assertThat(testHandleProfiling.parsedValue.asTestValue(), equalTo(testHandleProfiling.resolved.asTestValue()))
+        assertThat(resConfigs.parsedValue.asTestValue()?.toSet(), equalTo(resConfigs.resolved.asTestValue()?.toSet()))
       }
     }
     verifyValues(productFlavor)
