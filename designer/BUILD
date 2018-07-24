@@ -50,11 +50,11 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/designer:lib/org.eclipse.elk.alg.layered-0.3.0",
-        "//tools/adt/idea/designer:lib/org.eclipse.elk.core-0.3.0",
-        "//tools/adt/idea/designer:lib/org.eclipse.elk.graph-0.3.0",
-        "//tools/adt/idea/designer:lib/org.eclipse.emf.common-2.12.0",
-        "//tools/adt/idea/designer:lib/org.eclipse.emf.ecore-2.12.0",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.alg.layered/0.3.0:jar",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.core/0.3.0:jar",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.graph/0.3.0:jar",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.common/2.12.0:jar",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.12.0:jar",
     ],
 )
 
@@ -147,39 +147,4 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
     ],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "lib/org.eclipse.elk.alg.layered-0.3.0",
-    jars = ["lib/org.eclipse.elk.alg.layered-0.3.0.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "lib/org.eclipse.elk.core-0.3.0",
-    jars = ["lib/org.eclipse.elk.core-0.3.0.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "lib/org.eclipse.elk.graph-0.3.0",
-    jars = ["lib/org.eclipse.elk.graph-0.3.0.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "lib/org.eclipse.emf.common-2.12.0",
-    jars = ["lib/org.eclipse.emf.common-2.12.0.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "lib/org.eclipse.emf.ecore-2.12.0",
-    jars = ["lib/org.eclipse.emf.ecore-2.12.0.jar"],
-    visibility = ["//visibility:public"],
 )
