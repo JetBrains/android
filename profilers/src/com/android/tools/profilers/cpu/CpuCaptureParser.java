@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -74,15 +73,6 @@ public class CpuCaptureParser {
   @NotNull
   private final IdeProfilerServices myServices;
 
-  private final AspectModel<CpuProfilerAspect> myAspect = new AspectModel<>();
-
-  /**
-   * Whether there is a parsing in progress. This value is set to true in {@link #updateParsingStateWhenStarting()} followed by a
-   * {@link CpuProfilerAspect#CAPTURE_PARSING} being fired, and set to false by {@link #updateParsingStateWhenDone(CompletableFuture)},
-   * which should be called around every {@link CompletableFuture<CpuCapture>} created by this class.
-   */
-  private boolean myIsParsing;
-
   public CpuCaptureParser(@NotNull IdeProfilerServices services) {
     myServices = services;
     myCaptures = new HashMap<>();
@@ -91,10 +81,6 @@ public class CpuCaptureParser {
 
   private static Logger getLogger() {
     return Logger.getInstance(CpuCaptureParser.class);
-  }
-
-  public AspectModel<CpuProfilerAspect> getAspect() {
-    return myAspect;
   }
 
   /**
@@ -122,27 +108,41 @@ public class CpuCaptureParser {
     });
   }
 
-  public boolean isParsing() {
-    return myIsParsing;
-  }
-
   /**
-   * Updates {@link #myIsParsing} to false once the given {@link CompletableFuture<CpuCapture>} is done.
+   * Creates a {@link CompletableFuture<CpuCapture>} from given trace bytes and the profiler type used to obtain the trace.
+   * Uses {@link IdeProfilerServices#getPoolExecutor()} to create the actual {@link CpuCapture} object. Adds it to the captures map using
+   * the trace id as key. Finally, returns the {@link CompletableFuture<CpuCapture>} created.
    */
-  private void updateParsingStateWhenDone(CompletableFuture<CpuCapture> future) {
-    future.handleAsync((capture, exception) -> {
-      myIsParsing = false;
-      // No need to fire CAPTURE_PARSING. Listeners are only interested in knowing when parsing started.
-      return capture;
-    });
-  }
+  @Nullable
+  public CompletableFuture<CpuCapture> parse(@NotNull Common.Session session,
+                                             int traceId,
+                                             @NotNull ByteString traceData,
+                                             CpuProfilerType profilerType) {
+    if (!myCaptures.containsKey(traceId)) {
+      // Trace is not being parsed nor is already parsed. We need to start parsing it.
+      if (traceData.size() <= MAX_SUPPORTED_TRACE_SIZE) {
+        // Trace size is supported. Start parsing normally and create the future object corresponding to the capture.
+        myCaptures.put(traceId, createCaptureFuture(session, traceId, traceData, profilerType));
+      }
+      else {
+        Runnable yesCallback = () -> {
+          getLogger().warn(String.format("Parsing long (%d bytes) trace file.", traceData.size()));
+          // User decided to proceed with capture. Start parsing and create the future object corresponding to the capture.
+          myCaptures.put(traceId, createCaptureFuture(session, traceId, traceData, profilerType));
+        };
 
-  /**
-   * Updates {@link #myIsParsing} to true and fire {@link CpuProfilerAspect#CAPTURE_PARSING} to notify the listeners about it.
-   */
-  void updateParsingStateWhenStarting() {
-    myIsParsing = true;
-    myAspect.changed(CpuProfilerAspect.CAPTURE_PARSING);
+        Runnable noCallback = () -> {
+          // User aborted the parsing before it starts. Add an entry for the trace id to the map with a null value.
+          // This way, next time our model requests this trace capture, we return early.
+          getLogger().warn(String.format("Parsing of a long (%d bytes) trace file was aborted by the user.", traceData.size()));
+          myCaptures.put(traceId, null);
+        };
+        // Open the dialog warning the user the trace is too large and asking them if they want to proceed with parsing.
+        myServices.openParseLargeTracesDialog(yesCallback, noCallback);
+      }
+    }
+
+    return myCaptures.get(traceId);
   }
 
   /**
@@ -153,7 +153,7 @@ public class CpuCaptureParser {
    * they want to abort the trace parsing or continue with it.
    */
   @Nullable
-  public CompletableFuture<CpuCapture> parse(@NotNull File traceFile) {
+  public CompletableFuture<CpuCapture> parse(File traceFile) {
     if (!traceFile.exists() || traceFile.isDirectory()) {
       // Nothing to be parsed. We shouldn't even try to do it.
       getLogger().info("Trace not parsed, as its path doesn't exist or points to a directory.");
@@ -167,7 +167,8 @@ public class CpuCaptureParser {
       Runnable yesCallback = () -> {
         getLogger().warn(String.format("Parsing long (%d bytes) trace file.", fileLength));
         // User decided to proceed. Try parsing the trace file.
-        myCaptures.put(IMPORTED_TRACE_ID, createCaptureFuture(traceFile));
+        myCaptures.put(IMPORTED_TRACE_ID,
+                       CompletableFuture.supplyAsync(() -> tryParsingFileWithDifferentParsers(traceFile), myServices.getPoolExecutor()));
       };
 
       Runnable noCallback = () -> {
@@ -181,16 +182,10 @@ public class CpuCaptureParser {
     }
     else {
       // Trace file is not too big to be parsed. Parse it normally.
-      myCaptures.put(IMPORTED_TRACE_ID, createCaptureFuture(traceFile));
+      myCaptures.put(IMPORTED_TRACE_ID,
+                     CompletableFuture.supplyAsync(() -> tryParsingFileWithDifferentParsers(traceFile), myServices.getPoolExecutor()));
     }
     return myCaptures.get(IMPORTED_TRACE_ID);
-  }
-
-  private CompletableFuture<CpuCapture> createCaptureFuture(@NotNull File traceFile) {
-    CompletableFuture<CpuCapture> future =
-      CompletableFuture.supplyAsync(() -> tryParsingFileWithDifferentParsers(traceFile), myServices.getPoolExecutor());
-    updateParsingStateWhenDone(future);
-    return future;
   }
 
   /**
@@ -249,49 +244,10 @@ public class CpuCaptureParser {
     return null;
   }
 
-  /**
-   * Creates a {@link CompletableFuture<CpuCapture>} from given trace bytes and the profiler type used to obtain the trace.
-   * Uses {@link IdeProfilerServices#getPoolExecutor()} to create the actual {@link CpuCapture} object. Adds it to the captures map using
-   * the trace id as key. Finally, returns the {@link CompletableFuture<CpuCapture>} created.
-   */
-  @Nullable
-  public CompletableFuture<CpuCapture> parse(@NotNull Common.Session session,
-                                             int traceId,
-                                             @NotNull ByteString traceData,
-                                             CpuProfilerType profilerType) {
-    if (!myCaptures.containsKey(traceId)) {
-      // Trace is not being parsed nor is already parsed. We need to start parsing it.
-      if (traceData.size() <= MAX_SUPPORTED_TRACE_SIZE) {
-        // Trace size is supported. Start parsing normally and create the future object corresponding to the capture.
-        myCaptures.put(traceId, createCaptureFuture(session, traceId, traceData, profilerType));
-      }
-      else {
-        Runnable yesCallback = () -> {
-          getLogger().warn(String.format("Parsing long (%d bytes) trace file.", traceData.size()));
-          // User decided to proceed with capture. Start parsing and create the future object corresponding to the capture.
-          myCaptures.put(traceId, createCaptureFuture(session, traceId, traceData, profilerType));
-        };
-
-        Runnable noCallback = () -> {
-          // User aborted the parsing before it starts. Add an entry for the trace id to the map with a null value.
-          // This way, next time our model requests this trace capture, we return early.
-          getLogger().warn(String.format("Parsing of a long (%d bytes) trace file was aborted by the user.", traceData.size()));
-          myCaptures.put(traceId, null);
-        };
-        // Open the dialog warning the user the trace is too large and asking them if they want to proceed with parsing.
-        myServices.openParseLargeTracesDialog(yesCallback, noCallback);
-      }
-    }
-
-    return myCaptures.get(traceId);
-  }
-
   private CompletableFuture<CpuCapture> createCaptureFuture(@NotNull Common.Session session, int traceId, ByteString traceBytes,
                                                             CpuProfilerType profilerType) {
-    CompletableFuture<CpuCapture> future =
-      CompletableFuture.supplyAsync(() -> traceBytesToCapture(session, traceId, traceBytes, profilerType), myServices.getPoolExecutor());
-    updateParsingStateWhenDone(future);
-    return future;
+    return CompletableFuture.supplyAsync(() -> traceBytesToCapture(session, traceId, traceBytes, profilerType),
+                                         myServices.getPoolExecutor());
   }
 
   private CpuCapture traceBytesToCapture(@NotNull Common.Session session, int traceId, @NotNull ByteString traceData,

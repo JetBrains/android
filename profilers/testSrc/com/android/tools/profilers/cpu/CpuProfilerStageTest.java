@@ -49,8 +49,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -129,9 +127,11 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Stop capturing, but don't include a trace in the response.
     myServices.setOnExecute(() -> {
-      // First, the main executor is going to be called to execute stopCapturingCallback which should tell CpuCaptureParser to start parsing
-      assertThat(myStage.getCaptureParser().isParsing()).isTrue();
-      // Then, the next time the main executor is called, it will try to parse the capture unsuccessfully and set the capture state to IDLE
+      // First, the main executor is going to be called to execute stopCapturingCallback,
+      // which should set the capture state to PARSING
+      assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.PARSING);
+      // Then, the next time the main executor is called, it will try to parse the capture unsuccessfully
+      // and set the capture state to IDLE
       myServices.setOnExecute(() -> {
         assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
         // Capture was stopped successfully, but capture should still be null as the response has no valid trace
@@ -836,8 +836,8 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void apiInitiatedCaptureShouldPreserveNonIdleNonCapturingState() {
-    myStage.setCaptureState(CpuProfilerStage.CaptureState.STOPPING);
+  public void apiInitiatedCaptureShouldPreserveNonIdelNonCapturingState() {
+    myStage.setCaptureState(CpuProfilerStage.CaptureState.PARSING);
 
     // API-initiated tracing starts.
     CpuProfiler.CpuProfilerConfiguration apiTracingconfig =
@@ -845,9 +845,9 @@ public class CpuProfilerStageTest extends AspectObserver {
     long startTimestamp = 100;
     myCpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp, CpuProfiler.TraceInitiationType.INITIATED_BY_API);
 
-    // Verify the STOPPING state isn't changed due to API tracing.
+    // Verify the parsing state isn't changed due to API tracing.
     myStage.updateProfilingState();
-    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.STOPPING);
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.PARSING);
 
     // Simulate the parsing of prior capture (the one being parsed when entering the test) is done.
     myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
@@ -963,36 +963,28 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setValidTrace(true);
 
     Iterator<CpuProfilerStage.CaptureState> comingStates = Iterators.forArray(CpuProfilerStage.CaptureState.STOPPING,
+                                                                              CpuProfilerStage.CaptureState.PARSING,
                                                                               CpuProfilerStage.CaptureState.IDLE);
-    AtomicInteger transitionsCount = new AtomicInteger();
 
     AspectObserver observer = new AspectObserver();
     myStage.getAspect().addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_STATE, () -> {
       assertThat(myStage.getCaptureState()).isEqualTo(comingStates.next());
-      transitionsCount.getAndIncrement();
       switch (myStage.getCaptureState()) {
         case IDLE:
           assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries()).hasSize(0);
           break;
         case STOPPING:
+        case PARSING:
+          assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries()).hasSize(1);
+          assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries().get(0).value.getDurationUs()).isLessThan(Long.MAX_VALUE);
           break;
         default:
           throw new RuntimeException("Unreachable code");
       }
     });
 
-    AtomicBoolean parsingCalled = new AtomicBoolean(false);
-    myStage.getCaptureParser().getAspect().addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_PARSING, () -> {
-      assertThat(myStage.getCaptureParser().isParsing()).isTrue();
-      assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries()).hasSize(1);
-      assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries().get(0).value.getDurationUs()).isLessThan(Long.MAX_VALUE);
-      parsingCalled.set(true);
-    });
-
     stopCapturing();
     assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries()).hasSize(0);
-    assertThat(transitionsCount.get()).isEqualTo(2);
-    assertThat(parsingCalled.get()).isTrue();
   }
 
   @Test
@@ -1101,21 +1093,21 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void getCaptureFutureShouldTellParserToStartParsing() {
+  public void getCaptureFutureShouldSetStateToParsing() {
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
-    assertThat(myStage.getCaptureParser().isParsing()).isFalse();
 
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.setValidTrace(true);
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     myStage.getCaptureFuture(FakeCpuService.FAKE_TRACE_ID);
 
-    assertThat(myStage.getCaptureParser().isParsing()).isTrue();
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.PARSING);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
   }
 
   @Test
-  public void setCaptureWhileCapturingShouldParseAndContinueInCapturingState() {
+  public void setCaptureWhileCapturingShouldParseAndReturnToCapturing() {
     // Start capturing
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     int traceId1 = 1;
@@ -1123,44 +1115,41 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.startCapturing();
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
 
-    // We should parse the selected capture and continue in capturing state, recording another capture.
+    // Sequence of states that should happen when selecting a different capture while capturing. We should parse the selected capture and
+    // then go back to the capturing state.
+    Iterator<CpuProfilerStage.CaptureState> captureStates = Iterators.forArray(CpuProfilerStage.CaptureState.PARSING,
+                                                                               CpuProfilerStage.CaptureState.CAPTURING);
+    // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
     AspectObserver observer = new AspectObserver();
-    AtomicBoolean transitionHappened = new AtomicBoolean(false);
-    myStage.getCaptureParser().getAspect().addDependency(observer).onChange(
-      CpuProfilerAspect.CAPTURE_PARSING, () -> {
-        assertThat(myStage.getCaptureParser().isParsing()).isTrue();
-        transitionHappened.set(true);
-      });
+    myStage.getAspect().addDependency(observer).onChange(
+      CpuProfilerAspect.CAPTURE_STATE, () -> assertThat(myStage.getCaptureState()).isEqualTo(captureStates.next()));
 
     // Select another capture
     int traceId2 = 2;
     myCpuService.setTraceId(traceId2);
     myStage.setAndSelectCapture(traceId2);
-    assertThat(transitionHappened.get()).isTrue();
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
   }
 
   @Test
-  public void setCaptureWhileIdleShouldParseAndStayInIdleState() {
+  public void setCaptureWhileIdleShouldParseAndReturnToIdle() {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
-    // Listen to CAPTURE_PARSING and check we go through parsing.
-    AtomicBoolean parsingCalled = new AtomicBoolean(false);
+    // Sequence of states that should happen when selecting a capture while idle. We should parse the selected capture an then go back
+    // to the idle state.
+    Iterator<CpuProfilerStage.CaptureState> captureStates = Iterators.forArray(CpuProfilerStage.CaptureState.PARSING,
+                                                                               CpuProfilerStage.CaptureState.IDLE);
+    // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
     AspectObserver observer = new AspectObserver();
-    myStage.getCaptureParser().getAspect().addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_PARSING, () -> {
-      assertThat(myStage.getCaptureParser().isParsing()).isTrue();
-      parsingCalled.set(true);
-    });
+    myStage.getAspect().addDependency(observer).onChange(
+      CpuProfilerAspect.CAPTURE_STATE, () -> assertThat(myStage.getCaptureState()).isEqualTo(captureStates.next()));
 
     // Select a capture
     int traceId1 = 1;
     myCpuService.setTraceId(traceId1);
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     myStage.setAndSelectCapture(traceId1);
-    assertThat(parsingCalled.get()).isTrue();
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
-    // Sanity check to verify we''e not parsing anymore.
-    assertThat(myStage.getCaptureParser().isParsing()).isFalse();
   }
 
   @Test
@@ -1308,38 +1297,24 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Sequence of states that should happen after stopping a capture that failures to parse the trace
     Iterator<CpuProfilerStage.CaptureState> captureStates = Iterators.forArray(CpuProfilerStage.CaptureState.STOPPING,
+                                                                               CpuProfilerStage.CaptureState.PARSING,
+                                                                               CpuProfilerStage.CaptureState.PARSING_FAILURE,
                                                                                CpuProfilerStage.CaptureState.IDLE);
-    AtomicInteger transitionsCount = new AtomicInteger();
     // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
     AspectObserver observer = new AspectObserver();
     myStage.getAspect().addDependency(observer).onChange(
-      CpuProfilerAspect.CAPTURE_STATE, () -> {
-        transitionsCount.getAndIncrement();
-        assertThat(myStage.getCaptureState()).isEqualTo(captureStates.next());
-      });
-
-    // Listen to CAPTURE_PARSING and check if we goes through parsing state before parsing fails.
-    AtomicBoolean aspectFired = new AtomicBoolean(false);
-    myStage.getCaptureParser().getAspect().addDependency(observer).onChange(
-      CpuProfilerAspect.CAPTURE_PARSING, () -> {
-        aspectFired.set(true);
-        assertThat(myStage.getCaptureParser().isParsing()).isTrue();
-      });
+      CpuProfilerAspect.CAPTURE_STATE, () -> assertThat(myStage.getCaptureState()).isEqualTo(captureStates.next()));
 
     // Force the return of a simpleperf. As we started an ART capture, the capture parsing should fail.
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
     myCpuService.setValidTrace(true);
     stopCapturing();
-    assertThat(transitionsCount.get()).isEqualTo(2);
-    assertThat(aspectFired.get()).isTrue();
 
     // As parsing has failed, capture should be null.
     assertThat(myStage.getCapture()).isNull();
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
-    // Sanity check to verify we're not parsing anymore
-    assertThat(myStage.getCaptureParser().isParsing()).isFalse();
   }
 
   @Test
@@ -1496,23 +1471,13 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Sequence of states that should happen after stopping a capture that fails to be parsed
     Iterator<CpuProfilerStage.CaptureState> captureStates = Iterators.forArray(CpuProfilerStage.CaptureState.STOPPING,
+                                                                               CpuProfilerStage.CaptureState.PARSING,
+                                                                               CpuProfilerStage.CaptureState.PARSING_FAILURE,
                                                                                CpuProfilerStage.CaptureState.IDLE);
-    AtomicInteger transitionsCount = new AtomicInteger();
     // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
     AspectObserver observer = new AspectObserver();
     myStage.getAspect().addDependency(observer).onChange(
-      CpuProfilerAspect.CAPTURE_STATE, () -> {
-        transitionsCount.getAndIncrement();
-        assertThat(myStage.getCaptureState()).isEqualTo(captureStates.next());
-      });
-
-    // Listen to CAPTURE_PARSING and check if we goes through parsing state before parsing fails.
-    AtomicBoolean aspectFired = new AtomicBoolean(false);
-    myStage.getCaptureParser().getAspect().addDependency(observer).onChange(
-      CpuProfilerAspect.CAPTURE_PARSING, () -> {
-        aspectFired.set(true);
-        assertThat(myStage.getCaptureParser().isParsing()).isTrue();
-      });
+      CpuProfilerAspect.CAPTURE_STATE, () -> assertThat(myStage.getCaptureState()).isEqualTo(captureStates.next()));
     stopCapturing();
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
@@ -1520,9 +1485,6 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_FAILURE_BALLOON_TEXT);
     assertThat(myServices.getBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
     assertThat(myServices.getBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
-
-    assertThat(transitionsCount.get()).isEqualTo(2);
-    assertThat(aspectFired.get()).isTrue();
   }
 
   @Test
@@ -1799,9 +1761,9 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Stop a capture successfully with a valid trace
     myServices.setOnExecute(() -> {
-      // First, the main executor is going to be called to execute stopCapturingCallback, which should tell the capture parser to start
-      // parsing.
-      assertThat(myStage.getCaptureParser().isParsing()).isTrue();
+      // First, the main executor is going to be called to execute stopCapturingCallback,
+      // which should set the capture state to PARSING
+      assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.PARSING);
       // Whenever the capture is being parsed, profiler mode should be set to EXPANDED
       assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
       // Then, the next time the main executor is called, it will parse the capture successfully
@@ -1839,15 +1801,14 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   /**
    * This is a convenience method to stop a capture.
-   * It makes sure to check for the intermediate state (STOPPING) between pressing the "Stop" button and effectively stop capturing. Also,
-   * it verifies the {@link CpuCaptureParser} is parsing the capture after we stop capturing.
+   * It makes sure to check the intermidiate state (STOPPING) between pressing the "Stop" button and effectively stop capturing,
+   * and the PARSING state which happens after a capture is stopped.
    */
   private void stopCapturing(CpuProfilerStage stage) {
-    // The pre executor will make sure we pass through STOPPING state before parsing.
+    // The pre executor will pass through STOPPING and then PARSING
     myServices.setPrePoolExecutor(() -> {
       assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.STOPPING);
-      // Then it will make sure the CpuCaptureParser is parsing the capture.
-      myServices.setPrePoolExecutor(() -> assertThat(stage.getCaptureParser().isParsing()).isTrue());
+      myServices.setPrePoolExecutor(() -> assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.PARSING));
     });
     stage.stopCapturing();
   }
@@ -1887,7 +1848,7 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     @Nullable
     @Override
-    public CompletableFuture<CpuCapture> parse(@NotNull File traceFile) {
+    public CompletableFuture<CpuCapture> parse(File traceFile) {
       CompletableFuture<CpuCapture> capture = new CompletableFuture<>();
       capture.cancel(true);
       return capture;

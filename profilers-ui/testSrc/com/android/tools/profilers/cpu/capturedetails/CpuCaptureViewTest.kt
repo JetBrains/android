@@ -146,8 +146,8 @@ class CpuCaptureViewTest {
   fun showsLoadingPaneWhenParsing() {
     val observer = AspectObserver()
     var parsingCalled = false
-    stageView.stage.captureParser.aspect.addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_PARSING) {
-      if (stageView.stage.captureParser.isParsing) {
+    stageView.stage.aspect.addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_STATE) {
+      if (stageView.stage.captureState == CpuProfilerStage.CaptureState.PARSING) {
         parsingCalled = true
         assertThat(getCapturePane()).isInstanceOf(CpuCaptureView.LoadingPane::class.java)
       }
