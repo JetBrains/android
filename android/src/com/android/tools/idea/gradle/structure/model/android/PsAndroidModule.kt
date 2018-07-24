@@ -46,10 +46,11 @@ class PsAndroidModule(
 
   fun init(
     name: String,
+    parentModule: PsModule?,
     resolvedModel: AndroidModuleModel?,
     parsedModel: GradleBuildModel?
   ) {
-    super.init(name, parsedModel)
+    super.init(name, parentModule, parsedModel)
     this.resolvedModel = resolvedModel
 
     projectType =

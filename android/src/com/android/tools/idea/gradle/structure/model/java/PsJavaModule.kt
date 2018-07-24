@@ -36,8 +36,8 @@ class PsJavaModule(
   private var myDependencyCollection: PsDeclaredJavaDependencyCollection? = null
   private var myResolvedDependencyCollection: PsResolvedJavaDependencyCollection? = null
 
-  fun init(name: String, resolvedModel: JavaModuleModel?, parsedModel: GradleBuildModel?) {
-    super.init(name, parsedModel)
+  fun init(name: String, parentModule: PsModule?, resolvedModel: JavaModuleModel?, parsedModel: GradleBuildModel?) {
+    super.init(name, parentModule, parsedModel)
     this.resolvedModel = resolvedModel
     rootDir = resolvedModel?.contentRoots?.firstOrNull()?.rootDirPath
     myDependencyCollection = null

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.SdkConstants
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
@@ -82,14 +83,26 @@ class PsModuleCollection(parent: PsProjectImpl) : PsCollectionBase<PsModule, Mod
       ModuleKind.ANDROID ->
         (model as PsAndroidModule)
           .init(moduleName,
+                findParentModuleFor(key.gradlePath),
                 (moduleResolvedModel as? PsResolvedModuleModel.PsAndroidModuleResolvedModel)?.model,
                 moduleParsedModel)
       ModuleKind.JAVA ->
         (model as PsJavaModule)
           .init(moduleName,
+                findParentModuleFor(key.gradlePath),
                 (moduleResolvedModel as? PsResolvedModuleModel.PsJavaModuleResolvedModel)?.model,
                 moduleParsedModel)
     }
+  }
+
+  private fun findParentModuleFor(gradlePath: String): PsModule? {
+    var remainingPath = gradlePath
+    while (remainingPath.contains(SdkConstants.GRADLE_PATH_SEPARATOR)) {
+      remainingPath = remainingPath.substringBeforeLast(':', "")
+      entries.entries.find { it.key.gradlePath == remainingPath }
+        ?.let { return it.value }
+    }
+    return null
   }
 }
 

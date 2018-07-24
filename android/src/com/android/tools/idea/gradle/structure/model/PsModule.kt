@@ -43,6 +43,7 @@ abstract class PsModule protected constructor(
   override val path: PsPath? get() = PsModulePath(name)
   var parsedModel: GradleBuildModel? = null ; private set
 
+  var parentModule: PsModule? = null ; private set
   private var myParsedDependencies: PsParsedDependencies? = null
   private var myVariables: PsVariablesScope? = null
   private val dependenciesChangeEventDispatcher = EventDispatcher.create(DependenciesChangeListener::class.java)
@@ -52,7 +53,8 @@ abstract class PsModule protected constructor(
     get() = myParsedDependencies ?: PsParsedDependencies(parsedModel).also { myParsedDependencies = it }
 
   val variables: PsVariablesScope
-    get() = myVariables ?: createVariablesScopeFor(this, name, parent.variables, parsedModel).also { myVariables = it }
+    get() = myVariables ?: createVariablesScopeFor(this, name, parentModule?.variables ?: parent.variables,
+                                                   parsedModel).also { myVariables = it }
 
   override val isDeclared: Boolean get() = parsedModel != null
 
@@ -62,12 +64,13 @@ abstract class PsModule protected constructor(
    * <All Modules> constructor.
    */
   protected constructor(name: String, parent: PsProject) : this(parent) {
-    init(name, null)
+    init(name, null, null)
   }
 
-  protected fun init(name: String, parsedModel: GradleBuildModel?) {
+  protected fun init(name: String, parentModule: PsModule?, parsedModel: GradleBuildModel?) {
     this.name = name
     this.parsedModel = parsedModel
+    this.parentModule = parentModule
 
     myParsedDependencies?.let {
       fireDependenciesReloadedEvent()
@@ -274,7 +277,7 @@ abstract class PsModule protected constructor(
 private fun createVariablesScopeFor(
   module: PsModule,
   name: String,
-  parentVariables: PsVariables,
+  parentVariables: PsVariablesScope,
   parsedModel: GradleBuildModel?
 ): PsVariablesScope =
   parsedModel?.let { PsVariables(module, "Module: $name", it.ext(), parentVariables) } ?: PsVariablesScope.NONE

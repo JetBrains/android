@@ -29,8 +29,9 @@ abstract class PsCollectionBase<TModel : PsModel, TKey, TParent: PsModel>(val pa
   init {
     @Suppress("LeakingThis")
     entries = getKeys(parent)
-      .map{ key -> key to create(key).also { update(key, it) }}
+      .map { key -> key to create(key) }
       .toMap()
+    entries.forEach { update(it.key, it.value) }
   }
 
   override fun forEach(consumer: Consumer<TModel>) = entries.values.forEach(consumer)
