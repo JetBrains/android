@@ -227,6 +227,26 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAndroidBlockWithNoDimensions() {
+    val text = """android {
+                  }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+    var android = buildModel.android()
+    assertNotNull(android)
+    assertMissingProperty("flavorDimensions", android.flavorDimensions())
+    android.flavorDimensions().addListValue().setValue("strawberry")
+    applyChangesAndReparse(buildModel)
+    android = buildModel.android()
+    assertNotNull(android)
+    assertEquals("flavorDimensions", listOf("strawberry"), android.flavorDimensions())
+    val expected = """android{
+        flavorDimensions 'strawberry'
+        }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
+
+  @Test
   fun testAndroidBlockWithProductFlavorBlocks() {
     val text = """android {
                     productFlavors {

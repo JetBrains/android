@@ -87,6 +87,32 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .containsExactly("foo", "bar", "new").inOrder()
   }
 
+  fun testAddFirstFlavorDimension() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    var appModule = moduleWithSyncedModel(project, "lib")
+    assertNotNull(appModule)
+
+    appModule.addNewFlavorDimension("bar")
+    // A product flavor is required for successful sync.
+    val bar = appModule.addNewProductFlavor("bar")
+    bar.dimension = ParsedValue.Set.Parsed("bar", DslText.Literal)
+    val otherBar = appModule.addNewProductFlavor("otherBar")
+    otherBar.dimension = ParsedValue.Set.Parsed("bar", DslText.Literal)
+    appModule.applyChanges()
+
+    requestSyncAndWait()
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+    appModule = moduleWithSyncedModel(project, "lib")
+    assertNotNull(appModule)
+
+    val flavorDimensions = getFlavorDimensions(appModule)
+    assertThat(flavorDimensions).containsExactly("bar")
+  }
+
   fun testRemoveFlavorDimension() {
     loadProject(PSD_SAMPLE)
 
