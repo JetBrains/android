@@ -18,11 +18,13 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.TabbedPaneWrapper
+import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
 import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.ui.navigation.Place.queryFurther
+import java.awt.Insets
+import javax.swing.SwingConstants
 
 /**
  * A base class for multi-tab configuration panels implementing [Place.Navigator] interface to maintain navigation history.
@@ -36,9 +38,13 @@ abstract class AbstractTabbedMainPanel(
 
   private var inQuietSelection = false
 
+  // TODO(dispose)
+
   @Suppress("LeakingThis")
-  private val tabbedPane = TabbedPaneWrapper(this).also {
-    add(it.component)
+  private val tabbedPane = object : JBTabbedPane(SwingConstants.TOP) {
+    override fun getInsetsForTabComponent(): Insets = Insets(0, 0, 0, 0)
+  }.also {
+    add(it)
   }
 
   private val tabPanels: MutableList<ModelPanel<*>> = mutableListOf()
@@ -110,3 +116,7 @@ abstract class AbstractTabbedMainPanel(
     }
   }
 }
+
+private var JBTabbedPane.selectedTitle: String
+  get() = if (selectedIndex >= 0) getTitleAt(selectedIndex) else ""
+  set(title) = (0 until tabCount).find { getTitleAt(it) == title }?.let { selectedIndex = it } ?: Unit
