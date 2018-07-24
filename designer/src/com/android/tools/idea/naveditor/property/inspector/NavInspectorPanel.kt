@@ -20,13 +20,14 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.naveditor.model.destinationType
+import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.property.*
 import com.intellij.openapi.Disposable
 import org.jetbrains.android.dom.AndroidDomElement
-import org.jetbrains.android.dom.navigation.NavArgumentElement
 import org.jetbrains.android.dom.navigation.DeeplinkElement
 import org.jetbrains.android.dom.navigation.NavActionElement
+import org.jetbrains.android.dom.navigation.NavArgumentElement
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 /**
@@ -58,7 +59,7 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
         NavArgumentDefaultValuesProperty(c, propertiesManager)
       }
     }
-    components.filter { it.tagName == TAG_INCLUDE }.forEach {
+    components.filter { it.isInclude }.forEach {
       propertiesByName[ATTR_ID] = SimpleProperty(ATTR_ID, listOf(it), ANDROID_URI, it.id)
       propertiesByName[ATTR_LABEL] = SimpleProperty(ATTR_LABEL, listOf(it), ANDROID_URI, it.resolveAttribute(ANDROID_URI, ATTR_LABEL))
     }

@@ -137,8 +137,11 @@ val NlComponent.isActivity: Boolean
 val NlComponent.isNavigation: Boolean
   get() = model.schema.isNavigationTag(tagName)
 
+val NlComponent.isOther: Boolean
+  get() = model.schema.isOtherTag(tagName)
+
 val NlComponent.isInclude: Boolean
-  get() = tagName == TAG_INCLUDE
+  get() = model.schema.isIncludeTag(tagName)
 
 val NlComponent.isSelfAction: Boolean
   get() = actionType == ActionType.SELF
@@ -296,7 +299,7 @@ val NlComponent.idPath: List<String?>
   get() = parentSequence().asIterable().reversed().map {
     when {
       it.isRoot -> model.virtualFile.name
-      it.tagName == TAG_INCLUDE -> it.getAttribute(AUTO_URI, ATTR_GRAPH)?.substring(NAVIGATION_PREFIX.length)
+      it.isInclude -> it.getAttribute(AUTO_URI, ATTR_GRAPH)?.substring(NAVIGATION_PREFIX.length)
       else -> it.id
     }
   }
@@ -314,7 +317,7 @@ class NavComponentMixin(component: NlComponent)
   })
 
   override fun getAttribute(namespace: String?, attribute: String): String? {
-    if (component.tagName == TAG_INCLUDE) {
+    if (component.isInclude) {
       if (attribute == ATTR_GRAPH) {
         // To avoid recursion
         return null
