@@ -31,10 +31,10 @@ public class Sandbox {
                                                                              0,
                                                                              5)
                                                           },
-                                                          null, new SketchFill[]{
+                                                          null, null, new SketchFill[]{
     new SketchFill(false,
                    new Color(0, 1, 0, 1),
-                   (short)0, null)
+                   null, (short)0, null, null, 0, 0, (short)0, 0)
   },
                                                           (short)10, null,
                                                           (short)0);

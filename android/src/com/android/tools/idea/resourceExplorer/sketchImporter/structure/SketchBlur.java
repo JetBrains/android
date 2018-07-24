@@ -15,41 +15,38 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
-public class SketchContextSettings {
-  /**
-   * Normal: 0
-   * Darken: 1
-   * Multiply: 2
-   * Color Burn: 3
-   * Lighten: 4
-   * Screen: 5
-   * Color Dodge: 6
-   * Overlay: 7
-   * Soft Light: 8
-   * Hard Light: 9
-   * Difference: 10
-   * Exclusion: 11
-   * Hue: 12
-   * Saturation: 13
-   * Color: 14
-   * Luminosity: 15
-   */
-  private final short blendMode;
-  /**
-   * Opacity as a percentage
-   */
-  private final double opacity;
+public class SketchBlur {
+  private final boolean isEnabled;
+  private final SketchPoint2D center;
+  private final int motionAngle;
+  private final int radius;
+  private final short type;
 
-  public SketchContextSettings(short blendMode, double opacity) {
-    this.blendMode = blendMode;
-    this.opacity = opacity;
+  public SketchBlur(boolean isEnabled, SketchPoint2D center, int motionAngle, int radius, short type) {
+    this.isEnabled = isEnabled;
+    this.center = center;
+    this.motionAngle = motionAngle;
+    this.radius = radius;
+    this.type = type;
   }
 
-  public short getBlendMode() {
-    return blendMode;
+  public boolean isEnabled() {
+    return isEnabled;
   }
 
-  public double getOpacity() {
-    return opacity;
+  public SketchPoint2D getCenter() {
+    return center;
+  }
+
+  public int getMotionAngle() {
+    return motionAngle;
+  }
+
+  public int getRadius() {
+    return radius;
+  }
+
+  public short getType() {
+    return type;
   }
 }
