@@ -273,20 +273,20 @@ class CpuProfilerStageViewTest {
     // When creating the stage view, the record button should be disabled as the current session is dead.
     assertThat(recordButton.isEnabled).isFalse()
 
-    var aspectFired = false
-    // Listen to CAPTURE_PARSING aspect to make sure that parsing happens.
+    var transitionHappened = false
+    // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
+    val captureStates = Iterators.forArray(CpuProfilerStage.CaptureState.PARSING,
+                                           CpuProfilerStage.CaptureState.IDLE)
     val observer = AspectObserver()
-    myStage.captureParser.aspect.addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_PARSING) {
-      assertThat(myStage.captureParser.isParsing).isTrue()
-      aspectFired = true
+    myStage.aspect.addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_STATE) {
+      assertThat(myStage.captureState).isEqualTo(captureStates.next())
+      transitionHappened = true
     }
 
-    // Set and select a capture, which will trigger capture parsing.
+    // Set and select a capture, which will trigger a transition of states. First PARSING then IDLE.
     myStage.setAndSelectCapture(FakeCpuService.FAKE_TRACE_ID)
 
-    assertThat(aspectFired).isTrue() // Sanity check to verify we actually fired the CAPTURE_PARSING state.
-    // Parsing should be over when the capture is set.
-    assertThat(myStage.captureParser.isParsing).isFalse()
+    assertThat(transitionHappened).isTrue() // Sanity check to verify we actually changed states.
 
     // Even after parsing the capture, the record button should remain disabled.
     assertThat(recordButton.isEnabled).isFalse()
