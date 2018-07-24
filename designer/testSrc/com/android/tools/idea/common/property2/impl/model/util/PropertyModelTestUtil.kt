@@ -107,15 +107,19 @@ object PropertyModelTestUtil {
     }
   }
 
-  fun makeFlagsProperty(propertyName: String, flagNames: List<String>, values: List<Int>): FlagsPropertyItem<FlagPropertyItem> {
+  fun makeFlagsProperty(propertyName: String,
+                        flagNames: List<String>,
+                        values: List<Int>,
+                        initialValue: String? = null): FlagsPropertyItem<FlagPropertyItem> {
     require(flagNames.size == values.size)
     val property = object : FlagsPropertyItem<FlagPropertyItem> {
       override val namespace = ANDROID_URI
       override val name = propertyName
       override val children = mutableListOf<FlagPropertyItem>()
       override fun flag(itemName: String): FlagPropertyItem? = children.firstOrNull { it.name == itemName }
-      override var value: String? = null
+      override var value: String? = initialValue
       override var resolvedValue: String? = null
+        get() = field ?: value
       override var isReference = false
       override val maskValue: Int
         get() {

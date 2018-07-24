@@ -24,34 +24,16 @@ import org.junit.Test
 class FlagPropertyEditorModelTest {
 
   @Test
-  fun testEmptyButtonText() {
-    val autoLink = createAutoLink()
-    val model = createModel(autoLink)
-    assertThat(model.buttonText).isEqualTo("Select Flags")
-  }
-
-  @Test
-  fun testButtonText() {
-    val autoLink = createAutoLink()
-    val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    assertThat(model.buttonText).isEqualTo("phone|map")
-  }
-
-  @Test
   fun testEmptyInitialItemsAboveSeparator() {
     val autoLink = createAutoLink()
     val model = createModel(autoLink)
-    model.buttonPressed()
     assertThat(model.initialItemsAboveSeparator).isEmpty()
   }
 
   @Test
   fun testInitialItemsAboveSeparator() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("phone|map")
     val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    model.buttonPressed()
     assertThat(model.initialItemsAboveSeparator).containsExactly("phone", "map").inOrder()
   }
 
@@ -59,16 +41,13 @@ class FlagPropertyEditorModelTest {
   fun testEmptyInitialItemsBelowSeparator() {
     val autoLink = createAutoLink()
     val model = createModel(autoLink)
-    model.buttonPressed()
     assertThat(model.initialItemsBelowSeparator).containsExactly("none", "phone", "map", "perm", "all").inOrder()
   }
 
   @Test
   fun testInitialItemsBelowSeparator() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("phone|map")
     val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    model.buttonPressed()
     assertThat(model.initialItemsBelowSeparator).containsExactly("none", "perm", "all").inOrder()
   }
 
@@ -76,74 +55,59 @@ class FlagPropertyEditorModelTest {
   fun testEmptyFlagDividerVisible() {
     val autoLink = createAutoLink()
     val model = createModel(autoLink)
-    model.buttonPressed()
     assertThat(model.flagDividerVisible).isFalse()
   }
 
   @Test
   fun testFlagDividerVisible() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("phone|map")
     val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    model.buttonPressed()
     assertThat(model.flagDividerVisible).isTrue()
   }
 
   @Test
   fun testFullFlagDividerVisible() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("none|phone|map|perm|all")
     val model = createModel(autoLink)
-    autoLink.value = "none|phone|map|perm|all"
-    model.buttonPressed()
     assertThat(model.flagDividerVisible).isFalse()
   }
 
   @Test
   fun testFlagDividerVisibleWithFilterMatchingAboveAndBelow() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("phone|map")
     val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    model.buttonPressed()
     model.filter = "p"
     assertThat(model.flagDividerVisible).isTrue()
   }
 
   @Test
   fun testFlagDividerVisibleWithFilterMatchingAbove() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("phone|map")
     val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    model.buttonPressed()
     model.filter = "ma"
     assertThat(model.flagDividerVisible).isFalse()
   }
 
   @Test
   fun testFlagDividerVisibleWithFilterMatchingBelow() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("phone|map")
     val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    model.buttonPressed()
     model.filter = "no"
     assertThat(model.flagDividerVisible).isFalse()
   }
 
   @Test
   fun testFlagDividerVisibleWithFilterNoMatches() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("")
     val model = createModel(autoLink)
-    autoLink.value = ""
-    model.buttonPressed()
     model.filter = "non-existing-filter"
     assertThat(model.flagDividerVisible).isFalse()
   }
 
   @Test
   fun testToggle() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("phone|map")
     val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    model.buttonPressed()
     model.toggle("phone")
     model.toggle("perm")
     model.applyChanges()
@@ -152,10 +116,8 @@ class FlagPropertyEditorModelTest {
 
   @Test
   fun testSelected() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("phone|map")
     val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    model.buttonPressed()
     assertThat(model.isSelected("none")).isFalse()
     assertThat(model.isSelected("phone")).isTrue()
     assertThat(model.isSelected("map")).isTrue()
@@ -166,10 +128,8 @@ class FlagPropertyEditorModelTest {
 
   @Test
   fun testSelectedAfterAllToggle() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("phone|map")
     val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    model.buttonPressed()
     model.toggle("all")
     assertThat(model.isSelected("none")).isFalse()
     assertThat(model.isSelected("phone")).isTrue()
@@ -182,7 +142,6 @@ class FlagPropertyEditorModelTest {
   fun testEmptyEnabled() {
     val autoLink = createAutoLink()
     val model = createModel(autoLink)
-    model.buttonPressed()
     assertThat(model.isEnabled("none")).isTrue()
     assertThat(model.isEnabled("phone")).isTrue()
     assertThat(model.isEnabled("map")).isTrue()
@@ -193,10 +152,8 @@ class FlagPropertyEditorModelTest {
 
   @Test
   fun testEnabled() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("phone|map")
     val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    model.buttonPressed()
     assertThat(model.isEnabled("none")).isFalse()
     assertThat(model.isEnabled("phone")).isTrue()
     assertThat(model.isEnabled("map")).isTrue()
@@ -209,7 +166,6 @@ class FlagPropertyEditorModelTest {
   fun testEnabledAfterNoneToggle() {
     val autoLink = createAutoLink()
     val model = createModel(autoLink)
-    model.buttonPressed()
     model.toggle("none")
     assertThat(model.isEnabled("none")).isTrue()
     assertThat(model.isEnabled("phone")).isFalse()
@@ -220,10 +176,8 @@ class FlagPropertyEditorModelTest {
 
   @Test
   fun testEnabledAfterAllToggle() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("phone|map")
     val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    model.buttonPressed()
     model.toggle("all")
     assertThat(model.isEnabled("none")).isFalse()
     assertThat(model.isEnabled("phone")).isTrue()
@@ -234,10 +188,8 @@ class FlagPropertyEditorModelTest {
 
   @Test
   fun testVisible() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("phone|map")
     val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    model.buttonPressed()
     assertThat(model.isVisible("none")).isTrue()
     assertThat(model.isVisible("phone")).isTrue()
     assertThat(model.isVisible("map")).isTrue()
@@ -247,10 +199,8 @@ class FlagPropertyEditorModelTest {
 
   @Test
   fun testVisibleWithFilter() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("phone|map")
     val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    model.buttonPressed()
     model.filter = "p"
     assertThat(model.isVisible("none")).isFalse()
     assertThat(model.isVisible("phone")).isTrue()
@@ -262,10 +212,8 @@ class FlagPropertyEditorModelTest {
 
   @Test
   fun testSelectAll() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("phone|map")
     val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    model.buttonPressed()
     model.selectAll()
     assertThat(model.isSelected("none")).isFalse()
     assertThat(model.isSelected("phone")).isTrue()
@@ -279,10 +227,8 @@ class FlagPropertyEditorModelTest {
 
   @Test
   fun testSelectAllWithoutAllValue() {
-    val gravity = createGravity()
+    val gravity = createGravity("center")
     val model = createModel(gravity)
-    gravity.value = "center"
-    model.buttonPressed()
     model.selectAll()
     assertThat(model.isSelected("left")).isTrue()
     assertThat(model.isSelected("center")).isTrue()
@@ -294,10 +240,8 @@ class FlagPropertyEditorModelTest {
 
   @Test
   fun testClearAll() {
-    val autoLink = createAutoLink()
+    val autoLink = createAutoLink("phone|map")
     val model = createModel(autoLink)
-    autoLink.value = "phone|map"
-    model.buttonPressed()
     model.clearAll()
     assertThat(model.isSelected("none")).isTrue()
     assertThat(model.isSelected("phone")).isFalse()
@@ -311,10 +255,8 @@ class FlagPropertyEditorModelTest {
 
   @Test
   fun testClearAllWithoutNoneValue() {
-    val gravity = createGravity()
+    val gravity = createGravity("center")
     val model = createModel(gravity)
-    gravity.value = "center"
-    model.buttonPressed()
     model.clearAll()
     assertThat(model.isSelected("left")).isFalse()
     assertThat(model.isSelected("center")).isFalse()
@@ -324,21 +266,26 @@ class FlagPropertyEditorModelTest {
     assertThat(gravity.value).isNull()
   }
 
-  private fun createAutoLink(): FlagsPropertyItem<FlagPropertyItem> {
+  private fun createAutoLink(initialValue: String? = null): FlagsPropertyItem<FlagPropertyItem> {
     return PropertyModelTestUtil.makeFlagsProperty(
         "autoLink",
         listOf("none", "phone", "map", "perm", "all"),
-        listOf(0, 1, 2, 4, 7))
+        listOf(0, 1, 2, 4, 7),
+        initialValue)
   }
 
-  private fun createGravity(): FlagsPropertyItem<FlagPropertyItem> {
+  private fun createGravity(initialValue: String? = null): FlagsPropertyItem<FlagPropertyItem> {
     return PropertyModelTestUtil.makeFlagsProperty(
         "gravity",
         listOf("left", "center", "right"),
-        listOf(1, 2, 4))
+        listOf(1, 2, 4),
+        initialValue)
   }
 
   private fun createModel(property: FlagsPropertyItem<*>): FlagPropertyEditorModel {
-    return FlagPropertyEditorModel(property)
+    val model = FlagPropertyEditorModel(property)
+    // Initialize dialog data:
+    model.initialItemsAboveSeparator
+    return model
   }
 }
