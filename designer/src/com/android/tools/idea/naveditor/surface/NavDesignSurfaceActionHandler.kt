@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.surface
 
+import com.android.SdkConstants
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
@@ -65,6 +66,9 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfa
             })
             val parent = component.parent ?: continue
             model.delete(parent.flatten().filter { it.isAction && it.actionDestination == component }.collect(Collectors.toList()))
+            if (component.isStartDestination) {
+              parent.removeAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_START_DESTINATION)
+            }
           }
         }
         superCall()
