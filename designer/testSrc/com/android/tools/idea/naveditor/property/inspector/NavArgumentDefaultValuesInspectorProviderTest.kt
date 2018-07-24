@@ -17,52 +17,63 @@ package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_NAME
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavArgumentDefaultValuesProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.editors.TextEditor
-import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.uibuilder.property.editors.NlTableCellEditor
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.table.JBTable
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.awt.Component
 import java.awt.Container
 
-class NavArgumentDefaultValuesInspectorProviderTest: NavTestCase() {
+class NavArgumentDefaultValuesInspectorProviderTest : NavTestCase() {
   fun testIsApplicable() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action("component1", destination = "f2")
+        }
+        fragment("f2") {
+          action("component2", destination = "f1")
+        }
+        fragment("f3") {
+          action("pop", popUpTo = "f1")
+        }
+      }
+    }
     val provider = NavArgumentDefaultValuesInspectorProvider()
-    val surface = mock(NavDesignSurface::class.java)
-    val manager = NavPropertiesManager(myFacet, surface)
-    val component1 = mock(NlComponent::class.java)
-    val component2 = mock(NlComponent::class.java)
-    val model = mock(NlModel::class.java)
-    `when`(component1.model).thenReturn(model)
-    `when`(component2.model).thenReturn(model)
-    `when`(model.facet).thenReturn(myFacet)
+    val manager = NavPropertiesManager(myFacet, model.surface)
+    val component1 = model.find("component1")!!
+    val component2 = model.find("component2")!!
+    val popAction = model.find("pop")!!
 
     // Simple case: one component, arguments property
     assertTrue(provider.isApplicable(listOf(component1),
                                      mapOf("Arguments" to NavArgumentDefaultValuesProperty(listOf(component1), manager)), manager))
     // One component, arguments + other property
     assertTrue(provider.isApplicable(listOf(component1),
-                                     mapOf("Arguments" to NavArgumentDefaultValuesProperty(listOf(component1), manager), "foo" to mock(NlProperty::class.java)), manager))
+                                     mapOf("Arguments" to NavArgumentDefaultValuesProperty(listOf(component1), manager),
+                                           "foo" to mock(NlProperty::class.java)), manager))
     // Two components
     assertFalse(provider.isApplicable(listOf(component1, component2),
-                                      mapOf("Arguments" to NavArgumentDefaultValuesProperty(listOf(component1, component2), manager)), manager))
+                                      mapOf("Arguments" to NavArgumentDefaultValuesProperty(listOf(component1, component2), manager)),
+                                      manager))
     // zero components
     assertFalse(provider.isApplicable(listOf(), mapOf("Arguments" to NavArgumentDefaultValuesProperty(listOf(), manager)), manager))
     // Non-arguments property only
     assertFalse(provider.isApplicable(listOf(component1), mapOf("foo" to mock(NlProperty::class.java)), manager))
-    Disposer.dispose(surface)
+    // pop action with no explicit destination
+    assertFalse(
+      provider.isApplicable(listOf(popAction), mapOf("Arguments" to NavArgumentDefaultValuesProperty(listOf(component1), manager)),
+                            manager))
+
     Disposer.dispose(manager)
   }
 
@@ -86,7 +97,7 @@ class NavArgumentDefaultValuesInspectorProviderTest: NavTestCase() {
     val panel = NavInspectorPanel(myRootDisposable)
     val navPropertiesManager = NavPropertiesManager(myFacet, model.surface)
     panel.setComponent(listOf(model.find("a1")!!), HashBasedTable.create<String, String, NlProperty>(),
-        navPropertiesManager)
+                       navPropertiesManager)
 
     @Suppress("UNCHECKED_CAST")
     val argumentsTable = flatten(panel).find { it.name == NAV_ACTION_ARGUMENTS_COMPONENT_NAME }!! as JBTable
@@ -107,10 +118,10 @@ class NavArgumentDefaultValuesInspectorProviderTest: NavTestCase() {
     assertEquals("foo", (argumentsTable.getValueAt(1, 2) as NlProperty).value)
     assertEquals(2, model.find("a1")!!.childCount)
     assertEquals("foo",
-        model.find("a1")!!
-            .children
-            .first { it.getAttribute(ANDROID_URI, ATTR_NAME) == "arg2" }
-            .getAttribute(ANDROID_URI, ATTR_DEFAULT_VALUE))
+                 model.find("a1")!!
+                   .children
+                   .first { it.getAttribute(ANDROID_URI, ATTR_NAME) == "arg2" }
+                   .getAttribute(ANDROID_URI, ATTR_DEFAULT_VALUE))
 
     // Now delete the first one
     setValue("", 0, 2, argumentsTable)
