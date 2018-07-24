@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.naveditor.model.destinationType
+import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.property.*
 import com.intellij.openapi.Disposable
 import org.jetbrains.android.dom.AndroidDomElement
@@ -50,11 +51,11 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
     addProperties(components, schema, propertiesByName, NavActionElement::class.java, ::NavActionsProperty)
     addProperties(components, schema, propertiesByName, DeeplinkElement::class.java, ::NavDeeplinkProperty)
     addProperties(components, schema, propertiesByName, NavArgumentElement::class.java) { c ->
-      if (c.all { it.destinationType != null }) {
+      if (c.all { it.destinationType != null && !it.isNavigation}) {
         NavDestinationArgumentsProperty(c)
       }
       else {
-        NavActionArgumentsProperty(c, propertiesManager)
+        NavArgumentDefaultValuesProperty(c, propertiesManager)
       }
     }
     components.filter { it.tagName == TAG_INCLUDE }.forEach {

@@ -21,7 +21,7 @@ import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.common.property.inspector.InspectorComponent
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.common.property.inspector.InspectorProvider
-import com.android.tools.idea.naveditor.property.NavActionArgumentsProperty
+import com.android.tools.idea.naveditor.property.NavArgumentDefaultValuesProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.editors.TextEditor
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -39,9 +39,9 @@ import javax.swing.table.TableCellRenderer
 const val NAV_ACTION_ARGUMENTS_COMPONENT_NAME = "NavActionArgumentsPropertyInspector"
 val NAV_ARGUMENTS_ROW_HEIGHT = JBUI.scale(22)
 
-class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManager> {
+class NavArgumentDefaultValuesInspectorProvider : InspectorProvider<NavPropertiesManager> {
 
-  private var inspector: NavActionArgumentsInspectorComponent? = null
+  private var inspector: NavArgumentDefaultValuesInspectorComponent? = null
 
   override fun isApplicable(components: List<NlComponent>,
                             properties: Map<String, NlProperty>,
@@ -49,7 +49,7 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
     if (components.size != 1) {
       return false
     }
-    if (properties.values.none { it is NavActionArgumentsProperty }) {
+    if (properties.values.none { it is NavArgumentDefaultValuesProperty }) {
       return false
     }
 
@@ -59,7 +59,7 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
   override fun createCustomInspector(components: List<NlComponent>,
                                      properties: Map<String, NlProperty>,
                                      propertiesManager: NavPropertiesManager): InspectorComponent<NavPropertiesManager> {
-    val inspector = inspector ?: NavActionArgumentsInspectorComponent()
+    val inspector = inspector ?: NavArgumentDefaultValuesInspectorComponent()
     this.inspector = inspector
 
     inspector.updateProperties(components, properties, propertiesManager)
@@ -70,9 +70,9 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
     inspector = null
   }
 
-  private class NavActionArgumentsInspectorComponent : InspectorComponent<NavPropertiesManager> {
+  private class NavArgumentDefaultValuesInspectorComponent : InspectorComponent<NavPropertiesManager> {
 
-    private lateinit var argumentProperty: NavActionArgumentsProperty
+    private lateinit var argumentProperty: NavArgumentDefaultValuesProperty
     private val components = mutableListOf<NlComponent>()
     private var surface: NavDesignSurface? = null
 
@@ -84,7 +84,7 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
 
       surface = propertiesManager.designSurface as? NavDesignSurface
 
-      argumentProperty = properties.values.filterIsInstance(NavActionArgumentsProperty::class.java).first()
+      argumentProperty = properties.values.filterIsInstance(NavArgumentDefaultValuesProperty::class.java).first()
       refresh()
     }
 

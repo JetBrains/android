@@ -21,7 +21,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.util.iconToImage
 import com.android.tools.idea.naveditor.model.schema
 import com.android.tools.idea.naveditor.model.setAsStartDestination
-import com.android.tools.idea.naveditor.model.startDestination
+import com.android.tools.idea.naveditor.model.startDestinationId
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.xml.XmlFile
@@ -111,7 +111,7 @@ sealed class Destination : Comparable<Destination> {
       newComponent.assignId(idBase)
       newComponent.setAndroidAttribute(SdkConstants.ATTR_NAME, qualifiedName)
       newComponent.setAndroidAttribute(SdkConstants.ATTR_LABEL, label)
-      if (parent.startDestination == null) {
+      if (parent.startDestinationId == null) {
         newComponent.setAsStartDestination()
       }
       layoutFile?.let {

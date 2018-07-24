@@ -20,7 +20,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.actionDestinationId
 import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.model.isDestination
-import com.android.tools.idea.naveditor.model.startDestination
+import com.android.tools.idea.naveditor.model.startDestinationId
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -59,8 +59,8 @@ abstract class AddToGraphAction(
         }
 
       graph.model.addComponents(components, graph, null, InsertType.MOVE_WITHIN, mySurface)
-      if (graph.startDestination == null) {
-        graph.startDestination = candidate
+      if (graph.startDestinationId == null) {
+        graph.startDestinationId = candidate
       }
       mySurface.selectionModel.setSelection(listOf(graph))
 
