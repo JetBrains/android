@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:utils.bzl", "java_jarjar", "archive")
 
 # managed by go/iml_to_build
 iml_module(
@@ -30,7 +31,10 @@ java_binary(
     ),
     create_executable = 0,
     deploy_manifest_lines = [
+        "Agent-Class: com.android.tools.swingp.instrumenter.Agent",
         "Premain-Class: com.android.tools.swingp.instrumenter.Agent",
+        "Boot-Class-Path: ./swing-instrumenter_deploy.jarjar.jar",
+        "Can-Redefine-Classes: true",
         "Can-Retransform-Classes: true",
     ],
     visibility = ["//visibility:public"],
@@ -42,4 +46,13 @@ java_binary(
         "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
         "//tools/idea/platform/util:intellij.platform.util",
     ],
+)
+
+java_jarjar(
+    name = "swing-instrumenter_deploy.jarjar",
+    srcs = [
+        ":swing-instrumenter_deploy.jar",
+    ],
+    rules = "jarjar_rules.txt",
+    visibility = ["//visibility:public"],
 )

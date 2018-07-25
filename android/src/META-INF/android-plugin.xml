@@ -200,6 +200,7 @@
       <action internal="true" id="StatisticsViewer" class="com.android.tools.idea.stats.ShowStatisticsViewerAction" text="Show statistics viewer"/>
       <action internal="true" id="Android.EditFlags" class="com.android.tools.idea.flags.ShowStudioFlagsDialogAction"/>
       <action internal="true" id="Android.ShowRoomSchema" class="com.android.tools.idea.actions.ShowRoomSchemaAction"/>
+      <action internal="true" id="Android.SwingProfiler" class="com.android.tools.adtui.actions.EnableSwingProfilerAction"/>
       <add-to-group group-id="Internal"/>
     </group>
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedApkAction">
