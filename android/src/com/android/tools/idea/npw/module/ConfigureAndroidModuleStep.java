@@ -194,7 +194,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
       moduleModel.setDefaultRenderTemplateValues(myRenderModel, project);
 
       new TemplateValueInjector(moduleModel.getTemplateValues())
-        .setProjectDefaults(project, moduleModel.applicationName().get(), myIsInstantApp);
+        .setProjectDefaults(project, moduleModel.applicationName().get());
     }
 
     myInstallRequests.clear();

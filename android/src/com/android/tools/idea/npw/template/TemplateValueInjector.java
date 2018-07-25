@@ -267,7 +267,7 @@ public final class TemplateValueInjector {
    * {@link com.android.tools.idea.templates.TemplateMetadata#ATTR_GRADLE_PLUGIN_VERSION},
    * {@link com.android.tools.idea.templates.TemplateMetadata#ATTR_GRADLE_VERSION}, etc.
    */
-  public TemplateValueInjector setProjectDefaults(@Nullable Project project, @NotNull String moduleTitle, boolean isInstantApp) {
+  public TemplateValueInjector setProjectDefaults(@Nullable Project project, @NotNull String moduleTitle) {
     myTemplateValues.put(ATTR_APP_TITLE, moduleTitle);
 
     // For now, our definition of low memory is running in a 32-bit JVM. In this case, we have to be careful about the amount of memory we
@@ -294,7 +294,7 @@ public final class TemplateValueInjector {
     final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     ProgressIndicator progress = new StudioLoggerProgressIndicator(ConfigureAndroidModuleStep.class);
 
-    addBuildToolVersion(project, getRecommendedBuildToolsRevision(sdkHandler, progress, isInstantApp));
+    addBuildToolVersion(project, getRecommendedBuildToolsRevision(sdkHandler, progress));
 
     File sdkLocation = sdkHandler.getLocation();
     if (sdkLocation != null) {
