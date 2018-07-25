@@ -38,9 +38,6 @@ abstract class AbstractTabbedMainPanel(
 
   private var inQuietSelection = false
 
-  // TODO(dispose)
-
-  @Suppress("LeakingThis")
   private val tabbedPane = object : JBTabbedPane(SwingConstants.TOP) {
     override fun getInsetsForTabComponent(): Insets = Insets(0, 0, 0, 0)
   }.also {
