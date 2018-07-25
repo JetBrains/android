@@ -1256,21 +1256,14 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
       propertyModel.setValue(ReferenceTo("in a voice like thunder"))
       // Note: Since this doesn't actually make any sense, the word "in" gets removed as it is a keyword in Groovy.
-      verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "a voice like thunder", UNKNOWN, REGULAR, 0)
     }
-
-    val errors = buildModel.notifications[buildModel.virtualFile.path]!!
-    assertSize(1, errors)
-    assertThat(errors[0].toString(), equalTo("""
-      Found errors:
-      ${'\t'}incorrect expression = 'in a voice like thunder'${'\n'}${'\n'}
-      """.trimIndent()))
 
     applyChangesAndReparse(buildModel)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "a voice like thunder", UNKNOWN, REGULAR, 0)
     }
   }
 
