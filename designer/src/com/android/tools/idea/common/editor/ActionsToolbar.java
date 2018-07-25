@@ -266,9 +266,9 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   @Override
   public boolean changed(int flags) {
     if ((flags & CONFIGURATION_UPDATE_FLAGS) > 0) {
-      if (myNorthEastToolbar != null) {
+      if (myNorthToolbar != null) {
         // the North toolbar is the one holding the Configuration Actions
-        myNorthEastToolbar.updateActionsImmediately();
+        myNorthToolbar.updateActionsImmediately();
       }
     }
     return true;
