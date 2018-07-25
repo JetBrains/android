@@ -33,6 +33,7 @@ import com.intellij.ui.InplaceButton
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SortedListModel
 import com.intellij.ui.components.JBList
+import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
@@ -131,7 +132,10 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
       list.cellRenderer = object: ColoredListCellRenderer<NlProperty>() {
         override fun customizeCellRenderer(list: JList<out NlProperty>, value: NlProperty?, index: Int, selected: Boolean, hasFocus: Boolean) {
           icon = if (selected && hasFocus) whiteIcon else this@NavListInspectorProvider.icon
-          isOpaque = selected && hasFocus
+          if (selected && !hasFocus) {
+            background = UIUtil.getListUnfocusedSelectionBackground()
+            mySelectionForeground = UIUtil.getListForeground()
+          }
           val name = value?.name ?: ""
           val id = displayIdSuffix(value)
           append(name)
