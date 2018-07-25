@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder
 
 import com.android.builder.model.ProductFlavor
 import com.android.builder.model.SourceProvider
+import com.android.ide.common.gradle.model.level2.IdeDependencies
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.*
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.variant.getLevel2Dependencies
 
@@ -74,6 +75,7 @@ infix fun OldResValues.essentiallyEquals(other: OldResValues): Boolean {
   return true
 }
 
+// There is no special method for OldJavaArtifact because mockablePlatformJar is not cached (but set to null)
 infix fun OldBaseArtifact.essentiallyEquals(other: OldBaseArtifact): Boolean {
   when (notNullCount(variantSourceProvider, other.variantSourceProvider)) {
     1 -> return false
@@ -88,10 +90,31 @@ infix fun OldBaseArtifact.essentiallyEquals(other: OldBaseArtifact): Boolean {
          javaResourcesFolder == other.javaResourcesFolder &&
          ideSetupTaskNames sameContentWith other.ideSetupTaskNames &&
          generatedSourceFolders sameContentWith other.generatedSourceFolders &&
-         getLevel2Dependencies() == other.getLevel2Dependencies()
+         getLevel2Dependencies() essentiallyEquals other.getLevel2Dependencies()
 }
 
+infix fun IdeDependencies.essentiallyEquals(other: IdeDependencies): Boolean {
+  return androidLibraries sameContentWith other.androidLibraries &&
+         javaLibraries sameContentWith other.javaLibraries &&
+         moduleDependencies sameContentWith other.moduleDependencies
+}
+
+// It does not compare signingConfigs because there are not used in shipped sync
+// Also it only comparing existing variants so [release, debug] == [debug] if debug == debug
+// It works this way for Single Variant Sync support
 infix fun OldAndroidProject.essentiallyEquals(other: OldAndroidProject): Boolean {
+  // Do not confuse with variantNames, which contains all the variants
+  val thisVariantNames = variants.map { it.name }.toSet()
+  val otherVariantNames = other.variants.map { it.name }.toSet()
+  val commonVariantNames = thisVariantNames intersect otherVariantNames
+  val thisVariants = variants.filter { it.name in commonVariantNames }
+  val otherVariants = other.variants.filter { it.name in commonVariantNames }
+  val zippedVariants = thisVariants zipSameSizeOrNull otherVariants // TODO(qumeric): sort variants first
+
+  if (commonVariantNames.isEmpty()) {
+    return false
+  }
+
   return modelVersion == other.modelVersion &&
          apiVersion == other.apiVersion &&
          name == other.name &&
@@ -104,10 +127,9 @@ infix fun OldAndroidProject.essentiallyEquals(other: OldAndroidProject): Boolean
          javaCompileOptions essentiallyEquals other.javaCompileOptions &&
          buildFolder == other.buildFolder &&
          isBaseSplit == other.isBaseSplit &&
-         (signingConfigs zipSameSizeOrNull other.signingConfigs)?.all { it.first essentiallyEquals it.second } ?: false &&
          dynamicFeatures sameContentWith other.dynamicFeatures &&
-         (variants zip other.variants).all { it.first essentiallyEquals it.second } // only single-variant sync
-    // TODO(qumeric): nativeToolchains == other.nativeToolchains
+         zippedVariants?.all { it.first essentiallyEquals it.second } ?: false
+  // TODO(qumeric): nativeToolchains == other.nativeToolchains
 }
 
 infix fun OldApiVersion.essentiallyEquals(other: OldApiVersion): Boolean {
@@ -126,11 +148,6 @@ infix fun OldInstantRun.essentiallyEquals(other: OldInstantRun): Boolean {
   return infoFile == other.infoFile &&
          isSupportedByArtifact == other.isSupportedByArtifact &&
          supportStatus == other.supportStatus
-}
-
-infix fun OldJavaArtifact.essentiallyEquals(other: OldJavaArtifact): Boolean {
-  return (this as OldBaseArtifact) essentiallyEquals other &&
-         mockablePlatformJar == other.mockablePlatformJar
 }
 
 infix fun OldJavaCompileOptions.essentiallyEquals(other: OldJavaCompileOptions): Boolean {

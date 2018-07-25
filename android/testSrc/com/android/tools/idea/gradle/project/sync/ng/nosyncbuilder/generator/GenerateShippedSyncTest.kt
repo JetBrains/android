@@ -73,6 +73,7 @@ private val mobileActivities = ImmutableList.of(
 
 /**
  * This generates NPW projects from "popular" sets of input combinations (e.g. mobile project with min API 21 and BasicActivity)
+ * Actually not a test but a tool. See b/111785663
  */
 class GenerateShippedSyncTest : AndroidTestBase() {
   // Generate projects only for the following (most popular/latest) version of sdks.
@@ -129,9 +130,8 @@ class GenerateShippedSyncTest : AndroidTestBase() {
       executeActivityTemplate(templateFile, projectDir.path)
     }
 
+    createGradleWrapper(projectDir)
     Files.move(projectDir.toPath(), Paths.get(NPW_GENERATED_PROJECTS_DIR))
-
-    createGradleWrapper(projectDir) // TODO(qumeric) consider dropping usage of Gradle wrapper?
   }
 
   private fun executeActivityTemplate(templateFile: File, projectLocation: String) {
