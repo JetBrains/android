@@ -211,7 +211,7 @@ open class NelePropertyItem(
     TransactionGuard.submitTransaction(model, Runnable {
       NlWriteCommandAction.run(components, "Set $componentName.$name to $newValue") {
         components.forEach { it.setAttribute(namespace, name, newValue) }
-        model.propertyValueChanged(this)
+        model.logPropertyValueChanged(this)
       }
     })
   }

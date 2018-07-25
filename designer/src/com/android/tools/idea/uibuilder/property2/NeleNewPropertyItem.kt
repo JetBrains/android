@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property2
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.property2.api.FlagsPropertyItem
 import com.android.tools.idea.common.property2.api.NewPropertyItem
 import com.android.tools.idea.common.property2.api.PropertiesTable
 import com.intellij.openapi.actionSystem.AnAction
@@ -33,7 +34,7 @@ import javax.swing.Icon
  */
 class NeleNewPropertyItem(model: NelePropertiesModel,
                           var properties: PropertiesTable<NelePropertyItem>)
-  : NelePropertyItem("", "", NelePropertyType.UNKNOWN, null, "", model, listOf()), NewPropertyItem {
+  : NelePropertyItem("", "", NelePropertyType.UNKNOWN, null, "", model, listOf()), NewPropertyItem, FlagsPropertyItem<NeleFlagPropertyItem> {
 
   override var namespace: String = ""
     private set
@@ -44,7 +45,15 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
       namespace = propertyNamespace
       field = propertyName
       delegate = findDelegate()
+
+      // Give the model a change to hide expanded flag items
+      model.firePropertyValueChange()
     }
+
+  // There should only be one instance of NeleNewPropertyItem per Property panel.
+  override fun equals(other: Any?) = other is NeleNewPropertyItem
+  // The hashCode can be an arbitrary number since we only have 1 instance
+  override fun hashCode() = 517
 
   /**
    * When the property name is set to something valid, the [delegate] will be not null.
@@ -57,13 +66,6 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
     get() = delegate?.value
     set(value) {
       delegate?.value = value
-      if (value?.isNotEmpty() == true) {
-        // An attribute value was specified.
-        // The change was committed which eventually will cause the table to update
-        // with the new value in the main part of the table.
-        // Make this new property item ready for adding another attribute.
-        name = ""
-      }
     }
 
   override val resolvedValue: String?
@@ -92,6 +94,16 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
 
   override fun getAction(): AnAction? =
     delegate?.getAction()
+
+  override val children: List<NeleFlagPropertyItem>
+    get() = (delegate as? NeleFlagsPropertyItem)?.children ?: emptyList()
+
+  override fun flag(itemName: String): NeleFlagPropertyItem? {
+    return (delegate as? NeleFlagsPropertyItem)?.flag(itemName)
+  }
+
+  override val maskValue: Int
+    get() = (delegate as? NeleFlagsPropertyItem)?.maskValue ?: 0
 
   override val firstComponent: NlComponent?
     get() = properties.first?.components?.firstOrNull()

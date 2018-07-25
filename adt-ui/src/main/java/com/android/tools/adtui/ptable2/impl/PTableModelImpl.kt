@@ -31,6 +31,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
       override fun itemsUpdated() {
         items.clear()
         items.addAll(tableModel.items)
+        expandedItems.retainAll { isGroupItem(it) }
         expandedItems.forEach { restoreExpanded(it) }
         fireTableDataChanged()
       }
@@ -48,7 +49,9 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   }
 
   fun isGroupItem(item: PTableItem): Boolean {
-    return item is PTableGroupItem
+    // This allows an implementation to mutate an item from/to an item that is considered a group.
+    // It is currently used in fabricated new items where the state is unknown up front.
+    return item is PTableGroupItem && item.children.isNotEmpty()
   }
 
   fun isExpanded(item: PTableGroupItem): Boolean {
@@ -79,7 +82,8 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     if (index < 0 || index >= items.size) {
       return null
     }
-    return items[index] as? PTableGroupItem
+    val item = items[index]
+    return if (isGroupItem(item)) item as PTableGroupItem else null
   }
 
   private fun restoreExpanded(item: PTableGroupItem) {
