@@ -1396,10 +1396,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     // Do not add non-unicode characters on Windows
     String modifiedProjectName = getModifiedProjectName(projectName, activityState);
-    moduleState.put(ATTR_RES_OUT, null);
-    moduleState.put(ATTR_SRC_OUT, null);
-    moduleState.put(ATTR_MANIFEST_OUT, null);
-    moduleState.put(ATTR_TEST_OUT, null);
 
     assertNull(myFixture);
 
