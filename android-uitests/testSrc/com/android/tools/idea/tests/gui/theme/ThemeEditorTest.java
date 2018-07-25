@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.theme;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.HyperlinkLabelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -36,6 +37,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture.clickPopupMenuItem;
+import static com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture.clickPopupMenuItemMatching;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -99,6 +102,23 @@ public class ThemeEditorTest {
 
     guiTest.ideFrame().getEditor().close();
     checkNoErrors();
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void testConfigurationToolbar() throws IOException {
+    guiTest.importSimpleLocalApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
+
+    ActionButtonFixture apiButtonFixture = themeEditor.findToolbarButton("API Version for Preview");
+    apiButtonFixture.click();
+    clickPopupMenuItem("API 21", "21", apiButtonFixture.target(), guiTest.robot());
+
+    ActionButtonFixture deviceButtonFixture = themeEditor.findToolbarButton("Device for Preview");
+    deviceButtonFixture.click();
+    clickPopupMenuItemMatching((text) -> text.contains("Nexus 6P"), "Nexus 6P", deviceButtonFixture.target(), guiTest.robot());
+
+    themeEditor.getPreviewComponent().requireApi(21).requireDevice("Nexus 6P");
   }
 
   @Test

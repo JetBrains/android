@@ -44,7 +44,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class ThemePreviewComponent extends JPanel implements Disposable {
   private final AndroidThemePreviewPanel myPreviewPanel;
-  private final ThemeEditorContext myThemeEditorContext;
   private final ScheduledExecutorService mySearchUpdateScheduler;
   private final SearchTextField myTextField;
   private final JPanel myToolbar;
@@ -54,8 +53,7 @@ public class ThemePreviewComponent extends JPanel implements Disposable {
   public ThemePreviewComponent(@NotNull ThemeEditorContext context) {
     super(new BorderLayout());
 
-    myThemeEditorContext = context;
-    myPreviewPanel = new AndroidThemePreviewPanel(myThemeEditorContext, ThemeEditorComponent.PREVIEW_BACKGROUND);
+    myPreviewPanel = new AndroidThemePreviewPanel(context, ThemeEditorComponent.PREVIEW_BACKGROUND);
     myPreviewPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     Disposer.register(this, myPreviewPanel);
 
@@ -69,6 +67,13 @@ public class ThemePreviewComponent extends JPanel implements Disposable {
     ActionManager actionManager = ActionManager.getInstance();
     ActionToolbar actionToolbar = actionManager.createActionToolbar("ThemeToolbar", group, true);
     actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
+    ConfigurationListener listener = (flags) -> {
+      if ((flags & ConfigurationListener.CFG_TARGET) > 0) {
+        actionToolbar.updateActionsImmediately();
+      }
+      return true;
+    };
+    context.addConfigurationListener(listener);
 
     myToolbar = new JPanel(null);
     myToolbar.setLayout(new BoxLayout(myToolbar, BoxLayout.X_AXIS));
