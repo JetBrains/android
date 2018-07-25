@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.navigator;
 
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
-import com.android.tools.idea.Projects;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectViewSelectInTarget;
@@ -45,6 +45,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.ui.tree.TreeUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -195,10 +196,11 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     return selectedDirectories;
   }
 
+  @Nullable
   @Override
-  protected Object exhumeElementFromNode(DefaultMutableTreeNode node) {
-    Object o = super.exhumeElementFromNode(node);
-    if (o instanceof ArrayList && node.getUserObject() instanceof FolderGroupNode) {
+  public Object getValueFromNode(@Nullable Object node) {
+    Object o = super.getValueFromNode(node);
+    if (o instanceof ArrayList && TreeUtil.getUserObject(node) instanceof FolderGroupNode) {
       return ((ArrayList)o).toArray();
     }
 
