@@ -15,18 +15,12 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
 
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
@@ -34,8 +28,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
  * Helper class that tracks the Project Wizard State (Project template, plus its Module and Activity State)
- * TODO: Refactor code to use {@link com.android.tools.idea.npw.template.TemplateValueInjector}
- * TODO: It's possible that after refactoring, this class is so thin that can be inlined and deleted.
  */
 public class TestNewProjectWizardState {
   private static final String APPLICATION_NAME = "My Application";
@@ -48,7 +40,9 @@ public class TestNewProjectWizardState {
     myProjectTemplate = Template.createFromName(CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
 
     // ------------------ MODULE STATE ---------------
-    myModuleState.put(ATTR_IS_GRADLE, true);
+    new TemplateValueInjector(myModuleState.getParameters())
+      .setProjectDefaults(null, APPLICATION_NAME, false);
+
     myModuleState.put(ATTR_HAS_APPLICATION_THEME, true);
     myModuleState.put(ATTR_IS_LAUNCHER, true);
     myModuleState.put(ATTR_CREATE_ICONS, false);
@@ -56,22 +50,8 @@ public class TestNewProjectWizardState {
     myModuleState.put(ATTR_THEME_EXISTS, true);
     myModuleState.put(ATTR_CREATE_ACTIVITY, true);
     myModuleState.put(ATTR_IS_LIBRARY_MODULE, false);
-
-    final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()), false);
-    if (buildTool != null) {
-      // If buildTool is null, the template will use buildApi instead, which might be good enough.
-      myModuleState.put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
-    }
-
-    File location = sdkHandler.getLocation();
-    if (location != null) {
-      // Gradle expects a platform-neutral path
-      myModuleState.put(ATTR_SDK_DIR, FileUtil.toSystemIndependentName(location.getPath()));
-    }
-
     myModuleState.put(ATTR_PROJECT_LOCATION, WizardUtils.getProjectLocationParent().getPath());
-    myModuleState.put(ATTR_APP_TITLE, APPLICATION_NAME);
+
     final int DEFAULT_MIN = SdkVersionInfo.LOWEST_ACTIVE_API;
     myModuleState.put(ATTR_MIN_API_LEVEL, DEFAULT_MIN);
     myModuleState.put(ATTR_MIN_API, Integer.toString(DEFAULT_MIN));
