@@ -20,6 +20,7 @@ import com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST
 import com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST
 import com.android.builder.model.BuildTypeContainer
 import com.android.builder.model.level2.Library
+import com.android.ide.common.gradle.model.UnusedModelMethodException
 import com.android.ide.common.gradle.model.level2.IdeDependencies
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
 import com.android.ide.common.repository.GradleVersion
@@ -90,9 +91,10 @@ private val emptyIdeDependencies = object: IdeDependencies {
 
 fun OldBaseArtifact.getLevel2Dependencies(): IdeDependencies {
   // if it's empty IdeDependenciesFactory tries to use old dependencies model which is not supported in the new models
-  if (dependencyGraphs.compileDependencies.isEmpty()) {
-    return emptyIdeDependencies
+  return try {
+    IdeDependenciesFactory().create(this, GradleVersion.parse("3.0"))
+  } catch(e: UnusedModelMethodException) {
+    emptyIdeDependencies
   }
-  return IdeDependenciesFactory().create(this, GradleVersion.parse("3.0"))
 }
 
