@@ -1,0 +1,13 @@
+rule com.google.** com.android.tools.swingp.com.google.@1
+rule com.intellij.** com.android.tools.swingp.intellij.@1
+rule gnu.** com.android.tools.swingp.gnu.@1
+rule javax.annotation.** com.android.tools.swingp.javax.annotation.@1
+rule net.jpountz.** com.android.tools.swingp.net.jpountz.@1
+rule org.apache.** com.android.tools.swingp.org.apache.@1
+rule org.codehaus.** com.android.tools.swingp.org.codehaus.@1
+rule org.imgscalr.** com.android.tools.swingp.org.imgscalr.@1
+rule org.intellij.** com.android.tools.swingp.org.intellij.@1
+rule org.jdom.** com.android.tools.swingp.org.jdom.@1
+rule org.jetbrains.** com.android.tools.swingp.org.jetbrains.@1
+rule org.relaxng.** com.android.tools.swingp.org.relaxng.@1
+rule org.w3c.** com.android.tools.swingp.org.w3c.@1
