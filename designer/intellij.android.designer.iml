@@ -37,6 +37,7 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module" module-name="intellij.java" />
     <orderEntry type="module-library">
       <library name="eclipse-layout-kernel" type="repository">
         <properties maven-id="org.eclipse.elk:org.eclipse.elk.alg.layered:0.3.0" />
@@ -51,6 +52,5 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="intellij.java" />
   </component>
 </module>
