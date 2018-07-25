@@ -102,7 +102,7 @@ class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet)
     properties = testProperties
   }
 
-  fun propertyValueChanged(property: NelePropertyItem) {
+  fun logPropertyValueChanged(property: NelePropertyItem) {
     NlUsageTrackerManager.getInstance(activeSurface).logPropertyChange(property, -1)
   }
 
@@ -179,7 +179,7 @@ class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet)
     listeners.forEach { it.propertiesGenerated(this) }
   }
 
-  private fun firePropertyValueChange() {
+  fun firePropertyValueChange() {
     listeners.forEach { it.propertyValuesChanged(this) }
   }
 
