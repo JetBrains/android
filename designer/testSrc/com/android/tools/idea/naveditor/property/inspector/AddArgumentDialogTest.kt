@@ -41,10 +41,10 @@ class AddArgumentDialogTest : NavTestCase() {
     dialog.name = "myArgument"
     assertNull(dialog.doValidate())
 
-    dialog.setType("boolean")
+    dialog.type = "boolean"
     assertNull(dialog.doValidate())
 
-    dialog.setType("long")
+    dialog.type = "long"
     dialog.defaultValue = "1234"
     assertNull(dialog.doValidate())
     dialog.defaultValue = "abcdL"
@@ -52,7 +52,7 @@ class AddArgumentDialogTest : NavTestCase() {
     dialog.defaultValue = "1234L"
     assertNull(dialog.doValidate())
 
-    dialog.setType("reference")
+    dialog.type = "reference"
     dialog.defaultValue = "1234"
     assertNotNull(dialog.doValidate())
     dialog.defaultValue = "@id/bad_id"
@@ -71,6 +71,7 @@ class AddArgumentDialogTest : NavTestCase() {
         fragment("fragment1") {
           argument("myArgument", type = "integer", value = "1234")
           argument("myArgument2", type = "custom.Parcelable", nullable = true)
+          argument("myArgument3")
         }
       }
     }
@@ -86,7 +87,14 @@ class AddArgumentDialogTest : NavTestCase() {
     assertEquals("myArgument2", dialog.name)
     assertEquals("custom.Parcelable", dialog.type)
     assertTrue(dialog.isNullable)
-    assertNull(dialog.defaultValue)
+    assertTrue(dialog.defaultValue.isNullOrEmpty())
+    dialog.close(0)
+
+    dialog = AddArgumentDialog(fragment1.getChild(2), fragment1)
+    assertEquals("myArgument3", dialog.name)
+    assertNull(dialog.type)
+    assertFalse(dialog.isNullable)
+    assertTrue(dialog.defaultValue.isNullOrEmpty())
     dialog.close(0)
   }
 
@@ -105,11 +113,11 @@ class AddArgumentDialogTest : NavTestCase() {
     assertFalse(dialog.myDefaultValueTextField.isVisible)
 
     for (t in listOf("integer", "long", "string", "reference", null)) {
-      dialog.setType(t)
+      dialog.type = t
       assertFalse(dialog.myDefaultValueComboBox.isVisible)
       assertTrue(dialog.myDefaultValueTextField.isVisible)
     }
-    dialog.setType("boolean")
+    dialog.type = "boolean"
     assertTrue(dialog.myDefaultValueComboBox.isVisible)
     assertFalse(dialog.myDefaultValueTextField.isVisible)
     dialog.close(0)
@@ -127,11 +135,11 @@ class AddArgumentDialogTest : NavTestCase() {
     val dialog = AddArgumentDialog(fragment1.children[0], fragment1)
 
     assertTrue(dialog.myNullableCheckBox.isEnabled)
-    dialog.setType("string")
+    dialog.type = "string"
     assertTrue(dialog.myNullableCheckBox.isEnabled)
 
     for (t in listOf("integer", "long", "boolean", "reference", null)) {
-      dialog.setType(t)
+      dialog.type = t
       assertFalse(dialog.myNullableCheckBox.isEnabled)
     }
     dialog.close(0)
@@ -155,7 +163,7 @@ class AddArgumentDialogTest : NavTestCase() {
     val fragment1 = model.find("fragment1")!!
     val dialog = AddArgumentDialog(null, fragment1)
 
-    dialog.setType("foo")
+    dialog.type = "foo"
     assertEquals("custom.Parcelable", dialog.type)
     dialog.close(0)
   }
@@ -176,8 +184,8 @@ class AddArgumentDialogTest : NavTestCase() {
     val fragment1 = model.find("fragment1")!!
     val dialog = AddArgumentDialog(null, fragment1)
 
-    dialog.setType("integer")
-    dialog.setType("foo")
+    dialog.type = "integer"
+    dialog.type = "foo"
     assertEquals("integer", dialog.type)
     dialog.close(0)
   }
