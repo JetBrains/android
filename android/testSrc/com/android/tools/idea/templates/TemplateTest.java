@@ -1519,18 +1519,13 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   private static String getModifiedProjectName(@NotNull String projectName, @Nullable TestTemplateWizardState activityState) {
-    String specialChars = "!@#$^&()_+=-.`~";
-    String nonAsciiChars = "你所有的基地都属于我们";
     if (SystemInfo.isWindows) {
       return "app";
-    } else if (activityState != null && activityState.hasAttr(ATTR_KOTLIN_SUPPORT) && activityState.getBoolean(ATTR_KOTLIN_SUPPORT)) {
-      // Filed: https://youtrack.jetbrains.com/issue/KT-18767
-      // Note: Kotlin plugin fails when running `:compileDebugKotlin` with a project name containing a comma => ","
-      // So the projectName contains characters other than a comma.
-      return projectName + specialChars + nonAsciiChars;
-    } else {
-      return projectName + specialChars + ',' + nonAsciiChars;
     }
+
+    String specialChars = "!@#$^&()_+=-.`~";
+    String nonAsciiChars = "你所有的基地都属于我们";
+    return projectName + specialChars + ',' + nonAsciiChars;
   }
 
   private void createProject(@NotNull TestNewProjectWizardState projectState, boolean syncProject) throws Exception {
