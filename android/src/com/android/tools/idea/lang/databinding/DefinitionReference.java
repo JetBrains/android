@@ -18,7 +18,6 @@ package com.android.tools.idea.lang.databinding;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,12 +80,6 @@ abstract class DefinitionReference implements DataBindingXmlReferenceContributor
   @Override
   public boolean isReferenceTo(@NotNull PsiElement element) {
     return myElement.getManager().areElementsEquivalent(resolve(), element);
-  }
-
-  @NotNull
-  @Override
-  public Object[] getVariants() {
-    return ArrayUtil.EMPTY_OBJECT_ARRAY;
   }
 
   @Override
