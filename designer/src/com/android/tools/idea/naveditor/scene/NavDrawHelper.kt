@@ -88,7 +88,7 @@ fun frameColor(context: SceneContext, component: SceneComponent): Color {
   return when (component.drawState) {
     SceneComponent.DrawState.SELECTED -> colorSet.selectedFrames
     SceneComponent.DrawState.HOVER ->
-      if (ActionHandleTarget.isDragCreateInProgress(component.nlComponent)) colorSet.selectedFrames
+      if (ActionHandleTarget.isDragCreateInProgress(component.nlComponent) && !component.id.isNullOrEmpty()) colorSet.selectedFrames
       else colorSet.highlightedFrames
     SceneComponent.DrawState.DRAG -> colorSet.highlightedFrames
     else -> colorSet.frames

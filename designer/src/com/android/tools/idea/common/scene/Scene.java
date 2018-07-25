@@ -31,9 +31,12 @@ import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget;
 import com.android.tools.idea.naveditor.scene.targets.ScreenHeaderTarget;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderSettings;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
+import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeAnchorTarget;
 import com.android.tools.idea.uibuilder.model.NlSelectionModel;
 import com.android.tools.idea.uibuilder.model.SelectionHandle;
@@ -748,10 +751,13 @@ public class Scene implements SelectionListener, Disposable {
       // TODO: Refactor this so explicit cast not required
       SceneComponent closestComponent = myHitListener.getClosestComponent();
       if (closestComponent != null && closestComponent != myRoot) {
-        ActionHandleTarget actionHandleTarget = (ActionHandleTarget)myHitTarget;
-        NlComponent action = actionHandleTarget.createAction(closestComponent);
-        if (action != null) {
-          myDesignSurface.getSelectionModel().setSelection(ImmutableList.of(action));
+        String id = closestComponent.getId();
+        if (id != null && !id.isEmpty()) {
+          ActionHandleTarget actionHandleTarget = (ActionHandleTarget)myHitTarget;
+          NlComponent action = actionHandleTarget.createAction(closestComponent);
+          if (action != null) {
+            myDesignSurface.getSelectionModel().setSelection(ImmutableList.of(action));
+          }
         }
       }
     }
