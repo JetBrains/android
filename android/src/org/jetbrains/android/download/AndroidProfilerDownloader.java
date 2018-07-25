@@ -31,9 +31,9 @@ public class AndroidProfilerDownloader {
     if (pluginDir.exists()) return true;
 
     DownloadableFileService service = DownloadableFileService.getInstance();
-    String fileName = "android-profiler-3.0.zip";
+    String fileName = "android-profiler-3.1.2.zip";
     DownloadableFileDescription
-      description = service.createFileDescription("http://download.jetbrains.com/idea/android-profiler/3.0/" + fileName, fileName);
+      description = service.createFileDescription("https://download.jetbrains.com/idea/android-profiler/3.1.2/" + fileName, fileName);
     FileDownloader downloader = service.createDownloader(Collections.singletonList(description), "Download Android Profiler");
     try {
       Path tempDir = Files.createTempDirectory("android-profiler-download");
@@ -52,7 +52,7 @@ public class AndroidProfilerDownloader {
   }
 
   private static File getPluginDir() {
-    return new File(PathManager.getSystemPath(), "android/profiler/3.0");
+    return new File(PathManager.getSystemPath(), "android/profiler/3.1.2");
   }
 
   public static File getHostDir(String hostReleaseDir) {
