@@ -21,8 +21,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture
-import com.intellij.testFramework.UsefulTestCase.assertEmpty
-import com.intellij.testFramework.UsefulTestCase.assertNotEmpty
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
 import org.junit.Before
@@ -57,7 +56,7 @@ class HostPanelTest {
       .hostPanel()
       .waitForHostList()
 
-    assertEmpty(hostPanel.waitForHostList().components)
+    assertThat(hostPanel.waitForHostList().components).isEmpty()
 
     frame
       .editor
@@ -73,7 +72,7 @@ class HostPanelTest {
       .getLayoutEditor(true)
       .waitForRenderToFinish()
 
-    assertNotEmpty(hostPanel.waitForHostList().components)
+    assertThat(hostPanel.waitForHostList().components).isNotEmpty()
 
     val nlFixture = frame
       .editor
@@ -90,6 +89,6 @@ class HostPanelTest {
       .getLayoutEditor(true)
       .waitForRenderToFinish()
 
-    assertEmpty(hostPanel.waitForHostList().components)
+    assertThat(hostPanel.waitForHostList().components).isEmpty()
   }
 }
