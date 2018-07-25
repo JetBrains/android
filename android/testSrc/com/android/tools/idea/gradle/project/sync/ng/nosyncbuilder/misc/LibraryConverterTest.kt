@@ -45,7 +45,7 @@ class LibraryConverterTest : TestCase() {
 
     assertTrue(properAndroidLibrary.artifact.exists())
     properAndroidLibrary.localJars.forEach { it.exists() }
-    assertEquals(properAndroidLibrary.artifactAddress, properAndroidLibrary.artifactAddress)
+    assertEquals(cachedAndroidLibrary.artifactAddress, properAndroidLibrary.artifactAddress)
   }
 
   @Throws(Exception::class)
@@ -59,6 +59,4 @@ class LibraryConverterTest : TestCase() {
     assertTrue(properJavaLibrary.artifact.exists())
     assertEquals(cachedJavaLibrary.artifactAddress, properJavaLibrary.artifactAddress)
   }
-
-  // TODO(qumeric) add failing test
 }

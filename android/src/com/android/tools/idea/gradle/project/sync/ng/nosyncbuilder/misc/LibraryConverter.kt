@@ -21,7 +21,6 @@ import org.apache.commons.io.FileUtils
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardCopyOption
 
 // properOfflineRepo have to exist
 class LibraryConverter(private val properOfflineRepo: Path) {
