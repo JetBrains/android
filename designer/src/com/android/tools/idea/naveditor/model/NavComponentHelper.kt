@@ -188,7 +188,7 @@ var NlComponent.inclusive: Boolean by BooleanAutoAttributeDelegate(NavigationSch
 var NlComponent.popEnterAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_POP_ENTER_ANIM)
 var NlComponent.popExitAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_POP_EXIT_ANIM)
 var NlComponent.singleTop: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_SINGLE_TOP)
-var NlComponent.typeAttr: String? by StringAttributeDelegate(AUTO_URI, ATTR_TYPE)
+var NlComponent.typeAttr: String? by StringAttributeDelegate(AUTO_URI, ATTR_ARG_TYPE)
 var NlComponent.defaultValue: String? by StringAttributeDelegate(ANDROID_URI, ATTR_DEFAULT_VALUE)
 var NlComponent.nullable: Boolean by BooleanAutoAttributeDelegate(ATTR_NULLABLE)
 

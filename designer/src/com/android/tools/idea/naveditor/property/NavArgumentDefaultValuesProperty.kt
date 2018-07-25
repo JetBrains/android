@@ -80,7 +80,7 @@ class NavArgumentDefaultValueProperty(destinationArgument: NlComponent,
                  navArgumentsProperty.propertiesManager), NavArgumentProperty {
 
   override val defaultValueProperty: NlProperty =
-    actionArgument?.let { ActionArgumentPropertyItem(attrDefs) } ?:
+    actionArgument?.let { ArgumentDefaultValuePropertyItem(attrDefs) } ?:
     object : NewElementProperty(parents[0], TAG_ARGUMENT, ATTR_DEFAULT_VALUE, ANDROID_URI, attrDefs,
                                 navArgumentsProperty.propertiesManager) {
       override fun setValue(value: Any?) {
@@ -91,14 +91,14 @@ class NavArgumentDefaultValueProperty(destinationArgument: NlComponent,
       }
     }
 
-  override val typeProperty: NlProperty = ActionArgumentTypePropertyItem(attrDefs, destinationArgument)
+  override val typeProperty: NlProperty = ArgumentTypePropertyItem(attrDefs, destinationArgument)
 
-  private inner class ActionArgumentTypePropertyItem(attrDefs: AttributeDefinitions, destinationArgument: NlComponent)
-    : NlPropertyItem(XmlName(ATTR_TYPE, AUTO_URI),
-                     attrDefs.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_TYPE)),
+  private inner class ArgumentTypePropertyItem(attrDefs: AttributeDefinitions, destinationArgument: NlComponent)
+    : NlPropertyItem(XmlName(ATTR_ARG_TYPE, AUTO_URI),
+                     attrDefs.getAttrDefinition(ResourceReference.attr(ResourceNamespace.RES_AUTO, ATTR_ARG_TYPE)),
                      listOf(destinationArgument), myPropertiesManager)
 
-  private inner class ActionArgumentPropertyItem(attrDefs: AttributeDefinitions)
+  private inner class ArgumentDefaultValuePropertyItem(attrDefs: AttributeDefinitions)
     : NlPropertyItem(XmlName(ATTR_DEFAULT_VALUE, ANDROID_URI),
                      attrDefs.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_DEFAULT_VALUE)),
                      listOf(actionArgument), myPropertiesManager) {
