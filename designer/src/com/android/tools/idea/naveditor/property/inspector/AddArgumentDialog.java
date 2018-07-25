@@ -233,7 +233,7 @@ public class AddArgumentDialog extends DialogWrapper {
   }
 
   @VisibleForTesting
-  @NotNull
+  @Nullable
   String getType() {
     Type selectedType = (Type)myTypeComboBox.getSelectedItem();
     return selectedType == Type.CUSTOM ? myCustomType : selectedType.attrValue;
