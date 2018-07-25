@@ -108,7 +108,7 @@ class UserSentimentPanel(private var myProject: Project?,
     val listener = NotificationListener { notification, _ ->
       notification.expire()
       if (!positive) {
-        SendFeedbackAction.launchBrowser(project)
+        SendFeedbackAction.launchBrowser(project, "Source: user_sentiment_feedback")
       }
     }
 
@@ -119,8 +119,8 @@ class UserSentimentPanel(private var myProject: Project?,
 
   companion object {
     const val POSITIVE_SENTIMENT_MESSAGE = "We are glad to hear you are having a positive experience with Android Studio!"
-    const val NEGATIVE_SENTIMENT_MESSAGE = "We are sorry to hear you are having problems using Android Studio. Please consider " +
-                                     "<a href='file bug'>filling out</a> a bug report to let us know about your specific concerns."
+    const val NEGATIVE_SENTIMENT_MESSAGE = "We are sorry to hear you are having problems using Android Studio. Help us address your " +
+                                           "specific concerns by sending <a href='file bug'>detailed feedback</a>."
 
     @JvmField
     val NOTIFICATIONS =
