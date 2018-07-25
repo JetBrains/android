@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.model;
 
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfo;
@@ -340,7 +341,12 @@ public class NewProjectModel extends WizardModel {
       myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
       myTemplateValues.put(ATTR_KOTLIN_SUPPORT, myEnableKotlinSupport.get());
 
-      NewProjectExtraInfoBuilder newProjectExtraInfoBuilder = new NewProjectExtraInfoBuilder();
+      boolean shouldUseNewExtraProjectInfo = !dryRun & StudioFlags.SHIPPED_SYNC_ENABLED.get();
+
+      NewProjectExtraInfoBuilder newProjectExtraInfoBuilder = null;
+      if (shouldUseNewExtraProjectInfo) {
+        newProjectExtraInfoBuilder = new NewProjectExtraInfoBuilder();
+      }
 
       int maxBuildApi = 0;
       Map<String, Object> params = Maps.newHashMap(myTemplateValues);
@@ -352,16 +358,20 @@ public class NewProjectModel extends WizardModel {
         renderTemplateValues.putAll(myTemplateValues);
         newModuleModel.getTemplateValues().putAll(myTemplateValues);
 
-        newProjectExtraInfoBuilder.fill(renderTemplateValues);
+        if (shouldUseNewExtraProjectInfo) {
+          newProjectExtraInfoBuilder.fill(renderTemplateValues);
+        }
 
         maxBuildApi = Math.max(maxBuildApi, (int) renderTemplateValues.getOrDefault(ATTR_BUILD_API, 0));
       }
 
       myTemplateValues.put(ATTR_ANDROIDX_SUPPORT, NELE_USE_ANDROIDX_DEFAULT.get() && maxBuildApi >= 28);
 
-      newProjectExtraInfoBuilder.fill(params);
+      if (shouldUseNewExtraProjectInfo) {
+        newProjectExtraInfoBuilder.fill(params);
+      }
 
-      if (!dryRun) {
+      if (shouldUseNewExtraProjectInfo) {
         try {
           myNewProjectExtraInfo = newProjectExtraInfoBuilder.build();
         }
