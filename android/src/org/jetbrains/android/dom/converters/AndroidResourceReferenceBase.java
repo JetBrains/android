@@ -218,10 +218,4 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     }
     return false;
   }
-
-  @NotNull
-  @Override
-  public Object[] getVariants() {
-    return EMPTY_ARRAY;
-  }
 }
