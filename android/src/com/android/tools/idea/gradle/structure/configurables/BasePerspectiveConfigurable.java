@@ -161,7 +161,6 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
 
   @Override
   protected void updateSelection(@Nullable NamedConfigurable configurable) {
-    super.updateSelection(configurable);
     if (configurable instanceof BaseNamedConfigurable) {
       BaseNamedConfigurable baseConfigurable = (BaseNamedConfigurable)configurable;
       PsModule module = baseConfigurable.getEditableObject();
@@ -173,6 +172,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
         mySelectModuleQuietly = false;
       }
     }
+    super.updateSelection(configurable);
     myHistory.pushQueryPlace();
   }
 
