@@ -525,6 +525,11 @@ public class StudioIcons {
       public static final Icon THEME_EDITOR = load("/studio/icons/shell/menu/theme-editor.png"); // 16x16
     }
 
+    public static class Telemetry {
+      public static final Icon SENTIMENT_NEGATIVE = load("/studio/icons/shell/telemetry/sentiment-negative.png"); // 16x16
+      public static final Icon SENTIMENT_POSITIVE = load("/studio/icons/shell/telemetry/sentiment-positive.png"); // 16x16
+    }
+
     public static class ToolWindows {
       public static final Icon ANDROID_MODEL = load("/studio/icons/shell/tool-windows/android-model.png"); // 13x13
       public static final Icon ANDROID_PREVIEW = load("/studio/icons/shell/tool-windows/android-preview.png"); // 13x13
