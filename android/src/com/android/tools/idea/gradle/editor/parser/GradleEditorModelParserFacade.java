@@ -163,7 +163,7 @@ public class GradleEditorModelParserFacade {
   private static void fillContext(@NotNull final GradleEditorModelParseContext context, @NotNull PsiFile psiFile) {
     psiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyRecursiveElementVisitor() {
       @Override
-      public void visitMethodCallExpression(GrMethodCallExpression methodCallExpression) {
+      public void visitMethodCallExpression(@NotNull GrMethodCallExpression methodCallExpression) {
         Pair<String,TextRange> pair = GradleEditorValueExtractor.extractMethodName(methodCallExpression);
         GrClosableBlock[] closureArguments = methodCallExpression.getClosureArguments();
         if (pair == null || closureArguments.length > 1) {
@@ -190,7 +190,7 @@ public class GradleEditorModelParserFacade {
       }
 
       @Override
-      public void visitApplicationStatement(GrApplicationStatement applicationStatement) {
+      public void visitApplicationStatement(@NotNull GrApplicationStatement applicationStatement) {
         Pair<String,TextRange> methodName = GradleEditorValueExtractor.extractMethodName(applicationStatement);
         if (methodName == null) {
           return;
@@ -204,7 +204,7 @@ public class GradleEditorModelParserFacade {
       }
 
       @Override
-      public void visitAssignmentExpression(GrAssignmentExpression expression) {
+      public void visitAssignmentExpression(@NotNull GrAssignmentExpression expression) {
         // General idea is to try to extract variable from the given expression and, in case of success, try to extract rvalue and
         // register corresponding assignment with them.
         context.resetCaches();
@@ -233,7 +233,7 @@ public class GradleEditorModelParserFacade {
       }
 
       @Override
-      public void visitVariable(GrVariable variable) {
+      public void visitVariable(@NotNull GrVariable variable) {
         TextRange nameRange = null;
         boolean lookForInitializer = false;
         ParserDefinition parserDefinition = LanguageParserDefinitions.INSTANCE.findSingle(GroovyLanguage.INSTANCE);
