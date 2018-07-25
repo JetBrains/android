@@ -25,10 +25,10 @@ import icons.StudioIcons
 class AutoArrangeAction(private val surface: DesignSurface) : AnAction("Auto Arrange", null, StudioIcons.NavEditor.Toolbar.AUTO_ARRANGE) {
 
   override fun actionPerformed(e: AnActionEvent?) {
-    WriteCommandAction.runWriteCommandAction(surface.project, {
+    WriteCommandAction.runWriteCommandAction(surface.project) {
       surface.scene?.root?.children?.map { it.nlComponent }?.forEach { it.putClientProperty(SKIP_PERSISTED_LAYOUT, true) }
       surface.sceneManager?.requestRender()
       surface.scene?.root?.children?.map { it.nlComponent }?.forEach { it.removeClientProperty(SKIP_PERSISTED_LAYOUT) }
-    })
+    }
   }
 }

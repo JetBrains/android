@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
-import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.argumentName
@@ -27,14 +25,12 @@ import com.android.tools.idea.naveditor.model.defaultValue
 import com.android.tools.idea.naveditor.model.typeAttr
 import com.android.tools.idea.naveditor.property.NavDestinationArgumentsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
-import com.android.tools.idea.naveditor.property.editors.TextEditor
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.android.tools.idea.uibuilder.property.editors.NlTableCellEditor
 import com.google.common.collect.HashBasedTable
-import com.intellij.openapi.application.ApplicationManager
+import com.google.common.truth.Truth
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBList
-import com.intellij.ui.table.JBTable
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
@@ -149,6 +145,31 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
 
   }
 
+  fun testXmlFormatting() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1")
+      }
+    }
+    val fragment = model.find("f1")!!
+    val dialog = spy(AddArgumentDialog(null, fragment))
+    `when`(dialog.name).thenReturn("a")
+    doReturn(true).`when`(dialog).showAndGet()
+
+    val navDestinationArgumentsInspectorProvider = NavDestinationArgumentsInspectorProvider { _, _ -> dialog }
+    navDestinationArgumentsInspectorProvider.addItem(null, listOf(fragment), null)
+    `when`(dialog.name).thenReturn("b")
+    doReturn("integer").`when`(dialog).type
+    navDestinationArgumentsInspectorProvider.addItem(null, listOf(fragment), null)
+    FileDocumentManager.getInstance().saveAllDocuments()
+    val result = String(model.virtualFile.contentsToByteArray())
+    // Don't care about other contents or indent, but argument tags and attributes should be on their own lines.
+    Truth.assertThat(result.replace("\n *".toRegex(), "\n")).contains("<argument android:name=\"a\" />\n" +
+                                                                      "<argument\n" +
+                                                                      "android:name=\"b\"\n" +
+                                                                      "app:type=\"integer\" />\n")
+    dialog.close(0)
+  }
 }
 
 private fun flatten(component: Component): List<Component> {
