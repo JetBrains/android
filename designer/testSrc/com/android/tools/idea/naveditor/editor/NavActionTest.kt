@@ -21,6 +21,8 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.actions.*
 import com.android.tools.idea.naveditor.model.*
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.common.truth.Truth
+import com.intellij.openapi.fileEditor.FileDocumentManager
 
 /**
  * Tests for actions used by the nav editor
@@ -39,17 +41,20 @@ class NavActionTest : NavTestCase() {
     action.actionPerformed(null)
 
     assertEquals(
-        "NlComponent{tag=<navigation>, instance=0}\n" +
-            "    NlComponent{tag=<fragment>, instance=1}\n" +
-            "    NlComponent{tag=<action>, instance=2}", NlTreeDumper().toTree(model.components)
-    )
+      """
+        NlComponent{tag=<navigation>, instance=0}
+            NlComponent{tag=<fragment>, instance=1}
+            NlComponent{tag=<action>, instance=2}
+      """.trimIndent(),
+      NlTreeDumper().toTree(model.components))
+
     val globalAction = model.find("action_global_fragment1")!!
 
     assertNotNull(globalAction.parent)
     assertNull(globalAction.parent?.id)
     assertEquals(globalAction.actionDestinationId, "fragment1")
 
-    assertTrue(model.surface.selectionModel.selection.equals(listOf(globalAction)))
+    assertEquals(listOf(globalAction), model.surface.selectionModel.selection)
   }
 
   fun testReturnToSourceAction() {
@@ -65,15 +70,28 @@ class NavActionTest : NavTestCase() {
     action.actionPerformed(null)
 
     assertEquals(
-        "NlComponent{tag=<navigation>, instance=0}\n" +
-            "    NlComponent{tag=<fragment>, instance=1}\n" +
-            "        NlComponent{tag=<action>, instance=2}", NlTreeDumper().toTree(model.components)
+      """
+        NlComponent{tag=<navigation>, instance=0}
+            NlComponent{tag=<fragment>, instance=1}
+                NlComponent{tag=<action>, instance=2}
+      """.trimIndent(),
+      NlTreeDumper().toTree(model.components)
     )
     val returnToSourceAction = model.find("action_fragment1_pop")!!
 
     assertEquals(component.id, returnToSourceAction.popUpTo)
     assertTrue(returnToSourceAction.inclusive)
-    assertTrue(model.surface.selectionModel.selection.equals(listOf(returnToSourceAction)))
+    assertEquals(listOf(returnToSourceAction), model.surface.selectionModel.selection)
+
+    FileDocumentManager.getInstance().saveAllDocuments()
+    val result = String(model.virtualFile.contentsToByteArray())
+    Truth.assertThat(result.replace("\n *".toRegex(), "\n")).contains(
+      """
+        <action
+        android:id="@+id/action_fragment1_pop"
+        app:popUpTo="@id/fragment1"
+        app:popUpToInclusive="true" />
+      """.trimIndent())
   }
 
   fun testStartDestinationAction() {
@@ -88,8 +106,11 @@ class NavActionTest : NavTestCase() {
     action.actionPerformed(null)
 
     assertEquals(
-        "NlComponent{tag=<navigation>, instance=0}\n" +
-            "    NlComponent{tag=<fragment>, instance=1}", NlTreeDumper().toTree(model.components)
+      """
+        NlComponent{tag=<navigation>, instance=0}
+            NlComponent{tag=<fragment>, instance=1}
+      """.trimIndent(),
+      NlTreeDumper().toTree(model.components)
     )
 
     assert(component.isStartDestination)
@@ -108,14 +129,26 @@ class NavActionTest : NavTestCase() {
     action.actionPerformed(null)
 
     assertEquals(
-        "NlComponent{tag=<navigation>, instance=0}\n" +
-            "    NlComponent{tag=<fragment>, instance=1}\n" +
-            "        NlComponent{tag=<action>, instance=2}", NlTreeDumper().toTree(model.components)
+      """
+        NlComponent{tag=<navigation>, instance=0}
+            NlComponent{tag=<fragment>, instance=1}
+                NlComponent{tag=<action>, instance=2}
+      """.trimIndent(),
+      NlTreeDumper().toTree(model.components)
     )
 
     val selfAction = model.find("action_fragment1_self")!!
     assertTrue(selfAction.isSelfAction)
-    assertTrue(model.surface.selectionModel.selection.equals(listOf(selfAction)))
+    assertEquals(listOf(selfAction), model.surface.selectionModel.selection)
+
+    FileDocumentManager.getInstance().saveAllDocuments()
+    val result = String(model.virtualFile.contentsToByteArray())
+    Truth.assertThat(result.replace("\n *".toRegex(), "\n")).contains(
+      """
+        <action
+        android:id="@+id/action_fragment1_self"
+        app:destination="@id/fragment1" />
+      """.trimIndent())
   }
 
   /**
@@ -150,15 +183,18 @@ class NavActionTest : NavTestCase() {
     action.actionPerformed(null)
 
     assertEquals(
-      "NlComponent{tag=<navigation>, instance=0}\n" +
-      "    NlComponent{tag=<fragment>, instance=1}\n" +
-      "        NlComponent{tag=<action>, instance=2}\n" +
-      "    NlComponent{tag=<fragment>, instance=3}\n" +
-      "        NlComponent{tag=<action>, instance=4}\n" +
-      "    NlComponent{tag=<fragment>, instance=5}\n" +
-      "    NlComponent{tag=<navigation>, instance=6}\n" +
-      "        NlComponent{tag=<fragment>, instance=7}\n" +
-      "            NlComponent{tag=<action>, instance=8}", NlTreeDumper().toTree(model.components)
+      """
+        NlComponent{tag=<navigation>, instance=0}
+            NlComponent{tag=<fragment>, instance=1}
+                NlComponent{tag=<action>, instance=2}
+            NlComponent{tag=<fragment>, instance=3}
+                NlComponent{tag=<action>, instance=4}
+            NlComponent{tag=<fragment>, instance=5}
+            NlComponent{tag=<navigation>, instance=6}
+                NlComponent{tag=<fragment>, instance=7}
+                    NlComponent{tag=<action>, instance=8}
+      """.trimIndent(),
+      NlTreeDumper().toTree(model.components)
     )
 
     val fragment2 = model.find("fragment2")!!
@@ -167,16 +203,19 @@ class NavActionTest : NavTestCase() {
     action.actionPerformed(null)
 
     assertEquals(
-        "NlComponent{tag=<navigation>, instance=0}\n" +
-            "    NlComponent{tag=<fragment>, instance=1}\n" +
-            "        NlComponent{tag=<action>, instance=2}\n" +
-            "    NlComponent{tag=<navigation>, instance=3}\n" +
-            "        NlComponent{tag=<fragment>, instance=4}\n" +
-            "            NlComponent{tag=<action>, instance=5}\n" +
-            "    NlComponent{tag=<navigation>, instance=6}\n" +
-            "        NlComponent{tag=<fragment>, instance=7}\n" +
-            "            NlComponent{tag=<action>, instance=8}\n" +
-            "        NlComponent{tag=<fragment>, instance=9}", NlTreeDumper().toTree(model.components)
+      """
+        NlComponent{tag=<navigation>, instance=0}
+            NlComponent{tag=<fragment>, instance=1}
+                NlComponent{tag=<action>, instance=2}
+            NlComponent{tag=<navigation>, instance=3}
+                NlComponent{tag=<fragment>, instance=4}
+                    NlComponent{tag=<action>, instance=5}
+            NlComponent{tag=<navigation>, instance=6}
+                NlComponent{tag=<fragment>, instance=7}
+                    NlComponent{tag=<action>, instance=8}
+                NlComponent{tag=<fragment>, instance=9}
+      """.trimIndent(),
+      NlTreeDumper().toTree(model.components)
     )
 
     val root = surface.currentNavigation
@@ -237,19 +276,22 @@ class NavActionTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     surface.selectionModel.setSelection(listOf())
     val navigation1 = model.find("navigation1")!!
-    val action = AddToExistingGraphAction(surface,"navigation", navigation1)
+    val action = AddToExistingGraphAction(surface, "navigation", navigation1)
     action.actionPerformed(null)
 
     assertEquals(
-      "NlComponent{tag=<navigation>, instance=0}\n" +
-      "    NlComponent{tag=<fragment>, instance=1}\n" +
-      "        NlComponent{tag=<action>, instance=2}\n" +
-      "    NlComponent{tag=<fragment>, instance=3}\n" +
-      "        NlComponent{tag=<action>, instance=4}\n" +
-      "    NlComponent{tag=<fragment>, instance=5}\n" +
-      "    NlComponent{tag=<navigation>, instance=6}\n" +
-      "        NlComponent{tag=<fragment>, instance=7}\n" +
-      "            NlComponent{tag=<action>, instance=8}", NlTreeDumper().toTree(model.components)
+      """
+        NlComponent{tag=<navigation>, instance=0}
+            NlComponent{tag=<fragment>, instance=1}
+                NlComponent{tag=<action>, instance=2}
+            NlComponent{tag=<fragment>, instance=3}
+                NlComponent{tag=<action>, instance=4}
+            NlComponent{tag=<fragment>, instance=5}
+            NlComponent{tag=<navigation>, instance=6}
+                NlComponent{tag=<fragment>, instance=7}
+                    NlComponent{tag=<action>, instance=8}
+      """.trimIndent(),
+      NlTreeDumper().toTree(model.components)
     )
 
     val fragment2 = model.find("fragment2")!!
@@ -259,15 +301,18 @@ class NavActionTest : NavTestCase() {
     action.actionPerformed(null)
 
     assertEquals(
-        "NlComponent{tag=<navigation>, instance=0}\n" +
-            "    NlComponent{tag=<fragment>, instance=1}\n" +
-            "        NlComponent{tag=<action>, instance=2}\n" +
-            "    NlComponent{tag=<navigation>, instance=3}\n" +
-            "        NlComponent{tag=<fragment>, instance=4}\n" +
-            "            NlComponent{tag=<action>, instance=5}\n" +
-            "        NlComponent{tag=<fragment>, instance=6}\n" +
-            "            NlComponent{tag=<action>, instance=7}\n" +
-            "        NlComponent{tag=<fragment>, instance=8}", NlTreeDumper().toTree(model.components)
+      """
+        NlComponent{tag=<navigation>, instance=0}
+            NlComponent{tag=<fragment>, instance=1}
+                NlComponent{tag=<action>, instance=2}
+            NlComponent{tag=<navigation>, instance=3}
+                NlComponent{tag=<fragment>, instance=4}
+                    NlComponent{tag=<action>, instance=5}
+                NlComponent{tag=<fragment>, instance=6}
+                    NlComponent{tag=<action>, instance=7}
+                NlComponent{tag=<fragment>, instance=8}
+      """.trimIndent(),
+      NlTreeDumper().toTree(model.components)
     )
 
     assertEquals(navigation1.startDestinationId, "fragment4")
@@ -313,16 +358,16 @@ class NavActionTest : NavTestCase() {
     val action = SelectNextAction(surface)
 
     action.actionPerformed(null)
-    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment1)))
+    assertEquals(listOf(fragment1), model.surface.selectionModel.selection)
 
     action.actionPerformed(null)
-    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment2)))
+    assertEquals(listOf(fragment2), model.surface.selectionModel.selection)
 
     action.actionPerformed(null)
-    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment3)))
+    assertEquals(listOf(fragment3), model.surface.selectionModel.selection)
 
     action.actionPerformed(null)
-    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment1)))
+    assertEquals(listOf(fragment1), model.surface.selectionModel.selection)
   }
 
 
@@ -344,16 +389,16 @@ class NavActionTest : NavTestCase() {
     val action = SelectPreviousAction(surface)
 
     action.actionPerformed(null)
-    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment3)))
+    assertEquals(listOf(fragment3), model.surface.selectionModel.selection)
 
     action.actionPerformed(null)
-    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment2)))
+    assertEquals(listOf(fragment2), model.surface.selectionModel.selection)
 
     action.actionPerformed(null)
-    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment1)))
+    assertEquals(listOf(fragment1), model.surface.selectionModel.selection)
 
     action.actionPerformed(null)
-    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment3)))
+    assertEquals(listOf(fragment3), model.surface.selectionModel.selection)
   }
 
   fun testSelectAllAction() {
@@ -374,6 +419,6 @@ class NavActionTest : NavTestCase() {
     val action = SelectAllAction(surface)
 
     action.actionPerformed(null)
-    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment1, fragment2, fragment3)))
+    assertEquals(listOf(fragment1, fragment2, fragment3), model.surface.selectionModel.selection)
   }
 }

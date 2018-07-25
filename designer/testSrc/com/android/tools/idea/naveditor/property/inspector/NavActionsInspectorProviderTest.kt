@@ -81,9 +81,9 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     `when`(manager.designSurface).thenReturn(model.surface)
 
     val panel = NavInspectorPanel(myRootDisposable)
-    val f1 = model.find("f1")
-    val f2 = model.find("f2")
-    panel.setComponent(listOf(f1!!), HashBasedTable.create<String, String, NlProperty>(), manager)
+    val f1 = model.find("f1")!!
+    val f2 = model.find("f2")!!
+    panel.setComponent(listOf(f1), HashBasedTable.create<String, String, NlProperty>(), manager)
 
     @Suppress("UNCHECKED_CAST")
     val actionsList = flatten(panel).find { it.name == NAV_LIST_COMPONENT_NAME }!! as JBList<NlProperty>
@@ -98,16 +98,16 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     panel.setComponent(listOf(f2), HashBasedTable.create<String, String, NlProperty>(), manager)
     assertEquals(0, actionsList.itemsCount)
 
-    val dialog = mock(AddActionDialog::class.java)
+    val dialog = spy(AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f2))
     `when`(dialog.destination).thenReturn(f1)
-    `when`(dialog.source).thenReturn(f2)
-    `when`(dialog.showAndGet()).thenReturn(true)
+    doReturn(true).`when`(dialog).showAndGet()
 
     provider.showAndUpdateFromDialog(dialog, manager.designSurface)
 
     assertEquals(1, actionsList.itemsCount)
     val newAction = model.find("action_f2_to_f1")!!
     assertTrue(model.surface.selectionModel.selection.contains(newAction))
+    dialog.close(0)
   }
 
   private fun getElementText(
@@ -242,6 +242,7 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     assertEquals("Add Action...", rootActions[0].templatePresentation.text)
     assertEquals("Return to Source...", rootActions[1].templatePresentation.text)
   }
+
 }
 
 private fun <T> any(): T {

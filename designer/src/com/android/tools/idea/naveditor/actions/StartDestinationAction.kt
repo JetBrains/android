@@ -29,7 +29,7 @@ class StartDestinationAction(private val component: NlComponent) : AnAction("Set
   }
 
   override fun actionPerformed(e: AnActionEvent?) {
-    WriteCommandAction.runWriteCommandAction(null) {
+    WriteCommandAction.runWriteCommandAction(component.model.project) {
       component.setAsStartDestination()
     }
   }

@@ -85,7 +85,7 @@ class NavArgumentDefaultValueProperty(destinationArgument: NlComponent,
                                 navArgumentsProperty.propertiesManager) {
       override fun setValue(value: Any?) {
         super.setValue(value)
-        WriteCommandAction.runWriteCommandAction(null) {
+        WriteCommandAction.runWriteCommandAction(navArgumentsProperty.propertiesManager.project) {
           tag?.setAttribute(ATTR_NAME, ANDROID_URI, this@NavArgumentDefaultValueProperty.value)
         }
       }

@@ -263,9 +263,7 @@ open class AddActionDialog(
   }
 
 
-  private fun setUpComponents(
-    model: NlModel
-  ) {
+  private fun setUpComponents(model: NlModel) {
     val sourceRenderer = object : ListCellRendererWrapper<NlComponent>() {
       override fun customize(list: JList<*>, value: NlComponent?, index: Int, selected: Boolean, hasFocus: Boolean) {
         if (value == null) {
@@ -389,7 +387,7 @@ open class AddActionDialog(
   @VisibleForTesting
   fun writeUpdatedAction(): NlComponent {
     return WriteCommandAction.runWriteCommandAction(
-        null, Computable<NlComponent> {
+      parent.model.project, Computable<NlComponent> {
       val actionSetup: NlComponent.() -> Unit = {
         actionDestinationId = destination?.id
         enterAnimation = enterTransition

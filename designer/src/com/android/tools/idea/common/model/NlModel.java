@@ -845,7 +845,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
           XmlTag tag = component.getTag();
           if (tag.isValid()) {
+            PsiElement parentTag = tag.getParent();
             tag.delete();
+            if (parentTag instanceof XmlTag) {
+              ((XmlTag)parentTag).collapseIfEmpty();
+            }
           }
         }
       }
