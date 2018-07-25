@@ -21,12 +21,16 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.popup.JBPopup;
+import com.intellij.openapi.util.Condition;
+import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
 import icons.AndroidIcons;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -64,6 +68,27 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
 
   void setSelectedDevice(@NotNull Device selectedDevice) {
     mySelectedDevice = selectedDevice;
+  }
+
+  @NotNull
+  @Override
+  protected ComboBoxButton createComboBoxButton(@NotNull Presentation presentation) {
+    return new ComboBoxButton(presentation) {
+      @Override
+      protected JBPopup createPopup(@NotNull Runnable runnable) {
+        DataContext context = getDataContext();
+
+        ActionGroup group = createPopupActionGroup(this, context);
+        boolean show = shouldShowDisabledActions();
+        int count = getMaxRows();
+        Condition<AnAction> condition = getPreselectCondition();
+
+        JBPopup popup = new ActionGroupPopup(null, group, context, false, true, show, false, runnable, count, condition, null, true);
+        popup.setMinimumSize(new Dimension(getMinWidth(), getMinHeight()));
+
+        return popup;
+      }
+    };
   }
 
   @NotNull
