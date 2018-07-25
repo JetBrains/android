@@ -44,7 +44,7 @@ interface PsContext : Disposable {
   fun add(listener: ChangeListener, parentDisposable: Disposable)
 
   interface ChangeListener : EventListener {
-    fun moduleSelectionChanged(moduleName: String, source: Any)
+    fun moduleSelectionChanged(moduleName: String)
   }
 }
 

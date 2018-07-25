@@ -37,7 +37,7 @@ class ModulesPerspectiveConfigurable(context: PsContext)
   override fun getConfigurable(module: PsModule): NamedConfigurable<out PsModule>? =
       if (module is PsAndroidModule) getConfigurable(module) else null
 
-  override fun getNavigationPathName() = MODULES_PERSPECTIVE_PLACE_NAME
+  override val navigationPathName: String = MODULES_PERSPECTIVE_PLACE_NAME
 
   override fun getDisplayName() = MODULES_PERSPECTIVE_DISPLAY_NAME
 

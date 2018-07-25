@@ -36,7 +36,8 @@ class BuildVariantsPerspectiveConfigurable(context: PsContext)
   override fun getConfigurable(module: PsModule): NamedConfigurable<out PsModule>? =
       if (module is PsAndroidModule) getConfigurable(module) else null
 
-  override fun getNavigationPathName() = BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME
+  override val navigationPathName: String = BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME
+
   override fun getDisplayName() = BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME
 
   private fun getConfigurable(module: PsAndroidModule) =

@@ -103,7 +103,7 @@ class PsContextImpl constructor(
 
   override fun setSelectedModule(moduleName: String, source: Any) {
     selectedModule = moduleName
-    changeEventDispatcher.multicaster.moduleSelectionChanged(moduleName, source)
+    changeEventDispatcher.multicaster.moduleSelectionChanged(moduleName)
   }
 
   override fun add(listener: PsContext.ChangeListener, parentDisposable: Disposable) =
