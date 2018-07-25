@@ -219,7 +219,7 @@ object NavModelBuilderUtil {
     init {
       withAttribute(ANDROID_URI, SdkConstants.ATTR_NAME, name)
       value?.let { withAttribute(ANDROID_URI, NavigationSchema.ATTR_DEFAULT_VALUE, it) }
-      type?.let { withAttribute(AUTO_URI, SdkConstants.ATTR_TYPE, it) }
+      type?.let { withAttribute(AUTO_URI, SdkConstants.ATTR_ARG_TYPE, it) }
       nullable?.let { withAttribute(AUTO_URI, SdkConstants.ATTR_NULLABLE, it.toString()) }
     }
   }
