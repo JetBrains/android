@@ -45,18 +45,18 @@ class DependenciesPerspectiveConfigurable(context: PsContext)
   @Nls
   override fun getDisplayName(): String = DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME
 
-  override fun getNavigationPathName(): String = DEPENDENCIES_PERSPECTIVE_PLACE_NAME
+  override val navigationPathName: String = DEPENDENCIES_PERSPECTIVE_PLACE_NAME
 
   override fun getConfigurable(module: PsModule): NamedConfigurable<out PsModule>? =
     when (module) {
       is PsAllModulesFakeModule -> myExtraTopConfigurables.getOrPut(module) {
-        ProjectDependenciesConfigurable(module, context, extraModules).also { it.history = myHistory }
+        ProjectDependenciesConfigurable(module, context, getExtraModules()).also { it.history = myHistory }
       }
       is PsAndroidModule -> myConfigurablesByGradlePath.getOrPut(module.gradlePath) {
-        AndroidModuleDependenciesConfigurable(module, context, extraModules).also { it.history = myHistory }
+        AndroidModuleDependenciesConfigurable(module, context, getExtraModules()).also { it.history = myHistory }
       }
       is PsJavaModule -> myConfigurablesByGradlePath.getOrPut(module.gradlePath) {
-        JavaModuleDependenciesConfigurable(module, context, extraModules).also { it.history = myHistory }
+        JavaModuleDependenciesConfigurable(module, context, getExtraModules()).also { it.history = myHistory }
       }
       else -> null
     }

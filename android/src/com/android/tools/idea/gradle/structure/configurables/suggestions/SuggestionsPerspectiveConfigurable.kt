@@ -44,7 +44,7 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
         else -> null
       }
 
-  override fun getNavigationPathName(): String = "suggestions.place"
+  override val navigationPathName: String = "suggestions.place"
 
   override fun getDisplayName(): String = "Suggestions"
 
