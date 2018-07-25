@@ -637,22 +637,16 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("other", "ContentProvider", false, withKotlin);
   }
 
-
   @TemplateCheck
   public void testNewSliceProvider() throws Exception {
-    // TODO: This template requires API 28. Temporarily disabled until out of preview.
-    // TODO: (Consider adding preview SDK support to this suite.)
-    //myApiSensitiveTemplate = false;
-    //checkCreateTemplate("other", "SliceProvider", false);
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "SliceProvider", false);
   }
-
 
   @TemplateCheck
   public void testNewSliceProviderWithKotlin() throws Exception {
-    // TODO: This template requires API 28. Temporarily disabled until out of preview.
-    // TODO: (Consider adding preview SDK support to this suite.)
-    //myApiSensitiveTemplate = false;
-    //checkCreateTemplate("other", "SliceProvider", false, withKotlin);
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "SliceProvider", false, withKotlin);
   }
 
   @TemplateCheck
