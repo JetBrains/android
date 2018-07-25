@@ -64,7 +64,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_DYNAMIC_APPS = Flag.create( // TODO: Remove in b/109788793
     NPW, "dynamic.apps", "New Dynamic App Project flow",
     "Use new Dynamic App flow when creating a New Mobile Project",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_USE_HOME_FOLDER_AS_EXTRA_TEMPLATE_ROOT_FOLDER = Flag.create(
     NPW, "home.template.root", "Use .android folder as a Template Root Folder",
