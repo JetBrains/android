@@ -34,6 +34,11 @@ import java.util.concurrent.TimeUnit
  */
 class PsAndroidModuleTest : DependencyTestCase() {
 
+  var buildTypesChanged = 0
+  var productFlavorsChanged = 0
+  var signingConfigsChanged = 0
+  var variantsChanged = 0
+
   fun testFlavorDimensions() {
     loadProject(PSD_SAMPLE)
 
@@ -196,6 +201,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = moduleWithSyncedModel(project, "app")
+    appModule.testSubscribeToChangeNotifications()
     assertNotNull(appModule)
 
     var productFlavors = appModule.productFlavors
@@ -203,7 +209,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .containsExactly("basic", "paid").inOrder()
 
     appModule.addNewProductFlavor("new_flavor")
-
+    assertThat(productFlavorsChanged).isEqualTo(1)
     productFlavors = appModule.productFlavors
     assertThat(productFlavors.map { it.name })
       .containsExactly("basic", "paid", "new_flavor").inOrder()
@@ -234,6 +240,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = moduleWithSyncedModel(project, "app")
+    appModule.testSubscribeToChangeNotifications()
     assertNotNull(appModule)
 
     var productFlavors = appModule.productFlavors
@@ -241,6 +248,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .containsExactly("basic", "paid", "bar", "otherBar").inOrder()
 
     appModule.removeProductFlavor(appModule.findProductFlavor("paid")!!)
+    assertThat(productFlavorsChanged).isEqualTo(1)
 
     productFlavors = appModule.productFlavors
     assertThat(productFlavors.map { it.name })
@@ -305,6 +313,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = moduleWithSyncedModel(project, "app")
+    appModule.testSubscribeToChangeNotifications()
     assertNotNull(appModule)
 
     var buildTypes = appModule.buildTypes
@@ -312,6 +321,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .containsExactly("release", "debug").inOrder()
 
     appModule.addNewBuildType("new_build_type")
+    assertThat(buildTypesChanged).isEqualTo(1)
 
     buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
@@ -343,6 +353,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = moduleWithSyncedModel(project, "app")
+    appModule.testSubscribeToChangeNotifications()
     assertNotNull(appModule)
 
     var buildTypes = appModule.buildTypes
@@ -350,6 +361,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .containsExactly("release", "specialRelease", "debug").inOrder()
 
     appModule.removeBuildType(appModule.findBuildType("release")!!)
+    assertThat(buildTypesChanged).isEqualTo(1)
 
     buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
@@ -448,11 +460,13 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     var appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
+    appModule.testSubscribeToChangeNotifications()
 
     var signingConfigs = appModule.signingConfigs
     assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug").inOrder()
 
     val myConfig = appModule.addNewSigningConfig("config2")
+    assertThat(signingConfigsChanged).isEqualTo(1)
     myConfig.storeFile = ParsedValue.Set.Parsed(File("/tmp/1"), DslText.Literal)
 
     assertNotNull(myConfig)
@@ -479,11 +493,13 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     var appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
+    appModule.testSubscribeToChangeNotifications()
 
     var signingConfigs = appModule.signingConfigs
     assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug").inOrder()
 
     appModule.removeSigningConfig(appModule.findSigningConfig("myConfig")!!)
+    assertThat(signingConfigsChanged).isEqualTo(1)
     appModule.removeBuildType(appModule.findBuildType("debug")!!)  // Remove (clean) the build type that refers to the signing config.
 
     signingConfigs = appModule.signingConfigs
@@ -607,6 +623,27 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .containsExactly("debugApi support-v13", "api support-v4")
   }
 
+  fun testResolvingProjectReloadsCollections() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+    val appModule = moduleWithSyncedModel(project, "app")
+
+    appModule.testSubscribeToChangeNotifications()
+    assertThat(buildTypesChanged).isEqualTo(0)
+    assertThat(productFlavorsChanged).isEqualTo(0)
+    assertThat(signingConfigsChanged).isEqualTo(0)
+    assertThat(variantsChanged).isEqualTo(0)
+
+    project.testResolve()
+
+    assertThat(buildTypesChanged).isEqualTo(1)
+    assertThat(productFlavorsChanged).isEqualTo(1)
+    assertThat(signingConfigsChanged).isEqualTo(1)
+    assertThat(variantsChanged).isEqualTo(1)
+  }
+
   fun testConfigurations() {
     loadProject(PSD_SAMPLE)
 
@@ -698,6 +735,13 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "androidTestOtherBarImplementation",
       "androidTestBasicOtherBarImplementation",
       "androidTestPaidOtherBarImplementation")
+  }
+
+  private fun PsAndroidModule.testSubscribeToChangeNotifications() {
+    buildTypes.onChange(testRootDisposable) { buildTypesChanged++ }
+    productFlavors.onChange(testRootDisposable) { productFlavorsChanged++ }
+    signingConfigs.onChange(testRootDisposable) { signingConfigsChanged++ }
+    variants.onChange(testRootDisposable) { variantsChanged++ }
   }
 }
 
