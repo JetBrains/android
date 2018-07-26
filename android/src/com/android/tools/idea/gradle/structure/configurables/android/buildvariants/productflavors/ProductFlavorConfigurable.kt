@@ -18,6 +18,7 @@ import com.android.tools.idea.gradle.structure.configurables.android.ChildModelC
 import com.android.tools.idea.gradle.structure.configurables.ui.*
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors.ProductFlavorConfigPanel
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.PsFlavorDimension
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.ui.NamedConfigurable
@@ -33,12 +34,12 @@ class ProductFlavorConfigurable(private val productFlavor: PsProductFlavor)
 
 class FlavorDimensionConfigurable(
     private val module: PsAndroidModule,
-    val flavorDimension: String
-) : NamedConfigurable<String>(), ContainerConfigurable<PsProductFlavor> {
-  override fun getEditableObject(): String = flavorDimension
+    val flavorDimension: PsFlavorDimension
+) : NamedConfigurable<PsFlavorDimension>(), ContainerConfigurable<PsProductFlavor> {
+  override fun getEditableObject(): PsFlavorDimension = flavorDimension
   override fun getBannerSlogan(): String = "Dimension '$flavorDimension'"
   override fun isModified(): Boolean = false
-  override fun getDisplayName(): String = flavorDimension
+  override fun getDisplayName(): String = flavorDimension.name
   override fun apply() = Unit
   override fun setDisplayName(name: String?) = throw UnsupportedOperationException()
 
@@ -47,7 +48,7 @@ class FlavorDimensionConfigurable(
       .productFlavors
       .filter { productFlavor ->
         val dimension = productFlavor.dimension
-        dimension is ParsedValue.Set.Parsed<String> && dimension.value == flavorDimension
+        dimension is ParsedValue.Set.Parsed<String> && dimension.value == flavorDimension.name
       }
       .map { productFlavor ->
         ProductFlavorConfigurable(productFlavor)
