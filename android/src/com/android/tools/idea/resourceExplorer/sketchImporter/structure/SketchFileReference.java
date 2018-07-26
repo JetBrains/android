@@ -16,8 +16,9 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
 import com.google.gson.annotations.SerializedName;
+import org.jetbrains.annotations.NotNull;
 
-public class SketchMSJSONFileReference {
+public class SketchFileReference {
   /**
    * "MSImmutablePage" or "MSImageData"
    */
@@ -29,15 +30,17 @@ public class SketchMSJSONFileReference {
   @SerializedName("_ref")
   private final String ref;
 
-  public SketchMSJSONFileReference(String type, String ref) {
+  public SketchFileReference(@NotNull String type, @NotNull String ref) {
     refClassType = type;
     this.ref = ref;
   }
 
+  @NotNull
   public String getRefClassType() {
     return refClassType;
   }
 
+  @NotNull
   public String getRef() {
     return ref;
   }

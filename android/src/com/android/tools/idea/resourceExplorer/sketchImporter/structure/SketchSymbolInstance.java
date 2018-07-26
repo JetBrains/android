@@ -19,36 +19,29 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-/**
- * Refers to objects that have the "_class" field set to be one of the following:
- * <ul>
- * <li>"page"</li>
- * <li>"group"</li>
- * </ul>
- * <p>
- * {@link com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer}
- */
-public class SketchPage extends SketchLayer {
+public class SketchSymbolInstance extends SketchLayer {
   private final SketchStyle style;
-  private final SketchLayer[] layers;
+  private final double scale;
+  private final String symbolID;
 
-  public SketchPage(@NotNull String classType,
-                    @NotNull String objectId,
-                    int booleanOperation,
-                    @NotNull Rectangle.Double frame,
-                    boolean isFlippedHorizontal,
-                    boolean isFlippedVertical,
-                    boolean isVisible,
-                    @NotNull String name,
-                    int rotation,
-                    boolean shouldBreakMaskChain,
-                    @NotNull SketchStyle style,
-                    @NotNull SketchLayer[] layers) {
+  public SketchSymbolInstance(@NotNull String classType,
+                              @NotNull String objectId,
+                              int booleanOperation,
+                              @NotNull Rectangle.Double frame,
+                              boolean isFlippedHorizontal,
+                              boolean isFlippedVertical,
+                              boolean isVisible,
+                              @NotNull String name,
+                              int rotation,
+                              boolean shouldBreakMaskChain,
+                              @NotNull SketchStyle style,
+                              double scale,
+                              @NotNull String symbolID) {
     super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
           shouldBreakMaskChain);
-
     this.style = style;
-    this.layers = layers;
+    this.scale = scale;
+    this.symbolID = symbolID;
   }
 
   @NotNull
@@ -56,8 +49,12 @@ public class SketchPage extends SketchLayer {
     return style;
   }
 
+  public double getScale() {
+    return scale;
+  }
+
   @NotNull
-  public SketchLayer[] getLayers() {
-    return layers;
+  public String getSymbolID() {
+    return symbolID;
   }
 }

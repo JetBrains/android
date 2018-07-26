@@ -27,11 +27,13 @@ public abstract class SketchLayer {
   private final String objectId;
   /**
    * Signifies combined shapes operations as such:
-   * None/Basic: -1
-   * Union: 0
-   * Substract: 1
-   * Intersect: 2
-   * Difference: 3
+   * <ul>
+   * <li>None/Basic: -1</li>
+   * <li>Union: 0</li>
+   * <li>Substract: 1</li>
+   * <li>Intersect: 2</li>
+   * <li>Difference: 3</li>
+   * </ul>
    */
   private final int booleanOperation;
   private final Rectangle.Double frame;
@@ -68,10 +70,12 @@ public abstract class SketchLayer {
     this.shouldBreakMaskChain = shouldBreakMaskChain;
   }
 
+  @NotNull
   public String getClassType() {
     return classType;
   }
 
+  @NotNull
   public String getObjectId() {
     return objectId;
   }
@@ -80,6 +84,7 @@ public abstract class SketchLayer {
     return booleanOperation;
   }
 
+  @NotNull
   public Rectangle.Double getFrame() {
     return frame;
   }
@@ -96,6 +101,7 @@ public abstract class SketchLayer {
     return isVisible;
   }
 
+  @NotNull
   public String getName() {
     return name;
   }

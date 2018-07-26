@@ -48,14 +48,17 @@ public class SketchArtboard extends SketchLayer {
     this.hasBackgroundColor = hasBackgroundColor;
   }
 
+  @NotNull
   public SketchStyle getStyle() {
     return style;
   }
 
+  @NotNull
   public SketchLayer[] getLayers() {
     return layers;
   }
 
+  @NotNull
   public Color getBackgroundColor() {
     return backgroundColor;
   }

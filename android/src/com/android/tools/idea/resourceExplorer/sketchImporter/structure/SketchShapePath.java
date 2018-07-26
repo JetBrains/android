@@ -21,12 +21,14 @@ import java.awt.*;
 
 /**
  * Refers to objects that have the "_class" field set to be one of the following:
- * "shapePath"
- * "rectangle"
- * "oval"
- * "star"
- * "polygon"
- *
+ * <ul>
+ * <li>"shapePath"</li>
+ * <li>"rectangle"</li>
+ * <li>"oval"</li>
+ * <li>"star"</li>
+ * <li>"polygon"</li>
+ * </ul>
+ * <p>
  * {@link com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer}
  */
 public class SketchShapePath extends SketchLayer {
@@ -56,6 +58,7 @@ public class SketchShapePath extends SketchLayer {
     return isClosed;
   }
 
+  @NotNull
   public SketchCurvePoint[] getPoints() {
     return points;
   }

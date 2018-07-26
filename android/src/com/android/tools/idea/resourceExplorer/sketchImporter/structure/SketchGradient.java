@@ -45,6 +45,7 @@ public class SketchGradient {
     return elipseLength;
   }
 
+  @NotNull
   public SketchPoint2D getFrom() {
     return from;
   }
@@ -53,10 +54,12 @@ public class SketchGradient {
     return gradientType;
   }
 
+  @NotNull
   public SketchGradientStop[] getStops() {
     return stops;
   }
 
+  @NotNull
   public SketchPoint2D getTo() {
     return to;
   }

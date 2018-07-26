@@ -21,8 +21,12 @@ import java.awt.*;
 
 /**
  * Refers to objects that have the "_class" field set to be one of the following:
- * "innerShadow"
- * "shadow"
+ * <ul>
+ * <li>"innerShadow"</li>
+ * <li>"shadow"</li>
+ * </ul>
+ * <p>
+ * {@link com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer}
  */
 public class SketchShadow {
   private final boolean isEnabled;
@@ -57,10 +61,12 @@ public class SketchShadow {
     return blurRadius;
   }
 
+  @NotNull
   public Color getColor() {
     return color;
   }
 
+  @NotNull
   public SketchGraphicContextSettings getContextSettings() {
     return contextSettings;
   }

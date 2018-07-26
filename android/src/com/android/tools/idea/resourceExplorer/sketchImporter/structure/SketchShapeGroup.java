@@ -50,10 +50,12 @@ public class SketchShapeGroup extends SketchLayer {
     this.windingRule = windingRule;
   }
 
+  @NotNull
   public SketchStyle getStyle() {
     return style;
   }
 
+  @NotNull
   public SketchLayer[] getLayers() {
     return layers;
   }

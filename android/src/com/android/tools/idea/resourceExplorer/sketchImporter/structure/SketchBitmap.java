@@ -19,36 +19,26 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-/**
- * Refers to objects that have the "_class" field set to be one of the following:
- * <ul>
- * <li>"page"</li>
- * <li>"group"</li>
- * </ul>
- * <p>
- * {@link com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer}
- */
-public class SketchPage extends SketchLayer {
+public class SketchBitmap extends SketchLayer {
   private final SketchStyle style;
-  private final SketchLayer[] layers;
+  private final SketchFileReference image;
 
-  public SketchPage(@NotNull String classType,
-                    @NotNull String objectId,
-                    int booleanOperation,
-                    @NotNull Rectangle.Double frame,
-                    boolean isFlippedHorizontal,
-                    boolean isFlippedVertical,
-                    boolean isVisible,
-                    @NotNull String name,
-                    int rotation,
-                    boolean shouldBreakMaskChain,
-                    @NotNull SketchStyle style,
-                    @NotNull SketchLayer[] layers) {
+  public SketchBitmap(@NotNull String classType,
+                      @NotNull String objectId,
+                      int booleanOperation,
+                      @NotNull Rectangle.Double frame,
+                      boolean isFlippedHorizontal,
+                      boolean isFlippedVertical,
+                      boolean isVisible,
+                      @NotNull String name,
+                      int rotation,
+                      boolean shouldBreakMaskChain,
+                      @NotNull SketchStyle style,
+                      @NotNull SketchFileReference image) {
     super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
           shouldBreakMaskChain);
-
     this.style = style;
-    this.layers = layers;
+    this.image = image;
   }
 
   @NotNull
@@ -57,7 +47,7 @@ public class SketchPage extends SketchLayer {
   }
 
   @NotNull
-  public SketchLayer[] getLayers() {
-    return layers;
+  public SketchFileReference getImage() {
+    return image;
   }
 }

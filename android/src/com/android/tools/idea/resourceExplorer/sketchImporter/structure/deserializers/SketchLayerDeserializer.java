@@ -35,6 +35,8 @@ public class SketchLayerDeserializer implements JsonDeserializer<SketchLayer> {
   public static final String PAGE_CLASS_TYPE = "page";
   public static final String ARTBOARD_CLASS_TYPE = "artboard";
   public static final String SLICE_CLASS_TYPE = "slice";
+  public static final String SYMBOL_MASTER_CLASS_TYPE = "symbolMaster";
+  public static final String GROUP_CLASS_TYPE = "group";
 
   @Override
   public SketchLayer deserialize(@NotNull JsonElement json,
@@ -49,6 +51,7 @@ public class SketchLayerDeserializer implements JsonDeserializer<SketchLayer> {
       case ARTBOARD_CLASS_TYPE:
         return context.deserialize(json, SketchArtboard.class);
       case PAGE_CLASS_TYPE:
+      case GROUP_CLASS_TYPE:
         return context.deserialize(json, SketchPage.class);
       case SHAPE_GROUP_CLASS_TYPE:
         return context.deserialize(json, SketchShapeGroup.class);
@@ -60,6 +63,8 @@ public class SketchLayerDeserializer implements JsonDeserializer<SketchLayer> {
         return context.deserialize(json, SketchShapePath.class);
       case SLICE_CLASS_TYPE:
         return context.deserialize(json, SketchSlice.class);
+      case SYMBOL_MASTER_CLASS_TYPE:
+        return context.deserialize(json, SketchSymbolMaster.class);
       default:
         Logger.getInstance(SketchLayerDeserializer.class).warn("Class not found!");
         return null;
