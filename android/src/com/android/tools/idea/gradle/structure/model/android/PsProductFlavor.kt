@@ -93,7 +93,7 @@ open class PsProductFlavor(
       getter = { asString() },
       setter = { setValue(it) },
       parser = ::parseString,
-      knownValuesGetter = { _, model -> immediateFuture(model.parent.flavorDimensions.map { ValueDescriptor(it, it) }) }
+      knownValuesGetter = { _, model -> immediateFuture(model.parent.flavorDimensions.map { ValueDescriptor(it.name, it.name) }) }
     )
 
     val maxSdkVersion: SimpleProperty<PsProductFlavor, Int> = property(

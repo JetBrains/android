@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.TestProjectPaths.*
-import com.google.common.collect.Lists
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.Disposer
@@ -36,6 +35,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
   var buildTypesChanged = 0
   var productFlavorsChanged = 0
+  var flavorDimensionsChanged = 0
   var signingConfigsChanged = 0
   var variantsChanged = 0
 
@@ -75,8 +75,10 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
+    appModule.testSubscribeToChangeNotifications()
 
     appModule.addNewFlavorDimension("new")
+    assertThat(flavorDimensionsChanged).isEqualTo(1)
     // A product flavor is required for successful sync.
     val newInNew = appModule.addNewProductFlavor("new_in_new")
     newInNew.dimension = ParsedValue.Set.Parsed("new", DslText.Literal)
@@ -100,8 +102,10 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     var appModule = moduleWithSyncedModel(project, "lib")
     assertNotNull(appModule)
+    appModule.testSubscribeToChangeNotifications()
 
     appModule.addNewFlavorDimension("bar")
+    assertThat(flavorDimensionsChanged).isEqualTo(1)
     // A product flavor is required for successful sync.
     val bar = appModule.addNewProductFlavor("bar")
     bar.dimension = ParsedValue.Set.Parsed("bar", DslText.Literal)
@@ -126,13 +130,15 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
+    appModule.testSubscribeToChangeNotifications()
 
     appModule.removeFlavorDimension("bar")
+    assertThat(flavorDimensionsChanged).isEqualTo(1)
     // A product flavor must be removed for successful sync.
     appModule.removeProductFlavor(appModule.findProductFlavor("bar")!!)
     appModule.removeProductFlavor(appModule.findProductFlavor("otherBar")!!)
     var flavorDimensions = getFlavorDimensions(appModule)
-    assertThat(flavorDimensions).containsExactly("foo", "bar").inOrder()
+    assertThat(flavorDimensions).containsExactly("foo").inOrder()
     appModule.applyChanges()
 
     requestSyncAndWait()
@@ -144,9 +150,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(flavorDimensions).containsExactly("foo")
   }
 
-  private fun getFlavorDimensions(module: PsAndroidModule): List<String> {
-    return Lists.newArrayList(module.flavorDimensions)
-  }
+  private fun getFlavorDimensions(module: PsAndroidModule): List<String> = module.flavorDimensions.map { it.name }
 
   fun testProductFlavors() {
     loadProject(PROJECT_WITH_APPAND_LIB)
@@ -740,6 +744,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   private fun PsAndroidModule.testSubscribeToChangeNotifications() {
     buildTypes.onChange(testRootDisposable) { buildTypesChanged++ }
     productFlavors.onChange(testRootDisposable) { productFlavorsChanged++ }
+    flavorDimensions.onChange(testRootDisposable) { flavorDimensionsChanged++ }
     signingConfigs.onChange(testRootDisposable) { signingConfigsChanged++ }
     variants.onChange(testRootDisposable) { variantsChanged++ }
   }

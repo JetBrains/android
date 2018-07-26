@@ -39,6 +39,7 @@ class PsAndroidModule(
   override var icon: Icon? = null; private set
 
   private var buildTypeCollection: PsBuildTypeCollection? = null
+  private var flavorDimensionCollection: PsFlavorDimensionCollection? = null
   private var productFlavorCollection: PsProductFlavorCollection? = null
   private var variantCollection: PsVariantCollection? = null
   private var dependencyCollection: PsAndroidModuleDependencyCollection? = null
@@ -61,6 +62,7 @@ class PsAndroidModule(
     icon = projectType.androidModuleType?.let { getAndroidModuleIcon(it) }
 
     buildTypeCollection?.refresh()
+    flavorDimensionCollection?.refresh()
     productFlavorCollection?.refresh()
     variantCollection?.refresh()
     dependencyCollection = null
@@ -73,16 +75,7 @@ class PsAndroidModule(
   override val dependencies: PsAndroidModuleDependencyCollection get() = getOrCreateDependencyCollection()
   val signingConfigs: PsModelCollection<PsSigningConfig> get() = getOrCreateSigningConfigCollection()
   val defaultConfig = PsAndroidModuleDefaultConfig(this)
-  val flavorDimensions: Collection<String>
-    get() {
-      val result = mutableSetOf<String>()
-      result.addAll(resolvedModel?.androidProject?.flavorDimensions.orEmpty())
-      val parsedFlavorDimensions = parsedModel?.android()?.flavorDimensions()?.toList()
-      if (parsedFlavorDimensions != null) {
-        result.addAll(parsedFlavorDimensions.map { v -> v.toString() })
-      }
-      return result
-    }
+  val flavorDimensions: PsModelCollection<PsFlavorDimension> get() = getOrCreateFlavorDimensionCollection()
 
   fun findBuildType(buildType: String): PsBuildType? = getOrCreateBuildTypeCollection().findElement(buildType)
 
@@ -112,7 +105,7 @@ class PsAndroidModule(
     fun buildFlavorCombinations() = when {
       flavorDimensions.size > 1 -> flavorDimensions
         .fold(listOf(listOf(""))) { acc, dimension ->
-          flavorsByDimension(dimension).flatMap { flavor ->
+          flavorsByDimension(dimension.name).flatMap { flavor ->
             acc.map { prefix -> prefix + flavor }
           }
         }
@@ -150,23 +143,9 @@ class PsAndroidModule(
 
   fun removeBuildType(buildType: PsBuildType) = getOrCreateBuildTypeCollection().remove(buildType.name)
 
-  fun addNewFlavorDimension(newName: String) {
-    assert(parsedModel != null)
-    val androidModel = parsedModel!!.android()
-    androidModel.flavorDimensions().addListValue().setValue(newName)
-    isModified = true
-  }
+  fun addNewFlavorDimension(name: String) = getOrCreateFlavorDimensionCollection().addNew(name)
 
-  fun removeFlavorDimension(flavorDimension: String) {
-    assert(parsedModel != null)
-    val androidModel = parsedModel!!.android()
-
-    val model = androidModel.flavorDimensions().getListValue(flavorDimension)
-    if (model != null) {
-      model.delete()
-      isModified = true
-    }
-  }
+  fun removeFlavorDimension(flavorDimension: String) = getOrCreateFlavorDimensionCollection().remove(flavorDimension)
 
   fun addNewProductFlavor(name: String): PsProductFlavor = getOrCreateProductFlavorCollection().addNew(name)
 
@@ -179,6 +158,9 @@ class PsAndroidModule(
 
   private fun getOrCreateBuildTypeCollection(): PsBuildTypeCollection =
     buildTypeCollection ?: PsBuildTypeCollection(this).also { buildTypeCollection = it }
+
+  private fun getOrCreateFlavorDimensionCollection(): PsFlavorDimensionCollection =
+    flavorDimensionCollection ?: PsFlavorDimensionCollection(this).also { flavorDimensionCollection = it }
 
   private fun getOrCreateProductFlavorCollection(): PsProductFlavorCollection =
     productFlavorCollection ?: PsProductFlavorCollection(this).also { productFlavorCollection = it }
