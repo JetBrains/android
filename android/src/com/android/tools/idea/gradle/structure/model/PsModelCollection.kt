@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.intellij.openapi.Disposable
 import java.util.*
 import java.util.function.Consumer
 import java.util.stream.Stream
@@ -22,6 +23,7 @@ import java.util.stream.Stream
 interface PsModelCollection<T> : Collection<T> {
   val items: Collection<T>
   fun forEach(consumer: (T) -> Unit) = forEach(Consumer { consumer(it) })
+  fun onChange(disposable: Disposable, listener: () -> Unit)
 
   override val size: Int get() = items.size
   override fun contains(element: T): Boolean = items.contains(element)
