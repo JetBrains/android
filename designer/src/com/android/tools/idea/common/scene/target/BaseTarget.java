@@ -22,9 +22,6 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineCycleTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
-import com.android.tools.idea.uibuilder.handlers.coordinator.CoordinatorSnapTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
