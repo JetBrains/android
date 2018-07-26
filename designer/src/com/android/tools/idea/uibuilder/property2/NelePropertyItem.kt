@@ -186,7 +186,7 @@ open class NelePropertyItem(
   protected open val firstComponent: NlComponent?
     get() = components.firstOrNull()
 
-  private val firstTag: XmlTag?
+  protected val firstTag: XmlTag?
     get() = firstComponent?.tag
 
   private val nlModel: NlModel?
@@ -259,7 +259,7 @@ open class NelePropertyItem(
     return prefix + ":"
   }
 
-  private fun getCompletionValues(): List<String> {
+  protected open fun getCompletionValues(): List<String> {
     val values = mutableListOf<String>()
     if (definition != null && definition.values.isNotEmpty()) {
       values.addAll(definition.values)
