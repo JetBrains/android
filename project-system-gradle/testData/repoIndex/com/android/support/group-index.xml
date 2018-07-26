@@ -14,8 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<metadata>
-  <com.android.support/>
-  <com.android.support.constraint/>
-  <androidx.navigation/>
-</metadata>
+<com.android.support>
+  <design versions="22.2.0,22.2.1,23.0.0,23.1.0,23.1.1"/>
+  <appcompat-v7 versions="22.2.0,22.2.1,23.0.0,23.1.0,23.1.1"/>
+</com.android.support>
