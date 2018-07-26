@@ -120,7 +120,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
 
     override fun getEditors(): List<NlComponentEditor> = listOf()
 
-    override fun getMaxNumberOfRows() = 1
+    override fun getMaxNumberOfRows() = 2
 
     override fun attachToInspector(inspector: InspectorPanel<NavPropertiesManager>) {
       val panel = JPanel(BorderLayout())
@@ -132,7 +132,10 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
       list.cellRenderer = object: ColoredListCellRenderer<NlProperty>() {
         override fun customizeCellRenderer(list: JList<out NlProperty>, value: NlProperty?, index: Int, selected: Boolean, hasFocus: Boolean) {
           icon = if (selected && hasFocus) whiteIcon else this@NavListInspectorProvider.icon
-          isOpaque = selected && hasFocus
+          if (selected && !hasFocus) {
+            background = UIUtil.getListUnfocusedSelectionBackground()
+            mySelectionForeground = UIUtil.getListForeground()
+          }
           val name = value?.name ?: ""
           val id = displayIdSuffix(value)
           append(name)

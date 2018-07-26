@@ -28,6 +28,6 @@ class AllDestinationsEditor(listener: NlEditingListener, comboBox: CustomComboBo
   constructor() : this(NlEditingListener.DEFAULT_LISTENER, CustomComboBox())
 
   override fun getEnumSupport(property: NlProperty): EnumSupport = DestinationEnumSupport(property) {
-    it.root.flatten().filter { component -> component.destinationType != null }.collect(Collectors.toList())
+    it.root.flatten().filter { component -> component.destinationType != null }.collect(Collectors.toList()).sortedBy { it.id }
   }
 }

@@ -25,7 +25,6 @@ import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.property.NavPropertiesManager;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -133,7 +132,7 @@ public abstract class NavPropertiesInspectorProvider implements InspectorProvide
 
     @Override
     public int getMaxNumberOfRows() {
-      return 1 + myEditors.size();
+      return myEditors.size() + (myTitle != null ? 1 : 0);
     }
 
     @Override

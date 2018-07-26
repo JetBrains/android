@@ -30,6 +30,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
@@ -337,8 +338,16 @@ public final class GroovyDslUtil {
     return sb.toString();
   }
 
+  /**
+   * Creates a literal from a context and value.
+   *
+   * @param context context used to create GrPsiElementFactory
+   * @param unsavedValue the value for the new expression
+   * @return created PsiElement
+   * @throws IncorrectOperationException if creation of the expression fails
+   */
   @Nullable
-  static PsiElement createLiteral(@NotNull GradleDslElement context, @NotNull Object unsavedValue) {
+  static PsiElement createLiteral(@NotNull GradleDslElement context, @NotNull Object unsavedValue) throws IncorrectOperationException {
     CharSequence unsavedValueText = null;
     if (unsavedValue instanceof String) {
       String stringValue = (String)unsavedValue;
@@ -395,7 +404,6 @@ public final class GroovyDslUtil {
       map.addAfter(GroovyPsiElementFactory.getInstance(map.getProject()).createWhiteSpace(), map.getLBrack());
       final ASTNode astNode = map.getNode();
       astNode.addLeaf(mCOMMA, ",", map.getLBrack().getNextSibling().getNode());
-      CodeStyleManager.getInstance(map.getProject()).reformat(map);
     }
     else {
       // Empty maps are defined by [:], we need to delete the colon before adding the first element.

@@ -435,6 +435,7 @@ public class RenderService implements Disposable {
     @Nullable private RenderLogger myLogger;
     @Nullable private ILayoutPullParserFactory myParserFactory;
     private boolean isSecurityManagerEnabled = true;
+    private float myDownscaleFactor = 1f;
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -475,6 +476,18 @@ public class RenderService implements Disposable {
       this.myImagePool = ImagePoolFactory.getNonPooledPool();
       return this;
     }
+
+    /**
+     * Disables the image pooling for this render task
+     */
+    @SuppressWarnings("unused")
+    @NotNull
+    public RenderTaskBuilder withDownscaleFactor(float downscaleFactor) {
+      this.myDownscaleFactor = downscaleFactor;
+      return this;
+    }
+
+
 
     /**
      * Disables the security manager for the {@link RenderTask}.
@@ -565,7 +578,7 @@ public class RenderService implements Disposable {
         RenderTask task =
           new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
                          device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
-                         myParserFactory, isSecurityManagerEnabled);
+                         myParserFactory, isSecurityManagerEnabled, myDownscaleFactor);
         if (myPsiFile instanceof XmlFile) {
           task.setXmlFile((XmlFile)myPsiFile);
         }

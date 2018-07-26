@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.messages.MessageDialog;
 import com.intellij.openapi.util.Ref;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -39,8 +40,7 @@ class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> implements M
         protected boolean isMatching(@NotNull JDialog dialog) {
           DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);
           if (wrapper != null) {
-            String typeName = Messages.class.getName() + "$MessageDialog";
-            if (typeName.equals(wrapper.getClass().getName())) {
+            if (MessageDialog.class.getName().equals(wrapper.getClass().getName())) {
               wrapperRef.set(wrapper);
               return true;
             }

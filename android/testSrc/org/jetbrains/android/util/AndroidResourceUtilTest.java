@@ -16,6 +16,7 @@
 package org.jetbrains.android.util;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -163,9 +164,13 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     Module libModule = myAdditionalModules.get(0);
     // Remove the current manifest (has wrong package name) and copy a manifest with proper package into the lib module.
     deleteManifest(libModule);
+
     myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml");
-    // Copy an empty R class with the proper package into the lib module.
-    myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      // Copy an empty R class with the proper package into the lib module.
+      myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+    }
+
     // Add some lib string resources.
     myFixture.copyFileToProject("util/lib/strings.xml", "additionalModules/lib/res/values/strings.xml");
 
@@ -188,8 +193,12 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     // Remove the current lib manifest (has wrong package name) and copy a manifest with proper package into the lib module.
     deleteManifest(libModule);
     myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml");
-    // Copy an empty R class with the proper package into the lib module.
-    VirtualFile libRFile = myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      // Copy an empty R class with the proper package into the lib module.
+      myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+    }
+
     // Add some lib string resources.
     myFixture.copyFileToProject("util/lib/strings.xml", "additionalModules/lib/res/values/strings.xml");
     // Remove the manifest from the main module.
@@ -204,8 +213,7 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     // However, if the main module happens to get a handle on the lib's R class
     // (e.g., via "import p1.p2.lib.R;"), then that R class should be recognized
     // (e.g., for goto navigation).
-    PsiManager psiManager = PsiManager.getInstance(getProject());
-    PsiFile libRClassFile = psiManager.findFile(libRFile);
+    PsiFile libRClassFile = myFixture.getJavaFacade().findClass("p1.p2.lib.R").getContainingFile();
     assertNotNull(libRClassFile);
     assertTrue(AndroidResourceUtil.isRJavaFile(myFacet, libRClassFile));
   }

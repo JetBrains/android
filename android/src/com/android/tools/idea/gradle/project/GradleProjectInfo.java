@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildCo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfo;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.collect.ImmutableList;
@@ -56,6 +57,7 @@ public class GradleProjectInfo {
   @NotNull private final ProjectFileIndex myProjectFileIndex;
 
   private volatile boolean myNewProject;
+  @Nullable private NewProjectExtraInfo myExtraInfo;
   private volatile boolean myImportedProject;
   private final ProjectFacetManager myFacetManager;
 
@@ -77,6 +79,15 @@ public class GradleProjectInfo {
 
   public void setNewProject(boolean newProject) {
     myNewProject = newProject;
+  }
+
+  @Nullable
+  public NewProjectExtraInfo getExtraInfo() {
+    return myExtraInfo;
+  }
+
+  public void setExtraInfo(@Nullable NewProjectExtraInfo extraInfo) {
+    myExtraInfo = extraInfo;
   }
 
   public boolean isImportedProject() {

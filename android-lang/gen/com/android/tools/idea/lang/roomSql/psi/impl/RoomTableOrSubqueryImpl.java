@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomTableOrSubqueryImpl extends ASTWrapperPsiElement implements RoomTableOrSubquery {
 
-  public RoomTableOrSubqueryImpl(ASTNode node) {
+  public RoomTableOrSubqueryImpl(@NotNull ASTNode node) {
     super(node);
   }
 

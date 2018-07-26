@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomSignedNumberImpl extends ASTWrapperPsiElement implements RoomSignedNumber {
 
-  public RoomSignedNumberImpl(ASTNode node) {
+  public RoomSignedNumberImpl(@NotNull ASTNode node) {
     super(node);
   }
 

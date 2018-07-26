@@ -22,8 +22,6 @@ import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
-import com.intellij.util.PlatformIcons.LIBRARY_ICON
-import javax.swing.Icon
 import kotlin.reflect.KProperty
 
 class PsDeclaredLibraryJavaDependency(
@@ -49,9 +47,7 @@ class PsDeclaredLibraryJavaDependency(
 
   override val name: String get() = spec.name
 
-  override val icon: Icon get() = LIBRARY_ICON
-
-  override fun toText(type: PsDependency.TextType): String = spec.toString()
+  override fun toText(): String = spec.toString()
 
   var version by PsDeclaredLibraryJavaDependency.Descriptor.version
 
@@ -93,6 +89,8 @@ class PsResolvedLibraryJavaDependency(
   override val declaredDependencies: List<PsDeclaredLibraryJavaDependency>
 ) : PsJavaDependency(parent),
     PsLibraryDependency, PsResolvedDependency, PsResolvedLibraryDependency {
+  internal val pomDependencies = mutableListOf<PsArtifactDependencySpec>()
+
   override val isDeclared: Boolean get() = declaredDependencies.isNotEmpty()
 
   override val joinedConfigurationNames: String = library.scope ?: ""
@@ -106,7 +104,13 @@ class PsResolvedLibraryJavaDependency(
 
   override val name: String get() = spec.name
 
-  override val icon: Icon get() = LIBRARY_ICON
+  override fun toText(): String = spec.toString()
 
-  override fun toText(type: PsDependency.TextType): String = spec.toString()
+  override fun getTransitiveDependencies(): Set<PsResolvedLibraryJavaDependency> =
+    pomDependencies.flatMap { parent.resolvedDependencies.findLibraryDependencies(it.group, it.name) }.toSet()
+
+  internal fun setDependenciesFromPomFile(value: List<PsArtifactDependencySpec>) {
+    pomDependencies.clear()
+    pomDependencies.addAll(value)
+  }
 }

@@ -33,13 +33,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.io.PathKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager, Disposable {
   private static final Logger LOGGER = Logger.getInstance(MockDeviceExplorerFileManager.class);
@@ -53,15 +53,10 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   @NotNull private final FutureValuesTracker<Path> myOpenFileInEditorTracker = new FutureValuesTracker<>();
   @Nullable private RuntimeException myOpenFileInEditorError;
 
-  public MockDeviceExplorerFileManager(@NotNull Project project, @NotNull Executor edtExecutor) {
+  public MockDeviceExplorerFileManager(@NotNull Project project, @NotNull Executor edtExecutor, @NotNull Supplier<Path> defaultPath) {
     myProject = project;
     myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
-    myFileManagerImpl = new DeviceExplorerFileManagerImpl(project, edtExecutor);
-  }
-
-  @TestOnly
-  public void setDefaultDownloadPath(@NotNull Path path) {
-    myFileManagerImpl.setDefaultDownloadPath(path);
+    myFileManagerImpl = new DeviceExplorerFileManagerImpl(project, edtExecutor, defaultPath);
   }
 
   @NotNull

@@ -159,21 +159,12 @@ class CpuCaptureParserTest {
   }
 
   @Test
-  fun parsingSimpleperfFilesShouldProduceCpuCaptureIfFlagEnabled() {
-    val services = FakeIdeProfilerServices()
-    val parser = CpuCaptureParser(services)
+  fun parsingSimpleperfFilesShouldProduceCpuCapture() {
+    val parser = CpuCaptureParser(FakeIdeProfilerServices())
     val traceFile = CpuProfilerTestUtils.getTraceFile("simpleperf.trace")
 
-    // First, try to parse the capture with the flag disabled.
-    services.enableSimpleperf(false)
-    var futureCapture = parser.parse(traceFile)!!
-    var capture = futureCapture.get()
-    assertThat(capture).isNull()
-
-    // Now enable the flag and try to parse it again.
-    services.enableSimpleperf(true)
-    futureCapture = parser.parse(traceFile)!!
-    capture = futureCapture.get()
+    val futureCapture = parser.parse(traceFile)!!
+    val capture = futureCapture.get()
     assertThat(capture).isNotNull()
     assertThat(capture.traceId).isEqualTo(CpuCaptureParser.IMPORTED_TRACE_ID)
     // Simpleperf capture should not be dual clock

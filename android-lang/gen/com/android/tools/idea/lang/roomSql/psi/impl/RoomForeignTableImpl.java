@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomForeignTableImpl extends ASTWrapperPsiElement implements RoomForeignTable {
 
-  public RoomForeignTableImpl(ASTNode node) {
+  public RoomForeignTableImpl(@NotNull ASTNode node) {
     super(node);
   }
 

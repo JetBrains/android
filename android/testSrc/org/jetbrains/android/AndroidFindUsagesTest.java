@@ -425,8 +425,10 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
 
   public void testStyleableAttr() throws Throwable {
     createManifest();
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.copyFileToProject(BASE_PATH + "R_MyView.java", "src/p1/p2/R.java");
+    }
     myFixture.copyFileToProject(BASE_PATH + "attrs.xml", "res/values/attrs.xml");
-    myFixture.copyFileToProject(BASE_PATH + "R_MyView.java", "src/p1/p2/R.java");
     Collection<UsageInfo> references = findCodeUsages("MyView2.java", "src/p1/p2/MyView.java");
     assertEquals("MyView.java:12:\n" +
                  "  int attribute = R.attr.answer;\n" +

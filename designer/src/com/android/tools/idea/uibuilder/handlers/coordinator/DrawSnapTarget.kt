@@ -69,8 +69,8 @@ class DrawSnapTarget : DrawRegion {
   }
 
   companion object {
-    val NORMAL = 0
-    val OVER = 1
+    val NORMAL: Int = 0
+    val OVER: Int = 1
 
     fun add(list: DisplayList,
             transform: SceneContext,

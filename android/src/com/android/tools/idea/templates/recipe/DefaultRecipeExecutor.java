@@ -61,11 +61,8 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.flags.StudioFlags.MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED;
 import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
-import static com.android.tools.idea.gradle.util.GradleProjects.isBuildWithGradle;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.PROJECT_LOADED;
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED;
 import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateUtils.*;
@@ -96,7 +93,6 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
   private final RenderingContext myContext;
   private final RecipeIO myIO;
   private final ReadonlyStatusHandler myReadonlyStatusHandler;
-  private boolean myNeedsSync;
 
   public DefaultRecipeExecutor(@NotNull RenderingContext context, boolean dryRun) {
     myReferences = new FindReferencesRecipeExecutor(context);
@@ -139,7 +135,6 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
         throw new RuntimeException(e);
       }
     }
-    myNeedsSync = true;
   }
 
   @Override
@@ -186,7 +181,6 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
         throw new RuntimeException(e);
       }
     }
-    myNeedsSync = true;
   }
 
   @NotNull
@@ -347,12 +341,10 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
       String contents;
       if (targetFile.getName().equals(GRADLE_PROJECT_SETTINGS_FILE)) {
         contents = RecipeMergeUtils.mergeGradleSettingsFile(sourceText, targetText);
-        myNeedsSync = true;
       }
       else if (targetFile.getName().equals(FN_BUILD_GRADLE)) {
         String compileSdkVersion = (String)getParamMap().get(TemplateMetadata.ATTR_BUILD_API_STRING);
         contents = myIO.mergeBuildFiles(sourceText, targetText, myContext.getProject(), compileSdkVersion);
-        myNeedsSync = true;
       }
       else if (hasExtension(targetFile, DOT_XML)) {
         contents = RecipeMergeUtils.mergeXml(myContext, sourceText, targetText, targetFile);
@@ -427,13 +419,6 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
         throw new RuntimeException(e);
       }
     }
-    Project project = myContext.getProject();
-    if (myNeedsSync &&
-        myContext.performSync() &&
-        !project.isDefault() &&
-        isBuildWithGradle(project)) {
-      myIO.requestSync(project);
-    }
   }
 
   @Override
@@ -490,7 +475,6 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
       writeDependencies(baseBuildFile, x -> x.equals(configuration));
       writeDependencies(featureBuildFile, x -> !x.equals(configuration));
     }
-    myNeedsSync = true;
   }
 
   private void writeDependencies(File buildFile, Predicate<String> configurationFilter) throws IOException {
@@ -726,15 +710,6 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
                                   @Nullable String supportLibVersionFilter) {
       return ProjectSystemUtil.getProjectSystem(project).mergeBuildFiles(dependencies, destinationContents, supportLibVersionFilter);
     }
-
-    public void requestSync(@NotNull Project project) {
-      ProjectSystemSyncManager syncManager = ProjectSystemUtil.getProjectSystem(project).getSyncManager();
-      if (syncManager.isSyncInProgress()) {
-        getLog().error("Added new files with Project Sync in progress");
-      }
-
-      syncManager.syncProject(project.isInitialized() ? PROJECT_MODIFIED : PROJECT_LOADED, true);
-    }
   }
 
   private static class DryRunRecipeIO extends RecipeIO {
@@ -770,14 +745,5 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
                                   String compileSdkVersion) {
       return destinationContents;
     }
-
-
-    @Override
-    public void requestSync(@NotNull Project project) {
-    }
-  }
-
-  private static Logger getLog() {
-    return Logger.getInstance(DefaultRecipeExecutor.class);
   }
 }

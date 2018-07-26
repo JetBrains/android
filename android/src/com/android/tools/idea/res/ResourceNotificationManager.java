@@ -348,12 +348,15 @@ public class ResourceNotificationManager {
     }
 
     private void unregisterListeners() {
-      if (myFacet.requiresAndroidModel()) {
+      if (!myFacet.isDisposed() && myFacet.requiresAndroidModel()) {
         ResourceFolderManager.getInstance(myFacet).removeListener(this);
       }
     }
 
     private void notifyListeners(@NonNull EnumSet<Reason> reason) {
+      if (myFacet.isDisposed()) {
+        return;
+      }
       long generation = ResourceRepositoryManager.getAppResources(myFacet).getModificationCount();
       if (reason.size() == 1 && reason.contains(Reason.RESOURCE_EDIT) && generation == myGeneration) {
         // Notified of an edit in some file that could potentially affect the resources, but

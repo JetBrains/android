@@ -637,22 +637,16 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("other", "ContentProvider", false, withKotlin);
   }
 
-
   @TemplateCheck
   public void testNewSliceProvider() throws Exception {
-    // TODO: This template requires API 28. Temporarily disabled until out of preview.
-    // TODO: (Consider adding preview SDK support to this suite.)
-    //myApiSensitiveTemplate = false;
-    //checkCreateTemplate("other", "SliceProvider", false);
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "SliceProvider", false);
   }
-
 
   @TemplateCheck
   public void testNewSliceProviderWithKotlin() throws Exception {
-    // TODO: This template requires API 28. Temporarily disabled until out of preview.
-    // TODO: (Consider adding preview SDK support to this suite.)
-    //myApiSensitiveTemplate = false;
-    //checkCreateTemplate("other", "SliceProvider", false, withKotlin);
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "SliceProvider", false, withKotlin);
   }
 
   @TemplateCheck
@@ -1396,10 +1390,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     // Do not add non-unicode characters on Windows
     String modifiedProjectName = getModifiedProjectName(projectName, activityState);
-    moduleState.put(ATTR_RES_OUT, null);
-    moduleState.put(ATTR_SRC_OUT, null);
-    moduleState.put(ATTR_MANIFEST_OUT, null);
-    moduleState.put(ATTR_TEST_OUT, null);
 
     assertNull(myFixture);
 
@@ -1629,8 +1619,7 @@ public class TemplateTest extends AndroidGradleTestCase {
                                                          @Nullable Map<String, Object> parameters) {
     RenderingContext.Builder builder = RenderingContext.Builder.newContext(projectTemplate, project)
       .withOutputRoot(projectRoot)
-      .withModuleRoot(moduleRoot)
-      .withPerformSync(false);
+      .withModuleRoot(moduleRoot);
 
     if (parameters != null) {
       builder.withParams(parameters);

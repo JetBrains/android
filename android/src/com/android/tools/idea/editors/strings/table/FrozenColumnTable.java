@@ -59,6 +59,7 @@ public class FrozenColumnTable {
 
   private void initFrozenTable() {
     myFrozenTable = new SubTable(new SubTableModel(myModel, () -> 0, () -> myFrozenColumnCount), this);
+    myFrozenTable.setName("frozenTable");
 
     myFrozenTable.getSelectionModel().addListSelectionListener(event -> {
       myScrollableTable.setSelectedRow(myFrozenTable.getSelectedRow());
@@ -90,6 +91,7 @@ public class FrozenColumnTable {
 
   private void initScrollableTable() {
     myScrollableTable = new SubTable(new SubTableModel(myModel, () -> myFrozenColumnCount, myModel::getColumnCount), this);
+    myScrollableTable.setName("scrollableTable");
 
     myScrollableTable.getSelectionModel().addListSelectionListener(event -> {
       myFrozenTable.setSelectedRow(myScrollableTable.getSelectedRow());

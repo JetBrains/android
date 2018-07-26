@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomDetachStatementImpl extends ASTWrapperPsiElement implements RoomDetachStatement {
 
-  public RoomDetachStatementImpl(ASTNode node) {
+  public RoomDetachStatementImpl(@NotNull ASTNode node) {
     super(node);
   }
 

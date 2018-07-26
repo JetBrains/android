@@ -233,7 +233,7 @@ final class OverviewTabContent extends TabContent {
   @NotNull
   @Override
   public String getTitle() {
-    return myFeatures.isNetworkRequestPayloadEnabled() ? "Overview" : "Response";
+    return "Overview";
   }
 
   @NotNull
@@ -265,7 +265,8 @@ final class OverviewTabContent extends TabContent {
 
     Payload payload = Payload.newResponsePayload(myModel, data);
     String mimeType = payload.getContentType().getMimeType();
-    DataViewer payloadViewer = myComponents.createDataViewer(payload.getBytes().toByteArray(), ContentType.fromMimeType(mimeType));
+    DataViewer payloadViewer = myComponents.createDataViewer(payload.getBytes().toByteArray(), ContentType.fromMimeType(mimeType),
+                                                             DataViewer.Style.RAW);
     JComponent responsePayloadComponent = payloadViewer.getComponent();
     responsePayloadComponent.setName(ID_RESPONSE_PAYLOAD_VIEWER);
 
@@ -275,12 +276,7 @@ final class OverviewTabContent extends TabContent {
 
   @Override
   public void trackWith(@NotNull FeatureTracker featureTracker) {
-    if (myFeatures.isNetworkRequestPayloadEnabled()) {
-      featureTracker.trackSelectNetworkDetailsOverview();
-    }
-    else {
-      featureTracker.trackSelectNetworkDetailsResponse();
-    }
+    featureTracker.trackSelectNetworkDetailsOverview();
   }
 
   @Nullable

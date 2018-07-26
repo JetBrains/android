@@ -14,6 +14,7 @@ iml_module(
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
@@ -49,12 +50,12 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/designer:lib/org.eclipse.elk.alg.layered-0.3.0",
-        "//tools/adt/idea/designer:lib/org.eclipse.elk.core-0.3.0",
-        "//tools/adt/idea/designer:lib/org.eclipse.elk.graph-0.3.0",
-        "//tools/adt/idea/designer:lib/org.eclipse.emf.common-2.12.0",
-        "//tools/adt/idea/designer:lib/org.eclipse.emf.ecore-2.12.0",
-        "//tools/idea/platform/annotations/common:intellij.platform.annotations.common[module]",
+        "//tools/idea/java/openapi:intellij.java[module]",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.alg.layered/0.3.0:jar",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.core/0.3.0:jar",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.graph/0.3.0:jar",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.common/2.12.0:jar",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.12.0:jar",
     ],
 )
 
@@ -94,6 +95,7 @@ iml_module(
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
     ],
     test_shard_count = 8,
@@ -146,39 +148,4 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
     ],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "lib/org.eclipse.elk.alg.layered-0.3.0",
-    jars = ["lib/org.eclipse.elk.alg.layered-0.3.0.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "lib/org.eclipse.elk.core-0.3.0",
-    jars = ["lib/org.eclipse.elk.core-0.3.0.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "lib/org.eclipse.elk.graph-0.3.0",
-    jars = ["lib/org.eclipse.elk.graph-0.3.0.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "lib/org.eclipse.emf.common-2.12.0",
-    jars = ["lib/org.eclipse.emf.common-2.12.0.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "lib/org.eclipse.emf.ecore-2.12.0",
-    jars = ["lib/org.eclipse.emf.ecore-2.12.0.jar"],
-    visibility = ["//visibility:public"],
 )

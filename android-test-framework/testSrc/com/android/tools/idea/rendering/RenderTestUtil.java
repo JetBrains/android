@@ -54,6 +54,7 @@ import static org.junit.Assert.*;
  */
 public class RenderTestUtil {
   public static final String DEFAULT_DEVICE_ID = "Nexus 4";
+  public static final String HOLO_THEME = "@android:style/Theme.Holo";
   private static final float MAX_PERCENT_DIFFERENT = 5.0f;
 
   /**
@@ -148,7 +149,10 @@ public class RenderTestUtil {
   }
 
   @NotNull
-  protected static RenderTask createRenderTask(@NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration, @NotNull RenderLogger logger) {
+  protected static RenderTask createRenderTask(@NotNull AndroidFacet facet,
+                                               @NotNull VirtualFile file,
+                                               @NotNull Configuration configuration,
+                                               @NotNull RenderLogger logger) {
     Module module = facet.getModule();
     PsiFile psiFile = PsiManager.getInstance(module.getProject()).findFile(file);
     assertNotNull(psiFile);
@@ -168,7 +172,34 @@ public class RenderTestUtil {
     return createRenderTask(facet, file, configuration, renderService.createLogger(facet));
   }
 
+  @NotNull
+  public static RenderTask createRenderTask(@NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull String theme) {
+    Configuration configuration = getConfiguration(facet.getModule(), file, DEFAULT_DEVICE_ID, theme);
+    return createRenderTask(facet, file, configuration);
+  }
+
+  public static void checkRendering(@NotNull AndroidFacet androidFacet,
+                                    @NotNull VirtualFile layout,
+                                    @NotNull String goldenImagePath) throws IOException {
+    checkRendering(createRenderTask(androidFacet, layout, getConfiguration(androidFacet.getModule(), layout)), goldenImagePath);
+  }
+
   public static void checkRendering(@NotNull RenderTask task, @NotNull String thumbnailPath) throws IOException {
+    BufferedImage image = getImage(task);
+    checkRenderedImage(image, thumbnailPath.replace('/', separatorChar));
+  }
+
+  public static void scaleAndCheckRendering(@NotNull RenderTask task, @NotNull String thumbnailPath) throws IOException {
+    BufferedImage image = getImage(task);
+    double scale = Math.min(1, Math.min(200 / ((double)image.getWidth()), 200 / ((double)image.getHeight())));
+    image = ImageUtils.scale(image, scale, scale);
+
+    image = ShadowPainter.createRectangularDropShadow(image);
+    checkRenderedImage(image, thumbnailPath.replace('/', separatorChar));
+  }
+
+  @NotNull
+  private static BufferedImage getImage(@NotNull RenderTask task) {
     // Next try a render
     RenderResult result = Futures.getUnchecked(task.render());
     RenderResult render = renderOnSeparateThread(task);
@@ -180,11 +211,7 @@ public class RenderTestUtil {
                  Result.Status.SUCCESS, result.getRenderResult().getStatus());
     BufferedImage image = result.getRenderedImage().getCopy();
     assertNotNull(image);
-    double scale = Math.min(1, Math.min(200 / ((double)image.getWidth()), 200 / ((double)image.getHeight())));
-    image = ImageUtils.scale(image, scale, scale);
-
-    image = ShadowPainter.createRectangularDropShadow(image);
-    checkRenderedImage(image, thumbnailPath.replace('/', separatorChar));
+    return image;
   }
 
   private static void checkRenderedImage(@NotNull BufferedImage image, @NotNull String fullPath) throws IOException {

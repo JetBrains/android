@@ -54,7 +54,7 @@ class TargetModulesTreeStructure(var uiSettings: PsUISettings) : AbstractBaseTre
         ?.groupBy { it.artifact }
         .orEmpty()
       val moduleDeclaredLibraryModels = declaredLibraryModels[module]
-        ?.flatMap { dependency -> dependency.containers.mapNotNull { it.findArtifact(dependency.parent, false)?.let { it to dependency } } }
+        ?.flatMap { dependency -> dependency.containers.mapNotNull { it.findArtifact(dependency.parent)?.let { it to dependency } } }
         ?.groupBy({ it.first }, { it.second })
         .orEmpty()
 
@@ -65,12 +65,12 @@ class TargetModulesTreeStructure(var uiSettings: PsUISettings) : AbstractBaseTre
           .also {
             it.setChildren(
               moduleDeclaredLibraryModels[artifact]?.map {
-                TargetConfigurationNode(Configuration(it.configurationName, artifact.icon, false), uiSettings)
+                TargetConfigurationNode(Configuration(it.configurationName, artifact.icon), uiSettings)
               }.orEmpty() +
               moduleResolvedLibraryModels[artifact]?.flatMap {
                 val transitiveDependencies = it.getReverseDependencies().filterIsInstance<ReverseDependency.Transitive>()
                 transitiveDependencies.map {
-                  TargetTransitiveDependencyNode(listOf(it), uiSettings)
+                  TargetTransitiveDependencyNode(listOf(it), it.requestingResolvedDependency.spec, uiSettings)
                 }
               }.orEmpty()
             )

@@ -48,7 +48,7 @@ abstract class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_S
     val lexer = RoomSqlLexer()
     lexer.start(input)
     while (lexer.tokenType != null) {
-      assert(lexer.tokenType != TokenType.BAD_CHARACTER, { "BAD_CHARACTER ${lexer.tokenText}" })
+      assert(lexer.tokenType != TokenType.BAD_CHARACTER) { "BAD_CHARACTER ${lexer.tokenText}" }
       lexer.advance()
     }
   }
@@ -884,7 +884,7 @@ class ErrorMessagesTest : RoomSqlParserTest() {
     assertEquals("""
           FILE
             PsiElement(SELECT)('SELECT')
-            PsiErrorElement:<result column>, ALL or DISTINCT expected, unexpected end of file
+            PsiErrorElement:<result column>, ALL or DISTINCT expected
               <empty list>
           """.trimIndent(),
         toParseTreeText("SELECT "))
@@ -903,7 +903,7 @@ class ErrorMessagesTest : RoomSqlParserTest() {
                         RoomColumnNameImpl(COLUMN_NAME)
                           PsiElement(IDENTIFIER)('foo')
             PsiElement(FROM)('FROM')
-            PsiErrorElement:<table or subquery> expected, unexpected end of file
+            PsiErrorElement:<table or subquery> expected
               <empty list>
           """.trimIndent(),
         toParseTreeText("SELECT foo FROM "))
@@ -1403,7 +1403,7 @@ class ErrorMessagesTest : RoomSqlParserTest() {
     assertEquals("""
           FILE
             PsiElement(DELETE)('DELETE')
-            PsiErrorElement:FROM expected, unexpected end of file
+            PsiErrorElement:FROM expected
               <empty list>
           """.trimIndent(),
         toParseTreeText("DELETE "))
@@ -1414,7 +1414,7 @@ class ErrorMessagesTest : RoomSqlParserTest() {
           FILE
             PsiElement(DELETE)('DELETE')
             PsiElement(FROM)('FROM')
-            PsiErrorElement:<single table statement table> expected, unexpected end of file
+            PsiErrorElement:<single table statement table> expected
               <empty list>
           """.trimIndent(),
         toParseTreeText("DELETE FROM"))

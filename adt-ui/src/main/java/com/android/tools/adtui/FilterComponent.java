@@ -33,6 +33,9 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.DecimalFormat;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * A modified version of IJ's FilterComponent that allows users to specify a custom delay between typing and
@@ -55,10 +58,13 @@ public final class FilterComponent extends JPanel {
   private final Alarm myUpdateAlarm = new Alarm();
   private final int myDelayMs;
 
-  public FilterComponent(int textFieldWidth, int historySize, int delayMs) {
+  public FilterComponent(@NotNull Filter filter, int textFieldWidth, int historySize, int delayMs) {
     super(new TabularLayout("4px," + textFieldWidth + "px,5px,Fit-,5px,Fit-,20px,Fit-", "Fit-"));
+
     myDelayMs = delayMs;
     myModel = new FilterModel();
+    myModel.setFilter(filter);
+
     addComponentListener(new ComponentAdapter() {
       @Override
       public void componentShown(ComponentEvent e) {
@@ -89,6 +95,10 @@ public final class FilterComponent extends JPanel {
         super.onFocusLost();
       }
     };
+    if (!filter.isEmpty()) {
+      mySearchField.setText(filter.getFilterString());
+    }
+
     mySearchField.getTextEditor().addKeyListener(new KeyAdapter() {
       //to consume enter in combo box - do not process this event by default button from DialogWrapper
       @Override
@@ -128,7 +138,7 @@ public final class FilterComponent extends JPanel {
     add(mySearchField, new TabularLayout.Constraint(0, 1));
 
     // Configure check boxes
-    myMatchCaseCheckBox = new JCheckBox(MATCH_CASE);
+    myMatchCaseCheckBox = new JCheckBox(MATCH_CASE, filter.isMatchCase());
     myMatchCaseCheckBox.setMnemonic(KeyEvent.VK_C);
     myMatchCaseCheckBox.setDisplayedMnemonicIndex(MATCH_CASE.indexOf('C'));
     myMatchCaseCheckBox.addItemListener(new ItemListener() {
@@ -139,7 +149,7 @@ public final class FilterComponent extends JPanel {
     });
     add(myMatchCaseCheckBox, new TabularLayout.Constraint(0, 3));
 
-    myRegexCheckBox = new JCheckBox(REGEX);
+    myRegexCheckBox = new JCheckBox(REGEX, filter.isRegex());
     myRegexCheckBox.setMnemonic(KeyEvent.VK_G);
     myRegexCheckBox.addItemListener(new ItemListener() {
       @Override
@@ -171,7 +181,12 @@ public final class FilterComponent extends JPanel {
     });
   }
 
+  public FilterComponent(int textFieldWidth, int historySize, int delayMs) {
+    this(Filter.EMPTY_FILTER, textFieldWidth, historySize, delayMs);
+  }
+
   public void setFilterText(final String filterText) {
+    myUpdateAlarm.cancelAllRequests();
     mySearchField.setText(filterText);
   }
 
@@ -187,8 +202,26 @@ public final class FilterComponent extends JPanel {
 
   @VisibleForTesting
   @NotNull
-  JLabel getCountLabel() {
+  public SearchTextField getSearchField() {
+    return mySearchField;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public JLabel getCountLabel() {
     return myCountLabel;
+  }
+
+  /**
+   * For performance reasons, FilterComponent doesn't apply the filter immediately, but waits for
+   * a delay period (so a filter operation is only applied once even if a user types a long String,
+   * for example). In tests, however, it may be prudent to call this method after a call to
+   * {@link #setFilterText(String)} - otherwise, your test may finish and then the filter component's
+   * alarm may fire.
+   */
+  @VisibleForTesting
+  public void waitForFilterUpdated() throws InterruptedException, ExecutionException, TimeoutException {
+    myUpdateAlarm.waitForAllExecuted(Long.MAX_VALUE, TimeUnit.SECONDS);
   }
 
   private void updateModel() {
@@ -214,9 +247,11 @@ public final class FilterComponent extends JPanel {
                                                           @NotNull JToggleButton showHideButton) {
     showHideButton.addActionListener(event -> {
       filterComponent.setVisible(showHideButton.isSelected());
-      // Reset the filter content.
-      filterComponent.setFilterText("");
-      if (showHideButton.isSelected()) {
+      if (!showHideButton.isSelected()) {
+        // Reset the filter content when dismissed
+        filterComponent.setFilterText("");
+      }
+      else {
         filterComponent.requestFocusInWindow();
       }
       containerComponent.revalidate();

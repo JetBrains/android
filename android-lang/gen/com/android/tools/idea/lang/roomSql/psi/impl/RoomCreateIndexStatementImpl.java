@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomCreateIndexStatementImpl extends ASTWrapperPsiElement implements RoomCreateIndexStatement {
 
-  public RoomCreateIndexStatementImpl(ASTNode node) {
+  public RoomCreateIndexStatementImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -15,41 +15,42 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.ddmlib.IDevice;
-import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.intellij.execution.runners.ExecutionUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Iterator;
-import java.util.Objects;
 
 final class VirtualDevice extends Device {
   private static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(AndroidIcons.Ddms.EmulatorDevice);
   private final boolean myConnected;
 
-  @VisibleForTesting
+  /**
+   * Snapshot directory names displayed to the developer.
+   */
+  private final ImmutableCollection<String> mySnapshots;
+
   VirtualDevice(boolean connected, @NotNull String name) {
+    this(connected, name, ImmutableList.of());
+  }
+
+  VirtualDevice(boolean connected, @NotNull String name, @NotNull ImmutableCollection<String> snapshots) {
     super(name);
+
     myConnected = connected;
+    mySnapshots = snapshots;
+  }
+
+  boolean isConnected() {
+    return myConnected;
   }
 
   @NotNull
-  static Device newVirtualDevice(@NotNull AvdInfo virtualDevice, @NotNull Iterable<IDevice> connectedDevices) {
-    Object name = virtualDevice.getName();
-
-    for (Iterator<IDevice> i = connectedDevices.iterator(); i.hasNext(); ) {
-      if (Objects.equals(i.next().getAvdName(), name)) {
-        i.remove();
-        return new VirtualDevice(true, AvdManagerConnection.getAvdDisplayName(virtualDevice));
-      }
-    }
-
-    return new VirtualDevice(false, AvdManagerConnection.getAvdDisplayName(virtualDevice));
+  ImmutableCollection<String> getSnapshots() {
+    return mySnapshots;
   }
 
   @NotNull
@@ -65,11 +66,16 @@ final class VirtualDevice extends Device {
     }
 
     VirtualDevice device = (VirtualDevice)object;
-    return myConnected == device.myConnected && myName.equals(device.myName);
+    return myConnected == device.myConnected && myName.equals(device.myName) && mySnapshots.equals(device.mySnapshots);
   }
 
   @Override
   public int hashCode() {
-    return 31 * Boolean.hashCode(myConnected) + myName.hashCode();
+    int hashCode = Boolean.hashCode(myConnected);
+
+    hashCode = 31 * hashCode + myName.hashCode();
+    hashCode = 31 * hashCode + mySnapshots.hashCode();
+
+    return hashCode;
   }
 }

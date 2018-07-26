@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.rendering.RenderTaskTestUtil;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.utils.StringHelper;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -48,7 +47,7 @@ public class MenuPreviewRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject("menus/strings.xml", "res/menu/strings.xml");
     VirtualFile file = myFixture.copyFileToProject("menus/menu1.xml", "res/menu/menu1.xml");
     assertNotNull(file);
-    RenderTask task = RenderTaskTestUtil.createRenderTask(myFacet, file);
+    RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, RenderTestUtil.HOLO_THEME);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -64,7 +63,7 @@ public class MenuPreviewRendererTest extends AndroidTestCase {
     newXml = StringHelper.toSystemLineSeparator(newXml);
     assertEquals(newXml, layout);
 
-    RenderTestUtil.checkRendering(task, getTestDataPath() + "/render/thumbnails/menu/menu1.png");
+    RenderTestUtil.scaleAndCheckRendering(task, getTestDataPath() + "/render/thumbnails/menu/menu1.png");
   }
 
   public void testLightTheme() throws IOException {
@@ -76,6 +75,6 @@ public class MenuPreviewRendererTest extends AndroidTestCase {
     RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, configuration);
     assertNotNull(task);
 
-    RenderTestUtil.checkRendering(task, getTestDataPath() + "/render/thumbnails/menu/menu1-light.png");
+    RenderTestUtil.scaleAndCheckRendering(task, getTestDataPath() + "/render/thumbnails/menu/menu1-light.png");
   }
 }

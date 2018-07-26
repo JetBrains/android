@@ -30,10 +30,9 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.model.MergedManifest
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
-import com.android.tools.idea.util.dependsOn
+import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
@@ -46,7 +45,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * Layout editor-specific helper methods and data for NlModel
  */
 
-const val CUSTOM_DENSITY_ID = "Custom Density"
+const val CUSTOM_DENSITY_ID: String = "Custom Density"
 
 /**
  * Changes the configuration to use a custom device with screen size defined by xDimension and yDimension.
@@ -151,8 +150,10 @@ fun NlModel.overrideConfigurationDensity(density: Density) {
   configuration.setEffectiveDevice(device, device.defaultState)
 }
 
+@Deprecated(message = "Use NlModel.module.dependsOnAppCompat()",
+            replaceWith = ReplaceWith("com.android.tools.idea.util.dependsOnAppCompat()") )
 fun NlModel.moduleDependsOnAppCompat(): Boolean {
-  return this.module.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7) || this.module.dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)
+  return this.module.dependsOnAppCompat()
 }
 
 fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {

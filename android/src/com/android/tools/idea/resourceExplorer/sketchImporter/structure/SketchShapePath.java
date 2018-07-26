@@ -23,9 +23,10 @@ public class SketchShapePath extends SketchLayer {
   private final boolean isClosed;
   private final SketchCurvePoint[] points;
 
-  public SketchShapePath(@NotNull String objectId,
+  public SketchShapePath(@NotNull String classType,
+                         @NotNull String objectId,
                          int booleanOperation,
-                         @NotNull Rectangle frame,
+                         @NotNull Rectangle.Double frame,
                          boolean isFlippedHorizontal,
                          boolean isFlippedVertical,
                          boolean isVisible,
@@ -34,7 +35,8 @@ public class SketchShapePath extends SketchLayer {
                          boolean shouldBreakMaskChain,
                          boolean isClosed,
                          @NotNull SketchCurvePoint[] points) {
-    super(objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation, shouldBreakMaskChain);
+    super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
+          shouldBreakMaskChain);
 
     this.isClosed = isClosed;
     this.points = points;

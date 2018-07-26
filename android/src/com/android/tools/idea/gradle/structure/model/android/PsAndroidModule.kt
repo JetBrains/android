@@ -17,11 +17,9 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
@@ -48,10 +46,11 @@ class PsAndroidModule(
 
   fun init(
     name: String,
+    parentModule: PsModule?,
     resolvedModel: AndroidModuleModel?,
     parsedModel: GradleBuildModel?
   ) {
-    super.init(name, parsedModel)
+    super.init(name, parentModule, parsedModel)
     this.resolvedModel = resolvedModel
 
     projectType =
@@ -71,7 +70,7 @@ class PsAndroidModule(
   val buildTypes: Collection<PsBuildType> get() = getOrCreateBuildTypeCollection().items()
   val productFlavors: Collection<PsProductFlavor> get() = getOrCreateProductFlavorCollection().items()
   val variants: Collection<PsVariant> get() = getOrCreateVariantCollection().items()
-  val dependencies: PsAndroidModuleDependencyCollection get() = getOrCreateDependencyCollection()
+  override val dependencies: PsAndroidModuleDependencyCollection get() = getOrCreateDependencyCollection()
   val signingConfigs: Collection<PsSigningConfig> get() = getOrCreateSigningConfigCollection().items()
   val defaultConfig = PsAndroidModuleDefaultConfig(this)
   val flavorDimensions: Collection<String>
@@ -89,7 +88,7 @@ class PsAndroidModule(
 
   fun findProductFlavor(name: String): PsProductFlavor? = getOrCreateProductFlavorCollection().findElement(name)
 
-  fun findVariant(name: String): PsVariant? = getOrCreateVariantCollection().findElement(name)
+  fun findVariant(key: PsVariantKey): PsVariant? = getOrCreateVariantCollection().findElement(key)
 
   fun findSigningConfig(signingConfig: String): PsSigningConfig? = getOrCreateSigningConfigCollection().findElement(signingConfig)
 

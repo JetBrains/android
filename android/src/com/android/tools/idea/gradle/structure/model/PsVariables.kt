@@ -23,7 +23,7 @@ class PsVariables(
   override val model: PsModel,
   override val title: String,
   override val container: ExtModel,
-  private val parentScope: PsVariables?
+  private val parentScope: PsVariablesScope?
 ) : PsVariablesScope {
   override val name: String = model.name
 

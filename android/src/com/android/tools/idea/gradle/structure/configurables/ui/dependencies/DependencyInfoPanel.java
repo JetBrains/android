@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.CollapsiblePanel;
 import org.jetbrains.annotations.NotNull;

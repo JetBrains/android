@@ -19,15 +19,15 @@ import org.jetbrains.android.AndroidTestCase;
 
 public class ResourceFoldingBuilderTest extends AndroidTestCase {
 
-  public void testJavaStrings() throws Throwable { performTest(".java"); }
-  public void testJavaStrings2() throws Throwable { performTest(".java"); }
-  public void testJavaDimens() throws Throwable { performTest(".java"); }
-  public void testXmlString() throws Throwable { performTest(".xml"); }
-  public void testPlurals() throws Throwable { performTest(".java"); }
-  public void testStaticImports() throws Throwable { performTest(".java"); }
+  public void testJavaStrings() { performTest(".java"); }
+  public void testJavaStrings2() { performTest(".java"); }
+  public void testJavaDimens() { performTest(".java"); }
+  public void testXmlString() { performTest(".xml"); }
+  public void testPlurals() { performTest(".java"); }
+  public void testStaticImports() { performTest(".java"); }
 
-  private void performTest(String extension) throws Throwable {
-    myFixture.copyFileToProject("/R.java", "src/p1/p2/R.java");
+  private void performTest(String extension) {
+    copyRJavaToGeneratedSources();
     myFixture.copyFileToProject("/folding/values.xml", "res/values/values.xml");
 
     final String fileName = getTestName(true) + extension;

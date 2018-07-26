@@ -48,20 +48,20 @@ public abstract class AbstractMainPanel extends JPanel implements Disposable, Pl
     this(context, Collections.emptyList());
   }
 
-  protected AbstractMainPanel(@NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
+  protected AbstractMainPanel(@NotNull PsContext context, @NotNull List<PsModule> extraModules) {
     super(new BorderLayout());
     myProject = context.getProject();
     myContext = context;
 
     myShowModulesDropDown = context.getUiSettings().MODULES_LIST_MINIMIZE;
     if (myShowModulesDropDown) {
-      createAndAddModulesAction(extraTopModules);
+      createAndAddModulesAction(extraModules);
     }
     context.getUiSettings().addListener(settings -> {
       if (settings.MODULES_LIST_MINIMIZE != myShowModulesDropDown) {
         myShowModulesDropDown = settings.MODULES_LIST_MINIMIZE;
         if (myShowModulesDropDown) {
-          createAndAddModulesAction(extraTopModules);
+          createAndAddModulesAction(extraModules);
         }
         else {
           removeModulesAction();
@@ -70,9 +70,9 @@ public abstract class AbstractMainPanel extends JPanel implements Disposable, Pl
     }, this);
   }
 
-  private void createAndAddModulesAction(@NotNull List<PsModule> extraTopModules) {
+  private void createAndAddModulesAction(@NotNull List<PsModule> extraModules) {
     DefaultActionGroup actions = new DefaultActionGroup();
-    actions.add(new ModulesComboBoxAction(myContext, extraTopModules));
+    actions.add(new ModulesComboBoxAction(myContext, extraModules));
 
     AnAction restoreModuleListAction = new DumbAwareAction("Restore 'Modules' List", "", AllIcons.Actions.MoveTo2) {
       @Override

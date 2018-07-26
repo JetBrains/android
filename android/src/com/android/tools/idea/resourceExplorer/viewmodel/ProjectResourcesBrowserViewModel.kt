@@ -80,9 +80,9 @@ class ProjectResourcesBrowserViewModel(
   /**
    * Returns a map from the library name to its resource items
    */
-  private fun getLibrariesResources(type: ResourceType): List<Pair<String, List<ResourceItem>>> {
+  private fun getLibraryResources(type: ResourceType): List<Pair<String, List<ResourceItem>>> {
     val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
-    return repoManager.libraries
+    return repoManager.libraryResources
       .map { lib ->
         (lib.libraryName ?: "") to lib.namespaces.flatMap { namespace ->
           lib.getItemsOfType(namespace, type)
@@ -114,7 +114,7 @@ class ProjectResourcesBrowserViewModel(
   fun getResourcesLists(resourceTypes: List<ResourceType>): List<ResourceSection> {
     return resourceTypes.flatMap { resourceType ->
       val moduleResources = createResourceSection(resourceType, facet.module.name, getModuleResources(resourceType))
-      val librariesResources = getLibrariesResources(resourceType)
+      val librariesResources = getLibraryResources(resourceType)
         .map { (libName, resourceItems) ->
           createResourceSection(resourceType, libName, resourceItems)
         }

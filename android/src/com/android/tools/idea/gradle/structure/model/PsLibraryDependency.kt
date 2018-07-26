@@ -18,12 +18,15 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
+import com.intellij.util.PlatformIcons.LIBRARY_ICON
+import javax.swing.Icon
 
 interface PsLibraryDependency : PsBaseDependency {
   override val parent: PsModule
   val spec: PsArtifactDependencySpec
 
   override val path: PsLibraryDependencyNavigationPath get() = PsLibraryDependencyNavigationPath(this)
+  override val icon: Icon get() = LIBRARY_ICON
 }
 
 interface PsDeclaredLibraryDependency: PsLibraryDependency, PsDeclaredDependency {
@@ -32,4 +35,5 @@ interface PsDeclaredLibraryDependency: PsLibraryDependency, PsDeclaredDependency
 
 interface PsResolvedLibraryDependency : PsLibraryDependency, PsResolvedDependency {
   fun hasPromotedVersion(): Boolean
+  fun getTransitiveDependencies(): Set<PsResolvedLibraryDependency> = setOf()
 }

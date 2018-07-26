@@ -27,7 +27,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiPlainTextFile
 import org.jetbrains.android.facet.AndroidFacet
 
-const val SAMPLE_DATA_CSV_EDITOR_ID = "sample-data-csv-editor"
+const val SAMPLE_DATA_CSV_EDITOR_ID: String = "sample-data-csv-editor"
 
 class CsvEditorProvider : FileEditorProvider, DumbAware {
   /**

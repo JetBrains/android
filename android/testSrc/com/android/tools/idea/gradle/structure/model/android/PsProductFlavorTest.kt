@@ -38,6 +38,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(productFlavor, notNullValue()); productFlavor!!
 
       val applicationId = PsProductFlavor.ProductFlavorDescriptors.applicationId.bind(productFlavor).getValue()
+      val applicationIdSuffix = PsProductFlavor.ProductFlavorDescriptors.applicationIdSuffix.bind(productFlavor).getValue()
       val dimension = PsProductFlavor.ProductFlavorDescriptors.dimension.bind(productFlavor).getValue()
       val maxSdkVersion = PsProductFlavor.ProductFlavorDescriptors.maxSdkVersion.bind(productFlavor).getValue()
       val minSdkVersion = PsProductFlavor.ProductFlavorDescriptors.minSdkVersion.bind(productFlavor).getValue()
@@ -45,12 +46,14 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       val signingConfig = PsProductFlavor.ProductFlavorDescriptors.signingConfig.bind(productFlavor).getValue()
       val targetSdkVersion = PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion.bind(productFlavor).getValue()
       val testApplicationId = PsProductFlavor.ProductFlavorDescriptors.testApplicationId.bind(productFlavor).getValue()
-      // TODO(b/70501607): Decide on val testFunctionalTest = PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest.getValue(productFlavor)
-      // TODO(b/70501607): Decide on val testHandleProfiling = PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling.getValue(productFlavor)
       val testInstrumentationRunner = PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunner.bind(productFlavor).getValue()
+      val testFunctionalTest = PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest.bind(productFlavor).getValue()
+      val testHandleProfiling = PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling.bind(productFlavor).getValue()
       val versionCode = PsProductFlavor.ProductFlavorDescriptors.versionCode.bind(productFlavor).getValue()
       val versionName = PsProductFlavor.ProductFlavorDescriptors.versionName.bind(productFlavor).getValue()
+      val versionNameSuffix = PsProductFlavor.ProductFlavorDescriptors.versionNameSuffix.bind(productFlavor).getValue()
       val matchingFallbacks = PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).getValue()
+      val resConfigs = PsProductFlavor.ProductFlavorDescriptors.resConfigs.bind(productFlavor).getValue()
       val manifestPlaceholders = PsProductFlavor.ProductFlavorDescriptors.manifestPlaceholders.bind(productFlavor).getValue()
       val testInstrumentationRunnerArguments =
         PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).getValue()
@@ -63,6 +66,9 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
 
       assertThat(applicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.paid"))
       assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.paid"))
+
+      assertThat(applicationIdSuffix.resolved.asTestValue(), nullValue())
+      assertThat(applicationIdSuffix.parsedValue.asTestValue(), nullValue())
 
       assertThat(maxSdkVersion.resolved.asTestValue(), equalTo(25))
       assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(25))
@@ -85,14 +91,26 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(testInstrumentationRunner.resolved.asTestValue(), nullValue())
       assertThat(testInstrumentationRunner.parsedValue.asTestValue(), nullValue())
 
+      // TODO(b/111630584): assertThat(testFunctionalTest.resolved.asTestValue(), equalTo(true))
+      assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(true))
+
+      // TODO(b/111630584): assertThat(testHandleProfiling.resolved.asTestValue(), equalTo(true))
+      assertThat(testHandleProfiling.parsedValue.asTestValue(), equalTo(true))
+
       assertThat(versionCode.resolved.asTestValue(), equalTo(2))
       assertThat(versionCode.parsedValue.asTestValue(), equalTo(2))
 
       assertThat(versionName.resolved.asTestValue(), equalTo("2.0"))
       assertThat(versionName.parsedValue.asTestValue(), equalTo("2.0"))
 
+      assertThat(versionNameSuffix.resolved.asTestValue(), equalTo("vnsFoo"))
+      assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("vnsFoo"))
+
       assertThat(matchingFallbacks.resolved.asTestValue(), nullValue())
       assertThat(matchingFallbacks.parsedValue.asTestValue(), nullValue())
+
+      assertThat(resConfigs.resolved.asTestValue(), equalTo(listOf()))
+      assertThat(resConfigs.parsedValue.asTestValue(), nullValue())
 
       assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf()))
       assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
@@ -110,12 +128,24 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(editableTestInstrumentationRunnerArguments["c"]?.parsedValue?.asTestValue(), equalTo("CCC"))
     }
     run {
+      val productFlavor = appModule.findProductFlavor("bar")
+      assertThat(productFlavor, notNullValue()); productFlavor!!
+      val applicationIdSuffix = PsProductFlavor.ProductFlavorDescriptors.applicationIdSuffix.bind(productFlavor).getValue()
+
+      assertThat(applicationIdSuffix.resolved.asTestValue(), equalTo("barSuffix"))
+      assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("barSuffix"))
+    }
+    run {
       val productFlavor = appModule.findProductFlavor("otherBar")
       assertThat(productFlavor, notNullValue()); productFlavor!!
       val matchingFallbacks = PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).getValue()
+      val resConfigs = PsProductFlavor.ProductFlavorDescriptors.resConfigs.bind(productFlavor).getValue()
 
       assertThat(matchingFallbacks.resolved.asTestValue(), nullValue())
       assertThat(matchingFallbacks.parsedValue.asTestValue(), equalTo(listOf("bar")))
+
+      assertThat(resConfigs.resolved.asTestValue()?.toSet(), equalTo(setOf("en", "hdpi", "xhdpi")))
+      assertThat(resConfigs.parsedValue.asTestValue()?.toSet(), equalTo(setOf("en", "hdpi", "xhdpi")))
     }
   }
 
@@ -149,6 +179,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     assertThat(productFlavor, notNullValue()); productFlavor!!
 
     productFlavor.applicationId = "com.example.psd.sample.app.unpaid".asParsed()
+    productFlavor.applicationIdSuffix = "suffix".asParsed()
     productFlavor.dimension = "bar".asParsed()
     productFlavor.maxSdkVersion = 26.asParsed()
     productFlavor.minSdkVersion = "20".asParsed()
@@ -156,12 +187,19 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     productFlavor.targetSdkVersion = "21".asParsed()
     productFlavor.testApplicationId = "com.example.psd.sample.app.unpaid.failed_test".asParsed()
     productFlavor.testInstrumentationRunner = "com.runner".asParsed()
+    productFlavor.testFunctionalTest = false.asParsed()
+    productFlavor.testHandleProfiling = false.asParsed()
     // TODO(b/79531524): find out why it fails.
     // productFlavor.versionCode = "3".asParsed()
     productFlavor.versionName = "3.0".asParsed()
+    productFlavor.versionNameSuffix = "newFoo".asParsed()
     PsProductFlavor.ProductFlavorDescriptors.signingConfig.bind(productFlavor).setParsedValue(
       ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.myConfig")))
     PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).addItem(0).setParsedValue("free".asParsed())
+    PsProductFlavor.ProductFlavorDescriptors.resConfigs.bind(productFlavor).run {
+      addItem(0).setParsedValue("en".asParsed())
+      addItem(1).setParsedValue("fr".asParsed())
+    }
     PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).changeEntryKey("b", "e")
     PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor)
       .getEditableValues()["a"]?.setParsedValue("AAA".asParsed())
@@ -171,6 +209,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
 
     fun verifyValues(productFlavor: PsProductFlavor, afterSync: Boolean = false) {
       val applicationId = PsProductFlavor.ProductFlavorDescriptors.applicationId.bind(productFlavor).getValue()
+      val applicationIdSuffix = PsProductFlavor.ProductFlavorDescriptors.applicationIdSuffix.bind(productFlavor).getValue()
       val dimension = PsProductFlavor.ProductFlavorDescriptors.dimension.bind(productFlavor).getValue()
       val maxSdkVersion = PsProductFlavor.ProductFlavorDescriptors.maxSdkVersion.bind(productFlavor).getValue()
       val minSdkVersion = PsProductFlavor.ProductFlavorDescriptors.minSdkVersion.bind(productFlavor).getValue()
@@ -181,15 +220,20 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       // TODO(b/70501607): Decide on val testFunctionalTest = PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest.getValue(productFlavor)
       // TODO(b/70501607): Decide on val testHandleProfiling = PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling.getValue(productFlavor)
       val testInstrumentationRunner = PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunner.bind(productFlavor).getValue()
+      val testFunctionalTest = PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest.bind(productFlavor).getValue()
+      val testHandleProfiling = PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling.bind(productFlavor).getValue()
       // TODO(b/79531524): find out why it fails.
       // val versionCode = PsProductFlavor.ProductFlavorDescriptors.versionCode.bind(productFlavor).getValue()
       val versionName = PsProductFlavor.ProductFlavorDescriptors.versionName.bind(productFlavor).getValue()
+      val versionNameSuffix = PsProductFlavor.ProductFlavorDescriptors.versionNameSuffix.bind(productFlavor).getValue()
       val matchingFallbacks = PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).getValue()
+      val resConfigs = PsProductFlavor.ProductFlavorDescriptors.resConfigs.bind(productFlavor).getValue()
       val testInstrumentationRunnerArguments =
         PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).getValue()
 
       assertThat(dimension.parsedValue.asTestValue(), equalTo("bar"))
       assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid"))
+      assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("suffix"))
       assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(26))
       assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("20"))
       assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(false))
@@ -201,15 +245,20 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))
       assertThat(matchingFallbacks.parsedValue.asTestValue(), equalTo(listOf("free")))
+      assertThat(resConfigs.parsedValue.asTestValue(), equalTo(listOf("en", "fr")))
       assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo("com.runner"))
       // TODO(b/79531524): find out why it fails.
       // assertThat(versionCode.parsedValue.asTestValue(), equalTo("3"))
       assertThat(versionName.parsedValue.asTestValue(), equalTo("3.0"))
+      assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("newFoo"))
       assertThat(testInstrumentationRunnerArguments.parsedValue.asTestValue(), equalTo(mapOf("a" to "AAA", "e" to "EEE")))
+      assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(false))
+      assertThat(testHandleProfiling.parsedValue.asTestValue(), equalTo(false))
 
       if (afterSync) {
         assertThat(dimension.parsedValue.asTestValue(), equalTo(dimension.resolved.asTestValue()))
         assertThat(applicationId.parsedValue.asTestValue(), equalTo(applicationId.resolved.asTestValue()))
+        assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo(applicationIdSuffix.resolved.asTestValue()))
         assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(maxSdkVersion.resolved.asTestValue()))
         assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo(minSdkVersion.resolved.asTestValue()))
         assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(multiDexEnabled.resolved.asTestValue()))
@@ -222,10 +271,14 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
         // TODO(b/79531524): find out why it fails.
         // assertThat(versionCode.parsedValue.asTestValue(), equalTo(versionCode.resolved.asTestValue()))
         assertThat(versionName.parsedValue.asTestValue(), equalTo(versionName.resolved.asTestValue()))
+        assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo(versionNameSuffix.resolved.asTestValue()))
         assertThat(
           testInstrumentationRunnerArguments.parsedValue.asTestValue(),
           equalTo(testInstrumentationRunnerArguments.resolved.asTestValue())
         )
+      // TODO(b/111630584): assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(testFunctionalTest.resolved.asTestValue()))
+      // TODO(b/111630584): assertThat(testHandleProfiling.parsedValue.asTestValue(), equalTo(testHandleProfiling.resolved.asTestValue()))
+        assertThat(resConfigs.parsedValue.asTestValue()?.toSet(), equalTo(resConfigs.resolved.asTestValue()?.toSet()))
       }
     }
     verifyValues(productFlavor)

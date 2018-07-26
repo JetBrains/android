@@ -20,7 +20,7 @@ public class SketchBorderOptions {
   private final short lineCapStyle;
   private final short lineJoinStyle;
 
-  SketchBorderOptions(boolean isEnabled, short lineCapStyle, short lineJoinStyle) {
+  public SketchBorderOptions(boolean isEnabled, short lineCapStyle, short lineJoinStyle) {
     this.isEnabled = isEnabled;
     this.lineCapStyle = lineCapStyle;
     this.lineJoinStyle = lineJoinStyle;

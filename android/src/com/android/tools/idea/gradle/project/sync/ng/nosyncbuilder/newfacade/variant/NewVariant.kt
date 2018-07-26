@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.va
 import com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST
 import com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST
 import com.android.builder.model.BuildTypeContainer
+import com.android.builder.model.level2.Library
 import com.android.ide.common.gradle.model.level2.IdeDependencies
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
 import com.android.ide.common.repository.GradleVersion
@@ -80,5 +81,18 @@ fun OldVariant.getAndroidTestArtifact(): OldAndroidArtifact? = extraAndroidArtif
 fun OldVariant.getUnitTestArtifact(): OldJavaArtifact? = extraJavaArtifacts.firstOrNull { it.isTestArtifact() }
 
 fun OldBaseArtifact.isTestArtifact(): Boolean = listOf(ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST).contains(name)
-// TODO(qumeric) use Version.ANDROID_GRADLE_PLUGIN_VERSION or similar when issues with PSQ will be resolved
-fun OldBaseArtifact.getLevel2Dependencies(): IdeDependencies = IdeDependenciesFactory().create(this, GradleVersion.parse("3.0"))
+
+private val emptyIdeDependencies = object: IdeDependencies {
+  override fun getAndroidLibraries(): Collection<Library> = listOf()
+  override fun getJavaLibraries(): Collection<Library> = listOf()
+  override fun getModuleDependencies(): Collection<Library> = listOf()
+}
+
+fun OldBaseArtifact.getLevel2Dependencies(): IdeDependencies {
+  // if it's empty IdeDependenciesFactory tries to use old dependencies model which is not supported in the new models
+  if (dependencyGraphs.compileDependencies.isEmpty()) {
+    return emptyIdeDependencies
+  }
+  return IdeDependenciesFactory().create(this, GradleVersion.parse("3.0"))
+}
+

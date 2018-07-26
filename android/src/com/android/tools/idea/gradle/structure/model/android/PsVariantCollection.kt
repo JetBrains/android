@@ -17,18 +17,20 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.ide.common.gradle.model.IdeVariant
 
-internal class PsVariantCollection(parent: PsAndroidModule) : PsCollectionBase<PsVariant, String, PsAndroidModule>(parent) {
-  override fun getKeys(from: PsAndroidModule): Set<String> =
-    from.resolvedModel?.androidProject?.variants?.map { it.name }.orEmpty().toSet()
+internal class PsVariantCollection(parent: PsAndroidModule) : PsCollectionBase<PsVariant, PsVariantKey, PsAndroidModule>(parent) {
+  override fun getKeys(from: PsAndroidModule): Set<PsVariantKey> =
+    from.resolvedModel?.androidProject?.variants?.map { PsVariantKey(it.buildType, it.productFlavors) }.orEmpty().toSet()
 
-  override fun create(key: String): PsVariant = PsVariant(parent, key)
+  override fun create(key: PsVariantKey): PsVariant = PsVariant(parent, key)
 
-  override fun update(key: String, model: PsVariant) {
-    val resolvedVariant = parent.resolvedModel?.androidProject?.variants?.singleOrNull { it.name == key } as? IdeVariant
+  override fun update(key: PsVariantKey, model: PsVariant) {
+    val resolvedVariant =
+      parent
+        .resolvedModel
+        ?.androidProject
+        ?.variants
+        ?.singleOrNull { it.buildType == key.buildType && it.productFlavors == key.productFlavors } as? IdeVariant
                           ?: throw IllegalStateException("Cannot find a resolved variant named '$key'")
-    model.init(
-      resolvedVariant.buildType,
-      resolvedVariant.productFlavors,
-      resolvedVariant)
+    model.init(resolvedVariant)
   }
 }

@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.sdklib.devices.Screen;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
+import com.intellij.mock.MockApplicationEx;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Ref;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -29,12 +35,14 @@ import org.junit.Test;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class ScreenViewLayerTest {
@@ -44,6 +52,7 @@ public class ScreenViewLayerTest {
   public static final int IMAGE_WIDTH = 500;
   public static final int IMAGE_HEIGHT = 500;
   public static final double SCALE = SCREEN_VIEW_HEIGHT / (double)IMAGE_HEIGHT;
+  private static final Rectangle FULL_SIZE = new Rectangle(IMAGE_WIDTH, IMAGE_HEIGHT);
 
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   ScreenView myScreenView;
@@ -68,19 +77,57 @@ public class ScreenViewLayerTest {
     myRenderResult = null;
   }
 
+  private static Rectangle scaleRectangle(Rectangle rect, double scale) {
+    return new Rectangle(rect.x, rect.y, (int)(rect.width * scale), (int)(rect.width * scale));
+  }
+
+  /**
+   * Gets the {@link Graphics2D} for the given image and cleans it up to be ready for the output.
+   * It will paint the image as white and set the clip to the given size
+   */
+  @NotNull
+  private static Graphics2D createGraphicsAndClean(@NotNull BufferedImage image, @NotNull Rectangle rectangle) {
+    Graphics2D g = (Graphics2D)image.getGraphics();
+    g.setColor(Color.WHITE);
+    g.fill(rectangle);
+    g.setClip(rectangle);
+
+    return g;
+  }
+
   @Test
   public void scalingPaintTest() throws Exception {
-
     VirtualTimeScheduler timeScheduler = new VirtualTimeScheduler();
-    Rectangle rectangle = new Rectangle(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT);
+    Ref<Rectangle> rectangle = new Ref<>(scaleRectangle(FULL_SIZE, SCALE));
+    Disposable disposable = Disposer.newDisposable();
+    MockApplicationEx instance = new MockApplicationEx(disposable);
+    ApplicationManager.setApplication(instance, disposable);
+
     ScreenViewLayer layer = new ScreenViewLayer(myScreenView, timeScheduler);
 
-    when(myScreenView.getScreenShape()).thenReturn(rectangle);
+    when(myScreenView.getScreenShape()).thenAnswer(new Answer<Shape>() {
+      @Override
+      public Shape answer(InvocationOnMock invocation) {
+        return rectangle.get();
+      }
+    });
     when(myScreenView.getX()).thenReturn(0);
     when(myScreenView.getY()).thenReturn(0);
-    when(myScreenView.getScale()).thenReturn(SCALE, SCALE, 1.0, SCALE);//, 0.5, 3.0);
-    when(myScreenView.getSize(any())).thenReturn(rectangle.getSize());
+    when(myScreenView.getSize(any())).thenAnswer(new Answer<Dimension>() {
+      @Override
+      public Dimension answer(InvocationOnMock invocation) {
+        Dimension returnDimension = (Dimension)invocation.getArguments()[0];
 
+        if (returnDimension != null) {
+          returnDimension.setSize(rectangle.get().getSize());
+        }
+        else {
+          returnDimension = rectangle.get().getSize();
+        }
+
+        return returnDimension;
+      }
+    });
     // Create a high quality image bigger than the screenView that will be scaled.
     ImagePool.Image imageHQ = getTestImage(IMAGE_WIDTH, IMAGE_HEIGHT);
 
@@ -90,50 +137,46 @@ public class ScreenViewLayerTest {
 
     Graphics2D g;
 
-    // First, we expect an unscaled image on first call.
+    // First, we expect the low quality scaling in the first call.
     //noinspection UndesirableClassUsage
     BufferedImage unscaled = new BufferedImage(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT, BufferedImage.TYPE_INT_ARGB);
     g = (Graphics2D)unscaled.getGraphics();
     g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
     imageHQ.drawImageTo(g, 0, 0, SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT);
-    g.dispose();
 
     //noinspection UndesirableClassUsage
     BufferedImage output = new BufferedImage(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT, BufferedImage.TYPE_INT_ARGB);
-    g = (Graphics2D)output.getGraphics();
-    g.setClip(rectangle);
+    g = createGraphicsAndClean(output, rectangle.get());
     layer.paint(g);
-    g.dispose();
     ImageDiffUtil.assertImageSimilar("screenviewlayer_result.png", unscaled, output, 0.0);
 
+    BufferedImage imageHQScaled = ScreenViewLayer.scaleOriginalImage(null, imageHQ,
+                                       myScreenView,
+                                       rectangle.get().getSize(),
+                                       rectangle.get());
 
-    BufferedImage imageHQScaled = imageHQ.getCopy();
-    imageHQScaled = ImageUtils.scale(imageHQScaled, SCALE);
-    g.dispose();
+    BufferedImage scaledHQ = new BufferedImage(imageHQScaled.getWidth(), imageHQScaled.getHeight(), BufferedImage.TYPE_INT_ARGB);
+    UIUtil.drawImage(scaledHQ.createGraphics(), imageHQScaled, 0, 0, null);
 
     // We wait more than the debounce delay to ensure that the next call to paint will draw an scaled image.
     timeScheduler.advanceBy(600, TimeUnit.MILLISECONDS);
     //noinspection UndesirableClassUsage
-    g = (Graphics2D)output.getGraphics();
-    g.setColor(Color.WHITE);
-    g.fill(rectangle);
-    g.setClip(rectangle);
+    g = createGraphicsAndClean(output, rectangle.get());
     layer.paint(g);
-    g.dispose();
-
-    ImageDiffUtil.assertImageSimilar("screenviewlayer_result.png", imageHQScaled, output, 0.0);
-
-
-    layer.paint(g); // Call one more time to change the value of getScale() (see mock creation).
+    ImageDiffUtil.assertImageSimilar("screenviewlayer_result.png", scaledHQ, output, 0.0);
 
     // Scale value back to 1.0, so no scaling.
-    g = (Graphics2D)output.getGraphics();
-    g.setColor(Color.WHITE);
-    g.fill(rectangle);
-    g.setClip(rectangle);
+    rectangle.set(FULL_SIZE);
+    unscaled = new BufferedImage(IMAGE_WIDTH, IMAGE_HEIGHT, BufferedImage.TYPE_INT_ARGB);
+    output = new BufferedImage(IMAGE_WIDTH, IMAGE_HEIGHT, BufferedImage.TYPE_INT_ARGB);
+    g = (Graphics2D)unscaled.getGraphics();
+    g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+    imageHQ.drawImageTo(g, 0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
+    g = createGraphicsAndClean(output, rectangle.get());
     layer.paint(g);
-    g.dispose();
     ImageDiffUtil.assertImageSimilar("screenviewlayer_result.png", unscaled, output, 0.0);
+
+    Disposer.dispose(disposable);
   }
 
   @NotNull

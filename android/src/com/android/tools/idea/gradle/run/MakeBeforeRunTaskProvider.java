@@ -393,13 +393,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     List<String> arguments = new LinkedList<>();
     ProfilerState state = ((AndroidRunConfigurationBase)configuration).getProfilerState();
     if (state.ADVANCED_PROFILING_ENABLED && minVersion.getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP &&
-        (minVersion.getFeatureLevel() < AndroidVersion.VersionCodes.O || !StudioFlags.PROFILER_USE_JVMTI.get())) {
+        minVersion.getFeatureLevel() < AndroidVersion.VersionCodes.O) {
       File file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform(minVersion);
       arguments.add(createProjectProperty(ANDROID_ADVANCED_PROFILING_TRANSFORMS, file.getAbsolutePath()));
 
       Properties profilerProperties = state.toProperties();
-      profilerProperties.setProperty(StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.getId(),
-                                     String.valueOf(StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get()));
       File propertiesFile = createTempFile("profiler", ".properties");
       propertiesFile.deleteOnExit(); // TODO: It'd be nice to clean this up sooner than at exit.
 

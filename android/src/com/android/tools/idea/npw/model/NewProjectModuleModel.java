@@ -141,7 +141,7 @@ public final class NewProjectModuleModel extends WizardModel {
     }
 
     new TemplateValueInjector(myNewModuleModel.getTemplateValues())
-      .setProjectDefaults(project, myNewModuleModel.applicationName().get(), myNewModuleModel.instantApp().get());
+      .setProjectDefaults(project, myNewModuleModel.applicationName().get());
 
     myNewModuleModel.handleFinished();
     if (newRenderTemplateModel != myExtraRenderTemplateModel) { // Extra render is driven by the Wizard itself
@@ -204,7 +204,7 @@ public final class NewProjectModuleModel extends WizardModel {
     companionModuleModel.moduleName().set(getModuleName(FormFactor.MOBILE));
 
     new TemplateValueInjector(companionModuleModel.getTemplateValues())
-      .setProjectDefaults(projectModel.project().getValueOrNull(), companionModuleModel.applicationName().get(), false);
+      .setProjectDefaults(projectModel.project().getValueOrNull(), companionModuleModel.applicationName().get());
 
     return companionModuleModel;
   }

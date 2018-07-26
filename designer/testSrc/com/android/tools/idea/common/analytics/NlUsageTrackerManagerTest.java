@@ -110,7 +110,8 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     assertNotEquals(nlUsageTracker, NlUsageTrackerManager.getInstanceInner(surface2, true));
   }
 
-  public void testBasicLogging() {
+  // b/110242994
+  public void ignore_testBasicLogging() {
     NlUsageTracker tracker = getUsageTracker();
 
     tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE);

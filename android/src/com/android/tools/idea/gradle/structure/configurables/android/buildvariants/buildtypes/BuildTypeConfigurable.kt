@@ -40,7 +40,7 @@ fun buildTypePropertiesModel(isLibrary: Boolean) =
       uiProperty(PsBuildType.BuildTypeDescriptors.multiDexEnabled, ::simplePropertyEditor),
 // TODO(b/70501607): Decide on PsBuildType.BuildTypeDescriptors.pseudoLocalesEnabled,
 // TODO(b/70501607): Decide on PsBuildType.BuildTypeDescriptors.testCoverageEnabled,
-      uiProperty(PsBuildType.BuildTypeDescriptors.applicationIdSuffix, ::simplePropertyEditor),
+      if (!isLibrary) uiProperty(PsBuildType.BuildTypeDescriptors.applicationIdSuffix, ::simplePropertyEditor) else null,
       uiProperty(PsBuildType.BuildTypeDescriptors.versionNameSuffix, ::simplePropertyEditor),
       uiProperty(PsBuildType.BuildTypeDescriptors.zipAlignEnabled, ::simplePropertyEditor),
       uiProperty(PsBuildType.BuildTypeDescriptors.matchingFallbacks, ::listPropertyEditor)

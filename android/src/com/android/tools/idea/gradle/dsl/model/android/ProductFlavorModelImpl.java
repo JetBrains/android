@@ -176,7 +176,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   @NotNull
   public ResolvedPropertyModel resConfigs() {
-    return getModelForProperty(RES_CONFIGS);
+    return getModelForProperty(RES_CONFIGS, true);
   }
 
   @NotNull

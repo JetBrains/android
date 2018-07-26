@@ -22,12 +22,12 @@ import java.util.List;
 
 public abstract class AbstractDependenciesConfigurable<T extends PsModule> extends BaseNamedConfigurable<T> {
   @NotNull private final PsContext myContext;
-  @NotNull private final List<PsModule> myExtraTopModules;
+  @NotNull private final List<PsModule> myExtraModules;
 
-  protected AbstractDependenciesConfigurable(@NotNull T module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
+  protected AbstractDependenciesConfigurable(@NotNull T module, @NotNull PsContext context, @NotNull List<PsModule> extraModules) {
     super(module);
     myContext = context;
-    myExtraTopModules = extraTopModules;
+    myExtraModules = extraModules;
   }
 
   @Override
@@ -42,8 +42,8 @@ public abstract class AbstractDependenciesConfigurable<T extends PsModule> exten
   }
 
   @NotNull
-  protected List<PsModule> getExtraTopModules() {
-    return myExtraTopModules;
+  protected List<PsModule> getExtraModules() {
+    return myExtraModules;
   }
 
   @Override

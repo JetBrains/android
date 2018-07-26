@@ -76,7 +76,7 @@ public class GradleEditorValueExtractor extends GroovyRecursiveElementVisitor {
   }
 
   @Override
-  public void visitLiteralExpression(GrLiteral literal) {
+  public void visitLiteralExpression(@NotNull GrLiteral literal) {
     if (myInterestedInReferencesOnly) {
       return;
     }
@@ -92,7 +92,7 @@ public class GradleEditorValueExtractor extends GroovyRecursiveElementVisitor {
   }
 
   @Override
-  public void visitGStringExpression(GrString expression) {
+  public void visitGStringExpression(@NotNull GrString expression) {
     GroovyPsiElement[] parts = expression.getAllContentParts();
     boolean registeredAssignment = false;
     for (GroovyPsiElement part : parts) {
@@ -122,7 +122,7 @@ public class GradleEditorValueExtractor extends GroovyRecursiveElementVisitor {
   }
 
   @Override
-  public void visitReferenceExpression(GrReferenceExpression expression) {
+  public void visitReferenceExpression(@NotNull GrReferenceExpression expression) {
     if (expression.getParent() instanceof GrMethodCallExpression) {
       // This is a reference expression which points to the method name. We're not interested in it, so, just return.
       return;
@@ -162,7 +162,7 @@ public class GradleEditorValueExtractor extends GroovyRecursiveElementVisitor {
   }
 
   @Override
-  public void visitElement(GroovyPsiElement element) {
+  public void visitElement(@NotNull GroovyPsiElement element) {
     if (!myInterestedInReferencesOnly) {
       // Consider every expression over than those we explicitly prepared for (e.g. literal expression, reference expression etc)
       // to be registered as a definition source binding within the context. However, we want to correctly handle a situation like

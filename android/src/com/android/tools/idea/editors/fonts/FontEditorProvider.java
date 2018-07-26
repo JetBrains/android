@@ -27,7 +27,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class FontEditorProvider implements FileEditorProvider, DumbAware {
   private static final String ID = "fontseditor";
@@ -50,7 +49,7 @@ public class FontEditorProvider implements FileEditorProvider, DumbAware {
 
   @NotNull
   @Override
-  public FileEditorState readState(@Nullable Element sourceElement, @NotNull Project project,
+  public FileEditorState readState(@NotNull Element sourceElement, @NotNull Project project,
                                    @NotNull VirtualFile file) {
     return FileEditorState.INSTANCE;
   }

@@ -20,7 +20,6 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.android.tools.idea.gradle.structure.model.*
-import com.google.common.collect.ImmutableList
 
 
 /**
@@ -33,7 +32,7 @@ interface PsAndroidDependencyCollection<out LibraryDependencyT, out ModuleDepend
         ModuleDependencyT : PsAndroidDependency,
         ModuleDependencyT : PsModuleDependency
 {
-  val items: List<PsAndroidDependency> get() = modules + libraries
+  override val items: List<PsAndroidDependency> get() = modules + libraries
 }
 
 /**
@@ -57,7 +56,7 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule)
     val gradlePath = moduleDependencyModel.path().forceString()
     val artifacts = artifactsByConfigurationNames[moduleDependencyModel.configurationName()] ?: listOf()
     return PsDeclaredModuleAndroidDependency(
-      parent, gradlePath, artifacts.toList(), moduleDependencyModel.configurationName(), null,
+      parent, gradlePath, artifacts.toList(), moduleDependencyModel.configurationName(),
       moduleDependencyModel)
   }
 
@@ -161,7 +160,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
       PsResolvedModuleAndroidDependency(
         parent,
         gradlePath,
-        ImmutableList.of(artifact),
+        artifact,
         projectVariant,
         module,
         matchingParsedDependency)

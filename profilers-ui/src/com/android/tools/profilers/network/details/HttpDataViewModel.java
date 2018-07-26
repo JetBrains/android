@@ -19,16 +19,19 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.profilers.ContentType;
 import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
 import com.android.tools.profilers.stacktrace.DataViewer;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -45,6 +48,9 @@ import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
  */
 final class HttpDataViewModel {
   private static final String ID_PAYLOAD_VIEWER = "PAYLOAD_VIEWER";
+  private static final Border PAYLOAD_BORDER = new JBEmptyBorder(6, 0, 0, 0);
+  private static final ImmutableSet<ContentType> REFORMAT_CODE_SUPPORTED_TYPES =
+    ImmutableSet.of(ContentType.JSON, ContentType.HTML, ContentType.XML);
 
   private final NetworkConnectionsModel myModel;
   private final HttpData myHttpData;
@@ -102,7 +108,7 @@ final class HttpDataViewModel {
   public JComponent createBodyComponent(@NotNull IdeProfilerComponents components, @NotNull ConnectionType type) {
     Payload payload = type.getPayload(myModel, myHttpData);
     if (payload.getBytes().isEmpty()) {
-      return new JLabel("Not available");
+      return TabUiUtils.createHideablePanel(getBodyTitle(type), new JLabel("Not available"), null);
     }
     JComponent rawDataComponent = createRawDataComponent(payload, components);
     JComponent parsedDataComponent = createParsedDataComponent(payload, components);
@@ -150,17 +156,38 @@ final class HttpDataViewModel {
   }
 
   /**
-   * Creates the raw data view of given {@link Payload}, assuming the payload data is not empty.
-   * TODO: Configures which types of payload uses the ide component and other payloads do not use the ide component.
+   * Creates the raw data view of given {@link Payload}, assumed the payload is not empty.
    */
   @NotNull
   private static JComponent createRawDataComponent(@NotNull Payload payload, @NotNull IdeProfilerComponents components) {
-    return createIdeComponent(payload, components);
+    ContentType contentType = ContentType.fromMimeType(payload.getContentType().getMimeType());
+    // TODO(b/111835527): Investigate the raw payload viewer for different content types.
+    if (REFORMAT_CODE_SUPPORTED_TYPES.contains(contentType) || payload.getContentType().isFormData()) {
+      JTextArea textArea = new JTextArea(payload.getBytes().toStringUtf8());
+      textArea.setLineWrap(true);
+      textArea.setFont(ProfilerFonts.H4_FONT);
+      textArea.setEditable(false);
+      textArea.setBackground(null);
+      return textArea;
+    }
+
+    DataViewer viewer = components.createDataViewer(payload.getBytes().toByteArray(), contentType, DataViewer.Style.RAW);
+    JComponent viewerComponent = viewer.getComponent();
+    viewerComponent.setName(ID_PAYLOAD_VIEWER);
+    // We force a minimum height to make sure that the component always looks reasonable -
+    // useful, for example, when we are displaying a bunch of text.
+    int minimumHeight = 300;
+    int originalHeight = viewer.getDimension() != null ? (int)viewer.getDimension().getHeight() : minimumHeight;
+    viewerComponent.setMinimumSize(new Dimension(1, Math.min(minimumHeight, originalHeight)));
+    viewerComponent.setBorder(PAYLOAD_BORDER);
+    JComponent payloadComponent = new JPanel(new TabularLayout("*"));
+    payloadComponent.add(viewerComponent, new TabularLayout.Constraint(0, 0));
+    return payloadComponent;
   }
 
   /**
-   * Creates the parsed data view of given {@link Payload}, assuming the payload data is not empty.
-   * TODO: Configures the parsed view for more types of payload.
+   * Creates the parsed data view of given {@link Payload}, or returns null if the payload is not applicable for parsing.
+   * Assumed the payload is not empty.
    */
   @Nullable
   private static JComponent createParsedDataComponent(@NotNull Payload payload, @NotNull IdeProfilerComponents components) {
@@ -171,25 +198,16 @@ final class HttpDataViewModel {
       parsedContentStream.forEach(a -> parsedContent.put(a[0], a.length > 1 ? a[1] : ""));
       return TabUiUtils.createStyledMapComponent(parsedContent);
     }
+    ContentType contentType = ContentType.fromMimeType(payload.getContentType().getMimeType());
+    if (REFORMAT_CODE_SUPPORTED_TYPES.contains(contentType)) {
+      DataViewer viewer = components.createDataViewer(payload.getBytes().toByteArray(), contentType, DataViewer.Style.PRETTY);
+      // Returns the successfully formatted view, if failed, ignores the returned component.
+      if (viewer.getStyle() == DataViewer.Style.PRETTY) {
+        viewer.getComponent().setBorder(PAYLOAD_BORDER);
+        return viewer.getComponent();
+      }
+    }
     return null;
-  }
-
-  @NotNull
-  private static JComponent createIdeComponent(@NotNull Payload payload, @NotNull IdeProfilerComponents components) {
-    byte[] payloadContent = payload.getBytes().toByteArray();
-    String mimeType = payload.getContentType().getMimeType();
-    DataViewer viewer = components.createDataViewer(payloadContent, ContentType.fromMimeType(mimeType));
-    JComponent viewerComponent = viewer.getComponent();
-    viewerComponent.setName(ID_PAYLOAD_VIEWER);
-    // We force a minimum height to make sure that the component always looks reasonable -
-    // useful, for example, when we are displaying a bunch of text.
-    int minimumHeight = 300;
-    int originalHeight = viewer.getDimension() != null ? (int)viewer.getDimension().getHeight() : minimumHeight;
-    viewerComponent.setMinimumSize(new Dimension(1, Math.min(minimumHeight, originalHeight)));
-    viewerComponent.setBorder(new JBEmptyBorder(6, 0, 0, 0));
-    JComponent payloadComponent = new JPanel(new TabularLayout("*"));
-    payloadComponent.add(viewerComponent, new TabularLayout.Constraint(0, 0));
-    return payloadComponent;
   }
 
   public enum ConnectionType {

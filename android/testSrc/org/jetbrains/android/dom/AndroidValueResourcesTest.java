@@ -19,6 +19,7 @@ package org.jetbrains.android.dom;
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.intention.IntentionAction;
@@ -51,6 +52,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Tests for code editor features when working with resources under res/values.
+ *
+ * @see AndroidNamespacedValueResourcesDomTest
+ */
 public class AndroidValueResourcesTest extends AndroidDomTestCase {
   public AndroidValueResourcesTest() {
     super("dom/resources");
@@ -424,7 +430,11 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     Module libModule = myAdditionalModules.get(0);
     deleteManifest(libModule);
     myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml");
-    myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+    }
+
     // Should be okay even if main module is missing a manifest since the resources come from the library.
     deleteManifest(myModule);
 
@@ -611,7 +621,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   }
 
   public void testNamespaceCompletion() throws Exception {
-    doTestNamespaceCompletion(false, false, true, true);
+    doTestNamespaceCompletion(true);
   }
 
   public void testAttrValidation() throws Throwable {

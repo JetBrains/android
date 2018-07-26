@@ -22,13 +22,12 @@ import com.google.common.collect.LinkedListMultimap
 interface PsDependencyCollection<out ModuleT, out LibraryDependencyT, out ModuleDependencyT>
   where ModuleT : PsModule,
         LibraryDependencyT : PsLibraryDependency,
-        LibraryDependencyT : PsDependency,
-        ModuleDependencyT : PsModuleDependency,
-        ModuleDependencyT : PsDependency
+        ModuleDependencyT : PsModuleDependency
 {
   val parent: ModuleT
   val libraries: List<LibraryDependencyT>
   val modules: List<ModuleDependencyT>
+  val items: List<PsBaseDependency> get() = modules + libraries
 
   fun isEmpty(): Boolean
 
@@ -45,9 +44,7 @@ abstract class PsDependencyCollectionBase<out ModuleT, LibraryDependencyT, Modul
 ) : PsDependencyCollection<ModuleT, LibraryDependencyT, ModuleDependencyT>
   where ModuleT : PsModule,
         LibraryDependencyT : PsLibraryDependency,
-        LibraryDependencyT : PsDependency,
-        ModuleDependencyT : PsModuleDependency,
-        ModuleDependencyT : PsDependency {
+        ModuleDependencyT : PsModuleDependency {
   private val libraryDependenciesBySpec = LinkedListMultimap.create<PsLibraryKey, LibraryDependencyT>()!!
   private val moduleDependenciesByGradlePath = LinkedListMultimap.create<String, ModuleDependencyT>()!!
 
@@ -89,10 +86,8 @@ abstract class PsDeclaredDependencyCollection<out ModuleT, LibraryDependencyT, M
   where ModuleT : PsModule,
         LibraryDependencyT : PsDeclaredDependency,
         LibraryDependencyT : PsLibraryDependency,
-        LibraryDependencyT : PsDependency,
         ModuleDependencyT : PsDeclaredDependency,
-        ModuleDependencyT : PsModuleDependency,
-        ModuleDependencyT : PsDependency
+        ModuleDependencyT : PsModuleDependency
 {
   open fun initParsedDependencyCollection() {}
   abstract fun createLibraryDependency(artifactDependencyModel: ArtifactDependencyModel): LibraryDependencyT
@@ -124,10 +119,8 @@ abstract class PsResolvedDependencyCollection<ContainerT, out ModuleT, LibraryDe
   where ModuleT : PsModule,
         LibraryDependencyT : PsResolvedDependency,
         LibraryDependencyT : PsLibraryDependency,
-        LibraryDependencyT : PsDependency,
         ModuleDependencyT : PsResolvedDependency,
-        ModuleDependencyT : PsModuleDependency,
-        ModuleDependencyT : PsDependency {
+        ModuleDependencyT : PsModuleDependency {
 
   abstract fun collectResolvedDependencies(container: ContainerT)
 

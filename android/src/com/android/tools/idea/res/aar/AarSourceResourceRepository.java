@@ -241,6 +241,6 @@ public class AarSourceResourceRepository extends LocalResourceRepository impleme
   // For debugging only.
   @Override
   public String toString() {
-    return getClass().getSimpleName() + " for " + myResourceDirectory + ": @" + Integer.toHexString(System.identityHashCode(this));
+    return getClass().getSimpleName() + '@' + Integer.toHexString(System.identityHashCode(this)) + " for " + myResourceDirectory;
   }
 }

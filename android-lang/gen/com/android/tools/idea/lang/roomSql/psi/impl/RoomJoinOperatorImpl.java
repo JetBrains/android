@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomJoinOperatorImpl extends ASTWrapperPsiElement implements RoomJoinOperator {
 
-  public RoomJoinOperatorImpl(ASTNode node) {
+  public RoomJoinOperatorImpl(@NotNull ASTNode node) {
     super(node);
   }
 

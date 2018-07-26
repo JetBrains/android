@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.structure.model.java
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
-import com.android.tools.idea.gradle.structure.model.PsDependency
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency
+import com.android.tools.idea.gradle.structure.model.PsChildModel
 
 abstract class PsJavaDependency protected constructor(
   final override val parent: PsJavaModule
-) : PsDependency() {
+) : PsChildModel(), PsBaseDependency {
   val gradleModel: JavaModuleModel? get() = parent.resolvedModel
 }

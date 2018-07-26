@@ -53,7 +53,6 @@ class CpuProfilerConfigModelTest {
   @Test
   fun defaultProfilingConfigsReturnsOnlyDeviceSupported() {
     myServices.enableAtrace(true)
-    myServices.enableSimpleperf(true)
     setDevice(AndroidVersion.VersionCodes.LOLLIPOP)
     model!!.updateProfilingConfigurations()
 
@@ -97,15 +96,14 @@ class CpuProfilerConfigModelTest {
   }
 
   @Test
-  fun flagsFilterConfigsFromDefault() {
+  fun atraceFlagFilterConfigFromDefault() {
     myServices.enableAtrace(false)
-    myServices.enableSimpleperf(false)
 
     setDevice(AndroidVersion.VersionCodes.O)
     model!!.updateProfilingConfigurations()
 
     val realConfigs = model!!.defaultProfilingConfigurations
-    assertThat(realConfigs).hasSize(2)
+    assertThat(realConfigs).hasSize(3)
     // First actual configuration should be ART Sampled
     assertThat(realConfigs[0].profilerType).isEqualTo(CpuProfilerType.ART)
     assertThat(realConfigs[0].mode).isEqualTo(CpuProfilerMode.SAMPLED)
@@ -118,12 +116,16 @@ class CpuProfilerConfigModelTest {
     assertThat(realConfigs[1].name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
     assertThat(isDefault(realConfigs[1])).isTrue()
     assertThat(realConfigs[1].requiredDeviceLevel).isEqualTo(0)
+    // Third actual configuration should be Simpleperf
+    assertThat(realConfigs[2].profilerType).isEqualTo(CpuProfilerType.SIMPLEPERF)
+    assertThat(realConfigs[2].name).isEqualTo(FakeIdeProfilerServices.FAKE_SIMPLEPERF_NAME)
+    assertThat(isDefault(realConfigs[2])).isTrue()
+    assertThat(realConfigs[2].requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.O)
   }
 
   @Test
   fun customProfilingConfigsDeviceFiltering() {
     myServices.enableAtrace(true)
-    myServices.enableSimpleperf(true)
     setDevice(AndroidVersion.VersionCodes.LOLLIPOP)
 
     myServices.addCustomProfilingConfiguration("Art", CpuProfilerType.ART)
@@ -152,10 +154,9 @@ class CpuProfilerConfigModelTest {
   }
 
   @Test
-  fun flagsFilterConfigsFromCustom() {
-    // First, we try with the flags enabled
+  fun atraceFlagFilterConfigsFromCustom() {
+    // First, we try with the atrace flag enabled
     myServices.enableAtrace(true)
-    myServices.enableSimpleperf(true)
 
     myServices.addCustomProfilingConfiguration("Art", CpuProfilerType.ART)
     myServices.addCustomProfilingConfiguration("System Trace", CpuProfilerType.ATRACE)
@@ -180,21 +181,24 @@ class CpuProfilerConfigModelTest {
     assertThat(customConfigsDeviceFilter[2].profilerType).isEqualTo(CpuProfilerType.SIMPLEPERF)
     assertThat(customConfigsDeviceFilter[2].name).isEqualTo("Simpleperf")
 
-    // Now disable the flags
+    // Now disable the flag
     myServices.enableAtrace(false)
-    myServices.enableSimpleperf(false)
     model!!.updateProfilingConfigurations()
 
     customConfigs = model!!.customProfilingConfigurations
-    assertThat(customConfigs).hasSize(1)
+    assertThat(customConfigs).hasSize(2)
     assertThat(customConfigs[0].profilerType).isEqualTo(CpuProfilerType.ART)
     assertThat(customConfigs[0].name).isEqualTo("Art")
+    assertThat(customConfigs[1].profilerType).isEqualTo(CpuProfilerType.SIMPLEPERF)
+    assertThat(customConfigs[1].name).isEqualTo("Simpleperf")
 
     customConfigsDeviceFilter = model!!.customProfilingConfigurationsDeviceFiltered
-    assertThat(customConfigsDeviceFilter).hasSize(1)
+    assertThat(customConfigsDeviceFilter).hasSize(2)
     assertThat(customConfigs[0].requiredDeviceLevel).isEqualTo(0)
     assertThat(customConfigsDeviceFilter[0].profilerType).isEqualTo(CpuProfilerType.ART)
     assertThat(customConfigsDeviceFilter[0].name).isEqualTo("Art")
+    assertThat(customConfigsDeviceFilter[1].profilerType).isEqualTo(CpuProfilerType.SIMPLEPERF)
+    assertThat(customConfigsDeviceFilter[1].name).isEqualTo("Simpleperf")
   }
 
   @Test

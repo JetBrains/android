@@ -116,6 +116,14 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
         namedConfigurable?.displayName == configurableDisplayName
       }
 
+  private fun findFirstLeafConfigurableNode(): MyNode? =
+    treeModel
+      .rootNode
+      .breadthFirstEnumeration()
+      .asSequence()
+      .mapNotNull { it as? MyNode }
+      .firstOrNull { it != myRoot && it.childCount == 0 }
+
   override fun queryPlace(place: Place) {
     val selectedNode = tree.selectionPath?.lastPathComponent as? MasterDetailsComponent.MyNode
     val namedConfigurable = selectedNode?.userObject as? NamedConfigurable<*>
@@ -127,21 +135,21 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
 
   override fun updateSelection(configurable: NamedConfigurable<*>?) {
     super.updateSelection(configurable)
-    saveUiState()
-    myHistory.pushQueryPlace()
+    if (!inQuietSelection) {
+      saveUiState()
+      myHistory.pushQueryPlace()
+    }
   }
 
   override fun restoreUiState() {
-    val lastEditedItem = uiSettings.getLastEditedItem()
-    if (lastEditedItem != null) {
-      val configurableNode = findConfigurableNode(lastEditedItem)
-      if (configurableNode != null) {
-        inQuietSelection = true
-        try {
-          selectNode(configurableNode)
-        } finally {
-          inQuietSelection = false
-        }
+    val configurableNode = uiSettings.getLastEditedItem()?.let { findConfigurableNode(it) } ?: findFirstLeafConfigurableNode()
+    if (configurableNode != null) {
+      inQuietSelection = true
+      try {
+        selectNode(configurableNode)
+      }
+      finally {
+        inQuietSelection = false
       }
     }
   }

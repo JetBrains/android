@@ -76,9 +76,11 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     }
 
     CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
-      .setSession(mySession)
-      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMin()))
-      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMax()));
+                                                                                 .setSession(mySession)
+                                                                                 .setStartTimestamp(
+                                                                                   TimeUnit.MICROSECONDS.toNanos((long)myRange.getMin()))
+                                                                                 .setEndTimestamp(
+                                                                                   TimeUnit.MICROSECONDS.toNanos((long)myRange.getMax()));
     CpuServiceGrpc.CpuServiceBlockingStub client = myStage.getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.GetThreadsResponse response = client.getThreads(request.build());
 
@@ -166,7 +168,8 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
   void buildImportedTraceThreads(@NotNull CpuCapture capture) {
     // Create the RangedCpuThread objects from the capture's threads
     List<RangedCpuThread> threads = capture.getThreads().stream()
-      .map(thread -> new RangedCpuThread(myRange, thread.getId(), thread.getName(), capture)).collect(Collectors.toList());
+                                           .map(thread -> new RangedCpuThread(myRange, thread.getId(), thread.getName(), capture))
+                                           .collect(Collectors.toList());
     // Now insert the elements in order.
     threads.forEach(this::insertOrderedElement);
     sortElements();
@@ -212,7 +215,8 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
       myModel = new StateChartModel<>();
       if (capture == null) {
         // Capture is null for non-imported traces
-        ThreadStateDataSeries threadStateDataSeries = new ThreadStateDataSeries(myStage, mySession, myThreadId);
+        ThreadStateDataSeries threadStateDataSeries =
+          new ThreadStateDataSeries(myStage.getStudioProfilers().getClient().getCpuClient(), mySession, myThreadId);
         myAtraceDataSeries = new AtraceDataSeries<>(myStage, (atraceCapture) -> atraceCapture.getThreadStatesForThread(myThreadId));
         mySeries = new MergeCaptureDataSeries<>(myStage, threadStateDataSeries, myAtraceDataSeries);
         // For non-imported traces, the main thread ID is equal to the process ID of the current session

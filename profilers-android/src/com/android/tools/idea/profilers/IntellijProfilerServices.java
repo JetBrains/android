@@ -219,13 +219,8 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isJvmtiAgentEnabled() {
-        return StudioFlags.PROFILER_USE_JVMTI.get();
-      }
-
-      @Override
       public boolean isLiveAllocationsEnabled() {
-        return StudioFlags.PROFILER_USE_JVMTI.get() && StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get();
+        return StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get();
       }
 
       @Override
@@ -236,11 +231,6 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isMemorySnapshotEnabled() {
         return StudioFlags.PROFILER_MEMORY_SNAPSHOT.get();
-      }
-
-      @Override
-      public boolean isNetworkRequestPayloadEnabled() {
-        return StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get();
       }
 
       @Override
@@ -261,11 +251,6 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isSessionsEnabled() {
         return StudioFlags.PROFILER_SHOW_SESSIONS.get();
-      }
-
-      @Override
-      public boolean isSimpleperfEnabled() {
-        return StudioFlags.PROFILER_USE_SIMPLEPERF.get();
       }
 
       @Override

@@ -54,6 +54,6 @@ public class AndroidDataSourceStorage implements PersistentStateComponent<Androi
 
   public static class State {
     @XCollection(propertyElementName = "data-sources")
-    public List<AndroidDataSource.State> myDataSources = new SmartList<>();
+    public final List<AndroidDataSource.State> myDataSources = new SmartList<>();
   }
 }

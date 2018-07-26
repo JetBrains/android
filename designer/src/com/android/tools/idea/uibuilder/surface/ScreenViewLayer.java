@@ -23,6 +23,7 @@ import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.RenderResult;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.UIUtil;
@@ -52,21 +53,18 @@ public class ScreenViewLayer extends Layer {
   /**
    * Cached scaled image
    */
-  @Nullable private BufferedImage myScaledDownImage;
+  @Nullable private BufferedImage myCachedVisibleImage;
   /**
    * Cached last render result
    */
   @Nullable private RenderResult myLastRenderResult;
-  /**
-   * The scale at which we cached the scaled image
-   */
-  private double myCachedScale;
 
   private final ScheduledExecutorService myScheduledExecutorService;
   private final RescaleRunnable myRescaleRunnable = new RescaleRunnable();
   @Nullable private ScheduledFuture<?> myScheduledFuture;
-  private Rectangle mySizeRectangle = new Rectangle();
-  private Dimension myScreenViewSize = new Dimension();
+  private final Rectangle myScreenViewVisibleSize = new Rectangle();
+  private final Dimension myScreenViewSize = new Dimension();
+  private final Rectangle myCachedScreenViewDisplaySize = new Rectangle();
 
   /**
    * Create a new ScreenView
@@ -94,78 +92,99 @@ public class ScreenViewLayer extends Layer {
     Disposer.register(screenView.getSurface(), this);
   }
 
-  @Override
-  public void paint(@NotNull Graphics2D g) {
-    myScreenViewSize = myScreenView.getSize(myScreenViewSize);
+  /**
+   * Renders a preview image trying to reuse the existing buffer when possible.
+   */
+  @NotNull
+  private static BufferedImage getPreviewImage(@NotNull GraphicsConfiguration configuration,
+                                               @NotNull ImagePool.Image renderedImage,
+                                               int screenViewX, int screenViewY,
+                                               @NotNull Rectangle screenViewVisibleSize,
+                                               double xScaleFactor, double yScaleFactor,
+                                               @Nullable BufferedImage existingBuffer) {
+    // Extract from the result image only the visible rectangle. The result image might be bigger or smaller than the actual ScreenView
+    // size so we need to also rescale.
+    int sx1 = (int)Math.round((screenViewVisibleSize.x - screenViewX) * xScaleFactor);
+    int sy1 = (int)Math.round((screenViewVisibleSize.y - screenViewY) * yScaleFactor);
+    int sx2 = sx1 + (int)Math.round(screenViewVisibleSize.width * xScaleFactor);
+    int sy2 = sy1 + (int)Math.round(screenViewVisibleSize.height * yScaleFactor);
+    BufferedImage image;
+    if (existingBuffer != null &&
+        existingBuffer.getWidth() == screenViewVisibleSize.width &&
+        existingBuffer.getHeight() == screenViewVisibleSize.height) {
+      image = existingBuffer;
+    }
+    else {
+      image = configuration.createCompatibleImage(screenViewVisibleSize.width, screenViewVisibleSize.height, Transparency.TRANSLUCENT);
+      assert image != null;
+    }
+    Graphics2D cacheImageGraphics = image.createGraphics();
+    cacheImageGraphics.setRenderingHints(HQ_RENDERING_HINTS);
+    renderedImage.drawImageTo(cacheImageGraphics,
+                                   0, 0, image.getWidth(), image.getHeight(),
+                                   sx1, sy1, sx2, sy2);
+    cacheImageGraphics.dispose();
 
-    mySizeRectangle.setBounds(myScreenView.getX(), myScreenView.getY(),
-                              myScreenViewSize.width, myScreenViewSize.height);
-    Rectangle2D.intersect(mySizeRectangle, g.getClipBounds(), mySizeRectangle);
-    if (mySizeRectangle.isEmpty()) {
+    return image;
+  }
+
+  @Override
+  public void paint(@NotNull Graphics2D graphics2D) {
+    myScreenView.getSize(myScreenViewSize);
+    // Calculate the portion of the screen view that it's visible
+    myScreenViewVisibleSize.setBounds(myScreenView.getX(), myScreenView.getY(),
+                                      myScreenViewSize.width, myScreenViewSize.height);
+    Rectangle2D.intersect(myScreenViewVisibleSize, graphics2D.getClipBounds(), myScreenViewVisibleSize);
+    if (myScreenViewVisibleSize.isEmpty()) {
       return;
     }
 
+    // In some cases, we will try to re-use the previous image to paint on top of it, assuming that it still matches the right dimensions.
+    // This way we can save the allocation.
+    BufferedImage previousVisibleImage = null;
     RenderResult renderResult = myScreenView.getResult();
     if (renderResultHasChanged(renderResult)) {
       myLastRenderResult = renderResult;
-      myCachedScale = -1; // reset the scale to be sure that a new scaled image is requested when the result has changed
+      previousVisibleImage = myCachedVisibleImage;
+      myCachedVisibleImage = null;
     }
 
     if (myLastRenderResult == null) {
       return;
     }
 
-    Shape prevClip = null;
+    Graphics2D g = (Graphics2D) graphics2D.create();
     Shape screenShape = myScreenView.getScreenShape();
     if (screenShape != null) {
-      prevClip = g.getClip();
       g.clip(screenShape);
     }
 
-    double scale = myScreenView.getScale();
-    if (scale != myCachedScale) {
-      myCachedScale = scale;
-      myScaledDownImage = null;
-      if (myCachedScale < 1.0) {
+    BufferedImage cachedVisibleImage = myCachedVisibleImage;
+    if (cachedVisibleImage == null || !myScreenViewVisibleSize.equals(myCachedScreenViewDisplaySize)) {
+      int resultImageWidth = myLastRenderResult.getRenderedImage().getWidth();
+      int resultImageHeight = myLastRenderResult.getRenderedImage().getHeight();
+
+      myCachedScreenViewDisplaySize.setBounds(myScreenViewVisibleSize);
+      // Obtain the factors to convert from screen view coordinates to our result image coordinates
+      double xScaleFactor = (double)resultImageWidth / myScreenViewSize.width;
+      double yScaleFactor = (double)resultImageHeight / myScreenViewSize.height;
+      if (xScaleFactor > 1.0 && yScaleFactor > 1.0) {
+        // This means that the result image is bigger than the ScreenView by more than a 20%. For this cases, we need to scale down the
+        // result image to make it fit in the ScreenView and we use a higher quality (but slow) process. We will issue a request to obtain
+        // the high quality version but paint the low quality version below. Once it's ready, we'll repaint.
         requestHighQualityScaledImage();
       }
-    }
 
-    RenderingHints hints = g.getRenderingHints();
-    if (myScaledDownImage != null && myCachedScale < 1.0) {
-      drawScaledDownImage(g, myScreenView.getX(), myScreenView.getY(), myScaledDownImage);
-    }
-    else {
-      drawImage(g, myScreenView.getX(), myScreenView.getY(), myCachedScale, myLastRenderResult);
-    }
-    g.setRenderingHints(hints);
+      cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(),
+                                             myLastRenderResult.getRenderedImage(),
+                                             myScreenView.getX(), myScreenView.getY(),
+                                             myScreenViewVisibleSize, xScaleFactor, yScaleFactor,
+                                             previousVisibleImage);
+      myCachedVisibleImage = cachedVisibleImage;
 
-    if (prevClip != null) {
-      g.setClip(prevClip);
     }
-  }
-
-  /**
-   * Draw the scaled down image in high quality
-   */
-  private static void drawScaledDownImage(@NotNull Graphics2D g,
-                                          int x, int y,
-                                          @NotNull BufferedImage scaledDownImage) {
-    g.setRenderingHints(HQ_RENDERING_HINTS);
-    UIUtil.drawImage(g, scaledDownImage, x, y, null);
-  }
-
-  private static void drawImage(@NotNull Graphics2D g,
-                                int x, int y,
-                                double scale,
-                                @NotNull RenderResult renderResult) {
-    // If the image is being scaled down or the image needs to be only scaled up, we can directly draw
-    // the image
-    g.setRenderingHints(HQ_RENDERING_HINTS);
-    ImagePool.Image image = renderResult.getRenderedImage();
-    image.drawImageTo(g, x, y,
-                        (int)Math.round(image.getWidth() * scale),
-                        (int)Math.round(image.getHeight() * scale));
+    UIUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleSize.x, myScreenViewVisibleSize.y, null);
+    g.dispose();
   }
 
   /**
@@ -176,6 +195,12 @@ public class ScreenViewLayer extends Layer {
    */
   private boolean renderResultHasChanged(@Nullable RenderResult renderResult) {
     return renderResult != null && renderResult.hasImage() && renderResult != myLastRenderResult;
+  }
+
+  private void cancelHighQualityScaleRequests() {
+    if (myScheduledFuture != null && !myScheduledFuture.isDone()) {
+      myScheduledFuture.cancel(false);
+    }
   }
 
   /**
@@ -193,9 +218,7 @@ public class ScreenViewLayer extends Layer {
    * </pre>
    */
   private void requestHighQualityScaledImage() {
-    if (myScheduledFuture != null && !myScheduledFuture.isDone()) {
-      myScheduledFuture.cancel(false);
-    }
+    cancelHighQualityScaleRequests();
     try {
       myScheduledFuture = myScheduledExecutorService.schedule(myRescaleRunnable, REQUEST_SCALE_DEBOUNCE_TIME_IN_MS, TimeUnit.MILLISECONDS);
     }
@@ -212,6 +235,38 @@ public class ScreenViewLayer extends Layer {
     myScheduledExecutorService.shutdown();
   }
 
+  @Nullable
+  static BufferedImage scaleOriginalImage(@Nullable GraphicsConfiguration gc,
+                                  @NotNull ImagePool.Image image,
+                                  @NotNull ScreenView screenView,
+                                  @NotNull Dimension screenViewSize,
+                                  @NotNull Rectangle screenViewVisibleSize) {
+    // Obtain the factors to convert from screen view coordinates to our result image coordinates
+    double xScaleFactor = (double)image.getWidth() / screenViewSize.width;
+    double yScaleFactor = (double)image.getHeight() / screenViewSize.height;
+
+    // Extract from the result image only the visible rectangle. The result image might be bigger or smaller than the actual ScreenView
+    // size so we need to also rescale.
+    int sx = (int)Math.round((screenViewVisibleSize.x - screenView.getX()) * xScaleFactor);
+    int sy = (int)Math.round((screenViewVisibleSize.y - screenView.getY()) * yScaleFactor);
+    int sw = (int)Math.round(screenViewVisibleSize.width * xScaleFactor);
+    int sh = (int)Math.round(screenViewVisibleSize.height * yScaleFactor);
+
+    BufferedImage imageCopy = gc != null ? image.getCopy(gc, sx, sy, sw, sh) : image.getCopy(sx, sy, sw, sh);
+    if (imageCopy == null) {
+      return null;
+    }
+
+    BufferedImage scaledImage = null;
+    if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
+      scaledImage = getRetinaScaledImage(imageCopy, 1 / xScaleFactor, 1 / yScaleFactor, false);
+    }
+    if (scaledImage == null) {
+      scaledImage = ImageUtils.scale(imageCopy, 1 / xScaleFactor, 1 / yScaleFactor);
+    }
+    return scaledImage;
+  }
+
   /**
    * Implementation of {@link Runnable} to do a high quality scaling of {@link RenderResult} image in background.
    * When the scaling is done, the {@link DesignSurface} will be repainted.
@@ -222,7 +277,7 @@ public class ScreenViewLayer extends Layer {
     @Nullable private final GraphicsConfiguration myGc;
 
     private RescaleRunnable() {
-      if (!GraphicsEnvironment.isHeadless()) {
+      if (!ApplicationManager.getApplication().isHeadlessEnvironment()) {
         // Save the graphics context to create image copies that match the screen configuration. This
         // way, we avoid Swing making additional copies of large bitmaps to transform them to the right
         // configuration.
@@ -237,52 +292,36 @@ public class ScreenViewLayer extends Layer {
 
     @Override
     public void run() {
-      scaleOriginalImage();
-    }
-
-    private void scaleOriginalImage() {
-      myScaledDownImage = null;
+      myCachedVisibleImage = null;
       if (myLastRenderResult == null) {
         return;
       }
-      ImagePool.Image image = myLastRenderResult.getRenderedImage();
-      if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
-        myScaledDownImage = getRetinaScaledImage(image, myGc, myCachedScale, false);
-      }
-      if (myScaledDownImage == null) {
-        BufferedImage imageCopy = myGc != null ? image.getCopy(myGc) : image.getCopy();
-        myScaledDownImage = ImageUtils.scale(imageCopy, myCachedScale);
-      }
+
+      myCachedVisibleImage = scaleOriginalImage(myGc,
+                         myLastRenderResult.getRenderedImage(),
+                         myScreenView,
+                         myScreenViewSize,
+                         myScreenViewVisibleSize);
+
       UIUtil.invokeLaterIfNeeded(
         () -> myScreenView.getSurface().repaint());
     }
   }
 
   @Nullable
-  private static BufferedImage getRetinaScaledImage(@NotNull ImagePool.Image pooledImage,
-                                                    @Nullable GraphicsConfiguration gc,
-                                                    double scale,
+  private static BufferedImage getRetinaScaledImage(@NotNull BufferedImage original,
+                                                    double scaleX,
+                                                    double scaleY,
                                                     boolean fastScaling) {
-    if (scale > 1.01) {
-      // When scaling up significantly, use normal painting logic; no need to pixel double into a
-      // double res image buffer!
-      return null;
-    }
-
-    BufferedImage original = gc != null ? pooledImage.getCopy(gc) : pooledImage.getCopy();
-    if (original == null) {
-      return null;
-    }
-
     // No scaling if very close to 1.0 (we check for 0.5 since we're doubling the output)
-    if (Math.abs(scale - 0.5) > 0.001) {
-      double retinaScale = 2 * scale;
-      if (fastScaling) {
-        original = ImageUtils.lowQualityFastScale(original, retinaScale, retinaScale);
-      }
-      else {
-        original = ImageUtils.scale(original, retinaScale, retinaScale);
-      }
+    double xRetinaScale = 2 * scaleX;
+    double yRetinaScale = 2 * scaleY;
+
+    if (fastScaling) {
+      original = ImageUtils.lowQualityFastScale(original, xRetinaScale, yRetinaScale);
+    }
+    else {
+      original = ImageUtils.scale(original, xRetinaScale, yRetinaScale);
     }
 
     return ImageUtils.convertToRetina(original);

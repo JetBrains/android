@@ -104,7 +104,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                                            @NotNull IDevice device,
                                            long deviceId) {
     // --attach-agent flag was introduced from android API level 27.
-    if (!StudioFlags.PROFILER_USE_JVMTI.get() || device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O_MR1) {
+    if (device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O_MR1) {
       return "";
     }
     Profiler.ConfigureStartupAgentResponse response = profilerService.getProfilerClient().getProfilerClient()

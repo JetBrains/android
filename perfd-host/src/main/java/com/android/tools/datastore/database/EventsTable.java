@@ -91,7 +91,7 @@ public class EventsTable extends DataStoreTable<EventsTable.EventStatements> {
     catch (SQLException ex) {
       onError(ex);
     }
-    return null;
+    return new ArrayList<>();
   }
 
   public void insertOrReplace(long id, Common.Session session, EventProfiler.SystemData activity) {
@@ -117,7 +117,7 @@ public class EventsTable extends DataStoreTable<EventsTable.EventStatements> {
     return events;
   }
 
-  private List<EventProfiler.ActivityData> getActivityDataFromResultSet(ResultSet results) {
+  private static List<EventProfiler.ActivityData> getActivityDataFromResultSet(ResultSet results) {
     List<EventProfiler.ActivityData> activities = new ArrayList<>();
     try {
       while (results.next()) {

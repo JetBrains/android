@@ -27,6 +27,7 @@ import org.mockito.Mock;
 
 import java.io.IOException;
 
+import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
 import static com.android.tools.idea.testing.ProjectFiles.createFile;
 import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -68,5 +69,17 @@ public class GeneratedFileNotificationProviderTest extends IdeaTestCase {
 
     // Ensure that "excluded" files are not ignored.
     verify(myProjectInfo).findAndroidModelInModule(file, false);
+  }
+
+  public void testNotificationCanBeDisabledWithKey() throws Exception {
+    VirtualFile buildFolder = createFolderInProjectRoot(getProject(), "build");
+    VirtualFile file = createFile(buildFolder, "test.txt");
+
+    when(myProjectInfo.findAndroidModelInModule(file, false)).thenReturn(myAndroidModuleModel);
+    when(myAndroidProject.getBuildFolder()).thenReturn(virtualToIoFile(buildFolder));
+    when(myFileEditor.getUserData(DISABLE_GENERATED_FILE_NOTIFICATION_KEY)).thenReturn(Boolean.TRUE);
+
+    MyEditorNotificationPanel panel = (MyEditorNotificationPanel)myNotificationProvider.createNotificationPanel(file, myFileEditor);
+    assertNull(panel);
   }
 }

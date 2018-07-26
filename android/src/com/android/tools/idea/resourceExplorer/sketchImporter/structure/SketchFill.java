@@ -16,18 +16,28 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
 public class SketchFill {
   private final boolean isEnabled;
   private final Color color;
+  /**
+   * Flat Color: 0
+   * Gradient: 1
+   */
   private final short fillType;
+  private final SketchGradient gradient;
 
-  public SketchFill(boolean isEnabled, @NotNull Color color, short fillType) {
+  public SketchFill(boolean isEnabled,
+                    @NotNull Color color,
+                    short fillType,
+                    @Nullable SketchGradient gradient) {
     this.isEnabled = isEnabled;
     this.color = color;
     this.fillType = fillType;
+    this.gradient = gradient;
   }
 
   public boolean isEnabled() {
@@ -40,5 +50,9 @@ public class SketchFill {
 
   public short getFillType() {
     return fillType;
+  }
+
+  public SketchGradient getGradient() {
+    return gradient;
   }
 }

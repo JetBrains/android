@@ -37,10 +37,9 @@ private val DEFAULT_IMAGE_SIZE = JBUI.scale(48)
 private val EMPTY_ICON_COLOR = JBColor(Color(0xAA, 0xAA, 0xAA, 0x33),
                                        Color(0xAA, 0xAA, 0xAA, 0x33))
 private val ITEM_BORDER = JBUI.Borders.empty(ITEM_BORDER_WIDTH)
-private val ITEM_BORDER_SELECTED = JBUI.Borders.merge(
-  JBUI.Borders.customLine(UIUtil.getListBackground(true), ITEM_SELECTED_BORDER_WIDTH),
+private val ITEM_BORDER_SELECTED = BorderFactory.createCompoundBorder(
   JBUI.Borders.empty(ITEM_BORDER_WIDTH - ITEM_SELECTED_BORDER_WIDTH),
-  true)
+  JBUI.Borders.customLine(UIUtil.getListBackground(true), ITEM_SELECTED_BORDER_WIDTH))
 
 /**
  * Component that displays [ResourceValue] in a grid.
@@ -63,7 +62,7 @@ open class DrawableGrid(val module: Module,
     super.setSelectionInterval(anchor, lead)
   }
 
-  fun setImageSize(drawableSize: Int) {
+  private fun setImageSize(drawableSize: Int) {
     fixedCellWidth = drawableSize + ITEM_BORDER_WIDTH * 2
     fixedCellHeight = fixedCellWidth
     cellRenderer = DrawableCellRenderer(module, drawableSize, cacheSize)
@@ -75,17 +74,20 @@ open class DrawableGrid(val module: Module,
 }
 
 internal class DrawableCellRenderer(private val module: Module,
-                                    private val imageSize: Int,
+                                    imageSize: Int,
                                     cacheSize: Long = DEFAULT_CACHE_SIZE)
   : ListCellRenderer<ResourceValue> {
 
+  private val imageDimension = Dimension(imageSize, imageSize)
   private var emptyIcon = ColorIcon(imageSize, EMPTY_ICON_COLOR)
   private val disabledComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f)
   private val cache = CacheBuilder.newBuilder()
     .softValues()
     .maximumSize(cacheSize)
     .build<ResourceValue, Icon>()
-  private val label = JLabel()
+  private val label = JLabel().apply {
+    horizontalAlignment = JLabel.CENTER
+  }
 
   private fun createDisabledIcon(imageIcon: ImageIcon) = object : Icon by imageIcon {
     override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) {
@@ -124,7 +126,7 @@ internal class DrawableCellRenderer(private val module: Module,
 
     val image = DesignAssetRendererManager.getInstance()
       .getViewer(file)
-      .getImage(file, module, JBUI.size(imageSize))
+      .getImage(file, module, imageDimension)
 
     image.addListener(Runnable {
       if (!image.isCancelled) {

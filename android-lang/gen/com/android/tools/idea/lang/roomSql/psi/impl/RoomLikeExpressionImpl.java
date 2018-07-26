@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomLikeExpressionImpl extends RoomExpressionImpl implements RoomLikeExpression {
 
-  public RoomLikeExpressionImpl(ASTNode node) {
+  public RoomLikeExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

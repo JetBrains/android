@@ -48,6 +48,13 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
     presentation.setText(title);
     presentation.setDescription(description);
     presentation.setIcon(icon != null ? icon : EmptyIcon.ICON_0);
+    if (icon != null) {
+      presentation.setIcon(icon);
+    }
+    else {
+      presentation.setIcon(EmptyIcon.ICON_0);
+      presentation.setDisabledIcon(EmptyIcon.ICON_0);
+    }
   }
 
   @Override

@@ -27,9 +27,3 @@ interface PsResolvedDependency : PsBaseDependency {
   fun getParsedModels(): List<DependencyModel> = declaredDependencies.map { it.parsedModel }
   override val joinedConfigurationNames: String get() = declaredDependencies.joinToString(separator = ", ") { it.configurationName }
 }
-
-abstract class PsDependency protected constructor() : PsChildModel(), PsBaseDependency {
-  enum class TextType {
-    PLAIN_TEXT, FOR_NAVIGATION
-  }
-}

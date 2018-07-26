@@ -190,7 +190,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ResolvedPropertyModel flavorDimensions() {
-    return getModelForProperty(FLAVOR_DIMENSIONS);
+    return getModelForProperty(FLAVOR_DIMENSIONS, true);
   }
 
   @Override

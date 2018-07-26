@@ -40,13 +40,16 @@ android {
 
     defaultConfig {
         applicationId "com.example.psd.sample.app.default"
+        applicationIdSuffix "defaultSuffix"
         testApplicationId "com.example.psd.sample.app.default.test"
         maxSdkVersion 26
         minSdkVersion 9
         targetSdkVersion(19)
         versionCode 1
         versionName "1.0"
+        versionNameSuffix "vns"
         manifestPlaceholders = [aa: "aaa", bb: "bbb", "cc": 'ccc']
+        testFunctionalTest false
     }
     buildTypes {
         release {
@@ -61,6 +64,7 @@ android {
         }
         specialRelease {
             matchingFallbacks = ['release', 'debug']
+            versionNameSuffix "vnsSpecial"
         }
     }
     flavorDimensions 'foo', 'bar'
@@ -78,14 +82,20 @@ android {
             targetSdkVersion(20)
             versionCode 2
             versionName "2.0"
+            versionNameSuffix "vnsFoo"
             testInstrumentationRunnerArguments = ["a": "AAA", "b": "BBB", c: 'CCC']
+            testHandleProfiling true
+            testFunctionalTest true
         }
         bar {
             dimension "bar"
+            applicationIdSuffix "barSuffix"
         }
         otherBar {
             dimension "bar"
             matchingFallbacks = ["bar"]
+            resConfig "en"
+            resConfigs "hdpi", "xhdpi"
         }
     }
 }

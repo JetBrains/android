@@ -87,6 +87,32 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .containsExactly("foo", "bar", "new").inOrder()
   }
 
+  fun testAddFirstFlavorDimension() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    var appModule = moduleWithSyncedModel(project, "lib")
+    assertNotNull(appModule)
+
+    appModule.addNewFlavorDimension("bar")
+    // A product flavor is required for successful sync.
+    val bar = appModule.addNewProductFlavor("bar")
+    bar.dimension = ParsedValue.Set.Parsed("bar", DslText.Literal)
+    val otherBar = appModule.addNewProductFlavor("otherBar")
+    otherBar.dimension = ParsedValue.Set.Parsed("bar", DslText.Literal)
+    appModule.applyChanges()
+
+    requestSyncAndWait()
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+    appModule = moduleWithSyncedModel(project, "lib")
+    assertNotNull(appModule)
+
+    val flavorDimensions = getFlavorDimensions(appModule)
+    assertThat(flavorDimensions).containsExactly("bar")
+  }
+
   fun testRemoveFlavorDimension() {
     loadProject(PSD_SAMPLE)
 
@@ -358,22 +384,22 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     val paidDebug = appModule.findVariant("paidDebug")
     assertNotNull(paidDebug)
-    var flavors = paidDebug!!.productFlavors
+    var flavors = paidDebug!!.productFlavorNames
     assertThat(flavors).containsExactly("paid")
 
     val paidRelease = appModule.findVariant("paidRelease")
     assertNotNull(paidRelease)
-    flavors = paidRelease!!.productFlavors
+    flavors = paidRelease!!.productFlavorNames
     assertThat(flavors).containsExactly("paid")
 
     val basicDebug = appModule.findVariant("basicDebug")
     assertNotNull(basicDebug)
-    flavors = basicDebug!!.productFlavors
+    flavors = basicDebug!!.productFlavorNames
     assertThat(flavors).containsExactly("basic")
 
     val basicRelease = appModule.findVariant("basicRelease")
     assertNotNull(basicRelease)
-    flavors = basicRelease!!.productFlavors
+    flavors = basicRelease!!.productFlavorNames
     assertThat(flavors).containsExactly("basic")
   }
 
@@ -677,8 +703,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
 private fun moduleWithoutSyncedModel(project: PsProject, name: String): PsAndroidModule {
   val moduleWithSyncedModel = project.findModuleByName(name) as PsAndroidModule
-  return PsAndroidModule(project, moduleWithSyncedModel.gradlePath!!).apply {
-    init(moduleWithSyncedModel.name, null, moduleWithSyncedModel.parsedModel)
+  return PsAndroidModule(project, moduleWithSyncedModel.gradlePath).apply {
+    init(moduleWithSyncedModel.name, null, null, moduleWithSyncedModel.parsedModel)
   }
 }
 
