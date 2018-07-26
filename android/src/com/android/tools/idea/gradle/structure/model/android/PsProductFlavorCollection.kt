@@ -15,29 +15,47 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.tools.idea.gradle.structure.model.meta.asString
+
 internal class PsProductFlavorCollection(parent: PsAndroidModule)
-  : PsMutableCollectionBase<PsProductFlavor, String, PsAndroidModule>(parent) {
-  override fun getKeys(from: PsAndroidModule): Set<String> {
-    val result = mutableSetOf<String>()
-    result.addAll(from.parsedModel?.android()?.productFlavors()?.map { it.name() }.orEmpty())
-    result.addAll(from.resolvedModel?.androidProject?.productFlavors?.map { it.productFlavor.name }.orEmpty())
+  : PsMutableCollectionBase<PsProductFlavor, PsProductFlavorKey, PsAndroidModule>(parent) {
+  override fun getKeys(from: PsAndroidModule): Set<PsProductFlavorKey> {
+    val result = mutableSetOf<PsProductFlavorKey>()
+    // If there is only one dimension and a product flavor is not configured with any dimension it is assumed to belong to the available
+    // one.
+    val silentDimension =
+      from.parsedModel?.android()?.flavorDimensions()?.toList()?.takeIf { it.size == 1 }?.let { it[0]?.toString() }.orEmpty()
+    result.addAll(
+      from.parsedModel?.android()
+        ?.productFlavors()
+        ?.map { PsProductFlavorKey(it.dimension().asString() ?: silentDimension, it.name()) }.orEmpty())
+    result.addAll(
+      from.resolvedModel?.androidProject
+        ?.productFlavors
+        ?.map { PsProductFlavorKey(it.productFlavor.dimension.orEmpty(), it.productFlavor.name) }.orEmpty())
     return result
   }
 
-  override fun create(key: String): PsProductFlavor = PsProductFlavor(parent)
+  override fun create(key: PsProductFlavorKey): PsProductFlavor = PsProductFlavor(parent)
 
-  override fun update(key: String, model: PsProductFlavor) {
+  override fun update(key: PsProductFlavorKey, model: PsProductFlavor) {
     model.init(
-      parent.resolvedModel?.androidProject?.productFlavors?.map { it.productFlavor }?.firstOrNull { it.name == key },
-      parent.parsedModel?.android()?.productFlavors()?.firstOrNull { it.name() == key }
+      parent.resolvedModel?.androidProject?.productFlavors?.map { it.productFlavor }?.firstOrNull { it.name == key.name },
+      parent.parsedModel?.android()?.productFlavors()?.firstOrNull { it.name() == key.name }
     )
   }
 
-  override fun instantiateNew(key: String) {
-    parent.parsedModel!!.android()!!.addProductFlavor(key)
+  override fun instantiateNew(key: PsProductFlavorKey) {
+    parent
+      .parsedModel!!
+      .android()
+      .addProductFlavor(key.name)
+      .also {
+        it.dimension().setValue(key.dimension)
+      }
   }
 
-  override fun removeExisting(key: String) {
-    parent.parsedModel!!.android()!!.removeProductFlavor(key)
+  override fun removeExisting(key: PsProductFlavorKey) {
+    parent.parsedModel!!.android().removeProductFlavor(key.name)
   }
 }
