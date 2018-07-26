@@ -27,7 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PointDeserializer implements JsonDeserializer<SketchPoint2D> {
-  static final Pattern pattern = Pattern.compile("\\{([+-]?[0-9.]+),\\s*([+-]?[0-9.]+)}");
+  static final Pattern pattern = Pattern.compile("\\{([+-]?[0-9.]+e?[+-]?[0-9]*),\\s*([+-]?[0-9.]+e?[+-]?[0-9]*)}");
 
   @Override
   public SketchPoint2D deserialize(@NotNull JsonElement json,
@@ -39,7 +39,10 @@ public class PointDeserializer implements JsonDeserializer<SketchPoint2D> {
     Matcher matcher = pattern.matcher(positionString);
 
     if (matcher.matches()) {
-      return new SketchPoint2D(Double.parseDouble(matcher.group(1)), Double.parseDouble(matcher.group(2)));
+      double x = matcher.group(1).contains("e-") ? 0 : Double.parseDouble(matcher.group(1));
+      double y = matcher.group(2).contains("e-") ? 0 : Double.parseDouble(matcher.group(2));
+
+      return new SketchPoint2D(x, y);
     }
     else {
       Logger.getInstance(PointDeserializer.class).warn("Bad point format: " + positionString);
