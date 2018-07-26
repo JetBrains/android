@@ -40,7 +40,7 @@ open class PsVariant(
   var resolvedModel: IdeVariant? = null ; private set
   private var myArtifactCollection: PsAndroidArtifactCollection? = null
 
-  val artifacts: Collection<PsAndroidArtifact> get() = artifactCollection.items()
+  val artifacts: Collection<PsAndroidArtifact> get() = artifactCollection
   open val buildType: PsBuildType get() = parent.findBuildType(buildTypeName)!!
 
   internal fun init(resolvedModel: IdeVariant?) {
