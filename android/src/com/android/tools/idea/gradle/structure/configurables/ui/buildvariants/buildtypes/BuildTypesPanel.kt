@@ -67,7 +67,7 @@ class BuildTypesPanel(
                   override fun canClose(inputString: String?): Boolean = !inputString.isNullOrBlank()
                 })
             if (newName != null) {
-              val (_, node) = treeModel.createBuildType(newName)
+              val node = treeModel.createBuildType(newName)
               tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
             }
           }

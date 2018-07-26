@@ -28,11 +28,10 @@ class SigningConfigsTreeModel(
     rootNode: DefaultMutableTreeNode
 ) : ConfigurablesTreeModel(module, rootNode) {
 
-  fun createSigningConfig(newName: String): Pair<SigningConfigConfigurable, DefaultMutableTreeNode> {
+  fun createSigningConfig(newName: String): DefaultMutableTreeNode? {
     val signingConfig = module.addNewSigningConfig(newName)
     val configurable = SigningConfigConfigurable(signingConfig)
-    val node = createNode(rootNode, configurable)
-    return configurable to node
+    return createNode(rootNode, configurable)
   }
 
   fun removeSigningConfig(node: DefaultMutableTreeNode) {

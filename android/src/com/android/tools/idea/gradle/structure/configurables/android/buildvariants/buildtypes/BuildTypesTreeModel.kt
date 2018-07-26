@@ -16,7 +16,6 @@ package com.android.tools.idea.gradle.structure.configurables.android.buildvaria
 import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeModel
 import com.android.tools.idea.gradle.structure.configurables.NamedContainerConfigurableBase
 import com.android.tools.idea.gradle.structure.configurables.createConfigurablesTree
-import com.android.tools.idea.gradle.structure.configurables.listFromGenerator
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 import com.intellij.openapi.ui.NamedConfigurable
@@ -27,11 +26,10 @@ class BuildTypesTreeModel(
     rootNode: DefaultMutableTreeNode
 ) : ConfigurablesTreeModel(module, rootNode) {
 
-  fun createBuildType(newName: String): Pair<BuildTypeConfigurable, DefaultMutableTreeNode> {
+  fun createBuildType(newName: String): DefaultMutableTreeNode? {
     val buildType = module.addNewBuildType(newName)
     val configurable = BuildTypeConfigurable(buildType)
-    val node = createNode(rootNode, configurable)
-    return configurable to node
+    return createNode(rootNode, configurable)
   }
 
   fun removeBuildType(node: DefaultMutableTreeNode) {

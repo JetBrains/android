@@ -28,15 +28,14 @@ class ProductFlavorsTreeModel(
     rootNode: DefaultMutableTreeNode
 ) : ConfigurablesTreeModel(module, rootNode) {
 
-  fun createProductFlavor(newName: String, currentDimension: String?): Pair<ProductFlavorConfigurable, DefaultMutableTreeNode> {
+  fun createProductFlavor(newName: String, currentDimension: String?): DefaultMutableTreeNode? {
     val productFlavor = module.addNewProductFlavor(currentDimension.orEmpty(), newName)
     if (currentDimension != null) {
       productFlavor.dimension = ParsedValue.Set.Parsed(currentDimension, DslText.Literal)
     }
     val configurable = ProductFlavorConfigurable(productFlavor)
     // TODO: properly handle not found and pre 3.0
-    val node = createNode(findDimensionNode(currentDimension.orEmpty()) ?: rootNode, configurable)
-    return configurable to node
+    return createNode(findDimensionNode(currentDimension.orEmpty()) ?: rootNode, configurable)
   }
 
   fun removeProductFlavor(node: DefaultMutableTreeNode) {
@@ -46,11 +45,10 @@ class ProductFlavorsTreeModel(
     removeNodeFromParent(node)
   }
 
-  fun createFlavorDimension(newName: String): Pair<FlavorDimensionConfigurable, DefaultMutableTreeNode> {
+  fun createFlavorDimension(newName: String): DefaultMutableTreeNode? {
     val flavorDimension = module.addNewFlavorDimension(newName)
     val configurable = FlavorDimensionConfigurable(module, flavorDimension)
-    val node = createNode(rootNode, configurable)
-    return configurable to node
+    return createNode(rootNode, configurable)
   }
 
   fun removeFlavorDimension(node: DefaultMutableTreeNode) {
