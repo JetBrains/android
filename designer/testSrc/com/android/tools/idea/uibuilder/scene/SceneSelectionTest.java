@@ -24,6 +24,7 @@ import java.awt.event.InputEvent;
 import java.util.List;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 
 /**
@@ -55,7 +56,21 @@ public class SceneSelectionTest extends SceneTest {
                                        .width("5dp")
                                        .height("5dp")
                                        .withAttribute("tools:layout_editor_absoluteX", "100dp")
-                                       .withAttribute("tools:layout_editor_absoluteY", "500dp")
+                                       .withAttribute("tools:layout_editor_absoluteY", "500dp"),
+                                     component(LINEAR_LAYOUT)
+                                       .id("@id/linear")
+                                       .withBounds(1200, 1200, 500, 500)
+                                     .width("250dp")
+                                     .height("250dp")
+                                       .withAttribute("tools:layout_editor_absoluteX", "600dp")
+                                       .withAttribute("tools:layout_editor_absoluteY", "600dp")
+                                      .children(
+                                        component(TEXT_VIEW)
+                                          .id("@id/textView3")
+                                          .withBounds(1200, 1200, 200, 200)
+                                          .width("100dp")
+                                          .height("100dp")
+                                      )
                                    ));
     return builder;
   }
@@ -138,5 +153,12 @@ public class SceneSelectionTest extends SceneTest {
                  myScene.findComponent(SceneContext.get(myScreen.getScreen()), 101, 501));
     assertEquals(myScene.getSceneComponent(myScreen.findById("@id/root").getComponent()),
                  myScene.findComponent(SceneContext.get(myScreen.getScreen()), 101, 101));
+  }
+
+  public void testFindNestedComponent() {
+    assertEquals(myScene.getSceneComponent(myScreen.findById("@id/textView3").getComponent()),
+                 myScene.findComponent(SceneContext.get(myScreen.getScreen()), 601, 601));
+    assertEquals(myScene.getSceneComponent(myScreen.findById("@id/linear").getComponent()),
+                 myScene.findComponent(SceneContext.get(myScreen.getScreen()), 801, 801));
   }
 }

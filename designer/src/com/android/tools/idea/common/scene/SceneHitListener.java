@@ -77,6 +77,16 @@ class SceneHitListener implements ScenePicker.HitElementListener {
     }
     else if (over instanceof SceneComponent) {
       SceneComponent component = (SceneComponent)over;
+      if (myHitComponents.size() == 1) {
+        // Handle selection of nested component.
+        SceneComponent currentSelection = myHitComponents.get(0);
+        if (currentSelection.getChildren().contains(component)) {
+          myHitComponents.clear();
+          myHitComponents.add(component);
+          myClosestComponentDistance = dist;
+          return;
+        }
+      }
       if (dist < myClosestComponentDistance) {
         myHitComponents.clear();
         myHitComponents.add(component);
