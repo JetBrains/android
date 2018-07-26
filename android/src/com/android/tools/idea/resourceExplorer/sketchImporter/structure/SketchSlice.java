@@ -41,6 +41,7 @@ public class SketchSlice extends SketchLayer {
     this.hasBackgroundColor = hasBackgroundColor;
   }
 
+  @NotNull
   public Color getBackgroundColor() {
     return backgroundColor;
   }

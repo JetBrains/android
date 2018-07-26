@@ -24,8 +24,10 @@ public class SketchStyle {
   private final SketchBorder[] borders;
   /**
    * If this field does not exist, the default values are considered:
-   * blendMode: 0
-   * opacity: 1
+   * <ul>
+   * <li>blendMode: 0</li>
+   * <li>opacity: 1</li>
+   * </ul>
    */
   private final SketchGraphicContextSettings contextSettings;
   private final SketchColorControls colorControls;
@@ -52,22 +54,27 @@ public class SketchStyle {
     this.windingRule = windingRule;
   }
 
+  @Nullable
   public SketchBorderOptions getBorderOptions() {
     return borderOptions;
   }
 
+  @Nullable
   public SketchBorder[] getBorders() {
     return borders;
   }
 
+  @Nullable
   public SketchGraphicContextSettings getContextSettings() {
     return contextSettings;
   }
 
+  @Nullable
   public SketchColorControls getColorControls() {
     return colorControls;
   }
 
+  @Nullable
   public SketchFill[] getFills() {
     return fills;
   }
@@ -76,6 +83,7 @@ public class SketchStyle {
     return miterLimit;
   }
 
+  @Nullable
   public SketchShadow[] getShadows() {
     return shadows;
   }

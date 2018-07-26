@@ -25,19 +25,23 @@ public class SketchFill {
   private final Color color;
   private final SketchGraphicContextSettings contextSettings;
   /**
-   * Flat Color: 0
-   * Gradient: 1
-   * Pattern: 4 {NOT SUPPORTED}
-   * Noise: 5 {NOT SUPPORTED}
+   * <ul>
+   * <li>Flat Color: 0</li>
+   * <li>Gradient: 1</li>
+   * <li>Pattern: 4 {NOT SUPPORTED}</li>
+   * <li>Noise: 5 {NOT SUPPORTED}</li>
+   * </ul>
    */
   private final short fillType;
   private final SketchGradient gradient;
-  private final SketchMSJSONFileReference image;
+  private final SketchFileReference image;
   /**
-   * Original: 0
-   * Black: 1
-   * White: 2
-   * Color: 3
+   * <ul>
+   * <li>Original: 0</li>
+   * <li>Black: 1</li>
+   * <li>White: 2</li>
+   * <li>Color: 3</li>
+   * </ul>
    */
   private final int noiseIndex;
   /**
@@ -46,10 +50,12 @@ public class SketchFill {
    */
   private final int noiseIntensity;
   /**
-   * Tile: 0
-   * Fill: 1
-   * Stretch: 2
-   * Fit: 3
+   * <ul>
+   * <li>Tile: 0</li>
+   * <li>Fill: 1</li>
+   * <li>Stretch: 2</li>
+   * <li>Fit: 3</li>
+   * </ul>
    */
   private final short patternFillType;
   /**
@@ -62,7 +68,7 @@ public class SketchFill {
                     @Nullable SketchGraphicContextSettings contextSettings,
                     short fillType,
                     @Nullable SketchGradient gradient,
-                    @Nullable SketchMSJSONFileReference image,
+                    @Nullable SketchFileReference image,
                     int noiseIndex,
                     int noiseIntensity,
                     short patternFillType,
@@ -83,10 +89,12 @@ public class SketchFill {
     return isEnabled;
   }
 
+  @NotNull
   public Color getColor() {
     return color;
   }
 
+  @Nullable
   public SketchGraphicContextSettings getContextSettings() {
     return contextSettings;
   }
@@ -95,11 +103,13 @@ public class SketchFill {
     return fillType;
   }
 
+  @Nullable
   public SketchGradient getGradient() {
     return gradient;
   }
 
-  public SketchMSJSONFileReference getImage() {
+  @Nullable
+  public SketchFileReference getImage() {
     return image;
   }
 

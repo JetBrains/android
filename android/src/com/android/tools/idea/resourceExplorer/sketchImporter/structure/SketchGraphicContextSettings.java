@@ -17,22 +17,24 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
 public class SketchGraphicContextSettings {
   /**
-   * Normal: 0
-   * Darken: 1
-   * Multiply: 2
-   * Color Burn: 3
-   * Lighten: 4
-   * Screen: 5
-   * Color Dodge: 6
-   * Overlay: 7
-   * Soft Light: 8
-   * Hard Light: 9
-   * Difference: 10
-   * Exclusion: 11
-   * Hue: 12
-   * Saturation: 13
-   * Color: 14
-   * Luminosity: 15
+   * <ul>
+   * <li>Normal: 0</li>
+   * <li>Darken: 1</li>
+   * <li>Multiply: 2</li>
+   * <li>Color Burn: 3</li>
+   * <li>Lighten: 4</li>
+   * <li>Screen: 5</li>
+   * <li>Color Dodge: 6</li>
+   * <li>Overlay: 7</li>
+   * <li>Soft Light: 8</li>
+   * <li>Hard Light: 9</li>
+   * <li>Difference: 10</li>
+   * <li>Exclusion: 11</li>
+   * <li>Hue: 12</li>
+   * <li>Saturation: 13</li>
+   * <li>Color: 14</li>
+   * <li>Luminosity: 15</li>
+   * </ul>
    */
   private final short blendMode;
   /**

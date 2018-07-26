@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
+package com.android.tools.idea.resourceExplorer.sketchImporter;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchLayer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPoint2D;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.ColorDeserializer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.PointDeserializer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer;

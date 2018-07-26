@@ -118,25 +118,25 @@ class ParserTest {
     assertTrue(page.layers[1] is SketchShapeGroup)
     val style = (page.layers[1] as SketchShapeGroup).style
 
-    assertEquals(false, style.borderOptions.isEnabled)
-    assertEquals(2, style.borderOptions.lineCapStyle)
-    assertEquals(0, style.borderOptions.lineJoinStyle)
+    assertEquals(false, style.borderOptions?.isEnabled)
+    assertEquals(2, style.borderOptions?.lineCapStyle)
+    assertEquals(0, style.borderOptions?.lineJoinStyle)
 
-    assertEquals(true, style.borders[0].isEnabled)
-    assertEquals(255, style.borders[0].color.alpha)
-    assertEquals(151, style.borders[0].color.blue)
-    assertEquals(151, style.borders[0].color.green)
-    assertEquals(151, style.borders[0].color.red)
-    assertEquals(0, style.borders[0].fillType)
-    assertEquals(0, style.borders[0].position)
-    assertEquals(1, style.borders[0].thickness)
+    assertEquals(true, style.borders?.get(0)?.isEnabled)
+    assertEquals(255, style.borders?.get(0)?.color?.alpha)
+    assertEquals(151, style.borders?.get(0)?.color?.blue)
+    assertEquals(151, style.borders?.get(0)?.color?.green)
+    assertEquals(151, style.borders?.get(0)?.color?.red)
+    assertEquals(0, style.borders?.get(0)?.fillType)
+    assertEquals(0, style.borders?.get(0)?.position)
+    assertEquals(1, style.borders?.get(0)?.thickness)
 
-    assertEquals(false, style.fills[0].isEnabled)
-    assertEquals(255, style.fills[0].color.alpha)
-    assertEquals(216, style.fills[0].color.blue)
-    assertEquals(216, style.fills[0].color.green)
-    assertEquals(216, style.fills[0].color.red)
-    assertEquals(0, style.fills[0].fillType)
+    assertEquals(false, style.fills?.get(0)?.isEnabled)
+    assertEquals(255, style.fills?.get(0)?.color?.alpha)
+    assertEquals(216, style.fills?.get(0)?.color?.blue)
+    assertEquals(216, style.fills?.get(0)?.color?.green)
+    assertEquals(216, style.fills?.get(0)?.color?.red)
+    assertEquals(0, style.fills?.get(0)?.fillType)
   }
 
   @Test

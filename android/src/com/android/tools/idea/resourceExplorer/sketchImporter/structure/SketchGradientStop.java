@@ -15,17 +15,20 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.*;
 
 public class SketchGradientStop {
   private final Color color;
   private final int position;
 
-  public SketchGradientStop(Color color, int position) {
+  public SketchGradientStop(@NotNull Color color, int position) {
     this.color = color;
     this.position = position;
   }
 
+  @NotNull
   public Color getColor() {
     return color;
   }

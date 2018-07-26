@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
+import org.jetbrains.annotations.NotNull;
+
 public class SketchBlur {
   private final boolean isEnabled;
   private final SketchPoint2D center;
@@ -22,7 +24,7 @@ public class SketchBlur {
   private final int radius;
   private final short type;
 
-  public SketchBlur(boolean isEnabled, SketchPoint2D center, int motionAngle, int radius, short type) {
+  public SketchBlur(boolean isEnabled, @NotNull SketchPoint2D center, int motionAngle, int radius, short type) {
     this.isEnabled = isEnabled;
     this.center = center;
     this.motionAngle = motionAngle;
@@ -34,6 +36,7 @@ public class SketchBlur {
     return isEnabled;
   }
 
+  @NotNull
   public SketchPoint2D getCenter() {
     return center;
   }
