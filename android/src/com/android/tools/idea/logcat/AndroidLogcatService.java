@@ -16,7 +16,10 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.*;
+import com.android.ddmlib.Log.LogLevel;
+import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.run.LoggingReceiver;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -38,6 +41,7 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -152,12 +156,15 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     });
   }
 
-  private static void executeLogcat(@NotNull IShellEnabledDevice device, @NotNull AndroidOutputReceiver receiver) {
+  private static void executeLogcat(@NotNull IShellEnabledDevice device, @NotNull AndroidLogcatReceiver receiver) {
     try {
       execute(device, supportsEpochFormatModifier(device) ? "logcat -v long -v epoch" : "logcat -v long", receiver, Duration.ZERO);
     }
     catch (Throwable throwable) {
       getLog().warn(throwable);
+
+      String app = IdeInfo.getInstance().isAndroidStudio() ? "com.android.studio" : "com.jetbrains.idea";
+      receiver.notifyLine(new LogCatHeader(LogLevel.ERROR, 0, 0, app, "AndroidLogcatService", Instant.now()), throwable.toString());
     }
   }
 
@@ -241,10 +248,13 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
         try {
           execute(device, "logcat -c", new LoggingReceiver(getLog()), Duration.ofSeconds(5));
         }
-        catch (final Exception e) {
-          getLog().info(e);
-          ApplicationManager.getApplication().invokeLater(() -> Messages
-            .showErrorDialog(project, "Error: " + e.getMessage(), AndroidBundle.message("android.logcat.error.dialog.title")));
+        catch (Exception exception) {
+          getLog().warn(exception);
+
+          ApplicationManager.getApplication().invokeLater(() -> {
+            String title = AndroidBundle.message("android.logcat.error.dialog.title");
+            Messages.showErrorDialog(project, exception.toString(), title);
+          });
         }
 
         notifyThatLogcatWasCleared(device);
