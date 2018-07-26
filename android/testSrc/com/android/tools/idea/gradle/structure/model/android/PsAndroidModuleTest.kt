@@ -80,8 +80,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.addNewFlavorDimension("new")
     assertThat(flavorDimensionsChanged).isEqualTo(1)
     // A product flavor is required for successful sync.
-    val newInNew = appModule.addNewProductFlavor("new_in_new")
-    newInNew.dimension = ParsedValue.Set.Parsed("new", DslText.Literal)
+    val newInNew = appModule.addNewProductFlavor("new", "new_in_new")
     appModule.applyChanges()
 
     requestSyncAndWait()
@@ -107,10 +106,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.addNewFlavorDimension("bar")
     assertThat(flavorDimensionsChanged).isEqualTo(1)
     // A product flavor is required for successful sync.
-    val bar = appModule.addNewProductFlavor("bar")
-    bar.dimension = ParsedValue.Set.Parsed("bar", DslText.Literal)
-    val otherBar = appModule.addNewProductFlavor("otherBar")
-    otherBar.dimension = ParsedValue.Set.Parsed("bar", DslText.Literal)
+    val bar = appModule.addNewProductFlavor("bar", "bar")
+    val otherBar = appModule.addNewProductFlavor("bar", "otherBar")
     appModule.applyChanges()
 
     requestSyncAndWait()
@@ -135,8 +132,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.removeFlavorDimension("bar")
     assertThat(flavorDimensionsChanged).isEqualTo(1)
     // A product flavor must be removed for successful sync.
-    appModule.removeProductFlavor(appModule.findProductFlavor("bar")!!)
-    appModule.removeProductFlavor(appModule.findProductFlavor("otherBar")!!)
+    appModule.removeProductFlavor(appModule.findProductFlavor("bar", "bar")!!)
+    appModule.removeProductFlavor(appModule.findProductFlavor("bar", "otherBar")!!)
     var flavorDimensions = getFlavorDimensions(appModule)
     assertThat(flavorDimensions).containsExactly("foo").inOrder()
     appModule.applyChanges()
@@ -166,11 +163,11 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .containsExactly("basic", "paid").inOrder()
     assertThat(productFlavors).hasSize(2)
 
-    val basic = appModule.findProductFlavor("basic")
+    val basic = appModule.findProductFlavor("foo", "basic")
     assertNotNull(basic)
     assertTrue(basic!!.isDeclared)
 
-    val release = appModule.findProductFlavor("paid")
+    val release = appModule.findProductFlavor("foo", "paid")
     assertNotNull(release)
     assertTrue(release!!.isDeclared)
   }
@@ -189,11 +186,11 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .containsExactly("basic", "paid").inOrder()
     assertThat(productFlavors).hasSize(2)
 
-    val basic = appModule.findProductFlavor("basic")
+    val basic = appModule.findProductFlavor("foo", "basic")
     assertNotNull(basic)
     assertTrue(basic!!.isDeclared)
 
-    val release = appModule.findProductFlavor("paid")
+    val release = appModule.findProductFlavor("foo", "paid")
     assertNotNull(release)
     assertTrue(release!!.isDeclared)
   }
@@ -212,13 +209,14 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(productFlavors.map { it.name })
       .containsExactly("basic", "paid").inOrder()
 
-    appModule.addNewProductFlavor("new_flavor")
+    appModule.addNewProductFlavor("foo", "new_flavor")
     assertThat(productFlavorsChanged).isEqualTo(1)
+
     productFlavors = appModule.productFlavors
     assertThat(productFlavors.map { it.name })
       .containsExactly("basic", "paid", "new_flavor").inOrder()
 
-    var newFlavor = appModule.findProductFlavor("new_flavor")
+    var newFlavor = appModule.findProductFlavor("foo", "new_flavor")
     assertNotNull(newFlavor)
     assertNull(newFlavor!!.resolvedModel)
 
@@ -232,7 +230,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(productFlavors.map { it.name })
       .containsExactly("basic", "paid", "new_flavor").inOrder()
 
-    newFlavor = appModule.findProductFlavor("new_flavor")
+    newFlavor = appModule.findProductFlavor("foo", "new_flavor")
     assertNotNull(newFlavor)
     assertNotNull(newFlavor!!.resolvedModel)
   }
@@ -251,7 +249,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(productFlavors.map { it.name })
       .containsExactly("basic", "paid", "bar", "otherBar").inOrder()
 
-    appModule.removeProductFlavor(appModule.findProductFlavor("paid")!!)
+    appModule.removeProductFlavor(appModule.findProductFlavor("foo", "paid")!!)
     assertThat(productFlavorsChanged).isEqualTo(1)
 
     productFlavors = appModule.productFlavors

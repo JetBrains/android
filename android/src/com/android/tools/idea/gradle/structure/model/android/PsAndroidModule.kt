@@ -79,7 +79,8 @@ class PsAndroidModule(
 
   fun findBuildType(buildType: String): PsBuildType? = getOrCreateBuildTypeCollection().findElement(buildType)
 
-  fun findProductFlavor(name: String): PsProductFlavor? = getOrCreateProductFlavorCollection().findElement(name)
+  fun findProductFlavor(dimension: String, name: String): PsProductFlavor? =
+    getOrCreateProductFlavorCollection().findElement(PsProductFlavorKey(dimension, name))
 
   fun findVariant(key: PsVariantKey): PsVariant? = getOrCreateVariantCollection().findElement(key)
 
@@ -147,9 +148,12 @@ class PsAndroidModule(
 
   fun removeFlavorDimension(flavorDimension: String) = getOrCreateFlavorDimensionCollection().remove(flavorDimension)
 
-  fun addNewProductFlavor(name: String): PsProductFlavor = getOrCreateProductFlavorCollection().addNew(name)
+  fun addNewProductFlavor(dimension: String, name: String): PsProductFlavor =
+    getOrCreateProductFlavorCollection().addNew(PsProductFlavorKey(dimension, name))
 
-  fun removeProductFlavor(productFlavor: PsProductFlavor) = getOrCreateProductFlavorCollection().remove(productFlavor.name)
+  fun removeProductFlavor(productFlavor: PsProductFlavor) =
+    getOrCreateProductFlavorCollection()
+      .remove(PsProductFlavorKey(productFlavor.dimension.maybeValue.orEmpty(), productFlavor.name))
 
   fun addNewSigningConfig(name: String): PsSigningConfig = getOrCreateSigningConfigCollection().addNew(name)
 

@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.util.concurrent.Futures.immediateFuture
 import java.io.File
 
+data class PsProductFlavorKey(val dimension: String, val name: String)
+
 open class PsProductFlavor(
   final override val parent: PsAndroidModule
 ) : PsChildModel() {

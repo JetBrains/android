@@ -28,7 +28,7 @@ class ProductFlavorsTreeModel(
 ) : ConfigurablesTreeModel(module, rootNode) {
 
   fun createProductFlavor(newName: String, currentDimension: String?): Pair<ProductFlavorConfigurable, DefaultMutableTreeNode> {
-    val productFlavor = module.addNewProductFlavor(newName)
+    val productFlavor = module.addNewProductFlavor(currentDimension.orEmpty(), newName)
     if (currentDimension != null) {
       productFlavor.dimension = ParsedValue.Set.Parsed(currentDimension, DslText.Literal)
     }

@@ -71,8 +71,10 @@ open class PsVariant(
   }
 
   open fun forEachProductFlavor(consumer: (PsProductFlavor) -> Unit) {
-    for (name in productFlavorNames) {
-      val productFlavor = parent.findProductFlavor(name)
+    // Pre AGP 3.0 project might not have any dimensions.
+    val effectiveDimensions = parent.flavorDimensions.takeUnless { it.isEmpty() } ?: listOf(null)
+    for ((dimension, name) in effectiveDimensions zip productFlavorNames) {
+      val productFlavor = parent.findProductFlavor(dimension?.name.orEmpty(), name)
       consumer(productFlavor!!)
     }
   }
