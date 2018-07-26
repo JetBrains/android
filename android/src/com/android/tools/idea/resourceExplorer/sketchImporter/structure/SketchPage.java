@@ -21,24 +21,32 @@ import java.awt.*;
 
 public class SketchPage extends SketchLayer {
   private final SketchStyle style;
-  //SketchLayer[] layers;
+  private final SketchLayer[] layers;
 
-  public SketchPage(@NotNull String objectId,
+  public SketchPage(@NotNull String classType,
+                    @NotNull String objectId,
                     int booleanOperation,
-                    @NotNull Rectangle frame,
+                    @NotNull Rectangle.Double frame,
                     boolean isFlippedHorizontal,
                     boolean isFlippedVertical,
                     boolean isVisible,
                     @NotNull String name,
                     int rotation,
                     boolean shouldBreakMaskChain,
-                    @NotNull SketchStyle style) {
-    super(objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation, shouldBreakMaskChain);
+                    @NotNull SketchStyle style,
+                    @NotNull SketchLayer[] layers) {
+    super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
+          shouldBreakMaskChain);
 
     this.style = style;
+    this.layers = layers;
   }
 
   public SketchStyle getStyle() {
     return style;
+  }
+
+  public SketchLayer[] getLayers() {
+    return layers;
   }
 }

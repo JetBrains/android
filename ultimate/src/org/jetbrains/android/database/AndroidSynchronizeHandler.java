@@ -11,7 +11,6 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +26,7 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
   @Override
   public void synchronizationStarted(@NotNull final Project project,
                                      @NotNull Set<DbDataSource> elements) {
-    final List<AndroidDataSource> dataSourcesToSync = new ArrayList<AndroidDataSource>();
+    final List<AndroidDataSource> dataSourcesToSync = new ArrayList<>();
 
     for (DbDataSource element : elements) {
       final Object delegate = element.getDelegate();
@@ -61,7 +60,7 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
       Messages.showErrorDialog(project, AndroidBundle.message("cannot.connect.to.adb.error"), CommonBundle.getErrorTitle());
       return Collections.emptySet();
     }
-    final Set<AndroidDataSource> syncedDataSources = Collections.synchronizedSet(new HashSet<AndroidDataSource>(dataSourcesToSync));
+    final Set<AndroidDataSource> syncedDataSources = Collections.synchronizedSet(new HashSet<>(dataSourcesToSync));
     final MySynchronizeDataSourcesTask task = new MySynchronizeDataSourcesTask(project, debugBridge, syncedDataSources);
     ProgressManager.getInstance().run(task);
     return syncedDataSources;

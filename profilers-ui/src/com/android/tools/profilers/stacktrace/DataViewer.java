@@ -23,10 +23,25 @@ import java.awt.*;
 
 /**
  * A class which provides a view for a target data buffer. For example, an image may be rendered directly, while an xml
- * file will be shown in syntax highlighted manner. If a file cannot be displayed, a message indicating that a preview
- * is not available will be shown.
+ * file will be shown in syntax highlighted manner. If a file cannot be displayed, an {@link INVALID} viewer is returned.
  */
 public interface DataViewer {
+
+  enum Style {
+    /**
+     * The default style for raw data content.
+     */
+    RAW,
+    /**
+     * Creates a reformatted view based on the raw code content that is user friendly. For example, suppose the raw bytes for JSON data
+     * are a single line string {"menu": {id": "file", "value": "File"}}, this style applies formatting of multiple lines and indentation.
+     */
+    PRETTY,
+    /**
+     * Indicates the content cannot be displayed as wanted, a help message will be shown.
+     */
+    INVALID
+  }
 
   @NotNull
   JComponent getComponent();
@@ -37,4 +52,7 @@ public interface DataViewer {
    */
   @Nullable
   Dimension getDimension();
+
+  @NotNull
+  Style getStyle();
 }

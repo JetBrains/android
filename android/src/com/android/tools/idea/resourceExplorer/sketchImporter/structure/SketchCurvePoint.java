@@ -22,27 +22,27 @@ public class SketchCurvePoint {
   @SerializedName("do_objectID")
   private final int objectId;
   private final int cornerRadius;
-  private final String curveFrom;
+  private final SketchPoint2D curveFrom;
   private final short curveMode;
-  private final String curveTo;
+  private final SketchPoint2D curveTo;
   private final boolean hasCurveFrom;
   private final boolean hasCurveTo;
-  private final String point;
+  private final SketchPoint2D point;
 
   public SketchCurvePoint(int objectId,
                           int cornerRadius,
-                          @NotNull String curveFrom,
+                          @NotNull SketchPoint2D curveFrom,
                           short curveMode,
-                          @NotNull String curveTo,
-                          boolean from,
+                          @NotNull SketchPoint2D curveTo,
+                          boolean hasCurveFrom,
                           boolean hasCurveTo,
-                          @NotNull String point) {
+                          @NotNull SketchPoint2D point) {
     this.objectId = objectId;
     this.cornerRadius = cornerRadius;
     this.curveFrom = curveFrom;
     this.curveMode = curveMode;
     this.curveTo = curveTo;
-    hasCurveFrom = from;
+    this.hasCurveFrom = hasCurveFrom;
     this.hasCurveTo = hasCurveTo;
     this.point = point;
   }
@@ -55,7 +55,7 @@ public class SketchCurvePoint {
     return cornerRadius;
   }
 
-  public String getCurveFrom() {
+  public SketchPoint2D getCurveFrom() {
     return curveFrom;
   }
 
@@ -63,19 +63,19 @@ public class SketchCurvePoint {
     return curveMode;
   }
 
-  public String getCurveTo() {
+  public SketchPoint2D getCurveTo() {
     return curveTo;
   }
 
-  public boolean isHasCurveFrom() {
+  public boolean hasCurveFrom() {
     return hasCurveFrom;
   }
 
-  public boolean isHasCurveTo() {
+  public boolean hasCurveTo() {
     return hasCurveTo;
   }
 
-  public String getPoint() {
+  public SketchPoint2D getPoint() {
     return point;
   }
 }

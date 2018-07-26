@@ -115,6 +115,12 @@ public class LassoTarget extends BaseTarget {
   //region Mouse Handling
   /////////////////////////////////////////////////////////////////////////////
 
+
+  @Override
+  protected boolean isHittable() {
+    return !myComponent.isSelected() || !myComponent.isDragging();
+  }
+
   @Override
   public int getPreferenceLevel() {
     return Target.LASSO_LEVEL;

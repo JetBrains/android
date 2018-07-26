@@ -22,7 +22,6 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 
 import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
 import static com.android.ide.common.repository.GradleVersion.parse;
@@ -39,20 +38,15 @@ public class GradleBuildSettings {
    * @param isInstantApp TODO: This parameter is only needed until AIA has a stable release
    */
   @NotNull
-  public static Revision getRecommendedBuildToolsRevision(@NotNull AndroidSdkHandler sdkHandler, @NotNull ProgressIndicator progress, boolean isInstantApp) {
+  public static Revision getRecommendedBuildToolsRevision(@NotNull AndroidSdkHandler sdkHandler, @NotNull ProgressIndicator progress) {
     BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
-    if (buildTool == null || isInstantApp) {
+    if (buildTool == null) {
       buildTool = sdkHandler.getLatestBuildTool(progress, true);
     }
     Revision minimumBuildToolsRev = parseRevision(CURRENT_BUILD_TOOLS_VERSION);
     boolean isOld = (buildTool == null || buildTool.getRevision().compareTo(minimumBuildToolsRev) < 0);
 
     return isOld ? minimumBuildToolsRev : buildTool.getRevision();
-  }
-
-  @NotNull
-  public static Revision getRecommendedBuildToolsRevision(AndroidSdkHandler sdkHandler, ProgressIndicator progress) {
-    return getRecommendedBuildToolsRevision(sdkHandler, progress, false);
   }
 
   public static boolean needsExplicitBuildToolsVersion(@NotNull GradleVersion gradlePluginVersion, @NotNull Revision buildToolRev) {

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android
 
 class PsAndroidModuleDefaultConfig(val module: PsAndroidModule) {
   var applicationId by PsAndroidModuleDefaultConfigDescriptors.applicationId
+  var applicationIdSuffix by PsAndroidModuleDefaultConfigDescriptors.applicationIdSuffix
   var maxSdkVersion by PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion
   var minSdkVersion by PsAndroidModuleDefaultConfigDescriptors.minSdkVersion
   var multiDexEnabled by PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled
@@ -27,7 +28,9 @@ class PsAndroidModuleDefaultConfig(val module: PsAndroidModule) {
   var testInstrumentationRunner by PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner
   var versionCode by PsAndroidModuleDefaultConfigDescriptors.versionCode
   var versionName by PsAndroidModuleDefaultConfigDescriptors.versionName
+  var versionNameSuffix by PsAndroidModuleDefaultConfigDescriptors.versionNameSuffix
   var proGuardFiles by PsAndroidModuleDefaultConfigDescriptors.proGuardFiles
+  var resConfigs by PsAndroidModuleDefaultConfigDescriptors.resConfigs
   var manifestPlaceholders by PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders
   var testInstrumentationRunnerArguments by PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunnerArguments
 }

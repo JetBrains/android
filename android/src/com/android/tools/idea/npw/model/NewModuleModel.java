@@ -276,7 +276,6 @@ public final class NewModuleModel extends WizardModel {
         .withCommandName("New Module")
         .withDryRun(dryRun)
         .withShowErrors(true)
-        .withPerformSync(false)
         .withOutputRoot(projectRoot)
         .withModuleRoot(moduleRoot)
         .intoOpenFiles(filesToOpen)

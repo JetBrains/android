@@ -26,7 +26,7 @@ import java.io.File
 
 class FileExtensionsTest : AndroidTestCase() {
   fun testRegularFile() {
-    val ioFile = File(getTestDataPath()).resolve("R.java").canonicalFile
+    val ioFile = File(getTestDataPath()).resolve("AndroidManifest.xml").canonicalFile
     assertTrue(ioFile.exists())
     val vfsFile = ioFile.toVirtualFile(refresh = true)!!
 

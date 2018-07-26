@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomReindexStatementImpl extends ASTWrapperPsiElement implements RoomReindexStatement {
 
-  public RoomReindexStatementImpl(ASTNode node) {
+  public RoomReindexStatementImpl(@NotNull ASTNode node) {
     super(node);
   }
 

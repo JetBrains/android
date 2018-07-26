@@ -264,6 +264,44 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     validateResponse(observer, response);
   }
 
+  @Test
+  public void importSession() {
+    // Import new session
+    myProfilerService.importSession(ImportSessionRequest.newBuilder().setSession(END_SESSION_1).build(), mock(StreamObserver.class));
+    StreamObserver<GetSessionMetaDataResponse> metaDataObserver = mock(StreamObserver.class);
+    GetSessionMetaDataResponse metaDataResponse =
+      GetSessionMetaDataResponse.newBuilder().setData(Common.SessionMetaData.newBuilder().setSessionId(END_SESSION_1.getSessionId()))
+                                .build();
+    myProfilerService
+      .getSessionMetaData(GetSessionMetaDataRequest.newBuilder().setSessionId(END_SESSION_1.getSessionId()).build(), metaDataObserver);
+    validateResponse(metaDataObserver, metaDataResponse);
+
+    // Delete imported session
+    StreamObserver<GetSessionsResponse> observer = mock(StreamObserver.class);
+    myProfilerService
+      .deleteSession(DeleteSessionRequest.newBuilder().setSessionId(END_SESSION_1.getSessionId()).build(), mock(StreamObserver.class));
+    GetSessionsResponse response = GetSessionsResponse.newBuilder().build();
+    myProfilerService.getSessions(GetSessionsRequest.getDefaultInstance(), observer);
+    validateResponse(observer, response);
+  }
+
+  @Test
+  public void agentStatus() {
+    getPollTicker().run();
+    StreamObserver<AgentStatusResponse> observer = mock(StreamObserver.class);
+    myProfilerService.getAgentStatus(AgentStatusRequest.newBuilder().setDeviceId(DEVICE_ID).setPid(INITIAL_PROCESS.getPid()).build(), observer);
+    AgentStatusResponse response = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build();
+    validateResponse(observer, response);
+  }
+
+  @Test
+  public void configureStartupAgent() {
+    StreamObserver<ConfigureStartupAgentResponse> observer = mock(StreamObserver.class);
+    myProfilerService.configureStartupAgent(ConfigureStartupAgentRequest.newBuilder().setDeviceId(DEVICE_ID).setAgentLibFileName("TEST").build(), observer);
+    ConfigureStartupAgentResponse response = ConfigureStartupAgentResponse.newBuilder().setAgentArgs("TEST").build();
+    validateResponse(observer, response);
+  }
+
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
 
     private Common.Process myProcessToReturn = INITIAL_PROCESS;
@@ -337,8 +375,14 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
     @Override
     public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentStatusResponse> responseObserver) {
-      responseObserver.onNext(AgentStatusResponse.getDefaultInstance());
+      responseObserver.onNext(AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build());
       responseObserver.onCompleted();
+    }
+
+    @Override
+    public void configureStartupAgent(ConfigureStartupAgentRequest request, StreamObserver<ConfigureStartupAgentResponse> observer) {
+      observer.onNext(ConfigureStartupAgentResponse.newBuilder().setAgentArgs(request.getAgentLibFileName()).build());
+      observer.onCompleted();
     }
   }
 }

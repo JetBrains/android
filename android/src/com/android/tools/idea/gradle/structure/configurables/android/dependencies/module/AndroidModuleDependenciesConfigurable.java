@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.AbstractDependenciesConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.module.MainPanel;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.openapi.util.ActionCallback;
@@ -33,14 +34,14 @@ public class AndroidModuleDependenciesConfigurable extends AbstractDependenciesC
 
   public AndroidModuleDependenciesConfigurable(@NotNull PsAndroidModule module,
                                                @NotNull PsContext context,
-                                               @NotNull List<PsModule> extraTopModules) {
-    super(module, context, extraTopModules);
+                                               @NotNull List<PsModule> extraModules) {
+    super(module, context, extraModules);
   }
 
   @Override
   public MainPanel createOptionsPanel() {
     if (myMainPanel == null) {
-      myMainPanel = new MainPanel(getModule(), getContext(), getExtraTopModules());
+      myMainPanel = new MainPanel(getModule(), getContext(), getExtraModules());
       myMainPanel.setHistory(getHistory());
     }
     return myMainPanel;

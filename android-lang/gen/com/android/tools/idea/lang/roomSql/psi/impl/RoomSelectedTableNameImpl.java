@@ -31,7 +31,7 @@ import com.android.tools.idea.lang.roomSql.resolution.RoomSelectedTablePsiRefere
 
 public class RoomSelectedTableNameImpl extends AbstractRoomNameElement implements RoomSelectedTableName {
 
-  public RoomSelectedTableNameImpl(ASTNode node) {
+  public RoomSelectedTableNameImpl(@NotNull ASTNode node) {
     super(node);
   }
 

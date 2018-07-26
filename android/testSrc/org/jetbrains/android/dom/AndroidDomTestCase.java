@@ -110,7 +110,7 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
     myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.java");
   }
 
-  protected final void doTestNamespaceCompletion(boolean systemNamespace, boolean customNamespace, boolean toolsNamespace, boolean xliffNamespace)
+  protected final void doTestNamespaceCompletion(boolean xliffNamespace)
     throws IOException {
     // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
@@ -120,18 +120,14 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
     assertNotNull(variants);
     List<String> expectedVariants = new ArrayList<>();
 
-    if (systemNamespace) {
-      expectedVariants.add(SdkConstants.ANDROID_URI);
-    }
-    if (customNamespace) {
-      expectedVariants.add("http://schemas.android.com/apk/res/p1.p2");
-    }
-    if (toolsNamespace) {
-      expectedVariants.add(SdkConstants.TOOLS_URI);
-    }
+    expectedVariants.add(SdkConstants.ANDROID_URI);
+    expectedVariants.add(SdkConstants.TOOLS_URI);
+    expectedVariants.add(SdkConstants.AUTO_URI);
+
     if (xliffNamespace) {
       expectedVariants.add(SdkConstants.XLIFF_URI);
     }
+
     Collections.sort(expectedVariants);
     assertEquals(expectedVariants, variants);
   }

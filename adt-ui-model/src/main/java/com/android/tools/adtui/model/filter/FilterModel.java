@@ -36,6 +36,11 @@ public class FilterModel {
     notifyFilterChange();
   }
 
+  @NotNull
+  public Filter getFilter() {
+    return myFilter;
+  }
+
   private void setMatchCountResult(@NotNull FilterResult result) {
     if (!myResult.equals(result)) {
       myResult = result;

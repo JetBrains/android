@@ -59,6 +59,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
+
 public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkViewPanel.Listener {
   private final Project myProject;
   private final VirtualFile myBaseFile;
@@ -73,6 +75,8 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     myProject = project;
     myBaseFile = baseFile;
     myRoot = root;
+
+    DISABLE_GENERATED_FILE_NOTIFICATION_KEY.set(this, true);
 
     mySplitter = new JBSplitter(true, "android.apk.viewer", 0.62f);
     mySplitter.setName("apkViwerContainer");

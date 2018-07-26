@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomSelectCoreSelectImpl extends ASTWrapperPsiElement implements RoomSelectCoreSelect {
 
-  public RoomSelectCoreSelectImpl(ASTNode node) {
+  public RoomSelectCoreSelectImpl(@NotNull ASTNode node) {
     super(node);
   }
 

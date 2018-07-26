@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiClass
+import com.intellij.psi.util.ClassUtil
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.AndroidGotoRelatedProvider
 import org.jetbrains.android.dom.navigation.NavigationSchema
@@ -79,10 +80,17 @@ class DestinationClassEditor(listener: NlEditingListener, comboBox: CustomComboB
 
       for (inheritor in schema.getDestinationClasses(component.tagName)) {
         val qName = inheritor.qualifiedName ?: continue
-        result.add(ValueWithDisplayString(qName, qName))
+        result.add(ValueWithDisplayString(displayString(qName), qName))
       }
 
+      result.sortBy { it.displayString }
       return result
     }
+
+    override fun createFromResolvedValue(resolvedValue: String, value: String?, hint: String?): ValueWithDisplayString {
+      return ValueWithDisplayString(displayString(resolvedValue), value, hint)
+    }
+
+    private fun displayString(qName: String): String = "${ClassUtil.extractClassName(qName)} (${ClassUtil.extractPackageName(qName)})"
   }
 }

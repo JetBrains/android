@@ -110,6 +110,14 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
                                            @AndroidDpCoordinate int x,
                                            @AndroidDpCoordinate int y);
 
+  @Override
+  protected boolean isHittable() {
+    if (myComponent.isSelected()) {
+      return myComponent.canShowBaseline() || !myComponent.isDragging();
+    }
+    return true;
+  }
+
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Mouse Handling

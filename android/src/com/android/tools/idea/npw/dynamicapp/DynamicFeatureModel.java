@@ -20,6 +20,7 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.model.WizardModel;
@@ -32,6 +33,7 @@ import java.io.File;
 import java.util.Map;
 
 import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -124,6 +126,7 @@ public class DynamicFeatureModel extends WizardModel {
 
   private void render(@NotNull File moduleRoot, @NotNull Map<String, Object> templateValues) {
     renderTemplate(false, myProject, moduleRoot, templateValues);
+    ProjectSystemUtil.getProjectSystem(myProject).getSyncManager().syncProject(PROJECT_MODIFIED, true);
   }
 
   private boolean renderTemplate(boolean dryRun,

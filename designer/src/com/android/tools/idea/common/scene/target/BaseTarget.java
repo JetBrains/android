@@ -22,6 +22,9 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineCycleTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
+import com.android.tools.idea.uibuilder.handlers.coordinator.CoordinatorSnapTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,11 +94,17 @@ public abstract class BaseTarget implements Target {
    */
   @Override
   public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
-    if (!myComponent.getScene().allowsTarget(this)) {
-      return;
+    if (isHittable()) {
+      picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
+                     transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));
     }
-    picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
-                   transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));
+  }
+
+  /**
+   * @return True if this {@link Target} is hittable, false otherwise.
+   */
+  protected boolean isHittable() {
+    return getComponent().getScene().getFilterType() == Scene.FilterType.ALL;
   }
 
   @Override

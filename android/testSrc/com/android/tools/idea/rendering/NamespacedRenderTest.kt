@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.tools.adtui.imagediff.ImageDiffUtil
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.rendering.RenderTestUtil.checkRendering
+import com.android.tools.idea.rendering.RenderTestUtil.createRenderTask
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
-import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.facet.AndroidFacet
-import java.io.File
+import org.jetbrains.android.AndroidTestBase
 
 class NamespacedRenderTest : AndroidGradleTestCase() {
   override fun setUp() {
@@ -39,37 +37,32 @@ class NamespacedRenderTest : AndroidGradleTestCase() {
   }
 
   fun testSimpleStrings() {
-    val layout = project.baseDir.findFileByRelativePath("app/src/main/res/layout/simple_strings.xml")!!
-    val configuration = RenderTestUtil.getConfiguration(myModules.appModule, layout)
-    assertRenderSimilar(layout, configuration, "/layouts/namespaced/simple_strings.png")
+    checkRendering(
+      myAndroidFacet,
+      project.baseDir.findFileByRelativePath("app/src/main/res/layout/simple_strings.xml")!!,
+      getTestDataPath() + "/layouts/namespaced/simple_strings.png"
+    )
   }
 
   fun testAttrsFromLib() {
-    val layout = project.baseDir.findFileByRelativePath("app/src/main/res/layout/attrs_from_lib.xml")!!
-    val configuration = RenderTestUtil.getConfiguration(myModules.appModule, layout)
-    configuration.setTheme("@style/AttrsFromLib")
-    assertRenderSimilar(layout, configuration, "/layouts/namespaced/attrs_from_lib.png")
+    checkRendering(
+      createRenderTask(
+        myAndroidFacet,
+        project.baseDir.findFileByRelativePath("app/src/main/res/layout/attrs_from_lib.xml")!!,
+        "@style/AttrsFromLib"
+      ),
+      AndroidTestBase.getTestDataPath() + "/layouts/namespaced/attrs_from_lib.png"
+    )
   }
 
   fun testParentFromLib() {
-    val layout = project.baseDir.findFileByRelativePath("app/src/main/res/layout/parent_from_lib.xml")!!
-    val configuration = RenderTestUtil.getConfiguration(myModules.appModule, layout)
-    configuration.setTheme("@style/ParentFromLib")
-    assertRenderSimilar(layout, configuration, "/layouts/namespaced/parent_from_lib.png")
-  }
-
-  private fun assertRenderSimilar(
-    layout: VirtualFile,
-    configuration: Configuration,
-    goldenImage: String
-  ) {
-    val task = RenderTestUtil.createRenderTask(AndroidFacet.getInstance(myModules.appModule)!!, layout, configuration)
-    val result = task.render().get().renderedImage.copy!!
-
-    ImageDiffUtil.assertImageSimilar(
-      File(getTestDataPath() + goldenImage),
-      result,
-      1.0
+    checkRendering(
+      createRenderTask(
+        myAndroidFacet,
+        project.baseDir.findFileByRelativePath("app/src/main/res/layout/attrs_from_lib.xml")!!,
+        "@style/ParentFromLib"
+      ),
+      AndroidTestBase.getTestDataPath() + "/layouts/namespaced/attrs_from_lib.png"
     )
   }
 }

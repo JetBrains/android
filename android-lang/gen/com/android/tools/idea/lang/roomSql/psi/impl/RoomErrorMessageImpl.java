@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomErrorMessageImpl extends ASTWrapperPsiElement implements RoomErrorMessage {
 
-  public RoomErrorMessageImpl(ASTNode node) {
+  public RoomErrorMessageImpl(@NotNull ASTNode node) {
     super(node);
   }
 

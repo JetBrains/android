@@ -15,24 +15,24 @@
  */
 package com.android.tools.idea.editors;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.ide.ui.UISettings;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidEditorTitleProviderTest extends AndroidTestCase {
-  public void test() {
-    VirtualFile vFile = myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
-    PsiFile file = PsiManager.getInstance(getProject()).findFile(vFile);
-    assertNotNull(file);
+  public void testTitle() throws Exception {
+    copyRJavaToGeneratedSources();
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      checkTitle("gen/p1/p2/R.java", null);
+    }
 
     checkTitle("AndroidManifest.xml", null);
-    checkTitle("gen/p1/p2/R.java", null);
     checkTitle("res/wrong/path.xml", null);
     checkTitle("res/layout/file.xml", null);
 
@@ -55,9 +55,10 @@ public class AndroidEditorTitleProviderTest extends AndroidTestCase {
     }
   }
 
-  private void checkTitle(@NotNull String path, @Nullable String expected) {
+  private void checkTitle(@NotNull String path, @Nullable String expected) throws Exception {
     AndroidEditorTitleProvider provider = new AndroidEditorTitleProvider();
-    VirtualFile file = myFixture.copyFileToProject("R.java", path); // file content does not matter
+    VirtualFile file = myFixture.getTempDirFixture().createFile(path);
+    WriteAction.run(() -> file.setBinaryContent("content does not matter".getBytes()));
     Project project = getProject();
     String title = provider.getEditorTabTitle(project, file);
     if (expected == null) {

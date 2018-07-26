@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.intellij.testFramework.LightProjectDescriptor;
@@ -58,58 +59,12 @@ public class ResourceClassRegistryTest extends LightCodeInsightFixtureTestCase {
   public void testAddLibrary() {
     String pkg1 = "com.google.example1";
     String pkg2 = "com.google.example2";
-    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myModule);
+    AbstractResourceRepository repository = mock(AbstractResourceRepository.class);
     myRegistry.addLibrary(repository, myIdManager, pkg1, ResourceNamespace.fromPackageName(pkg1));
     assertSameElements(myRegistry.getGeneratorMap().keySet(), repository);
     assertSameElements(myRegistry.getPackages(), pkg1);
     myRegistry.addLibrary(repository, myIdManager, pkg2, ResourceNamespace.fromPackageName(pkg2));
     assertSameElements(myRegistry.getGeneratorMap().keySet(), repository);
     assertSameElements(myRegistry.getPackages(), pkg1, pkg2);
-  }
-
-  public void testAarAddLibrary() {
-    String pkg1 = "com.google.example.aar1";
-    File aarDir1 = new File("/exploded-aar1");
-    String pkg2 = "com.google.example.aar2";
-    File aarDir2 = new File("/exploded-aar2");
-    AppResourceRepository appRepository = mock(AppResourceRepository.class);
-    AarSourceResourceRepository fileRepository = mock(AarSourceResourceRepository.class);
-    when(appRepository.findRepositoryFor(aarDir1)).thenReturn(fileRepository);
-    when(appRepository.findRepositoryFor(aarDir2)).thenReturn(fileRepository);
-    addAarLibrary(myRegistry, appRepository, myIdManager, aarDir1, pkg1);
-    assertSameElements(myRegistry.getGeneratorMap().keySet(), appRepository);
-    assertSameElements(myRegistry.getPackages(), pkg1);
-    addAarLibrary(myRegistry, appRepository, myIdManager, aarDir2, pkg2);
-    assertSameElements(myRegistry.getGeneratorMap().keySet(), appRepository);
-    assertSameElements(myRegistry.getPackages(), pkg1, pkg2);
-  }
-
-  public void testAddBothLibrary() {
-    String pkg1 = "com.google.example.aar";
-    File aarDir = new File("/exploded-aar");
-    String pkg2 = "com.google.example";
-    AppResourceRepository appRepository = mock(AppResourceRepository.class);
-    AarSourceResourceRepository fileRepository = mock(AarSourceResourceRepository.class);
-    when(appRepository.findRepositoryFor(aarDir)).thenReturn(fileRepository);
-    addAarLibrary(myRegistry, appRepository, myIdManager, aarDir, pkg1);
-    assertSameElements(myRegistry.getGeneratorMap().keySet(), appRepository);
-    assertSameElements(myRegistry.getPackages(), pkg1);
-    myRegistry.addLibrary(appRepository, myIdManager, pkg2, ResourceNamespace.fromPackageName(pkg2));
-    assertSameElements(myRegistry.getGeneratorMap().keySet(), appRepository);
-    assertSameElements(myRegistry.getPackages(), pkg1, pkg2);
-  }
-
-  private static void addAarLibrary(@NotNull ResourceClassRegistry registry,
-                                    @NotNull AppResourceRepository appResources,
-                                    @NotNull ResourceIdManager idManager,
-                                    @NotNull File aarDir,
-                                    @NotNull String packageName) {
-    String path = aarDir.getPath();
-    if (path.endsWith(DOT_AAR) || path.contains(FilenameConstants.EXPLODED_AAR)) {
-      AarSourceResourceRepository repository = appResources.findRepositoryFor(aarDir);
-      if (repository != null) {
-        registry.addLibrary(appResources, idManager, packageName, ResourceNamespace.fromPackageName(packageName));
-      }
-    }
   }
 }

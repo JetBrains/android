@@ -83,6 +83,9 @@ fun Module.mapGradleCoordinateToAndroidx(coordinate: String): String {
   else coordinate
 }
 
+fun Module.dependsOnAppCompat(): Boolean =
+  this.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7) || this.dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)
+
 /**
  * Add libraries with given [GradleCoordinate] as dependencies; this method will show a dialog prompting the user for confirmation if
  * [promptUserBeforeAdding] is set to true and return with no-op if user chooses to not add the dependencies. If any of the dependencies

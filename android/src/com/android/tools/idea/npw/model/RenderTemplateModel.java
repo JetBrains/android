@@ -44,6 +44,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +56,7 @@ import java.util.Map;
 
 import static com.android.SdkConstants.DOT_JAVA;
 import static com.android.SdkConstants.DOT_KT;
+import static com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfoKt.ACTIVITY_TEMPLATE_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
@@ -321,12 +323,16 @@ public final class RenderTemplateModel extends WizardModel {
         }
       }
 
+      if (StudioFlags.SHIPPED_SYNC_ENABLED.get()) {
+        // TODO(qumeric): use same things here and in GenerateShippedSyncTest (currently template file name)
+        myTemplateValues.put(ACTIVITY_TEMPLATE_NAME, StringUtils.deleteWhitespace(template.getMetadata().getTitle()));
+      }
+
       // @formatter:off
     final RenderingContext context = RenderingContext.Builder.newContext(template, project)
       .withCommandName(myCommandName)
       .withDryRun(dryRun)
       .withShowErrors(true)
-      .withPerformSync(false)
       .withModuleRoot(paths.getModuleRoot())
       .withModule(getModule())
       .withParams(myTemplateValues)

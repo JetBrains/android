@@ -15,41 +15,38 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
-import com.android.utils.Pair;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.ColorDeserializer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.PointDeserializer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
+import java.awt.geom.Point2D;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class SketchParser {
   public static @Nullable
   SketchPage open(@NotNull String path) {
 
     try (Reader reader = new FileReader(path)) {
-      Gson gson = new GsonBuilder().create();
+      Gson gson = new GsonBuilder()
+        .registerTypeAdapter(SketchLayer.class, new SketchLayerDeserializer())
+        .registerTypeAdapter(Color.class, new ColorDeserializer())
+        .registerTypeAdapter(Point2D.Double.class, new PointDeserializer())
+        .registerTypeAdapter(SketchPoint2D.class, new PointDeserializer())
+        .create();
       return gson.fromJson(reader, SketchPage.class);
     }
     catch (IOException e) {
-      Logger.getGlobal().log(Level.WARNING, "Sketch file not found.", e);
+      Logger.getInstance(SketchParser.class).warn("Sketch file not found.", e);
     }
 
     return null;
-  }
-
-  /**
-   * @param positionString e.g. '{0.5, 0.67135115527602085}'
-   * @return pair of (floating-point) coords
-   */
-  public static
-  Pair<Double, Double> getPosition(@NotNull String positionString) {
-    String[] parts = positionString.split("[{}, ]");
-
-    return Pair.of(Double.parseDouble(parts[1]), Double.parseDouble(parts[3]));
   }
 }

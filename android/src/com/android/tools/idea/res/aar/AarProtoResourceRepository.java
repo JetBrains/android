@@ -588,6 +588,12 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
     return aarConfiguration;
   }
 
+  // For debugging only.
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + '@' + Integer.toHexString(System.identityHashCode(this)) + " for " + myResApkFileOrFolder;
+  }
+
   /**
    * Parser of resource URLs. Unlike {@link com.android.resources.ResourceUrl}, this class creates virtually no GC overhead.
    */

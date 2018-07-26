@@ -43,19 +43,20 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusListener;
 
 public final class StringResourceViewPanel implements Disposable {
+  private final AndroidFacet myFacet;
+
   private final JBLoadingPanel myLoadingPanel;
   private JPanel myContainer;
+  private JPanel myToolbarPanel;
   private StringResourceTable myTable;
   private JTextComponent myKeyTextField;
   @VisibleForTesting TextFieldWithBrowseButton myDefaultValueTextField;
   private TextFieldWithBrowseButton myTranslationTextField;
-  private JPanel myToolbarPanel;
 
-  private final AndroidFacet myFacet;
-
+  private RemoveKeysAction myRemoveKeysAction;
+  private AddLocaleAction myAddLocaleAction;
   private GoToDeclarationAction myGoToAction;
   private DeleteStringAction myDeleteAction;
-  private RemoveKeysAction myRemoveKeysAction;
 
   StringResourceViewPanel(AndroidFacet facet, Disposable parentDisposable) {
     myFacet = facet;
@@ -165,11 +166,6 @@ public final class StringResourceViewPanel implements Disposable {
     myTranslationTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
   }
 
-  @NotNull
-  public AndroidFacet getFacet() {
-    return myFacet;
-  }
-
   void reloadData() {
     myLoadingPanel.setLoadingText("Updating string resource data");
     myLoadingPanel.startLoading();
@@ -180,6 +176,8 @@ public final class StringResourceViewPanel implements Disposable {
   }
 
   private ActionToolbar createToolbar() {
+    myAddLocaleAction = new AddLocaleAction(this);
+
     DefaultActionGroup group = new DefaultActionGroup();
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("TranslationsEditorToolbar", group, true);
 
@@ -188,13 +186,18 @@ public final class StringResourceViewPanel implements Disposable {
 
     group.add(new AddKeyAction(this));
     group.add(myRemoveKeysAction);
-    group.add(new AddLocaleAction(this));
+    group.add(myAddLocaleAction);
     group.add(new FilterKeysAction(myTable));
     group.add(new FilterLocalesAction(myTable));
     group.add(new ReloadStringResourcesAction(this));
     group.add(new BrowserHelpAction("Translations editor", "https://developer.android.com/r/studio-ui/translations-editor.html"));
 
     return toolbar;
+  }
+
+  @NotNull
+  AndroidFacet getFacet() {
+    return myFacet;
   }
 
   @NotNull
@@ -210,6 +213,12 @@ public final class StringResourceViewPanel implements Disposable {
   @NotNull
   JComponent getPreferredFocusedComponent() {
     return myTable.getScrollableTable();
+  }
+
+  @VisibleForTesting
+  @NotNull
+  AddLocaleAction getAddLocaleAction() {
+    return myAddLocaleAction;
   }
 
   private final class CellSelectionListener implements FrozenColumnTableListener {

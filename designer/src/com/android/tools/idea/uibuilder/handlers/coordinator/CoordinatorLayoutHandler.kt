@@ -37,7 +37,7 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
 
   enum class InteractionState { NORMAL, DRAGGING }
 
-  var interactionState = InteractionState.NORMAL
+  var interactionState: InteractionState = InteractionState.NORMAL
 
   override fun handlesPainting() = true
 

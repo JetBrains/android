@@ -23,7 +23,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.ThreadTracker;
 import org.jetbrains.android.AndroidTestCase;
@@ -94,6 +93,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
     makeSureThatProjectVirtualFileIsNotNull();
 
     myIconGenerator = new LauncherIconGenerator(myFacet, 15);
+    disposeOnTearDown(myIconGenerator);
     myIconGenerator.outputName().set("ic_launcher");
     myIconGenerator.foregroundLayerName().set("ic_launcher_foreground");
     myIconGenerator.backgroundLayerName().set("ic_launcher_background");
@@ -104,7 +104,6 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
   @Override
   public void tearDown() throws Exception {
     try {
-      Disposer.dispose(myIconGenerator);
       // The RenderTask dispose thread may still be running.
       ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "RenderTask dispose");
       assertTrue(String.join("\n", myWarnings), myWarnings.isEmpty());

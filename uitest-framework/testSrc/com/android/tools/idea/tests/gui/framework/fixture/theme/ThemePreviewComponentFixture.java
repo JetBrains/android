@@ -36,6 +36,12 @@ public class ThemePreviewComponentFixture extends JPanelFixture {
   }
 
   @NotNull
+  public ThemePreviewComponentFixture requireDevice(@NotNull String id) {
+    assertEquals(id, getThemePreviewPanel().target().getConfiguration().getDevice().getId());
+    return this;
+  }
+
+  @NotNull
   public ThemePreviewComponentFixture requireApi(int apiLevel) {
     assertEquals(apiLevel, getThemePreviewPanel().target().getConfiguration().getTarget().getVersion().getApiLevel());
     return this;

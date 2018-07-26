@@ -50,7 +50,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -64,8 +63,10 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -77,6 +78,35 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
  */
 public class RenderTask {
   private static final Logger LOG = Logger.getInstance(RenderTask.class);
+
+  /**
+   * {@link IImageFactory} that returns a new image exactly of the requested size. It does not do caching or resizing.
+   */
+  private static final IImageFactory SIMPLE_IMAGE_FACTORY = new IImageFactory() {
+    @Override
+    public BufferedImage getImage(int width, int height) {
+      @SuppressWarnings("UndesirableClassUsage")
+      BufferedImage image = GraphicsEnvironment.isHeadless() ?
+                            new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+                                                             : GraphicsEnvironment.getLocalGraphicsEnvironment()
+                                                                                  .getDefaultScreenDevice()
+                                                                                  .getDefaultConfiguration()
+                                                                                  .createCompatibleImage(width, height, Transparency.TRANSLUCENT);
+      image.setAccelerationPriority(1f);
+
+      return image;
+    }
+  };
+
+  /**
+   * Minimum downscaling factor used. The quality can go from [0, 1] but that setting is actually mapped into [MIN_DOWNSCALING_FACTOR, 1]
+   * since below MIN_DOWNSCALING_FACTOR the quality is not good enough.
+   */
+  private static final float MIN_DOWNSCALING_FACTOR = .7f;
+  /**
+   * When quality < 1.0, the max allowed size for the rendering is DOWNSCALED_IMAGE_MAX_BYTES * downscalingFactor
+   */
+  private static final int DOWNSCALED_IMAGE_MAX_BYTES = 2_500_000; // 2.5MB
 
   @NotNull private final ImagePool myImagePool;
   @NotNull private final RenderTaskContext myContext;
@@ -94,7 +124,7 @@ public class RenderTask {
   @NotNull private final Object myCredential;
   private boolean myProvideCookiesForIncludedViews = false;
   @Nullable private RenderSession myRenderSession;
-  @NotNull private final IImageFactory myCachingImageFactory = new CachingImageFactory();
+  @NotNull private final IImageFactory myCachingImageFactory;
   @Nullable private IImageFactory myImageFactoryDelegate;
   private final boolean isSecurityManagerEnabled;
   @NotNull private CrashReporter myCrashReporter;
@@ -104,6 +134,9 @@ public class RenderTask {
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
+   *
+   * @param quality Factor from 0 to 1 used to downscale the rendered image. A lower value means smaller images used
+   *                during rendering at the expense of quality. 1 means that downscaling is disabled.
    */
   RenderTask(@NotNull AndroidFacet facet,
              @NotNull RenderService renderService,
@@ -115,7 +148,8 @@ public class RenderTask {
              @NotNull CrashReporter crashReporter,
              @NotNull ImagePool imagePool,
              @Nullable ILayoutPullParserFactory parserFactory,
-             boolean isSecurityManagerEnabled) {
+             boolean isSecurityManagerEnabled,
+             float quality) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
     if (!isSecurityManagerEnabled) {
@@ -149,6 +183,25 @@ public class RenderTask {
                                       configuration,
                                       moduleInfo,
                                       renderService.getPlatform(facet));
+    if (quality < 1f) {
+      float actualSamplingFactor = MIN_DOWNSCALING_FACTOR + Math.max(Math.min(quality, 1f), 0f) * (1f - MIN_DOWNSCALING_FACTOR);
+      long maxSize = (long)((float)DOWNSCALED_IMAGE_MAX_BYTES * actualSamplingFactor);
+      myCachingImageFactory = new CachingImageFactory(((width, height) -> {
+        int downscaleWidth = width;
+        int downscaleHeight = height;
+        int size = width * height;
+        if (size > maxSize) {
+          double scale = maxSize / (double)size;
+          downscaleWidth *= scale;
+          downscaleHeight *= scale;
+        }
+
+        return SIMPLE_IMAGE_FACTORY.getImage(downscaleWidth, downscaleHeight);
+      }));
+    }
+    else {
+      myCachingImageFactory = new CachingImageFactory(SIMPLE_IMAGE_FACTORY);
+    }
   }
 
   public void setXmlFile(@NotNull XmlFile file) {
@@ -372,6 +425,7 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT, true);
     params.setFlag(RenderParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, true);
     params.setFlag(RenderParamsFlags.FLAG_DO_NOT_RENDER_ON_CREATE, true);
+    params.setFlag(RenderParamsFlags.FLAG_KEY_RESULT_IMAGE_AUTO_SCALE, true);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request

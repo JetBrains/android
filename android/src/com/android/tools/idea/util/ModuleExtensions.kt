@@ -16,7 +16,11 @@
 package com.android.tools.idea.util
 
 import com.intellij.openapi.module.Module
+import com.intellij.psi.PsiElement
+import com.intellij.util.xml.DomElement
 import org.jetbrains.android.facet.AndroidFacet
 
 val Module.androidFacet: AndroidFacet? get() = AndroidFacet.getInstance(this)
+val PsiElement.androidFacet: AndroidFacet? get() = AndroidFacet.getInstance(this)
+val DomElement.androidFacet: AndroidFacet? get() = AndroidFacet.getInstance(this)
 

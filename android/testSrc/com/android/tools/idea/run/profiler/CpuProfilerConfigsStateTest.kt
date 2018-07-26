@@ -27,7 +27,6 @@ class CpuProfilerConfigsStateTest {
   @Before
   fun setUp() {
     StudioFlags.PROFILER_USE_ATRACE.override(true)
-    StudioFlags.PROFILER_USE_SIMPLEPERF.override(true)
   }
 
   @Test

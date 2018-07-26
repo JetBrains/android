@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterHandler;
 import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.profilers.ViewBinder;
+import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,18 +62,19 @@ class DetailsCapturePane extends CapturePane {
 
     myTabsPanel.addChangeListener(event -> setCaptureDetailToTab());
 
-    myFilterComponent = new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
+    final CpuProfilerStage stage = myStageView.getStage();
+    myFilterComponent = new FilterComponent(stage.getCaptureFilter(),
+                                            FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
     if (view.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureFilterEnabled()) {
       myFilterComponent.getModel().setFilterHandler(new FilterHandler() {
         @Override
         @NotNull
         protected FilterResult applyFilter(@NotNull Filter filter) {
-          myStageView.getStage().setCaptureFilter(filter);
-          // TODO: b/110904682 Show match count result for cpu profiler.
-          return new FilterResult(0, false);
+          stage.setCaptureFilter(filter);
+          return new FilterResult(stage.getCaptureFilterNodeCount(), !filter.isEmpty());
         }
       });
-      myFilterComponent.setVisible(false);
+      myFilterComponent.setVisible(!myFilterComponent.getModel().getFilter().isEmpty());
       myFilterComponent.setBorder(DEFAULT_BOTTOM_BORDER);
       FilterComponent.configureKeyBindingAndFocusBehaviors(this, myFilterComponent, myToolbar.getFilterButton());
     }

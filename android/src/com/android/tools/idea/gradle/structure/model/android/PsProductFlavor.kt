@@ -40,6 +40,7 @@ open class PsProductFlavor(
   override val name: String get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
 
   var applicationId by ProductFlavorDescriptors.applicationId
+  var applicationIdSuffix by ProductFlavorDescriptors.applicationIdSuffix
   var dimension by ProductFlavorDescriptors.dimension
   var maxSdkVersion by ProductFlavorDescriptors.maxSdkVersion
   var minSdkVersion by ProductFlavorDescriptors.minSdkVersion
@@ -51,6 +52,8 @@ open class PsProductFlavor(
   var testInstrumentationRunner by ProductFlavorDescriptors.testInstrumentationRunner
   var versionCode by ProductFlavorDescriptors.versionCode
   var versionName by ProductFlavorDescriptors.versionName
+  var versionNameSuffix by ProductFlavorDescriptors.versionNameSuffix
+  var resConfigs by ProductFlavorDescriptors.resConfigs
   var manifestPlaceholders by ProductFlavorDescriptors.manifestPlaceholders
   var testInstrumentationRunnerArguments by ProductFlavorDescriptors.testInstrumentationRunnerArguments
 
@@ -69,6 +72,15 @@ open class PsProductFlavor(
       "Application ID",
       resolvedValueGetter = { applicationId },
       parsedPropertyGetter = { applicationId() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString
+    )
+
+    val applicationIdSuffix: SimpleProperty<PsProductFlavor, String> = property(
+      "Application Id Suffix",
+      resolvedValueGetter = { applicationIdSuffix },
+      parsedPropertyGetter = { applicationIdSuffix() },
       getter = { asString() },
       setter = { setValue(it) },
       parser = ::parseString
@@ -147,7 +159,8 @@ open class PsProductFlavor(
 
     val testFunctionalTest: SimpleProperty<PsProductFlavor, Boolean> = property(
       "Test Functional Test",
-      resolvedValueGetter = { testFunctionalTest },
+      // TODO(b/111630584): Replace with the resolved value.
+      resolvedValueGetter = { null },
       parsedPropertyGetter = { testFunctionalTest() },
       getter = { asBoolean() },
       setter = { setValue(it) },
@@ -157,7 +170,8 @@ open class PsProductFlavor(
 
     val testHandleProfiling: SimpleProperty<PsProductFlavor, Boolean> = property(
       "Test Handle Profiling",
-      resolvedValueGetter = { testHandleProfiling },
+      // TODO(b/111630584): Replace with the resolved value.
+      resolvedValueGetter = { null },
       parsedPropertyGetter = { testHandleProfiling() },
       getter = { asBoolean() },
       setter = { setValue(it) },
@@ -192,6 +206,15 @@ open class PsProductFlavor(
       parser = ::parseString
     )
 
+    val versionNameSuffix: SimpleProperty<PsProductFlavor, String> = property(
+      "Version Name Suffix",
+      resolvedValueGetter = { versionNameSuffix },
+      parsedPropertyGetter = { versionNameSuffix() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString
+    )
+
     val matchingFallbacks: ListProperty<PsProductFlavor, String> = listProperty(
       "Matching Fallbacks",
       resolvedValueGetter = { null },
@@ -221,6 +244,15 @@ open class PsProductFlavor(
       setter = { setValue(it.toString()) },
       parser = ::parseFile,
       knownValuesGetter = { _, model -> proGuardFileValues(model.parent) }
+    )
+
+    val resConfigs: ListProperty<PsProductFlavor, String> = listProperty(
+      "Resource Configs",
+      resolvedValueGetter = { resourceConfigurations.toList() },
+      parsedPropertyGetter = { resConfigs() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString
     )
 
     val manifestPlaceholders: MapProperty<PsProductFlavor, String> = mapProperty(

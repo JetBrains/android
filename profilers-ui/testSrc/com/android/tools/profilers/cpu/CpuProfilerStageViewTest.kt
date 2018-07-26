@@ -38,6 +38,7 @@ import com.android.tools.profilers.cpu.capturedetails.CpuCaptureView
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
+import com.android.tools.profilers.stacktrace.CodeLocation
 import com.android.tools.profilers.stacktrace.ContextMenuItem
 import com.google.common.collect.Iterators
 import com.google.common.truth.Truth.assertThat
@@ -272,20 +273,20 @@ class CpuProfilerStageViewTest {
     // When creating the stage view, the record button should be disabled as the current session is dead.
     assertThat(recordButton.isEnabled).isFalse()
 
-    var transitionHappened = false
-    // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
-    val captureStates = Iterators.forArray(CpuProfilerStage.CaptureState.PARSING,
-                                           CpuProfilerStage.CaptureState.IDLE)
+    var aspectFired = false
+    // Listen to CAPTURE_PARSING aspect to make sure that parsing happens.
     val observer = AspectObserver()
-    myStage.aspect.addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_STATE) {
-      assertThat(myStage.captureState).isEqualTo(captureStates.next())
-      transitionHappened = true
+    myStage.captureParser.aspect.addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_PARSING) {
+      assertThat(myStage.captureParser.isParsing).isTrue()
+      aspectFired = true
     }
 
-    // Set and select a capture, which will trigger a transition of states. First PARSING then IDLE.
+    // Set and select a capture, which will trigger capture parsing.
     myStage.setAndSelectCapture(FakeCpuService.FAKE_TRACE_ID)
 
-    assertThat(transitionHappened).isTrue() // Sanity check to verify we actually changed states.
+    assertThat(aspectFired).isTrue() // Sanity check to verify we actually fired the CAPTURE_PARSING state.
+    // Parsing should be over when the capture is set.
+    assertThat(myStage.captureParser.isParsing).isFalse()
 
     // Even after parsing the capture, the record button should remain disabled.
     assertThat(recordButton.isEnabled).isFalse()
@@ -395,6 +396,29 @@ class CpuProfilerStageViewTest {
     assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.EXPANDED)
 
     val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
+    assertThat(splitter.secondComponent).isNotNull()
+    assertThat(splitter.secondComponent.isVisible).isTrue()
+  }
+
+  @Test
+  fun dontHideDetailsPanelWhenGoingBackToNormalMode() {
+    val stageView = CpuProfilerStageView(myProfilersView, myStage)
+
+    assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.NORMAL)
+    val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
+    assertThat(splitter.secondComponent).isNull()
+
+    // As we don't have an access to change the mode directly, we're changing it indirectly by setting a capture.
+    myStage.capture = CpuProfilerUITestUtils.validCapture()
+    assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.EXPANDED)
+    // CpuCaptureView should not be null now and should also be visible.
+    assertThat(splitter.secondComponent).isNotNull()
+    assertThat(splitter.secondComponent.isVisible).isTrue()
+
+    // As we don't have an access to change the mode directly, we're changing it indirectly by simulating a code navigation.
+    myStage.onNavigated(CodeLocation.stub())
+    assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.NORMAL)
+    // Even though we went back to NORMAL (non maximized) mode so the user can view the code editor, we keep displaying the CpuCaptureView.
     assertThat(splitter.secondComponent).isNotNull()
     assertThat(splitter.secondComponent.isVisible).isTrue()
   }

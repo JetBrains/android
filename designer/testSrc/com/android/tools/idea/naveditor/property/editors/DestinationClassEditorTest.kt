@@ -22,6 +22,7 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture
+import com.intellij.psi.util.ClassUtil
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
@@ -114,5 +115,11 @@ class DestinationClassEditorTest : NavTestCase() {
   }
 
 
-  private infix fun String.displayFor(value: String?) = ValueWithDisplayString(this, value)
+  private infix fun String.displayFor(value: String?): ValueWithDisplayString {
+    return when (value) {
+      "-" -> ValueWithDisplayString.SEPARATOR
+      null -> ValueWithDisplayString.UNSET
+      else -> ValueWithDisplayString("${ClassUtil.extractClassName(value)} (${ClassUtil.extractPackageName(value)})", value)
+    }
+  }
 }

@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.rendering.RenderTaskTestUtil;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -61,8 +60,11 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     }
   }
 
-  @SuppressWarnings("ConstantConditions")
-  public void testIsSupported() throws Exception {
+  private RenderTask createRenderTask(VirtualFile file) {
+    return RenderTestUtil.createRenderTask(myFacet, file, RenderTestUtil.HOLO_THEME);
+  }
+
+  public void testIsSupported() {
     VirtualFile layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout-land-v14/foo.xml");
     VirtualFile menuFile = myFixture.copyFileToProject("menus/menu1.xml", "res/menu/menu1.xml");
     VirtualFile drawableFile = myFixture.copyFileToProject("menus/menu1.xml", "res/menu/menu1.xml");
@@ -77,7 +79,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
   public void testRenderDrawable() throws Exception {
     VirtualFile file = myFixture.copyFileToProject("drawables/progress_horizontal.xml", "res/drawable/progress_horizontal.xml");
     assertNotNull(file);
-    RenderTask task = RenderTaskTestUtil.createRenderTask(myFacet, file);
+    RenderTask task = createRenderTask(file);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -95,13 +97,13 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
     assertEquals(expectedLayout, actualLayout);
 
-    RenderTestUtil.checkRendering(task, getTestDataPath() + "/render/thumbnails/drawable/progress_horizontal.png");
+    RenderTestUtil.scaleAndCheckRendering(task, getTestDataPath() + "/render/thumbnails/drawable/progress_horizontal.png");
   }
 
   /**
    * Check that when two drawables with the same name exist in multiple densities, we select the intended one.
    */
-  public void testRenderConflictingDrawables() throws Exception {
+  public void testRenderConflictingDrawables() {
     final String redBoxContent = "<shape xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                                  "    android:shape=\"rectangle\">\n" +
                                  "    <solid android:color=\"#F00\"/>\n" +
@@ -113,7 +115,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     VirtualFile redBox = myFixture.addFileToProject("res/drawable/box.xml", redBoxContent).getVirtualFile();
     VirtualFile blueBox = myFixture.addFileToProject("res/drawable-xxxhdpi/box.xml", blueBoxContent).getVirtualFile();
 
-    RenderTask task = RenderTaskTestUtil.createRenderTask(myFacet, redBox);
+    RenderTask task = createRenderTask(redBox);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -131,7 +133,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
     assertEquals(expectedLayout, actualLayout);
 
-    task = RenderTaskTestUtil.createRenderTask(myFacet, blueBox);
+    task = createRenderTask(blueBox);
     assertNotNull(task);
     parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -152,9 +154,9 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
 
 
-  public void testRenderMenuWithShowInNavigationViewAttribute() throws Exception {
-    RenderTask task = RenderTaskTestUtil
-      .createRenderTask(myFacet, myFixture.copyFileToProject("menus/activity_main_drawer.xml", "res/menu/activity_main_drawer.xml"));
+  public void testRenderMenuWithShowInNavigationViewAttribute() {
+    RenderTask task = createRenderTask(myFixture.copyFileToProject("menus/activity_main_drawer.xml",
+                                                                   "res/menu/activity_main_drawer.xml"));
 
     DomPullParser parser = (DomPullParser)LayoutPullParsers.create(task);
     assert parser != null;
@@ -171,11 +173,11 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     assertEquals(expected, XmlPrettyPrinter.prettyPrint(parser.getRoot(), true));
   }
 
-  public void testRenderAdaptiveIcon() throws Exception {
+  public void testRenderAdaptiveIcon() {
     // TODO: Replace the drawable with an actual adaptive-icon (see TODO below)
     VirtualFile file = myFixture.copyFileToProject("drawables/progress_horizontal.xml", "res/mipmap/adaptive.xml");
     assertNotNull(file);
-    RenderTask task = RenderTaskTestUtil.createRenderTask(myFacet, file);
+    RenderTask task = createRenderTask(file);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -203,7 +205,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/fontb.ttf");
     VirtualFile file = myFixture.copyFileToProject("fonts/my_font_family.xml", "res/font/my_font_family.xml");
     assertNotNull(file);
-    RenderTask task = RenderTaskTestUtil.createRenderTask(myFacet, file);
+    RenderTask task = createRenderTask(file);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -240,7 +242,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
     assertEquals(expectedLayout, actualLayout);
 
-    RenderTestUtil.checkRendering(task, getTestDataPath() + "/render/thumbnails/fonts/fontFamily.png");
+    RenderTestUtil.scaleAndCheckRendering(task, getTestDataPath() + "/render/thumbnails/fonts/fontFamily.png");
   }
 
   private static FontFamily createRobotoFontFamily() {
@@ -257,7 +259,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     return family;
   }
 
-  public void testDownloadedFontFamily() throws Exception {
+  public void testDownloadedFontFamily() {
     FontFamily compoundFontFamily = createMockFontFamily(true);
 
     VirtualFile file = myFixture.copyFileToProject("fonts/roboto_bold.xml", "res/font/roboto_bold.xml");
@@ -291,7 +293,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     assertEquals(expectedLayout, actualLayout);
   }
 
-  public void testDownloadableFontWithoutFile() throws Exception {
+  public void testDownloadableFontWithoutFile() {
     // This is a downloadable font that hasn't been cached yet
     FontFamily compoundFontFamily = createMockFontFamily(false);
 

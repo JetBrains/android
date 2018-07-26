@@ -24,7 +24,7 @@ import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.diagnostic.AbstractMessage;
-import com.intellij.diagnostic.ITNReporterKt;
+import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.diagnostic.ReportMessages;
 import com.intellij.errorreport.bean.ErrorBean;
 import com.intellij.ide.DataManager;
@@ -77,7 +77,11 @@ public class ErrorReporter extends ErrorReportSubmitter {
     bean.setDescription(description);
     bean.setMessage(event.getMessage());
 
-    ITNReporterKt.setPluginInfo(event, bean);
+    Pair<String, String> pluginInfo = IdeErrorsDialog.getPluginInfo(event);
+    if (pluginInfo != null) {
+      bean.setPluginName(pluginInfo.first);
+      bean.setPluginVersion(pluginInfo.second);
+    }
 
     Object data = event.getData();
 

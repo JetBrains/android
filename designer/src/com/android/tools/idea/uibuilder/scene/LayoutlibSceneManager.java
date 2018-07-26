@@ -162,7 +162,10 @@ public class LayoutlibSceneManager extends SceneManager {
     return null;
   }
 
-  protected LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface, @NotNull Executor renderTaskDisposerExecutor) {
+  protected LayoutlibSceneManager(@NotNull NlModel model,
+                                  @NotNull DesignSurface designSurface,
+                                  @NotNull RenderSettings settings,
+                                  @NotNull Executor renderTaskDisposerExecutor) {
     super(model, designSurface);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     createSceneView();
@@ -196,7 +199,7 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
-    this(model, designSurface, PooledThreadExecutor.INSTANCE);
+    this(model, designSurface, RenderSettings.getDefault(), PooledThreadExecutor.INSTANCE);
   }
 
   @NotNull
@@ -766,8 +769,10 @@ public class LayoutlibSceneManager extends SceneManager {
       if (myRenderTask != null && !myRenderTask.isDisposed()) {
         myRenderTask.dispose();
       }
-      RenderService.RenderTaskBuilder builder = renderService.taskBuilder(facet, configuration).withPsiFile(getModel().getFile());
-      myRenderTask = setupRenderTaskBuilder(builder).build();
+
+      RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
+                                                                       .withPsiFile(getModel().getFile());
+      myRenderTask = setupRenderTaskBuilder(renderTaskBuilder).build();
       if (myRenderTask != null) {
         myRenderTask.getLayoutlibCallback()
           .setAdaptiveIconMaskPath(getDesignSurface().getAdaptiveIconShape().getPathDescription());
@@ -820,6 +825,15 @@ public class LayoutlibSceneManager extends SceneManager {
   @VisibleForTesting
   @NotNull
   protected RenderService.RenderTaskBuilder setupRenderTaskBuilder(@NotNull RenderService.RenderTaskBuilder taskBuilder) {
+    RenderSettings settings = RenderSettings.getDefault();
+    if (!settings.getUseLiveRendering()) {
+      // When we are not using live rendering, we do not need the pool
+      taskBuilder.disableImagePool();
+    }
+    if (settings.getQuality() < 1f) {
+      taskBuilder.withDownscaleFactor(settings.getQuality());
+    }
+
     return taskBuilder;
   }
 

@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomColumnDefinitionNameImpl extends AbstractRoomNameElement implements RoomColumnDefinitionName {
 
-  public RoomColumnDefinitionNameImpl(ASTNode node) {
+  public RoomColumnDefinitionNameImpl(@NotNull ASTNode node) {
     super(node);
   }
 
@@ -49,7 +49,7 @@ public class RoomColumnDefinitionNameImpl extends AbstractRoomNameElement implem
   }
 
   @NotNull
-  public RoomColumnDefinitionName setName(String newName) {
+  public RoomColumnDefinitionName setName(@NotNull String newName) {
     return PsiImplUtil.setName(this, newName);
   }
 

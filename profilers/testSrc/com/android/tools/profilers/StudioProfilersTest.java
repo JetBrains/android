@@ -794,7 +794,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testAttachAgentCalledWhenFeatureEnabled() {
+  public void testAttachAgentCalledPostO() {
     FakeIdeProfilerServices fakeIdeService = new FakeIdeProfilerServices();
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), fakeIdeService, timer);
@@ -810,16 +810,7 @@ public final class StudioProfilersTest {
 
     assertThat(profilers.getDevice()).isEqualTo(device);
     assertThat(profilers.getProcess()).isEqualTo(process1);
-    assertThat(myProfilerService.getAgentAttachCalled()).isFalse();
-
-    fakeIdeService.enableJvmtiAgent(true);
-    Common.Process process2 = createProcess(device.getDeviceId(), 2, "FakeProcess2", Common.Process.State.ALIVE);
-    myProfilerService.addProcess(device, process2);
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setProcess(process2);
-    assertThat(profilers.getDevice()).isEqualTo(device);
-    assertThat(profilers.getProcess()).isEqualTo(process2);
-    assertThat(myProfilerService.getAgentAttachCalled()).isTrue();
+    assertThat(myProfilerService.getAgentAttachCalled()).isTrue();;
   }
 
   @Test
@@ -828,7 +819,6 @@ public final class StudioProfilersTest {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), fakeIdeService, timer);
 
-    fakeIdeService.enableJvmtiAgent(true);
     Common.Device device = createDevice(AndroidVersion.VersionCodes.N, "FakeDevice", Common.Device.State.ONLINE);
     Common.Process process1 = createProcess(device.getDeviceId(), 1, "FakeProcess1", Common.Process.State.ALIVE);
     myProfilerService.addDevice(device);
@@ -855,7 +845,6 @@ public final class StudioProfilersTest {
 
     AgentStatusResponse attachedResponse = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build();
     myProfilerService.setAgentStatus(attachedResponse);
-    fakeIdeService.enableJvmtiAgent(true);
     Common.Device device = createDevice(AndroidVersion.VersionCodes.O, "FakeDevice", Common.Device.State.ONLINE);
     Common.Process process1 = createProcess(device.getDeviceId(), 1, "FakeProcess1", Common.Process.State.ALIVE);
     myProfilerService.addDevice(device);

@@ -35,7 +35,9 @@ public class CanvasResizeTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/72904081
   @Test
   public void resizeAndSnap() throws Exception {
-    guiTest.importSimpleLocalApplication()
+    guiTest
+      .importSimpleLocalApplication()
+      .closeProjectPanel()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)

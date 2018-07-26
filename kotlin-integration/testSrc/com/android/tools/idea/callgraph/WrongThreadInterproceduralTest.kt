@@ -29,7 +29,7 @@ class WrongThreadInterproceduralTest : AndroidTestCase() {
 
   private fun doTest(ext: String) {
     myFixture.testDataPath = PathManager.getHomePath() + "/../adt/idea/kotlin-integration/testData"
-    val virtualFile = myFixture.copyFileToProject("callgraph/ThreadAnnotations" + ext, "src/ThreadAnnotations" + ext)
+    val virtualFile = myFixture.copyFileToProject("callgraph/ThreadAnnotations$ext", "src/ThreadAnnotations$ext")
     val (_, receiverEval, graph) = buildInterproceduralAnalysesForTest(virtualFile, myFixture.project)
     val paths = searchForInterproceduralThreadAnnotationViolations(graph, receiverEval)
 

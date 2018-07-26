@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MasterDetailsComponent;
@@ -148,7 +149,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   protected PsModule findModule(@NotNull String moduleName) {
     PsModule module = myContext.getProject().findModuleByName(moduleName);
     if (module == null) {
-      for (PsModule extraModule : getExtraTopModules()) {
+      for (PsModule extraModule : getExtraModules()) {
         if (moduleName.equals(extraModule.getName())) {
           module = extraModule;
           break;
@@ -160,7 +161,6 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
 
   @Override
   protected void updateSelection(@Nullable NamedConfigurable configurable) {
-    super.updateSelection(configurable);
     if (configurable instanceof BaseNamedConfigurable) {
       BaseNamedConfigurable baseConfigurable = (BaseNamedConfigurable)configurable;
       PsModule module = baseConfigurable.getEditableObject();
@@ -172,6 +172,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
         mySelectModuleQuietly = false;
       }
     }
+    super.updateSelection(configurable);
     myHistory.pushQueryPlace();
   }
 
@@ -270,9 +271,9 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   }
 
   protected void loadTree() {
-    List<PsModule> extraTopModules = getExtraTopModules();
-    createModuleNodes(extraTopModules);
+    List<PsModule> extraModules = getExtraModules();
     ((DefaultTreeModel)myTree.getModel()).reload();
+    createModuleNodes(extraModules);
     myUiDisposed = false;
   }
 
@@ -287,13 +288,13 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   }
 
   @NotNull
-  protected List<PsModule> getExtraTopModules() {
+  protected List<PsModule> getExtraModules() {
     return Collections.emptyList();
   }
 
-  private void createModuleNodes(@NotNull List<PsModule> extraTopModules) {
-    extraTopModules.forEach(this::addConfigurableFor);
+  private void createModuleNodes(@NotNull List<PsModule> extraModules) {
     myContext.getProject().forEachModule(this::addConfigurableFor);
+    extraModules.forEach(this::addConfigurableFor);
   }
 
   private void addConfigurableFor(@NotNull PsModule module) {
@@ -398,5 +399,15 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   @Nullable
   public Runnable enableSearch(String option) {
     return null;
+  }
+
+  @Override
+  public boolean isModified() {
+    return myContext.getProject().isModified();
+  }
+
+  @Override
+  public void apply() throws ConfigurationException {
+    myContext.getProject().applyChanges();
   }
 }

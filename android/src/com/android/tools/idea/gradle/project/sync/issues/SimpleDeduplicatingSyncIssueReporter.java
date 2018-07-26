@@ -109,7 +109,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     // Add custom links
     messages
       .updateNotification(notification, notification.getMessage(), getCustomLinks(project, syncIssues, affectedModules, buildFileMap));
-    String message = notification.getMessage();
+    String message = notification.getMessage().trim();
 
     ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
 

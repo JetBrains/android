@@ -27,14 +27,13 @@ import com.android.tools.idea.common.scene.target.*;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget;
 import com.android.tools.idea.naveditor.scene.targets.ScreenHeaderTarget;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
-import com.android.tools.idea.uibuilder.handlers.coordinator.CoordinatorSnapTarget;
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeAnchorTarget;
 import com.android.tools.idea.uibuilder.model.NlSelectionModel;
 import com.android.tools.idea.uibuilder.model.SelectionHandle;
@@ -429,43 +428,6 @@ public class Scene implements SelectionListener, Disposable {
     }
   }
 
-  /**
-   * Decides which target type we should display
-   * TODO: this function needs refactor.
-   *
-   * @param target
-   * @return true if the target will be displayed
-   */
-  public boolean allowsTarget(Target target) {
-    // TODO: this should really be delegated to the handlers
-    SceneComponent component = target.getComponent();
-    if (component.isSelected()) {
-      if (component.canShowBaseline()) {
-        return (target instanceof DragBaseTarget);
-      }
-      return !component.isDragging();
-    }
-    if (target instanceof CoordinatorSnapTarget) {
-      return true;
-    }
-    if (target instanceof MultiComponentTarget) {
-      return true;
-    }
-    if (target instanceof DragBaseTarget) {
-      return true;
-    }
-    if (target instanceof LassoTarget) {
-      return true;
-    }
-    if (target instanceof GuidelineCycleTarget) {
-      return true;
-    }
-    if (myFilterType == FilterType.ALL) {
-      return true;
-    }
-    return false;
-  }
-
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Mouse Handling
@@ -727,7 +689,7 @@ public class Scene implements SelectionListener, Disposable {
        *  - live render is enabled, and
        *  - we are displaying the design surface
        */
-      boolean renderOnLayout = StudioFlags.NELE_LIVE_RENDER.get();
+      boolean renderOnLayout = RenderSettings.getDefault().getUseLiveRendering();
       renderOnLayout &= (myDesignSurface instanceof NlDesignSurface) &&
                         ((NlDesignSurface)myDesignSurface).getSceneMode() != SceneMode.BLUEPRINT_ONLY;
 

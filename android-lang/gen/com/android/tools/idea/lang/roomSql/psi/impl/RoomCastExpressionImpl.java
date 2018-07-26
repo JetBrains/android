@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomCastExpressionImpl extends RoomExpressionImpl implements RoomCastExpression {
 
-  public RoomCastExpressionImpl(ASTNode node) {
+  public RoomCastExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

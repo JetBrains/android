@@ -102,19 +102,7 @@ public class ConnectionDetailsViewTest {
   }
 
   @Test
-  public void requestTabIsOnlyPresentWhenEnabled() {
-    assertThat(findTab(myView, HeadersTabContent.class)).isNotNull();
-    assertThat(findTab(myView, RequestTabContent.class)).isNull();
-
-    myIdeProfilerServices.enableRequestPayload(true);
-    myView = new ConnectionDetailsView(myStageView);
-    assertThat(findTab(myView, HeadersTabContent.class)).isNull();
-    assertThat(findTab(myView, RequestTabContent.class)).isNotNull();
-  }
-
-  @Test
   public void viewerForRequestPayloadIsPresentWhenRequestPayloadIsNotNull() {
-    myIdeProfilerServices.enableRequestPayload(true);
     myView = new ConnectionDetailsView(myStageView);
 
     myProfilerService.addFile(TEST_REQUEST_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Content"));
@@ -129,7 +117,6 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void viewerForRequestPayloadIsAbsentWhenRequestPayloadIsNull() {
-    myIdeProfilerServices.enableRequestPayload(true);
     myView = new ConnectionDetailsView(myStageView);
 
     HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
@@ -140,7 +127,6 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void requestPayloadHasBothParsedViewAndRawDataView() {
-    myIdeProfilerServices.enableRequestPayload(true);
     myView = new ConnectionDetailsView(myStageView);
 
     HttpData data = new HttpData.Builder(DEFAULT_DATA).setRequestFields("Content-Type = application/x-www-form-urlencoded")
@@ -157,7 +143,6 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void responsePayloadHasBothParsedViewAndRawDataView() {
-    myIdeProfilerServices.enableRequestPayload(true);
     myView = new ConnectionDetailsView(myStageView);
 
     HttpData data =
@@ -261,21 +246,11 @@ public class ConnectionDetailsViewTest {
   }
 
   @Test
-  public void headersIsUpdated() {
-    HeadersTabContent headersTab = findTab(myView, HeadersTabContent.class);
-    assertThat(headersTab.findRequestHeadersSection()).isNull();
-
-    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
-    myView.setHttpData(data);
-    assertThat(headersTab.findRequestHeadersSection()).isNotNull();
-  }
-
-  @Test
   public void headerSectionIsSorted() {
     HttpData data = new HttpData.Builder(DEFAULT_DATA).setRequestFields(TEST_HEADERS).build();
     myView.setHttpData(data);
-    JPanel requestHeadersPanel = findTab(myView, HeadersTabContent.class).findRequestHeadersSection();
-    String text = firstDescendantWithType(requestHeadersPanel, JTextPane.class).getText();
+    TabContent tabContent = findTab(myView, RequestTabContent.class);
+    String text = firstDescendantWithType(tabContent.getComponent(), JTextPane.class).getText();
 
     assertUiContainsLabelAndValue(text, "123", "numeric-value");
     assertUiContainsLabelAndValue(text, "apple", "apple-value");

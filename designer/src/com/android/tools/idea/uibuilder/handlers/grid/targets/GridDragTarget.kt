@@ -150,6 +150,8 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget() {
     myComponent.scene.repaint()
   }
 
+  override fun isHittable() = !myComponent.isDragging
+
   override fun getPreferenceLevel() = Target.DRAG_LEVEL
 
   override fun getMouseCursor(): Cursor? = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)

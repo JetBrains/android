@@ -16,8 +16,11 @@
 
 package org.jetbrains.android;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.google.common.base.Strings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
@@ -33,6 +36,7 @@ import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.xml.XmlSchemaProvider;
+import com.google.common.collect.ImmutableSet;
 import gnu.trove.THashMap;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
@@ -50,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
   private static final Key<Map<String, CachedValue<XmlFile>>> DESCRIPTORS_MAP_IN_MODULE = Key.create("ANDROID_DESCRIPTORS_MAP_IN_MODULE");
@@ -60,7 +65,7 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
 
     Map<String, CachedValue<XmlFile>> descriptors = module.getUserData(DESCRIPTORS_MAP_IN_MODULE);
     if (descriptors == null) {
-      descriptors = new THashMap<String, CachedValue<XmlFile>>();
+      descriptors = new THashMap<>();
       module.putUserData(DESCRIPTORS_MAP_IN_MODULE, descriptors);
     }
     CachedValue<XmlFile> reference = descriptors.get(url);
@@ -68,14 +73,11 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
       return reference.getValue();
     }
     CachedValuesManager manager = CachedValuesManager.getManager(module.getProject());
-    reference = manager.createCachedValue(new CachedValueProvider<XmlFile>() {
-      @Override
-      public Result<XmlFile> compute() {
-        final URL resource = AndroidXmlSchemaProvider.class.getResource("android.xsd");
-        final VirtualFile fileByURL = VfsUtil.findFileByURL(resource);
-        XmlFile result = (XmlFile)PsiManager.getInstance(module.getProject()).findFile(fileByURL).copy();
-        return new Result<XmlFile>(result, PsiModificationTracker.MODIFICATION_COUNT);
-      }
+    reference = manager.createCachedValue(() -> {
+      final URL resource = AndroidXmlSchemaProvider.class.getResource("android.xsd");
+      final VirtualFile fileByURL = VfsUtil.findFileByURL(resource);
+      XmlFile result = (XmlFile)PsiManager.getInstance(module.getProject()).findFile(fileByURL).copy();
+      return new CachedValueProvider.Result<>(result, PsiModificationTracker.MODIFICATION_COUNT);
     }, false);
 
     descriptors.put(url, reference);
@@ -90,15 +92,12 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     }
     final XmlFile originalFile = (XmlFile)f;
 
-    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-      @Override
-      public Boolean compute() {
-        if (isXmlResourceFile(originalFile) || ManifestDomFileDescription.isManifestFile(originalFile) ||
-            RawDomFileDescription.isRawFile(originalFile)) {
-          return AndroidFacet.getInstance(originalFile) != null;
-        }
-        return false;
+    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
+      if (isXmlResourceFile(originalFile) || ManifestDomFileDescription.isManifestFile(originalFile) ||
+          RawDomFileDescription.isRawFile(originalFile)) {
+        return AndroidFacet.getInstance(originalFile) != null;
       }
+      return false;
     });
   }
 
@@ -125,26 +124,24 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
   @NotNull
   @Override
   public Set<String> getAvailableNamespaces(@NotNull XmlFile file, @Nullable String tagName) {
-    Set<String> result = new HashSet<String>();
+    Set<String> result = new HashSet<>();
     AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet != null) {
       result.add(TOOLS_URI);
+      result.add(NS_RESOURCES);
       ResourceFolderType type = ResourceHelper.getFolderType(file.getOriginalFile());
-      if (type == ResourceFolderType.VALUES) {
-        result.add(XLIFF_URI);
-      } else if (type != ResourceFolderType.MIPMAP && type != ResourceFolderType.RAW) {
-        result.add(NS_RESOURCES);
+      if (type != ResourceFolderType.MIPMAP && type != ResourceFolderType.RAW) {
         if (type == ResourceFolderType.DRAWABLE) {
           result.add(AAPT_URI);
         }
-        String localNs = getLocalXmlNamespace(facet);
-        if (localNs != null) {
-          result.add(localNs);
-        }
-        // Some xml files may contain xliff.
-        if (type == ResourceFolderType.XML) {
+        // string and some xml files may contain xliff.
+        if (type == ResourceFolderType.XML || type == ResourceFolderType.VALUES) {
           result.add(XLIFF_URI);
         }
+
+        result.add(getLocalXmlNamespace(facet));
+
+        result.addAll(getResourceNamespaces(facet));
       }
     }
     return result;
@@ -170,24 +167,16 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     return null;
   }
 
-  @Nullable
-  public static String getLocalXmlNamespace(@NotNull AndroidFacet facet) {
-    if (facet.getConfiguration().isLibraryProject() || facet.requiresAndroidModel()) {
-      return AUTO_URI;
-    }
-    final Manifest manifest = facet.getManifest();
-    if (manifest != null) {
-      String aPackage = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-        @Override
-        @Nullable
-        public String compute() {
-          return manifest.getPackage().getValue();
-        }
-      });
-      if (aPackage != null && !aPackage.isEmpty()) {
-        return URI_PREFIX + aPackage;
-      }
-    }
-    return null;
+  @NotNull
+  private static String getLocalXmlNamespace(@NotNull AndroidFacet facet) {
+    return ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace().getXmlNamespaceUri();
+  }
+
+  @NotNull
+  private static ImmutableSet<String> getResourceNamespaces(@NotNull AndroidFacet facet) {
+    return ResourceRepositoryManager.getAppResources(facet).getNamespaces()
+                                    .stream()
+                                    .map(ResourceNamespace::getXmlNamespaceUri)
+                                    .collect(toImmutableSet());
   }
 }

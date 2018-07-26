@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.PsModel
+import com.intellij.util.PlatformIcons
+import javax.swing.Icon
 
 /**
  * A description of a reason why a dependency is included in a build.
@@ -47,5 +49,6 @@ sealed class ReverseDependency : PsChildModel() {
     override val spec: PsArtifactDependencySpec
   ) : ReverseDependency() {
     override val name: String = requestingResolvedDependency.spec.toString()
+    override val icon: Icon? = PlatformIcons.LIBRARY_ICON
   }
 }

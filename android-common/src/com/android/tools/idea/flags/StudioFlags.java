@@ -83,21 +83,9 @@ public final class StudioFlags {
     "Shows the file open drop down menu for session import.",
     true);
 
-  public static final Flag<Boolean> PROFILER_USE_JVMTI = Flag.create(
-    PROFILER, "jvmti", "Enable JVMTI profiling",
-    "Use JVMTI for profiling devices with Android O or newer. " +
-    "This unlocks even more profiling features for these devices.",
-    true);
-
   public static final Flag<Boolean> PROFILER_ENERGY_PROFILER_ENABLED = Flag.create(
     PROFILER, "energy", "Enable Energy profiling",
     "Enable the new energy profiler. It monitors battery usage of the selected app.", true);
-
-  public static final Flag<Boolean> PROFILER_USE_SIMPLEPERF = Flag.create(
-    PROFILER, "simpleperf", "Enable Simpleperf profiling",
-    "Use Simpleperf for CPU profiling on devices with Android O or newer. " +
-    "Simpleperf is a native profiler tool built for Android.",
-    true);
 
   public static final Flag<Boolean> PROFILER_IMPORT_CPU_TRACE = Flag.create(
     PROFILER, "cpu.import.trace", "Enable CPU trace importing",
@@ -264,11 +252,11 @@ public final class StudioFlags {
     "Changing the value of this flag requires restarting Android Studio.",
     true);
 
-  public static final Flag<Boolean> SELECT_DEVICE_COMBO_BOX_ACTION_VISIBLE = Flag.create(
+  public static final Flag<Boolean> SELECT_SNAPSHOT_DEVICE_COMBO_BOX_VISIBLE = Flag.create(
     RUNDEBUG,
-    "select.device.combo.box.action.visible",
-    "Show the Select Device combo box action",
-    "Show the Select Device combo box action next to the Select Run/Debug Configuration one in the toolbar",
+    "select.snapshot.device.combo.box.visible",
+    "Show the Select Snapshot/Device combo box",
+    "Show the Select Snapshot/Device combo box next to the Select Run/Debug Configuration one in the toolbar",
     false);
 
   public static final Flag<Boolean> JVMTI_REFRESH = Flag.create(

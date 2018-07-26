@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.roomSql.psi.*;
 
 public class RoomGroupByClauseImpl extends ASTWrapperPsiElement implements RoomGroupByClause {
 
-  public RoomGroupByClauseImpl(ASTNode node) {
+  public RoomGroupByClauseImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -63,7 +63,10 @@ public class EnableDisableSingleVariantSyncStep {
 
     String message = "Projects that " + state.getReason() +
                      " are currently not compatible with the experimental \"Only sync the active variant\" feature.\n" +
-                     "Click OK to disable the feature and sync again.\n";
+                     "Click OK to disable the feature and sync again.\n" +
+                     "\n" +
+                     "You can update your choice later from\n" +
+                     PATH_IN_SETTINGS;
 
     invokeAndWaitIfNeeded(
       (Runnable)() -> Messages.showMessageDialog(message, "Experimental Gradle Sync Feature", Messages.getWarningIcon())

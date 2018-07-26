@@ -79,11 +79,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myImportCpuTraceEnabled = false;
 
   /**
-   * Toggle for faking jvmti agent support in tests.
-   */
-  private boolean myJvmtiAgentEnabled = false;
-
-  /**
    * JNI references alloc/dealloc events are tracked and shown.
    */
   private boolean myIsJniReferenceTrackingEnabled = false;
@@ -104,11 +99,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myNativeProfilingConfigurationPreferred = false;
 
   /**
-   * Whether network request payload is tracked and shown.
-   */
-  private boolean myRequestPayloadEnabled = false;
-
-  /**
    * Whether long trace files should be parsed.
    */
   private boolean myShouldParseLongTraces = false;
@@ -124,11 +114,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean mySessionsImportEnabled = true;
 
   /**
-   * Can toggle for tests via {@link #enableSimpleperf(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean mySimpleperfEnabled = false;
-
-  /**
    * Can toggle for tests via {@link #enableStartupCpuProfiling(boolean)}, but each test starts with this defaulted to false.
    */
   private boolean myStartupCpuProfilingEnabled = false;
@@ -137,6 +122,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    * Can toggle for tests via {@link #enableCpuApiTracing(boolean)}, but each test starts with this defaulted to false.
    */
   private boolean myIsCpuApiTracingEnabled = false;
+
+  /**
+   * Can toggle for tests via {@link #enableCpuCaptureFilter(boolean)}, but each test starts with this defaulted to false.
+   */
+  private boolean myIsCpuCaptureFilterEnabled = false;
 
   /**
    * List of custom CPU profiling configurations.
@@ -246,7 +236,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isCpuCaptureFilterEnabled() {
-        return false;
+        return myIsCpuCaptureFilterEnabled;
       }
 
       @Override
@@ -268,11 +258,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
 
       @Override
-      public boolean isJvmtiAgentEnabled() {
-        return myJvmtiAgentEnabled;
-      }
-
-      @Override
       public boolean isLiveAllocationsEnabled() {
         return myLiveTrackingEnabled;
       }
@@ -285,11 +270,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isMemorySnapshotEnabled() {
         return myMemorySnapshotEnabled;
-      }
-
-      @Override
-      public boolean isNetworkRequestPayloadEnabled() {
-        return myRequestPayloadEnabled;
       }
 
       @Override
@@ -310,11 +290,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isSessionsEnabled() {
         return mySessionsViewEnabled;
-      }
-
-      @Override
-      public boolean isSimpleperfEnabled() {
-        return mySimpleperfEnabled;
       }
 
       @Override
@@ -455,12 +430,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myAtraceEnabled = enabled;
   }
 
-  public void enableEnergyProfiler(boolean enabled) {
-    myEnergyProfilerEnabled = enabled;
+  public void enableCpuCaptureFilter(boolean enabled) {
+    myIsCpuCaptureFilterEnabled = enabled;
   }
 
-  public void enableJvmtiAgent(boolean enabled) {
-    myJvmtiAgentEnabled = enabled;
+  public void enableEnergyProfiler(boolean enabled) {
+    myEnergyProfilerEnabled = enabled;
   }
 
   public void enableJniReferenceTracking(boolean enabled) { myIsJniReferenceTrackingEnabled = enabled; }
@@ -473,20 +448,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myMemorySnapshotEnabled = enabled;
   }
 
-  public void enableRequestPayload(boolean enabled) {
-    myRequestPayloadEnabled = enabled;
-  }
-
   public void enableSessionsView(boolean enabled) {
     mySessionsViewEnabled = enabled;
   }
 
   public void enableSessionImport(boolean enabled) {
     mySessionsImportEnabled = enabled;
-  }
-
-  public void enableSimpleperf(boolean enabled) {
-    mySimpleperfEnabled = enabled;
   }
 
   public void enableStartupCpuProfiling(boolean enabled) {

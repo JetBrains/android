@@ -276,11 +276,9 @@ public class CpuProfilingConfigPanel {
                         TraceTechnology.ART_INSTRUMENTED, profilersType);
 
     mySimpleperfButton = new JRadioButton(CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName());
-    if (StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
-      createRadioButtonUi(mySimpleperfButton, "<html>Samples native code using simpleperf. " +
-                                              "Available for Android 8.0 (API level 26) and higher.</html>",
-                          TraceTechnology.SIMPLEPERF, profilersType);
-    }
+    createRadioButtonUi(mySimpleperfButton, "<html>Samples native code using simpleperf. " +
+                                            "Available for Android 8.0 (API level 26) and higher.</html>",
+                        TraceTechnology.SIMPLEPERF, profilersType);
   }
 
   private void updateConfigurationProfilerAndMode(TraceTechnology technology) {

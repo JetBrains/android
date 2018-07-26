@@ -156,6 +156,11 @@ public class CaptureModel {
     rebuildDetails();
   }
 
+  @NotNull
+  public Filter getFilter() {
+    return myFilter;
+  }
+
   public void setDetails(@Nullable CaptureDetails.Type type) {
     if (type != null && myDetails != null && type == myDetails.getType()) {
       return;
@@ -194,6 +199,7 @@ public class CaptureModel {
       myDetails = type.build(myCaptureConvertedRange, node);
     }
     else {
+      myFilter = Filter.EMPTY_FILTER;
       myDetails = null;
     }
 

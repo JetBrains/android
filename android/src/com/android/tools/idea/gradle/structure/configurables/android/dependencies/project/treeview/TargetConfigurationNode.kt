@@ -17,38 +17,26 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
-import com.google.common.base.Joiner
-import com.intellij.openapi.roots.ui.CellAppearanceEx
-import com.intellij.ui.HtmlListCellRenderer
-import com.intellij.ui.SimpleColoredComponent
+import com.intellij.ide.projectView.PresentationData
 import com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES
+import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
 import com.intellij.ui.treeStructure.SimpleNode
 
 internal class TargetConfigurationNode(
   configuration: Configuration,
   uiSettings: PsUISettings
-) : AbstractPsNode(uiSettings), CellAppearanceEx {
-  private val types: List<String>
-
+) : AbstractPsNode(uiSettings){
   init {
     myName = configuration.name
     icon = configuration.icon
-    types = configuration.types
   }
 
   override fun getChildren(): Array<SimpleNode> = SimpleNode.NO_CHILDREN
 
-  override fun getText(): String = myName
-
-  override fun customize(renderer: HtmlListCellRenderer<*>) {}
-
-  override fun customize(component: SimpleColoredComponent) {
-    component.append(" ")
-    val text: String = when {
-      types.isEmpty() -> ""
-      types.size == 1 -> types[0]
-      else -> types.joinToString(", ")
-    }
-    component.append("($text)", GRAY_ATTRIBUTES)
+  override fun update(presentation: PresentationData) {
+    super.update(presentation)
+    presentation.clearText()
+    presentation.addText("(by) ", GRAY_ATTRIBUTES)
+    presentation.addText(myName, REGULAR_ATTRIBUTES)
   }
 }

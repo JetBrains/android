@@ -32,8 +32,6 @@ import javax.swing.BorderFactory
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.event.TreeModelEvent
-import javax.swing.event.TreeModelListener
 
 /**
  * Configurable defining the Variables panel in the Project Structure Dialog
@@ -48,23 +46,6 @@ class VariablesConfigurable(private val project: Project, private val context: P
     val panel = JPanel(BorderLayout())
     panel.border = BorderFactory.createEmptyBorder(20, 10, 20, 10)
     val table = VariablesTable(project, context.project)
-    table.tableModel.addTreeModelListener(object: TreeModelListener {
-      override fun treeNodesInserted(e: TreeModelEvent?) {
-        this@VariablesConfigurable.isModified = true
-      }
-
-      override fun treeStructureChanged(e: TreeModelEvent?) {
-        this@VariablesConfigurable.isModified = true
-      }
-
-      override fun treeNodesChanged(e: TreeModelEvent?) {
-        this@VariablesConfigurable.isModified = true
-      }
-
-      override fun treeNodesRemoved(e: TreeModelEvent?) {
-        this@VariablesConfigurable.isModified = true
-      }
-    })
     panel.add(ToolbarDecorator.createDecorator(table)
         .setAddAction { createAddAction(it, table) }
         .setRemoveAction { table.deleteSelectedVariables() }
@@ -90,8 +71,9 @@ class VariablesConfigurable(private val project: Project, private val context: P
 
   override fun apply() {
     context.project.applyChanges()
-    isModified = false
   }
+
+  override fun isModified(): Boolean = context.project.isModified
 
   class AddAction(val text: String, val type: GradlePropertyModel.ValueType) {
     override fun toString() = text

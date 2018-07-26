@@ -106,7 +106,7 @@ public final class GuiTests {
     List<AbstractMessage> errorMessages = MessagePool.getInstance().getFatalErrors(true, true);
     List<Error> errors = new ArrayList<>(errorMessages.size());
     for (AbstractMessage errorMessage : errorMessages) {
-      StringBuilder messageBuilder = new StringBuilder(errorMessage.getMessage());
+      StringBuilder messageBuilder = new StringBuilder(errorMessage.getMessage() != null ? errorMessage.getMessage() : "");
       String additionalInfo = errorMessage.getAdditionalInfo();
       if (isNotEmpty(additionalInfo)) {
         messageBuilder.append(System.getProperty("line.separator")).append("Additional Info: ").append(additionalInfo);

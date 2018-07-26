@@ -20,17 +20,18 @@ import com.android.tools.idea.gradle.structure.model.PsModelCollection
 import java.util.function.Consumer
 
 abstract class PsCollectionBase<TModel : PsModel, TKey, TParent: PsModel>(val parent: TParent) : PsModelCollection<TModel> {
-  abstract fun getKeys(from: TParent): Set<TKey>
-  abstract fun create(key: TKey): TModel
-  abstract fun update(key: TKey, model: TModel)
+  protected abstract fun getKeys(from: TParent): Set<TKey>
+  protected abstract fun create(key: TKey): TModel
+  protected abstract fun update(key: TKey, model: TModel)
 
   var entries: Map<TKey, TModel> ; protected set
 
   init {
     @Suppress("LeakingThis")
     entries = getKeys(parent)
-      .map{ key -> key to create(key).also { update(key, it) }}
+      .map { key -> key to create(key) }
       .toMap()
+    entries.forEach { update(it.key, it.value) }
   }
 
   override fun forEach(consumer: Consumer<TModel>) = entries.values.forEach(consumer)
@@ -49,8 +50,8 @@ abstract class PsCollectionBase<TModel : PsModel, TKey, TParent: PsModel>(val pa
 abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel>(parent: TParent)
   : PsCollectionBase<TModel, TKey, TParent>(parent) {
 
-  abstract fun instantiateNew(key: TKey)
-  abstract fun removeExisting(key: TKey)
+  protected abstract fun instantiateNew(key: TKey)
+  protected abstract fun removeExisting(key: TKey)
 
   fun addNew(key: TKey): TModel {
     if (entries.containsKey(key)) throw IllegalArgumentException("Duplicate key: $key")
@@ -68,5 +69,5 @@ abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel
     parent.isModified = true
   }
 
-  // TODO(solodkyy): support renames
+  // TODO(b/111739005): support renames
 }

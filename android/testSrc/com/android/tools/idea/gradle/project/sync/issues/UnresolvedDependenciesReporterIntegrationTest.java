@@ -132,7 +132,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
                  message.getMessage());
 
     List<NotificationHyperlink> quickFixes = mySyncMessagesStub.getNotificationUpdate().getFixes();
-    assertThat(quickFixes).hasSize(2);
+    assertNotEmpty(quickFixes);
   }
 
   public void testReportWithAppCompat() throws Exception {

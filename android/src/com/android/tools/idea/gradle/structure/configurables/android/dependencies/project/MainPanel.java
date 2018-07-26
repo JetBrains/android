@@ -16,8 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractMainDependenciesPanel;
-import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.AbstractMainDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.openapi.util.ActionCallback;
@@ -41,8 +40,8 @@ class MainPanel extends AbstractMainDependenciesPanel {
   @NotNull private final TargetModulesPanel myTargetModulesPanel;
   @NotNull private final JPanel myAltPanel;
 
-  MainPanel(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
-    super(context, extraTopModules);
+  MainPanel(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraModules) {
+    super(context, extraModules);
     myTargetModulesPanel = new TargetModulesPanel(context);
 
     myDependencyGraphPanel = new DependencyGraphPanel(module, context);

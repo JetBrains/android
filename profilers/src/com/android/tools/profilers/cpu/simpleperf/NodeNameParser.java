@@ -149,7 +149,7 @@ public class NodeNameParser {
 
   private static boolean isCppIdentifierChar(char ch) {
     // See: http://en.cppreference.com/w/cpp/language/identifiers
-    return ('a' <= ch && ch >= 'z') || ('A' <= ch && ch >= 'Z') || Character.isDigit(ch) || ch == '_';
+    return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || Character.isDigit(ch) || ch == '_';
   }
 
   /**

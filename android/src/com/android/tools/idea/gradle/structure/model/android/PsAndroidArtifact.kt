@@ -74,7 +74,7 @@ class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: String
     get() {
       val variant = parent
       val buildTypeName = variant.buildType.name
-      val productFlavorNames = variant.productFlavors
+      val productFlavorNames = variant.productFlavorNames
       return getPossibleConfigurationNames(resolvedName, buildTypeName, productFlavorNames)
     }
 

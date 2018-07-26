@@ -21,14 +21,15 @@ import java.awt.*;
 
 public class SketchShapeGroup extends SketchLayer {
   private final SketchStyle style;
-  private final SketchLayer[] layers;  // TODO deserialiser
-  private final short clippingMaskMode;  // TODO what does this do?
-  private final boolean hasClippingMask;  // TODO what does this do?
-  private final short windingRule;  // TODO what does this do?
+  private final SketchLayer[] layers;
+  private final short clippingMaskMode;
+  private final boolean hasClippingMask;
+  private final short windingRule;
 
-  public SketchShapeGroup(@NotNull String objectId,
+  public SketchShapeGroup(@NotNull String classType,
+                          @NotNull String objectId,
                           int booleanOperation,
-                          @NotNull Rectangle frame,
+                          @NotNull Rectangle.Double frame,
                           boolean isFlippedHorizontal,
                           boolean isFlippedVertical,
                           boolean isVisible,
@@ -40,7 +41,8 @@ public class SketchShapeGroup extends SketchLayer {
                           short clippingMaskMode,
                           boolean hasClippingMask,
                           short windingRule) {
-    super(objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation, shouldBreakMaskChain);
+    super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
+          shouldBreakMaskChain);
     this.style = style;
     this.layers = layers;
     this.clippingMaskMode = clippingMaskMode;
@@ -60,7 +62,7 @@ public class SketchShapeGroup extends SketchLayer {
     return clippingMaskMode;
   }
 
-  public boolean isHasClippingMask() {
+  public boolean hasClippingMask() {
     return hasClippingMask;
   }
 

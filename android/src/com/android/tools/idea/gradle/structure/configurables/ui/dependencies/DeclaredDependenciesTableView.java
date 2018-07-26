@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.model.PsDependency;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.intellij.openapi.Disposable;
@@ -33,7 +33,6 @@ import java.util.Collections;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.isMetaOrCtrlKeyPressed;
 import static com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDeclaredDependenciesTableModel.displayTextOf;
-import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.awt.Cursor.*;
 import static java.awt.event.KeyEvent.KEY_PRESSED;
@@ -42,7 +41,7 @@ import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
 import static javax.swing.SwingUtilities.convertPointFromScreen;
 
-public class DeclaredDependenciesTableView<T extends PsDependency> extends TableView<T> implements Disposable {
+public class DeclaredDependenciesTableView<T extends PsBaseDependency> extends TableView<T> implements Disposable {
   @NotNull private final PsContext myContext;
 
   private KeyEventDispatcher myKeyEventDispatcher;
@@ -138,7 +137,7 @@ public class DeclaredDependenciesTableView<T extends PsDependency> extends Table
       // "Dependency" column
       int row = rowAtPoint(location);
       if (row > -1) {
-        PsDependency dependency = getListTableModel().getItem(row);
+        PsBaseDependency dependency = getListTableModel().getItem(row);
         if (dependency instanceof PsModuleAndroidDependency) {
           return (PsModuleAndroidDependency)dependency;
         }
@@ -182,7 +181,7 @@ public class DeclaredDependenciesTableView<T extends PsDependency> extends Table
 
   public void selectDependency(@NotNull String toSelect) {
     for (T dependency : getItems()) {
-      String dependencyAsText = dependency.toText(FOR_NAVIGATION);
+      String dependencyAsText = dependency.toText();
       if (toSelect.equals(dependencyAsText)) {
         setSelection(Collections.singletonList(dependency));
         break;

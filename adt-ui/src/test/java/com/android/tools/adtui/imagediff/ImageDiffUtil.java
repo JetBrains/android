@@ -208,15 +208,8 @@ public final class ImageDiffUtil {
                                         @NotNull BufferedImage goldenImage,
                                         @NotNull BufferedImage image,
                                         double maxPercentDifferent) throws IOException {
-    assertEquals("Only TYPE_INT_ARGB image types are supported", TYPE_INT_ARGB, image.getType());
-
-    if (goldenImage.getType() != TYPE_INT_ARGB) {
-      @SuppressWarnings("UndesirableClassUsage") // Don't want Retina images in unit tests
-      BufferedImage temp = new BufferedImage(goldenImage.getWidth(), goldenImage.getHeight(), TYPE_INT_ARGB);
-      temp.getGraphics().drawImage(goldenImage, 0, 0, null);
-      goldenImage = temp;
-    }
-    assertEquals(TYPE_INT_ARGB, goldenImage.getType());
+    goldenImage = convertToARGB(goldenImage);
+    image = convertToARGB(image);
 
     int imageWidth = Math.min(goldenImage.getWidth(), image.getWidth());
     int imageHeight = Math.min(goldenImage.getHeight(), image.getHeight());
@@ -285,7 +278,6 @@ public final class ImageDiffUtil {
               "vs" + image.getWidth() + "x" + image.getHeight();
     }
 
-    assertEquals(TYPE_INT_ARGB, image.getType());
     if (error != null) {
       // Expected on the left
       // Golden on the right
@@ -305,7 +297,7 @@ public final class ImageDiffUtil {
         boolean deleted = output.delete();
         assertTrue(deleted);
       }
-      ImageIO.write(deltaImage, "PNG", output);
+      ImageIO.write(deltaImage, "PNG", new File("/tmp/output.png"));
       error += " - see details in archived file " + output.getPath();
       System.out.println(error);
       fail(error);

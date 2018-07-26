@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ArtifactDetail
 import com.google.wireless.android.sdk.stats.StudioRunEvent
+import com.intellij.openapi.diagnostic.Logger
 import java.util.*
 
 @VisibleForTesting
@@ -49,6 +50,8 @@ class RunStatsServiceImpl : RunStatsService() {
                                 isDebuggable: Boolean,
                                 forceColdswap: Boolean,
                                 instantRunEnabled: Boolean) {
+    logger.info("notifyRunStarted: myRun=$myRun, packageName=$packageName, isDebuggable=$isDebuggable, " +
+                "forceColdSwap=$forceColdswap, instanceRunEnabled=$instantRunEnabled")
     synchronized(lock) {
       myRun = Run(UUID.randomUUID(), packageName, determineRunType(runType), System.currentTimeMillis())
     }
@@ -71,6 +74,8 @@ class RunStatsServiceImpl : RunStatsService() {
   override fun notifyStudioSectionFinished(isSuccessful: Boolean,
                                            isInstantRun: Boolean,
                                            userSelectedDeployTarget: Boolean) {
+    logger.info("notifyStudioSectionFinished: myRun=$myRun, isSuccessful=$isSuccessful, " +
+                "isInstantRun=$isInstantRun, userSelectedDeployTarget=$userSelectedDeployTarget")
     val currentRun = myRun ?: return
     synchronized(lock) {
       currentRun.studioProcessFinishedTimestamp = System.currentTimeMillis()
@@ -92,6 +97,7 @@ class RunStatsServiceImpl : RunStatsService() {
 
   // TODO add gradle task, dynamic app info etc, target device
   override fun notifyGradleStarted(buildMode: BuildMode?) {
+    logger.info("notifyGradleStarted: myRun=$myRun, buildMode=$buildMode")
     val currentRun = myRun ?: return
     synchronized(lock) {
       currentRun.gradleInvokeTimestamp = System.currentTimeMillis()
@@ -106,6 +112,7 @@ class RunStatsServiceImpl : RunStatsService() {
   }
 
   override fun notifyGradleFinished(isSuccessful: Boolean) {
+    logger.info("notifyGradleFinished: myRun=$myRun, isSuccessful=$isSuccessful")
     val currentRun = myRun ?: return
     synchronized(lock) {
       currentRun.gradleFinishedTimestamp = System.currentTimeMillis()
@@ -127,6 +134,7 @@ class RunStatsServiceImpl : RunStatsService() {
    * could the [Run] instance be null. In that case we do not track the emulator duration as it is not part of a run.
    */
   override fun notifyEmulatorStarting() {
+    logger.info("notifyEmulatorStarting: myRun=$myRun")
     val currentRun = myRun ?: return
     synchronized(lock) {
       currentRun.emulatorStartTimestamp = System.currentTimeMillis()
@@ -140,6 +148,7 @@ class RunStatsServiceImpl : RunStatsService() {
   }
 
   override fun notifyEmulatorStarted(isSuccessful: Boolean) {
+    logger.info("notifyEmulatorStarted: myRun=$myRun, isSuccessful=$isSuccessful")
     val currentRun = myRun ?: return
     if (myRun?.emulatorStartTimestamp == null) return
     synchronized(lock) {
@@ -166,6 +175,9 @@ class RunStatsServiceImpl : RunStatsService() {
                                    artifacts: Collection<ArtifactDetail>,
                                    isPatchBuild: Boolean,
                                    dontKill: Boolean, disabledDynamicFeaturesCount: Int) {
+    logger.info("notifyDeployStarted: myRun=$myRun, deployTask=$deployTask, device=$device, " +
+                "artifacts=${artifacts.size}, isPatchBuild=$isPatchBuild, dontKill=$dontKill, " +
+                "disabledDynamicFeaturesCount=$disabledDynamicFeaturesCount")
     val currentRun = myRun ?: return
     synchronized(lock) {
       currentRun.deployStartTimestamp = System.currentTimeMillis()
@@ -185,6 +197,7 @@ class RunStatsServiceImpl : RunStatsService() {
   }
 
   override fun notifyDeployFinished(isSuccessful: Boolean) {
+    logger.info("notifyDeployFinished: myRun=$myRun, isSuccessful=$isSuccessful")
     val currentRun = myRun ?: return
     synchronized(lock) {
       currentRun.deployFinishTimestamp = System.currentTimeMillis()
@@ -202,6 +215,7 @@ class RunStatsServiceImpl : RunStatsService() {
   }
 
   override fun notifyRunFinished(isSuccessful: Boolean) {
+    logger.info("notifyRunFinished: myRun=$myRun, isSuccessful=$isSuccessful")
     val currentRun = myRun ?: return
     synchronized(lock) {
       currentRun.runFinishTimestamp = System.currentTimeMillis()
@@ -222,10 +236,6 @@ class RunStatsServiceImpl : RunStatsService() {
   }
 
   private fun calcDuration(finishTime: Long?, startTime: Long?): Long {
-    // use asserts to detect any incorrect assumptions in dev/canary builds. Asserts are disabled in prod so it'll just use 0 duration.
-    assert(startTime != null)
-    assert(finishTime != null)
-    assert(finishTime!! > startTime!!)
     if (finishTime == null || startTime == null || finishTime < startTime) return 0
     return finishTime - startTime
   }
@@ -251,5 +261,8 @@ class RunStatsServiceImpl : RunStatsService() {
       .setRawProjectId(packageName)
       .setStudioRunEvent(studioRunEvent)
   }
+
+  private val logger: Logger
+    get() = Logger.getInstance(RunStatsServiceImpl::class.java)
 }
 

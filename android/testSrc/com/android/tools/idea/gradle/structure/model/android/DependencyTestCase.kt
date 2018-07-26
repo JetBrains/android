@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.structure.model.PsDependency
 import com.android.tools.idea.gradle.structure.model.PsDependencyCollection
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -42,5 +41,6 @@ abstract class DependencyTestCase : AndroidGradleTestCase() {
 }
 
 internal fun <T> PsDependencyCollection<*, *, T>.findModuleDependency(gradlePath: String)
-  where T: PsDependency,
-        T: PsModuleDependency = findModuleDependencies(gradlePath).singleOrNull()
+  where T: PsModuleDependency = findModuleDependencies(gradlePath).singleOrNull()
+
+internal fun PsAndroidModule.findVariant(name: String): PsVariant? = variants.singleOrNull { it.name == name }

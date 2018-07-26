@@ -10,7 +10,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/platform/annotations:intellij.platform.annotations.java5[module]",
+        "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
@@ -23,7 +23,6 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime[test]",
         "//tools/adt/idea/profilers-atrace[module]",
-        # b/111212820 eliminate this dependency when the needed classes are refactored out.
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
     ],
 )

@@ -41,6 +41,15 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     parser = ::parseString
   )
 
+  val applicationIdSuffix: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
+    "Application Id Suffix",
+    resolvedValueGetter = { applicationIdSuffix },
+    parsedPropertyGetter = { applicationIdSuffix() },
+    getter = { asString() },
+    setter = { setValue(it) },
+    parser = ::parseString
+  )
+
   val maxSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, Int> = property(
     "Max SDK Version",
     resolvedValueGetter = { maxSdkVersion },
@@ -104,7 +113,8 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val testFunctionalTest: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
     "Test Functional Test",
-    resolvedValueGetter = { testFunctionalTest },
+    // TODO(b/111630584): Replace with the resolved value.
+    resolvedValueGetter = { null },
     parsedPropertyGetter = { testFunctionalTest() },
     getter = { asBoolean() },
     setter = { setValue(it) },
@@ -114,7 +124,8 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val testHandleProfiling: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
     "Test Handle Profiling",
-    resolvedValueGetter = { testHandleProfiling },
+    // TODO(b/111630584): Replace with the resolved value.
+    resolvedValueGetter = { null },
     parsedPropertyGetter = { testHandleProfiling() },
     getter = { asBoolean() },
     setter = { setValue(it) },
@@ -149,6 +160,15 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     parser = ::parseString
   )
 
+  val versionNameSuffix: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
+    "Version Name Suffix",
+    resolvedValueGetter = { versionNameSuffix },
+    parsedPropertyGetter = { versionNameSuffix() },
+    getter = { asString() },
+    setter = { setValue(it) },
+    parser = ::parseString
+  )
+
   val consumerProGuardFiles: ListProperty<PsAndroidModuleDefaultConfig, File> = listProperty(
     "Consumer ProGuard Files",
     resolvedValueGetter = { consumerProguardFiles.toList() },
@@ -167,6 +187,15 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     setter = { setValue(it.toString()) },
     parser = ::parseFile,
     knownValuesGetter = { _, model -> proGuardFileValues(model.module) }
+  )
+
+  val resConfigs: ListProperty<PsAndroidModuleDefaultConfig, String> = listProperty(
+    "Resource Configs",
+    resolvedValueGetter = { resourceConfigurations.toList() },
+    parsedPropertyGetter = { resConfigs() },
+    getter = { asString() },
+    setter = { setValue(it) },
+    parser = ::parseString
   )
 
   val manifestPlaceholders: MapProperty<PsAndroidModuleDefaultConfig, String> = mapProperty(

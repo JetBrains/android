@@ -33,6 +33,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.ClassUtil;
 import com.intellij.util.Processor;
+import com.jetbrains.cidr.lang.navigation.OCSymbolNavigationItem;
 import com.jetbrains.cidr.lang.symbols.OCQualifiedName;
 import com.jetbrains.cidr.lang.symbols.OCSymbol;
 import com.jetbrains.cidr.lang.symbols.cpp.OCDeclaratorSymbol;
@@ -91,7 +92,7 @@ public final class IntellijCodeNavigator extends CodeNavigator {
 
     if (location.isNativeCode()) {
       Navigatable navigatable = getNativeNavigatable(location);
-      if (navigatable != null) {
+      if (navigatable.canNavigate()) {
         return navigatable;
       }
     }
@@ -181,14 +182,14 @@ public final class IntellijCodeNavigator extends CodeNavigator {
   }
 
   /**
-   * Tries to find and return the method's corresponding {@link Navigatable} within the project. Returns null if the method is not found.
+   * Tries to find and return the method's corresponding {@link Navigatable} within the project.
    */
-  @Nullable
+  @NotNull
   private Navigatable getNativeNavigatable(@NotNull CodeLocation location) {
     // We use OCGlobalProjectSymbolsCache#processByQualifiedName to look for the target method. If it finds symbols that match the target
     // method name, it will iterate the list of matched symbols and use the processor below in each one of them, until the processor returns
     // false.
-    Navigatable[] navigatable = new Navigatable[1]; // Workaround to set the navigatable inside the processor.
+    OCSymbol[] symbolToNavigate = new OCSymbol[1]; // Workaround to set the symbolToNavigate inside the processor.
 
     Processor<OCSymbol> processor = symbol -> {
       if (!(symbol instanceof OCFunctionSymbol)) {
@@ -225,15 +226,13 @@ public final class IntellijCodeNavigator extends CodeNavigator {
       }
 
       // We have found a match. Return it.
-      navigatable[0] = function;
-      //String name = function.getQualifiedName().getQualifier().getName();
+      symbolToNavigate[0] = function;
       return false;
     };
-
     assert location.getMethodName() != null;
     OCGlobalProjectSymbolsCache.processByQualifiedName(myProject, processor, location.getMethodName());
 
-    return navigatable[0];
+    return new OCSymbolNavigationItem(symbolToNavigate[0], myProject);
   }
 
   @Nullable

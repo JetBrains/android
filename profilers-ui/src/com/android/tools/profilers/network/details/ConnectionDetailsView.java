@@ -82,20 +82,10 @@ public class ConnectionDetailsView extends JPanel {
   }
 
   private void populateTabs() {
-    boolean isRequestPayloadEnabled =
-      myStageView.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isNetworkRequestPayloadEnabled();
-
     myTabs.add(new OverviewTabContent(myStageView.getStage().getStudioProfilers().getIdeServices().getFeatureConfig(),
                                       myStageView.getIdeComponents(), myStageView.getStage().getConnectionsModel()));
-
-    if (isRequestPayloadEnabled) {
-      myTabs.add(new ResponseTabContent(myStageView.getIdeComponents(), myStageView.getStage().getConnectionsModel()));
-      myTabs.add(new RequestTabContent(myStageView.getIdeComponents(), myStageView.getStage().getConnectionsModel()));
-    }
-    else {
-      myTabs.add(new HeadersTabContent());
-    }
-
+    myTabs.add(new ResponseTabContent(myStageView.getIdeComponents(), myStageView.getStage().getConnectionsModel()));
+    myTabs.add(new RequestTabContent(myStageView.getIdeComponents(), myStageView.getStage().getConnectionsModel()));
     myTabs.add(new CallStackTabContent(myStageView.getStage().getConnectionsModel(),
                                        myStageView.getIdeComponents().createStackView(myStageView.getStage().getStackTraceModel())));
 

@@ -98,7 +98,7 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
     `when`(dialog.autoVerify).thenReturn(true)
     doReturn(true).`when`(dialog).showAndGet()
 
-    NavDeeplinkInspectorProvider({ _, _ -> dialog }).addItem(null, listOf(fragment), null)
+    NavDeeplinkInspectorProvider { _, _ -> dialog }.addItem(null, listOf(fragment), null)
     assertEquals(1, fragment.childCount)
     val deeplink = fragment.getChild(0)!!
     assertEquals(TAG_DEEP_LINK, deeplink.tagName)
@@ -108,6 +108,26 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
   }
 
   fun testModify() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          deeplink("http://example.com")
+        }
+      }
+    }
+    val fragment = model.find("f1")!!
+    val dialog = spy(AddDeeplinkDialog(model.find("f1")!!.children[0], fragment))
+    `when`(dialog.uri).thenReturn("http://example.com")
+    `when`(dialog.autoVerify).thenReturn(true)
+    doReturn(true).`when`(dialog).showAndGet()
+
+    NavDeeplinkInspectorProvider { _, _ -> dialog }.addItem(null, listOf(fragment), null)
+    assertEquals(1, fragment.childCount)
+    val deeplink = fragment.getChild(0)!!
+    assertEquals(TAG_DEEP_LINK, deeplink.tagName)
+    assertEquals("http://example.com", deeplink.getAttribute(AUTO_URI, ATTR_URI))
+    assertEquals("true", deeplink.getAndroidAttribute(ATTR_AUTO_VERIFY))
+    dialog.close(0)
 
   }
 }

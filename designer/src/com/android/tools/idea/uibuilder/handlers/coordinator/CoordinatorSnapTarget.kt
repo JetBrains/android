@@ -80,6 +80,10 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget() {
     DrawSnapTarget.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver)
   }
 
+  override fun isHittable(): Boolean {
+    return !myComponent.isSelected && !myComponent.isDragging;
+  }
+
   fun isSnapped(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) = (x in myLeft..myRight && y in myTop..myBottom)
 
   fun snap(attributes: NlAttributesHolder) {

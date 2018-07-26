@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.editors;
 
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import org.jetbrains.android.AndroidTestCase;
 
 public class AndroidImportFilterTest extends AndroidTestCase {
-  public void test() {
-    VirtualFile vFile = myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
-    PsiFile file = PsiManager.getInstance(getProject()).findFile(vFile);
+  public void testShouldUseFullName() {
+    copyRJavaToGeneratedSources();
+    PsiFile file = myFixture.getJavaFacade().findClass("p1.p2.R").getContainingFile();
     assertNotNull(file);
 
     AndroidImportFilter filter = new AndroidImportFilter();

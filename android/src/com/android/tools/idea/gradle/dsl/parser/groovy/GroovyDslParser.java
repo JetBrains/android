@@ -54,6 +54,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.*;
@@ -80,6 +81,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING;
+import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION;
 import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
@@ -176,7 +178,12 @@ public class GroovyDslParser implements GradleDslParser {
   @Nullable
   public PsiElement convertToPsiElement(@NotNull Object literal) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    return GroovyDslUtil.createLiteral(myDslFile, literal);
+    try {
+      return GroovyDslUtil.createLiteral(myDslFile, literal);
+    } catch (IncorrectOperationException e) {
+      myDslFile.getContext().getNotificationForType(INVALID_EXPRESSION).addError(e);
+      return null;
+    }
   }
 
   @Override

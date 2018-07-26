@@ -179,7 +179,10 @@ class AddActionDialogTest : NavTestCase() {
       assertEquals("@anim/fade_in", combo.getItemAt(1).value)
       assertEquals("@anim/fade_out", combo.getItemAt(2).value)
       assertEquals("@animator/test1", combo.getItemAt(3).value)
-      assertEquals(4, combo.itemCount)
+      assertEquals("@animator/test2", combo.getItemAt(4).value)
+      assertEquals("@animator/test3", combo.getItemAt(5).value)
+      assertEquals("@animator/test4", combo.getItemAt(6).value)
+      assertEquals(7, combo.itemCount)
     }
 
     assertEquals(null, dialog.myPopToComboBox.getItemAt(0))

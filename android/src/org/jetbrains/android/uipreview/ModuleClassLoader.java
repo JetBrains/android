@@ -4,12 +4,14 @@ import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.android.projectmodel.AarLibrary;
+import com.android.projectmodel.Library;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
@@ -19,7 +21,6 @@ import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.utils.SdkUtils;
-import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -48,10 +49,9 @@ import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 
 /**
- * Render class loader responsible for loading classes in custom views
- * and local and library classes used by those custom views (other than
- * the framework itself, which is loaded by a parent class loader via
- * layout lib.)
+ * Render class loader responsible for loading classes in custom views and local and library classes
+ * used by those custom views (other than the framework itself, which is loaded by a parent class
+ * loader via layout library.)
  */
 public final class ModuleClassLoader extends RenderClassLoader {
   private static final Logger LOG = Logger.getInstance(ModuleClassLoader.class);
@@ -61,7 +61,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
   private final WeakReference<Module> myModuleReference;
 
   /** The layout library to use as a root class loader (e.g. the place to obtain the layoutlib Android SDK view classes from */
-  private final LayoutLibrary myLibrary;
+  private final LayoutLibrary myLayoutLibrary;
 
   /** Map from fully qualified class name to the corresponding .class file for each class loaded by this class loader */
   private Map<String, VirtualFile> myClassFiles;
@@ -78,17 +78,16 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
   }
 
-  private ModuleClassLoader(@NotNull LayoutLibrary library, @NotNull Module module) {
-    super(library.getClassLoader(), library.getApiLevel());
-    myLibrary = library;
+  private ModuleClassLoader(@NotNull LayoutLibrary layoutLibrary, @NotNull Module module) {
+    super(layoutLibrary.getClassLoader(), layoutLibrary.getApiLevel());
+    myLayoutLibrary = layoutLibrary;
     myModuleReference = new WeakReference<>(module);
 
-    getLibraryJarFiles(getExternalLibraries(module))
-      .forEach(jarFile -> registerLibraryResourceFiles(module, jarFile));
+    registerResources(module);
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected Class<?> findClass(String name) throws ClassNotFoundException {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("findClass(%s)", name));
@@ -160,9 +159,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
     return get(library, module);
   }
 
-  @NotNull
   @Override
-  protected Class<?> load(String name) throws ClassNotFoundException {
+  @NotNull
+  protected Class<?> load(@NotNull String name) throws ClassNotFoundException {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("load(%s)", anonymizeClassName(name)));
     }
@@ -191,7 +190,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   @Override
-  public Class<?> loadClass(String name) throws ClassNotFoundException {
+  @NotNull
+  public Class<?> loadClass(@NotNull String name) throws ClassNotFoundException {
     // We overload loadClass() to load a class defined in a project
     // rather than a version of it that may already be present in Studio.
     // This is an issue if Studio shares a library or classes with some android code
@@ -208,8 +208,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
     boolean loadFromProject = name.startsWith("android.support.constraint.solver");
     if (loadFromProject) {
       try {
-        // Give priority to loading class from this Class Loader. This will avoid leaking classes from the plugin
-        // into the project.
+        // Give priority to loading class from this Class Loader.
+        // This avoids leaking classes from the plugin into the project.
         Class<?> loadedClass = findLoadedClass(name);
         if (loadedClass != null) {
           return loadedClass;
@@ -224,7 +224,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   @Nullable
-  private Class<?> loadClassFromModuleOrDependency(Module module, String name) {
+  private Class<?> loadClassFromModuleOrDependency(@NotNull Module module, @NotNull String name) {
     if (module.isDisposed()) {
       return null;
     }
@@ -241,17 +241,19 @@ public final class ModuleClassLoader extends RenderClassLoader {
   /**
    * Determines whether the class specified by the given qualified name has a source file in the IDE that
    * has been edited more recently than its corresponding class file.
-   * <p/>This method requires the indexing to have finished
-   * <p/><b>Note that this method can only answer queries for classes that this class loader has previously
+   *
+   * <p>This method requires the indexing to have finished.
+   *
+   * <p><b>Note that this method can only answer queries for classes that this class loader has previously
    * loaded!</b>
    *
-   * @param fqcn the fully qualified class name
+   * @param name the fully qualified class name
    * @param myCredential a render sandbox credential
    * @return true if the source file has been modified, or false if not (or if the source file cannot be found)
    */
-  public boolean isSourceModified(@NotNull final String fqcn, @Nullable final Object myCredential) {
+  public boolean isSourceModified(@NotNull String name, @Nullable Object myCredential) {
     // Don't flag R.java edits; not done by user
-    if (isResourceClassName(fqcn)) {
+    if (isResourceClassName(name)) {
       return false;
     }
 
@@ -259,7 +261,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     if (module == null) {
       return false;
     }
-    VirtualFile classFile = getClassFile(fqcn);
+    VirtualFile classFile = getClassFile(name);
 
     // Make sure the class file is up to date and if not, log an error
     if (classFile == null) {
@@ -272,7 +274,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     // Allow file system access for timestamps.
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      return facet.getConfiguration().getModel().isClassFileOutOfDate(module, fqcn, classFile);
+      return facet.getConfiguration().getModel().isClassFileOutOfDate(module, name, classFile);
     } finally {
       RenderSecurityManager.exitSafeRegion(token);
     }
@@ -287,39 +289,27 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   @Override
   @Nullable
-  protected Class<?> loadClassFile(final String fqcn, @NotNull VirtualFile classFile) {
+  protected Class<?> loadClassFile(@NotNull String name, @NotNull VirtualFile classFile) {
     if (myClassFiles == null) {
-      myClassFiles = Maps.newHashMap();
-      myClassFilesLastModified = Maps.newHashMap();
+      myClassFiles = new HashMap<>();
+      myClassFilesLastModified = new HashMap<>();
     }
-    myClassFiles.put(fqcn, classFile);
-    myClassFilesLastModified.put(fqcn,
-                                 new ClassModificationTimestamp(classFile.getTimeStamp(), classFile.getLength()));
+    myClassFiles.put(name, classFile);
+    myClassFilesLastModified.put(name, new ClassModificationTimestamp(classFile.getTimeStamp(), classFile.getLength()));
 
-    return super.loadClassFile(fqcn, classFile);
+    return super.loadClassFile(name, classFile);
   }
 
-  /**
-   * Returns a {@link Stream<File>} of the referenced libraries for the {@link Module} of this class loader.
-   */
-  @NotNull
-  private static Stream<File> getExternalLibraries(Module module) {
-    if (module == null) {
-      return Stream.empty();
-    }
-
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.requiresAndroidModel()) {
-      AndroidModel model = facet.getConfiguration().getModel();
-      if (model != null) {
-        return model.getClassJarProvider().getModuleExternalLibraries(module).stream();
+  private static void registerResources(@NotNull Module module) {
+    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+    for (Library library : moduleSystem.getDependentLibraries()) {
+      if (library instanceof AarLibrary) {
+        registerLibraryResources(module, (AarLibrary)library);
       }
     }
-
-    return AndroidRootUtil.getExternalLibraries(module).stream().map(VfsUtilCore::virtualToIoFile);
   }
 
-  private static void registerLibraryResourceFiles(@NotNull Module module, @NotNull File jarFile) {
+  private static void registerLibraryResources(@NotNull Module module, @NotNull AarLibrary library) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       return;
@@ -328,9 +318,6 @@ public final class ModuleClassLoader extends RenderClassLoader {
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
     LocalResourceRepository appResources = repositoryManager.getAppResources(true);
 
-    File resourcesDirectory = AndroidProjectModelUtils.findResFolder(jarFile);
-    if (resourcesDirectory == null) return;
-
     ResourceClassRegistry registry = ResourceClassRegistry.get(module.getProject());
 
     // Choose which resources should be in the generated R class. This is described in the JavaDoc of ResourceClassGenerator.
@@ -338,20 +325,15 @@ public final class ModuleClassLoader extends RenderClassLoader {
     ResourceNamespace resourcesNamespace;
     String packageName;
     if (repositoryManager.getNamespacing() == AaptOptions.Namespacing.DISABLED) {
-      try {
-        packageName = AndroidManifestUtils.getAarPackageName(resourcesDirectory);
-        if (packageName == null) {
-          return;
-        }
-      }
-      catch (IOException e) {
+      packageName = getPackageName(library);
+      if (packageName == null) {
         return;
       }
       rClassContents = appResources;
       resourcesNamespace = ResourceNamespace.RES_AUTO;
     }
     else {
-      AbstractResourceRepository aarResources = repositoryManager.findRepositoryFor(resourcesDirectory);
+      AbstractResourceRepository aarResources = repositoryManager.findLibraryResources(library);
       if (!(aarResources instanceof SingleNamespaceResourceRepository)) {
         return;
       }
@@ -365,49 +347,74 @@ public final class ModuleClassLoader extends RenderClassLoader {
     registry.addLibrary(rClassContents, ResourceIdManager.get(module), packageName, resourcesNamespace);
   }
 
-  /**
-   * Returns a {@link Stream<File>} of the JAR files for the given external libraries.
-   */
-  @NotNull
-  private static Stream<File> getLibraryJarFiles(@NotNull Stream<File> externalLibraries) {
-    return externalLibraries
-      .filter(vFile -> EXT_JAR.equals(Files.getFileExtension(vFile.getName())))
-      .filter(File::exists);
+  @Nullable
+  private static String getPackageName(@NotNull AarLibrary library) {
+    File manifestFile = library.getManifestFile().toFile();
+    if (manifestFile != null) {
+      try {
+        return AndroidManifestUtils.getPackageNameFromManifestFile(manifestFile);
+      }
+      catch (IOException ignore) {
+        // Ignore to return null.
+      }
+    }
+    return null;
   }
 
   /**
-   * Returns the list of external JAR files referenced by the class loader. This method will also register any resource files in the
-   * referenced AARs that haven't been registered before.
+   * Returns the list of external JAR files referenced by the class loader. This method also registers
+   * any resource files in the referenced AARs that haven't been registered before.
    */
   @Override
+  @NotNull
   protected List<URL> getExternalJars() {
-    final Module module = myModuleReference.get();
+    Module module = myModuleReference.get();
     if (module == null) {
       return Collections.emptyList();
     }
 
-    final List<URL> result = new ArrayList<>();
+    // TODO: Is this really needed?
+    registerResources(module);
+
+    List<URL> result = new ArrayList<>();
 
     if (ThemeEditorProvider.THEME_EDITOR_ENABLE) {
       URL customWidgetsUrl = ThemeEditorUtils.getCustomWidgetsJarUrl();
-
       if (customWidgetsUrl != null) {
         result.add(customWidgetsUrl);
       }
     }
 
-    getLibraryJarFiles(getExternalLibraries(module))
-      .peek(jarFile -> {
-        try {
-          result.add(SdkUtils.fileToUrl(jarFile));
-        }
-        catch (MalformedURLException e) {
-          LOG.error(e);
-        }
-      })
-      .forEach(jarFile -> registerLibraryResourceFiles(module, jarFile));
+    getExternalLibraryJars(module)
+        .filter(file -> EXT_JAR.equals(Files.getFileExtension(file.getName())) && file.exists())
+        .forEach(jarFile -> addFileUrl(jarFile, result));
 
     return result;
+  }
+
+  /**
+   * Returns a stream of JAR files of the referenced libraries for the {@link Module} of this class loader.
+   */
+  @NotNull
+  private static Stream<File> getExternalLibraryJars(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null && facet.requiresAndroidModel()) {
+      AndroidModel model = facet.getConfiguration().getModel();
+      if (model != null) {
+        return model.getClassJarProvider().getModuleExternalLibraries(module).stream();
+      }
+    }
+
+    return AndroidRootUtil.getExternalLibraries(module).stream().map(VfsUtilCore::virtualToIoFile);
+  }
+
+  private static void addFileUrl(@NotNull File file, @NotNull List<URL> result) {
+    try {
+      result.add(SdkUtils.fileToUrl(file));
+    }
+    catch (MalformedURLException e) {
+      LOG.error(e);
+    }
   }
 
   /** Returns the path to a class file loaded for the given class, if any */
@@ -458,9 +465,12 @@ public final class ModuleClassLoader extends RenderClassLoader {
       LOG.debug(String.format("ModuleClassLoader.get(%s)", anonymize(module)));
     }
 
-    ModuleClassLoader loader = ourCache.get(module);
+    ModuleClassLoader loader;
+    synchronized (ourCache) {
+      loader = ourCache.get(module);
+    }
     if (loader != null) {
-      if (library != loader.myLibrary) {
+      if (library != loader.myLayoutLibrary) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("  Discarding loader because the layout library has changed");
         }
@@ -496,7 +506,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
         LOG.debug("  New class loader");
       }
       loader = new ModuleClassLoader(library, module);
-      ourCache.put(module, loader);
+      synchronized (ourCache) {
+        ourCache.put(module, loader);
+      }
     } else if (LOG.isDebugEnabled()) {
       LOG.debug("  Re-used class loader");
     }
@@ -504,21 +516,24 @@ public final class ModuleClassLoader extends RenderClassLoader {
     return loader;
   }
 
-  /** Flush any cached class loaders */
+  /** Flush any cached class loaders. */
   public static void clearCache() {
-    ourCache.clear();
+    synchronized (ourCache) {
+      ourCache.clear();
+    }
   }
 
   /** Remove the cached class loader for the module. */
   public static void clearCache(Module module) {
-    ourCache.remove(module);
+    synchronized (ourCache) {
+      ourCache.remove(module);
+    }
   }
 
-  public boolean isClassLoaded(String className) {
+  public boolean isClassLoaded(@NotNull String className) {
     return findLoadedClass(className) != null;
   }
 
-  /** Temporary hack: Store this in a weak hash map cached by modules. In the next version we should move this
-   * into a proper persistent render service. */
-  private static Map<Module,ModuleClassLoader> ourCache = ContainerUtil.createWeakMap();
+  // TODO: move this into a proper persistent render service.
+  private static final Map<Module, ModuleClassLoader> ourCache = ContainerUtil.createWeakMap();
 }

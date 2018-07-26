@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.google.common.base.CharMatcher.any
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
@@ -76,6 +77,17 @@ class PsModuleCollectionTest : DependencyTestCase() {
     assertThat(moduleWithSyncedModel(project, "app").projectType).isEqualTo(PsModuleType.ANDROID_APP)
     assertThat(moduleWithSyncedModel(project, "lib").projectType).isEqualTo(PsModuleType.ANDROID_LIBRARY)
     assertThat(moduleWithSyncedModel(project, "jav").projectType).isEqualTo(PsModuleType.JAVA)
+  }
+
+  fun testNestedModules() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+    val module = project.findModuleByGradlePath(":nested1:deep")
+    assertThat(module).isNotNull()
+    assertThat(module!!.parentModule).isSameAs(project.findModuleByGradlePath(":nested1")!!)
+    assertThat(module.variables.getVariableScopes().map { it.name }).containsExactly(project.name, "nested1", "nested1-deep")
   }
 }
 

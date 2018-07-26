@@ -82,6 +82,9 @@
       <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>
       <loadForDefaultProject/>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.stats.UserSentimentProjectComponent</implementation-class>
+    </component>
   </project-components>
   <actions>
     <action id="Project.CallGraph" internal="true" text="Contextual Call Paths" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
@@ -91,25 +94,11 @@
       <action id="LibraryProperties" class="com.android.tools.idea.gradle.actions.LibraryPropertiesAction"/>
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="RevealIn"/>
     </group>
-    <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty" icon="AllIcons.Actions.Compile">
-      <add-to-group group-id="BuildMenu" anchor="first"/>
-    </action>
 
-    <group id="AndroidToolbarMakeGroup">
-      <reference ref="MakeGradleProject"/>
-      <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="before"/>
-    </group>
-
-    <action id="SelectDeviceComboBox" class="com.android.tools.idea.run.deployment.SelectDeviceComboBoxAction">
+    <action id="SnapshotOrDeviceComboBox" class="com.android.tools.idea.run.deployment.SnapshotOrDeviceComboBoxAction">
       <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="after"/>
     </action>
 
-    <action id="MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleProject"/>
-    </action>
-    <action id="RebuildGradleProject" class="com.android.tools.idea.gradle.actions.RebuildGradleProjectAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
-    </action>
     <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
     </action>
@@ -401,6 +390,11 @@
     <applicationConfigurable groupId="build" id="instant.run"
                          provider="com.android.tools.idea.fd.InstantRunConfigurableProvider"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.project.build.compiler.HideCompilerOptions" />
+
+    <applicationConfigurable groupId="tools" id="device.file.explorer"
+                             provider="com.android.tools.idea.explorer.options.DeviceFileExplorerConfigurableProvider"/>
+    <applicationService serviceInterface="com.android.tools.idea.explorer.options.DeviceFileExplorerSettings"
+                        serviceImplementation="com.android.tools.idea.explorer.options.DeviceFileExplorerSettings"/>
 
     <applicationConfigurable groupId="editor" groupWeight="115" id="nele.options"
                              provider="com.android.tools.idea.uibuilder.options.NlOptionsConfigurableProvider"/>
@@ -1085,6 +1079,7 @@
     <sdkType implementation="org.jetbrains.android.sdk.AndroidSdkType"/>
     <gotoDeclarationHandler implementation="org.jetbrains.android.AndroidGotoDeclarationHandler"/>
     <importFilter implementation="com.android.tools.idea.editors.AndroidImportFilter" />
+    <overrideImplementsAnnotationsHandler implementation="com.android.tools.idea.editors.AndroidOverrideAnnotationsHandler" />
     <editorTabTitleProvider implementation="com.android.tools.idea.editors.AndroidEditorTitleProvider"/>
     <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidIconProvider" id="androidIcons"/>
     <refactoring.safeDeleteProcessor id="android_component" order="before javaProcessor"
@@ -1283,6 +1278,8 @@
                     interface="com.android.tools.idea.ui.GuiTestingStatusProvider" />
     <extensionPoint qualifiedName="com.android.tools.gradleModelProvider"
                     interface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider" />
+    <extensionPoint qualifiedName="com.android.rendering.renderSecurityManagerOverrides"
+                    interface="com.android.tools.idea.rendering.RenderSecurityManagerOverrides"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">

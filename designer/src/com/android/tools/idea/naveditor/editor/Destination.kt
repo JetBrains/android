@@ -23,14 +23,13 @@ import com.android.tools.idea.naveditor.model.schema
 import com.android.tools.idea.naveditor.model.setAsStartDestination
 import com.android.tools.idea.naveditor.model.startDestination
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
-import com.intellij.openapi.application.Result
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import icons.StudioIcons.NavEditor.ExistingDestinations.ACTIVITY
 import icons.StudioIcons.NavEditor.ExistingDestinations.DESTINATION
+import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.Image
 import java.awt.image.BufferedImage
 
@@ -39,22 +38,37 @@ private const val THUMBNAIL_Y = 28
 private const val THUMBNAIL_WIDTH = 50
 private const val THUMBNAIL_HEIGHT = 56
 
-sealed class Destination {
+sealed class Destination : Comparable<Destination> {
   /**
    * Add this to the graph. Must be called in a write action.
    */
+
+  enum class DestinationOrder(val order: Int) {
+    FRAGMENT(0),
+    INCLUDE(1),
+    ACTIVITY(2),
+    OTHER(3)
+  }
+
   abstract fun addToGraph()
 
   abstract val label: String
   abstract val thumbnail: Image
   abstract val typeLabel: String
+  abstract val destinationOrder: DestinationOrder
+  abstract val inProject: Boolean
 
   var component: NlComponent? = null
+
+  override fun compareTo(other: Destination): Int {
+    return comparator.compare(this, other)
+  }
 
   @VisibleForTesting
   data class RegularDestination @JvmOverloads constructor(
       val parent: NlComponent, val tag: String, private val destinationLabel: String? = null, val className: String? = null,
-      val qualifiedName: String? = null, val idBase: String = className ?: tag, private val layoutFile: XmlFile? = null)
+      val qualifiedName: String? = null, val idBase: String = className ?: tag, private val layoutFile: XmlFile? = null,
+      override val inProject: Boolean = true)
     : Destination() {
 
     // TODO: get border color from theme
@@ -80,6 +94,12 @@ sealed class Destination {
 
     override val typeLabel: String
       get() = parent.model.schema.getTagLabel(tag)
+
+    override val destinationOrder = when (parent.model.schema.getDestinationType(tag)) {
+      NavigationSchema.DestinationType.FRAGMENT -> DestinationOrder.FRAGMENT
+      NavigationSchema.DestinationType.ACTIVITY -> DestinationOrder.ACTIVITY
+      else -> DestinationOrder.OTHER
+    }
 
     override val label = destinationLabel ?: layoutFile?.let { FileUtil.getNameWithoutExtension(it.name) } ?: className ?: tag
 
@@ -120,5 +140,15 @@ sealed class Destination {
 
     override val typeLabel: String
       get() = parent.model.schema.getTagLabel(SdkConstants.TAG_INCLUDE)
+
+    override val destinationOrder = DestinationOrder.INCLUDE
+
+    override val inProject = true
+  }
+
+  companion object {
+    private val comparator = Comparator.comparing<Destination, Boolean> { it.inProject }
+      .thenComparingInt { it.destinationOrder.order }
+      .thenComparing<String> { it.label }
   }
 }

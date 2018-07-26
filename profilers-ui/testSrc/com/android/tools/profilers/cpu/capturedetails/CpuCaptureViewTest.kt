@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.capturedetails
 
+import com.android.tools.adtui.FilterComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.stdui.CommonTabbedPane
@@ -145,8 +146,8 @@ class CpuCaptureViewTest {
   fun showsLoadingPaneWhenParsing() {
     val observer = AspectObserver()
     var parsingCalled = false
-    stageView.stage.aspect.addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_STATE) {
-      if (stageView.stage.captureState == CpuProfilerStage.CaptureState.PARSING) {
+    stageView.stage.captureParser.aspect.addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_PARSING) {
+      if (stageView.stage.captureParser.isParsing) {
         parsingCalled = true
         assertThat(getCapturePane()).isInstanceOf(CpuCaptureView.LoadingPane::class.java)
       }
@@ -157,6 +158,98 @@ class CpuCaptureViewTest {
       captureTrace(profilerType = ART)
     }
     assertThat(parsingCalled).isTrue()
+  }
+
+  @Test
+  fun filterSurvivesAcrossCaptures() {
+    val stage = cpuProfiler.stage
+
+    cpuProfiler.apply {
+      ideServices.enableCpuCaptureFilter(true)
+      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
+      captureTrace(profilerType = ART)
+    }
+
+    // In one chart, we'll open our filter and set it to something
+    assertThat(stage.captureDetails?.type).isEqualTo(CaptureDetails.Type.CALL_CHART)
+    (getCapturePane() as DetailsCapturePane).let { detailsCapturePane ->
+      val filterComponent = TreeWalker(detailsCapturePane).descendants().filterIsInstance<FilterComponent>().first()
+
+      assertThat(filterComponent.isVisible).isFalse()
+
+      detailsCapturePane.myToolbar.filterButton.doClick()
+      assertThat(filterComponent.isVisible).isTrue()
+
+      filterComponent.setFilterText("ABC")
+      filterComponent.waitForFilterUpdated()
+    }
+
+    // In another chart, we'll make sure our filter settings carried over
+    stage.setCaptureDetails(CaptureDetails.Type.BOTTOM_UP)
+    (getCapturePane() as DetailsCapturePane).let { detailsCapturePane ->
+      val filterComponent = TreeWalker(detailsCapturePane).descendants().filterIsInstance<FilterComponent>().first()
+
+      assertThat(filterComponent.isVisible).isTrue()
+      assertThat(filterComponent.searchField.text).isEqualTo("ABC")
+    }
+
+    // Simulate selecting a new capture (without clearing captures in between). The filter should
+    // be preserved
+    run {
+      val prevCapture = stage.capture
+      stage.capture = CpuProfilerUITestUtils.validCapture()
+      assertThat(stage.capture).isNotEqualTo(prevCapture)
+    }
+
+    (getCapturePane() as DetailsCapturePane).let { detailsCapturePane ->
+      val filterComponent = TreeWalker(detailsCapturePane).descendants().filterIsInstance<FilterComponent>().first()
+      filterComponent.waitForFilterUpdated()
+      assertThat(filterComponent.isVisible).isTrue()
+      assertThat(filterComponent.searchField.text).isEqualTo("ABC")
+    }
+
+    // Clearing a capture should also clear the current filter
+    run {
+      val oldCapture = stage.capture
+      stage.capture = null
+      stage.capture = oldCapture
+    }
+    stage.setCaptureDetails(CaptureDetails.Type.BOTTOM_UP)
+    (getCapturePane() as DetailsCapturePane).let { detailsCapturePane ->
+      val filterComponent = TreeWalker(detailsCapturePane).descendants().filterIsInstance<FilterComponent>().first()
+      filterComponent.waitForFilterUpdated()
+
+      assertThat(filterComponent.isVisible).isFalse()
+      assertThat(filterComponent.searchField.text).isEmpty()
+    }
+  }
+
+  @Test
+  fun filterShowsMatchCount() {
+    val stage = cpuProfiler.stage
+
+    cpuProfiler.apply {
+      ideServices.enableCpuCaptureFilter(true)
+      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
+      captureTrace(profilerType = ART)
+    }
+
+    assertThat(stage.captureDetails?.type).isEqualTo(CaptureDetails.Type.CALL_CHART)
+    (getCapturePane() as DetailsCapturePane).let { detailsCapturePane ->
+      val filterComponent = TreeWalker(detailsCapturePane).descendants().filterIsInstance<FilterComponent>().first()
+
+      var matchCount = 0
+      filterComponent.model.addMatchResultListener { result -> matchCount = result.matchCount }
+
+      detailsCapturePane.myToolbar.filterButton.doClick()
+      assertThat(filterComponent.isVisible).isTrue()
+
+      filterComponent.setFilterText("android") // Open trace file at CpuProfilerUITestUtils.VALID_TRACE_PATH
+      filterComponent.waitForFilterUpdated()
+
+      assertThat(matchCount).isGreaterThan(0)
+      assertThat(filterComponent.countLabel.text).isNotEmpty()
+    }
   }
 
   private fun getCapturePane() = TreeWalker(captureView.component)
