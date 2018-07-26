@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.assistant;
 
+import com.android.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -41,25 +42,32 @@ public class OpenAssistSidePanelAction extends AnAction {
   }
 
   /**
-   * Opens the assistant associated with the given actionId
+   * Opens the assistant associated with the given actionId at the end of event thread
    */
   public final void openWindow(String actionId, Project project) {
     ApplicationManager.getApplication().invokeLater(() -> {
-
-      AssistToolWindowFactory factory = new AssistToolWindowFactory(actionId);
-      ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
-      ToolWindow toolWindow = toolWindowManager.getToolWindow(TOOL_WINDOW_TITLE);
-
-      if (toolWindow == null) {
-        // NOTE: canWorkInDumbMode must be true or the window will close on gradle sync.
-        toolWindow = toolWindowManager.registerToolWindow(TOOL_WINDOW_TITLE, false, ToolWindowAnchor.RIGHT, project, true);
-      }
-      toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ASSISTANT);
-
-      factory.createToolWindowContent(project, toolWindow);
-
-      // Always active the window, in case it was previously minimized.
-      toolWindow.activate(null);
+      openWindowNow(actionId, project);
     });
+  }
+
+  /**
+   * Opens the assistant associated with the given actionId
+   */
+  @VisibleForTesting
+  public void openWindowNow(String actionId, Project project) {
+    AssistToolWindowFactory factory = new AssistToolWindowFactory(actionId);
+    ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
+    ToolWindow toolWindow = toolWindowManager.getToolWindow(TOOL_WINDOW_TITLE);
+
+    if (toolWindow == null) {
+      // NOTE: canWorkInDumbMode must be true or the window will close on gradle sync.
+      toolWindow = toolWindowManager.registerToolWindow(TOOL_WINDOW_TITLE, false, ToolWindowAnchor.RIGHT, project, true);
+    }
+    toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ASSISTANT);
+
+    factory.createToolWindowContent(project, toolWindow, true);
+
+    // Always active the window, in case it was previously minimized.
+    toolWindow.activate(null);
   }
 }

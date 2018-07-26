@@ -36,6 +36,9 @@ class AssistSidePanel(actionId: String, project: Project) : JPanel(BorderLayout(
   private val log: Logger
     get() = Logger.getInstance(AssistSidePanel::class.java)
 
+  var title: String? = null
+    private set
+
   init {
     border = BorderFactory.createEmptyBorder()
     isOpaque = false
@@ -68,6 +71,7 @@ class AssistSidePanel(actionId: String, project: Project) : JPanel(BorderLayout(
         for (feature in bundle.features) {
           feature.setResourceClass(it.javaClass)
         }
+        title = bundle.name
 
         val analyticsProvider = it.analyticsProvider
           analyticsProvider.trackPanelOpened(project)
