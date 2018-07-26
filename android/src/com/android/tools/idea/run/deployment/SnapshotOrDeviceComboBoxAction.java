@@ -25,6 +25,7 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Condition;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -165,7 +166,7 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
     AnAction action = new RunAndroidAvdManagerAction();
 
     Presentation presentation = action.getTemplatePresentation();
-    presentation.setIcon(AndroidIcons.AvdManager);
+    presentation.setIcon(StudioIcons.Shell.Toolbar.DEVICE_MANAGER);
     presentation.setText("Open AVD Manager");
 
     return action;

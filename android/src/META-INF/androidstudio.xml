@@ -57,7 +57,7 @@
     </action>
 
     <action id="WelcomeScreen.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
-            icon="AndroidIcons.SdkManager">
+            icon="StudioIcons.Shell.Toolbar.SDK_MANAGER">
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
 
