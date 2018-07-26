@@ -17,6 +17,7 @@ import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeMo
 import com.android.tools.idea.gradle.structure.configurables.NamedContainerConfigurableBase
 import com.android.tools.idea.gradle.structure.configurables.createConfigurablesTree
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.PsFlavorDimension
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.ui.NamedConfigurable
@@ -46,8 +47,8 @@ class ProductFlavorsTreeModel(
   }
 
   fun createFlavorDimension(newName: String): Pair<FlavorDimensionConfigurable, DefaultMutableTreeNode> {
-    module.addNewFlavorDimension(newName)
-    val configurable = FlavorDimensionConfigurable(module, newName)
+    val flavorDimension = module.addNewFlavorDimension(newName)
+    val configurable = FlavorDimensionConfigurable(module, flavorDimension)
     val node = createNode(rootNode, configurable)
     return configurable to node
   }
@@ -55,25 +56,23 @@ class ProductFlavorsTreeModel(
   fun removeFlavorDimension(node: DefaultMutableTreeNode) {
     val flavorDimensionConfigurable = node.userObject as FlavorDimensionConfigurable
     val flavorDimension = flavorDimensionConfigurable.flavorDimension
-    module.removeFlavorDimension(flavorDimension)
+    module.removeFlavorDimension(flavorDimension.name)
     removeNodeFromParent(node)
   }
 
   private fun findDimensionNode(dimension: String) =
       rootNode.children().toList()
           .map { it as? DefaultMutableTreeNode }
-          .find { (it?.userObject as? FlavorDimensionConfigurable)?.flavorDimension == dimension }
+        .find { (it?.userObject as? FlavorDimensionConfigurable)?.flavorDimension?.name == dimension }
 }
 
 fun createProductFlavorsModel(module: PsAndroidModule): ProductFlavorsTreeModel =
     ProductFlavorsTreeModel(
         module,
         createConfigurablesTree(
-            object : NamedContainerConfigurableBase<String>("Flavor Dimensions") {
-              override fun getChildren(): List<NamedConfigurable<String>> =
-                  module.parsedModel?.android()?.flavorDimensions()?.toList()
-                      ?.map { FlavorDimensionConfigurable(module, it.toString()) }
-                      ?: listOf()
+          object : NamedContainerConfigurableBase<PsFlavorDimension>("Flavor Dimensions") {
+            override fun getChildren(): List<NamedConfigurable<PsFlavorDimension>> =
+              module.flavorDimensions.map { FlavorDimensionConfigurable(module, it) }
             }))
 
 

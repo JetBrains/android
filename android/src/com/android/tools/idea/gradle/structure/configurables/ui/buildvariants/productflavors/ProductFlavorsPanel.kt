@@ -115,7 +115,7 @@ class ProductFlavorsPanel(
             if (newName != null) {
               val selectedObject = selectedConfigurable
               val currentDimension = when (selectedObject) {
-                is FlavorDimensionConfigurable -> selectedObject.flavorDimension
+                is FlavorDimensionConfigurable -> selectedObject.flavorDimension.name
                 is ProductFlavorConfigurable -> selectedObject.model.dimension.maybeValue
                 else -> null
               }
