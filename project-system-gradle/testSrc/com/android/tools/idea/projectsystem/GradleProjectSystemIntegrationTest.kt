@@ -16,10 +16,8 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.truth.FileSubject.assertThat
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
-import com.android.tools.idea.templates.IdeGoogleMavenRepository
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 
@@ -27,37 +25,6 @@ import com.google.common.truth.Truth.assertThat
  * Integration tests for [GradleProjectSystem]; contains tests that require a working gradle project.
  */
 class GradleProjectSystemIntegrationTest : AndroidGradleTestCase() {
-  @Throws(Exception::class)
-  fun testGetAvailableDependency() {
-    loadSimpleApplication()
-    val projectSystem = project.getProjectSystem()
-    val availableAppCompatVersion = IdeGoogleMavenRepository.findVersion("com.android.support", "appcompat-v7")
-    val availableAppCompat = GradleCoordinate("com.android.support", "appcompat-v7", availableAppCompatVersion.toString())
-
-    assertThat(isSameArtifact(
-      projectSystem.getAvailableDependency(GradleCoordinate("com.android.support", "appcompat-v7", "+")),
-      availableAppCompat
-    )).isTrue()
-
-    assertThat(isSameArtifact(
-      projectSystem.getAvailableDependency(GradleCoordinate("com.android.support", "appcompat-v7", availableAppCompatVersion.toString())),
-      availableAppCompat
-    )).isTrue()
-  }
-
-  private fun isSameArtifact(first: GradleCoordinate?, second: GradleCoordinate?) : Boolean {
-    return GradleCoordinate.COMPARE_PLUS_LOWER.compare(first, second) == 0
-  }
-
-  @Throws(Exception::class)
-  fun testGetAvailableDependencyWhenUnavailable() {
-    loadSimpleApplication()
-    val projectSystem = project.getProjectSystem()
-
-    assertThat(projectSystem.getAvailableDependency(GradleCoordinate("com.android.support", "appcompat-v7", "99.9.9"))).isNull()
-    assertThat(projectSystem.getAvailableDependency(GradleCoordinate("nonexistent", "dependency123", "+"))).isNull()
-  }
-
   @Throws(Exception::class)
   fun testGetDependentLibraries() {
     loadSimpleApplication()

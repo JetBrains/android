@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.templates.IdeGoogleMavenRepository
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 
@@ -25,6 +26,27 @@ import com.google.common.truth.Truth.assertThat
  * Integration tests for [GradleModuleSystem]; contains tests that require a working gradle project.
  */
 class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
+  @Throws(Exception::class)
+  fun testGetAvailableDependencyWithRequiredVersionMatching() {
+    loadSimpleApplication()
+    val moduleSystem = myModules.appModule.getModuleSystem()
+    val availableAppCompatVersion = IdeGoogleMavenRepository.findVersion("com.android.support", "appcompat-v7")
+    val availableAppCompat = GradleCoordinate("com.android.support", "appcompat-v7", availableAppCompatVersion.toString())
+
+    assertThat(isSameArtifact(
+      moduleSystem.getLatestCompatibleDependency("com.android.support", "appcompat-v7"),
+      availableAppCompat
+    )).isTrue()
+  }
+
+  @Throws(Exception::class)
+  fun testGetAvailableDependencyWhenUnavailable() {
+    loadSimpleApplication()
+    val moduleSystem = myModules.appModule.getModuleSystem()
+
+    assertThat(moduleSystem.getLatestCompatibleDependency("nonexistent", "dependency123")).isNull()
+  }
+
   @Throws(Exception::class)
   fun testRegisterDependency() {
     loadSimpleApplication()
