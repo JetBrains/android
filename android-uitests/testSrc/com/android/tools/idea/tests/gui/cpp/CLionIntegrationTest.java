@@ -65,7 +65,7 @@ public class CLionIntegrationTest {
    *   4. There should be an error indication.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_BAZEL)
   @Test
   public void cLionIntegration() throws Exception {
     IdeFrameFixture ideFrame =
@@ -103,7 +103,7 @@ public class CLionIntegrationTest {
     // Check errors.
     List<String> errors = ideFrame.getEditor().open(NATIVE_C_FILE_PATH, EditorFixture.Tab.EDITOR)
       .moveBetween("BUFFER_OFFSET(kid_age);", "")
-      .enterText("\nNOT_DEFINED_FUNC();")
+      .typeText("\nNOT_DEFINED_FUNC();")
       .getHighlights(HighlightSeverity.ERROR);
     assertThat(errors).hasSize(1);
     assertThat(errors.get(0)).contains("Can't resolve variable 'NOT_DEFINED_FUNC'");
