@@ -31,6 +31,8 @@ import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.tree.TreeUtil
 import java.util.*
+import javax.swing.event.TreeModelEvent
+import javax.swing.event.TreeModelListener
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 
@@ -56,6 +58,20 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
     (splitter as JBSplitter).splitterProportionKey = "android.psd.proportion.configurables"
     tree.model = treeModel
     myRoot = treeModel.rootNode as MyNode
+    treeModel.addTreeModelListener(object: TreeModelListener{
+      override fun treeNodesInserted(e: TreeModelEvent?) {
+        val treePath = e?.treePath
+        if (treePath?.parentPath == null) {
+          tree.expandPath(treePath)
+        }
+      }
+
+      override fun treeStructureChanged(e: TreeModelEvent?)= Unit
+
+      override fun treeNodesChanged(e: TreeModelEvent?) = Unit
+
+      override fun treeNodesRemoved(e: TreeModelEvent?) = Unit
+    })
     tree.isRootVisible = false
     TreeUtil.expandAll(tree)
   }
