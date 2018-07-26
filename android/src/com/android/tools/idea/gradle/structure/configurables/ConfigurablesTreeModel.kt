@@ -38,14 +38,3 @@ abstract class ConfigurablesTreeModel protected constructor(
     return node
   }
 }
-
-/**
- * Generates a list using a given [generator].
- */
-fun <T> listFromGenerator(generator: ((T) -> Unit) -> Unit): List<T> {
-  val result = mutableListOf<T>()
-  generator {
-    result.add(it)
-  }
-  return result
-}

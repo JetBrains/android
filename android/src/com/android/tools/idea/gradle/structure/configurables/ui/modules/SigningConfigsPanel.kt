@@ -74,7 +74,7 @@ class SigningConfigsPanel(
                   override fun canClose(inputString: String?): Boolean = !inputString.isNullOrBlank()
                 })
             if (newName != null) {
-              val (_, node) = treeModel.createSigningConfig(newName)
+              val node = treeModel.createSigningConfig(newName)
               selectNode(node)
             }
           }

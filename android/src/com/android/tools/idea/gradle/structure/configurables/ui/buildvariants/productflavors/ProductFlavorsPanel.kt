@@ -95,7 +95,7 @@ class ProductFlavorsPanel(
                   override fun canClose(inputString: String?): Boolean = !inputString.isNullOrBlank()
                 })
             if (newName != null) {
-              val (_, node) = treeModel.createFlavorDimension(newName)
+              val node = treeModel.createFlavorDimension(newName)
               tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
             }
           }
@@ -119,7 +119,7 @@ class ProductFlavorsPanel(
                 is ProductFlavorConfigurable -> selectedObject.model.dimension.maybeValue
                 else -> null
               }
-              val (_, node) = treeModel.createProductFlavor(newName, currentDimension)
+              val node = treeModel.createProductFlavor(newName, currentDimension)
               tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
             }
           }
