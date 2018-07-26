@@ -129,7 +129,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertNotNull(appModule)
     appModule.testSubscribeToChangeNotifications()
 
-    appModule.removeFlavorDimension("bar")
+    appModule.removeFlavorDimension(appModule.findFlavorDimension("bar")!!)
     assertThat(flavorDimensionsChanged).isEqualTo(1)
     // A product flavor must be removed for successful sync.
     appModule.removeProductFlavor(appModule.findProductFlavor("bar", "bar")!!)

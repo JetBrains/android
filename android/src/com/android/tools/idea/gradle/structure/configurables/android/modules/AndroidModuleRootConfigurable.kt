@@ -16,15 +16,18 @@
 package com.android.tools.idea.gradle.structure.configurables.android.modules
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.configurables.createTreeModel
 import com.android.tools.idea.gradle.structure.configurables.ui.*
 import com.android.tools.idea.gradle.structure.configurables.ui.modules.ModulePanel
 import com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptors
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefaultConfigDescriptors
 
-class AndroidModuleRootConfigurable(context: PsContext, module: PsAndroidModule) : AbstractModuleConfigurable<ModulePanel>(context, module) {
+class AndroidModuleRootConfigurable(
+  context: PsContext, module: PsAndroidModule
+) : AbstractModuleConfigurable<ModulePanel>(context, module) {
 
-  private val signingConfigsModel = createSigningConfigsModel(module)
+  private val signingConfigsModel = createTreeModel(SigningConfigsConfigurable(module))
 
   override fun getId() = "android.psd.modules." + displayName
   override fun createPanel(module: PsAndroidModule) =

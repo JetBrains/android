@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.modules
 
-import com.android.tools.idea.gradle.structure.configurables.android.modules.SigningConfigsTreeModel
+import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeModel
+import com.android.tools.idea.gradle.structure.configurables.findChildFor
+import com.android.tools.idea.gradle.structure.configurables.getModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -29,7 +32,8 @@ import com.intellij.util.IconUtil
 
 const val SIGNING_CONFIGS_DISPLAY_NAME = "Signing Configs"
 class SigningConfigsPanel(
-  val treeModel: SigningConfigsTreeModel,
+  val module: PsAndroidModule,
+  val treeModel: ConfigurablesTreeModel,
   psUiSettings: PsUISettings
 ) :
     ConfigurablesMasterDetailsPanel<PsSigningConfig>(
@@ -52,7 +56,7 @@ class SigningConfigsPanel(
             Messages.getQuestionIcon()
           ) == YES) {
           val nodeToSelectAfter = selectedNode.nextSibling ?: selectedNode.previousSibling
-          treeModel.removeSigningConfig(selectedNode)
+          module.removeSigningConfig(selectedNode.getModel() ?: return)
           selectNode(nodeToSelectAfter)
         }
       }
@@ -74,7 +78,8 @@ class SigningConfigsPanel(
                   override fun canClose(inputString: String?): Boolean = !inputString.isNullOrBlank()
                 })
             if (newName != null) {
-              val node = treeModel.createSigningConfig(newName)
+              val signingConfig = module.addNewSigningConfig(newName)
+              val node = treeModel.rootNode.findChildFor(signingConfig)
               selectNode(node)
             }
           }

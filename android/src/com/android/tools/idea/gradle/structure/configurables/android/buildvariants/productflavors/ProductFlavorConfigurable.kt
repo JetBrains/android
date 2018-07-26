@@ -20,8 +20,10 @@ import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.pr
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsFlavorDimension
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.maybeValue
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.NamedConfigurable
+import com.intellij.openapi.util.Disposer
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -42,18 +44,12 @@ class FlavorDimensionConfigurable(
   override fun getDisplayName(): String = flavorDimension.name
   override fun apply() = Unit
   override fun setDisplayName(name: String?) = throw UnsupportedOperationException()
-
-  override fun getChildren(): List<NamedConfigurable<PsProductFlavor>> =
-    module
-      .productFlavors
-      .filter { productFlavor ->
-        val dimension = productFlavor.dimension
-        dimension is ParsedValue.Set.Parsed<String> && dimension.value == flavorDimension.name
-      }
-      .map { productFlavor ->
-        ProductFlavorConfigurable(productFlavor)
-      }
-
+  override fun getChildrenModels(): Collection<PsProductFlavor> =
+    module.productFlavors.filter { it.dimension.maybeValue == flavorDimension.name }
+  override fun createChildConfigurable(model: PsProductFlavor): NamedConfigurable<PsProductFlavor> =
+    ProductFlavorConfigurable(model).also { Disposer.register(this, it) }
+  override fun onChange(disposable: Disposable, listener: () -> Unit) = module.productFlavors.onChange(disposable, listener)
+  override fun dispose() = Unit
 
   private val component = JPanel()
   override fun createOptionsPanel(): JComponent = component

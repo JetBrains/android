@@ -13,28 +13,23 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.configurables
 
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.PsModel
 import com.intellij.openapi.ui.MasterDetailsComponent
 import com.intellij.openapi.ui.NamedConfigurable
-import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
 /**
- * An abstract tree model that represents a hierarchy of [NamedConfigurable]s.
+ * A tree model that represents a hierarchy of [NamedConfigurable]s.
  */
-abstract class ConfigurablesTreeModel protected constructor(
-    val module: PsAndroidModule,
-    val rootNode: DefaultMutableTreeNode
+class ConfigurablesTreeModel(
+  val rootNode: MasterDetailsComponent.MyNode
+) : DefaultTreeModel(rootNode)
 
-) : DefaultTreeModel(rootNode) {
+/**
+ * Finds a [MasterDetailsComponent.MyNode] for a given [PsModel] in the tree.
+ */
+fun MasterDetailsComponent.MyNode.findChildFor(model: Any): MasterDetailsComponent.MyNode? =
+  children().asSequence().mapNotNull { it as? MasterDetailsComponent.MyNode }.find { it.configurable?.editableObject === model }
 
-  /**
-   * Creates a [MasterDetailsComponent.MyNode] for a given [configurable] and adds it to the tree under a node [under].
-   */
-  protected fun createNode(under: DefaultMutableTreeNode, configurable: NamedConfigurable<*>): DefaultMutableTreeNode {
-    val node = createConfigurablesTree(configurable)
-    under.add(node)
-    reload(under)
-    return node
-  }
-}
+inline fun <reified T> MasterDetailsComponent.MyNode.getModel(): T? =
+  (userObject as? NamedConfigurable<*>)?.editableObject as? T
