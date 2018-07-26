@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 
@@ -25,6 +26,26 @@ import com.google.common.truth.Truth.assertThat
  * Integration tests for [GradleModuleSystem]; contains tests that require a working gradle project.
  */
 class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
+  @Throws(Exception::class)
+  fun testGetAvailableDependencyWithRequiredVersionMatching() {
+    loadSimpleApplication()
+    verifyProjectDependsOnWildcardAppCompat()
+    val moduleSystem = myModules.appModule.getModuleSystem()
+
+    assertThat(isSameArtifact(
+      moduleSystem.getLatestCompatibleDependency("com.android.support", "appcompat-v7"),
+      GradleCoordinate("com.android.support", "appcompat-v7", "+")
+    )).isTrue()
+  }
+
+  @Throws(Exception::class)
+  fun testGetAvailableDependencyWhenUnavailable() {
+    loadSimpleApplication()
+    val moduleSystem = myModules.appModule.getModuleSystem()
+
+    assertThat(moduleSystem.getLatestCompatibleDependency("nonexistent", "dependency123")).isNull()
+  }
+
   @Throws(Exception::class)
   fun testRegisterDependency() {
     loadSimpleApplication()
@@ -37,6 +58,18 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     moduleSystem.registerDependency(anotherDummyDependency)
 
     assertThat(dependencyManager.findMissingDependencies(myModules.appModule, listOf(dummyDependency, anotherDummyDependency))).isEmpty()
+  }
+
+  @Throws(Exception::class)
+  fun testGetRegisteredExistingDependency() {
+    loadSimpleApplication()
+    verifyProjectDependsOnWildcardAppCompat()
+    val moduleSystem = myModules.appModule.getModuleSystem()
+
+    // Verify that getRegisteredDependency gets a existing dependency correctly.
+    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
+    assertThat(moduleSystem.getRegisteredDependency(appCompat)).isNotNull()
+    assertThat(moduleSystem.getRegisteredDependency(appCompat)?.revision).isEqualTo("+")
   }
 
   @Throws(Exception::class)
@@ -74,11 +107,14 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
   @Throws(Exception::class)
   fun testGetResolvedMatchingDependencies() {
     loadSimpleApplication()
+    verifyProjectDependsOnWildcardAppCompat()
     val moduleSystem = myModules.appModule.getModuleSystem()
-    val appCompatDependency = GradleCoordinate("com.android.support", "appcompat-v7", "27.+")
 
-    val wildcardVersionResolution =
-      moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "27.+"))
+    // Verify that app-compat is on version 27.1.1 so the checks below make sense.
+    assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("27.1.1")
+
+    val appCompatDependency = GradleCoordinate("com.android.support", "appcompat-v7", "27.+")
+    val wildcardVersionResolution = moduleSystem.getResolvedDependency(appCompatDependency)
     assertThat(wildcardVersionResolution).isNotNull()
     assertThat(wildcardVersionResolution!!.matches(appCompatDependency)).isTrue()
   }
@@ -86,7 +122,11 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
   @Throws(Exception::class)
   fun testGetResolvedNonMatchingDependencies() {
     loadSimpleApplication()
+    verifyProjectDependsOnWildcardAppCompat()
     val moduleSystem = myModules.appModule.getModuleSystem()
+
+    // Verify that app-compat is on version 27.1.1 so the checks below make sense.
+    assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("27.1.1")
 
     assertThat(moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "26.+"))).isNull()
     assertThat(moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "99.9.0"))).isNull()
@@ -96,6 +136,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
   @Throws(Exception::class)
   fun testGetResolvedAarDependencies() {
     loadSimpleApplication()
+    verifyProjectDependsOnWildcardAppCompat()
 
     // appcompat-v7 is a dependency with an AAR.
     assertThat(myModules.appModule.getModuleSystem().getResolvedDependency(
@@ -105,6 +146,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
   @Throws(Exception::class)
   fun testGetResolvedJarDependencies() {
     loadSimpleApplication()
+    verifyProjectDependsOnGuava()
 
     // guava is a dependency with a JAR.
     assertThat(myModules.appModule.getModuleSystem().getResolvedDependency(
@@ -113,4 +155,29 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
 
   private fun isSameArtifact(first: GradleCoordinate?, second: GradleCoordinate?) =
     GradleCoordinate.COMPARE_PLUS_LOWER.compare(first, second) == 0
+
+  private fun verifyProjectDependsOnWildcardAppCompat() {
+    // SimpleApplication should have a dependency on "com.android.support:appcompat-v7:+"
+    val appCompatArtifact = ProjectBuildModel
+        .get(project)
+        .getModuleBuildModel(myModules.appModule)
+        ?.dependencies()
+        ?.artifacts()
+        ?.find { "${it.group()}:${it.name().forceString()}" == GoogleMavenArtifactId.APP_COMPAT_V7.toString() }
+
+    assertThat(appCompatArtifact).isNotNull()
+    assertThat(appCompatArtifact!!.version().toString()).isEqualTo("+")
+  }
+
+  private fun verifyProjectDependsOnGuava() {
+    // SimpleApplication should have a dependency on guava.
+    assertThat(
+      ProjectBuildModel
+        .get(project)
+        .getModuleBuildModel(myModules.appModule)
+        ?.dependencies()
+        ?.artifacts()
+        ?.find { "${it.group()}:${it.name().forceString()}" == "com.google.guava:guava" }
+    ).isNotNull()
+  }
 }

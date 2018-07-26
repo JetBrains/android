@@ -20,9 +20,7 @@ package com.android.tools.idea.util
 import com.android.SdkConstants
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.support.AndroidxName
-import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.projectsystem.*
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -30,6 +28,10 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
+import org.jetbrains.annotations.TestOnly
+
+@TestOnly
+var DEPENDENCY_MANAGEMENT_TEST_ASSUME_USER_WILL_ACCEPT_DEPENDENCIES = true
 
 /**
  * Returns true iff the dependency with [artifactId] is transitively available to this [module].
@@ -72,22 +74,12 @@ fun Module?.mapAndroidxName(name: AndroidxName): String {
   return if (dependsOnAndroidx) name.newName() else name.oldName()
 }
 
-fun Module.mapGradleCoordinateToAndroidx(coordinate: String): String {
-  if (this.isDisposed || coordinate.isEmpty()) {
-    return coordinate
-  }
-
-  return if (this.dependsOnAndroidx()) {
-    AndroidxNameUtils.getCoordinateMapping(coordinate)
-  }
-  else coordinate
-}
-
 fun Module.dependsOnAppCompat(): Boolean =
   this.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7) || this.dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)
 
 /**
- * Add libraries with given [GradleCoordinate] as dependencies; this method will show a dialog prompting the user for confirmation if
+ * Add maven projects as dependencies for this module. The maven group and artifact IDs are taken from given [GradleCoordinate]s and the
+ * coordinates' version information are disregarded. This method will show a dialog prompting the user for confirmation if
  * [promptUserBeforeAdding] is set to true and return with no-op if user chooses to not add the dependencies. If any of the dependencies
  * are added successfully and [requestSync] is set to true, this method will request a sync to make sure the artifacts are resolved.
  * In this case, the sync will happen asynchronously and this method will not wait for it to finish before returning.
@@ -111,60 +103,34 @@ fun Module.addDependencies(coordinates: List<GradleCoordinate>, promptUserBefore
 
   // Separate the list of deps into a list of versioned coordinates and a list of unavailable coordinates.
   distinctCoordinates.forEach {
-    val versionedCoordinate =
-      project.getProjectSystem().getAvailableDependency(it, false) ?: project.getProjectSystem().getAvailableDependency(it, true)
+    val versionedCoordinate = moduleSystem.getLatestCompatibleDependency(it.groupId ?: "", it.artifactId ?: "")
 
     if (versionedCoordinate == null) {
       unavailableDependencies.add(it)
-    } else {
+    }
+    else {
       versionedDependencies.add(versionedCoordinate)
     }
   }
 
-  if (unavailableDependencies.isNotEmpty()) {
-    return unavailableDependencies
+  if (versionedDependencies.isNotEmpty()) {
+    if (promptUserBeforeAdding && !userWantsToAdd(project, distinctCoordinates)) {
+      return distinctCoordinates
+    }
+
+    versionedDependencies.forEach(moduleSystem::registerDependency)
+
+    if (requestSync) {
+      project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true)
+    }
+
   }
-
-  if (promptUserBeforeAdding && !userWantsToAdd(project, distinctCoordinates)) {
-    return distinctCoordinates
-  }
-
-  versionedDependencies.forEach { moduleSystem.registerDependency(transformVersionIfNeeded(it, moduleSystem)) }
-
-  if (requestSync) {
-    project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true)
-  }
-
-  return emptyList()
+  return unavailableDependencies
 }
-
-private fun transformVersionIfNeeded(coordinate: GradleCoordinate, moduleSystem: AndroidModuleSystem): GradleCoordinate {
-  // Platform support libraries must all use the same version.
-  if (!isPlatformSupportLibrary(coordinate)) {
-    return coordinate
-  }
-
-  val version = getExistingPlatformSupportLibraryVersion(moduleSystem) ?: return coordinate
-
-  val coordinateString = "${coordinate.groupId}:${coordinate.artifactId}:$version"
-  return GradleCoordinate.parseCoordinateString(coordinateString) ?: throw RuntimeException(
-    "Could not parse gradle coordinate string $coordinateString")
-}
-
-private fun isPlatformSupportLibrary(coordinate: GradleCoordinate) =
-  GoogleMavenArtifactId.forCoordinate(coordinate)?.isPlatformSupportLibrary ?: false
-
-private fun getExistingPlatformSupportLibraryVersion(moduleSystem: AndroidModuleSystem): GradleVersion? =
-  GoogleMavenArtifactId.values()
-    .asSequence()
-    .filter { it.isPlatformSupportLibrary }
-    .mapNotNull { moduleSystem.getRegisteredDependency(it.getCoordinate("+")) }
-    .mapNotNull { it.version }
-    .firstOrNull()
 
 fun userWantsToAdd(project: Project, coordinates: List<GradleCoordinate>): Boolean {
   if (ApplicationManager.getApplication().isUnitTestMode) {
-    return true
+    return DEPENDENCY_MANAGEMENT_TEST_ASSUME_USER_WILL_ACCEPT_DEPENDENCIES
   }
   return Messages.OK == Messages.showOkCancelDialog(project, createAddDependencyMessage(coordinates), "Add Project Dependency", Messages.getErrorIcon())
 }
