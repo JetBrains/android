@@ -117,7 +117,7 @@ class PsAndroidModuleAnalyzer(context: PsContext) : PsModuleAnalyzer<PsAndroidMo
     return PsMessageScopeAggregator(
       model.buildTypes.map { it.name }.toSet(),
       model.flavorDimensions.map { dimension ->
-        model.productFlavors.filter { it.dimension.maybeValue == dimension }.map { it.name }.toSet()
+        model.productFlavors.filter { it.dimension.maybeValue == dimension.name }.map { it.name }.toSet()
       })
   }
 }
