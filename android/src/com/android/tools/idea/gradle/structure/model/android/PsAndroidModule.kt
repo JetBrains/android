@@ -86,6 +86,9 @@ class PsAndroidModule(
 
   fun findSigningConfig(signingConfig: String): PsSigningConfig? = getOrCreateSigningConfigCollection().findElement(signingConfig)
 
+  fun findFlavorDimension(flavorDimensionName: String): PsFlavorDimension? =
+    getOrCreateFlavorDimensionCollection().findElement(flavorDimensionName)
+
   override fun canDependOn(module: PsModule): Boolean =
     // 'module' is either a Java library or an AAR module.
     (module as? PsAndroidModule)?.isLibrary == true || (module is PsJavaModule)
@@ -146,7 +149,7 @@ class PsAndroidModule(
 
   fun addNewFlavorDimension(name: String) = getOrCreateFlavorDimensionCollection().addNew(name)
 
-  fun removeFlavorDimension(flavorDimension: String) = getOrCreateFlavorDimensionCollection().remove(flavorDimension)
+  fun removeFlavorDimension(flavorDimension: PsFlavorDimension) = getOrCreateFlavorDimensionCollection().remove(flavorDimension.name)
 
   fun addNewProductFlavor(dimension: String, name: String): PsProductFlavor =
     getOrCreateProductFlavorCollection().addNew(PsProductFlavorKey(dimension, name))

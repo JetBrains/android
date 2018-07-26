@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.structure.configurables.android.buildvariants
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.buildtypes.createBuildTypesModel
-import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.createProductFlavorsModel
+import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.buildtypes.BuildTypesConfigurable
+import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.ProductFlavorsConfigurable
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
+import com.android.tools.idea.gradle.structure.configurables.createTreeModel
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.BuildVariantsPanel
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 
@@ -27,8 +28,8 @@ class AndroidModuleBuildVariantsConfigurable(
     module: PsAndroidModule
 ) : AbstractModuleConfigurable<BuildVariantsPanel>(context, module) {
 
-  private val buildTypesModel = createBuildTypesModel(module)
-  private val productFlavorsModel = createProductFlavorsModel(module)
+  private val buildTypesModel = createTreeModel(BuildTypesConfigurable(module))
+  private val productFlavorsModel = createTreeModel(ProductFlavorsConfigurable(module))
 
   override fun getId() = "android.psd.build_variants." + displayName
   override fun createPanel(module: PsAndroidModule) =
