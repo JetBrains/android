@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchFile;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPoint2D;
@@ -24,32 +25,87 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserial
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class SketchParser {
-  public static @Nullable
-  SketchPage open(@NotNull String path) {
+  @Nullable
+  public static SketchFile unzip(String path) {
+    try (ZipFile zip = new ZipFile(path)) {
 
-    try (Reader reader = new FileReader(path)) {
-      Gson gson = new GsonBuilder()
-        .registerTypeAdapter(SketchLayer.class, new SketchLayerDeserializer())
-        .registerTypeAdapter(Color.class, new ColorDeserializer())
-        .registerTypeAdapter(Point2D.Double.class, new PointDeserializer())
-        .registerTypeAdapter(SketchPoint2D.class, new PointDeserializer())
-        .create();
-      return gson.fromJson(reader, SketchPage.class);
+      SketchFile sketchFile = new SketchFile();
+
+      for (Enumeration e = zip.entries(); e.hasMoreElements(); ) {
+        ZipEntry entry = (ZipEntry)e.nextElement();
+
+        String entryName = entry.getName();
+
+        if (FilenameUtils.getExtension(entryName).equals("json")) {
+          switch (entryName) {
+            case "document.json":
+              // TODO
+              break;
+            case "meta.json":
+              // TODO
+              break;
+            case "user.json":
+              // TODO
+              break;
+            default:
+              sketchFile.addPage(parsePage(zip.getInputStream(entry)));
+          }
+        }
+      }
+
+      return sketchFile;
     }
     catch (IOException e) {
-      Logger.getInstance(SketchParser.class).warn("Sketch file not found.", e);
+      Logger.getInstance(SketchParser.class).warn("Failed to read from sketch file!");
     }
 
     return null;
+  }
+
+  @Nullable
+  public static SketchPage parsePage(@NotNull InputStream in) {
+    try (Reader reader = new BufferedReader(new InputStreamReader(in))) {
+      return getPage(reader);
+    }
+    catch (IOException e) {
+      Logger.getInstance(SketchParser.class).warn("Could not read page.", e);
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public static SketchPage parsePage(@NotNull String path) {
+    try (Reader reader = new FileReader(path)) {
+      return getPage(reader);
+    }
+    catch (IOException e) {
+      Logger.getInstance(SketchParser.class).warn("Page " + path + " not found.", e);
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static SketchPage getPage(Reader reader) {
+    Gson gson = new GsonBuilder()
+      .registerTypeAdapter(SketchLayer.class, new SketchLayerDeserializer())
+      .registerTypeAdapter(Color.class, new ColorDeserializer())
+      .registerTypeAdapter(Point2D.Double.class, new PointDeserializer())
+      .registerTypeAdapter(SketchPoint2D.class, new PointDeserializer())
+      .create();
+    return gson.fromJson(reader, SketchPage.class);
   }
 }

@@ -30,13 +30,16 @@ public class SketchLayerDeserializer implements JsonDeserializer<SketchLayer> {
   public static final String RECTANGLE_CLASS_TYPE = "rectangle";
   public static final String OVAL_CLASS_TYPE = "oval";
   public static final String STAR_CLASS_TYPE = "star";
+  public static final String TRIANGLE_CLASS_TYPE = "triangle";
   public static final String POLYGON_CLASS_TYPE = "polygon";
   public static final String SHAPE_GROUP_CLASS_TYPE = "shapeGroup";
   public static final String PAGE_CLASS_TYPE = "page";
   public static final String ARTBOARD_CLASS_TYPE = "artboard";
   public static final String SLICE_CLASS_TYPE = "slice";
   public static final String SYMBOL_MASTER_CLASS_TYPE = "symbolMaster";
+  public static final String SYMBOL_INSTANCE_CLASS_TYPE = "symbolInstance";
   public static final String GROUP_CLASS_TYPE = "group";
+  public static final String TEXT_CLASS_TYPE = "text";
 
   @Override
   public SketchLayer deserialize(@NotNull JsonElement json,
@@ -59,14 +62,19 @@ public class SketchLayerDeserializer implements JsonDeserializer<SketchLayer> {
       case RECTANGLE_CLASS_TYPE:
       case OVAL_CLASS_TYPE:
       case STAR_CLASS_TYPE:
+      case TRIANGLE_CLASS_TYPE:
       case POLYGON_CLASS_TYPE:
         return context.deserialize(json, SketchShapePath.class);
       case SLICE_CLASS_TYPE:
         return context.deserialize(json, SketchSlice.class);
       case SYMBOL_MASTER_CLASS_TYPE:
         return context.deserialize(json, SketchSymbolMaster.class);
+      case SYMBOL_INSTANCE_CLASS_TYPE:
+        return context.deserialize(json, SketchSymbolInstance.class);
+      case TEXT_CLASS_TYPE:
+        return context.deserialize(json, SketchText.class);
       default:
-        Logger.getInstance(SketchLayerDeserializer.class).warn("Class not found!");
+        Logger.getInstance(SketchLayerDeserializer.class).warn("Class " + classType + " not found!");
         return null;
     }
   }
