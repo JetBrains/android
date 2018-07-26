@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.actions;
 
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -62,6 +64,12 @@ public class EnableSwingProfilerAction extends DumbAwareToggleAction {
 
         if ((Boolean)start.invoke(serializerInstance)) {
           SERVICE_KEY.set(ApplicationManager.getApplication(), serializerInstance);
+
+          // Open up the HTML visualizer.
+          URL visualizerUrl = getClass().getResource("/swingp/Visualizer.html");
+          if (visualizerUrl != null) {
+            BrowserUtil.browse(visualizerUrl);
+          }
         }
       }
       catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
