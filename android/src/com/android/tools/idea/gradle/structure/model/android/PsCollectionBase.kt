@@ -34,11 +34,9 @@ abstract class PsCollectionBase<TModel : PsModel, TKey, TParent: PsModel>(val pa
     entries.forEach { update(it.key, it.value) }
   }
 
-  override fun forEach(consumer: Consumer<TModel>) = entries.values.forEach(consumer)
-
   override fun forEach(consumer: (TModel) -> Unit) = entries.values.forEach(consumer)
 
-  override fun items(): Collection<TModel> = entries.values
+  override val items: Collection<TModel> get() = entries.values
 
   fun findElement(key: TKey): TModel? = entries[key]
 
