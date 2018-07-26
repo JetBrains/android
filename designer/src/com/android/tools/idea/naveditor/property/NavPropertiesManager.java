@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.property;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -57,5 +58,10 @@ public class NavPropertiesManager extends PropertiesManager<NavPropertiesManager
       myProviders = new NavInspectorProviders(this, parentDisposable);
     }
     return myProviders;
+  }
+
+  @Override
+  public void modelActivated(@NotNull NlModel model) {
+    getPropertiesPanel().modelRendered();
   }
 }
