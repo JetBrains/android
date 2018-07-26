@@ -23,7 +23,10 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.target.*;
+import com.android.tools.idea.common.scene.target.ActionTarget;
+import com.android.tools.idea.common.scene.target.DragBaseTarget;
+import com.android.tools.idea.common.scene.target.LassoTarget;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
@@ -34,10 +37,8 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
-import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeAnchorTarget;
 import com.android.tools.idea.uibuilder.model.NlSelectionModel;
 import com.android.tools.idea.uibuilder.model.SelectionHandle;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -72,6 +73,7 @@ import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIU
  * <p>
  * Methods in this class must be called in the dispatch thread.
  */
+@SuppressWarnings("ForLoopReplaceableByForEach")
 public class Scene implements SelectionListener, Disposable {
 
   @SwingCoordinate
@@ -117,7 +119,7 @@ public class Scene implements SelectionListener, Disposable {
 
   public enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
 
-  private FilterType myFilterType = FilterType.NONE;
+  @NotNull private FilterType myFilterType = FilterType.NONE;
 
   public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface) {
     myDesignSurface = surface;
@@ -604,22 +606,6 @@ public class Scene implements SelectionListener, Disposable {
     myHitTarget = myHitListener.getClosestTarget();
     myHitComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
-      if (myHitTarget instanceof ConstraintAnchorTarget) {
-        ConstraintAnchorTarget anchor = (ConstraintAnchorTarget)myHitTarget;
-        if (anchor.isHorizontalAnchor()) {
-          myFilterType = FilterType.HORIZONTAL_ANCHOR;
-        }
-        else {
-          myFilterType = FilterType.VERTICAL_ANCHOR;
-        }
-        if (anchor.getType() == AnchorTarget.Type.BASELINE) {
-          myFilterType = FilterType.BASELINE_ANCHOR;
-        }
-      }
-      else if (myHitTarget instanceof RelativeAnchorTarget) {
-        RelativeAnchorTarget anchor = (RelativeAnchorTarget)myHitTarget;
-        myFilterType = anchor.getPreferredFilterType();
-      }
       myHitTarget.mouseDown(x, y);
       if (myHitTarget instanceof MultiComponentTarget) {
         delegateMouseDownToSelection(x, y, myHitTarget.getComponent());
@@ -890,8 +876,13 @@ public class Scene implements SelectionListener, Disposable {
     myRoot = root;
   }
 
+  @NotNull
   public FilterType getFilterType() {
     return myFilterType;
+  }
+
+  public void setFilterType(@NotNull FilterType filterType) {
+    myFilterType = filterType;
   }
 
   @Nullable
