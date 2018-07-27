@@ -169,7 +169,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
       }
       myToReInitWholePanel = false
 
-      if (centerComponent !== splitter) {
+      if (centerComponent !== null && centerComponent !== splitter) {
         myWholePanel.remove(centerComponent!!)
         splitter.secondComponent = centerComponent
         myWholePanel.add(splitter)
