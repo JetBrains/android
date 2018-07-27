@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
+import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.network.httpdata.HttpData;
@@ -282,10 +283,14 @@ final class ConnectionsView {
   }
 
   private static final class SizeRenderer extends BorderlessTableCellRenderer {
+    private SizeRenderer() {
+      setHorizontalAlignment(SwingConstants.RIGHT);
+    }
+
     @Override
     protected void setValue(Object value) {
       int bytes = (Integer)value;
-      setText(bytes >= 0 ? StringUtil.formatFileSize(bytes) : "");
+      setText(bytes >= 0 ? NumberFormatter.formatFileSize(bytes) : "");
     }
   }
 
@@ -298,6 +303,10 @@ final class ConnectionsView {
   }
 
   private static final class TimeRenderer extends BorderlessTableCellRenderer {
+    private TimeRenderer() {
+      setHorizontalAlignment(SwingConstants.RIGHT);
+    }
+
     @Override
     protected void setValue(Object value) {
       Long durationUs = (Long)value;

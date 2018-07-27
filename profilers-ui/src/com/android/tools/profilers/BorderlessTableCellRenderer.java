@@ -13,16 +13,19 @@
 // limitations under the License.
 package com.android.tools.profilers;
 
-import com.android.tools.profilers.ProfilerLayout;
-
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
+import java.awt.Insets;
 
 public class BorderlessTableCellRenderer extends DefaultTableCellRenderer {
   @Override
   public void setBorder(Border border) {
-    super.setBorder(new EmptyBorder(ProfilerLayout.TABLE_COLUMN_CELL_INSETS));
+    Insets insets = ProfilerLayout.TABLE_COLUMN_CELL_INSETS;
+    if (getHorizontalAlignment() == RIGHT) {
+      insets = ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS;
+    }
+    super.setBorder(new EmptyBorder(insets));
   }
 }
 
