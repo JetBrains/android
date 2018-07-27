@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +36,16 @@ public class JavaLibsDepTest {
 
   private static final String JAVA_MODULE_1 = "lib"; // default name
   private static final String JAVA_MODULE_2 = "lib2"; // default name
+
+  @Before
+  public void setUp() {
+    StudioFlags.NEW_PSD_ENABLED.override(false);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.NEW_PSD_ENABLED.clearOverride();
+  }
 
   /**
    * Verifies that transitive dependencies with Java Libraries are resolved in a gradle file.

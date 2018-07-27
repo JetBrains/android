@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +35,16 @@ import static com.google.common.truth.Truth.assertThat;
 public class AddNewBuildTypeTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+
+  @Before
+  public void setUp() {
+    StudioFlags.NEW_PSD_ENABLED.override(false);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.NEW_PSD_ENABLED.clearOverride();
+  }
 
   /**
    * Verifies addition of new build types

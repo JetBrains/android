@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -22,6 +23,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +38,16 @@ public class AndroidLibsDepTest {
 
   private static final String LIB_NAME_1 = "modulea";
   private static final String LIB_NAME_2 = "moduleb";
+
+  @Before
+  public void setUp() {
+    StudioFlags.NEW_PSD_ENABLED.override(false);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.NEW_PSD_ENABLED.clearOverride();
+  }
 
   /**
    * Verifies that transitive dependencies with Android Libraries are resolved in a gradle file.
