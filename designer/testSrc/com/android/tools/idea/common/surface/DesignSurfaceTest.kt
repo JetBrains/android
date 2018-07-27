@@ -23,7 +23,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project

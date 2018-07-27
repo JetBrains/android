@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.menu;
 
 import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.common.scene.SceneComponent;

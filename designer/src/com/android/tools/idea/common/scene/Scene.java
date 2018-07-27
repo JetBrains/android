@@ -24,6 +24,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.LassoTarget;
+import com.android.tools.idea.common.scene.target.MultiComponentTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
@@ -32,12 +33,8 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
 import com.android.tools.idea.uibuilder.model.NlSelectionModel;
 import com.android.tools.idea.uibuilder.model.SelectionHandle;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -666,16 +663,7 @@ public class Scene implements SelectionListener, Disposable {
         return;
       }
 
-      /*
-       * When asking for the layout status, we need to render under the following conditions:
-       *  - live render is enabled, and
-       *  - we are displaying the design surface
-       */
-      boolean renderOnLayout = RenderSettings.getDefault().getUseLiveRendering();
-      renderOnLayout &= (myDesignSurface instanceof NlDesignSurface) &&
-                        ((NlDesignSurface)myDesignSurface).getSceneMode() != SceneMode.BLUEPRINT_ONLY;
-
-      if (renderOnLayout && manager instanceof LayoutlibSceneManager) {
+      if (RenderSettings.getDefault().getUseLiveRendering()) {
         manager.requestLayoutAndRender(mNeedsLayout == ANIMATED_LAYOUT);
       }
       else {

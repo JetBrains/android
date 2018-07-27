@@ -555,6 +555,16 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @Override
   public void requestLayoutAndRender(boolean animate) {
+    // Don't render if we're just showing the blueprint
+    if (getDesignSurface().getSceneMode() == SceneMode.BLUEPRINT_ONLY) {
+      layout(animate);
+      return;
+    }
+
+    doRequestLayoutAndRender(animate);
+  }
+
+  void doRequestLayoutAndRender(boolean animate) {
     requestRender(() -> getModel().notifyListenersModelLayoutComplete(animate), getTriggerFromChangeType(getModel().getLastChangeType()));
   }
 
