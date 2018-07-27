@@ -30,7 +30,6 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget;
 import com.android.tools.idea.naveditor.scene.targets.ScreenHeaderTarget;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
@@ -44,7 +43,6 @@ import com.android.tools.idea.uibuilder.model.SelectionHandle;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -731,20 +729,6 @@ public class Scene implements SelectionListener, Disposable {
       if (lassoTarget.getHasDragged()) {
         myNewSelectedComponentsOnRelease.clear();
         myNewSelectedComponentsOnRelease.addAll(lassoTarget.getIntersectingComponents());
-      }
-    }
-    if (myHitTarget instanceof ActionHandleTarget) {
-      // TODO: Refactor this so explicit cast not required
-      SceneComponent closestComponent = myHitListener.getClosestComponent();
-      if (closestComponent != null && closestComponent != myRoot) {
-        String id = closestComponent.getId();
-        if (id != null && !id.isEmpty()) {
-          ActionHandleTarget actionHandleTarget = (ActionHandleTarget)myHitTarget;
-          NlComponent action = actionHandleTarget.createAction(closestComponent);
-          if (action != null) {
-            myDesignSurface.getSelectionModel().setSelection(ImmutableList.of(action));
-          }
-        }
       }
     }
     boolean canChangeSelection = true;
