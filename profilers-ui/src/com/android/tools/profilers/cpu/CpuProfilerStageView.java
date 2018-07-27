@@ -90,7 +90,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @VisibleForTesting
   static final String RECORD_TEXT = "Record";
-  private static final String STOP_TEXT = "Stop";
+  @VisibleForTesting
+  static final String STOP_TEXT = "Stop";
 
   private static final int MONITOR_PANEL_ROW = 0;
   private static final int DETAILS_PANEL_ROW = 1;
@@ -382,7 +383,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       case IDLE:
         myCaptureButton.setEnabled(shouldEnableCaptureButton());
         myCaptureButton.setText(RECORD_TEXT);
-        myCaptureButton.setToolTipText("Record a trace");
         myProfilingConfigurationView.getComponent().setEnabled(true);
         break;
       case CAPTURING:
@@ -393,7 +393,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
           myCaptureButton.setEnabled(shouldEnableCaptureButton());
         }
         myCaptureButton.setText(STOP_TEXT);
-        myCaptureButton.setToolTipText("Stop recording");
         myProfilingConfigurationView.getComponent().setEnabled(false);
         break;
       case STARTING:
