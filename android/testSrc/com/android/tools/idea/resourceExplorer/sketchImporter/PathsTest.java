@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2018 The Android parsePage Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ public class PathsTest {
   @Test
   public void linePathTest() {
 
-    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "linePath.json");
+    SketchPage sketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + "linePath.json");
 
     List<String> artboardPaths = getArtboardPaths(sketchPage);
 
@@ -39,7 +39,7 @@ public class PathsTest {
   @Test
   public void curvePathTest() {
 
-    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "curvePath.json");
+    SketchPage sketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + "curvePath.json");
 
     List<String> artboardPaths = getArtboardPaths(sketchPage);
 
@@ -48,7 +48,7 @@ public class PathsTest {
 
   @Test
   public void rectanglePathTest() {
-    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "rectanglePath.json");
+    SketchPage sketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + "rectanglePath.json");
 
     List<String> artboardPaths = getArtboardPaths(sketchPage);
 
@@ -58,7 +58,7 @@ public class PathsTest {
   @Test
 
   public void roundRectanglePathTest() {
-    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "roundRectanglePath.json");
+    SketchPage sketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + "roundRectanglePath.json");
 
     List<String> artboardPaths = getArtboardPaths(sketchPage);
 
@@ -69,7 +69,7 @@ public class PathsTest {
 
   @Test
   public void singleShapePathTest() {
-    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "singleShapePath.json");
+    SketchPage sketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + "singleShapePath.json");
 
     List<String> artboardPaths = getArtboardPaths(sketchPage);
 
@@ -78,7 +78,7 @@ public class PathsTest {
 
   @Test
   public void shapeUnionTest() {
-    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "shapeUnion.json");
+    SketchPage sketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + "shapeUnion.json");
 
     List<String> artboardPaths = getArtboardPaths(sketchPage);
 
@@ -89,7 +89,7 @@ public class PathsTest {
 
   @Test
   public void shapeSubstractionTest() {
-    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "shapeSubstraction.json");
+    SketchPage sketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + "shapeSubstraction.json");
 
     List<String> artboardPaths = getArtboardPaths(sketchPage);
 
@@ -100,7 +100,7 @@ public class PathsTest {
 
   @Test
   public void shapeDifferenceTest() {
-    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "shapeDifference.json");
+    SketchPage sketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + "shapeDifference.json");
 
     List<String> artboardPaths = getArtboardPaths(sketchPage);
 
@@ -112,7 +112,7 @@ public class PathsTest {
   @Test
   public void shapeIntersectTest() {
 
-    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "shapeIntersect.json");
+    SketchPage sketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + "shapeIntersect.json");
 
     List<String> artboardPaths = getArtboardPaths(sketchPage);
 
@@ -124,7 +124,7 @@ public class PathsTest {
   @Test
   public void combinationsSingleArtboardTest() {
 
-    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "combinationsSingleArtboard.json");
+    SketchPage sketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + "combinationsSingleArtboard.json");
 
     List<String> artboardPaths = getArtboardPaths(sketchPage);
 
@@ -145,7 +145,7 @@ public class PathsTest {
   @Test
   public void combinationsMultipleArtboardsTest() {
 
-    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + "combinationsMultipleArtboards.json");
+    SketchPage sketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + "combinationsMultipleArtboards.json");
 
     List<SketchArtboard> artboards = sketchPage.getArtboards();
 

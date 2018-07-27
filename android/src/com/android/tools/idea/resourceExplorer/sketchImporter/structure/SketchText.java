@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -32,12 +33,14 @@ public class SketchText extends SketchLayer {
                     boolean isVisible,
                     @NotNull String name,
                     int rotation,
-                    boolean shouldBreakMaskChain, SketchStyle style) {
+                    boolean shouldBreakMaskChain,
+                    @NotNull SketchStyle style) {
     super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
           shouldBreakMaskChain);
     this.style = style;
   }
 
+  @NotNull
   public SketchStyle getStyle() {
     return style;
   }

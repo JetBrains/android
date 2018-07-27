@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayerable;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchSymbol;
+import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-public class SketchSymbolMaster extends SketchLayer {
+public class SketchSymbolMaster extends SketchSymbol implements SketchLayerable {
   private final SketchStyle style;
   private final SketchLayer[] layers;
   private final Color backgroundColor;
   private final boolean hasBackgroundColor;
   private final boolean includeBackgroundColorInInstance;
-  private final String symbolID;
+  @SerializedName("symbolID")
+  private final String symbolId;
   private final int changeIdentifier;
 
   public SketchSymbolMaster(@NotNull String classType,
@@ -42,7 +47,9 @@ public class SketchSymbolMaster extends SketchLayer {
                             @NotNull SketchLayer[] layers,
                             @NotNull Color color,
                             boolean hasBackgroundColor,
-                            boolean includeBackgroundColorInInstance, String symbolID, int changeIdentifier) {
+                            boolean includeBackgroundColorInInstance,
+                            @NotNull String symbolId,
+                            int changeIdentifier) {
     super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
           shouldBreakMaskChain);
     this.style = style;
@@ -50,15 +57,17 @@ public class SketchSymbolMaster extends SketchLayer {
     backgroundColor = color;
     this.hasBackgroundColor = hasBackgroundColor;
     this.includeBackgroundColorInInstance = includeBackgroundColorInInstance;
-    this.symbolID = symbolID;
+    this.symbolId = symbolId;
     this.changeIdentifier = changeIdentifier;
   }
 
+  @Override
   @NotNull
   public SketchStyle getStyle() {
     return style;
   }
 
+  @Override
   @NotNull
   public SketchLayer[] getLayers() {
     return layers;
@@ -77,9 +86,10 @@ public class SketchSymbolMaster extends SketchLayer {
     return includeBackgroundColorInInstance;
   }
 
+  @Override
   @NotNull
-  public String getSymbolID() {
-    return symbolID;
+  public String getSymbolId() {
+    return symbolId;
   }
 
   public int getChangeIdentifier() {

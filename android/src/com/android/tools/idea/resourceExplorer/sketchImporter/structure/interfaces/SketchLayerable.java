@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
+package com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces;
 
-import java.util.ArrayList;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchStyle;
 
-public class SketchFile {
-  private ArrayList<SketchPage> myPages;
-  // TODO the rest of the structure as classes are created
+public interface SketchLayerable {
 
-  public SketchFile() {
-    myPages = new ArrayList<>();
-  }
+  SketchStyle getStyle();
 
-  public void addPage(SketchPage page) {
-    myPages.add(page);
-  }
-
-  public ArrayList<SketchPage> getPages() {
-    return myPages;
-  }
+  SketchLayer[] getLayers();
 }

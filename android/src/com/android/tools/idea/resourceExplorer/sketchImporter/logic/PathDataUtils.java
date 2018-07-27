@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchLayer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchCurvePoint;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchShapeGroup;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchShapePath;
 
@@ -25,11 +26,10 @@ import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 
-import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchLayer.*;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer.*;
 import static java.awt.geom.PathIterator.*;
 
 public class PathDataUtils {
-
 
   public static String buildShapeString(SketchShapeGroup shapeGroup, Point2D.Double parentCoordinates) {
 

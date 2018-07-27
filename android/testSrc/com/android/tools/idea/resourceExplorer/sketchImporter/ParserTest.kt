@@ -22,14 +22,39 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ParserTest {
-  private val errorMargin = 0.0000001
+
+  @Test
+  fun findLayers() {
+    val sketchFile = SketchParser.read(AndroidTestBase.getTestDataPath() + "/sketch/palette.sketch")!!
+
+    // First page
+    assertEquals(sketchFile.findLayer("7D779FEF-7EA8-45AF-AA97-04E803E773F7")?.classType, "rectangle")
+    assertEquals(sketchFile.findLayer("CD4A49FD-0A18-4059-B493-5C2DC9F8F386")?.classType, "page")
+
+    // Second page
+    assertEquals(sketchFile.findLayer("E107408D-96BD-4B27-A124-6A84069917FB")?.classType, "artboard")
+    assertEquals(sketchFile.findLayer("11B6C0F9-CE36-4365-8D66-AEF88B697CCD")?.classType, "page")
+  }
+
+  @Test
+  fun findSymbols() {
+    val sketchFile = SketchParser.read(AndroidTestBase.getTestDataPath() + "/sketch/palette.sketch")!!
+
+    // First page
+    assertEquals(sketchFile.findSymbol("3BDBDFC1-CDA3-4C7A-B70A-990DFAF1290C")?.frame?.height, 12.0)
+    assertEquals(sketchFile.findSymbol("3BDBDFC1-CDA3-4C7A-B70A-990DFAF1290C")?.frame?.width, 14.0)
+
+    // Second page
+    assertEquals(sketchFile.findSymbol("E052FD96-0724-47EA-B608-D4491709F803")?.name, "text_dark")
+    assertEquals(sketchFile.findSymbol("E052FD96-0724-47EA-B608-D4491709F803")?.classType, "symbolMaster")
+  }
 
   @Test
   fun parseSketchFiles() {
-    val sketchFile = SketchParser.unzip(AndroidTestBase.getTestDataPath() + "/sketch/palette.sketch")
+    val sketchFile = SketchParser.read(AndroidTestBase.getTestDataPath() + "/sketch/palette.sketch")!!
 
-    assertEquals("New Palette", sketchFile?.pages?.get(0)?.name)
-    assertEquals("Symbols", sketchFile?.pages?.get(1)?.name)
+    assertEquals("New Palette", sketchFile.pages[0]?.name)
+    assertEquals("Symbols", sketchFile.pages[1]?.name)
   }
 
   @Test

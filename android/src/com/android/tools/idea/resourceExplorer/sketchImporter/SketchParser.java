@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchFile;
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchLayer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPoint2D;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.ColorDeserializer;
@@ -24,6 +23,8 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserial
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import com.intellij.openapi.diagnostic.Logger;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
@@ -37,8 +38,14 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class SketchParser {
+  /**
+   * Read data from the .sketch file (which is actually a zip archive) and turn it into an instance of {@code SketchFile}.
+   *
+   * @param path filepath to the .sketch file
+   * @return {@code SketchFile} or {@code null} if the file could not be processed
+   */
   @Nullable
-  public static SketchFile unzip(String path) {
+  public static SketchFile read(@NotNull String path) {
     try (ZipFile zip = new ZipFile(path)) {
 
       SketchFile sketchFile = new SketchFile();
@@ -60,46 +67,66 @@ public class SketchParser {
               // TODO
               break;
             default:
-              sketchFile.addPage(parsePage(zip.getInputStream(entry)));
+              SketchPage page = parsePage(zip.getInputStream(entry));
+              if (page != null) {
+                sketchFile.addPage(page);
+              }
           }
         }
       }
 
       return sketchFile;
     }
-    catch (IOException e) {
+    catch (Exception e) {
       Logger.getInstance(SketchParser.class).warn("Failed to read from sketch file!");
     }
 
     return null;
   }
 
+  /**
+   * Read page data (represented as JSON) from an input stream.
+   *
+   * @return a {@code SketchPage} or {@code null} if the parsing failed
+   */
   @Nullable
-  public static SketchPage parsePage(@NotNull InputStream in) {
+  private static SketchPage parsePage(@NotNull InputStream in) {
     try (Reader reader = new BufferedReader(new InputStreamReader(in))) {
       return getPage(reader);
     }
-    catch (IOException e) {
-      Logger.getInstance(SketchParser.class).warn("Could not read page.", e);
+    catch (Exception e) {
+      Logger.getInstance(SketchParser.class).warn("Could not read page from input stream.", e);
     }
 
     return null;
   }
 
+  /**
+   * Read page data (represented as JSON) from filepath.
+   *
+   * @return a {@code SketchPage} or {@code null} if the parsing failed
+   */
   @Nullable
   public static SketchPage parsePage(@NotNull String path) {
-    try (Reader reader = new FileReader(path)) {
+    try (Reader reader = new BufferedReader(new FileReader(path))) {
       return getPage(reader);
     }
-    catch (IOException e) {
-      Logger.getInstance(SketchParser.class).warn("Page " + path + " not found.", e);
+    catch (Exception e) {
+      Logger.getInstance(SketchParser.class).warn("Could not read page from " + path + ".", e);
     }
 
     return null;
   }
 
+  /**
+   * Parse page data (represented as JSON) from a reader
+   *
+   * @return a {@code SketchPage} or {@code null} if the {@code json} is at EOF
+   * @throws JsonSyntaxException if there was a problem reading from the Reader
+   * @throws JsonIOException if json is not a valid representation for an object of type
+   */
   @Nullable
-  private static SketchPage getPage(Reader reader) {
+  private static SketchPage getPage(@NotNull Reader reader) throws JsonSyntaxException, JsonIOException {
     Gson gson = new GsonBuilder()
       .registerTypeAdapter(SketchLayer.class, new SketchLayerDeserializer())
       .registerTypeAdapter(Color.class, new ColorDeserializer())
