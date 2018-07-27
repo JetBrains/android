@@ -1,7 +1,6 @@
 package org.jetbrains.android.database;
 
 import com.intellij.database.dataSource.LocalDataSource;
-import com.intellij.database.model.DatabaseSystem;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.ModificationTracker;
@@ -23,7 +22,7 @@ import java.util.List;
 /**
  * @author Eugene.Kudelevsky
  */
-class AndroidDataSource extends LocalDataSource implements DatabaseSystem, ModificationTracker {
+class AndroidDataSource extends LocalDataSource implements ModificationTracker {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSource");
 
   private State myState = new State();
