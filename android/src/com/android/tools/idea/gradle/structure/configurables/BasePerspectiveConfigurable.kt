@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MasterDetailsComponent
@@ -65,8 +64,6 @@ abstract class BasePerspectiveConfigurable protected constructor(
   // When a module is selected, the selected module is recorded in PsContext. PsContext then notifies every configurable about the module
   // selection change. Each configurable adjusts its selected module, but if they notify PsContext about this change, the notification
   // cycle will start all over again.
-  // TODO(solodkyy): Make sure it is accessed from EDT only and remove.
-  @Volatile
   private var selectModuleQuietly: Boolean = false
 
   protected open fun getExtraModules(): List<PsModule> = listOf()
@@ -153,12 +150,10 @@ abstract class BasePerspectiveConfigurable protected constructor(
     if (!myToReInitWholePanel) return
 
     if (treeMinimized) {
-      var splitter = splitter
       centerComponent = splitter.secondComponent
 
       if (centerComponent == null) {
         super.reInitWholePanelIfNeeded()
-        splitter = getSplitter()
         centerComponent = splitter.secondComponent
       }
       myToReInitWholePanel = false
@@ -174,8 +169,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
       }
       myToReInitWholePanel = false
 
-      val splitter = splitter
-      if (centerComponent != null && centerComponent !== splitter) {
+      if (centerComponent !== splitter) {
         myWholePanel.remove(centerComponent!!)
         splitter.secondComponent = centerComponent
         myWholePanel.add(splitter)
@@ -187,12 +181,14 @@ abstract class BasePerspectiveConfigurable protected constructor(
       val first = splitter.firstComponent
       if (first is JPanel) {
         if (toolWindowHeader == null) {
-          toolWindowHeader = ToolWindowHeader.createAndAdd("Modules", ANDROID_MODULE, first, ToolWindowAnchor.LEFT)
-          toolWindowHeader!!.setPreferredFocusedComponent(myTree)
-          toolWindowHeader!!.addMinimizeListener {
-            modulesTreeMinimized()
-            reInitWholePanelIfNeeded()
-          }
+          toolWindowHeader =
+            ToolWindowHeader.createAndAdd("Modules", ANDROID_MODULE, first, ToolWindowAnchor.LEFT).apply {
+              setPreferredFocusedComponent(myTree)
+              addMinimizeListener {
+                modulesTreeMinimized()
+                reInitWholePanelIfNeeded()
+              }
+            }
         }
         else if (toolWindowHeader!!.parent !== first) {
           first.add(toolWindowHeader!!, BorderLayout.NORTH)
@@ -214,22 +210,18 @@ abstract class BasePerspectiveConfigurable protected constructor(
 
     if (!treeInitiated) {
       initTree()
-      myTree.showsRootHandles = false
-      loadTree()
     }
     else {
       super<MasterDetailsComponent>.disposeUIResources()
-      myTree.showsRootHandles = false
-      loadTree()
     }
+    myTree.showsRootHandles = false
+    loadTree()
 
     super<MasterDetailsComponent>.reset()
   }
 
   override fun initTree() {
-    if (treeInitiated) {
-      return
-    }
+    if (treeInitiated) return
     treeInitiated = true
     super.initTree()
     myTree.isRootVisible = false
