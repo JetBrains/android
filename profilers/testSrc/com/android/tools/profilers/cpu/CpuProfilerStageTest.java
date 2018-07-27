@@ -1915,6 +1915,51 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
   }
 
+  @Test
+  public void traceNotPreProcessedWhenFlagDisabled() throws IOException {
+    myServices.enableSimpleperfHost(false);
+    FakeTracePreProcessor preProcessor = (FakeTracePreProcessor)myServices.getSimpleperfTracePreProcessor();
+
+    ProfilingConfiguration config1 = new ProfilingConfiguration("My simpleperf config",
+                                                                CpuProfiler.CpuProfilerType.SIMPLEPERF,
+                                                                CpuProfiler.CpuProfilerMode.SAMPLED);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config1);
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
+    captureSuccessfully();
+
+    assertThat(preProcessor.isTracePreProcessed()).isFalse();
+  }
+
+  @Test
+  public void traceIsPreProcessedWhenFlagEnabled() throws IOException {
+    myServices.enableSimpleperfHost(true);
+    FakeTracePreProcessor preProcessor = (FakeTracePreProcessor)myServices.getSimpleperfTracePreProcessor();
+
+    ProfilingConfiguration config1 = new ProfilingConfiguration("My simpleperf config",
+                                                                CpuProfiler.CpuProfilerType.SIMPLEPERF,
+                                                                CpuProfiler.CpuProfilerMode.SAMPLED);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config1);
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
+    captureSuccessfully();
+
+    assertThat(preProcessor.isTracePreProcessed()).isTrue();
+  }
+
+  @Test
+  public void traceNotPreProcessedIfNotSimpleperf() throws IOException {
+    myServices.enableSimpleperfHost(true);
+    FakeTracePreProcessor preProcessor = (FakeTracePreProcessor)myServices.getSimpleperfTracePreProcessor();
+
+    ProfilingConfiguration config1 = new ProfilingConfiguration("My simpleperf config",
+                                                                CpuProfiler.CpuProfilerType.ART,
+                                                                CpuProfiler.CpuProfilerMode.SAMPLED);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config1);
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("basic.trace"));
+    captureSuccessfully();
+
+    assertThat(preProcessor.isTracePreProcessed()).isFalse();
+  }
+
   private void addAndSetDevice(int featureLevel, String serial) {
     int deviceId = serial.hashCode();
     Common.Device device = Common.Device.newBuilder()
@@ -1989,10 +2034,16 @@ public class CpuProfilerStageTest extends AspectObserver {
    */
   private void stopCapturing(CpuProfilerStage stage) {
     // The pre executor will make sure we pass through STOPPING state before parsing.
-    myServices.setPrePoolExecutor(() -> {
+    Runnable stoppingToParsing = () -> {
       assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.STOPPING);
       // Then it will make sure the CpuCaptureParser is parsing the capture.
       myServices.setPrePoolExecutor(() -> assertThat(stage.getCaptureParser().isParsing()).isTrue());
+    };
+    // There is an extra call to the pool executor in simpleperf captures , which happens during STOPPING, to convert the raw trace data
+    // into a parsable trace file.
+    myServices.setPrePoolExecutor(() -> {
+      assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.STOPPING);
+      myServices.setPrePoolExecutor(stoppingToParsing);
     });
     stage.stopCapturing();
   }

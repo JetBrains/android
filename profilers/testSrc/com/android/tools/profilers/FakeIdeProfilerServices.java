@@ -17,7 +17,9 @@ package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.FakeTracePreProcessor;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
 import com.google.common.collect.ImmutableList;
@@ -44,6 +46,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
   private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator(myFakeFeatureTracker);
+  private final TracePreProcessor myFakeTracePreProcessor = new FakeTracePreProcessor();
 
   /**
    * Callback to be run after the executor calls its execute() method.
@@ -82,6 +85,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    * Can toggle for tests via {@link #enableImportTrace(boolean)}, but each test starts with this defaulted to false.
    */
   private boolean myImportCpuTraceEnabled = false;
+
+  /**
+   * Can toggle for tests via {@link #enableSimpleperfHost(boolean)}, but each test starts with this defaulted to false.
+   */
+  private boolean mySimpleperfHostEnabled = false;
 
   /**
    * JNI references alloc/dealloc events are tracked and shown.
@@ -299,6 +307,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isSimpleperfHostEnabled() {
+        return mySimpleperfHostEnabled;
+      }
+
+      @Override
       public boolean isStartupCpuProfilingEnabled() {
         return myStartupCpuProfilingEnabled;
       }
@@ -341,6 +354,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       return options[myListBoxOptionsIndex];
     }
     return null;
+  }
+
+  @NotNull
+  @Override
+  public TracePreProcessor getSimpleperfTracePreProcessor() {
+    return myFakeTracePreProcessor;
   }
 
   /**
@@ -450,6 +469,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableImportTrace(boolean enabled) {
     myImportCpuTraceEnabled = enabled;
+  }
+
+  public void enableSimpleperfHost(boolean enabled) {
+    mySimpleperfHostEnabled = enabled;
   }
 
   public void enableEventsPipeline(boolean enabled) {

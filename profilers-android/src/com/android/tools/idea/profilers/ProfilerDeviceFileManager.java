@@ -228,7 +228,9 @@ public final class ProfilerDeviceFileManager {
                        .setCpuApiTracingEnabled(StudioFlags.PROFILER_CPU_API_TRACING.get())
                        .setAndroidFeatureLevel(device.getVersion().getFeatureLevel())
                        .setCpuConfig(
-                         Agent.AgentConfig.CpuConfig.newBuilder().setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC))
+                         Agent.AgentConfig.CpuConfig.newBuilder()
+                           .setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC)
+                           .setSimpleperfHost(StudioFlags.PROFILER_SIMPLEPERF_HOST.get()))
                        .setUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get())
                        .build();
 
