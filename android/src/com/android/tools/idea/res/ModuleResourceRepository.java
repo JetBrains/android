@@ -54,7 +54,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
       // Always just a single resource folder: simple.
       VirtualFile primaryResourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
       if (primaryResourceDir == null) {
-        return new EmptyRepository();
+        return new EmptyRepository(namespace);
       }
       return resourceFolderRegistry.get(facet, primaryResourceDir);
     }
