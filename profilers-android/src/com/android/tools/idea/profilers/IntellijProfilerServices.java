@@ -32,6 +32,8 @@ import com.android.tools.profilers.Notification;
 import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.TracePreProcessor;
+import com.android.tools.profilers.cpu.simpleperf.SimpleperfSampleReporter;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunManager;
@@ -79,12 +81,15 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   @NotNull private final IntellijProfilerPreferences myPersistentPreferences;
   @NotNull private final TemporaryProfilerPreferences myTemporaryPreferences;
 
+  @NotNull private final SimpleperfSampleReporter mySimpleperfSampleReporter;
+
   public IntellijProfilerServices(@NotNull Project project) {
     myProject = project;
     myFeatureTracker = new StudioFeatureTracker(myProject);
     myCodeNavigator = new IntellijCodeNavigator(project, myFeatureTracker);
     myPersistentPreferences = new IntellijProfilerPreferences();
     myTemporaryPreferences = new TemporaryProfilerPreferences();
+    mySimpleperfSampleReporter = new SimpleperfSampleReporter();
   }
 
   @NotNull
@@ -255,6 +260,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isSimpleperfHostEnabled() {
+        return StudioFlags.PROFILER_SIMPLEPERF_HOST.get();
+      }
+
+      @Override
       public boolean isFragmentsEnabled() {
         return StudioFlags.PROFILER_FRAGMENT_PROFILER_ENABLED.get();
       }
@@ -334,6 +344,12 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
     }
     return (T)selectedValue[0];
+  }
+
+  @NotNull
+  @Override
+  public TracePreProcessor getSimpleperfTracePreProcessor() {
+    return mySimpleperfSampleReporter;
   }
 
   @Override

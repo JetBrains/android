@@ -629,15 +629,30 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
     }
     else {
-      ByteString traceBytes = response.getTrace();
-      captureMetadata.setTraceFileSizeBytes(traceBytes.size());
-      handleCaptureParsing(response.getTraceId(), traceBytes, captureMetadata);
+      // Capture was successful, pre-process the trace and parse it afterwards.
+      // TODO(b/118620183): Handle errors while pre-processing the trace by adding a special status to CpuCaptureMetadata.
+      CompletableFuture
+        .supplyAsync(() -> preProcessTrace(response.getTrace()), getStudioProfilers().getIdeServices().getPoolExecutor())
+        .thenAcceptAsync((bytes) -> {
+          captureMetadata.setTraceFileSizeBytes(bytes.size());
+          handleCaptureParsing(response.getTraceId(), bytes, captureMetadata);
+        }, getStudioProfilers().getIdeServices().getMainExecutor());
     }
 
     // Re-enable memory live allocation.
     if (myProfilerConfigModel.getProfilingConfiguration().isDisableLiveAllocation()) {
       getStudioProfilers().setMemoryLiveAllocationEnabled(true);
     }
+  }
+
+  private ByteString preProcessTrace(ByteString trace) {
+    // For simpleperf captures, if the flag is enabled, we need to pre-process the raw traces obtained from the device to the format that
+    // can be parsed by SimpleperfTraceParser.
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isSimpleperfHostEnabled()
+        && myProfilerConfigModel.getProfilingConfiguration().getProfilerType() == CpuProfilerType.SIMPLEPERF) {
+      return getStudioProfilers().getIdeServices().getSimpleperfTracePreProcessor().preProcessTrace(trace);
+    }
+    return trace;
   }
 
   @NotNull
