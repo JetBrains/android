@@ -57,6 +57,26 @@
           </section>
         </stepElement>
       </step>
+      <step label="Updates to Project Structure Dialog">
+        <stepElement>
+          <section>
+            <![CDATA[
+           <br>
+           <img src="https://d.android.com/studio/releases/assistant/3.3.0/new-psd.gif"
+           width="428"
+           height="296"
+           alt="">
+
+           <br><br>
+           Click <b>File &gt; Project Structure</b> to use the improved Project Structure dialog, which now allows you to better manage
+           build variants and their properties; visualize the dependency graph of each module; verify that dependencies are up-to-date; and
+           more.
+           <a href="https://d.android.com/r/studio-wna/3.3.0/new-psd">
+           Learn more</a></li>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
       <step label="Optimize Project Sync">
         <stepElement>
           <section>
@@ -68,6 +88,23 @@
            If the IDE doesn't prompt you to enable this optimization, enable it manually by navigating to
            <b>Settings/Preferences &gt; Experimental &gt; Gradle</b> and checking the box next to <b>Only resolve selected variants</b>.
            <a href="https://d.android.com/studio/preview/features?utm_source=android-studio&utm_medium=studio-assistant#single_variant_sync">
+           Learn more</a></li>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Provide quick feedback">
+        <stepElement>
+          <section>
+            <![CDATA[
+           If you've already opted into sharing usage statistics to help improve Android Studio, you'll see these two new icons in the
+           status bar at the bottom of the IDE window:
+           <img src="https://d.android.com/studio/images/buttons/statusbar-feedback_buttons-dark.png" width="40" height="16">
+
+           <br><br>
+           Simply click the icon that best represents your current experience with the IDE. When you do so, the IDE sends usage statistics
+           that allows the Android Studio team to better understand your sentiment.
+           <a href="https://d.android.com/r/studio-wna/3.3.0/feedback-buttons">
            Learn more</a></li>
            ]]>
           </section>
