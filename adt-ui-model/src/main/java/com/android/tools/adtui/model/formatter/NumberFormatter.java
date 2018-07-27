@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.model.formatter;
 
-
 import org.jetbrains.annotations.NotNull;
 
 import java.text.Format;
@@ -24,6 +23,8 @@ import java.text.NumberFormat;
 public class NumberFormatter {
 
   private static final Format INTEGER_FORMAT = NumberFormat.getIntegerInstance();
+  private static final String[] FILE_SIZE_UNITS = new String[]{"B", "KB", "MB", "GB", "TB", "PB", "EB"};
+  private static final int FILE_SIZE_MULTIPLIER = 1024;
 
   /**
    * Uses an integer {@link NumberFormat} for the current locale to format a number.
@@ -31,5 +32,23 @@ public class NumberFormatter {
   @NotNull
   public static String formatInteger(@NotNull Number number) {
     return INTEGER_FORMAT.format(number);
+  }
+
+  /**
+   * Formats the given file size to be 1 decimal place at most, for example, "5.0 B" or "123 B".
+   */
+  @NotNull
+  public static String formatFileSize(long sizeInBytes) {
+    double result = sizeInBytes;
+    String unit = FILE_SIZE_UNITS[0];
+    for (int i = 1; i < FILE_SIZE_UNITS.length; i++) {
+      if (result < FILE_SIZE_MULTIPLIER) {
+        break;
+      }
+      result /= FILE_SIZE_MULTIPLIER;
+      unit = FILE_SIZE_UNITS[i];
+    }
+    String decimalFormat = result < 100 ? "%.1f" : "%.0f";
+    return String.format(decimalFormat + " %s", result, unit);
   }
 }
