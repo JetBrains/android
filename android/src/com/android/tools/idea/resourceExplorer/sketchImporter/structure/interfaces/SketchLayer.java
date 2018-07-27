@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
+package com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces;
 
 import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;

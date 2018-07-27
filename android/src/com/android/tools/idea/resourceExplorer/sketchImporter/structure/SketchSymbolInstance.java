@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchSymbol;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-public class SketchSymbolInstance extends SketchLayer {
+public class SketchSymbolInstance extends SketchSymbol {
   private final SketchStyle style;
   private final double scale;
   private final String symbolID;
@@ -53,8 +54,9 @@ public class SketchSymbolInstance extends SketchLayer {
     return scale;
   }
 
+  @Override
   @NotNull
-  public String getSymbolID() {
+  public String getSymbolId() {
     return symbolID;
   }
 }

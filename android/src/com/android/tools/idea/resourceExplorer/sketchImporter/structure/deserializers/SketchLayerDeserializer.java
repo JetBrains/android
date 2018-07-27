@@ -16,12 +16,14 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.*;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Type;
 
@@ -42,6 +44,7 @@ public class SketchLayerDeserializer implements JsonDeserializer<SketchLayer> {
   public static final String TEXT_CLASS_TYPE = "text";
 
   @Override
+  @Nullable
   public SketchLayer deserialize(@NotNull JsonElement json,
                                  @NotNull Type typeOfT,
                                  @NotNull JsonDeserializationContext context) {

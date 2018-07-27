@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayerable;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -23,7 +25,7 @@ import java.util.ArrayList;
 
 import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathDataUtils.buildShapeString;
 
-public class SketchShapeGroup extends SketchLayer {
+public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
   private final SketchStyle style;
   private final SketchLayer[] layers;
   private final short clippingMaskMode;
@@ -54,11 +56,13 @@ public class SketchShapeGroup extends SketchLayer {
     this.windingRule = windingRule;
   }
 
+  @Override
   @NotNull
   public SketchStyle getStyle() {
     return style;
   }
 
+  @Override
   @NotNull
   public SketchLayer[] getLayers() {
     return layers;

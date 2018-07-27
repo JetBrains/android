@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayerable;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -33,9 +35,9 @@ import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.d
  * <p>
  * {@link com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer}
  */
-public class SketchPage extends SketchLayer {
-  private final SketchStyle style;
-  private final SketchLayer[] layers;
+public class SketchPage extends SketchLayer implements SketchLayerable {
+  SketchStyle style;
+  SketchLayer[] layers;
 
   public SketchPage(@NotNull String classType,
                     @NotNull String objectId,
@@ -56,11 +58,13 @@ public class SketchPage extends SketchLayer {
     this.layers = layers;
   }
 
+  @Override
   @NotNull
   public SketchStyle getStyle() {
     return style;
   }
 
+  @Override
   @NotNull
   public SketchLayer[] getLayers() {
     return layers;

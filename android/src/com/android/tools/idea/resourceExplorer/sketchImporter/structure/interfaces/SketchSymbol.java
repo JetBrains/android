@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
+package com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-public class SketchBitmap extends SketchLayer {
-  private final SketchStyle style;
-  private final SketchFileReference image;
+public abstract class SketchSymbol extends SketchLayer {
 
-  public SketchBitmap(@NotNull String classType,
+  public SketchSymbol(@NotNull String classType,
                       @NotNull String objectId,
                       int booleanOperation,
                       @NotNull Rectangle.Double frame,
@@ -33,22 +30,10 @@ public class SketchBitmap extends SketchLayer {
                       boolean isVisible,
                       @NotNull String name,
                       int rotation,
-                      boolean shouldBreakMaskChain,
-                      @NotNull SketchStyle style,
-                      @NotNull SketchFileReference image) {
+                      boolean shouldBreakMaskChain) {
     super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
           shouldBreakMaskChain);
-    this.style = style;
-    this.image = image;
   }
 
-  @NotNull
-  public SketchStyle getStyle() {
-    return style;
-  }
-
-  @NotNull
-  public SketchFileReference getImage() {
-    return image;
-  }
+  public abstract String getSymbolId();
 }

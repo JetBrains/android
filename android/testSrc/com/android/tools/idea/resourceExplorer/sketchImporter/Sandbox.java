@@ -29,7 +29,7 @@ public class Sandbox {
   }
 
   private static void readJSON(String jsonTestFile) {
-    SketchPage sketchPage = SketchParser.open(AndroidTestBase.getTestDataPath() + "/sketch/" + jsonTestFile);
+    SketchPage sketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + jsonTestFile);
 
     List<SketchArtboard> artboards = sketchPage.getArtboards();
 
