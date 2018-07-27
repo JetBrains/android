@@ -23,6 +23,7 @@ import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ShellCommandHandler;
 import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -57,6 +58,16 @@ public class FlavorsExecutionTest {
   private static final String SECOND_ACTIVITY_NAME = "F2MainActivity";
 
   private FakeAdbServer fakeAdbServer;
+
+  @Before
+  public void setUp() {
+    StudioFlags.NEW_PSD_ENABLED.override(false);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.NEW_PSD_ENABLED.clearOverride();
+  }
 
   @Before
   public void setupFakeAdbServer() throws IOException, InterruptedException, ExecutionException {
