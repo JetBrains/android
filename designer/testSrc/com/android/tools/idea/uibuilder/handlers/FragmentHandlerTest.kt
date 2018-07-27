@@ -19,7 +19,7 @@ import com.android.SdkConstants.*
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager

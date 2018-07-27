@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.property2.api.PropertiesModelListener
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.ui.UIUtil

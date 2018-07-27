@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder;
+package com.android.tools.idea.uibuilder.scene;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.common.SyncNlModel;
@@ -55,7 +55,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   }
 
   @Override
-  public void requestLayoutAndRender(boolean animate) {
+  void doRequestLayoutAndRender(boolean animate) {
     runAfterCommandIfNecessary(() -> render(getTriggerFromChangeType(getModel().getLastChangeType())));
   }
 
