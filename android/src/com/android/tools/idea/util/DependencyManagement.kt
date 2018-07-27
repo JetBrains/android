@@ -162,7 +162,7 @@ private fun getExistingPlatformSupportLibraryVersion(moduleSystem: AndroidModule
     .mapNotNull { it.version }
     .firstOrNull()
 
-private fun userWantsToAdd(project: Project, coordinates: List<GradleCoordinate>): Boolean {
+fun userWantsToAdd(project: Project, coordinates: List<GradleCoordinate>): Boolean {
   if (ApplicationManager.getApplication().isUnitTestMode) {
     return true
   }
