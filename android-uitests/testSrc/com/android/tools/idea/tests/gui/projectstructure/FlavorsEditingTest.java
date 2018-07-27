@@ -67,10 +67,10 @@ public class FlavorsEditingTest {
    *   1. Changes made to the flavors are saved to the build.gradle file of that module.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_BAZEL)
   @Test
   public void editFlavors() throws  Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
 
     String flavor = "flavor";
 
