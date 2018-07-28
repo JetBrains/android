@@ -33,7 +33,10 @@ import javax.swing.JPanel;
  * Draw and interact with the easing curve
  */
 public class EasingCurve extends GraphBase {
-
+  private final static String STANDARD_CURVE = "cubic(0.4, 0.0, 0.2, 1)";
+  private final static String ACCELERATE_CURVE = "cubic(0.4, 0.05, 0.8, 0.7)";
+  private final static String DECELERATE_CURVE = "cubic(0.0, 0.0, 0.2, 0.95)";
+  private final static String LINEAR_CURVE = "cubic(1, 1, 0, 0)";
   //  final double[] param = {0.82, 0.04, 0.36, 1.02};
   final double[] param = {0.2, 0.2, 0.8, 0.8};
   private boolean mDown;
@@ -140,6 +143,24 @@ public class EasingCurve extends GraphBase {
   }
 
   public void setControlPoints(String curve) {
+    if (!curve.startsWith("cubic")) {
+      switch (curve) {
+        case "standard":
+          curve = STANDARD_CURVE;
+          break;
+        case "accelerate":
+          curve = ACCELERATE_CURVE;
+          break;
+        case "decelerate":
+          curve = DECELERATE_CURVE;
+          break;
+        case "linear":
+          curve = LINEAR_CURVE;
+          break;
+          default:
+            System.err.println("non standard curve \""+curve+"\"");
+      }
+    }
     if (curve == null) {
       setControlPoints(0.2, 0.2, 0.8, 0.8);
     }
