@@ -7,12 +7,7 @@ iml_module(
     iml_files = ["intellij.android.profilers.ui.iml"],
     test_data = glob(["testData/**"]),
     # do not sort: must match IML order
-    test_runtime_deps = [
-        "//tools/idea/xml/xml-analysis-impl:intellij.xml.analysis.impl",
-        "//tools/idea/images:intellij.platform.images",
-        "//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions",
-        "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",
-    ],
+    test_runtime_deps = ["//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
