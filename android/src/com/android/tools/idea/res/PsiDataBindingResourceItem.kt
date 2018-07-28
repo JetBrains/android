@@ -23,22 +23,31 @@ import com.intellij.psi.xml.XmlTag
 /**
  * Keeps resource items that are related to data binding, extracted from layout files.
  */
-data class PsiDataBindingResourceItem(
+data class PsiDataBindingResourceItem private constructor(
   val name: String,
   val type: DataBindingResourceType,
   val xmlTag: XmlTag,
-  val source: PsiResourceFile
+  val source: PsiResourceFile,
+  private val data: Map<String, String>
 ) {
-
-  private val myData: Map<String, String> = type.attributes.associate { attr ->
-    attr to StringUtil.unescapeXml(this.xmlTag.getAttributeValue(attr))
-  }
+  constructor(name: String,
+              type: DataBindingResourceType,
+              xmlTag: XmlTag,
+              source: PsiResourceFile) : this(
+    name = name,
+    type = type,
+    xmlTag = xmlTag,
+    source = source,
+    data = type.attributes.associate { attr ->
+      attr to StringUtil.unescapeXml(xmlTag.getAttributeValue(attr))
+    }
+  )
 
   /**
    * Use [.getTypeDeclaration] to get the type instead of this method.
    */
   fun getExtra(name: String): String? {
-    return myData[name]
+    return data[name]
   }
 
   /**
