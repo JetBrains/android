@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 
 /**
  * A data class that keeps data binding related information that was extracted from a layout file.
@@ -61,8 +61,9 @@ public interface DataBindingInfo extends ModificationTracker {
   DataBindingInfo getMergedInfo();
 
   @NotNull
-  List<PsiDataBindingResourceItem> getItems(DataBindingResourceType type);
+  Map<String, PsiDataBindingResourceItem> getItems(@NotNull DataBindingResourceType type);
 
+  @NotNull
   List<ViewWithId> getViewsWithIds();
 
   @Nullable
@@ -70,6 +71,13 @@ public interface DataBindingInfo extends ModificationTracker {
 
   @Override
   long getModificationCount();
+
+  @Nullable
+  default String resolveImport(@NotNull String nameOrAlias) {
+    Map<String, PsiDataBindingResourceItem> imports = getItems(DataBindingResourceType.IMPORT);
+    PsiDataBindingResourceItem importItem = imports.get(nameOrAlias);
+    return importItem == null ? null : importItem.getTypeDeclaration();
+  }
 
   class ViewWithId {
     @NotNull

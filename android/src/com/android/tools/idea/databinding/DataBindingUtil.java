@@ -25,7 +25,11 @@ import com.android.tools.idea.lang.databinding.psi.DbTokenTypes;
 import com.android.tools.idea.lang.databinding.psi.PsiDbConstantValue;
 import com.android.tools.idea.lang.databinding.psi.PsiDbDefaults;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.PsiDataBindingResourceItem;
+import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.google.common.collect.ImmutableList;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.application.ApplicationManager;
@@ -51,7 +55,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -75,8 +78,8 @@ public class DataBindingUtil {
 
   private static AtomicBoolean ourCreateInMemoryClasses = new AtomicBoolean(false);
 
-  private static List<String> VIEW_PACKAGE_ELEMENTS = Arrays.asList(SdkConstants.VIEW, SdkConstants.VIEW_GROUP,
-                                                                    SdkConstants.TEXTURE_VIEW, SdkConstants.SURFACE_VIEW);
+  private static List<String> VIEW_PACKAGE_ELEMENTS = ImmutableList.of(SdkConstants.VIEW, SdkConstants.VIEW_GROUP,
+                                                                       SdkConstants.TEXTURE_VIEW, SdkConstants.SURFACE_VIEW);
 
   private static AtomicBoolean ourReadInMemoryClassGenerationSettings = new AtomicBoolean(false);
 
@@ -153,7 +156,6 @@ public class DataBindingUtil {
    */
   static LightBrClass getOrCreateBrClassFor(AndroidFacet facet) {
     ModuleDataBinding dataBinding = ModuleDataBinding.getInstance(facet);
-    assert dataBinding != null;
 
     LightBrClass existing = dataBinding.getLightBrClass();
     if (existing == null) {
@@ -169,7 +171,8 @@ public class DataBindingUtil {
     return existing;
   }
 
-  static PsiType parsePsiType(String text, AndroidFacet facet, PsiElement context) {
+  @Nullable
+  static PsiType parsePsiType(@NotNull String text, @NotNull AndroidFacet facet, @Nullable PsiElement context) {
     PsiElementFactory instance = PsiElementFactory.SERVICE.getInstance(facet.getModule().getProject());
     try {
       PsiType type = instance.createTypeFromText(text, context);
@@ -437,6 +440,144 @@ public class DataBindingUtil {
     }
     // Return null in case of an invalid type.
     return type.length() > i + 1 ? type.substring(i + 1) : null;
+  }
+
+  /**
+   * Returns the fully qualified name of the class referenced by {@code nameOrAlias}.
+   * <p>
+   * It is not guaranteed that the class will exist. The name returned here uses '.' for inner classes (like import declarations) and
+   * not '$' as used by JVM.
+   *
+   * @param nameOrAlias a fully qualified name, or an alias as declared in an {@code <import>}, or an inner class of an alias
+   * @param dataBindingInfo for getting the list of {@code <import>} tags
+   * @param qualifyJavaLang qualify names of java.lang classes
+   * @return the qualified name of the class, otherwise, if {@code qualifyJavaLang} is false and {@code nameOrAlias} doesn't match any
+   *     imports, the unqualified name of the class, or, if {@code qualifyJavaLang} is true and the class name cannot be resolved, null
+   */
+  @Nullable
+  public static String getQualifiedType(@Nullable String nameOrAlias, @Nullable DataBindingInfo dataBindingInfo, boolean qualifyJavaLang) {
+    if (nameOrAlias == null || dataBindingInfo == null) {
+      return nameOrAlias;
+    }
+
+    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(dataBindingInfo.getProject());
+    PsiJavaParserFacade parser = psiFacade.getParserFacade();
+    PsiType psiType;
+    try {
+      psiType = parser.createTypeFromText(nameOrAlias, null);
+    } catch (IncorrectOperationException e) {
+      return null;
+    }
+
+    if (psiType instanceof PsiPrimitiveType) {
+      return nameOrAlias;
+    }
+
+    class UnresolvedClassNameException extends RuntimeException {}
+    StringBuilder result = new StringBuilder();
+    int[] offset = new int[1];
+    try {
+      psiType.accept(new ClassReferenceVisitor() {
+        @Override
+        public void visitClassReference(@NotNull PsiClassReferenceType classReference) {
+          PsiJavaCodeReferenceElement reference = classReference.getReference();
+          int nameOffset = reference.getTextRange().getStartOffset();
+          // Copy text preceding the class name.
+          while (offset[0] < nameOffset) {
+            result.append(nameOrAlias.charAt(offset[0]++));
+          }
+          String className = reference.isQualified() ? reference.getQualifiedName() : reference.getReferenceName();
+          if (className != null) {
+            int nameLength = className.length();
+            className = resolveImport(className, dataBindingInfo);
+            if (qualifyJavaLang && className.indexOf('.') < 0) {
+              className = qualifyClassName(className, parser);
+              if (className == null) {
+                throw new UnresolvedClassNameException();
+              }
+            }
+            // Copy the resolved class name.
+            result.append(className);
+            offset[0] += nameLength;
+          }
+        }
+      });
+    } catch (UnresolvedClassNameException e) {
+      return null;
+    }
+
+    // Copy text after the last class name.
+    while (offset[0] < nameOrAlias.length()) {
+      result.append(nameOrAlias.charAt(offset[0]++));
+    }
+    return result.toString();
+  }
+
+  @Nullable
+  private static String qualifyClassName(@NotNull String className, @NotNull PsiJavaParserFacade parser) {
+    PsiType psiType = parser.createTypeFromText(className, null);
+    if (psiType instanceof PsiClassType) {
+      PsiClass psiClass = ((PsiClassType)psiType).resolve();
+      if (psiClass == null) {
+        return null;
+      }
+      String name = psiClass.getQualifiedName();
+      if (name != null) {
+        return name;
+      }
+    }
+    return className;
+  }
+
+  /**
+   * Resolves a class name using import statements in the data binding information.
+   *
+   * @param className the class name, possibly not qualified. The class name may contain dots if it corresponds to a nested class.
+   * @param dataBindingInfo the data binding information containing the import statements to use for class resolution.
+   * @return the fully qualified class name, or the original name if the first segment of {@code className} doesn't match
+   *     any import statement.
+   */
+  @NotNull
+  public static String resolveImport(@NotNull String className, @Nullable DataBindingInfo dataBindingInfo) {
+    if (dataBindingInfo != null) {
+      int dotOffset = className.indexOf('.');
+      String firstSegment = dotOffset >= 0 ? className.substring(0, dotOffset) : className;
+      String importedType = dataBindingInfo.resolveImport(firstSegment);
+      if (importedType != null) {
+        return dotOffset >= 0 ? importedType + className.substring(dotOffset) : importedType;
+      }
+    }
+    return className;
+  }
+
+  /**
+   * Visits all class type references contained in a type.
+   */
+  public abstract static class ClassReferenceVisitor extends PsiTypeVisitor<Void> {
+    @Override
+    @Nullable
+    public final Void visitClassType(@NotNull PsiClassType classType) {
+      if (classType instanceof PsiClassReferenceType) {
+        visitClassReference((PsiClassReferenceType)classType);
+      }
+
+      PsiType[] parameters = classType.getParameters();
+      for (PsiType parameter : parameters) {
+        parameter.accept(this);
+      }
+      return null;
+    }
+
+    @Override
+    @Nullable
+    public final Void visitArrayType(@NotNull PsiArrayType arrayType) {
+      PsiType type = arrayType.getComponentType();
+      type.accept(this);
+      return null;
+    }
+
+    /** Visits a class reference. The referenced class may or may not exist. */
+    public abstract void visitClassReference(@NotNull PsiClassReferenceType classReference);
   }
 
   /**

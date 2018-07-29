@@ -51,65 +51,26 @@ import static com.android.tools.idea.lang.databinding.DataBindingCompletionUtil.
  * The converter for "type" attribute of "import" element in databinding layouts.
  */
 public class DataBindingConverter extends ResolvingConverter<PsiElement> implements CustomReferenceConverter<PsiElement> {
-  /**
-   * Resolves a class name using import statements in the data binding information.
-   *
-   * @param className the class name, possibly not qualified. The class name may contain dots if it corresponds to a nested class.
-   * @param dataBindingInfo the data binding information containing the import statements to use for class resolution.
-   * @return the fully qualified class name, or the original name if the first segment of {@code className} doesn't match
-   *     any import statement.
-   */
-  @NotNull
-  protected static String resolveImport(@NotNull String className, @Nullable DataBindingInfo dataBindingInfo) {
-    if (dataBindingInfo != null) {
-      int dotOffset = className.indexOf('.');
-      if (dotOffset != 0) {
-        String firstSegment = dotOffset >= 0 ? className.substring(0, dotOffset) : className;
-        String importedType = getImport(firstSegment, dataBindingInfo);
-        if (importedType != null) {
-          return dotOffset >= 0 ? importedType + className.substring(dotOffset) : importedType;
-        }
-      }
-    }
-    return className;
-  }
-
+  @Nullable
   private static String getImport(@NotNull String alias, @NotNull ConvertContext context) {
     DataBindingInfo bindingInfo = getDataBindingInfo(context);
     if (bindingInfo == null) {
       return null;
     }
-    return getImport(alias, bindingInfo);
-  }
-
-  private static String getImport(String name, DataBindingInfo dataBindingInfo) {
-    for (PsiDataBindingResourceItem importItem : dataBindingInfo.getItems(DataBindingResourceType.IMPORT)) {
-      String alias = DataBindingUtil.getAlias(importItem);
-      if (alias == null) {
-        String importedType = importItem.getTypeDeclaration();
-        if (importedType != null && importedType.endsWith(name)
-            && importedType.length() > name.length() + 1
-            && importedType.charAt(importedType.length() - name.length()) == '.') {
-          return importedType;
-        }
-      } else if (name.equals(alias)) {
-        return importItem.getTypeDeclaration();
-      }
-    }
-    return null;
+    return bindingInfo.resolveImport(alias);
   }
 
   /**
    * Completion is handled by {@link com.android.tools.idea.lang.databinding.DataBindingCompletionContributor}. So, nothing to do here.
    */
-  @NotNull
   @Override
+  @NotNull
   public Collection<? extends PsiClass> getVariants(ConvertContext context) {
     return Collections.emptyList();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public PsiElement fromString(@Nullable @NonNls String type, ConvertContext context) {
     if (type == null) {
       return null;
@@ -119,7 +80,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
       return null;
     }
     DataBindingInfo dataBindingInfo = getDataBindingInfo(context);
-    String qualifiedName = resolveImport(type, dataBindingInfo);
+    String qualifiedName = DataBindingUtil.resolveImport(type, dataBindingInfo);
     Project project = context.getProject();
     JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
     GlobalSearchScope scope = module.getModuleWithDependenciesAndLibrariesScope(false);
@@ -144,8 +105,8 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     return psiFacade.findClass(qualifiedName, scope);
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String toString(@Nullable PsiElement element, ConvertContext context) {
     if (element instanceof PsiClass) {
       String type = ((PsiClass)element).getQualifiedName();
@@ -179,7 +140,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     if (!segments.isEmpty()) {
       String alias = null;
       int maxMatchedSegments = 0;
-      for (PsiDataBindingResourceItem psiImport : dataBindingInfo.getItems(DataBindingResourceType.IMPORT)) {
+      for (PsiDataBindingResourceItem psiImport : dataBindingInfo.getItems(DataBindingResourceType.IMPORT).values()) {
         String importedType = psiImport.getTypeDeclaration();
         int matchedSegments = getNumberOfMatchedSegments(importedType, segments);
         if (matchedSegments > maxMatchedSegments) {
@@ -209,8 +170,8 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     return qName.size();
   }
 
-  @NotNull
   @Override
+  @NotNull
   public PsiReference[] createReferences(GenericDomValue<PsiElement> value, PsiElement element, ConvertContext context) {
     assert element instanceof XmlAttributeValue;
     XmlAttributeValue attrValue = (XmlAttributeValue)element;
@@ -324,14 +285,14 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
      * Don't care about variants here since completion by
      * {@link org.jetbrains.android.AndroidCompletionContributor#completeDataBindingTypeAttr}.
      */
-    @NotNull
     @Override
+    @NotNull
     public Object[] getVariants() {
       return ArrayUtil.EMPTY_OBJECT_ARRAY;
     }
 
-    @NotNull
     @Override
+    @NotNull
     public String getCanonicalText() {
       return myReferenceTo;
     }
@@ -358,8 +319,8 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
       myResolveTo = resolveTo;
     }
 
-    @Nullable
     @Override
+    @Nullable
     public PsiElement resolve() {
       ResolveCache cache = ResolveCache.getInstance(myElement.getProject());
       return cache.resolveWithCaching(this, (psiReference, incompleteCode) -> resolveInner(), false, false);
@@ -369,8 +330,8 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
       return myResolveTo;
     }
 
-    @NotNull
     @Override
+    @NotNull
     public Object[] getVariants() {
       return ArrayUtil.EMPTY_OBJECT_ARRAY;
     }
