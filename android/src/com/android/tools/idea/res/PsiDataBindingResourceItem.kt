@@ -21,7 +21,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.xml.XmlTag
 
 /**
- * Keeps resource items that are related to data binding, extracted from layout files.
+ * Represents a resource item that is related to data binding, extracted from a layout file.
  */
 data class PsiDataBindingResourceItem private constructor(
   val name: String,
@@ -44,14 +44,14 @@ data class PsiDataBindingResourceItem private constructor(
   )
 
   /**
-   * Use [.getTypeDeclaration] to get the type instead of this method.
+   * Use [typeDeclaration] to get the type instead of this method.
    */
   fun getExtra(name: String): String? {
     return data[name]
   }
 
   /**
-   * Same as sanitized the output of [.getExtra] with [SdkConstants.ATTR_TYPE].
+   * Same as sanitized output of [getExtra(SdkConstants.ATTR_TYPE)](getExtra).
    */
   val typeDeclaration: String?
     get() {

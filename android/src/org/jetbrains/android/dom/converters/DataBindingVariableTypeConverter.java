@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.databinding.DataBindingUtil.ClassReferenceVisitor;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.utils.OffsetTrackingDecodedXmlValue;
 import com.intellij.openapi.project.Project;
@@ -35,59 +37,6 @@ import java.util.List;
  * The converter for "type" attribute of "variable" element in databinding layouts.
  */
 public class DataBindingVariableTypeConverter extends DataBindingConverter {
-  /**
-   * Returns the fully qualified name of the class referenced by {@code nameOrAlias}.
-   * <p>
-   * It is not guaranteed that the class will exist. The name returned here uses '.' for inner classes (like import declarations) and
-   * not '$' as used by JVM.
-   *
-   * @param type a fully qualified name, or an alias as declared in an {@code <import>}, or an inner class of an alias
-   * @param dataBindingInfo for getting the list of {@code <import>} tags
-   * @return the qualified name of the class or the unqualified name if the {@code nameOrAlias} doesn't match any imports
-   */
-  @Nullable
-  public static String getQualifiedType(@Nullable String type, @Nullable DataBindingInfo dataBindingInfo) {
-    if (type == null || dataBindingInfo == null) {
-      return type;
-    }
-
-    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(dataBindingInfo.getProject());
-    PsiJavaParserFacade parser = psiFacade.getParserFacade();
-    PsiType psiType;
-    try {
-      psiType = parser.createTypeFromText(type, null);
-    } catch (IncorrectOperationException e) {
-      return null;
-    }
-
-    if (psiType instanceof PsiPrimitiveType) {
-      return type;
-    }
-
-    StringBuilder result = new StringBuilder();
-    int[] offset = new int[1];
-    psiType.accept(new ClassReferenceVisitor() {
-      @Override
-      public void visitClassReference(PsiClassReferenceType classReference) {
-        PsiJavaCodeReferenceElement reference = classReference.getReference();
-        int nameOffset = reference.getTextRange().getStartOffset();
-        // Copy text preceding the class name.
-        while (offset[0] < nameOffset) {
-          result.append(type.charAt(offset[0]++));
-        }
-        String className = getName(reference);
-        // Copy the resolved class name.
-        result.append(resolveImport(className, dataBindingInfo));
-        offset[0] += className.length();
-      }
-    });
-    // Copy text after the last class name.
-    while (offset[0] < type.length()) {
-      result.append(type.charAt(offset[0]++));
-    }
-    return result.toString();
-  }
-
   @Override
   public String getErrorMessage(@Nullable String type, @NotNull ConvertContext context) {
     PsiTypeElement typeElement = createTypeElement(type, context);
@@ -125,7 +74,7 @@ public class DataBindingVariableTypeConverter extends DataBindingConverter {
     }
 
     DataBindingInfo dataBindingInfo = getDataBindingInfo(context);
-    type = getQualifiedType(type, dataBindingInfo);
+    type = DataBindingUtil.getQualifiedType(type, dataBindingInfo, false);
     if (type == null) {
       return null;
     }
@@ -194,29 +143,8 @@ public class DataBindingVariableTypeConverter extends DataBindingConverter {
     return result.toArray(PsiReference.EMPTY_ARRAY);
   }
 
+  @Nullable
   private static String getName(PsiJavaCodeReferenceElement reference) {
     return reference.isQualified() ? reference.getQualifiedName() : reference.getReferenceName();
-  }
-
-  /**
-   * Visits all class type references contained in a type.
-   */
-  private abstract static class ClassReferenceVisitor extends PsiTypeVisitor<Void> {
-    @Nullable
-    @Override
-    public final Void visitClassType(PsiClassType classType) {
-      if (classType instanceof PsiClassReferenceType) {
-        visitClassReference((PsiClassReferenceType)classType);
-      }
-
-      PsiType[] parameters = classType.getParameters();
-      for (PsiType parameter : parameters) {
-        parameter.accept(this);
-      }
-      return null;
-    }
-
-    /** Visits a class reference. The referenced class may or may not exist. */
-    public abstract void visitClassReference(PsiClassReferenceType classReference);
   }
 }

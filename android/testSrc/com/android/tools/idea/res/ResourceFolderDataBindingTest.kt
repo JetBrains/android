@@ -22,13 +22,14 @@ import com.android.tools.idea.res.ResourceFolderRepositoryTest.overrideCacheServ
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.*
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
 import com.intellij.psi.search.PsiElementProcessor
-import com.intellij.psi.search.PsiElementProcessorAdapter
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
-import com.intellij.util.CommonProcessors
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
@@ -455,6 +456,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
   private fun assertVariables(vararg expected: Pair<String, String>) {
     val variablesInInfo = getInfo()
       .getItems(DataBindingResourceType.VARIABLE)
+      .values
       .map {
         Pair(it.getExtra(ATTR_NAME), it.getExtra(ATTR_TYPE))
       }.toSet()
@@ -468,6 +470,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
   private fun assertImports(vararg expected: Pair<String, String?>) {
     val importsInInfo = getInfo()
       .getItems(DataBindingResourceType.IMPORT)
+      .values
       .map {
         Pair(it.getExtra(ATTR_TYPE), it.getExtra(ATTR_ALIAS))
       }
@@ -497,6 +500,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
   private fun getVariableTag(name: String): XmlTag {
     val variable = getInfo()
       .getItems(DataBindingResourceType.VARIABLE)
+      .values
       .firstOrNull {
         it.name == name
       }
