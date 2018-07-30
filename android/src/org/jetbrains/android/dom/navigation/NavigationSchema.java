@@ -50,10 +50,19 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
 
 /**
  * Provides information on OOTB and user-specified navigation tags and attributes.
- *
+ * <p>
  * TODO: support updates (e.g. custom navigator created)
  */
 public class NavigationSchema implements Disposable {
+
+  public static boolean enableNavigationEditor() {
+    return StudioFlags.ENABLE_NAV_EDITOR.get();
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  //region Constants
+  /////////////////////////////////////////////////////////////////////////////
+
   public static final String TAG_ACTION = "action";
   public static final String TAG_ARGUMENT = "argument";
   public static final String ATTR_DESTINATION = "destination";
@@ -83,6 +92,29 @@ public class NavigationSchema implements Disposable {
   public static final String ATTR_ACTION = "action";
   public static final String ATTR_DATA = "data";
   public static final String ATTR_DATA_PATTERN = "dataPattern";
+  public static final String ATTR_DEFAULT_VALUE = "defaultValue";
+
+  // TODO: it would be nice to have this generated dynamically, but there's no way to know what the default navigator for a type should be.
+  private Map<DestinationType, String> myTypeToRootTag = ImmutableMap.of(
+    FRAGMENT, "fragment",
+    ACTIVITY, "activity",
+    NAVIGATION, "navigation"
+  );
+
+  public enum DestinationType {
+    NAVIGATION,
+    FRAGMENT,
+    ACTIVITY,
+    OTHER
+  }
+
+  //endregion
+
+  /////////////////////////////////////////////////////////////////////////////
+  //region Instance Data
+  /////////////////////////////////////////////////////////////////////////////
+
+  private final AndroidFacet myFacet;
 
   // TODO: it would be nice if this mapping were somehow supplied by the platform
   public static final Map<String, DestinationType> DESTINATION_SUPERCLASS_TO_TYPE = ImmutableMap.of(
@@ -93,27 +125,8 @@ public class NavigationSchema implements Disposable {
 
   private static final Multimap<String, String> NAVIGATION_TO_DESTINATION_SUPERCLASS = HashMultimap.create();
 
-  private static final Map<AndroidFacet, NavigationSchema> ourSchemas = new HashMap<>();
-
-  // TODO: it would be nice to have this generated dynamically, but there's no way to know what the default navigator for a type should be.
-  private Map<DestinationType, String> myTypeToRootTag = ImmutableMap.of(
-    FRAGMENT, "fragment",
-    ACTIVITY, "activity",
-    NAVIGATION, "navigation"
-  );
-
   private Map<String, DestinationType> myTagToDestinationType;
   private Multimap<String, PsiClass> myTagToNavigatorClass;
-
-  private final AndroidFacet myFacet;
-  public static final String ATTR_DEFAULT_VALUE = "defaultValue";
-
-  public enum DestinationType {
-    NAVIGATION,
-    FRAGMENT,
-    ACTIVITY,
-    OTHER
-  }
 
   static {
     // TODO: Remove this hardcoded initialization once the platform supplies this information
@@ -133,9 +146,12 @@ public class NavigationSchema implements Disposable {
     }
   }
 
-  public static boolean enableNavigationEditor() {
-    return StudioFlags.ENABLE_NAV_EDITOR.get();
-  }
+  //endregion
+  /////////////////////////////////////////////////////////////////////////////
+  //region Initialization
+  /////////////////////////////////////////////////////////////////////////////
+
+  private static final Map<AndroidFacet, NavigationSchema> ourSchemas = new HashMap<>();
 
   /**
    * Gets the {@code NavigationSchema} for the given {@code facet}. {@link #createIfNecessary(AndroidFacet)} <b>must</b> be called before
@@ -170,24 +186,6 @@ public class NavigationSchema implements Disposable {
   @Override
   public void dispose() {
     ApplicationManager.getApplication().invokeLater(() -> ourSchemas.remove(myFacet));
-  }
-
-  @NotNull
-  private static DestinationType getType(@NotNull PsiClass subNav, @NotNull PsiClass navigatorRoot, PsiTypeParameter destinationTypeParam) {
-    PsiType resolved =
-      TypeConversionUtil.getSuperClassSubstitutor(navigatorRoot, PsiTypesUtil.getClassType(subNav)).substitute(destinationTypeParam);
-
-    if (resolved == null) {
-      // Shouldn't happen unless there's code errors in the project
-      return OTHER;
-    }
-    return NAV_CLASS_TO_TYPE.getOrDefault(resolved.getCanonicalText(), OTHER);
-  }
-
-  @Nullable
-  private static String getTagAttributeValue(@NotNull PsiClass subNav) {
-    PsiAnnotation annotation = AnnotationUtil.findAnnotation(subNav, ANNOTATION_NAV_TAG_NAME);
-    return annotation == null ? null : AnnotationUtil.getStringAttributeValue(annotation, "value");
   }
 
   private void init() throws ClassNotFoundException {
@@ -229,9 +227,42 @@ public class NavigationSchema implements Disposable {
     myTagToDestinationType = tagToType;
   }
 
+  @NotNull
+  private Map<String, PsiClass> getClassMap(@NotNull String className) {
+    Map<String, PsiClass> result = TagToClassMapper.getInstance(myFacet.getModule()).getClassMap(className);
+    if (result.isEmpty()) {
+      // TODO: handle the not-synced-yet case
+      throw new RuntimeException(className + " not found");
+    }
+    return result;
+  }
+
+  @NotNull
+  private static DestinationType getType(@NotNull PsiClass subNav, @NotNull PsiClass navigatorRoot, PsiTypeParameter destinationTypeParam) {
+    PsiType resolved =
+      TypeConversionUtil.getSuperClassSubstitutor(navigatorRoot, PsiTypesUtil.getClassType(subNav)).substitute(destinationTypeParam);
+
+    if (resolved == null) {
+      // Shouldn't happen unless there's code errors in the project
+      return OTHER;
+    }
+    return NAV_CLASS_TO_TYPE.getOrDefault(resolved.getCanonicalText(), OTHER);
+  }
+
+  @Nullable
+  private static String getTagAttributeValue(@NotNull PsiClass subNav) {
+    PsiAnnotation annotation = AnnotationUtil.findAnnotation(subNav, ANNOTATION_NAV_TAG_NAME);
+    return annotation == null ? null : AnnotationUtil.getStringAttributeValue(annotation, "value");
+  }
+
+  //endregion
+  /////////////////////////////////////////////////////////////////////////////
+  //region XML Tag Schema
+  /////////////////////////////////////////////////////////////////////////////
+
   /**
    * For the given {@code tagName}, gets a map from {@link AndroidDomElement} class to all subtags names of that type.
-   *
+   * <p>
    * Implementation note: We define the hierarchy this way instead of via the normal mechanism
    * (https://www.jetbrains.org/intellij/sdk/docs/reference_guide/frameworks_and_external_apis/xml_dom_api.html)
    * since we need to support custom tags that aren't known at compile time.
@@ -260,38 +291,8 @@ public class NavigationSchema implements Disposable {
   }
 
   @Nullable
-  public DestinationType getDestinationType(@NotNull String tag) {
-    return myTagToDestinationType.get(tag);
-  }
-
-  @Nullable
   public String getDefaultTag(@NotNull DestinationType type) {
     return myTypeToRootTag.get(type);
-  }
-
-  @Nullable
-  public String getTagForComponentSuperclass(@NotNull String superclassName) {
-    DestinationType type = DESTINATION_SUPERCLASS_TO_TYPE.get(superclassName);
-    if (type != null) {
-      return getDefaultTag(type);
-    }
-    return null;
-  }
-
-  @Contract("null -> null")
-  @Nullable
-  public String findTagForComponent(@Nullable PsiClass layoutClass) {
-    while (layoutClass != null) {
-      String qName = layoutClass.getQualifiedName();
-      if (qName != null) {
-        String tag = getTagForComponentSuperclass(qName);
-        if (tag != null) {
-          return tag;
-        }
-      }
-      layoutClass = layoutClass.getSuperClass();
-    }
-    return null;
   }
 
   @NotNull
@@ -315,66 +316,52 @@ public class NavigationSchema implements Disposable {
   @NotNull
   public List<String> getPossibleRoots() {
     return myTagToDestinationType.keySet().stream()
-      .filter(tag -> myTagToDestinationType.get(tag) == NAVIGATION)
-      .collect(Collectors.toList());
+                                 .filter(tag -> myTagToDestinationType.get(tag) == NAVIGATION)
+                                 .collect(Collectors.toList());
+  }
+
+  //endregion
+  /////////////////////////////////////////////////////////////////////////////
+  //region Schema Mappings
+  /////////////////////////////////////////////////////////////////////////////
+
+  @Nullable
+  private String getTagForComponentSuperclass(@NotNull String superclassName) {
+    DestinationType type = DESTINATION_SUPERCLASS_TO_TYPE.get(superclassName);
+    if (type != null) {
+      return getDefaultTag(type);
+    }
+    return null;
+  }
+
+  @Nullable
+  public DestinationType getDestinationType(@NotNull String tag) {
+    return myTagToDestinationType.get(tag);
+  }
+
+  @Contract("null -> null")
+  @Nullable
+  public String findTagForComponent(@Nullable PsiClass layoutClass) {
+    while (layoutClass != null) {
+      String qName = layoutClass.getQualifiedName();
+      if (qName != null) {
+        String tag = getTagForComponentSuperclass(qName);
+        if (tag != null) {
+          return tag;
+        }
+      }
+      layoutClass = layoutClass.getSuperClass();
+    }
+    return null;
   }
 
   @NotNull
-  public Set<PsiClass> getDestinationClassesByTagSlowly(@NotNull String tagName) {
-    return new HashSet<>(myTagToNavigatorClass.get(tagName));
+  public Collection<PsiClass> getDestinationClassesByTag(@NotNull String tagName) {
+    return myTagToNavigatorClass.get(tagName);
   }
 
   public Map<String, DestinationType> getTagTypeMap() {
     return Collections.unmodifiableMap(myTagToDestinationType);
-  }
-
-  @NotNull
-  private Map<String, PsiClass> getClassMap(@NotNull String className) {
-    Map<String, PsiClass> result = TagToClassMapper.getInstance(myFacet.getModule()).getClassMap(className);
-    if (result.isEmpty()) {
-      // TODO: handle the not-synced-yet case
-      throw new RuntimeException(className + " not found");
-    }
-    return result;
-  }
-
-  @NotNull
-  public String getTagLabel(@NotNull String tag) {
-    return getTagLabel(tag, false);
-  }
-
-  @NotNull
-  public String getTagLabel(@NotNull String tag, boolean isRoot) {
-    String text = null;
-    if (isIncludeTag(tag)) {
-      text = INCLUDE_GRAPH_LABEL;
-    }
-    else if (TAG_ACTION.equals(tag)) {
-      text = ACTION_LABEL;
-    }
-    else {
-      NavigationSchema.DestinationType type = getDestinationType(tag);
-      if (type == NAVIGATION) {
-        text = isRoot ? "Root Graph" : "Nested Graph";
-      }
-      else if (type == FRAGMENT) {
-        text = "Fragment";
-      }
-      else if (type == ACTIVITY) {
-        text = "Activity";
-      }
-
-      if (type == OTHER) {
-        text = tag;
-      }
-      else if (type != null && !tag.equals(getDefaultTag(type))) {
-        // If it's a custom tag, show it
-        text += " (" + tag + ")";
-      }
-    }
-
-    assert text != null;
-    return text;
   }
 
   /**
@@ -440,6 +427,56 @@ public class NavigationSchema implements Disposable {
     return false;
   }
 
+  //endregion
+  /////////////////////////////////////////////////////////////////////////////
+  //region UI
+  /////////////////////////////////////////////////////////////////////////////
+  // TODO: move this section to another class, since this class shouldn't deal with UI stuff
+
+  @NotNull
+  public String getTagLabel(@NotNull String tag) {
+    return getTagLabel(tag, false);
+  }
+
+  @NotNull
+  public String getTagLabel(@NotNull String tag, boolean isRoot) {
+    String text = null;
+    if (isIncludeTag(tag)) {
+      text = INCLUDE_GRAPH_LABEL;
+    }
+    else if (TAG_ACTION.equals(tag)) {
+      text = ACTION_LABEL;
+    }
+    else {
+      NavigationSchema.DestinationType type = getDestinationType(tag);
+      if (type == NAVIGATION) {
+        text = isRoot ? "Root Graph" : "Nested Graph";
+      }
+      else if (type == FRAGMENT) {
+        text = "Fragment";
+      }
+      else if (type == ACTIVITY) {
+        text = "Activity";
+      }
+
+      if (type == OTHER) {
+        text = tag;
+      }
+      else if (type != null && !tag.equals(getDefaultTag(type))) {
+        // If it's a custom tag, show it
+        text += " (" + tag + ")";
+      }
+    }
+
+    assert text != null;
+    return text;
+  }
+
+  //endregion
+  /////////////////////////////////////////////////////////////////////////////
+  //region Helpers
+  /////////////////////////////////////////////////////////////////////////////
+
   public Boolean isFragmentTag(@NotNull String tag) {
     return getDestinationType(tag) == FRAGMENT;
   }
@@ -460,4 +497,5 @@ public class NavigationSchema implements Disposable {
     return tag.equals(TAG_INCLUDE);
   }
 
+  //endregion
 }
