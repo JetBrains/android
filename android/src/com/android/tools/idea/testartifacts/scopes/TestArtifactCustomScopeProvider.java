@@ -69,11 +69,11 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
     public AndroidTestsScope() {
       super(NAME, AndroidIcons.AndroidTestsScope, new AbstractPackageSet("test:*..*") {
         @Override
-        public boolean contains(@Nullable VirtualFile file, @NotNull NamedScopesHolder holder) {
+        public boolean contains(@NotNull VirtualFile file, @NotNull NamedScopesHolder holder) {
           return contains(file, holder.getProject(), holder);
         }
         @Override
-        public boolean contains(@Nullable VirtualFile file, @NotNull Project project, @Nullable NamedScopesHolder holder) {
+        public boolean contains(@NotNull VirtualFile file, @NotNull Project project, @Nullable NamedScopesHolder holder) {
           TestArtifactSearchScopes scopes = getTestArtifactSearchScopes(file, project);
           return scopes != null && scopes.isAndroidTestSource(file);
         }
@@ -90,11 +90,11 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
     public UnitTestsScope() {
       super(NAME, AndroidIcons.AndroidTestsScope, new AbstractPackageSet("test:*..*") {
         @Override
-        public boolean contains(@Nullable VirtualFile file, @NotNull NamedScopesHolder holder) {
+        public boolean contains(@NotNull VirtualFile file, @NotNull NamedScopesHolder holder) {
           return contains(file, holder.getProject(), holder);
         }
         @Override
-        public boolean contains(@Nullable VirtualFile file, @NotNull Project project, @Nullable NamedScopesHolder holder) {
+        public boolean contains(@NotNull VirtualFile file, @NotNull Project project, @Nullable NamedScopesHolder holder) {
           TestArtifactSearchScopes scopes = getTestArtifactSearchScopes(file, project);
 
           if (scopes != null) {
