@@ -20,15 +20,13 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.*
 import com.android.tools.idea.naveditor.scene.ACTION_STROKE
 import com.android.tools.idea.naveditor.scene.DRAW_ACTION_LEVEL
+import com.android.tools.idea.naveditor.scene.SELF_ACTION_RADII
 import com.android.tools.idea.naveditor.scene.selfActionPoints
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils
-import com.intellij.util.ui.JBUI
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.geom.GeneralPath
-
-private val ARCH_LEN = JBUI.scale(10)
 
 class DrawSelfAction(@SwingCoordinate private val start: Point,
                      @SwingCoordinate private val end: Point,
@@ -47,7 +45,7 @@ class DrawSelfAction(@SwingCoordinate private val start: Point,
 
     val points = selfActionPoints(start, end, sceneContext)
     DrawConnectionUtils.drawRound(path, points.map { it.x }.toIntArray(), points.map { it.y }.toIntArray(), points.size,
-                                  sceneContext.getSwingDimension(ARCH_LEN))
+                                  SELF_ACTION_RADII.map { sceneContext.getSwingDimension(it) }.toIntArray())
 
     val g2 = g.create() as Graphics2D
 
