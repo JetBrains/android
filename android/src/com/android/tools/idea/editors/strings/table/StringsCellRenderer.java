@@ -17,18 +17,18 @@ package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.adtui.font.FontUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.awt.*;
 
-public class StringsCellRenderer extends ColoredTableCellRenderer {
+final class StringsCellRenderer extends FrozenColumnTableCellRenderer {
   private static final SimpleTextAttributes CELL_ERROR_ATTRIBUTES = new SimpleTextAttributes(SimpleTextAttributes.STYLE_WAVED, JBColor.red);
 
   @Override
-  protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
+  void customizeCellRenderer(@NotNull FrozenColumnTable table, @Nullable Object value, int viewRowIndex, int viewColumnIndex) {
     if (!(value instanceof String)) {
       return;
     }
@@ -39,19 +39,16 @@ public class StringsCellRenderer extends ColoredTableCellRenderer {
       s = clip(s);
     }
 
-    // TODO(b/80482325) SubTableModel is leaking here. FrozenColumnTable clients should be completely unaware of it.
-    SubTableModel model = (SubTableModel)table.getModel();
+    int modelRowIndex = table.convertRowIndexToModel(viewRowIndex);
+    int modelColumnIndex = table.convertColumnIndexToModel(viewColumnIndex);
 
-    row = table.convertRowIndexToModel(row);
-    column = model.convertColumnIndexToDelegate(table.convertColumnIndexToModel(column));
-
-    String problem = ((StringResourceTableModel)model.delegate()).getCellProblem(row, column);
+    String problem = ((StringResourceTableModel)table.getModel()).getCellProblem(modelRowIndex, modelColumnIndex);
     SimpleTextAttributes attributes;
 
     if (problem == null) {
       attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
     }
-    else if (column == StringResourceTableModel.KEY_COLUMN) {
+    else if (modelColumnIndex == StringResourceTableModel.KEY_COLUMN) {
       attributes = SimpleTextAttributes.ERROR_ATTRIBUTES;
     }
     else {

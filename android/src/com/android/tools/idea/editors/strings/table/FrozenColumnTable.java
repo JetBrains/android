@@ -214,6 +214,28 @@ public class FrozenColumnTable {
     return myScrollableTable.getColumnModel().getColumn(viewColumnIndex - myFrozenTable.getColumnCount());
   }
 
+  final int convertRowIndexToModel(int viewRowIndex) {
+    int modelRowIndex = myFrozenTable.convertRowIndexToModel(viewRowIndex);
+    assert modelRowIndex == myScrollableTable.convertRowIndexToModel(viewRowIndex);
+
+    return modelRowIndex;
+  }
+
+  final int convertColumnIndexToModel(int viewColumnIndex) {
+    int count = myFrozenTable.getColumnCount();
+    JTable table;
+
+    if (viewColumnIndex < count) {
+      table = myFrozenTable;
+    }
+    else {
+      table = myScrollableTable;
+      viewColumnIndex -= count;
+    }
+
+    return ((SubTableModel)table.getModel()).convertColumnIndexToDelegate(table.convertColumnIndexToModel(viewColumnIndex));
+  }
+
   @NotNull
   final TableCellRenderer getDefaultTableHeaderRenderer() {
     return myFrozenTable.getTableHeader().getDefaultRenderer();
@@ -471,5 +493,13 @@ public class FrozenColumnTable {
     }
 
     return myScrollableTable.getCellEditor();
+  }
+
+  @NotNull
+  final Font getFont() {
+    Font font = myFrozenTable.getFont();
+    assert font.equals(myScrollableTable.getFont());
+
+    return font;
   }
 }
