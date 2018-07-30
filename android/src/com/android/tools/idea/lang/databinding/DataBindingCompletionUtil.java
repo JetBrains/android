@@ -168,7 +168,7 @@ public class DataBindingCompletionUtil {
             }
 
             @Override
-            public void handleInsert(InsertionContext context) {
+            public void handleInsert(@NotNull InsertionContext context) {
               super.handleInsert(context);
               AutoPopupController.getInstance(project).scheduleAutoPopup(context.getEditor());
             }
@@ -203,7 +203,7 @@ public class DataBindingCompletionUtil {
     element.setForcedPresentableName(alias);
     element.setInsertHandler(new InsertHandler<LookupElement>() {
       @Override
-      public void handleInsert(InsertionContext context, LookupElement item) {
+      public void handleInsert(@NotNull InsertionContext context, @NotNull LookupElement item) {
         // Override the default InsertHandler to prevent adding the FQCN.
       }
     });
