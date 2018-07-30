@@ -70,6 +70,7 @@ val OUTER_RADIUS_LARGE = JBUI.scale(11)
 @JvmField
 @NavCoordinate
 val SELF_ACTION_LENGTHS = intArrayOf(JBUI.scale(28), JBUI.scale(26), JBUI.scale(60), JBUI.scale(8))
+val SELF_ACTION_RADII = intArrayOf(JBUI.scale(10), JBUI.scale(10), JBUI.scale(5))
 
 @JvmField
 val ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, CAP_BUTT, JOIN_ROUND)
@@ -162,6 +163,6 @@ fun isHighlighted(component: SceneComponent): Boolean {
 fun selfActionPoints(@SwingCoordinate start: Point, @SwingCoordinate end: Point, context: SceneContext): Array<Point> {
   val p1 = Point(start.x + context.getSwingDimension(SELF_ACTION_LENGTHS[0]), start.y)
   val p2 = Point(p1.x, end.y + context.getSwingDimension(SELF_ACTION_LENGTHS[3]))
-  val p3 = Point(p2.x - context.getSwingDimension(SELF_ACTION_LENGTHS[2]), p2.y)
+  val p3 = Point(end.x, p2.y)
   return arrayOf(start, p1, p2, p3, end)
 }
