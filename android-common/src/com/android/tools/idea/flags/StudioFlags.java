@@ -348,6 +348,10 @@ public final class StudioFlags {
     .create(NDK, "enhancednativeheadersupport", "Enable enhanced native header support",
             "If enabled, project system view will show a new include node with organized header files", true);
 
+  public static final Flag<Boolean> ENABLE_CLANG_TIDY_INSPECTIONS = Flag
+    .create(NDK, "clangtidyinspections", "Enable clang-tidy inspections",
+            "If enabled, show inspections derived from clang-tidy.", false);
+
   private static final FlagGroup NAVIGATION = new FlagGroup(FLAGS, "navigation", "Navigation Editor");
   public static final Flag<Boolean> ENABLE_NAV_EDITOR = Flag.create(
     NAVIGATION, "enable.nav.editor", "Enable the Navigation Editor",
