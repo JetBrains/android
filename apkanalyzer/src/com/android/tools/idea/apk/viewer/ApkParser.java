@@ -23,7 +23,6 @@ import com.android.ide.common.xml.ManifestData;
 import com.android.tools.apk.analyzer.*;
 import com.android.tools.apk.analyzer.internal.AppBundleArtifact;
 import com.android.tools.idea.log.LogWrapper;
-import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -62,15 +61,15 @@ public class ApkParser {
   }
 
   public synchronized void cancelAll(){
-    ListenableFuture[] futures = new ListenableFuture[]{
+    ListenableFuture[] futures = {
       myTreeStructureWithDownloadSizes,
       myTreeStructure,
       myRawFullApkSize,
       myCompressedFullApkSize
     };
-    for (int i = 0; i < futures.length; i++) {
-      if (futures[i] != null){
-        futures[i].cancel(true);
+    for (ListenableFuture future : futures) {
+      if (future != null) {
+        future.cancel(true);
       }
     }
   }
@@ -87,8 +86,7 @@ public class ApkParser {
   @NotNull
   public synchronized ListenableFuture<ArchiveNode> updateTreeWithDownloadSizes() {
     if (myTreeStructureWithDownloadSizes == null) {
-      myTreeStructureWithDownloadSizes = Futures.transform(constructTreeStructure(), (Function<ArchiveNode, ArchiveNode>)input -> {
-        assert input != null;
+      myTreeStructureWithDownloadSizes = Futures.transform(constructTreeStructure(), input -> {
         ArchiveTreeStructure.updateDownloadFileSizes(input, myApkSizeCalculator);
         return input;
       }, PooledThreadExecutor.INSTANCE);
