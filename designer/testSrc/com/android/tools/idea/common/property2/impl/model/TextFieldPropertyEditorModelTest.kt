@@ -16,7 +16,10 @@
 package com.android.tools.idea.common.property2.impl.model
 
 import com.android.SdkConstants
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
 import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.android.tools.idea.uibuilder.property2.testutils.FakeInspectorLine
@@ -28,6 +31,10 @@ class TextFieldPropertyEditorModelTest {
 
   private fun createModel(): Pair<TextFieldPropertyEditorModel, ValueChangedListener> {
     val property = PropertyModelTestUtil.makeProperty(SdkConstants.ANDROID_URI, "text", "hello")
+    return createModel(property)
+  }
+
+  private fun createModel(property: PropertyItem): Pair<TextFieldPropertyEditorModel, ValueChangedListener> {
     val model = TextFieldPropertyEditorModel(property, true)
     val listener = mock(ValueChangedListener::class.java)
     model.addListener(listener)
@@ -39,7 +46,8 @@ class TextFieldPropertyEditorModelTest {
     val (model, listener) = createModel()
     val line = FakeInspectorLine(LineType.PROPERTY)
     model.lineModel = line
-    model.enter("world")
+    model.text = "world"
+    model.enterKeyPressed()
     assertThat(model.property.value).isEqualTo("world")
     verify(listener).valueChanged()
     assertThat(line.gotoNextLineWasRequested).isTrue()
@@ -77,5 +85,39 @@ class TextFieldPropertyEditorModelTest {
     model.focusLost()
     assertThat(model.property.value).isEqualTo("hello")
     verify(listener, never()).valueChanged()
+  }
+
+  @Test
+  fun testEnterKeyWithAsyncPropertySetterDoesNotNavigateToNextEditor() {
+    // setup
+    val property = PropertyModelTestUtil.makeAsyncProperty(ANDROID_URI, ATTR_ID, "textView")
+    val (model, listener) = createModel(property)
+    val line = FakeInspectorLine(LineType.PROPERTY)
+    model.lineModel = line
+    model.focusGained()
+    model.text = "imageView"
+
+    // test
+    model.enterKeyPressed()
+    assertThat(property.lastValueUpdate).isEqualTo("imageView")
+    assertThat(property.updateCount).isEqualTo(1)
+    verify(listener).valueChanged()
+    assertThat(line.gotoNextLineWasRequested).isFalse()
+  }
+
+  @Test
+  fun testFocusLossAfterEnterKeyWithAsyncPropertySetter() {
+    // setup
+    val property = PropertyModelTestUtil.makeAsyncProperty(ANDROID_URI, ATTR_ID, "textView")
+    val (model, listener) = createModel(property)
+    model.focusGained()
+    model.text = "imageView"
+    model.enterKeyPressed()
+
+    // test
+    model.focusLost()
+    assertThat(property.lastValueUpdate).isEqualTo("imageView")
+    assertThat(property.updateCount).isEqualTo(1)
+    verify(listener).valueChanged()
   }
 }

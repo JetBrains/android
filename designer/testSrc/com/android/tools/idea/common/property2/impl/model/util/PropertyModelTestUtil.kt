@@ -33,6 +33,11 @@ object PropertyModelTestUtil {
     override var resolvedValue: String?
   }
 
+  interface TestAsyncPropertyItem : TestPropertyItem {
+    val lastValueUpdate: String?
+    val updateCount: Int
+  }
+
   interface TestPropertyEditorModel : PropertyEditorModel {
     val focusWasRequested: Boolean
     val toggleCount: Int
@@ -59,6 +64,36 @@ object PropertyModelTestUtil {
 
       override val isReference: Boolean
         get() = false
+    }
+  }
+
+  fun makeAsyncProperty(namespace: String, name: String, initialValue: String?): TestAsyncPropertyItem {
+    return object : TestAsyncPropertyItem {
+
+      override val namespace: String
+        get() = namespace
+
+      override val namespaceIcon: Icon?
+        get() = if (namespace == TOOLS_URI) StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY else null
+
+      override var name: String = name
+
+      override var value: String? = initialValue
+        set(value) {
+          lastValueUpdate = value
+          updateCount++
+        }
+
+      override var resolvedValue: String? = initialValue
+
+      override val isReference: Boolean
+        get() = false
+
+      override var lastValueUpdate: String? = initialValue
+        private set
+
+      override var updateCount = 0
+        private set
     }
   }
 

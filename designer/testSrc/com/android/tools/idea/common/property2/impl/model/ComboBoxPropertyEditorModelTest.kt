@@ -51,7 +51,8 @@ class ComboBoxPropertyEditorModelTest {
     val (model, listener) = createModelWithListener()
     val line = FakeInspectorLine(LineType.PROPERTY)
     model.lineModel = line
-    model.enterKeyPressed("gone")
+    model.text = "gone"
+    model.enterKeyPressed()
     assertThat(model.property.value).isEqualTo("gone")
     assertThat(model.isPopupVisible).isFalse()
     verify(listener).valueChanged()
