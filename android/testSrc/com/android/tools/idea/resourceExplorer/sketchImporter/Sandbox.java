@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.DrawableShape;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
 import org.jetbrains.android.AndroidTestBase;
@@ -25,7 +26,7 @@ public class Sandbox {
 
   public static void main(String[] args) {
 
-    readJSON("combinationsSingleArtboard.json");
+    readJSON("paths_combinationsSingleArtboard.json");
   }
 
   private static void readJSON(String jsonTestFile) {
@@ -35,7 +36,7 @@ public class Sandbox {
 
     for (int i = 0; i < artboards.size(); i++) {
       System.out.println("Artboard" + i);
-      List<String> artboardPaths = artboards.get(i).getPaths();
+      List<DrawableShape> artboardPaths = artboards.get(i).getShapes();
       for (int j = 0; j < artboardPaths.size(); j++) {
         System.out.println(artboardPaths.get(j));
       }

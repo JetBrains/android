@@ -26,6 +26,7 @@ import java.util.ArrayList;
 
 import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.OVAL_CLASS_TYPE;
 import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.RECTANGLE_CLASS_TYPE;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.SHAPE_PATH_CLASS_TYPE;
 
 /**
  * Refers to objects that have the "_class" field set to be one of the following:
@@ -131,7 +132,7 @@ public class SketchShapePath extends SketchLayer {
     }
 
     if (isClosed()) {
-      path2DBuilder.closePath();
+
     }
 
     return path2DBuilder.build();
@@ -167,31 +168,31 @@ public class SketchShapePath extends SketchLayer {
         case 0:
           startPoint.setLocation(0, points[i].getCornerRadius());
           endPoint.setLocation(points[i].getCornerRadius(), 0);
-          path2DBuilder.startPath(startPoint.makeAbsolutePosition(parentFrame));
+          path2DBuilder.startPath(startPoint.makeAbsolutePosition(parentFrame).makeAbsolutePosition(getFrame()));
           break;
         case 1:
-          startPoint.setLocation(parentFrame.getWidth() - points[i].getCornerRadius(), 0);
-          endPoint.setLocation(parentFrame.getWidth(), points[i].getCornerRadius());
+          startPoint.setLocation(getFrame().getWidth() - points[i].getCornerRadius(), 0);
+          endPoint.setLocation(getFrame().getWidth(), points[i].getCornerRadius());
           break;
         case 2:
-          startPoint.setLocation(parentFrame.getWidth(), parentFrame.getHeight() - points[i].getCornerRadius());
-          endPoint.setLocation(parentFrame.getWidth() - points[i].getCornerRadius(), parentFrame.getHeight());
+          startPoint.setLocation(getFrame().getWidth(), getFrame().getHeight() - points[i].getCornerRadius());
+          endPoint.setLocation(getFrame().getWidth() - points[i].getCornerRadius(), getFrame().getHeight());
           break;
         case 3:
-          startPoint.setLocation(points[i].getCornerRadius(), parentFrame.getHeight());
-          endPoint.setLocation(0, parentFrame.getHeight() - points[i].getCornerRadius());
+          startPoint.setLocation(points[i].getCornerRadius(), getFrame().getHeight());
+          endPoint.setLocation(0, getFrame().getHeight() - points[i].getCornerRadius());
           break;
       }
 
       if (points[i].getCornerRadius() != 0) {
         if (!previousPoint.equals(startPoint) && i != 0) {
-          path2DBuilder.createLine(startPoint.makeAbsolutePosition(parentFrame));
+          path2DBuilder.createLine(startPoint.makeAbsolutePosition(parentFrame).makeAbsolutePosition(getFrame()));
         }
         path2DBuilder.createQuadCurve(points[i].getPoint().makeAbsolutePosition(parentFrame, getFrame()),
-                                      endPoint.makeAbsolutePosition(parentFrame));
+                                      endPoint.makeAbsolutePosition(parentFrame).makeAbsolutePosition(getFrame()));
       }
       else {
-        path2DBuilder.createLine(startPoint.makeAbsolutePosition(parentFrame));
+        path2DBuilder.createLine(startPoint.makeAbsolutePosition(parentFrame).makeAbsolutePosition(getFrame()));
       }
 
       previousPoint.setLocation(endPoint);

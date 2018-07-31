@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.DrawableShape;
+import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
+import java.util.List;
 
 public abstract class SketchLayer {
 
@@ -112,8 +114,9 @@ public abstract class SketchLayer {
     return shouldBreakMaskChain;
   }
 
-  public void setAbsoluteLocation(ArrayList<String> paths, Point2D.Double parentCoords) {
-    //TODO
+  @NotNull
+  public List<DrawableShape> getTranslatedShapes(Point2D.Double parentCoords) {
+    return ImmutableList.of();
   }
 }
 
