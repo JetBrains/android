@@ -35,7 +35,7 @@ import javax.swing.SwingConstants
 abstract class AbstractTabbedMainPanel(
     context: PsContext,
     private val placeName: String
-) : AbstractMainPanel(context), PanelWithUiState {
+) : AbstractMainPanel(context), CrossModuleUiStateComponent {
 
   private var inQuietSelection = false
 
@@ -118,7 +118,7 @@ abstract class AbstractTabbedMainPanel(
 
   override fun restoreUiState() {
     // First, restore the state of the tabs before they may try to override it on selection change.
-    for (panelWithUiState in tabPanels.mapNotNull { it as? PanelWithUiState }) {
+    for (panelWithUiState in tabPanels.mapNotNull { it as? CrossModuleUiStateComponent }) {
       panelWithUiState.restoreUiState()
     }
     // Then restore the tab selection itself.
