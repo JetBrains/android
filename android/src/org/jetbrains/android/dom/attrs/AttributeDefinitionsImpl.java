@@ -59,6 +59,7 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
    * @param files the files to parse
    * @return the framework attribute definitions
    */
+  @NotNull
   public static AttributeDefinitions parseFrameworkFiles(@NotNull File... files) {
     AttributeDefinitionsImpl attributeDefinitions = new AttributeDefinitionsImpl(null);
     for (File file : files) {
@@ -75,6 +76,7 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
    * @param resources the application resource repository
    * @return the attribute definitions for both, application and framework attributes
    */
+  @NotNull
   public static AttributeDefinitions create(@Nullable AttributeDefinitions frameworkAttributeDefinitions,
                                             @NotNull AbstractResourceRepository resources) {
     AttributeDefinitionsImpl attributeDefinitions = new AttributeDefinitionsImpl(frameworkAttributeDefinitions);

@@ -96,7 +96,7 @@ public class FrameworkResourceManager extends ResourceManager {
   }
 
   @Override
-  @Nullable
+  @NotNull
   public AttributeDefinitions getAttributeDefinitions() {
     return myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).getPublicAttrDefs(myProject);
   }
