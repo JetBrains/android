@@ -18,13 +18,13 @@ package com.android.tools.idea.gradle.structure.configurables
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.AndroidModuleDependenciesConfigurable
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.ProjectDependenciesConfigurable
+import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
 import com.android.tools.idea.gradle.structure.configurables.java.dependencies.JavaModuleDependenciesConfigurable
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
-import com.intellij.openapi.ui.NamedConfigurable
 import org.jetbrains.annotations.Nls
 import javax.swing.JComponent
 
@@ -45,11 +45,11 @@ class DependenciesPerspectiveConfigurable(context: PsContext)
 
   override val navigationPathName: String = DEPENDENCIES_PERSPECTIVE_PLACE_NAME
 
-  override fun createConfigurableFor(module: PsModule): NamedConfigurable<out PsModule>? =
+  override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<*, *>? =
     when (module) {
-      is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context, getExtraModules()).also { it.history = myHistory }
-      is PsAndroidModule -> AndroidModuleDependenciesConfigurable(module, context, getExtraModules()).also { it.history = myHistory }
-      is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context, getExtraModules()).also { it.history = myHistory }
+      is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context, getExtraModules())
+      is PsAndroidModule -> AndroidModuleDependenciesConfigurable(module, context, getExtraModules())
+      is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context, getExtraModules())
       else -> null
     }
 

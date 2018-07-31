@@ -16,29 +16,23 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.AbstractDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule;
+import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.util.ActionCallback;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.navigation.History;
-import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
 
-public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigurable<PsAllModulesFakeModule> {
-  @NotNull private final PsAllModulesFakeModule myModule;
+public class ProjectDependenciesConfigurable extends AbstractModuleConfigurable<PsAllModulesFakeModule, MainPanel> {
+  @NotNull private final List<PsModule> myExtraModules;
 
-  private MainPanel myMainPanel;
-
-  public ProjectDependenciesConfigurable(@NotNull PsAllModulesFakeModule module, @NotNull PsContext context, @NotNull List<PsModule> extraModules) {
-    super(module, context, extraModules);
-    myModule = module;
+  public ProjectDependenciesConfigurable(@NotNull PsAllModulesFakeModule module,
+                                         @NotNull PsContext context,
+                                         @NotNull List<PsModule> extraModules) {
+    super(context, module);
+    myExtraModules = extraModules;
     setDisplayName("<All Modules>");
   }
 
@@ -48,30 +42,8 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
   }
 
   @Override
-  public MainPanel createOptionsPanel() {
-    if (myMainPanel == null) {
-      myMainPanel = new MainPanel(myModule, getContext(), getExtraModules());
-      myMainPanel.setHistory(getHistory());
-    }
-    return myMainPanel;
-  }
-
-  @Override
-  public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    return createOptionsPanel().navigateTo(place, requestFocus);
-  }
-
-  @Override
-  public void queryPlace(@NotNull Place place) {
-    createOptionsPanel().queryPlace(place);
-  }
-
-  @Override
-  public void setHistory(History history) {
-    super.setHistory(history);
-    if (myMainPanel != null) {
-      myMainPanel.setHistory(history);
-    }
+  public MainPanel createPanel(@NotNull PsAllModulesFakeModule module) {
+    return new MainPanel(module, getContext(), myExtraModules);
   }
 
   @Override
@@ -84,12 +56,5 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
   @NotNull
   public Icon getIcon(boolean expanded) {
     return AllIcons.Nodes.ModuleGroup;
-  }
-
-  @Override
-  public void disposeUIResources() {
-    if (myMainPanel != null) {
-      Disposer.dispose(myMainPanel);
-    }
   }
 }

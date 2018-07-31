@@ -15,26 +15,23 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.java.dependencies;
 
-import com.android.tools.idea.gradle.structure.configurables.AbstractDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.module.MainPanel;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
-import com.intellij.openapi.util.ActionCallback;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class JavaModuleDependenciesConfigurable extends AbstractDependenciesConfigurable<PsJavaModule> {
-  private MainPanel myMainPanel;
+public class JavaModuleDependenciesConfigurable extends AbstractModuleConfigurable<PsJavaModule, MainPanel> {
+  @NotNull private final List<PsModule> myExtraModules;
 
   public JavaModuleDependenciesConfigurable(@NotNull PsJavaModule module,
                                             @NotNull PsContext context,
                                             @NotNull List<PsModule> extraModules) {
-    super(module, context, extraModules);
+    super(context, module);
+    myExtraModules = extraModules;
   }
 
   @Override
@@ -44,28 +41,7 @@ public class JavaModuleDependenciesConfigurable extends AbstractDependenciesConf
   }
 
   @Override
-  public MainPanel createOptionsPanel() {
-    if (myMainPanel == null) {
-      myMainPanel = new MainPanel(getModule(), getContext(), getExtraModules());
-      myMainPanel.setHistory(getHistory());
-    }
-    return myMainPanel;
-  }
-
-  @Override
-  public void disposeUIResources() {
-    if (myMainPanel != null) {
-      Disposer.dispose(myMainPanel);
-    }
-  }
-
-  @Override
-  public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    return createOptionsPanel().navigateTo(place, requestFocus);
-  }
-
-  @Override
-  public void queryPlace(@NotNull Place place) {
-    createOptionsPanel().queryPlace(place);
+  public MainPanel createPanel(@NotNull PsJavaModule module) {
+    return new MainPanel(getModule(), getContext(), myExtraModules);
   }
 }
