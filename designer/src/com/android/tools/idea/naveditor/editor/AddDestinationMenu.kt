@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.android.tools.idea.naveditor.editor
 
+import com.android.SdkConstants
 import com.android.annotations.VisibleForTesting
 import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.common.AdtSecondaryPanel
@@ -31,7 +32,6 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.EmptyProgressIndicator
@@ -44,6 +44,8 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.CollectionListModel
@@ -59,6 +61,7 @@ import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import org.jetbrains.android.AndroidGotoRelatedProvider
+import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import java.awt.BorderLayout
 import java.awt.Image
@@ -90,13 +93,25 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val classToDestination = LinkedHashMap<PsiClass, Destination>()
       val module = model.module
       val schema = surface.sceneManager?.schema ?: return listOf()
-
       val parent = surface.currentNavigation
-      for ((tag, psiClass) in schema.allDestinationClasses.entries()) {
-        val inProject = ModuleUtilCore.findModuleForPsiElement(psiClass) != null
-        val destination = Destination.RegularDestination(parent, tag, null, psiClass.name, psiClass.qualifiedName,
-                                                         inProject = inProject)
-        classToDestination[psiClass] = destination
+      for (tag in schema.allTags) {
+        for (psiClass in schema.getDestinationClassesForTag(tag)) {
+          if (ModuleUtilCore.findModuleForPsiElement(psiClass) != null) {
+            val destination = Destination.RegularDestination(parent, tag, null, psiClass)
+            classToDestination[psiClass] = destination
+          }
+
+          val query = ClassInheritorsSearch.search(psiClass, GlobalSearchScope.moduleWithDependenciesScope(module), true, true, false)
+          for (child in query) {
+            if (isNavHostFragment(child) || classToDestination.containsKey(child)) {
+              continue
+            }
+
+            val inProject = ModuleUtilCore.findModuleForPsiElement(child) != null
+            val destination = Destination.RegularDestination(parent, tag, null, child, inProject = inProject)
+            classToDestination[child] = destination
+          }
+        }
       }
 
       val resourceManager = LocalResourceManager.getInstance(module) ?: return listOf()
@@ -106,10 +121,12 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         val itemComputable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(resourceFile, model.facet)
         for (item in itemComputable?.compute() ?: continue) {
           val element = item.element as? PsiClass ?: continue
-          val tag = schema.findTagForComponent(element) ?: continue
-          val destination =
-            Destination.RegularDestination(parent, tag, null, element.name, element.qualifiedName, layoutFile = resourceFile)
-          classToDestination[element] = destination
+          val tags = schema.getTagsForDestinationClass(element) ?: continue
+          if (tags.size == 1) {
+            val destination =
+              Destination.RegularDestination(parent, tags.first(), null, element, layoutFile = resourceFile)
+            classToDestination[element] = destination
+          }
         }
       }
 
@@ -125,6 +142,10 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       result.sort()
       return result
     }
+
+  private fun isNavHostFragment(psiClass: PsiClass): Boolean {
+    return psiClass.supers.any { it.qualifiedName == SdkConstants.FQCN_NAV_HOST_FRAGMENT }
+  }
 
   @Suppress("UNCHECKED_CAST")
   val destinationsList: JBList<Destination> = object : JBList<Destination>() {
@@ -315,10 +336,12 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         }
       }
       if (psiClass != null) {
-        val tag = schema.findTagForComponent(psiClass) ?: return@runWhenSmart
+        val tags = schema.getTagsForDestinationClass(psiClass) ?: return@runWhenSmart
+        val tag = if (tags.size == 1) tags.first()
+        else schema.getDefaultTag(NavigationSchema.DestinationType.FRAGMENT) ?: return@runWhenSmart
+
         val destination =
-          Destination.RegularDestination(surface.currentNavigation, tag, null, psiClass.name, psiClass.qualifiedName,
-                                         layoutFile = layoutFile)
+          Destination.RegularDestination(surface.currentNavigation, tag, null, psiClass, layoutFile = layoutFile)
         addDestination(destination)
       }
       createdFiles.clear()
@@ -333,15 +356,13 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
     balloon?.hide()
     lateinit var component: NlComponent
-    object : WriteCommandAction<Unit>(surface.project, "Add ${destination.label}", surface.model?.file) {
-      override fun run(result: Result<Unit>) {
+    WriteCommandAction.runWriteCommandAction(surface.project, "Add ${destination.label}", null, Runnable {
         destination.addToGraph()
-        component = destination.component ?: return
+        component = destination.component ?: return@Runnable
         component.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
         // explicitly update so the new SceneComponent is created
         surface.sceneManager!!.update()
-      }
-    }.execute()
+    }, surface.model?.file)
     surface.selectionModel.setSelection(ImmutableList.of(component))
   }
 

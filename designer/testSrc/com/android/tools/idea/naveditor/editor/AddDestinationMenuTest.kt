@@ -31,8 +31,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.project.rootManager
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ui.UIUtil
@@ -109,23 +111,24 @@ class AddDestinationMenuTest : NavTestCase() {
 
     val parent = model.components[0]
     val expected = listOf(
-      Destination.RegularDestination(parent, "fragment", null, "BlankFragment", "mytest.navtest.BlankFragment"),
-      Destination.RegularDestination(parent, "fragment", null, "fragment1", "mytest.navtest.fragment1"),
-      Destination.RegularDestination(parent, "fragment", null, "fragment2", "mytest.navtest.fragment2"),
-      Destination.RegularDestination(parent, "fragment", null, "fragment3", "mytest.navtest.fragment3"),
+      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.BlankFragment")),
+      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment1")),
+      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment2")),
+      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment3")),
       Destination.IncludeDestination("include1.xml", parent),
       Destination.IncludeDestination("include2.xml", parent),
       Destination.IncludeDestination("include3.xml", parent),
       Destination.IncludeDestination("navigation.xml", parent),
-      Destination.RegularDestination(parent, "activity", null, "activity1", "mytest.navtest.activity1"),
-      Destination.RegularDestination(parent, "activity", null, "activity2", "mytest.navtest.activity2"),
-      Destination.RegularDestination(parent, "activity", null, "activity3", "mytest.navtest.activity3"),
-      Destination.RegularDestination(parent, "activity", null, "MainActivity", "mytest.navtest.MainActivity",
-                                     layoutFile = xmlFile))
+      Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity1")),
+      Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity2")),
+      Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity3")),
+      Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.MainActivity"), layoutFile = xmlFile))
 
     val destinations = AddDestinationMenu(surface).destinations
-    assertContainsOrdered(destinations, expected)
+    assertEquals(destinations, expected)
   }
+
+  fun findClass(className: String) = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))!!
 
   override fun tearDown() {
     _model = null
@@ -196,7 +199,7 @@ class AddDestinationMenuTest : NavTestCase() {
     // get it again and check that it's the same instance
     assertSame(panel, addDestinationMenu.mainPanel)
 
-    myFixture.addClass("class Foo extends android.app.Fragment {}")
+    myFixture.addClass("class Foo extends android.support.v4.app.Fragment {}")
     UIUtil.dispatchAllInvocationEvents()
 
     assertNotSame(panel, addDestinationMenu.mainPanel)
@@ -215,7 +218,7 @@ class AddDestinationMenuTest : NavTestCase() {
         val root = myModule.rootManager.contentRoots[0].path
         myFixture.addFileToProject("src/mytest/navtest/Frag.java",
                                    "package mytest.navtest\n" +
-                                   "public class Frag extends android.app.Fragment {}")
+                                   "public class Frag extends android.support.v4.app.Fragment {}")
         myFixture.addFileToProject("res/layout/frag_layout.xml", "")
         createdFiles.add(File(root, "src/mytest/navtest/Frag.java"))
         createdFiles.add(File(root, "res/layout/frag_layout.xml"))
@@ -240,7 +243,7 @@ class AddDestinationMenuTest : NavTestCase() {
         val root = myModule.rootManager.contentRoots[0].path
         myFixture.addFileToProject("src/mytest/navtest/Frag.java",
                                    "package mytest.navtest\n" +
-                                   "public class Frag extends android.app.Fragment {}")
+                                   "public class Frag extends android.support.v4.app.Fragment {}")
         createdFiles.add(File(root, "src/mytest/navtest/Frag.java"))
       }
     }
@@ -287,20 +290,20 @@ class AddDestinationMenuTest : NavTestCase() {
   }
 
   private fun addFragment(name: String) {
-    addDestination(name, "Fragment")
+    addDestination(name, "android.support.v4.app.Fragment")
   }
 
   private fun addActivity(name: String) {
-    addDestination(name, "Activity")
+    addDestination(name, "android.app.Activity")
   }
 
-  private fun addDestination(name: String, base: String) {
+  private fun addDestination(name: String, parentClass: String) {
     val relativePath = "src/mytest/navtest/$name.java"
     val fileText = """
       .package mytest.navtest;
-      .import android.app.$base;
+      .import $parentClass;
       .
-      .public class $name extends $base {
+      .public class $name extends ${parentClass.substringAfterLast('.')} {
       .}
       """.trimMargin(".")
 

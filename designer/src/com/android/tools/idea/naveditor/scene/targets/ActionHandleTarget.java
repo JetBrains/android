@@ -30,7 +30,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -142,9 +141,8 @@ public class ActionHandleTarget extends NavBaseTarget {
     }
 
     NlComponent destinationNlComponent = destination.getNlComponent();
-    NavigationSchema schema = NavigationSchema.get(destinationNlComponent.getModel().getFacet());
 
-    if (schema.getDestinationType(destinationNlComponent.getTagName()) == null) {
+    if (!NavComponentHelperKt.isDestination(destinationNlComponent)) {
       return null;
     }
 

@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A {@link SceneDecoratorFactory} for layout editor components.
@@ -37,6 +38,7 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
   private static final NlSceneFrameFactory FRAME_FRACTORY = new NlSceneFrameFactory();
 
   private static Map<String, Constructor<? extends SceneDecorator>> ourConstructorMap = new HashMap<>();
+  private static Map<String, SceneDecorator> ourSceneMap = new HashMap<>();
 
   static {
     try {
@@ -85,8 +87,18 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
   }
 
   @NotNull
-  @Override
-  protected Map<String, Constructor<? extends SceneDecorator>> getConstructorMap() {
-    return ourConstructorMap;
+  private static Optional<SceneDecorator> get(@NotNull String key) {
+    if (ourConstructorMap.containsKey(key)) {
+      if (!ourSceneMap.containsKey(key)) {
+        try {
+          ourSceneMap.put(key, ourConstructorMap.get(key).newInstance());
+        }
+        catch (Exception e) {
+          ourSceneMap.put(key, null);
+        }
+      }
+      return Optional.of(ourSceneMap.get(key));
+    }
+    return Optional.empty();
   }
 }
