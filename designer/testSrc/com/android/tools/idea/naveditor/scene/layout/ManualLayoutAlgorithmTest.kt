@@ -57,7 +57,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     positions.put("fragment2", newPositions)
 
     val scene = model.surface.scene!!
-    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions, myModule, mock(NavSceneManager::class.java))
+    val algorithm = ManualLayoutAlgorithm(rootPositions, myModule, mock(NavSceneManager::class.java))
     algorithm.layout(scene.root!!.flatten().collect(Collectors.toList()))
 
     assertEquals(123, scene.getSceneComponent("fragment1")!!.drawX)
@@ -93,7 +93,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     positions.put("fragment1", newPositions)
 
     val scene = model.surface.scene!!
-    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions, myModule, mock(NavSceneManager::class.java))
+    val algorithm = ManualLayoutAlgorithm(rootPositions, myModule, mock(NavSceneManager::class.java))
     algorithm.layout(scene.root!!.flatten().collect(Collectors.toList()))
 
     val scene2 = model2.surface.scene!!
@@ -198,7 +198,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     positions.put("fragment2", newPositions)
 
     val scene = model.surface.scene!!
-    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions, myModule, mock(NavSceneManager::class.java))
+    val algorithm = ManualLayoutAlgorithm(rootPositions, myModule, mock(NavSceneManager::class.java))
     algorithm.layout(scene.root!!.flatten().collect(Collectors.toList()))
 
     WriteCommandAction.runWriteCommandAction(project) { model.find("fragment1")!!.setAttribute(ANDROID_URI, ATTR_ID, "@+id/renamed") }

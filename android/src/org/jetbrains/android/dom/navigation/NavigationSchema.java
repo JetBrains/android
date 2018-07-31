@@ -17,7 +17,6 @@ package org.jetbrains.android.dom.navigation;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.psi.TagToClassMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
 import com.intellij.codeInsight.AnnotationUtil;
@@ -33,7 +32,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.TypeConversionUtil;
-import com.intellij.util.Query;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
@@ -49,8 +47,27 @@ import static com.android.SdkConstants.TAG_INCLUDE;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.*;
 
 /**
- * Provides information on OOTB and user-specified navigation tags and attributes.
- * <p>
+ * NavigationSchema is structured around two mappings:
+ *  - Tag name to destination class
+ *  - Destination type to destination class
+ *
+ * Both are in theory many-to-many mappings, though in practice they may
+ * often be one-to-one (since the type to class map may only contain the
+ * roots of the destination class hierarchies).
+ *
+ * The class provides two main areas of functionality:
+ *  - mapping between tag name, destination type, and destination class
+ *  - providing information on the xml schema of navigation files, including
+ *    valid root tags and valid children for a given tag.
+ *
+ * NB: this is only for destinations referenced by Navigators directly, not
+ * all destinations in the project (e.g. subclasses of Fragment will never be
+ * returned by methods in this class if they aren't referenced by Navigators
+ * directly).
+ *
+ * It also provides a mapping from tag name to styleable, which is needed to
+ * find attribute definitions during setup.
+ *
  * TODO: support updates (e.g. custom navigator created)
  */
 public class NavigationSchema implements Disposable {
@@ -73,15 +90,18 @@ public class NavigationSchema implements Disposable {
 
   private static final String NAVIGATOR_CLASS_NAME = "androidx.navigation.Navigator";
 
-  // TODO: it would be nice if this mapping were somehow supplied by the platform
-  private static final Map<String, DestinationType> NAV_CLASS_TO_TYPE = ImmutableMap.of(
-    "androidx.navigation.NavGraph", NAVIGATION,
-    "androidx.navigation.fragment.FragmentNavigator.Destination", FRAGMENT,
-    "androidx.navigation.ActivityNavigator.Destination", ACTIVITY);
-
+  /**
+   * Annotation on the Navigator subclass that specifies the corresponding tag to be used in the navigation xml.
+   * Navigators are required to specify this or extend a Navigator that does.
+   */
   private static final String ANNOTATION_NAV_TAG_NAME = "androidx.navigation.Navigator.Name";
 
-  public static final String ATTR_NAV_TYPE = "navType";
+  /**
+   * Optional annotation on the NavDestination subclass that specifies the class of the destination (e.g. Fragment or Activity).
+   * This is necessary for some aspects of the nav editor to work fully, but is not required by the framework.
+   */
+  private static final String ANNOTATION_NAV_CLASS_TYPE = "androidx.navigation.NavDestination.ClassType";
+
   public static final String ATTR_POP_UP_TO = "popUpTo";
   public static final String ATTR_POP_UP_TO_INCLUSIVE = "popUpToInclusive";
   public static final String ATTR_SINGLE_TOP = "launchSingleTop";
@@ -94,13 +114,26 @@ public class NavigationSchema implements Disposable {
   public static final String ATTR_DATA_PATTERN = "dataPattern";
   public static final String ATTR_DEFAULT_VALUE = "defaultValue";
 
-  // TODO: it would be nice to have this generated dynamically, but there's no way to know what the default navigator for a type should be.
-  private Map<DestinationType, String> myTypeToRootTag = ImmutableMap.of(
-    FRAGMENT, "fragment",
-    ACTIVITY, "activity",
-    NAVIGATION, "navigation"
-  );
+  /**
+   * We use this as a placeholder for the type navigated over for subgraph destinations, since they don't have one.
+   */
+  public static final String NAV_GRAPH_DESTINATION = "androidx.navigation.NavGraph";
 
+  /**
+   * Map from DestinationType to the tag used by the root OOTB navigator for that tag.
+   *
+   * Implementation note: If a custom Navigator subclass uses e.g. the fragment tag and doesn't extend from the default FragmentNavigator
+   * there's no way for us to know which the default Navigator is without this static mapping.
+   * TODO: it would be nice to have this specified by the platform somehow that didn't require hardcoding of class names in Studio.
+   */
+  private Map<DestinationType, String> myTypeToRootTag;
+  public static final String ROOT_ACTIVITY_NAVIGATOR = "androidx.navigation.ActivityNavigator";
+  public static final String ROOT_FRAGMENT_NAVIGATOR = "androidx.navigation.fragment.FragmentNavigator";
+  public static final String ROOT_NAV_GRAPH_NAVIGATOR = "androidx.navigation.NavGraphNavigator";
+
+  /**
+   * Type of destination, mostly for controlling behavior in the nav editor UI and determining valid subtags in the xml.
+   */
   public enum DestinationType {
     NAVIGATION,
     FRAGMENT,
@@ -109,48 +142,134 @@ public class NavigationSchema implements Disposable {
   }
 
   //endregion
+  /////////////////////////////////////////////////////////////////////////////
+  //region Caches
+  /////////////////////////////////////////////////////////////////////////////
 
+  /**
+   * Reference to a PsiClass that should be stable across psi reparses, but knows how to get a new version of itself if needed.
+   */
+  private class TypeRef {
+    private String myClassName;
+    private SmartPsiElementPointer<PsiClass> myPointer;
+
+    TypeRef(@NotNull PsiClass c) {
+      myClassName = c.getQualifiedName();
+      myPointer = SmartPointerManager.getInstance(c.getProject()).createSmartPsiElementPointer(c);
+    }
+
+    TypeRef(@NotNull String className) {
+      this.myClassName = className;
+    }
+
+    /**
+     * Don't use this, it's just for NULL_TYPE
+     */
+    TypeRef() {}
+
+    /**
+     * Gets the PsiClass this ref represents. If the smartpointer is obsolete (or if this TypeRef wasn't created with a PsiClass instance)
+     * it will look it up by name.
+     */
+    @Nullable
+    PsiClass dereference() {
+      PsiClass result = myPointer == null ? null : myPointer.getElement();
+      if (result == null) {
+        result = NavigationSchema.this.getClass(myClassName);
+        if (result != null) {
+          myPointer = SmartPointerManager.getInstance(result.getProject()).createSmartPsiElementPointer(result);
+        }
+      }
+      return result;
+    }
+
+    /**
+     * TypeRefs are hashed and compared by type name only.
+     */
+    @Override
+    public int hashCode() {
+      return myClassName == null ? 0 : myClassName.hashCode();
+    }
+
+    /**
+     * TypeRefs are hashed and compared by type name only.
+     */
+    @Override
+    public boolean equals(Object obj) {
+      return obj instanceof TypeRef && Objects.equals(((TypeRef)obj).myClassName, myClassName);
+    }
+  }
+
+  /**
+   * Marker TypeRef for the null value case (e.g. for maps that don't support null values).
+   */
+  private final TypeRef NULL_TYPE = new TypeRef();
+
+  /**
+   * Cache of class names to (in effect) PsiClasses for our frequently-used types.
+   */
+  private final Map<String, TypeRef> myTypeCache = new HashMap<>();
+
+  /**
+   * Get (from our cache if possible) the PsiClass for the given className.
+   */
+  @Nullable
+  private PsiClass getClass(@Nullable String className) {
+    if (className == null) {
+      return null;
+    }
+    TypeRef ref = myTypeCache.get(className);
+    if (ref != null) {
+      PsiClass c = ref.dereference();
+      if (c != null) {
+        return c;
+      }
+    }
+
+    Module module = myFacet.getModule();
+    JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(module.getProject());
+    PsiClass result = javaPsiFacade.findClass(className, GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, true));
+    if (result != null) {
+      myTypeCache.put(className, new TypeRef(result));
+    }
+    else {
+      myTypeCache.remove(className);
+    }
+    return result;
+  }
+
+  //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Instance Data
   /////////////////////////////////////////////////////////////////////////////
 
   private final AndroidFacet myFacet;
 
-  // TODO: it would be nice if this mapping were somehow supplied by the platform
-  public static final Map<String, DestinationType> DESTINATION_SUPERCLASS_TO_TYPE = ImmutableMap.of(
-    SdkConstants.CLASS_ACTIVITY, ACTIVITY,
-    SdkConstants.CLASS_FRAGMENT, FRAGMENT,
-    SdkConstants.CLASS_V4_FRAGMENT.oldName(), FRAGMENT,
-    SdkConstants.CLASS_V4_FRAGMENT.newName(), FRAGMENT);
+  /**
+   * Map from DestinationType (Fragment, activity, navigation, other) to destination class (android.app.Activity etc.).
+   * This includes all destination classes that are directly referenced by Navigators in ClassType annotations on their NavDestination
+   * subclasses. in the project or libraries (including the basic ones from the navigation library).
+   */
+  private ImmutableMultimap<DestinationType, TypeRef> myTypeToDestinationClass;
 
-  private static final Multimap<String, String> NAVIGATION_TO_DESTINATION_SUPERCLASS = HashMultimap.create();
+  /**
+   * Map from tag name to destination class. This should include all tags and destination classes
+   */
+  private ImmutableMultimap<String, TypeRef> myTagToDestinationClass;
 
-  private Map<String, DestinationType> myTagToDestinationType;
-  private Multimap<String, PsiClass> myTagToNavigatorClass;
-
-  static {
-    // TODO: Remove this hardcoded initialization once the platform supplies this information
-    for (Map.Entry<String, DestinationType> entry : DESTINATION_SUPERCLASS_TO_TYPE.entrySet()) {
-      String navigatorClass;
-      if (entry.getValue() == FRAGMENT) {
-        navigatorClass = "androidx.navigation.fragment.FragmentNavigator";
-      }
-      else if (entry.getValue() == ACTIVITY) {
-        navigatorClass = "androidx.navigation.ActivityNavigator";
-      }
-      else {
-        continue;
-      }
-
-      NAVIGATION_TO_DESTINATION_SUPERCLASS.put(navigatorClass, entry.getKey());
-    }
-  }
+  /**
+   * Map from tag name to styleable class (that is, class corresponding to an xml tag with attributes defined in attrs.xml).
+   */
+  private ImmutableMultimap<String, TypeRef> myTagToStyleables;
 
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Initialization
   /////////////////////////////////////////////////////////////////////////////
 
+  /**
+   * Cache of NavigationSchemas that have been created, per Facet.
+   */
   private static final Map<AndroidFacet, NavigationSchema> ourSchemas = new HashMap<>();
 
   /**
@@ -178,7 +297,6 @@ public class NavigationSchema implements Disposable {
     }
   }
 
-
   private NavigationSchema(@NotNull AndroidFacet facet) {
     myFacet = facet;
   }
@@ -188,71 +306,242 @@ public class NavigationSchema implements Disposable {
     ApplicationManager.getApplication().invokeLater(() -> ourSchemas.remove(myFacet));
   }
 
+  /**
+   * Initialize the core data of this NavigationSchema (myTypeToDestinationClass and myTagToDestinationClass).
+   *
+   * @throws ClassNotFoundException if the Navigator root class isn't found.
+   *
+   * TODO: re-initialize when libraries or Navigator subclasses are added or removed.
+   */
   private void init() throws ClassNotFoundException {
+    // Get the root Navigator class
     Project project = myFacet.getModule().getProject();
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
-    PsiClass navigatorRoot = javaPsiFacade.findClass(NAVIGATOR_CLASS_NAME, GlobalSearchScope.allScope(project));
+    GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(myFacet.getModule());
+    PsiClass navigatorRoot = javaPsiFacade.findClass(NAVIGATOR_CLASS_NAME, scope);
     if (navigatorRoot == null) {
       Logger.getInstance(getClass()).warn("Navigator class not found.");
       throw new ClassNotFoundException(NAVIGATOR_CLASS_NAME);
     }
-    PsiTypeParameter destinationTypeParam = navigatorRoot.getTypeParameters()[0];
 
-    Map<String, DestinationType> tagToType = new HashMap<>();
-    Multimap<String, PsiClass> tagToClass = HashMultimap.create();
+    Map<PsiClass, String> navigatorToTag = new HashMap<>();
+    Map<PsiClass, PsiClass> navigatorToDestinationClass = new HashMap<>();
+    // TODO: Right now we have to add these root classes in manually, but in the release after alpha04 they'll be defined by the TypeName
+    //       annotation and so this can be removed.
+    // We assume only one of the new and old versions will be present. For that one the class will be found and so will be added to the map.
+    navigatorToDestinationClass.put(getClass(ROOT_ACTIVITY_NAVIGATOR), getClass(SdkConstants.CLASS_ACTIVITY));
+    PsiClass oldFragment = getClass(SdkConstants.CLASS_V4_FRAGMENT.oldName());
+    if (oldFragment != null) {
+      navigatorToDestinationClass.put(getClass(ROOT_FRAGMENT_NAVIGATOR), oldFragment);
+    }
+    PsiClass newFragment = getClass(SdkConstants.CLASS_V4_FRAGMENT.newName());
+    if (newFragment != null) {
+      navigatorToDestinationClass.put(getClass(ROOT_FRAGMENT_NAVIGATOR), newFragment);
+    }
+    // end TODO
 
-    for (PsiClass navClass : getClassMap(NAVIGATOR_CLASS_NAME).values()) {
+    // This one currently has to be added manually no matter what, since there's no destination type for subnavs per se
+    navigatorToDestinationClass.put(getClass(ROOT_NAV_GRAPH_NAVIGATOR), getClass(NAV_GRAPH_DESTINATION));
+
+    // Now we iterate over all the navigators and collect the destinations and tags.
+    for (PsiClass navClass : ClassInheritorsSearch.search(navigatorRoot, scope, true)) {
       if (navClass.equals(navigatorRoot)) {
         // Don't keep the root navigator
         continue;
       }
+      collectDestinationsForNavigator(navigatorRoot, navClass, navigatorToDestinationClass);
+      collectTagsForNavigator(navClass, navigatorToTag);
+    }
+    myTagToStyleables = buildTagToStyleables(navigatorToTag);
+    // Match up the tags and destinations
+    myTagToDestinationClass = buildTagToDestinationMap(navigatorToTag, navigatorToDestinationClass);
+    // Build the type map, mostly based on hardcoded correspondences between type and destination class.
+    myTypeToDestinationClass = buildDestinationTypeToDestinationMap();
+    myTypeToRootTag = buildTypeToDefaultTag(navigatorToTag);
+  }
 
-      DestinationType type = getType(navClass, navigatorRoot, destinationTypeParam);
-      String tag = getTagAttributeValue(navClass);
+  /**
+   * Builds a map from tag to Styleables (in this case, the Navigators that correspond to those tags).
+   */
+  private ImmutableMultimap<String, TypeRef> buildTagToStyleables(Map<PsiClass, String> navigatorToTag) {
+    ImmutableMultimap.Builder<String, TypeRef> builder = ImmutableMultimap.builder();
+    navigatorToTag.forEach((navigator, tag) -> builder.put(tag, new TypeRef(navigator)));
+    return builder.build();
+  }
 
-      if (tag == null) {
+  /**
+   * Builds the map of DestinationType to destination class for all the destination classes referenced in Navigators, simply by walking
+   * up the class hierarchy for destination classes until one of the root types (android.app.Activity, or the androidx or non-androidx
+   * support Fragment) is reached, or not.
+   */
+  @NotNull
+  private ImmutableMultimap<DestinationType, TypeRef> buildDestinationTypeToDestinationMap() {
+    Map<PsiClass, DestinationType> destinationClassToType = new HashMap<>();
+    destinationClassToType.put(getClass(SdkConstants.CLASS_ACTIVITY), ACTIVITY);
+    PsiClass oldFragment = getClass(SdkConstants.CLASS_V4_FRAGMENT.oldName());
+    if (oldFragment != null) {
+      destinationClassToType.put(oldFragment, FRAGMENT);
+    }
+    PsiClass newFragment = getClass(SdkConstants.CLASS_V4_FRAGMENT.newName());
+    if (newFragment != null) {
+      destinationClassToType.put(newFragment, FRAGMENT);
+    }
+    destinationClassToType.put(getClass(NAV_GRAPH_DESTINATION), NAVIGATION);
+
+    for (TypeRef destinationClassRef : myTagToDestinationClass.values()) {
+      if (destinationClassRef == NULL_TYPE) {
         continue;
       }
-
-      if (tagToType.getOrDefault(tag, type) != type) {
-        Logger.getInstance(NavigationSchema.class).warn("Multiple destination types for tag " + navClass);
+      PsiClass destinationClass = destinationClassRef.dereference();
+      if (destinationClass == null) {
+        // At this point this shouldn't happen, since the reference was just created above.
+        continue;
       }
-      tagToType.put(tag, type);
-      tagToClass.put(tag, navClass);
+      List<PsiClass> toUpdate = new ArrayList<>();
+      DestinationType result = OTHER;
+      while (destinationClass != null) {
+        toUpdate.add(destinationClass);
+        DestinationType t = destinationClassToType.get(destinationClass);
+        if (t != null) {
+          result = t;
+          break;
+        }
+        destinationClass = destinationClass.getSuperClass();
+      }
+      for (PsiClass d : toUpdate) {
+        destinationClassToType.put(d, result);
+      }
     }
-    // Doesn't come from library, so have to add manually.
-    tagToType.put(TAG_INCLUDE, NAVIGATION);
-
-    myTagToNavigatorClass = tagToClass;
-    myTagToDestinationType = tagToType;
+    ImmutableMultimap.Builder<DestinationType, TypeRef> typeToDestinationBuilder = ImmutableMultimap.builder();
+    destinationClassToType.forEach((destination, type) -> typeToDestinationBuilder.put(type, new TypeRef(destination)));
+    typeToDestinationBuilder.put(OTHER, NULL_TYPE);
+    return typeToDestinationBuilder.build();
   }
 
+  /**
+   * Join the navigator-to-tag map and the navigator-to-destination map. All tags will be in the result map, but only destinations with
+   * associated tags will be included. Tags with no associated destination (that don't extend OOTB Navigators or don't have a type specified
+   * via the (optional) NavDestination.ClassType annotation) will be mapped to NULL_TYPE.
+   */
   @NotNull
-  private Map<String, PsiClass> getClassMap(@NotNull String className) {
-    Map<String, PsiClass> result = TagToClassMapper.getInstance(myFacet.getModule()).getClassMap(className);
-    if (result.isEmpty()) {
-      // TODO: handle the not-synced-yet case
-      throw new RuntimeException(className + " not found");
+  private ImmutableMultimap<String, TypeRef> buildTagToDestinationMap(@NotNull Map<PsiClass, String> navigatorToTag,
+                                                                      @NotNull Map<PsiClass, PsiClass> navigatorToDestinationClass) {
+    ImmutableMultimap.Builder<String, TypeRef> tagToDestBuilder = new ImmutableMultimap.Builder<>();
+    for (Map.Entry<PsiClass, PsiClass> navToDestEntry : navigatorToDestinationClass.entrySet()) {
+      String tag = navigatorToTag.get(navToDestEntry.getKey());
+      if (tag != null) {
+        PsiClass destClass = navToDestEntry.getValue();
+        tagToDestBuilder.put(tag, destClass == null ? NULL_TYPE : new TypeRef(destClass));
+      }
     }
-    return result;
+    return tagToDestBuilder.build();
   }
 
-  @NotNull
-  private static DestinationType getType(@NotNull PsiClass subNav, @NotNull PsiClass navigatorRoot, PsiTypeParameter destinationTypeParam) {
+  /**
+   * A Navigator has a tag defined as an annotation on the Navigator class itself or one of its superclasses. This method updates
+   * navigatorToTagCollector with the mapping for the given navClass, as well as any of its superclasses that do not currently have a
+   * mapping defined.
+   */
+  private static void collectTagsForNavigator(@NotNull PsiClass navClass, @NotNull Map<PsiClass, String> navigatorToTagCollector) {
+    PsiClass tempNavigator = navClass;
+    List<PsiClass> childrenToUpdate = Lists.newArrayList();
+
+    String result;
+    do {
+      childrenToUpdate.add(tempNavigator);
+      result = navigatorToTagCollector.get(tempNavigator);
+      if (result != null) {
+        break;
+      }
+      result = getTagAnnotationValue(navClass);
+      if (result != null) {
+        break;
+      }
+      tempNavigator = tempNavigator.getSuperClass();
+    } while (tempNavigator != null && !NAVIGATOR_CLASS_NAME.equals(tempNavigator.getQualifiedName()));
+
+    if (result != null) {
+      for (PsiClass navigator : childrenToUpdate) {
+        navigatorToTagCollector.put(navigator, result);
+      }
+    }
+  }
+
+  /**
+   * A Navigator can have a specific destination class defined by a annotation on its NavDestination type parameter, which can be inherited
+   * from the parent NavDestination type if not defined.
+   * This method updates navigatorToDestinationClassCollector with the mapping for the given navClass.
+   */
+  private static void collectDestinationsForNavigator(@NotNull PsiClass navigatorRoot,
+                                                      @NotNull PsiClass navClass,
+                                                      @NotNull Map<PsiClass, PsiClass> navigatorToDestinationClassCollector) {
+    PsiTypeParameter destinationTypeParam = navigatorRoot.getTypeParameters()[0];
+    PsiClass resultDestination = navigatorToDestinationClassCollector.get(navClass);
+    if (resultDestination == null) {
+      resultDestination = getDestinationClassAnnotationValue(navClass, navigatorRoot, destinationTypeParam);
+    }
+
+    // TODO: remove once the base classes are properly annotated
+    if (resultDestination == null) {
+      PsiClass parentClass = navClass.getSuperClass();
+      while (parentClass != null && resultDestination == null) {
+        resultDestination = navigatorToDestinationClassCollector.get(parentClass);
+        parentClass = parentClass.getSuperClass();
+      }
+    }
+    // end TODO
+
+    navigatorToDestinationClassCollector.put(navClass, resultDestination);
+
+  }
+
+  /**
+   * Finds the class referenced by the ClassType annotation on the navigator's type parameter (inherited from the type parameter's
+   * superclass if necessary).
+   */
+  @Nullable
+  private static PsiClass getDestinationClassAnnotationValue(@NotNull PsiClass subNav,
+                                                             @NotNull PsiClass navigatorRoot,
+                                                             PsiTypeParameter destinationTypeParam) {
     PsiType resolved =
       TypeConversionUtil.getSuperClassSubstitutor(navigatorRoot, PsiTypesUtil.getClassType(subNav)).substitute(destinationTypeParam);
-
     if (resolved == null) {
-      // Shouldn't happen unless there's code errors in the project
-      return OTHER;
+      return null;
     }
-    return NAV_CLASS_TO_TYPE.getOrDefault(resolved.getCanonicalText(), OTHER);
+    List<PsiType> resolvedWithSupers = new ArrayList<>(Arrays.asList(resolved.getSuperTypes()));
+    resolvedWithSupers.add(0, resolved);
+
+    for (PsiType t : resolvedWithSupers) {
+      PsiAnnotation annotation = AnnotationUtil.findAnnotation(PsiTypesUtil.getPsiClass(t), ANNOTATION_NAV_CLASS_TYPE);
+      if (annotation != null) {
+        PsiAnnotationMemberValue expression = annotation.findAttributeValue("value");
+        if (!(expression instanceof PsiClassObjectAccessExpression)) {
+          return null;
+        }
+        return PsiTypesUtil.getPsiClass(((PsiClassObjectAccessExpression)expression).getOperand().getType());
+      }
+    }
+    return null;
   }
 
+  /**
+   * Gets the tag name from the Name annotation on the given Navigator subclass.
+   */
   @Nullable
-  private static String getTagAttributeValue(@NotNull PsiClass subNav) {
+  private static String getTagAnnotationValue(@NotNull PsiClass subNav) {
     PsiAnnotation annotation = AnnotationUtil.findAnnotation(subNav, ANNOTATION_NAV_TAG_NAME);
     return annotation == null ? null : AnnotationUtil.getStringAttributeValue(annotation, "value");
+  }
+
+  /**
+   * Builds a map from DestinationType to the default tag to be used for that type.
+   */
+  private Map<DestinationType, String> buildTypeToDefaultTag(Map<PsiClass, String> navigatorToTag) {
+    Map<DestinationType, String> result = new HashMap<>();
+    result.put(FRAGMENT, navigatorToTag.get(getClass(ROOT_FRAGMENT_NAVIGATOR)));
+    result.put(ACTIVITY, navigatorToTag.get(getClass(ROOT_ACTIVITY_NAVIGATOR)));
+    result.put(NAVIGATION, navigatorToTag.get(getClass(ROOT_NAV_GRAPH_NAVIGATOR)));
+    return result;
   }
 
   //endregion
@@ -262,6 +551,10 @@ public class NavigationSchema implements Disposable {
 
   /**
    * For the given {@code tagName}, gets a map from {@link AndroidDomElement} class to all subtags names of that type.
+   * Note that if multiple custom navigators define the same tag for different destination types this method will return the union
+   * of the valid subtags for all destination types.
+   * For example, if we have a custom navigator with destinations of type Activity and one with destinations of type Fragment and both have
+   * tag "foo" we'll return the subtags for both fragments and activities here.
    * <p>
    * Implementation note: We define the hierarchy this way instead of via the normal mechanism
    * (https://www.jetbrains.org/intellij/sdk/docs/reference_guide/frameworks_and_external_apis/xml_dom_api.html)
@@ -273,28 +566,40 @@ public class NavigationSchema implements Disposable {
     if (tagName.equals(TAG_ACTION)) {
       return ImmutableSetMultimap.of(NavArgumentElement.class, TAG_ARGUMENT);
     }
-    DestinationType type = getDestinationType(tagName);
-    if (type == null || isIncludeTag(tagName)) {
-      return ImmutableListMultimap.of();
-    }
     Multimap<Class<? extends AndroidDomElement>, String> result = HashMultimap.create();
-    if (type == NAVIGATION) {
-      myTagToDestinationType
-        .forEach((key, value) -> result.put(value == NAVIGATION ? NavGraphElement.class : ConcreteDestinationElement.class, key));
+    for (DestinationType type : getDestinationTypesForTag(tagName)) {
+      if (type == null || isIncludeTag(tagName)) {
+        continue;
+      }
+      if (type == NAVIGATION) {
+        myTypeToDestinationClass.forEach((childType, childDestinationClass) -> {
+          for (String tag : myTagToDestinationClass.inverse().get(childDestinationClass)) {
+            result.put(childType == NAVIGATION ? NavGraphElement.class : ConcreteDestinationElement.class, tag);
+          }
+        });
+        result.put(NavGraphElement.class, TAG_INCLUDE);
+      }
+      if (type != ACTIVITY) {
+        result.put(NavActionElement.class, TAG_ACTION);
+      }
+      result.put(DeeplinkElement.class, TAG_DEEP_LINK);
+      result.put(NavArgumentElement.class, TAG_ARGUMENT);
     }
-    if (type != ACTIVITY) {
-      result.put(NavActionElement.class, TAG_ACTION);
-    }
-    result.put(DeeplinkElement.class, TAG_DEEP_LINK);
-    result.put(NavArgumentElement.class, TAG_ARGUMENT);
     return result;
   }
 
+  /**
+   * Gets the tag to use by default for the given DestinationType. Right now this is just a static mapping to the OOTB tags
+   */
   @Nullable
   public String getDefaultTag(@NotNull DestinationType type) {
     return myTypeToRootTag.get(type);
   }
 
+  /**
+   * Gets the tags that can be used as the root tag of a navigation file based on the NavigationSchema for the given facet, and returning
+   * a sensible default if the schema isn't available.
+   */
   @NotNull
   public static List<String> getPossibleRootsMaybeWithoutSchema(@NotNull AndroidFacet facet) {
     Application application = ApplicationManager.getApplication();
@@ -313,11 +618,19 @@ public class NavigationSchema implements Disposable {
     return result.get();
   }
 
+  /**
+   * Gets the tags that can be used as the root of a navigation graph--the tags that map to a destination of type NAVIGATION.
+   */
   @NotNull
   public List<String> getPossibleRoots() {
-    return myTagToDestinationType.keySet().stream()
-                                 .filter(tag -> myTagToDestinationType.get(tag) == NAVIGATION)
-                                 .collect(Collectors.toList());
+    return myTypeToDestinationClass.get(NAVIGATION).stream()
+                                   .flatMap(c -> myTagToDestinationClass.inverse().get(c).stream())
+                                   .collect(Collectors.toList());
+  }
+
+  @NotNull
+  public Collection<PsiClass> getStyleablesForTag(@NotNull String tag) {
+    return myTagToStyleables.get(tag).stream().map(TypeRef::dereference).collect(Collectors.toList());
   }
 
   //endregion
@@ -325,108 +638,76 @@ public class NavigationSchema implements Disposable {
   //region Schema Mappings
   /////////////////////////////////////////////////////////////////////////////
 
-  @Nullable
-  private String getTagForComponentSuperclass(@NotNull String superclassName) {
-    DestinationType type = DESTINATION_SUPERCLASS_TO_TYPE.get(superclassName);
-    if (type != null) {
-      return getDefaultTag(type);
+  // This section should contain methods to map between only tag, destination class, and destination type.
+
+  /**
+   * Gets all the tags known in this NavigationSchema.
+   */
+  @NotNull
+  public Collection<String> getAllTags() {
+    return myTagToDestinationClass.keySet();
+  }
+
+  /**
+   * Gets the possible DestinationTypes for a given tag.
+   * In normal situations there should only be one possible DestinationType for a tag, but it's possible to define multiple Navigators
+   * with the same tag and different destination classes which have different types.
+   */
+  @NotNull
+  public Collection<DestinationType> getDestinationTypesForTag(@NotNull String tag) {
+    if (tag.equals(TAG_INCLUDE)) {
+      return ImmutableList.of(NAVIGATION);
     }
-    return null;
+    Set<DestinationType> result = EnumSet.noneOf(DestinationType.class);
+    for (TypeRef destinationClassRef : myTagToDestinationClass.get(tag)) {
+      if (destinationClassRef == NULL_TYPE) {
+        result.add(OTHER);
+      }
+      else {
+        result.addAll(myTypeToDestinationClass.inverse().get(destinationClassRef));
+      }
+    }
+    return result;
   }
 
+  /**
+   * Gets the DestinationType for the given destination class. This is determined by the superclass hierarchy of the destination class.
+   */
   @Nullable
-  public DestinationType getDestinationType(@NotNull String tag) {
-    return myTagToDestinationType.get(tag);
+  public DestinationType getDestinationTypeForDestinationClassName(@NotNull String className) {
+    ImmutableCollection<DestinationType> types = myTypeToDestinationClass.inverse().get(new TypeRef(className));
+    return types.isEmpty() ? null : types.iterator().next();
   }
 
+
+  /**
+   * Gets the possible tags for a given destination class. There can be multiple if multiple Navigators target the same destination class.
+   *
+   * TODO: determine if tags specified anywhere in the supertype hierarchy should be included.
+   */
   @Contract("null -> null")
   @Nullable
-  public String findTagForComponent(@Nullable PsiClass layoutClass) {
+  public Collection<String> getTagsForDestinationClass(@Nullable PsiClass layoutClass) {
     while (layoutClass != null) {
-      String qName = layoutClass.getQualifiedName();
-      if (qName != null) {
-        String tag = getTagForComponentSuperclass(qName);
-        if (tag != null) {
-          return tag;
-        }
+      Collection<String> result = myTagToDestinationClass.inverse().get(new TypeRef(layoutClass));
+      if (!result.isEmpty()) {
+        return result;
       }
       layoutClass = layoutClass.getSuperClass();
     }
     return null;
   }
 
+  /**
+   * Gets the possible destination classes for a given tag. There can be multiple if multiple Navigators use the same tag name.
+   */
   @NotNull
-  public Collection<PsiClass> getDestinationClassesByTag(@NotNull String tagName) {
-    return myTagToNavigatorClass.get(tagName);
+  public Collection<PsiClass> getDestinationClassesForTag(@NotNull String tagName) {
+    return myTagToDestinationClass.get(tagName).stream()
+                                  .map(TypeRef::dereference)
+                                  .filter(c -> c != null)
+                                  .collect(Collectors.toSet());
   }
-
-  public Map<String, DestinationType> getTagTypeMap() {
-    return Collections.unmodifiableMap(myTagToDestinationType);
-  }
-
-  /**
-   * Gets a map of tags to destination classes
-   */
-  public Multimap<String, PsiClass> getAllDestinationClasses() {
-    Multimap<String, PsiClass> result = HashMultimap.create();
-
-    for (String tag : myTagToDestinationType.keySet()) {
-      List<PsiClass> classes = getDestinationClasses(tag);
-      result.putAll(tag, classes);
-    }
-
-    return result;
-  }
-
-  /**
-   * Gets a list of PsiClasses for destination classes and their subclasses for all navigators
-   * that use the specified tag name
-   */
-  public List<PsiClass> getDestinationClasses(String tag) {
-    Module module = myFacet.getModule();
-    Project project = module.getProject();
-    JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
-    List<PsiClass> result = new ArrayList<>();
-
-    for (PsiClass navigatorClass : myTagToNavigatorClass.get(tag)) {
-      for (String destinationSuperClass : NAVIGATION_TO_DESTINATION_SUPERCLASS.get(navigatorClass.getQualifiedName())) {
-        if (destinationSuperClass == null) {
-          continue;
-        }
-
-        PsiClass psiSuperClass = javaPsiFacade.findClass(destinationSuperClass, GlobalSearchScope.allScope(project));
-        if (psiSuperClass == null) {
-          continue;
-        }
-
-        Query<PsiClass> query = ClassInheritorsSearch.search(psiSuperClass, GlobalSearchScope.moduleWithDependenciesScope(module), true);
-        if (query == null) {
-          continue;
-        }
-
-        for (PsiClass psiClass : query) {
-          if (isNavHostFragment(psiClass)) {
-            continue;
-          }
-
-          result.add(psiClass);
-        }
-      }
-    }
-
-    return result;
-  }
-
-  private static boolean isNavHostFragment(PsiClass psiClass) {
-    for (PsiClass superClass : psiClass.getSupers()) {
-      if (superClass.getQualifiedName().equals(SdkConstants.FQCN_NAV_HOST_FRAGMENT)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region UI
@@ -448,22 +729,25 @@ public class NavigationSchema implements Disposable {
       text = ACTION_LABEL;
     }
     else {
-      NavigationSchema.DestinationType type = getDestinationType(tag);
-      if (type == NAVIGATION) {
+      Collection<NavigationSchema.DestinationType> types = getDestinationTypesForTag(tag);
+      if (types.size() > 1) {
+        text = "Ambiguous Type";
+      }
+      else if (types.contains(NAVIGATION)) {
         text = isRoot ? "Root Graph" : "Nested Graph";
       }
-      else if (type == FRAGMENT) {
+      else if (types.contains(FRAGMENT)) {
         text = "Fragment";
       }
-      else if (type == ACTIVITY) {
+      else if (types.contains(ACTIVITY)) {
         text = "Activity";
       }
-
-      if (type == OTHER) {
+      else if (types.contains(OTHER)) {
         text = tag;
       }
-      else if (type != null && !tag.equals(getDefaultTag(type))) {
-        // If it's a custom tag, show it
+
+      if (types.stream().map(this::getDefaultTag).noneMatch(t -> t == null || t.equals(tag))) {
+        // If it's a custom tag, show it. Don't show "other" type tags, since we already show that as the main text.
         text += " (" + tag + ")";
       }
     }
@@ -478,19 +762,19 @@ public class NavigationSchema implements Disposable {
   /////////////////////////////////////////////////////////////////////////////
 
   public Boolean isFragmentTag(@NotNull String tag) {
-    return getDestinationType(tag) == FRAGMENT;
+    return getDestinationTypesForTag(tag).contains(FRAGMENT);
   }
 
   public Boolean isActivityTag(@NotNull String tag) {
-    return getDestinationType(tag) == ACTIVITY;
+    return getDestinationTypesForTag(tag).contains(ACTIVITY);
   }
 
   public Boolean isNavigationTag(@NotNull String tag) {
-    return getDestinationType(tag) == NAVIGATION;
+    return getDestinationTypesForTag(tag).contains(NAVIGATION);
   }
 
   public Boolean isOtherTag(@NotNull String tag) {
-    return getDestinationType(tag) == OTHER;
+    return getDestinationTypesForTag(tag).contains(OTHER);
   }
 
   public Boolean isIncludeTag(@NotNull String tag) {

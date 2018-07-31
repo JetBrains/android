@@ -227,7 +227,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     List<NlComponent> newElements = new ArrayList<>();
     NlComponent root = myDesignSurface.getCurrentNavigation();
     for (NlComponent child : root.getChildren()) {
-      if (getSchema().getDestinationType(child.getTagName()) != null) {
+      if (NavComponentHelperKt.isDestination(child)) {
         newElements.add(child);
       }
     }

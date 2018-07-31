@@ -506,7 +506,7 @@ public class NavSceneManager extends SceneManager {
   @Override
   public SceneDecoratorFactory getSceneDecoratorFactory() {
     if (myDecoratorFactory == null) {
-      myDecoratorFactory = new NavSceneDecoratorFactory(getSchema());
+      myDecoratorFactory = new NavSceneDecoratorFactory();
     }
     return myDecoratorFactory;
   }

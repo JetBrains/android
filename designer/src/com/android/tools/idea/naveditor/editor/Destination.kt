@@ -24,6 +24,7 @@ import com.android.tools.idea.naveditor.model.setAsStartDestination
 import com.android.tools.idea.naveditor.model.startDestinationId
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.psi.PsiClass
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -66,9 +67,9 @@ sealed class Destination : Comparable<Destination> {
 
   @VisibleForTesting
   data class RegularDestination @JvmOverloads constructor(
-      val parent: NlComponent, val tag: String, private val destinationLabel: String? = null, val className: String? = null,
-      val qualifiedName: String? = null, val idBase: String = className ?: tag, private val layoutFile: XmlFile? = null,
-      override val inProject: Boolean = true)
+    val parent: NlComponent, val tag: String, private val destinationLabel: String? = null, val destinationClass: PsiClass,
+    val idBase: String = destinationClass.name ?: tag, private val layoutFile: XmlFile? = null,
+    override val inProject: Boolean = true)
     : Destination() {
 
     // TODO: get border color from theme
@@ -88,20 +89,22 @@ sealed class Destination : Comparable<Destination> {
         }
       }
       val isActivity = model.schema.isActivityTag(tag)
-      
+
       return@lazy iconToImage(if (isActivity) ACTIVITY else DESTINATION)
     }
 
     override val typeLabel: String
       get() = parent.model.schema.getTagLabel(tag)
 
-    override val destinationOrder = when (parent.model.schema.getDestinationType(tag)) {
-      NavigationSchema.DestinationType.FRAGMENT -> DestinationOrder.FRAGMENT
-      NavigationSchema.DestinationType.ACTIVITY -> DestinationOrder.ACTIVITY
-      else -> DestinationOrder.OTHER
+    override val destinationOrder = parent.model.schema.getDestinationTypesForTag(tag).let {
+      when {
+        it.contains(NavigationSchema.DestinationType.FRAGMENT) -> DestinationOrder.FRAGMENT
+        it.contains(NavigationSchema.DestinationType.ACTIVITY) -> DestinationOrder.ACTIVITY
+        else -> DestinationOrder.OTHER
+      }
     }
 
-    override val label = destinationLabel ?: layoutFile?.let { FileUtil.getNameWithoutExtension(it.name) } ?: className ?: tag
+    override val label = destinationLabel ?: layoutFile?.let { FileUtil.getNameWithoutExtension(it.name) } ?: destinationClass.name ?: tag
 
     override fun addToGraph() {
       val model = parent.model
@@ -109,7 +112,7 @@ sealed class Destination : Comparable<Destination> {
       val tag = parent.tag.createChildTag(tag, null, null, true)
       val newComponent = model.createComponent(null, tag, parent, null, InsertType.CREATE)
       newComponent.assignId(idBase)
-      newComponent.setAndroidAttribute(SdkConstants.ATTR_NAME, qualifiedName)
+      newComponent.setAndroidAttribute(SdkConstants.ATTR_NAME, destinationClass.qualifiedName)
       newComponent.setAndroidAttribute(SdkConstants.ATTR_LABEL, label)
       if (parent.startDestinationId == null) {
         newComponent.setAsStartDestination()

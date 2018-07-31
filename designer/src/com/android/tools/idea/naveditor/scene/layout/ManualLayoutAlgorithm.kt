@@ -42,8 +42,6 @@ import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.dom.navigation.NavigationDomFileDescription
-import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.facet.AndroidFacet
 
 const val SKIP_PERSISTED_LAYOUT = "skipPersistedLayout"
 
@@ -51,21 +49,9 @@ const val SKIP_PERSISTED_LAYOUT = "skipPersistedLayout"
  * [NavSceneLayoutAlgorithm] that puts screens in locations that have been specified by the user
  */
 class ManualLayoutAlgorithm(private val module: Module, private val sceneManager: NavSceneManager) : SingleComponentLayoutAlgorithm() {
-  private var _schema: NavigationSchema? = null
   private var _storage: Storage? = null
   private val tagPositionMap: BiMap<SmartPsiElementPointer<XmlTag>, LayoutPositions> = HashBiMap.create()
   private val filePositionMap: MutableMap<XmlFile, LayoutPositions> = mutableMapOf()
-
-  private val schema: NavigationSchema
-    get() {
-      var result = _schema
-      if (result == null) {
-        val instance = AndroidFacet.getInstance(this.module)!!
-        result = NavigationSchema.get(instance)
-        _schema = result
-      }
-      return result
-    }
 
   private val storage: Storage
     get() {
@@ -92,9 +78,8 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
   }
 
   @VisibleForTesting
-  constructor(schema: NavigationSchema, state: LayoutPositions, module: Module, sceneManager: NavSceneManager)
+  constructor(state: LayoutPositions, module: Module, sceneManager: NavSceneManager)
     : this(module, sceneManager) {
-    _schema = schema
     _storage = Storage()
     storage.rootPositions = state
   }
