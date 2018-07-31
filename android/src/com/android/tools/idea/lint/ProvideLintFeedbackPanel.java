@@ -114,7 +114,7 @@ public class ProvideLintFeedbackPanel extends DialogWrapper implements ActionLis
    * Whether we should request feedback from the user
    */
   public static boolean canRequestFeedback() {
-    if (!AnalyticsSettings.getInstance(new NullLogger()).getOptedIn()) {
+    if (!AnalyticsSettings.getOptedIn()) {
       return false;
     }
     if (requestFeedback == null) {
