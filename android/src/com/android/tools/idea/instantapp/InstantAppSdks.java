@@ -149,7 +149,7 @@ public class InstantAppSdks {
     }
 
     // We want to set this every time the SDK is used to keep it up to date
-    cachedSdkLib.getTelemetryManager().setOptInStatus(AnalyticsSettings.getInstance(new NullLogger()).getOptedIn()
+    cachedSdkLib.getTelemetryManager().setOptInStatus(AnalyticsSettings.getOptedIn()
                                                       ? TelemetryManager.OptInStatus.OPTED_IN
                                                       : TelemetryManager.OptInStatus.OPTED_OUT);
 

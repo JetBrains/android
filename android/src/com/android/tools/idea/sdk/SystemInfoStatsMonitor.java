@@ -113,7 +113,7 @@ public class SystemInfoStatsMonitor {
   private EnumSet<CpuInfoFlags> myCpuInfo = EnumSet.noneOf(CpuInfoFlags.class);
 
   public void start() {
-    if (!AnalyticsSettings.getInstance(new NullLogger()).getOptedIn()) {
+    if (!AnalyticsSettings.getOptedIn()) {
       return;
     }
 
@@ -130,7 +130,7 @@ public class SystemInfoStatsMonitor {
   private void updateAndUploadStats() {
     // double-check if the user has opted out of the metrics reporting since the
     // last run
-    if (!AnalyticsSettings.getInstance(new NullLogger()).getOptedIn()) {
+    if (!AnalyticsSettings.getOptedIn()) {
       myUploadTask.cancel(true);
       return;
     }
