@@ -114,4 +114,30 @@ class ComboBoxPropertyEditorModelTest {
     assertThat(model.getElementAt(1).toString()).isEqualTo("invisible")
     assertThat(model.getElementAt(2).toString()).isEqualTo("gone")
   }
+
+  @Test
+  fun testFocusLossWillUpdateValue() {
+    // setup
+    val (model, listener) = createModelWithListener()
+    model.focusGained()
+    model.text = "#333333"
+
+    // test
+    model.focusLost()
+    assertThat(model.hasFocus).isFalse()
+    assertThat(model.property.value).isEqualTo("#333333")
+    verify(listener).valueChanged()
+  }
+
+  @Test
+  fun testFocusLossWithUnchangedValueWillNotUpdateValue() {
+    // setup
+    val (model, listener) = createModelWithListener()
+    model.focusGained()
+
+    // test
+    model.focusLost()
+    assertThat(model.property.value).isEqualTo("visible")
+    verify(listener, never()).valueChanged()
+  }
 }

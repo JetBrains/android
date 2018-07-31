@@ -76,7 +76,10 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     textField.registerKeyAction({ model.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
     textField.registerKeyAction({ model.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
 
-    addFocusListener(EditorFocusListener(model, { currentValue }))
+    val focusListener = EditorFocusListener(model)
+    addFocusListener(focusListener)
+    textField.addFocusListener(focusListener)
+
     addPopupMenuListener(
       object : PopupMenuListener {
         override fun popupMenuWillBecomeInvisible(event: PopupMenuEvent) {

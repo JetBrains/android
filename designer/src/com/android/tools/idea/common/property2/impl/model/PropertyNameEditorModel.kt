@@ -24,6 +24,8 @@ import com.android.tools.idea.common.property2.api.NewPropertyItem
 class PropertyNameEditorModel(private val newProperty: NewPropertyItem) :
   TextFieldPropertyEditorModel(newProperty, true) {
 
+  override var text = newProperty.name
+
   override var value: String
     get() = newProperty.name
     set(value) {

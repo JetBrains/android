@@ -25,7 +25,7 @@ import com.android.tools.idea.common.property2.api.PropertyItem
 open class TextFieldPropertyEditorModel(property: PropertyItem, override val editable: Boolean) :
   BasePropertyEditorModel(property), CommonTextFieldModel {
 
-  override var text: String = ""
+  override var text = property.value.orEmpty()
 
   override val editingSupport: EditingSupport
     get() = property.editingSupport
@@ -39,5 +39,12 @@ open class TextFieldPropertyEditorModel(property: PropertyItem, override val edi
 
   fun escape() {
     cancelEditing()
+  }
+
+  override fun focusLost() {
+    super.focusLost()
+    if (text != value) {
+      value = text
+    }
   }
 }
