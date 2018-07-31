@@ -61,6 +61,7 @@ final class VirtualDevicesWorkerDelegate extends SwingWorker<Map<VirtualDevice, 
                   .filter(Files::isDirectory)
                   .map(VirtualDevicesWorkerDelegate::getName)
                   .filter(Objects::nonNull)
+                  .sorted()
                   .collect(ImmutableList.toImmutableList());
     }
     catch (IOException exception) {

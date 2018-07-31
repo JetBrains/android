@@ -20,11 +20,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class SelectDeviceAction extends AnAction {
+final class SelectPhysicalDeviceAction extends AnAction {
   private final SnapshotOrDeviceComboBoxAction myComboBoxAction;
   private final Device myDevice;
 
-  SelectDeviceAction(@NotNull Device device, @NotNull SnapshotOrDeviceComboBoxAction comboBoxAction) {
+  SelectPhysicalDeviceAction(@NotNull PhysicalDevice device, @NotNull SnapshotOrDeviceComboBoxAction comboBoxAction) {
     super(device.getName(), null, device.getIcon());
 
     myComboBoxAction = comboBoxAction;
@@ -38,11 +38,11 @@ final class SelectDeviceAction extends AnAction {
 
   @Override
   public boolean equals(@Nullable Object object) {
-    if (!(object instanceof SelectDeviceAction)) {
+    if (!(object instanceof SelectPhysicalDeviceAction)) {
       return false;
     }
 
-    SelectDeviceAction action = (SelectDeviceAction)object;
+    SelectPhysicalDeviceAction action = (SelectPhysicalDeviceAction)object;
     return myComboBoxAction.equals(action.myComboBoxAction) && myDevice.equals(action.myDevice);
   }
 
