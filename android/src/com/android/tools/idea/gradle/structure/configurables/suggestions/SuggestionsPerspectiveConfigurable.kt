@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables.suggestions
 
 import com.android.tools.idea.gradle.structure.configurables.AbstractCounterDisplayConfigurable
-import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
 import com.android.tools.idea.gradle.structure.model.PsModule
@@ -29,7 +28,6 @@ import javax.swing.JComponent
 
 class SuggestionsPerspectiveConfigurable(context: PsContext)
   : AbstractCounterDisplayConfigurable(context), TrackedConfigurable {
-  private val configurablesByGradlePath: Map<String, BaseNamedConfigurable<PsModule>> = HashMap()
   private var extraModules: MutableList<PsModule>? = null
   private var messageCount: Int = 0
 
@@ -37,10 +35,10 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
 
   override fun getId(): String = "android.psd.suggestions"
 
-  override fun getConfigurable(module: PsModule): NamedConfigurable<out PsModule>? =
+  override fun createConfigurableFor(module: PsModule): NamedConfigurable<out PsModule>? =
       when (module) {
-        is PsAndroidModule -> getOrCreateConfigurable(module)
-        is PsAllModulesFakeModule -> getOrCreateConfigurable(module)
+        is PsAndroidModule -> createConfigurable(module)
+        is PsAllModulesFakeModule -> createConfigurable(module)
         else -> null
       }
 
@@ -66,9 +64,6 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
     }, this)
     return component
   }
-
-  private fun getOrCreateConfigurable(module: PsModule) =
-      configurablesByGradlePath[module.gradlePath] ?: createConfigurable(module)
 
   private fun createConfigurable(module: PsModule) =
       AndroidModuleSuggestionsConfigurable(context, module, getExtraModules()).apply { setHistory(myHistory) }

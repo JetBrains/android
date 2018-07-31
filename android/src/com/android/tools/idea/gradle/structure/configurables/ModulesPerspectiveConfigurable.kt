@@ -28,21 +28,16 @@ const val MODULES_PERSPECTIVE_DISPLAY_NAME: String = "Modules"
 class ModulesPerspectiveConfigurable(context: PsContext)
   : BasePerspectiveConfigurable(context), TrackedConfigurable {
 
-  private val configurablesByGradlePath: Map<String, BaseNamedConfigurable<PsModule>> = HashMap()
-
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_MODULES
 
   override fun getId() = "android.psd.modules"
 
-  override fun getConfigurable(module: PsModule): NamedConfigurable<out PsModule>? =
-      if (module is PsAndroidModule) getConfigurable(module) else null
+  override fun createConfigurableFor(module: PsModule): NamedConfigurable<out PsModule>? =
+      if (module is PsAndroidModule) createConfigurable(module) else null
 
   override val navigationPathName: String = MODULES_PERSPECTIVE_PLACE_NAME
 
   override fun getDisplayName() = MODULES_PERSPECTIVE_DISPLAY_NAME
-
-  private fun getConfigurable(module: PsAndroidModule) =
-      configurablesByGradlePath[module.gradlePath] ?: createConfigurable(module)
 
   private fun createConfigurable(module: PsAndroidModule) =
       AndroidModuleRootConfigurable(context, module).apply { history = myHistory }
