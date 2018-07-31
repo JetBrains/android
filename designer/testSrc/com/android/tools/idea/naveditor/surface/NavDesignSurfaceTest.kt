@@ -20,7 +20,10 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.surface.*
+import com.android.tools.idea.common.surface.DesignSurfaceListener
+import com.android.tools.idea.common.surface.InteractionManager
+import com.android.tools.idea.common.surface.Layer
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -275,10 +278,16 @@ class NavDesignSurfaceTest : NavTestCase() {
     dragSelect(manager, sceneView, rect1)
     assertTrue(fragment1.isSelected)
     assertFalse(fragment2.isSelected)
+    dragRelease(manager, sceneView, rect1)
+    assertTrue(fragment1.isSelected)
+    assertFalse(fragment2.isSelected)
 
     val rect2 = fragment2.fillDrawRect(0, null)
     rect2.grow(5, 5)
     dragSelect(manager, sceneView, rect2)
+    assertFalse(fragment1.isSelected)
+    assertTrue(fragment2.isSelected)
+    dragRelease(manager, sceneView, rect2)
     assertFalse(fragment1.isSelected)
     assertTrue(fragment2.isSelected)
 
@@ -289,9 +298,15 @@ class NavDesignSurfaceTest : NavTestCase() {
     dragSelect(manager, sceneView, rect3)
     assertTrue(fragment1.isSelected)
     assertTrue(fragment2.isSelected)
+    dragRelease(manager, sceneView, rect3)
+    assertTrue(fragment1.isSelected)
+    assertTrue(fragment2.isSelected)
 
-    val rect4 = Rectangle(rect3.x + 10, rect3.y + 10, 10, 10)
+    val rect4 = Rectangle(rect3.x + rect3.width + 10, rect3.y + rect3.height + 10, 100, 100)
     dragSelect(manager, sceneView, rect4)
+    assertFalse(fragment1.isSelected)
+    assertFalse(fragment2.isSelected)
+    dragRelease(manager, sceneView, rect4)
     assertFalse(fragment1.isSelected)
     assertFalse(fragment2.isSelected)
 
@@ -369,7 +384,6 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   private fun dragSelect(manager: InteractionManager, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
-
     @SwingCoordinate val x1 = Coordinates.getSwingX(sceneView, rect.x)
     @SwingCoordinate val y1 = Coordinates.getSwingY(sceneView, rect.y)
     @SwingCoordinate val x2 = Coordinates.getSwingX(sceneView, rect.x + rect.width)
@@ -377,6 +391,12 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     LayoutTestUtilities.pressMouse(manager, MouseEvent.BUTTON1, x1, y1, 0)
     LayoutTestUtilities.dragMouse(manager, x1, y1, x2, y2, 0)
+  }
+
+  private fun dragRelease(manager: InteractionManager, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
+    @SwingCoordinate val x2 = Coordinates.getSwingX(sceneView, rect.x + rect.width)
+    @SwingCoordinate val y2 = Coordinates.getSwingY(sceneView, rect.y + rect.height)
+
     LayoutTestUtilities.releaseMouse(manager, MouseEvent.BUTTON1, x2, y2, 0)
   }
 }

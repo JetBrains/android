@@ -621,8 +621,9 @@ public class Scene implements SelectionListener, Disposable {
         return;
       }
 
+      LassoTarget lassoTarget = null;
       if (myHitTarget instanceof LassoTarget) {
-        LassoTarget lassoTarget = (LassoTarget)myHitTarget;
+        lassoTarget = (LassoTarget)myHitTarget;
 
         if (lassoTarget.getSelectWhileDragging() && lassoTarget.getHasChanged()) {
           myNewSelectedComponentsOnRelease.clear();
@@ -635,7 +636,8 @@ public class Scene implements SelectionListener, Disposable {
       myHitListener.skipTarget(myHitTarget);
       myHitListener.find(transform, myRoot, x, y);
       SceneComponent targetComponent = myHitTarget.getComponent();
-      if (targetComponent != null && !inCurrentSelection(targetComponent)) {
+      if ((lassoTarget == null || lassoTarget.getIntersectingComponents().isEmpty())
+          && targetComponent != null && !inCurrentSelection(targetComponent)) {
         myNewSelectedComponentsOnRelease.clear();
         myNewSelectedComponentsOnRelease.add(targetComponent);
         select(myNewSelectedComponentsOnRelease);
