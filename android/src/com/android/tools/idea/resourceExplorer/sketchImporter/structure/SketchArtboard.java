@@ -17,11 +17,11 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayerable;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
 import java.util.List;
 
 public class SketchArtboard extends SketchLayer implements SketchLayerable {
@@ -74,15 +74,15 @@ public class SketchArtboard extends SketchLayer implements SketchLayerable {
     return hasBackgroundColor;
   }
 
-  public List<String> getPaths() {
+  public List<DrawableShape> getShapes() {
 
-    ArrayList<String> paths = new ArrayList<>();
+    ImmutableList.Builder<DrawableShape> shapes = new ImmutableList.Builder<>();
     SketchLayer[] layers = getLayers();
 
     for (SketchLayer layer : layers) {
-      layer.setAbsoluteLocation(paths, new Point2D.Double(0, 0));
+      shapes.addAll(layer.getTranslatedShapes(new Point2D.Double()));
     }
 
-    return paths;
+    return shapes.build();
   }
 }

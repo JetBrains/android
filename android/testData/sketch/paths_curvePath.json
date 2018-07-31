@@ -173,8 +173,8 @@
                 "constrainProportions": false,
                 "height": 10,
                 "width": 10,
-                "x": 0,
-                "y": 0
+                "x": 2,
+                "y": 1
               },
               "isFixedToViewport": false,
               "isFlippedHorizontal": false,
@@ -189,7 +189,7 @@
               "rotation": 0,
               "shouldBreakMaskChain": false,
               "edited": false,
-              "isClosed": true,
+              "isClosed": false,
               "pointRadiusBehaviour": 1,
               "points": [
                 {
@@ -198,9 +198,9 @@
                   "curveFrom": "{0.1, 0.2}",
                   "curveMode": 2,
                   "curveTo": "{0.22385762510000001, 1}",
-                  "hasCurveFrom": false,
+                  "hasCurveFrom": true,
                   "hasCurveTo": false,
-                  "point": "{0.2, 0.7}"
+                  "point": "{0.1, 0.5}"
                 },
                 {
                   "_class": "curvePoint",
@@ -208,9 +208,19 @@
                   "curveFrom": "{0.8, 0.1}",
                   "curveMode": 2,
                   "curveTo": "{0.2, 0.1}",
+                  "hasCurveFrom": true,
+                  "hasCurveTo": true,
+                  "point": "{0.5, 0.1}"
+                },
+                {
+                  "_class": "curvePoint",
+                  "cornerRadius": 0,
+                  "curveFrom": "{0.22385762510000001, 0}",
+                  "curveMode": 2,
+                  "curveTo": "{0.9, 0.2}",
                   "hasCurveFrom": false,
-                  "hasCurveTo": false,
-                  "point": "{0.8, 0.3}"
+                  "hasCurveTo": true,
+                  "point": "{0.9, 0.5}"
                 }
               ]
             }
