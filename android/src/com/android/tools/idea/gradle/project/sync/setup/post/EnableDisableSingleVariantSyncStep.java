@@ -99,7 +99,7 @@ public class EnableDisableSingleVariantSyncStep {
       return;
     }
 
-    String message = "Android Studio can sync only the active variant for faster sync.\n" +
+    String message = "For faster sync times Android Studio can be configured to only sync the active variant.\n" +
                      "Enable this experimental feature now?\n" +
                      "\n" +
                      "You can update your choice later from\n" +
