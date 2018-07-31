@@ -773,11 +773,8 @@ public class RenderErrorContributor {
     }
     AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
     AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs(result.getFile().getProject());
-    final String attributeName = strings[0];
-    final String currentValue = strings[1];
-    if (definitionLookup == null) {
-      return;
-    }
+    String attributeName = strings[0];
+    String currentValue = strings[1];
     AttributeDefinition definition = definitionLookup.getAttrDefByName(attributeName);
     if (definition == null) {
       return;
