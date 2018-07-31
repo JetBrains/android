@@ -253,12 +253,12 @@ abstract class BasePerspectiveConfigurable protected constructor(
   }
 
   private fun addConfigurableFor(module: PsModule) {
-    getConfigurable(module)
+    createConfigurableFor(module)
       ?.let { MasterDetailsComponent.MyNode(it) }
       ?.also { myRoot.add(it) }
   }
 
-  protected abstract fun getConfigurable(module: PsModule): NamedConfigurable<out PsModule>?
+  protected abstract fun createConfigurableFor(module: PsModule): NamedConfigurable<out PsModule>?
 
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback {
     fun Place.getModuleName() = (getPath(navigationPathName) as? String)?.takeIf { moduleName -> moduleName.isNotEmpty() }

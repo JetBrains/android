@@ -35,9 +35,7 @@ const val DEPENDENCIES_PERSPECTIVE_PLACE_NAME = "dependencies.place"
 class DependenciesPerspectiveConfigurable(context: PsContext)
   : BasePerspectiveConfigurable(context), TrackedConfigurable {
 
-  private val myConfigurablesByGradlePath = mutableMapOf<String, AbstractDependenciesConfigurable<out PsModule>>()
   private val myExtraModules = mutableListOf<PsModule>()
-  private val myExtraTopConfigurables = mutableMapOf<PsModule, AbstractDependenciesConfigurable<out PsModule>>()
 
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_DEPENDENCIES
   override fun getId(): String = "android.psd.dependencies"
@@ -47,17 +45,11 @@ class DependenciesPerspectiveConfigurable(context: PsContext)
 
   override val navigationPathName: String = DEPENDENCIES_PERSPECTIVE_PLACE_NAME
 
-  override fun getConfigurable(module: PsModule): NamedConfigurable<out PsModule>? =
+  override fun createConfigurableFor(module: PsModule): NamedConfigurable<out PsModule>? =
     when (module) {
-      is PsAllModulesFakeModule -> myExtraTopConfigurables.getOrPut(module) {
-        ProjectDependenciesConfigurable(module, context, getExtraModules()).also { it.history = myHistory }
-      }
-      is PsAndroidModule -> myConfigurablesByGradlePath.getOrPut(module.gradlePath) {
-        AndroidModuleDependenciesConfigurable(module, context, getExtraModules()).also { it.history = myHistory }
-      }
-      is PsJavaModule -> myConfigurablesByGradlePath.getOrPut(module.gradlePath) {
-        JavaModuleDependenciesConfigurable(module, context, getExtraModules()).also { it.history = myHistory }
-      }
+      is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context, getExtraModules()).also { it.history = myHistory }
+      is PsAndroidModule -> AndroidModuleDependenciesConfigurable(module, context, getExtraModules()).also { it.history = myHistory }
+      is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context, getExtraModules()).also { it.history = myHistory }
       else -> null
     }
 
@@ -69,9 +61,4 @@ class DependenciesPerspectiveConfigurable(context: PsContext)
         it.add(PsAllModulesFakeModule(context.project))
       }
     }
-
-  override fun dispose() {
-    super.dispose()
-    myConfigurablesByGradlePath.clear()
-  }
 }
