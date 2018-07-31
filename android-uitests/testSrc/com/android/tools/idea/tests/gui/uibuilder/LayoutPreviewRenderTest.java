@@ -56,7 +56,7 @@ public class LayoutPreviewRenderTest {
    *   5. Preview layout is rendered for the selected activity.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void layoutPreviewRendering() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest");

@@ -63,7 +63,7 @@ public class AndroidVectorDrawableToolTest {
    *   there are android:alpha attributes and android:autoMirrored created
    *   </pre>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void androidVectorDrawableTool() throws Exception {
     String contents = guiTest.importSimpleLocalApplication()

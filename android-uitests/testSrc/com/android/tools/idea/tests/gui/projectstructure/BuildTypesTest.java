@@ -62,7 +62,7 @@ public class BuildTypesTest {
    *   1. Build type selection in gradle build file is updated with the changes.
    * </pre>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void editBuildType() throws Exception {
     String gradleFileContents = guiTest.importSimpleLocalApplication()

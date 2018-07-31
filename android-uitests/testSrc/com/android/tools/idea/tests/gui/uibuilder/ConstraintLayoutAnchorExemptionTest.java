@@ -52,7 +52,7 @@ public class ConstraintLayoutAnchorExemptionTest {
    *   Anchors on different axis, such as left and top anchor shall not get connected and no abnormal behavior is observed
    *   </pre>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void constraintLayoutAnchorExemption() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest");

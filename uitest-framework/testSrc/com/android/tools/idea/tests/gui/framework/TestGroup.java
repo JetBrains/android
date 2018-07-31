@@ -26,11 +26,11 @@ public enum TestGroup {
   EDITING,
   TEST_FRAMEWORK,
   QA,
-  QA_BAZEL,
   QA_UNRELIABLE,
   SANITY,
   SANITY_BAZEL,
   SANITY_NO_UI,
+  FAST_BAZEL,
   FAT,
   UNRELIABLE,
   /** Assigned implicitly where group is unspecified; not intended to be specified explicitly. */

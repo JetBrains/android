@@ -52,7 +52,7 @@ public class CreateBaselineConnectionTest {
    *   Vertical constraints for first widget should be removed
    *   </pre>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void createBaselineConnection() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest");

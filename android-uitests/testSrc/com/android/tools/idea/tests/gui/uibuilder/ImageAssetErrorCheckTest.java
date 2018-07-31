@@ -55,7 +55,7 @@ public class ImageAssetErrorCheckTest {
    *   For unsupported files, “Errors” dialog should display at the bottom of Configure vector asset window with appropriate message
    *   </pre>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void imageAssetErrorCheck() throws Exception {
     guiTest.importSimpleLocalApplication()

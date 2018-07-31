@@ -58,7 +58,7 @@ public class NameWithSpaceTest {
    *   Successfully created new project with name containing a space.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void createNewProjectNameWithSpace() {
     EditorFixture editor = new NewProjectDescriptor("Test Application").withMinSdk("23").create(guiTest)

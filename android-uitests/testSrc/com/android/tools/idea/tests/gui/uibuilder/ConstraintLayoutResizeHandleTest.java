@@ -53,7 +53,7 @@ public class ConstraintLayoutResizeHandleTest {
    *   Should be able to resize.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void constraintLayoutResizeHandle() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest");
