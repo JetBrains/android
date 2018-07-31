@@ -155,6 +155,8 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
   }
 
   override fun updateSelection(configurable: NamedConfigurable<*>?) {
+    // UpdateSelection might be expensive as it always rebuilds the element tree.
+    if (configurable === myCurrentConfigurable) return
     super.updateSelection(configurable)
     if (!inQuietSelection) {
       saveUiState()
