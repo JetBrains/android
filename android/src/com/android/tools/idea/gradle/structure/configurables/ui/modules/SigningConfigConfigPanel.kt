@@ -19,8 +19,9 @@ import com.android.tools.idea.gradle.structure.configurables.android.modules.sig
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ConfigPanel
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
 
-class SigningConfigConfigPanel(val signingConfig: PsSigningConfig) : ConfigPanel<PsSigningConfig>(signingConfigPropertiesModel()) {
-  init {
-    bind(signingConfig.parent, signingConfig)
-  }
-}
+class SigningConfigConfigPanel(signingConfig: PsSigningConfig) :
+  ConfigPanel<PsSigningConfig>(
+    signingConfig.parent,
+    signingConfig,
+    signingConfigPropertiesModel()
+  )
