@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.AndroidModuleBuildVariantsConfigurable
+import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
-import com.intellij.openapi.ui.NamedConfigurable
 
 const val BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME = "Build Variants"
 const val BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME = "build_variants.place"
@@ -32,7 +32,7 @@ class BuildVariantsPerspectiveConfigurable(context: PsContext)
 
   override fun getId() = "android.psd.build_variants"
 
-  override fun createConfigurableFor(module: PsModule): NamedConfigurable<out PsModule>? =
+  override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<*, *>? =
       if (module is PsAndroidModule) createConfigurable(module) else null
 
   override val navigationPathName: String = BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME

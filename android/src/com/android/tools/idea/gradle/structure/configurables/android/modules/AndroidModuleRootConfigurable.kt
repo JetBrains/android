@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefa
 
 class AndroidModuleRootConfigurable(
   context: PsContext, module: PsAndroidModule
-) : AbstractModuleConfigurable<ModulePanel>(context, module) {
+) : AbstractModuleConfigurable<PsAndroidModule, ModulePanel>(context, module) {
 
   private val signingConfigsModel = createTreeModel(SigningConfigsConfigurable(module))
 

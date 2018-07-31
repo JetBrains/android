@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 class AndroidModuleBuildVariantsConfigurable(
     context: PsContext,
     module: PsAndroidModule
-) : AbstractModuleConfigurable<BuildVariantsPanel>(context, module) {
+) : AbstractModuleConfigurable<PsAndroidModule, BuildVariantsPanel>(context, module) {
 
   private val buildTypesModel = createTreeModel(BuildTypesConfigurable(module))
   private val productFlavorsModel = createTreeModel(ProductFlavorsConfigurable(module))

@@ -36,7 +36,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
 
-public abstract class AbstractMainPanel extends JPanel implements Disposable, Place.Navigator {
+public abstract class AbstractMainPanel extends JPanel implements Disposable, Place.Navigator, CrossModuleUiStateComponent {
   @NotNull private final PsProject myProject;
   @NotNull private final PsContext myContext;
 

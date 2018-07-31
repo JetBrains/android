@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurab
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
@@ -28,30 +27,32 @@ import com.intellij.ui.navigation.Place
 import javax.swing.JComponent
 
 /**
- * A base class for configurables representing a specific perspective of [PsAndroidModule] configuration.
+ * A base class for configurables representing a specific perspective of [PsModule] configuration.
  *
  * Implementations should provide their own UI by overriding [createPanel] method.
  */
-abstract class AbstractModuleConfigurable<out PanelT>(
-    val context: PsContext,
-    module: PsAndroidModule
-) : BaseNamedConfigurable<PsModule>(module)
+abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
+  val context: PsContext,
+  module: ModuleT
+) : BaseNamedConfigurable<ModuleT>(module)
     where PanelT : JComponent,
           PanelT : CrossModuleUiStateComponent,
           PanelT : Disposable,
           PanelT : Place.Navigator {
 
+
   private val lazyPanel = lazy(mode = LazyThreadSafetyMode.NONE) { createPanel(module).apply { setHistory(history) } }
-  private val modulePanel by lazyPanel
+  protected val modulePanel by lazyPanel
+  protected var uiDisposed = false; private set
 
-  protected abstract fun createPanel(module: PsAndroidModule): PanelT
+  protected abstract fun createPanel(module: ModuleT): PanelT
 
-  override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = modulePanel.navigateTo(place, requestFocus)
-  override fun queryPlace(place: Place) = modulePanel.queryPlace(place)
-  override fun createOptionsPanel(): JComponent = modulePanel
-  override fun restoreUiState() = modulePanel.restoreUiState()
+  final override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = modulePanel.navigateTo(place, requestFocus)
+  final override fun queryPlace(place: Place) = modulePanel.queryPlace(place)
+  final override fun createOptionsPanel(): JComponent = modulePanel
+  final override fun restoreUiState() = modulePanel.restoreUiState()
 
-  override fun setHistory(history: History?) {
+  final override fun setHistory(history: History?) {
     super.setHistory(history)
     // Do not force-initialize the panel.
     if (lazyPanel.isInitialized()) {
@@ -59,11 +60,12 @@ abstract class AbstractModuleConfigurable<out PanelT>(
     }
   }
 
-  override fun disposeUIResources() {
+  final override fun disposeUIResources() {
     super.disposeUIResources()
     if (lazyPanel.isInitialized()) {
       Disposer.dispose(modulePanel)
     }
+    uiDisposed = true
   }
 }
 

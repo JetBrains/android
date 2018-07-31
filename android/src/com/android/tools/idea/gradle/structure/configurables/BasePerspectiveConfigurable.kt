@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
+import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint
@@ -263,11 +264,12 @@ abstract class BasePerspectiveConfigurable protected constructor(
 
   private fun addConfigurableFor(module: PsModule) {
     createConfigurableFor(module)
+      ?.also { it.setHistory(myHistory) }
       ?.let { MasterDetailsComponent.MyNode(it) }
       ?.also { myRoot.add(it) }
   }
 
-  protected abstract fun createConfigurableFor(module: PsModule): NamedConfigurable<out PsModule>?
+  protected abstract fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<*, *>?
 
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback {
     fun Place.getModuleName() = (getPath(navigationPathName) as? String)?.takeIf { moduleName -> moduleName.isNotEmpty() }

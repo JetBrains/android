@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
+import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AndroidModuleRootConfigurable
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
-import com.intellij.openapi.ui.NamedConfigurable
 
 const val MODULES_PERSPECTIVE_PLACE_NAME: String = "modules.place"
 const val MODULES_PERSPECTIVE_DISPLAY_NAME: String = "Modules"
@@ -32,7 +32,7 @@ class ModulesPerspectiveConfigurable(context: PsContext)
 
   override fun getId() = "android.psd.modules"
 
-  override fun createConfigurableFor(module: PsModule): NamedConfigurable<out PsModule>? =
+  override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<*, *>? =
       if (module is PsAndroidModule) createConfigurable(module) else null
 
   override val navigationPathName: String = MODULES_PERSPECTIVE_PLACE_NAME
