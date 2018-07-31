@@ -333,7 +333,7 @@ public class NewInstantAppTest {
   // With warnings coming from multiple projects the order of warnings is not deterministic, also there are some warnings that show up only
   // on local machines. This method allows us to check that the warnings in the actual result are a sub-set of the expected warnings.
   // This is not a perfect solution, but this state where we have multiple warnings on a new project should only be temporary
-  private static void verifyOnlyExpectedWarnings(@NotNull String actualResults, @NotNull String... acceptedWarnings) {
+  public static void verifyOnlyExpectedWarnings(@NotNull String actualResults, @NotNull String... acceptedWarnings) {
     ArrayList<String> actualResultLines = new ArrayList<>();
 
     outLoop:

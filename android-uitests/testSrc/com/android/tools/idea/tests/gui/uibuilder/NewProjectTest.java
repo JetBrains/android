@@ -21,8 +21,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -47,10 +45,10 @@ import java.util.concurrent.TimeUnit;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
 import static com.android.tools.idea.flags.StudioFlags.NPW_DYNAMIC_APPS;
 import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.tests.gui.instantapp.NewInstantAppTest.verifyOnlyExpectedWarnings;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
 @RunIn(TestGroup.PROJECT_WIZARD)
@@ -64,9 +62,8 @@ public class NewProjectTest {
     NPW_DYNAMIC_APPS.clearOverride();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/66249968
   @Test
-  public void testNoWarningsInNewProjects() throws IOException {
+  public void testNoWarningsInNewProjects() {
     // Creates a new default project, and checks that if we run Analyze > Inspect Code, there are no warnings.
     // This checks that our (default) project templates are warnings-clean.
     // The test then proceeds to make a couple of edits and checks that these do not generate additional
@@ -88,7 +85,7 @@ public class NewProjectTest {
       .clickOk()
       .getResults();
 
-    assertThat(inspectionResults).isEqualTo(lines(
+    verifyOnlyExpectedWarnings(inspectionResults,
       "Project '" + guiTest.getProjectPath() + "' TestApplication",
       // This warning is from the "foo" string we created in the Gradle resValue declaration above
       "    Android",
@@ -97,18 +94,23 @@ public class NewProjectTest {
       "                Unused resources",
       "                    build.gradle",
       "                        The resource 'R.string.foo' appears to be unused",
-
+      "                    mobile_navigation.xml",
+      "                        The resource 'R.navigation.mobile_navigation' appears to be unused",
+      "            Correctness",
+      "                Obsolete Gradle Dependency",
+      "                    build.gradle",
+      "                        A newer version of .*",
       // This warning is unfortunate. We may want to get rid of it.
       "            Security",
       "                AllowBackup/FullBackupContent Problems",
       "                    AndroidManifest.xml",
-      "                        On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: <a href=\"https://developer.android.com/training/backup/autosyncapi.html\">https://developer.android.com/training/backup/autosyncapi.html</a>",
+      "                        On SDK version 23 and up, your app data will be automatically backed up and .*",
 
       // This warning is wrong: http://b.android.com/192605
       "            Usability",
       "                Missing support for Firebase App Indexing",
       "                    AndroidManifest.xml",
-      "                        App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details."));
+      "                        App is not indexable by Google Search; consider adding at least one Activity with .*");
   }
 
   @Test
@@ -137,14 +139,6 @@ public class NewProjectTest {
         String file = editor.getCurrentFileContents();
         return file.contains("@Nullable Bundle savedInstanceState");
       });
-  }
-
-  private static String lines(String... strings) {
-    StringBuilder sb = new StringBuilder();
-    for (String s : strings) {
-      sb.append(s).append('\n');
-    }
-    return sb.toString();
   }
 
   @Test
