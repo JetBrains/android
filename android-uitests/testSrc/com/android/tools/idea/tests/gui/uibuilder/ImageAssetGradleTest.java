@@ -55,7 +55,7 @@ public class ImageAssetGradleTest {
    *   Make sure the “preview” pane displays the layout with the drawable correctly
    *   </pre>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void imageAssetGradleTest() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();

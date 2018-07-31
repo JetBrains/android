@@ -48,7 +48,7 @@ public class DataBindingTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.FAST_BAZEL)
   public void resolvesSymbols() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("DatabindingMethodsTest");
     List<String> errors = ideFrame.getEditor()

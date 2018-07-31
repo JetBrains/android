@@ -65,7 +65,7 @@ public class CLionIntegrationTest {
    *   4. There should be an error indication.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void cLionIntegration() throws Exception {
     IdeFrameFixture ideFrame =

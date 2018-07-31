@@ -63,7 +63,7 @@ public class LayoutEditorTest {
    *   2. The corresponding png shows up in the mipmap-*dpi (for launcher icon) or drawable-*dpi directory
    *   </pre>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void imageAssetRegressionTest() throws Exception {
     guiTest.importSimpleLocalApplication();

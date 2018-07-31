@@ -75,7 +75,7 @@ public class AndroidLibsDepTest {
    *      resolved successfully.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void transitiveDependenciesWithMultiAndroidLibraries() {
     IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK);

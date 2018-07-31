@@ -67,7 +67,7 @@ public class JavaDepTest {
    *   The line "Gson gsn = new Gson();" should get resolved in both the app and library modules without any errors.
    * </pre>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void transitiveJavaDependenciesResolve() {
     IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK);

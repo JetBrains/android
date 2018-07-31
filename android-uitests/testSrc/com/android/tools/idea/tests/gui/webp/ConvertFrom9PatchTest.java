@@ -77,7 +77,7 @@ public class ConvertFrom9PatchTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void testCannotConvertFrom9PatchAndTransparentImagesToWebp() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("ConvertFrom9Patch");

@@ -48,7 +48,7 @@ public class UnusedResourceEvaluationTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.FAST_BAZEL)
   public void removeUnusedResources() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("NoUnusedResourceApp");
     ideFrame.invokeMenuPath("Refactor", "Remove Unused Resources...");
