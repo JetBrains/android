@@ -22,21 +22,21 @@ import com.android.resources.ResourceType;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.xml.XmlComment;
-import com.intellij.psi.xml.XmlDocument;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.xml.util.XmlUtil;
-import com.intellij.xml.util.documentation.XmlDocumentationProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kxml2.io.KXmlParser;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.*;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
 
+/**
+ * The default implementation of the {@link AttributeDefinitions} interface. Used to represent either all
+ * attr and styleable resources or just the framework ones.
+ */
 public final class AttributeDefinitionsImpl implements AttributeDefinitions {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl");
   private static final Splitter PIPE_SPLITTER = Splitter.on('|').trimResults();
@@ -53,14 +53,28 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
     myFrameworkAttributeDefinitions = frameworkAttributeDefinitions;
   }
 
-  public static AttributeDefinitions parseFrameworkFiles(@NotNull XmlFile... files) {
+  /**
+   * Creates framework attribute definitions by parsing XML files defining them.
+   *
+   * @param files the files to parse
+   * @return the framework attribute definitions
+   */
+  public static AttributeDefinitions parseFrameworkFiles(@NotNull File... files) {
     AttributeDefinitionsImpl attributeDefinitions = new AttributeDefinitionsImpl(null);
-    for (XmlFile file : files) {
+    for (File file : files) {
       attributeDefinitions.addAttrsFromFile(file);
     }
     return attributeDefinitions;
   }
 
+  /**
+   * Creates application attribute definitions based on the given framework attribute definitions
+   * and the application resource repository.
+   *
+   * @param frameworkAttributeDefinitions the framework attribute definitions
+   * @param resources the application resource repository
+   * @return the attribute definitions for both, application and framework attributes
+   */
   public static AttributeDefinitions create(@Nullable AttributeDefinitions frameworkAttributeDefinitions,
                                             @NotNull AbstractResourceRepository resources) {
     AttributeDefinitionsImpl attributeDefinitions = new AttributeDefinitionsImpl(frameworkAttributeDefinitions);
@@ -146,159 +160,209 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
     }
   }
 
-  private void addAttrsFromFile(@NotNull XmlFile file) {
-    XmlDocument document = file.getDocument();
-    if (document == null) return;
-    XmlTag rootTag = document.getRootTag();
-    if (rootTag == null || !TAG_RESOURCES.equals(rootTag.getName())) return;
+  private void addAttrsFromFile(@NotNull File file) {
+    try (InputStream stream = new BufferedInputStream(new FileInputStream(file))) {
+      XmlPullParser parser = new KXmlParser(); // Parser for regular text XML.
+      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      parser.setInput(stream, null);
 
-    String attrGroup = null;
-    for (XmlTag tag : rootTag.getSubTags()) {
-      String tagName = tag.getName();
-      if (TAG_ATTR.equals(tagName)) {
-        AttributeDefinition def = parseAttrTag(tag, null);
+      StyleableDefinitionImpl styleable = null;
+      String lastComment = null; // The last encountered comment that is not an ASCII art.
+      String attrGroup = null; // The name of the current attribute group, e.g. "Button Styles" group for "buttonStyleSmall" attribute.
+      int event;
+      do {
+        event = parser.nextToken();
+        int depth = parser.getDepth();
+        switch (event) {
+          case XmlPullParser.START_TAG: {
+            String tagName = parser.getName();
+            if (depth == 1) {
+              if (!tagName.equals(TAG_RESOURCES)) {
+                return;
+              }
+            }
+            else if (depth > 1) {
+              switch (tagName) {
+                case TAG_ATTR:
+                  processAttrTag(parser, file, lastComment, attrGroup, styleable);
+                  break;
 
-        // Sets group for attribute, for example: sets "Button Styles" group for "buttonStyleSmall" attribute.
-        if (def != null) {
-          def.setGroupName(attrGroup);
-        }
-      }
-      else if (TAG_DECLARE_STYLEABLE.equals(tagName)) {
-        StyleableDefinitionImpl def = parseDeclareStyleableTag(tag);
-        // Only "Theme" Styleable has attribute groups.
-        if (def != null && def.getName().equals("Theme")) {
-          parseAndAddAttrGroups(tag);
-        }
-      }
-      else if (TAG_EAT_COMMENT.equals(tagName)) {
-        // The framework attribute file follows a special convention where related attributes are grouped together,
-        // and there is always a set of comments that indicate these sections which look like this:
-        //     <!-- =========== -->
-        //     <!-- Text styles -->
-        //     <!-- =========== -->
-        //     <eat-comment />
-        // These section headers are always immediately followed by an <eat-comment>,
-        // so to identify these we just look for <eat-comments>, and then we look for the comment within the block that isn't ascii art.
-        String newAttrGroup = getCommentBeforeEatComment(tag);
+                case TAG_DECLARE_STYLEABLE: {
+                  if (styleable != null) {
+                    LOG.info("Found nested declare-styleable tag at " + file.getAbsolutePath() + " line " + parser.getLineNumber());
+                    break;
+                  }
 
-        // Not all <eat-comment /> sections are actually attribute headers, some are comments.
-        // We identify these by looking at the line length; category comments are short, and descriptive comments are longer
-        if (newAttrGroup != null && newAttrGroup.length() <= ATTR_GROUP_MAX_CHARACTERS && !newAttrGroup.startsWith("TODO:")) {
-          attrGroup = newAttrGroup;
-          if (attrGroup.endsWith(".")) {
-            attrGroup = attrGroup.substring(0, attrGroup.length() - 1);
+                  String styleableName = parser.getAttributeValue(null, ATTR_NAME);
+                  if (styleableName == null) {
+                    LOG.info("Found declare-styleable tag with no name at " + file.getAbsolutePath() + " line " + parser.getLineNumber());
+                    break;
+                  }
+
+                  styleable = new StyleableDefinitionImpl(ResourceNamespace.ANDROID, styleableName);
+                  myStyleables.put(styleable.getResourceReference(), styleable);
+                  break;
+                }
+
+                case TAG_EAT_COMMENT:
+                  // The framework attribute file follows a special convention where related attributes are grouped together,
+                  // and there is always a set of comments that indicate these sections which look like this:
+                  //     <!-- =========== -->
+                  //     <!-- Text styles -->
+                  //     <!-- =========== -->
+                  //     <eat-comment/>
+                  // These section headers are always immediately followed by an <eat-comment>. Not all <eat-comment/> sections are
+                  // actually attribute headers, some are comments. We identify these by looking at the line length; category comments
+                  // are short, and descriptive comments are longer.
+                  if (lastComment != null && lastComment.length() <= ATTR_GROUP_MAX_CHARACTERS && !lastComment.startsWith("TODO:")) {
+                    attrGroup = lastComment;
+                    if (attrGroup.endsWith(".")) {
+                      attrGroup = attrGroup.substring(0, attrGroup.length() - 1); // Strip the trailing period.
+                    }
+                  }
+                  break;
+              }
+            }
+            lastComment = null;
+            break;
           }
+
+          case XmlPullParser.END_TAG:
+            if (parser.getName().equals(TAG_DECLARE_STYLEABLE)) {
+              styleable = null;
+              attrGroup = null;
+            }
+            break;
+
+          case XmlPullParser.COMMENT:
+            if (depth >= 1) {
+              String commentText = parser.getText().trim();
+              if (!isEmptyOrAsciiArt(commentText)) {
+                lastComment = commentText;
+              }
+            }
+            break;
         }
-      }
+      } while (event != XmlPullParser.END_DOCUMENT);
+    } catch (IOException | XmlPullParserException e){
+      LOG.warn("Failed to parse " + file.getAbsolutePath(), e);
     }
   }
 
-  @Nullable
-  private AttributeDefinition parseAttrTag(@NotNull XmlTag tag,@Nullable ResourceReference parentStyleable) {
-    String name = tag.getAttributeValue(ATTR_NAME);
-    if (name == null) {
-      LOG.info("Found attr tag with no name: " + tag.getText());
-      return null;
+  private void processAttrTag(@NotNull XmlPullParser parser, @NotNull File file, @Nullable String precedingComment,
+                              @Nullable String attrGroup, @Nullable StyleableDefinitionImpl parentStyleable)
+        throws IOException, XmlPullParserException {
+    String attrName = parser.getAttributeValue(null, ATTR_NAME);
+    if (attrName == null) {
+      LOG.info("Found attr tag with no name at " + file.getAbsolutePath() + " line " + parser.getLineNumber());
+      return;
     }
-    ResourceReference attrRef = getAttrReference(name);
-    if (attrRef == null) {
-      LOG.info("Found attr tag with an invalid name: " + tag.getText());
-      return null;
+    if (attrName.startsWith(ANDROID_NS_NAME_PREFIX)) {
+      attrName = attrName.substring(ANDROID_NS_NAME_PREFIX_LEN);
+    }
+    if (attrName.indexOf(':') >= 0) {
+      LOG.info("Found attr tag with an invalid name at " + file.getAbsolutePath() + " line " + parser.getLineNumber());
+      return;
     }
 
-    AttributeDefinition attrDef = myAttrs.get(attrRef);
+    AttributeDefinition attrDef = myAttrs.get(ResourceReference.attr(ResourceNamespace.ANDROID, attrName));
 
     if (attrDef == null) {
-      attrDef = new AttributeDefinition(ResourceNamespace.ANDROID, name, null, null);
+      attrDef = new AttributeDefinition(ResourceNamespace.ANDROID, attrName, null, null);
+      attrDef.setGroupName(attrGroup);
+
       myAttrs.put(attrDef.getResourceReference(), attrDef);
     }
 
-    List<AttributeFormat> parsedFormats;
-    List<AttributeFormat> formats = new ArrayList<>();
-    String format = tag.getAttributeValue(ATTR_FORMAT);
+    if (parentStyleable != null) {
+      parentStyleable.addAttribute(attrDef);
+    }
+
+    Set<AttributeFormat> formats = EnumSet.noneOf(AttributeFormat.class);
+    String format = parser.getAttributeValue(null, ATTR_FORMAT);
     if (format != null) {
-      parsedFormats = parseAttrFormat(format);
-      formats.addAll(parsedFormats);
+      formats.addAll(parseAttrFormat(format));
     }
-    XmlTag[] values = tag.findSubTags(TAG_ENUM);
-    if (values.length != 0) {
-      formats.add(AttributeFormat.ENUM);
-    }
-    else {
-      values = tag.findSubTags(TAG_FLAG);
-      if (values.length != 0) {
-        formats.add(AttributeFormat.FLAGS);
-      }
-    }
-    attrDef.addFormats(formats);
-    String description = parseDocComment(tag);
-    if (description != null) {
-      attrDef.setDescription(description, parentStyleable);
-    }
-    Map<String, Integer> valueMappings = new HashMap<>();
-    Map<String, String> valueDescriptions = new HashMap<>();
-    parseValues(values, valueMappings, valueDescriptions);
-    if (!valueMappings.isEmpty()) {
-      attrDef.setValueMappings(valueMappings);
-    }
-    if (!valueDescriptions.isEmpty()) {
-      attrDef.setValueDescriptions(valueDescriptions);
-    }
-    return attrDef;
-  }
 
-  @Nullable
-  private static ResourceReference getAttrReference(@NotNull String name) {
-    if (name.startsWith(ANDROID_NS_NAME_PREFIX)) {
-      return ResourceReference.attr(ResourceNamespace.ANDROID, name.substring(ANDROID_NS_NAME_PREFIX_LEN));
-    }
-    int colonPos = name.indexOf(':');
-    if (colonPos < 0) {
-      return ResourceReference.attr(ResourceNamespace.ANDROID, name);
-    }
-    return null;
-  }
+    Map<String, Integer> valueMappings = null;
+    Map<String, String> valueDescriptions = null;
+    String lastComment = null;
+    int attrTagDepth = parser.getDepth();
+    int event;
+    do {
+      event = parser.nextToken();
+      switch (event) {
+        case XmlPullParser.START_TAG: {
+          String tagName = parser.getName();
+          if (tagName.equals(TAG_ENUM) && !formats.contains(AttributeFormat.FLAGS)) {
+            formats.add(AttributeFormat.ENUM);
+          }
+          else if (tagName.equals(TAG_FLAG) && !formats.contains(AttributeFormat.ENUM)) {
+            formats.add(AttributeFormat.FLAGS);
+          }
+          String valueName = parser.getAttributeValue(null, ATTR_NAME);
+          if (valueName == null) {
+            LOG.info("Unknown value for tag: " + tagName);
+            continue;
+          }
 
-  @Nullable
-  private static String parseDocComment(@NotNull XmlTag tag) {
-    PsiElement comment = XmlDocumentationProvider.findPreviousComment(tag);
-    if (comment != null) {
-      String docValue = XmlUtil.getCommentText((XmlComment)comment);
-      if (docValue != null) {
-        docValue = docValue.trim();
-        if (!docValue.isEmpty()) {
-          return docValue;
+          String strIntValue = parser.getAttributeValue(null, ATTR_VALUE);
+          Integer intValue = strIntValue == null ? null : decodeIntegerValue(strIntValue);
+          if (valueMappings == null) {
+            valueMappings = new HashMap<>();
+          }
+          valueMappings.putIfAbsent(valueName, intValue);
+          if (lastComment != null) {
+            if (valueDescriptions == null) {
+              valueDescriptions = new HashMap<>();
+            }
+            valueDescriptions.putIfAbsent(valueName, lastComment);
+          }
+          lastComment = null;
+          break;
+        }
+
+        case XmlPullParser.COMMENT: {
+          String commentText = parser.getText().trim();
+          if (!isEmptyOrAsciiArt(commentText)) {
+            lastComment = commentText;
+          }
+          break;
         }
       }
+    } while (event != XmlPullParser.END_TAG || parser.getDepth() > attrTagDepth);
+
+    attrDef.addFormats(formats);
+    if (precedingComment != null) {
+      attrDef.setDescription(precedingComment, parentStyleable == null ? null : parentStyleable.getResourceReference());
     }
-    return null;
+    if (valueMappings != null) {
+      attrDef.setValueMappings(valueMappings);
+    }
+    if (valueDescriptions != null) {
+      attrDef.setValueDescriptions(valueDescriptions);
+    }
   }
 
   @Nullable
-  private static String getCommentBeforeEatComment(@NotNull XmlTag tag) {
-    PsiElement comment = XmlDocumentationProvider.findPreviousComment(tag);
-    for (int i = 0; i < 5; ++i) {
-      if (comment == null) {
-        break;
-      }
-      String value = StringUtil.trim(XmlUtil.getCommentText((XmlComment)comment));
-
-      //  This check is there to ignore "formatting" comments like the first and third lines in
-      //  <!-- ============== -->
-      //  <!-- Generic styles -->
-      //  <!-- ============== -->
-      if (!StringUtil.isEmpty(value) && value.charAt(0) != '*' && value.charAt(0) != '=') {
-        return value;
-      }
-      comment = XmlDocumentationProvider.findPreviousComment(comment.getPrevSibling());
+  private static Integer decodeIntegerValue(@NotNull String value) {
+    try {
+      // Integer.decode cannot handle "ffffffff", see JDK issue 6624867.
+      return Long.decode(value).intValue();
     }
-    return null;
+    catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
+  private static boolean isEmptyOrAsciiArt(@NotNull String commentText) {
+    return commentText.isEmpty() || commentText.charAt(0) == '*' || commentText.charAt(0) == '=';
   }
 
   @NotNull
-  private static List<AttributeFormat> parseAttrFormat(@NotNull String formatString) {
+  private static Set<AttributeFormat> parseAttrFormat(@NotNull String formatString) {
     List<String> formats = PIPE_SPLITTER.splitToList(formatString);
-    List<AttributeFormat> result = new ArrayList<>(formats.size());
+    Set<AttributeFormat> result = EnumSet.noneOf(AttributeFormat.class);
     for (String format : formats) {
       AttributeFormat attributeFormat = AttributeFormat.fromXmlName(format);
       if (attributeFormat != null) {
@@ -306,97 +370,6 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
       }
     }
     return result;
-  }
-
-  private static void parseValues(@NotNull XmlTag[] values, @NotNull Map<String, Integer> valueMappings,
-                                  @NotNull Map<String, String> valueDescriptions) {
-    for (XmlTag value : values) {
-      String valueName = value.getAttributeValue(ATTR_NAME);
-      if (valueName == null) {
-        LOG.info("Unknown value for tag: " + value.getText());
-        continue;
-      }
-
-      Integer intValue = null;
-      String strIntValue = value.getAttributeValue(ATTR_VALUE);
-      if (strIntValue != null) {
-        try {
-          // Integer.decode cannot handle "ffffffff", see JDK issue 6624867.
-          intValue = Long.decode(strIntValue).intValue();
-        }
-        catch (NumberFormatException ignored) {
-        }
-      }
-      valueMappings.put(valueName, intValue);
-
-      PsiElement comment = XmlDocumentationProvider.findPreviousComment(value);
-      if (comment != null) {
-        String description = XmlUtil.getCommentText((XmlComment)comment);
-        if (description != null) {
-          description = description.trim();
-          if (!description.isEmpty()) {
-            valueDescriptions.put(valueName, description);
-          }
-        }
-      }
-    }
-  }
-
-  @Nullable
-  private StyleableDefinitionImpl parseDeclareStyleableTag(@NotNull XmlTag tag) {
-    String name = tag.getAttributeValue(ATTR_NAME);
-    if (name == null) {
-      LOG.info("Found declare-styleable tag with no name: " + tag.getText());
-      return null;
-    }
-    StyleableDefinitionImpl def = new StyleableDefinitionImpl(ResourceNamespace.ANDROID, name);
-    myStyleables.put(def.getResourceReference(), def);
-
-    for (XmlTag subTag : tag.findSubTags(TAG_ATTR)) {
-      parseStyleableAttr(def, subTag);
-    }
-    return def;
-  }
-
-  private void parseStyleableAttr(@NotNull StyleableDefinitionImpl styleableDef, @NotNull XmlTag tag) {
-    String name = tag.getAttributeValue(ATTR_NAME);
-    if (name == null) {
-      LOG.info("Found attr tag with no name: " + tag.getText());
-      return;
-    }
-
-    ResourceReference styleable = styleableDef.getResourceReference();
-    AttributeDefinition attr = parseAttrTag(tag, styleable);
-    if (attr != null) {
-      styleableDef.addAttribute(attr);
-    }
-  }
-
-  private void parseAndAddAttrGroups(@NotNull XmlTag tag) {
-    String attrGroup = null;
-    for (XmlTag subTag : tag.getSubTags()) {
-      String subTagName = subTag.getName();
-      if (TAG_ATTR.equals(subTagName)) {
-        String attrName = subTag.getAttributeValue(ATTR_NAME);
-        if (attrName != null) {
-          ResourceReference attrRef = getAttrReference(attrName);
-          if (attrRef == null) {
-            LOG.info("Found attr tag with an invalid name: " + tag.getText());
-            continue;
-          }
-          AttributeDefinition def = myAttrs.get(attrRef);
-          if (def != null) {
-            def.setGroupName(attrGroup);
-          }
-        }
-      }
-      else if (TAG_EAT_COMMENT.equals(subTagName)) {
-        String newAttrGroup = getCommentBeforeEatComment(subTag);
-        if (newAttrGroup != null && newAttrGroup.length() <= ATTR_GROUP_MAX_CHARACTERS) {
-          attrGroup = newAttrGroup;
-        }
-      }
-    }
   }
 
   @Override
