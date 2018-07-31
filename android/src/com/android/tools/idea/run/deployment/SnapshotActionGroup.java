@@ -26,7 +26,8 @@ final class SnapshotActionGroup extends ActionGroup {
   private final SnapshotOrDeviceComboBoxAction myComboBoxAction;
 
   SnapshotActionGroup(@NotNull VirtualDevice device, @NotNull SnapshotOrDeviceComboBoxAction comboBoxAction) {
-    super(device.getName(), true);
+    super(device.getName(), null, device.getIcon());
+    setPopup(true);
 
     myDevice = device;
     myComboBoxAction = comboBoxAction;

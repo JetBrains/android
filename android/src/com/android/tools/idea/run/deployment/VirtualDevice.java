@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.runners.ExecutionUtil;
@@ -25,7 +26,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 final class VirtualDevice extends Device {
+  static final ImmutableCollection<String> DEFAULT_SNAPSHOT_LIST = ImmutableList.of("default_boot");
   private static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(AndroidIcons.Ddms.EmulatorDevice);
+
   private final boolean myConnected;
 
   /**
@@ -33,6 +36,7 @@ final class VirtualDevice extends Device {
    */
   private final ImmutableCollection<String> mySnapshots;
 
+  @VisibleForTesting
   VirtualDevice(boolean connected, @NotNull String name) {
     this(connected, name, ImmutableList.of());
   }

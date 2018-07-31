@@ -120,14 +120,14 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
   @VisibleForTesting
   Collection<AnAction> newSnapshotOrDeviceActions() {
     Collection<VirtualDevice> virtualDevices = new ArrayList<>(myDevices.size());
-    Collection<Device> physicalDevices = new ArrayList<>(myDevices.size());
+    Collection<PhysicalDevice> physicalDevices = new ArrayList<>(myDevices.size());
 
     myDevices.forEach(device -> {
       if (device instanceof VirtualDevice) {
         virtualDevices.add((VirtualDevice)device);
       }
       else if (device instanceof PhysicalDevice) {
-        physicalDevices.add(device);
+        physicalDevices.add((PhysicalDevice)device);
       }
       else {
         assert false;
@@ -137,7 +137,7 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
     Collection<AnAction> actions = new ArrayList<>(virtualDevices.size() + 1 + physicalDevices.size());
 
     virtualDevices.stream()
-                  .map(device -> new SnapshotActionGroup(device, this))
+                  .map(this::newSnapshotAction)
                   .forEach(actions::add);
 
     if (!virtualDevices.isEmpty() && !physicalDevices.isEmpty()) {
@@ -145,10 +145,19 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
     }
 
     physicalDevices.stream()
-                   .map(device -> new SelectDeviceAction(device, this))
+                   .map(device -> new SelectPhysicalDeviceAction(device, this))
                    .forEach(actions::add);
 
     return actions;
+  }
+
+  @NotNull
+  private AnAction newSnapshotAction(@NotNull VirtualDevice device) {
+    if (device.getSnapshots().equals(VirtualDevice.DEFAULT_SNAPSHOT_LIST)) {
+      return new SelectDefaultSnapshotAction(device, this);
+    }
+
+    return new SnapshotActionGroup(device, this);
   }
 
   @NotNull
