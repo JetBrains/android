@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res
 
+import com.android.tools.idea.projectsystem.LightResourceClassService
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage

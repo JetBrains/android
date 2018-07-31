@@ -62,7 +62,7 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
   /**
    * @return the set of dependencies added to the given module.
    */
-  fun getAddedDependencies(module: Module) = dependenciesByModule.get(module)
+  fun getAddedDependencies(module: Module): Set<GradleCoordinate> = dependenciesByModule.get(module)
 
   override val id: String = "com.android.tools.idea.projectsystem.TestProjectSystem"
 
@@ -108,11 +108,11 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
   fun emulateSync(result: SyncResult) {
     val latch = CountDownLatch(1)
 
-    AppUIUtil.invokeLaterIfProjectAlive(project, {
+    AppUIUtil.invokeLaterIfProjectAlive(project) {
       lastSyncResult = result
       project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(result)
       latch.countDown()
-    })
+    }
 
     latch.await()
   }
@@ -157,4 +157,6 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
   override fun getPsiElementFinders() = emptyList<PsiElementFinder>()
 
   override fun getAugmentRClasses() = true
+
+  override fun getLightResourceClassService(): LightResourceClassService? = null
 }

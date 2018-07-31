@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.project
 
-import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT
-import com.android.SdkConstants.SUPPORT_LIB_ARTIFACT
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -34,14 +31,9 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.LibraryOrderEntry
-import com.intellij.openapi.roots.ModuleOrderEntry
-import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.intellij.ui.AppUIUtil
-import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
 
 /**
@@ -66,9 +58,9 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
   override fun getSyncManager(): ProjectSystemSyncManager = object: ProjectSystemSyncManager {
     override fun syncProject(reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
-      AppUIUtil.invokeLaterIfProjectAlive(project, {
+      AppUIUtil.invokeLaterIfProjectAlive(project) {
         project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS)
-      })
+      }
       return Futures.immediateFuture(SyncResult.SUCCESS)
     }
 
@@ -96,7 +88,7 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
       listOf(
         ResourceTypeClassFinder.INSTANCE,
         AndroidManifestClassPsiElementFinder.getInstance(project),
-        AndroidResourceClassPsiElementFinder(ProjectLightResourceClassService.getInstance(project))
+        AndroidResourceClassPsiElementFinder(getLightResourceClassService())
       )
     } else {
       listOf(ResourceTypeClassFinder.INSTANCE)
@@ -104,4 +96,6 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   }
 
   override fun getAugmentRClasses() = !StudioFlags.IN_MEMORY_R_CLASSES.get()
+
+  override fun getLightResourceClassService() = ProjectLightResourceClassService.getInstance(project)
 }

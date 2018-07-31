@@ -490,21 +490,11 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
 class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandlerTestBase() {
   override fun setUp() {
     super.setUp()
-    StudioFlags.IN_MEMORY_R_CLASSES.override(true)
     enableNamespacing(myFacet, "p1.p2")
     enableNamespacing(
       AndroidFacet.getInstance(getAdditionalModuleByName("lib")!!)!!,
       "p1.p2.lib"
     )
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.IN_MEMORY_R_CLASSES.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
   }
 
   fun testGotoStringFromLib_ownRClass() {
