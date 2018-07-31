@@ -23,21 +23,17 @@ import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.FrameworkResourceRepository;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.xml.NanoXmlUtil;
 import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -98,17 +94,9 @@ public class AndroidTargetData {
   public AttributeDefinitions getAllAttrDefs(@NotNull Project project) {
     synchronized (myAttrDefsLock) {
       if (myAttrDefs == null) {
-        AttributeDefinitions[] attrDefs = new AttributeDefinitions[1];
-        ApplicationManager.getApplication().runReadAction(() -> {
-          String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES));
-          String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES));
-
-          XmlFile[] files = findXmlFiles(project, attrsPath, attrsManifestPath);
-          if (files != null) {
-             attrDefs[0] = AttributeDefinitionsImpl.parseFrameworkFiles(files);
-          }
-        });
-        myAttrDefs = attrDefs[0];
+        String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES));
+        String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES));
+        myAttrDefs = AttributeDefinitionsImpl.parseFrameworkFiles(new File(attrsPath), new File(attrsManifestPath));
       }
       return myAttrDefs;
     }
@@ -235,26 +223,6 @@ public class AndroidTargetData {
     return myTarget;
   }
 
-  @Nullable
-  private static XmlFile[] findXmlFiles(@NotNull Project project, @NotNull String... paths) {
-    XmlFile[] xmlFiles = new XmlFile[paths.length];
-    for (int i = 0; i < paths.length; i++) {
-      String path = paths[i];
-      VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-      PsiFile psiFile = file != null ? AndroidPsiUtils.getPsiFileSafely(project, file) : null;
-      if (psiFile == null) {
-        LOG.info("File " + path + " is not found");
-        return null;
-      }
-      if (!(psiFile instanceof XmlFile)) {
-        LOG.info("File " + path + "  is not an xml psiFile");
-        return null;
-      }
-      xmlFiles[i] = (XmlFile)psiFile;
-    }
-    return xmlFiles;
-  }
-
   @NotNull
   public synchronized MyStaticConstantsData getStaticConstantsData() {
     if (myStaticConstantsData == null) {
@@ -297,8 +265,7 @@ public class AndroidTargetData {
 
     @Override
     protected boolean isAttributeAcceptable(@NotNull ResourceReference attr) {
-      return attr.getNamespace().equals(ResourceNamespace.ANDROID) &&
-             isResourcePublic(ResourceType.ATTR.getName(), attr.getName());
+      return attr.getNamespace().equals(ResourceNamespace.ANDROID) && isResourcePublic(ResourceType.ATTR.getName(), attr.getName());
     }
   }
 

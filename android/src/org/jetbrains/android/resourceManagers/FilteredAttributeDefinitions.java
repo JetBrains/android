@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * @author Eugene.Kudelevsky
+ * A decorator for {@link AttributeDefinitions} that applies filtering to it.
  */
 public abstract class FilteredAttributeDefinitions implements AttributeDefinitions {
   private final AttributeDefinitions myWrappee;
