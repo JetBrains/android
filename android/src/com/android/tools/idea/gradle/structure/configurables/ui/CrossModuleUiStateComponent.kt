@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 /**
- * A panel that together with other instances of the specific class manages a consistent UI state across all the modules.
+ * A component that together with other instances of the specific class manages a consistent UI state across all the modules.
  */
-interface PanelWithUiState {
+interface CrossModuleUiStateComponent {
   /**
    * Restores the UI state persisted in the external storage by this or another instance.
    */

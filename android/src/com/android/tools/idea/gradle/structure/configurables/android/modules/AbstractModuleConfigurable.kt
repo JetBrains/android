@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.modules
 
 import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.configurables.ui.PanelWithUiState
+import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.intellij.openapi.Disposable
@@ -37,7 +37,7 @@ abstract class AbstractModuleConfigurable<out PanelT>(
     module: PsAndroidModule
 ) : BaseNamedConfigurable<PsModule>(module)
     where PanelT : JComponent,
-          PanelT : PanelWithUiState,
+          PanelT : CrossModuleUiStateComponent,
           PanelT : Disposable,
           PanelT : Place.Navigator {
 

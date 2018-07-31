@@ -45,7 +45,7 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
     private val placeName: String,
     private val treeModel: ConfigurablesTreeModel,
     private val uiSettings: PsUISettings
-) : MasterDetailsComponent(), ModelPanel<ModelT>, Place.Navigator, PanelWithUiState, Disposable {
+) : MasterDetailsComponent(), ModelPanel<ModelT>, Place.Navigator, CrossModuleUiStateComponent, Disposable {
 
   private var inQuietSelection = false
 
