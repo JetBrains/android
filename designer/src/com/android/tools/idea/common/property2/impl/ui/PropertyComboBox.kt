@@ -112,7 +112,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
 
   private fun enter() {
     textField.enterInLookup()
-    model.enterKeyPressed(currentValue)
+    model.enterKeyPressed()
   }
 
   private fun escape() {

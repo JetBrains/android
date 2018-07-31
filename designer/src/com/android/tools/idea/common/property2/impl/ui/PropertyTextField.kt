@@ -61,7 +61,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel,
 
   private fun enter() {
     enterInLookup()
-    editorModel.enter(text)
+    editorModel.enterKeyPressed()
   }
 
   private fun escape() {

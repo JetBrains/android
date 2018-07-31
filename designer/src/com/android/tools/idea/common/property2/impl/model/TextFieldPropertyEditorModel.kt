@@ -18,6 +18,7 @@ package com.android.tools.idea.common.property2.impl.model
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.property2.api.PropertyItem
+import kotlin.properties.Delegates
 
 /**
  * Model for properties that use a Text Editor.
@@ -25,16 +26,25 @@ import com.android.tools.idea.common.property2.api.PropertyItem
 open class TextFieldPropertyEditorModel(property: PropertyItem, override val editable: Boolean) :
   BasePropertyEditorModel(property), CommonTextFieldModel {
 
-  override var text = property.value.orEmpty()
+  /**
+   * A property change is pending.
+   *
+   * Indicates if a change to the property value was initiated, but the value wasn't
+   * immediately registered by the property. Use this value to omit change requests
+   * generated from [focusLost].
+   */
+  protected var pendingValueChange = false
+
+  override var text: String by Delegates.observable(property.value.orEmpty()) { _, _, _ -> pendingValueChange = false }
 
   override val editingSupport: EditingSupport
     get() = property.editingSupport
 
-  fun enter(editedValue: String) {
-    if (editedValue != value) {
-      value = editedValue
+  override fun enterKeyPressed() {
+    if (commitChange()) {
+      // This call may navigate away from the editor control.
+      super.enterKeyPressed()
     }
-    super.enterKeyPressed()
   }
 
   fun escape() {
@@ -43,8 +53,21 @@ open class TextFieldPropertyEditorModel(property: PropertyItem, override val edi
 
   override fun focusLost() {
     super.focusLost()
-    if (text != value) {
-      value = text
+    commitChange()
+  }
+
+  /**
+   * Commit the current changed text.
+   *
+   * Return true if the change was successfully updated.
+   */
+  private fun commitChange(): Boolean {
+    if (pendingValueChange || text == value) {
+      return !pendingValueChange
     }
+    pendingValueChange = value != text
+    value = text
+    pendingValueChange = value != text
+    return !pendingValueChange
   }
 }
