@@ -22,8 +22,7 @@ import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.android.tools.idea.uibuilder.property2.testutils.FakeInspectorLine
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 
 class TextFieldPropertyEditorModelTest {
 
@@ -52,5 +51,31 @@ class TextFieldPropertyEditorModelTest {
     model.escape()
     assertThat(model.property.value).isEqualTo("hello")
     verify(listener).valueChanged()
+  }
+
+  @Test
+  fun testFocusLossWillUpdateValue() {
+    // setup
+    val (model, listener) = createModel()
+    model.focusGained()
+    model.text = "#333333"
+
+    // test
+    model.focusLost()
+    assertThat(model.hasFocus).isFalse()
+    assertThat(model.property.value).isEqualTo("#333333")
+    verify(listener).valueChanged()
+  }
+
+  @Test
+  fun testFocusLossWithUnchangedValueWillNotUpdateValue() {
+    // setup
+    val (model, listener) = createModel()
+    model.focusGained()
+
+    // test
+    model.focusLost()
+    assertThat(model.property.value).isEqualTo("hello")
+    verify(listener, never()).valueChanged()
   }
 }

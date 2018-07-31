@@ -56,8 +56,8 @@ class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel) : AdtSecondar
     button.registerKeyAction({ editorModel.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
     button.registerKeyAction({ editorModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
     button.registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
-    addFocusListener(EditorFocusListener(editorModel, { "" }, updateValueOnFocusLoss = false))
-    button.addActionListener({ buttonPressed() })
+    addFocusListener(EditorFocusListener(editorModel))
+    button.addActionListener { buttonPressed() }
     editorModel.addListener(ValueChangedListener { handleValueChanged() })
     handleValueChanged()
   }

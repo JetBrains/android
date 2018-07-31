@@ -45,11 +45,18 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
       fireValueChanged()
     }
 
-  init {
-    updateValueFromProperty()
+  override var text: String = property.value.orEmpty()
+
+  override fun updateValueFromProperty() {
+    text = value
   }
 
-  override var text: String = ""
+  override fun focusLost() {
+    super.focusLost()
+    if (text != value) {
+      value = text
+    }
+  }
 
   override val editingSupport: EditingSupport
     get() = property.editingSupport
@@ -67,16 +74,14 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
   }
 
   override fun cancelEditing(): Boolean {
-    if (isPopupVisible) {
-      blockUpdates = true
-      updateValueFromProperty()
-      isPopupVisible = false
-      blockUpdates = false
-      return false
-    }
-    else {
+    if (!isPopupVisible) {
       return super.cancelEditing()
     }
+    blockUpdates = true
+    updateValueFromProperty()
+    isPopupVisible = false
+    blockUpdates = false
+    return false
   }
 
   fun popupMenuWillBecomeVisible() {
@@ -87,7 +92,8 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
   fun popupMenuWillBecomeInvisible(ignoreChanges: Boolean) {
     val newValue = selectedValue
     if (!ignoreChanges && newValue != null) {
-      value = newValue.value
+      text = newValue.value
+      value = text
     }
     _popupVisible = false
   }

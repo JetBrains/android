@@ -75,16 +75,15 @@ class BasePropertyEditorModelTest {
   }
 
   @Test
-  fun testFocusLossWillUpdateValue() {
+  fun testFocusLossIsRecodedButNotPropagatedToListener() {
     // setup
     val (model, listener) = createModelWithListener()
     model.focusGained()
 
     // test
-    model.focusLost("#333333")
+    model.focusLost()
     assertThat(model.hasFocus).isFalse()
-    assertThat(model.property.value).isEqualTo("#333333")
-    verify(listener).valueChanged()
+    verify(listener, never()).valueChanged()
   }
 
   @Test
@@ -95,12 +94,5 @@ class BasePropertyEditorModelTest {
 
     model.enterKeyPressed()
     assertThat(line.gotoNextLineWasRequested).isTrue()
-  }
-
-  @Test
-  fun testFocusLossWithUnchangedValueWillNotUpdateValue() {
-    val model = createModel()
-    model.focusLost("#00FF00")
-    assertThat(model.property.value).isEqualTo("#00FF00")
   }
 }
