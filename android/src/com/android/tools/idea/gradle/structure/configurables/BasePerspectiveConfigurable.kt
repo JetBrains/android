@@ -132,17 +132,26 @@ abstract class BasePerspectiveConfigurable protected constructor(
     context.project.findModuleByName(moduleName) ?: getExtraModules().find { it.name == moduleName }
 
   override fun updateSelection(configurable: NamedConfigurable<*>?) {
+    // UpdateSelection might be expensive as it always rebuilds the element tree.
+    if (configurable === myCurrentConfigurable) {
+      selectModuleQuietly = false
+      return
+    }
+
+    if (configurable is BaseNamedConfigurable<*>) {
+      // It is essential to restore the state of the UI before updateSelection() to avoid multiple rebuilds of the element tree.
+      configurable.restoreUiState()
+    }
+    super.updateSelection(configurable)
     if (configurable is BaseNamedConfigurable<*>) {
       val module = configurable.editableObject
       if (!selectModuleQuietly) {
         context.setSelectedModule(module.name, this)
-        configurable.restoreUiState()
       }
       else {
         selectModuleQuietly = false
       }
     }
-    super.updateSelection(configurable)
     myHistory.pushQueryPlace()
   }
 
