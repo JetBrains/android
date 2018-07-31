@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.projectmodel.AarLibrary
 import com.android.tools.idea.findAarDependencies
 import com.android.tools.idea.findAllAarsLibraries
+import com.android.tools.idea.projectsystem.LightResourceClassService
 import com.android.tools.idea.res.aar.AarResourceRepositoryCache
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.concurrency.getAndUnwrap

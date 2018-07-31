@@ -83,13 +83,12 @@ private fun getReferredInfo(
     if (SdkConstants.CLASS_R == qName || AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME == qName) {
         return AndroidResourceUtil.MyReferredResourceFieldInfo(resClassName, resFieldName, facet.module, true, false)
     }
-    val containingFile = resolvedClass.containingFile ?: return null
 
-    val isFromCorrectFile =
-            if (fromManifest) AndroidResourceUtil.isManifestJavaFile(facet, containingFile)
-            else AndroidResourceUtil.isRJavaFile(facet, containingFile)
+    val isSpecialAndroidClass =
+            if (fromManifest) AndroidResourceUtil.isManifestClass(resolvedClass)
+            else AndroidResourceUtil.isRJavaClass(resolvedClass)
 
-    if (!isFromCorrectFile) {
+    if (!isSpecialAndroidClass) {
         return null
     }
 

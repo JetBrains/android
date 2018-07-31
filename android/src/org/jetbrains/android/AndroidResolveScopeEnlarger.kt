@@ -18,7 +18,6 @@ package org.jetbrains.android
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
-import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.util.androidFacet
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.ModuleUtil
@@ -47,10 +46,7 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
     val result = mutableListOf<PsiClass>()
 
     project.getProjectSystem()
-      .getPsiElementFinders()
-      .filterIsInstance(AndroidResourceClassPsiElementFinder::class.java)
-      .singleOrNull()
-      ?.lightResourceClassService
+      .getLightResourceClassService()
       ?.getLightRClassesAccessibleFromModule(module)
       ?.let(result::addAll)
 

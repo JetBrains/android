@@ -23,6 +23,9 @@ import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.projectsystem.LightResourceClassService;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.*;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -57,6 +60,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.graph.Graph;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
+import org.jetbrains.android.augment.ManifestClass;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.color.ColorSelector;
 import org.jetbrains.android.dom.drawable.DrawableSelector;
@@ -79,6 +83,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceType.*;
+import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
 /**
  * @author Eugene.Kudelevsky
@@ -181,40 +186,52 @@ public class AndroidResourceUtil {
 
   @NotNull
   private static Set<PsiClass> findRJavaClasses(@NotNull AndroidFacet facet, boolean onlyInOwnPackages) {
-    final Module module = facet.getModule();
-    final Project project = module.getProject();
-    if (facet.getManifest() == null) {
-      return Collections.emptySet();
-    }
-
-    Graph<Module> graph = ModuleManager.getInstance(project).moduleGraph();
-    Set<Module> dependentModules = Sets.newHashSet();
-    collectDependentModules(graph, module, dependentModules);
-
-    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
-
     Set<PsiClass> rClasses = Sets.newHashSet();
-    String targetPackage = onlyInOwnPackages ? null : AndroidManifestUtils.getPackageName(facet);
-    if (targetPackage != null) {
-      GlobalSearchScope[] scopes = new GlobalSearchScope[dependentModules.size()];
-      int i = 0;
-      for (Module dependentModule : dependentModules) {
-        scopes[i++] = dependentModule.getModuleScope();
+
+    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      LightResourceClassService resourceClassService =
+        ProjectSystemUtil.getProjectSystem(facet.getModule().getProject()).getLightResourceClassService();
+
+      if (resourceClassService != null) {
+        rClasses.addAll(resourceClassService.getLightRClassesAccessibleFromModule(facet.getModule()));
       }
-      rClasses.addAll(Arrays.asList(psiFacade.findClasses(packageToRClass(targetPackage), GlobalSearchScope.union(scopes))));
+    }
+    else {
+      final Module module = facet.getModule();
+      final Project project = module.getProject();
+      if (facet.getManifest() == null) {
+        return Collections.emptySet();
+      }
+
+      Graph<Module> graph = ModuleManager.getInstance(project).moduleGraph();
+      Set<Module> dependentModules = Sets.newHashSet();
+      collectDependentModules(graph, module, dependentModules);
+
+      JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
+
+      String targetPackage = onlyInOwnPackages ? null : AndroidManifestUtils.getPackageName(facet);
+      if (targetPackage != null) {
+        GlobalSearchScope[] scopes = new GlobalSearchScope[dependentModules.size()];
+        int i = 0;
+        for (Module dependentModule : dependentModules) {
+          scopes[i++] = dependentModule.getModuleScope();
+        }
+        rClasses.addAll(Arrays.asList(psiFacade.findClasses(packageToRClass(targetPackage), GlobalSearchScope.union(scopes))));
+      }
+
+      for (Module dependentModule : dependentModules) {
+        AndroidFacet dependentFacet = AndroidFacet.getInstance(dependentModule);
+        if (dependentFacet == null) {
+          continue;
+        }
+        String dependentPackage = AndroidManifestUtils.getPackageName(dependentFacet);
+        if (dependentPackage == null || dependentPackage.equals(targetPackage)) {
+          continue;
+        }
+        rClasses.addAll(Arrays.asList(psiFacade.findClasses(packageToRClass(dependentPackage), dependentModule.getModuleScope())));
+      }
     }
 
-    for (Module dependentModule : dependentModules) {
-      AndroidFacet dependentFacet = AndroidFacet.getInstance(dependentModule);
-      if (dependentFacet == null) {
-        continue;
-      }
-      String dependentPackage = AndroidManifestUtils.getPackageName(dependentFacet);
-      if (dependentPackage == null || dependentPackage.equals(targetPackage)) {
-        continue;
-      }
-      rClasses.addAll(Arrays.asList(psiFacade.findClasses(packageToRClass(dependentPackage), dependentModule.getModuleScope())));
-    }
     return rClasses;
   }
 
@@ -375,14 +392,13 @@ public class AndroidResourceUtil {
   }
 
   public static boolean isResourceField(@NotNull PsiField field) {
-    PsiClass c = field.getContainingClass();
-    if (c == null) return false;
-    c = c.getContainingClass();
-    if (c != null && AndroidUtils.R_CLASS_NAME.equals(c.getName())) {
+    PsiClass rClass = field.getContainingClass();
+    if (rClass == null) return false;
+    rClass = rClass.getContainingClass();
+    if (rClass != null && AndroidUtils.R_CLASS_NAME.equals(rClass.getName())) {
       AndroidFacet facet = AndroidFacet.getInstance(field);
       if (facet != null) {
-        PsiFile file = c.getContainingFile();
-        if (file != null && isRJavaFile(facet, file)) {
+        if (isRJavaClass(rClass)) {
           return true;
         }
       }
@@ -690,7 +706,23 @@ public class AndroidResourceUtil {
     return psiDirectory.findFile(FN_FRAMEWORK_LIBRARY) != null;
   }
 
-  public static boolean isRJavaFile(@NotNull AndroidFacet facet, @NotNull PsiFile file) {
+  public static boolean isRJavaClass(@NotNull PsiClass psiClass) {
+    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      return psiClass instanceof AndroidPackageRClassBase;
+    }
+    PsiFile file = psiClass.getContainingFile();
+    if (file == null) {
+      return false;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(psiClass);
+    if (facet == null) {
+      return false;
+    }
+
+    if (!AndroidUtils.R_CLASS_NAME.equals(psiClass.getName())) {
+      return false;
+    }
+
     if (file.getName().equals(AndroidCommonUtils.R_JAVA_FILENAME) && file instanceof PsiJavaFile) {
       final PsiJavaFile javaFile = (PsiJavaFile)file;
 
@@ -711,7 +743,24 @@ public class AndroidResourceUtil {
     return false;
   }
 
-  public static boolean isManifestJavaFile(@NotNull AndroidFacet facet, @NotNull PsiFile file) {
+  public static boolean isManifestClass(@NotNull PsiClass psiClass) {
+    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      return psiClass instanceof ManifestClass;
+    }
+
+    PsiFile file = psiClass.getContainingFile();
+    if (file == null) {
+      return false;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(psiClass);
+    if (facet == null) {
+      return false;
+    }
+
+    if (!AndroidUtils.MANIFEST_CLASS_NAME.equals(psiClass.getName())) {
+      return false;
+    }
+
     if (file.getName().equals(AndroidCommonUtils.MANIFEST_JAVA_FILE_NAME) && file instanceof PsiJavaFile) {
       final Manifest manifest = facet.getManifest();
       final PsiJavaFile javaFile = (PsiJavaFile)file;
@@ -823,18 +872,14 @@ public class AndroidResourceUtil {
         psiFiles.add(psiFile);
       }
     }
-    PsiFile[] files = psiFiles.toArray(PsiFile.EMPTY_ARRAY);
-    WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Add Resource", files) {
-      @Override
-      protected void run(@NotNull Result<Void> result) {
-        for (Resources resources : resourcesElements) {
-          final ResourceElement element = addValueResource(resourceType, resources, resourceValue);
-          element.getName().setValue(resourceName);
-          afterAddedProcessor.process(element);
-        }
+
+    writeCommandAction(project, psiFiles.toArray(PsiFile.EMPTY_ARRAY)).withName("Add Resource").run(() -> {
+      for (Resources resources : resourcesElements) {
+        final ResourceElement element = addValueResource(resourceType, resources, resourceValue);
+        element.getName().setValue(resourceName);
+        afterAddedProcessor.process(element);
       }
-    };
-    action.execute();
+    });
 
     return true;
   }
@@ -1007,16 +1052,12 @@ public class AndroidResourceUtil {
     }
 
     if (!localOnly) {
-
       if (CLASS_R.equals(qName) || AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME.equals(qName)) {
         return new MyReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, ResourceNamespace.ANDROID, false);
       }
     }
-    PsiFile containingFile = resolvedElement.getContainingFile();
-    if (containingFile == null) {
-      return null;
-    }
-    if (fromManifest ? !isManifestJavaFile(facet, containingFile) : !isRJavaFile(facet, containingFile)) {
+
+    if (fromManifest ? !isManifestClass(aClass) : !isRJavaClass(aClass)) {
       return null;
     }
 
