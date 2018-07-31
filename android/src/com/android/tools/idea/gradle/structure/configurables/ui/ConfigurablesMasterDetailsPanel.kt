@@ -31,6 +31,7 @@ import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.tree.TreeUtil
 import java.util.*
+import javax.swing.JComponent
 import javax.swing.event.TreeModelEvent
 import javax.swing.event.TreeModelListener
 import javax.swing.tree.TreeNode
@@ -75,6 +76,10 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
     tree.isRootVisible = false
     TreeUtil.expandAll(tree)
   }
+
+  private var myComponent: JComponent? = null
+  override fun getComponent(): JComponent = myComponent ?: super.createComponent().also { myComponent = it }
+  final override fun createComponent(): Nothing = throw UnsupportedOperationException("Use getComponent() instead.")
 
   override fun dispose() = disposeUIResources()
 

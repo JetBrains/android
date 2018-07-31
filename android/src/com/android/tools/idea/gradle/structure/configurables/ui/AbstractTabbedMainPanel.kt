@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBTabbedPane
+import com.intellij.ui.components.panels.Wrapper
 import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
 import com.intellij.ui.navigation.Place.goFurther
@@ -42,14 +43,34 @@ abstract class AbstractTabbedMainPanel(
     override fun getInsetsForTabComponent(): Insets = Insets(0, 0, 0, 0)
   }.also {
     add(it)
+    it.addChangeListener {
+      if (topLevelAncestor != null) ensureSelectedTabComponentInstantiated()
+    }
   }
+
+
 
   private val tabPanels: MutableList<ModelPanel<*>> = mutableListOf()
 
   protected fun <T> addTab(panel: ModelPanel<T>) {
-    tabbedPane.addTab(panel.title, panel.createComponent())
+    tabbedPane.addTab(panel.title, Wrapper())
     tabPanels.add(panel)
     Disposer.register(this, panel)
+  }
+
+  private fun ensureSelectedTabComponentInstantiated() {
+    val selectedIndex = tabbedPane.selectedIndex
+    if (selectedIndex >= 0) {
+      val wrapper = tabbedPane.getComponentAt(selectedIndex) as Wrapper
+      if (wrapper.componentCount == 0) {
+        wrapper.setContent(tabPanels[selectedIndex].getComponent())
+      }
+    }
+  }
+
+  override fun addNotify() {
+    super.addNotify()
+    ensureSelectedTabComponentInstantiated()
   }
 
   override fun dispose() = Unit

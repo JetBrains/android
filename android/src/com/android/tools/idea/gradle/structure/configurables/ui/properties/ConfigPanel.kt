@@ -16,28 +16,37 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.configurables.ui.ComponentProvider
-import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertiesUiModel
+import com.android.tools.idea.gradle.structure.model.PsModule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import javax.swing.JComponent
 
 /**
  * A panel for editing configuration entities such as [PsProductFlavor] and [PsBuildType].
  *
- * @param ModelT the model type of an entity being edited
- * @param propertiesModel the ui of model of the properties being edited
+ * [ModelT] is the model type of an entity being edited
+ * [propertiesModel] the UI model of the properties being edited
  */
 open class ConfigPanel<in ModelT>(
-    private val propertiesModel: PropertiesUiModel<ModelT>
+  private val module: PsModule,
+  private val model: ModelT,
+  private val propertiesModel: PropertiesUiModel<ModelT>
 ) : ConfigPanelUi(), ComponentProvider, Disposable {
-  private var model: ModelT? = null
-  private var editors = mutableListOf<ModelPropertyEditor<Any?>>()
 
-  /**
-   * Configures the panel for editing of the [model] and binds the editors.
-   */
-  fun bind(module: PsModule, model: ModelT) {
-    this.model = model
+  private var editors = mutableListOf<ModelPropertyEditor<Any?>>()
+  private var editorsInitialized = false
+  private var initialized = false
+
+  override fun getComponent(): JComponent {
+    if (!initialized) {
+      initializeEditors()
+      initialized = true
+    }
+    return uiComponent
+  }
+
+  private fun initializeEditors() {
     setNumberOfProperties(propertiesModel.properties.size)
     for (property in propertiesModel.properties) {
       val editor: ModelPropertyEditor<Any?> = property.createEditor(module.parent, module, model)
