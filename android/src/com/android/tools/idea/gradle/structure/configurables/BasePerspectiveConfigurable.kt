@@ -46,7 +46,8 @@ import javax.swing.ToolTipManager
 import javax.swing.tree.DefaultTreeModel
 
 abstract class BasePerspectiveConfigurable protected constructor(
-  protected val context: PsContext
+  protected val context: PsContext,
+  val extraModules: List<PsModule>
 ) : MasterDetailsComponent(),
     SearchableConfigurable,
     Disposable,
@@ -67,7 +68,6 @@ abstract class BasePerspectiveConfigurable protected constructor(
   // cycle will start all over again.
   private var selectModuleQuietly: Boolean = false
 
-  protected open fun getExtraModules(): List<PsModule> = listOf()
   protected abstract val navigationPathName: String
 
   init {
@@ -130,7 +130,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
       }
 
   protected fun findModule(moduleName: String): PsModule? =
-    context.project.findModuleByName(moduleName) ?: getExtraModules().find { it.name == moduleName }
+    context.project.findModuleByName(moduleName) ?: extraModules.find { it.name == moduleName }
 
   override fun updateSelection(configurable: NamedConfigurable<*>?) {
     // UpdateSelection might be expensive as it always rebuilds the element tree.
@@ -242,9 +242,8 @@ abstract class BasePerspectiveConfigurable protected constructor(
   }
 
   private fun loadTree() {
-    val extraModules = getExtraModules()
     (myTree.model as DefaultTreeModel).reload()
-    createModuleNodes(extraModules)
+    createModuleNodes()
     uiDisposed = false
   }
 
@@ -257,7 +256,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
     }
   }
 
-  private fun createModuleNodes(extraModules: List<PsModule>) {
+  private fun createModuleNodes() {
     context.project.forEachModule(Consumer<PsModule> { this.addConfigurableFor(it) })
     extraModules.forEach(Consumer<PsModule> { this.addConfigurableFor(it) })
   }

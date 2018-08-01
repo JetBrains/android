@@ -26,7 +26,7 @@ const val BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME = "Build Variants"
 const val BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME = "build_variants.place"
 
 class BuildVariantsPerspectiveConfigurable(context: PsContext)
-  : BasePerspectiveConfigurable(context), TrackedConfigurable {
+  : BasePerspectiveConfigurable(context, extraModules = listOf()), TrackedConfigurable {
 
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_BUILD_VARIANTS
 

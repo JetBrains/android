@@ -27,8 +27,7 @@ import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import javax.swing.JComponent
 
 class SuggestionsPerspectiveConfigurable(context: PsContext)
-  : AbstractCounterDisplayConfigurable(context), TrackedConfigurable {
-  private var extraModules: MutableList<PsModule>? = null
+  : AbstractCounterDisplayConfigurable(context, extraModules = listOf(PsAllModulesFakeModule(context.project))), TrackedConfigurable {
   private var messageCount: Int = 0
 
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_SUGGESTIONS
@@ -47,13 +46,6 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
   override fun getDisplayName(): String = "Suggestions"
 
 
-  override fun getExtraModules(): MutableList<PsModule> {
-    if (extraModules == null) {
-      extraModules = mutableListOf(PsAllModulesFakeModule(context.project))
-    }
-    return extraModules!!
-  }
-
   override fun getCount(): Int = messageCount
 
   override fun createComponent(): JComponent {
@@ -66,5 +58,5 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
   }
 
   private fun createConfigurable(module: PsModule) =
-      AndroidModuleSuggestionsConfigurable(context, module, getExtraModules()).apply { setHistory(myHistory) }
+      AndroidModuleSuggestionsConfigurable(context, module, extraModules).apply { setHistory(myHistory) }
 }

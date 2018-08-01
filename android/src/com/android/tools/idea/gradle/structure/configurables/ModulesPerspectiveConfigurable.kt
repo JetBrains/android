@@ -26,7 +26,7 @@ const val MODULES_PERSPECTIVE_PLACE_NAME: String = "modules.place"
 const val MODULES_PERSPECTIVE_DISPLAY_NAME: String = "Modules"
 
 class ModulesPerspectiveConfigurable(context: PsContext)
-  : BasePerspectiveConfigurable(context), TrackedConfigurable {
+  : BasePerspectiveConfigurable(context, extraModules = listOf()), TrackedConfigurable {
 
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_MODULES
 
