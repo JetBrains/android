@@ -298,7 +298,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
    * Code completion in views inside a <layout> tag need to pick up default layout parameters.
    */
   public void testDataBindingCompletion4() throws Throwable {
-    toTestFirstCompletion("databinding_completion4.xml", "databinding_completion4_after.xml");
+    toTestCompletion("databinding_completion4.xml", "databinding_completion4_after.xml");
   }
 
   public void testCustomTagCompletion() throws Throwable {
