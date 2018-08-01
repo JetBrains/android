@@ -39,7 +39,7 @@ class NamespacedAarPackageRClass(
   private val packageName: String,
   private val aarResources: AbstractResourceRepository,
   private val resourceNamespace: ResourceNamespace
-) : AndroidPackageRClassBase(psiManager) {
+) : AndroidPackageRClassBase(psiManager, packageName) {
 
   override fun getQualifiedName(): String? = "$packageName.R"
 
@@ -82,7 +82,7 @@ class NonNamespacedAarPackageRClass(
   psiManager: PsiManager,
   private val packageName: String,
   symbolFile: File
-) : AndroidPackageRClassBase(psiManager) {
+) : AndroidPackageRClassBase(psiManager, packageName) {
 
   override fun getQualifiedName(): String? = "$packageName.R"
 

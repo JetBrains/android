@@ -17,10 +17,7 @@ package com.android.tools.idea.res;
 
 import com.google.common.base.MoreObjects;
 import com.intellij.ide.highlighter.JavaFileType;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
-import com.intellij.psi.PsiManager;
+import com.intellij.psi.*;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
@@ -38,9 +35,10 @@ import java.util.Collection;
 public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightClassBase {
   @NotNull protected final CachedValue<PsiClass[]> myClassCache;
   @NotNull protected final String myShortName;
-  @NotNull protected final PsiFile myFile;
+  @NotNull protected final PsiJavaFile myFile;
 
   public AndroidClassWithOnlyInnerClassesBase(@NotNull String shortName,
+                                              @Nullable String packageName,
                                               @NotNull PsiManager psiManager,
                                               @NotNull Collection<String> modifiers) {
     super(psiManager, modifiers);
@@ -53,10 +51,13 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
             doGetInnerClasses(),
             PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT));
 
-    myFile = PsiFileFactory.getInstance(myManager.getProject())
-                           .createFileFromText(shortName + ".java",
+    myFile = (PsiJavaFile)PsiFileFactory.getInstance(myManager.getProject())
+                                        .createFileFromText(shortName + ".java",
                                                JavaFileType.INSTANCE,
                                                "// This class is generated on-the-fly by the IDE.");
+    if (packageName != null) {
+      myFile.setPackageName(packageName);
+    }
   }
 
   @NotNull

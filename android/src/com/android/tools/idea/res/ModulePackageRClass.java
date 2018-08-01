@@ -43,12 +43,24 @@ public class ModulePackageRClass extends AndroidPackageRClassBase {
   @NotNull private final AaptOptions.Namespacing myNamespacing;
 
   public ModulePackageRClass(@NotNull PsiManager psiManager, @NotNull Module module, @NotNull AaptOptions.Namespacing namespacing) {
-    super(psiManager);
+    // TODO(b/110188226): Update the file package name when the module's package name changes.
+    super(psiManager, getPackageName(module));
     myModule = module;
     myNamespacing = namespacing;
     this.putUserData(ModuleUtilCore.KEY_MODULE, module);
     // Some scenarios move up to the file level and then attempt to get the module from the file.
     myFile.putUserData(ModuleUtilCore.KEY_MODULE, module);
+  }
+
+  /** Helper static method that can be called to compute the value to be passed to the super constructor. */
+  @Nullable
+  private static String getPackageName(@NotNull Module module) {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet == null) {
+      return null;
+    }
+
+    return AndroidManifestUtils.getPackageName(androidFacet);
   }
 
   @NotNull
