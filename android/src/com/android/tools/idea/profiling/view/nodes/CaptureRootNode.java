@@ -19,8 +19,11 @@ import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.util.containers.SortedList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CaptureRootNode extends SimpleNode {
 
@@ -28,18 +31,16 @@ public class CaptureRootNode extends SimpleNode {
   private final List<CaptureTypeNode> myTypes;
 
   public CaptureRootNode() {
-    myTypes = new SortedList<CaptureTypeNode>(new Comparator<CaptureTypeNode>() {
-      @Override
-      public int compare(CaptureTypeNode a, CaptureTypeNode b) {
-        return a.getName().compareToIgnoreCase(b.getName());
-      }
-    });
+    myTypes = new SortedList<>((a, b) -> a.getName().compareToIgnoreCase(b.getName()));
   }
-
 
   @Override
   public SimpleNode[] getChildren() {
-    return myTypes.toArray(new CaptureTypeNode[0]);
+    // TODO(b/112073094): the list is flattened because it only displays one type of node (Layout Inspector). If this panel is used to
+    // display other node types in the future, this method should return the nested myType#getChildren() list.
+    List<SimpleNode> flattened = new ArrayList<>();
+    myTypes.forEach((typeNode) -> flattened.addAll(Arrays.asList(typeNode.getChildren())));
+    return flattened.toArray(new SimpleNode[0]);
   }
 
   public void clear() {

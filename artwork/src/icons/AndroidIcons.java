@@ -54,8 +54,6 @@ public class AndroidIcons {
   public static final Icon GradleConsoleToolWindow = load("/icons/gradle_console_tool_window.png"); // 13x13
   public static final Icon MavenLogo = load("/icons/maven.png"); // 16x16
 
-  public static final Icon CapturesToolWindow = load("/icons/captures.png"); // 13x13
-
   public static final Icon Variant = load("/icons/variant.png");
 
   public static final Icon AppModule = load("/icons/appModule.png");

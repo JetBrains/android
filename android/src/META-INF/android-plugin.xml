@@ -985,8 +985,8 @@
     <facet.toolWindow id="Captures"
                       facetIdList="android"
                       anchor="left"
-                      secondary="false"
-                      icon="AndroidIcons.CapturesToolWindow"
+                      secondary="true"
+                      icon="StudioIcons.Shell.ToolWindows.CAPTURES"
                       factoryClass="com.android.tools.idea.profiling.view.CapturesToolWindowFactory"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings"/>
     <applicationConfigurable provider="com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettingsConfigurableProvider"
