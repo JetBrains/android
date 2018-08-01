@@ -30,12 +30,14 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.fixture.JPopupMenuFixture;
+import org.fest.swing.timing.Wait;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import javax.swing.FocusManager;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -236,6 +238,7 @@ public class NlEditorTest {
       button.rightClick();
       layout.invokeContextMenuAction("Convert view...");
       MorphDialogFixture fixture = layout.findMorphDialog();
+      fixture.getTextField().click();
       assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
 
       ideFrame.robot().enterText("TextView");
@@ -250,6 +253,7 @@ public class NlEditorTest {
       textView.rightClick();
       textView.invokeContextMenuAction("Convert view...");
       fixture = layout.findMorphDialog();
+      fixture.getTextField().click();
       assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
 
       fixture.getSuggestionList().clickItem("Button");
