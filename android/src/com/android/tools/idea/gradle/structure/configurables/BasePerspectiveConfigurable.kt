@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
-import com.android.tools.idea.gradle.structure.configurables.ui.ModuleSelectorDropDownPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiStateComponent
+import com.android.tools.idea.gradle.structure.configurables.ui.ModuleSelectorDropDownPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint
@@ -56,6 +56,8 @@ abstract class BasePerspectiveConfigurable protected constructor(
     Place.Navigator,
     CrossModuleUiStateComponent {
 
+  private enum class ModuleSelectorStyle { LIST_VIEW, DROP_DOWN }
+
   private var uiDisposed = true
 
   private var toolWindowHeader: ToolWindowHeader? = null
@@ -64,7 +66,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
   private var moduleSelectorDropDownPanel: ModuleSelectorDropDownPanel? = null
 
   private var treeInitiated: Boolean = false
-  private var treeMinimized: Boolean = false
+  private var currentModuleSelectorStyle: ModuleSelectorStyle? = null
 
   protected abstract val navigationPathName: String
 
@@ -91,19 +93,8 @@ abstract class BasePerspectiveConfigurable protected constructor(
         Unit
       }, this)
 
-    treeMinimized = this.context.uiSettings.MODULES_LIST_MINIMIZE
-    if (treeMinimized) {
-      myToReInitWholePanel = true
-      reInitWholePanelIfNeeded()
-    }
     @Suppress("LeakingThis")
-    context.uiSettings.addListener(PsUISettings.ChangeListener { settings ->
-      if (settings.MODULES_LIST_MINIMIZE != treeMinimized) {
-        treeMinimized = settings.MODULES_LIST_MINIMIZE
-        myToReInitWholePanel = true
-        reInitWholePanelIfNeeded()
-      }
-    }, this)
+    context.uiSettings.addListener(PsUISettings.ChangeListener { reconfigureForCurrentSettings() }, this)
   }
 
   private fun stopSyncAnimation() {
@@ -138,68 +129,57 @@ abstract class BasePerspectiveConfigurable protected constructor(
     myHistory.pushQueryPlace()
   }
 
+
   final override fun reInitWholePanelIfNeeded() {
     if (!myToReInitWholePanel) return
-
-    if (treeMinimized) {
-      centerComponent = splitter.secondComponent
-
-      if (centerComponent == null) {
-        super.reInitWholePanelIfNeeded()
-        centerComponent = splitter.secondComponent
+    super.reInitWholePanelIfNeeded()
+    currentModuleSelectorStyle = null
+    centerComponent = splitter.secondComponent
+    val splitterLeftcomponent = (splitter.firstComponent as JPanel)
+    toolWindowHeader = ToolWindowHeader.createAndAdd("Modules", ANDROID_MODULE, splitterLeftcomponent, ToolWindowAnchor.LEFT)
+      .also {
+        it.setPreferredFocusedComponent(myTree)
+        it.addMinimizeListener { modulesTreeMinimized() }
+        Disposer.register(this@BasePerspectiveConfigurable, it)
       }
-      myToReInitWholePanel = false
+  }
 
-      splitter.secondComponent = null
-      myWholePanel.remove(splitter)
-      myWholePanel.add(centerComponent!!, BorderLayout.CENTER)
-      moduleSelectorDropDownPanel = ModuleSelectorDropDownPanel(context, this)
-      myWholePanel.add(moduleSelectorDropDownPanel, BorderLayout.NORTH)
-      revalidateAndRepaint(myWholePanel)
+  private fun reconfigureForCurrentSettings() {
+    reconfigureFor(if (context.uiSettings.MODULES_LIST_MINIMIZE) ModuleSelectorStyle.DROP_DOWN else ModuleSelectorStyle.LIST_VIEW)
+  }
+
+  private fun reconfigureFor(moduleSelectorStyle: ModuleSelectorStyle) {
+    if (currentModuleSelectorStyle == moduleSelectorStyle) return
+    if (myWholePanel == null) {
+      currentModuleSelectorStyle = null
+      myToReInitWholePanel = true
+      reInitWholePanelIfNeeded()
     }
-    else {
-      if (myWholePanel == null) {
-        super.reInitWholePanelIfNeeded()
-      }
-      moduleSelectorDropDownPanel?.let { it.parent.remove(it) }
-      moduleSelectorDropDownPanel = null
-      myToReInitWholePanel = false
 
-      if (centerComponent !== null && centerComponent !== splitter) {
-        myWholePanel.remove(centerComponent!!)
+    when (moduleSelectorStyle) {
+      ModuleSelectorStyle.DROP_DOWN -> {
+        splitter.secondComponent = null
+        myWholePanel.remove(splitter)
+        myWholePanel.add(centerComponent!!, BorderLayout.CENTER)
+        moduleSelectorDropDownPanel = ModuleSelectorDropDownPanel(context, this)
+        myWholePanel.add(moduleSelectorDropDownPanel, BorderLayout.NORTH)
+      }
+      ModuleSelectorStyle.LIST_VIEW -> {
         splitter.secondComponent = centerComponent
         myWholePanel.add(splitter)
-        revalidateAndRepaint(myWholePanel)
-      }
-
-      centerComponent = splitter
-
-      val first = splitter.firstComponent
-      if (first is JPanel) {
-        if (toolWindowHeader == null) {
-          toolWindowHeader =
-            ToolWindowHeader.createAndAdd("Modules", ANDROID_MODULE, first, ToolWindowAnchor.LEFT).apply {
-              setPreferredFocusedComponent(myTree)
-              addMinimizeListener {
-                modulesTreeMinimized()
-                reInitWholePanelIfNeeded()
-              }
-            }
-        }
-        else if (toolWindowHeader!!.parent !== first) {
-          first.add(toolWindowHeader!!, BorderLayout.NORTH)
-        }
+        moduleSelectorDropDownPanel?.let { it.parent.remove(it) }
+        moduleSelectorDropDownPanel = null
       }
     }
+    currentModuleSelectorStyle = moduleSelectorStyle
+    revalidateAndRepaint(myWholePanel)
   }
 
-  private fun modulesTreeMinimized() {
-    val settings = context.uiSettings
-    myToReInitWholePanel = true
-    treeMinimized = myToReInitWholePanel
-    settings.MODULES_LIST_MINIMIZE = treeMinimized
-    settings.fireUISettingsChanged()
-  }
+  private fun modulesTreeMinimized() =
+    with(context.uiSettings) {
+      MODULES_LIST_MINIMIZE = true
+      fireUISettingsChanged()
+    }
 
   override fun reset() {
     uiDisposed = false
@@ -213,6 +193,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
     myTree.showsRootHandles = false
     loadTree()
 
+    currentModuleSelectorStyle = null
     super<MasterDetailsComponent>.reset()
   }
 
@@ -235,6 +216,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
 
   override fun createComponent(): JComponent {
     val contents = super.createComponent()
+    reconfigureForCurrentSettings()
     return JBLoadingPanel(BorderLayout(), this).also {
       loadingPanel = it
       it.setLoadingText("Syncing Project with Gradle")
@@ -299,11 +281,13 @@ abstract class BasePerspectiveConfigurable protected constructor(
     super<MasterDetailsComponent>.disposeUIResources()
     uiDisposed = true
     myAutoScrollHandler.cancelAllRequests()
+    currentModuleSelectorStyle = null
     Disposer.dispose(this)
   }
 
   override fun dispose() {
     toolWindowHeader?.let { Disposer.dispose(it) }
+    toolWindowHeader = null
   }
 
   override fun enableSearch(option: String): Runnable? = null
