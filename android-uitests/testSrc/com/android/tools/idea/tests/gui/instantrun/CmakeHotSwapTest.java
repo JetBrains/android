@@ -74,7 +74,7 @@ public class CmakeHotSwapTest {
    *   2. Make sure the instant run hot swap is applied in Run tool window.
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/76023451
   @Test
   public void cmakeHotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmake");
