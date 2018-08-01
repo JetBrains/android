@@ -33,7 +33,7 @@ const val DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME = "Dependencies"
 const val DEPENDENCIES_PERSPECTIVE_PLACE_NAME = "dependencies.place"
 
 class DependenciesPerspectiveConfigurable(context: PsContext)
-  : BasePerspectiveConfigurable(context), TrackedConfigurable {
+  : BasePerspectiveConfigurable(context, extraModules = listOf(PsAllModulesFakeModule(context.project))), TrackedConfigurable {
 
   private val myExtraModules = mutableListOf<PsModule>()
 
@@ -47,18 +47,11 @@ class DependenciesPerspectiveConfigurable(context: PsContext)
 
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<*, *>? =
     when (module) {
-      is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context, getExtraModules())
-      is PsAndroidModule -> AndroidModuleDependenciesConfigurable(module, context, getExtraModules())
-      is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context, getExtraModules())
+      is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context, extraModules)
+      is PsAndroidModule -> AndroidModuleDependenciesConfigurable(module, context, extraModules)
+      is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context, extraModules)
       else -> null
     }
 
   override fun createComponent(): JComponent = super.createComponent().also { it.name = DEPENDENCIES_VIEW }
-
-  override fun getExtraModules(): List<PsModule> =
-    myExtraModules.also {
-      if (it.isEmpty()) {
-        it.add(PsAllModulesFakeModule(context.project))
-      }
-    }
 }
