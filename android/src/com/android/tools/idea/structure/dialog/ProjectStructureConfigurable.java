@@ -19,6 +19,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiStateComponent;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -177,6 +178,9 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
     }
 
     if (toSelect != null) {
+      if (toSelect instanceof CrossModuleUiStateComponent) {
+        ((CrossModuleUiStateComponent)toSelect).restoreUiState();
+      }
       detailsContent = myConfigurables.get(toSelect);
       if (detailsContent == null) {
         detailsContent = toSelect.createComponent();

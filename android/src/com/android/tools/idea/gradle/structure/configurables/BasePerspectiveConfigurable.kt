@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.ModuleSelectorDropDownPanel
+import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint
@@ -52,7 +53,8 @@ abstract class BasePerspectiveConfigurable protected constructor(
 ) : MasterDetailsComponent(),
     SearchableConfigurable,
     Disposable,
-    Place.Navigator {
+    Place.Navigator,
+    CrossModuleUiStateComponent {
 
   private var uiDisposed = true
 
@@ -63,12 +65,6 @@ abstract class BasePerspectiveConfigurable protected constructor(
 
   private var treeInitiated: Boolean = false
   private var treeMinimized: Boolean = false
-
-  // This flag prevents an infinite loop started when a module is selected.
-  // When a module is selected, the selected module is recorded in PsContext. PsContext then notifies every configurable about the module
-  // selection change. Each configurable adjusts its selected module, but if they notify PsContext about this change, the notification
-  // cycle will start all over again.
-  private var selectModuleQuietly: Boolean = false
 
   protected abstract val navigationPathName: String
 
@@ -83,14 +79,6 @@ abstract class BasePerspectiveConfigurable protected constructor(
 
       override fun syncSucceeded(project: Project) = stopSyncAnimation()
       override fun syncFailed(project: Project, errorMessage: String) = stopSyncAnimation()
-    }, this)
-
-    @Suppress("LeakingThis")
-    context.add(object : PsContext.ChangeListener {
-      override fun moduleSelectionChanged(moduleName: String) {
-        selectModuleQuietly = true
-        selectModule(moduleName)?.restoreUiState()
-      }
     }, this)
 
     @Suppress("LeakingThis")
@@ -122,7 +110,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
     loadingPanel?.stopLoading()
   }
 
-  private fun selectModule(moduleName: String): BaseNamedConfigurable<*>? =
+  fun selectModule(moduleName: String): BaseNamedConfigurable<*>? =
     findModule(moduleName)
       ?.let { MasterDetailsComponent.findNodeByObject(myRoot, it) }
       ?.let { node ->
@@ -136,10 +124,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
 
   override fun updateSelection(configurable: NamedConfigurable<*>?) {
     // UpdateSelection might be expensive as it always rebuilds the element tree.
-    if (configurable === myCurrentConfigurable) {
-      selectModuleQuietly = false
-      return
-    }
+    if (configurable === myCurrentConfigurable) return
 
     if (configurable is BaseNamedConfigurable<*>) {
       // It is essential to restore the state of the UI before updateSelection() to avoid multiple rebuilds of the element tree.
@@ -148,12 +133,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
     super.updateSelection(configurable)
     if (configurable is BaseNamedConfigurable<*>) {
       val module = configurable.editableObject
-      if (!selectModuleQuietly) {
-        context.setSelectedModule(module.name, this)
-      }
-      else {
-        selectModuleQuietly = false
-      }
+      context.setSelectedModule(module.name, this)
     }
     myHistory.pushQueryPlace()
   }
@@ -333,4 +313,8 @@ abstract class BasePerspectiveConfigurable protected constructor(
   override fun apply() = context.project.applyChanges()
 
   override fun setHistory(history: History?) = super<MasterDetailsComponent>.setHistory(history)
+
+  override fun restoreUiState() {
+    context.selectedModule?.let { selectModule(it)?.restoreUiState() }
+  }
 }
