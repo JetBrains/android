@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ShowLogcatTask implements LaunchTask {
+  private static final String ID = "SHOW_LOGCAT";
   @NotNull private final Project myProject;
   @Nullable private final String myApplicationId;
 
@@ -54,6 +55,12 @@ public class ShowLogcatTask implements LaunchTask {
     Client client = myApplicationId == null ? null : device.getClient(myApplicationId);
     showLogcatConsole(myProject, device, client);
     return true;
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 
   private static void showLogcatConsole(@NotNull final Project project, @NotNull final IDevice device, @Nullable final Client client) {

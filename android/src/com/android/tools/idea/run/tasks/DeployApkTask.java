@@ -25,6 +25,9 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.base.Preconditions;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.ArtifactDetail;
+import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
+import com.google.wireless.android.sdk.stats.StudioRunEvent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -33,8 +36,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class DeployApkTask implements LaunchTask {
+  private static final String ID = "DEPLOY_APK";
+
   private static final Logger LOG = Logger.getInstance(DeployApkTask.class);
 
   private final Project myProject;
@@ -69,7 +76,6 @@ public class DeployApkTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    RunStatsService.get(myProject).notifyDeployApkStarted(device, myApks);
     printer = new SkipEmptyLinesConsolePrinter(printer);
     FullApkInstaller
       installer = new FullApkInstaller(myProject, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);
@@ -78,13 +84,11 @@ public class DeployApkTask implements LaunchTask {
         String message = "The APK file " + apk.getFile().getPath() + " does not exist on disk.";
         printer.stderr(message);
         LOG.warn(message);
-        RunStatsService.get(myProject).notifyDeployFinished(false);
         return false;
       }
 
       String pkgName = apk.getApplicationId();
       if (!installer.uploadAndInstallApk(device, pkgName, apk.getFile(), launchStatus)) {
-        RunStatsService.get(myProject).notifyDeployFinished(false);
         return false;
       }
 
@@ -104,9 +108,20 @@ public class DeployApkTask implements LaunchTask {
     } else {
       InstantRunStatsService.get(myProject).notifyDeployType(DeployType.FULLAPK, myInstantRunContext, device);
     }
-    RunStatsService.get(myProject).notifyDeployFinished(true);
     trackInstallation(device);
     return true;
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
+  }
+
+  @NotNull
+  @Override
+  public Collection<ApkInfo> getApkInfos() {
+    return myApks;
   }
 
   public static void cacheManifestInstallationData(@NotNull IDevice device, @NotNull InstantRunContext context) {

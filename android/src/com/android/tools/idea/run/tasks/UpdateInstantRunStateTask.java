@@ -23,6 +23,7 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.annotations.NotNull;
 
 public class UpdateInstantRunStateTask implements LaunchTask {
+  private static final String ID = "UPDATE_INSTANT_RUN_STATE";
   private final InstantRunContext myInstantRunContext;
 
   public UpdateInstantRunStateTask(@NotNull InstantRunContext instantRunContext) {
@@ -45,5 +46,11 @@ public class UpdateInstantRunStateTask implements LaunchTask {
     InstantRunManager.transferLocalIdToDeviceId(device, myInstantRunContext);
     DeployApkTask.cacheManifestInstallationData(device, myInstantRunContext);
     return true;
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 }

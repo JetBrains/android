@@ -38,6 +38,8 @@ import static com.android.tools.idea.run.tasks.LaunchTaskDurations.DEPLOY_INSTAN
 import static com.google.android.instantapps.sdk.api.RunHandler.SetupBehavior;
 
 public class RunInstantAppTask implements LaunchTask {
+  private static final String ID = "RUN_INSTANT_APP";
+
   @NotNull private final Collection<ApkInfo> myPackages;
   @Nullable private final String myDeepLink;
   @NotNull private final InstantAppSdks mySdk;
@@ -124,6 +126,12 @@ public class RunInstantAppTask implements LaunchTask {
       getLogger().error(new RunInstantAppException(e));
       return false;
     }
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 
   public static class RunInstantAppException extends Exception {

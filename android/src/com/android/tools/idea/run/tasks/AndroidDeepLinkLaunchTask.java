@@ -28,6 +28,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.TimeUnit;
 
 public class AndroidDeepLinkLaunchTask implements LaunchTask {
+
+  private static final String ID = "LAUNCH_DEEP_LINK";
+
   @NotNull private final String myDeepLink;
   @NotNull StartActivityFlagsProvider myStartActivityFlagsProvider;
 
@@ -60,6 +63,12 @@ public class AndroidDeepLinkLaunchTask implements LaunchTask {
     // Launch deeplink
     String command = getLaunchDeepLinkCommand(myDeepLink, myStartActivityFlagsProvider.getFlags(device));
     return ShellCommandLauncher.execute(command, device, launchStatus, printer, 5, TimeUnit.SECONDS);
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 
   @NotNull

@@ -82,7 +82,6 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
       VirtualFileManager.getInstance().syncRefresh()
       log("Vfs synced")
     }
-    RunStatsService.setTestOverride(Mockito.mock(RunStatsService::class.java, Answers.RETURNS_DEEP_STUBS))
   }
 
   fun testAppModule() {
