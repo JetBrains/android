@@ -87,11 +87,16 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   }
 
   @NotNull
-  public NewProjectWizardFixture clickFinish() {
-    super.clickFinish(Wait.seconds(10));
-    Wait.seconds(5).expecting("project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
-    GuiTests.waitForProjectIndexingToFinish(ProjectManager.getInstance().getOpenProjects()[0]);
+  public NewProjectWizardFixture clickFinish(@NotNull Wait dialog, @NotNull Wait projectOpen, @NotNull Wait indexing) {
+    super.clickFinish(dialog);
+    projectOpen.expecting("project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
+    GuiTests.waitForProjectIndexingToFinish(ProjectManager.getInstance().getOpenProjects()[0], indexing);
     return myself();
+  }
+
+  @NotNull
+  public NewProjectWizardFixture clickFinish() {
+    return clickFinish(Wait.seconds(10), Wait.seconds(5), Wait.seconds(120));
   }
 
   @NotNull

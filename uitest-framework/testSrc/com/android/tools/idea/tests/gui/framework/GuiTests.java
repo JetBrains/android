@@ -627,13 +627,17 @@ public final class GuiTests {
     }
   }
 
-  public static void waitForProjectIndexingToFinish(@NotNull Project project) {
+  public static void waitForProjectIndexingToFinish(@NotNull Project project, @NotNull Wait indexing) {
     AtomicBoolean isProjectIndexed = new AtomicBoolean();
     DumbService.getInstance(project).smartInvokeLater(() -> isProjectIndexed.set(true));
 
+    indexing.expecting("Project indexing to finish")
+      .until(isProjectIndexed::get);
+  }
+
+  public static void waitForProjectIndexingToFinish(@NotNull Project project) {
     // Bazel wipes all Android Studio Caches between tests and all JDK and Android SDK libraries are re-indexed (about 50K files)
     // Usually this take 20-30 secs, but depends heavily on the machine and its load
-    Wait.seconds(120).expecting("Project indexing to finish")
-      .until(isProjectIndexed::get);
+    waitForProjectIndexingToFinish(project, Wait.seconds(120));
   }
 }
