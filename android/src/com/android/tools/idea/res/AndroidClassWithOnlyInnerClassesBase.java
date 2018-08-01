@@ -51,10 +51,9 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
             doGetInnerClasses(),
             PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT));
 
-    myFile = (PsiJavaFile)PsiFileFactory.getInstance(myManager.getProject())
-                                        .createFileFromText(shortName + ".java",
-                                               JavaFileType.INSTANCE,
-                                               "// This class is generated on-the-fly by the IDE.");
+    PsiFileFactory factory = PsiFileFactory.getInstance(myManager.getProject());
+    myFile = (PsiJavaFile)factory.createFileFromText(shortName + ".java", JavaFileType.INSTANCE,
+                                                     "// This class is generated on-the-fly by the IDE.");
     if (packageName != null) {
       myFile.setPackageName(packageName);
     }
