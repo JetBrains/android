@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.PSDEvent;
 import com.intellij.ide.util.PropertiesComponent;
@@ -62,6 +63,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.EventListener;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker.getApplicationId;
@@ -81,7 +83,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
   @NotNull private final Project myProject;
   @NotNull private final IdeSdksConfigurable mySdksConfigurable;
   @NotNull private final Wrapper myDetails = new Wrapper();
-  @NotNull private final List<Configurable> myConfigurables = Lists.newArrayList();
+  @NotNull private final Map<Configurable, JComponent> myConfigurables = Maps.newLinkedHashMap();
   @NotNull private final UIState myUiState = new UIState();
 
   private History myHistory = new History(this);
@@ -175,7 +177,11 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
     }
 
     if (toSelect != null) {
-      detailsContent = toSelect.createComponent();
+      detailsContent = myConfigurables.get(toSelect);
+      if (detailsContent == null) {
+        detailsContent = toSelect.createComponent();
+        myConfigurables.put(toSelect, detailsContent);
+      }
       myDetails.setContent(detailsContent);
     }
 
@@ -250,7 +256,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
 
   @Nullable
   private Configurable findConfigurable(@NotNull String displayName) {
-    for (Configurable configurable : myConfigurables) {
+    for (Configurable configurable : myConfigurables.keySet()) {
       if (displayName.equals(configurable.getDisplayName())) {
         return configurable;
       }
@@ -376,7 +382,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
   }
 
   private void addConfigurable(@NotNull Configurable configurable) {
-    myConfigurables.add(configurable);
+    myConfigurables.put(configurable, null);
     if (configurable instanceof Place.Navigator) {
       Place.Navigator navigator = (Place.Navigator)configurable;
       navigator.setHistory(myHistory);
@@ -393,7 +399,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
 
   @Nullable
   public <T extends Configurable> T findConfigurable(@NotNull Class<T> type) {
-    for (Configurable configurable : myConfigurables) {
+    for (Configurable configurable : myConfigurables.keySet()) {
       if (type.isInstance(configurable)) {
         return type.cast(configurable);
       }
@@ -408,7 +414,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
 
   @Override
   public boolean isModified() {
-    for (Configurable configurable : myConfigurables) {
+    for (Configurable configurable : myConfigurables.keySet()) {
       if (configurable.isModified()) {
         return true;
       }
@@ -437,7 +443,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
       );
     }
     boolean applied = false;
-    for (Configurable configurable : myConfigurables) {
+    for (Configurable configurable : myConfigurables.keySet()) {
       if (configurable.isModified()) {
         configurable.apply();
         applied = true;
@@ -455,20 +461,21 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
       mySdksConfigurable.reset();
 
       Configurable toSelect = null;
-      for (Configurable each : myConfigurables) {
+      for (Configurable each : myConfigurables.keySet()) {
         if (myUiState.lastEditedConfigurable != null && myUiState.lastEditedConfigurable.equals(each.getDisplayName())) {
           toSelect = each;
         }
         if (each instanceof MasterDetailsComponent) {
           ((MasterDetailsComponent)each).setHistory(myHistory);
         }
+        each.disposeUIResources();
         each.reset();
       }
 
       myHistory.clear();
 
       if (toSelect == null && !myConfigurables.isEmpty()) {
-        toSelect = myConfigurables.get(0);
+        toSelect = myConfigurables.keySet().stream().findFirst().orElse(null);
       }
 
       removeSelected();
@@ -497,7 +504,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
 
     myUiState.proportion = mySplitter.getProportion();
     saveSideProportion();
-    myConfigurables.forEach(Configurable::disposeUIResources);
+    myConfigurables.keySet().forEach(Configurable::disposeUIResources);
     myConfigurables.clear();
 
     Disposer.dispose(myDisposable);
