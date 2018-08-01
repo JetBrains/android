@@ -17,8 +17,8 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.logcat.AndroidLogcatService;
-import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory;
+import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.application.ApplicationManager;
@@ -30,6 +30,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class ClearLogcatTask implements LaunchTask {
   private final Project myProject;
+
+  private static final String ID = "CLEAR_LOGCAT";
 
   public ClearLogcatTask(@NotNull Project project) {
     myProject = project;
@@ -52,11 +54,18 @@ public class ClearLogcatTask implements LaunchTask {
     return true;
   }
 
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
+  }
+
   private static void clearLogcatAndConsole(@NotNull final Project project, @NotNull final IDevice device) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidLogcatToolWindowFactory.getToolWindowId());
+        final ToolWindow toolWindow =
+          ToolWindowManager.getInstance(project).getToolWindow(AndroidLogcatToolWindowFactory.getToolWindowId());
         if (toolWindow == null) {
           return;
         }

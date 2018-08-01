@@ -23,8 +23,9 @@ import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
-import com.android.tools.idea.stats.RunStatsService;
+import com.android.tools.idea.stats.RunStats;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
@@ -48,6 +49,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   @NotNull private final ProcessHandler myProcessHandler;
   @NotNull private final DeviceFutures myDeviceFutures;
   @NotNull private final LaunchTasksProvider myLaunchTasksProvider;
+  @NotNull private final RunStats myStats;
 
   @Nullable private String myError;
 
@@ -56,7 +58,8 @@ public class LaunchTaskRunner extends Task.Backgroundable {
                           @NotNull LaunchInfo launchInfo,
                           @NotNull ProcessHandler processHandler,
                           @NotNull DeviceFutures deviceFutures,
-                          @NotNull LaunchTasksProvider launchTasksProvider) {
+                          @NotNull LaunchTasksProvider launchTasksProvider,
+                          @NotNull RunStats stats) {
     super(project, "Launching " + configName);
 
     myConfigName = configName;
@@ -64,12 +67,14 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     myProcessHandler = processHandler;
     myDeviceFutures = deviceFutures;
     myLaunchTasksProvider = launchTasksProvider;
+    myStats = stats;
   }
 
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
     indicator.setText(getTitle());
     indicator.setIndeterminate(false);
+    myStats.beginLaunchTasks();
 
     LaunchStatus launchStatus = new ProcessHandlerLaunchStatus(myProcessHandler);
     ConsolePrinter consolePrinter = new ProcessHandlerConsolePrinter(myProcessHandler);
@@ -93,9 +98,11 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
     for (ListenableFuture<IDevice> deviceFuture : listenableDeviceFutures) {
       indicator.setText("Waiting for target device to come online");
+      myStats.beginWaitForDevice();
       IDevice device = waitForDevice(deviceFuture, indicator, launchStatus);
+      myStats.endWaitForDevice(device);
       if (device == null) {
-        return;
+        break;
       }
 
       List<LaunchTask> launchTasks = null;
@@ -104,24 +111,28 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       }
       catch (com.intellij.execution.ExecutionException e) {
         launchStatus.terminateLaunch(e.getMessage());
-        return;
+        break;
       }
       catch (IllegalStateException e) {
         launchStatus.terminateLaunch(e.getMessage());
         Logger.getInstance(LaunchTaskRunner.class).error(e);
-        return;
+        break;
       }
 
       int totalDuration = listenableDeviceFutures.size() * getTotalDuration(launchTasks, debugSessionTask);
       int elapsed = 0;
 
+      boolean success = true;
       for (LaunchTask task : launchTasks) {
         // perform each task
+        LaunchTaskDetail.Builder details = myStats.beginLaunchTask(task);
         indicator.setText(task.getDescription());
-        if (!task.perform(device, launchStatus, consolePrinter)) {
+        success = task.perform(device, launchStatus, consolePrinter);
+        myStats.endLaunchTask(details, success);
+        if (!success) {
           myError = "Error " + task.getDescription();
           launchStatus.terminateLaunch("Error while " + task.getDescription());
-          return;
+          break;
         }
 
         // update progress
@@ -131,13 +142,18 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         // check for cancellation via progress bar
         if (indicator.isCanceled()) {
           launchStatus.terminateLaunch("User cancelled launch");
-          return;
+          success = false;
+          break;
         }
 
         // check for cancellation via stop button
         if (launchStatus.isLaunchTerminated()) {
-          return;
+          success = false;
+          break;
         }
+      }
+      if (!success) {
+        break;
       }
 
       if (debugSessionTask != null) {
@@ -152,16 +168,17 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         }
       }
     }
+    myStats.endLaunchTasks();
   }
 
   @Override
   public void onSuccess() {
-    RunStatsService.get(myProject).notifyRunFinished(myError == null);
     if (myError == null) {
-      return;
+      myStats.fail();
+    } else {
+      myStats.success();
+      LaunchUtils.showNotification(myProject, myLaunchInfo.executor, myConfigName, myError, NotificationType.ERROR);
     }
-
-    LaunchUtils.showNotification(myProject, myLaunchInfo.executor, myConfigName, myError, NotificationType.ERROR);
   }
 
   @Nullable

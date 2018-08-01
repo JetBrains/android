@@ -23,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DefaultActivityLaunchTask extends ActivityLaunchTask {
+  private static final String ID = "DEFAULT_ACTIVITY";
+
   @NotNull private final ActivityLocator myActivityLocator;
 
   public DefaultActivityLaunchTask(@NotNull String applicationId,
@@ -42,5 +44,11 @@ public class DefaultActivityLaunchTask extends ActivityLaunchTask {
       printer.stderr("Could not identify launch activity: " + e.getMessage());
       return null;
     }
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 }

@@ -281,6 +281,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   }
 
   public static final class AndroidProfilerToolWindowLaunchTask implements LaunchTask {
+    private static final String ID = "PROFILER_TOOLWINDOW";
     @NotNull private final Module myModule;
     @NotNull private final LaunchOptions myLaunchOptions;
 
@@ -334,6 +335,12 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
           }
         });
       return true;
+    }
+
+    @NotNull
+    @Override
+    public String getId() {
+      return ID;
     }
 
     /**

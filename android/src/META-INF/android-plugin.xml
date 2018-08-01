@@ -1019,7 +1019,7 @@
     <projectService serviceImplementation="com.android.tools.idea.run.DevicePickerStateService" />
     <projectService serviceImplementation="com.android.tools.idea.fd.InstantRunManager" />
     <projectService serviceImplementation="com.android.tools.idea.fd.InstantRunStatsService" />
-    <projectService serviceImplementation="com.android.tools.idea.stats.RunStatsServiceImpl" />
+    <projectService serviceImplementation="com.android.tools.idea.stats.RunStatsService" />
     <projectService serviceImplementation="com.android.tools.idea.fd.FlightRecorder" />
 
     <projectService serviceImplementation="com.android.tools.idea.run.profiler.CpuProfilerConfigsState" />

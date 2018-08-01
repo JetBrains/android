@@ -38,6 +38,8 @@ import java.util.regex.Pattern;
 
 public class SplitApkDeployTask implements LaunchTask {
 
+  private static final String ID = "DEPLOY_SPLIT_APK";
+
   private static final Pattern DEVICE_NOT_FOUND_ERROR = Pattern.compile("device '.*' not found");
 
   @NotNull
@@ -76,7 +78,6 @@ public class SplitApkDeployTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    RunStatsService.get(myProject).notifyDeploySplitApkStarted(device, myContext, myDontKill);
     // TODO: should we pass in pm install options?
     List<String> installOptions = Lists.newArrayList();
     installOptions.add("-t");
@@ -109,8 +110,13 @@ public class SplitApkDeployTask implements LaunchTask {
     }
 
     myContext.notifyInstall(myProject, device, installResult.isSuccess());
-    RunStatsService.get(myProject).notifyDeployFinished(installResult.isSuccess());
     return installResult.isSuccess();
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 
   private static final class SplitApkInstaller implements RetryingInstaller.Installer {

@@ -33,6 +33,8 @@ import java.util.stream.Collectors;
 
 public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack {
 
+  private static final String ID = "UNIFIED_DEPLOY";
+
   private final Collection<ApkInfo> myApks;
 
   public UnifiedDeployTask(@NotNull Collection<ApkInfo> apks) {
@@ -95,6 +97,12 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
     }
 
     return true;
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 
   @Override

@@ -16,14 +16,18 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+import java.util.Collections;
+
 public interface LaunchTask {
   /**
    * A description which may get shown to the user as the task is being launched.
-   *
+   * <p>
    * The description should start with a verb using present continuous tense for the verb,
    * e.g. "Launching X", "Opening Y", "Starting Z"
    */
@@ -33,4 +37,10 @@ public interface LaunchTask {
   int getDuration();
 
   boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer);
+
+  @NotNull
+  String getId();
+
+  @NotNull
+  default Collection<ApkInfo> getApkInfos() { return Collections.EMPTY_LIST; }
 }

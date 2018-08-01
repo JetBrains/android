@@ -26,12 +26,15 @@ import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.google.wireless.android.sdk.stats.ArtifactDetail;
+import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
 public class HotSwapTask implements LaunchTask {
+  private static final String ID = "HOT_SWAP";
   private final Project myProject;
   private final InstantRunContext myInstantRunContext;
   private final boolean myRestartActivity;
@@ -55,13 +58,11 @@ public class HotSwapTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull final IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    RunStatsService.get(myProject).notifyDeployHotSwapStarted(device, myInstantRunContext.getInstantRunBuildInfo().getArtifacts());
     InstantRunManager manager = InstantRunManager.get(myProject);
     UpdateMode updateMode;
     try {
       InstantRunClient instantRunClient = InstantRunManager.getInstantRunClient(myInstantRunContext);
       if (instantRunClient == null) {
-        RunStatsService.get(myProject).notifyDeployFinished(false);
         return terminateLaunch(launchStatus, "Unable to connect to application. Press Run or Debug to rebuild and install the app.");
       }
 
@@ -69,12 +70,16 @@ public class HotSwapTask implements LaunchTask {
       printer.stdout("Hot swapped changes, activity " + (updateMode == UpdateMode.HOT_SWAP ? "not restarted" : "restarted"));
     }
     catch (InstantRunPushFailedException | IOException e) {
-      RunStatsService.get(myProject).notifyDeployFinished(false);
       return terminateLaunch(launchStatus, "Error installing hot swap patches: " + e);
     }
-    RunStatsService.get(myProject).notifyDeployFinished(true);
     InstantRunStatsService.get(myProject).notifyDeployType(DeployType.HOTSWAP, myInstantRunContext, device);
     return true;
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 
   private static boolean terminateLaunch(LaunchStatus launchStatus, String msg) {

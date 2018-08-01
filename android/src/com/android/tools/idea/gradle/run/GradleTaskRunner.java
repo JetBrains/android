@@ -75,7 +75,6 @@ public interface GradleTaskRunner {
     @Override
     public boolean run(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments) {
       assert !ApplicationManager.getApplication().isDispatchThread();
-      RunStatsService.get(myProject).notifyGradleStarted(buildMode);
       GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
 
       AtomicBoolean success = new AtomicBoolean();
@@ -101,7 +100,6 @@ public interface GradleTaskRunner {
 
       done.waitFor();
       boolean successful = success.get();
-      RunStatsService.get(myProject).notifyGradleFinished(successful);
       return successful;
     }
 

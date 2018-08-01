@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.util.*;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.ProfilerState;
+import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
@@ -68,7 +69,6 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -235,6 +235,16 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
    */
   @Override
   public boolean executeTask(DataContext context, RunConfiguration configuration, ExecutionEnvironment env, MakeBeforeRunTask task) {
+    RunStats stats = RunStats.from(env);
+    try {
+      stats.beginBeforeRunTasks();
+      return doExecuteTask(context, configuration, env, task);
+    } finally {
+      stats.endBeforeRunTasks();
+    }
+  }
+
+  private boolean doExecuteTask(DataContext context, RunConfiguration configuration, ExecutionEnvironment env, MakeBeforeRunTask task) {
     if (!myAndroidProjectInfo.requiresAndroidModel() || !myGradleProjectInfo.isDirectGradleBuildEnabled()) {
       CompileStepBeforeRun regularMake = new CompileStepBeforeRun(myProject);
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
