@@ -69,7 +69,7 @@ public class LayoutInspectorTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/80371267
   public void launchLayoutInspectorViaChooser() throws Exception {
     String appConfigName = "app";
     IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
