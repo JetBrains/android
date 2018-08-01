@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.intellij.openapi.Disposable
-import java.util.*
 
 interface PsContext : Disposable {
   val analyzerDaemon: PsAnalyzerDaemon
@@ -41,10 +40,5 @@ interface PsContext : Disposable {
 
   fun setSelectedModule(moduleName: String, source: Any)
   fun add(listener: GradleSyncListener, parentDisposable: Disposable)
-  fun add(listener: ChangeListener, parentDisposable: Disposable)
-
-  interface ChangeListener : EventListener {
-    fun moduleSelectionChanged(moduleName: String)
-  }
 }
 

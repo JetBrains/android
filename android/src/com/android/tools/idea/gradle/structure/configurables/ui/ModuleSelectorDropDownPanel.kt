@@ -39,7 +39,7 @@ class ModuleSelectorDropDownPanel(
 
   private fun createToolbarActions(context: PsContext, perspective: BasePerspectiveConfigurable) =
     DefaultActionGroup(
-      ModulesComboBoxAction(context, perspective.extraModules),
+      ModulesComboBoxAction(context, perspective),
       object : DumbAwareAction("Restore 'Modules' List", "", AllIcons.Actions.MoveTo2) {
         override fun actionPerformed(e: AnActionEvent) =
           with(context.uiSettings) {
