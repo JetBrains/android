@@ -56,7 +56,7 @@ class DataSeriesPerformanceTest {
   private lateinit var service: DataStoreService
   private lateinit var client: ProfilerClient
   private lateinit var session: Common.Session
-  private val benchmark = Benchmark.Builder("Database Perf").setProject("Android Studio Profilers").build()
+  private val benchmark = Benchmark.Builder("DataSeries Query Timings (Nanos)").setProject("Android Studio Profilers").build()
 
   @get:Rule
   var grpcChannel = FakeGrpcChannel("DataSeriesPerformanceTest", FakeCpuService())
