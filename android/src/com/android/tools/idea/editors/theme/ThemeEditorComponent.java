@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.theme;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
-import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
@@ -249,11 +248,11 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       private String myModifiedParent;
 
       /**
-       * Restores a modified theme with its original content
+       * Restores a modified theme with its original content.
        */
       private void restoreOriginalTheme(@NotNull ConfiguredThemeEditorStyle modifiedTheme,
                                         @NotNull List<StyleItemResourceValue> originalItems) {
-        StyleResourceValue modifiedResourceValue = modifiedTheme.getStyleResourceValue();
+        StyleResourceValueImpl modifiedResourceValue = modifiedTheme.getStyleResourceValue();
         StyleResourceValueImpl restoredResourceValue = new StyleResourceValueImpl(modifiedResourceValue.asReference(),
                                                                                   modifiedResourceValue.getParentStyleName(),
                                                                                   modifiedResourceValue.getLibraryName());
@@ -275,7 +274,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
         myModifiedParent = name;
         ConfiguredThemeEditorStyle newParent = themeResolver.getTheme(name);
         assert newParent != null;
-        StyleResourceValue newParentStyleResourceValue = newParent.getStyleResourceValue();
+        StyleResourceValueImpl newParentStyleResourceValue = newParent.getStyleResourceValue();
 
         // Store the content of the theme newParent so that it can be restored later
         myOriginalItems.clear();
