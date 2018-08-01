@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchParser;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.DrawableShape;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
@@ -149,7 +150,8 @@ public class PathsTest {
   @Test
   public void combinationsMultipleArtboardsTest() {
 
-    SketchPage sketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + "paths_combinationsMultipleArtboards.json");
+    SketchPage sketchPage = SketchParser
+      .parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + "paths_combinationsMultipleArtboards.json");
 
     List<SketchArtboard> artboards = sketchPage.getArtboards();
 

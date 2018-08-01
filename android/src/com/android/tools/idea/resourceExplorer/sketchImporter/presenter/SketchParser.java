@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resourceExplorer.sketchImporter;
+package com.android.tools.idea.resourceExplorer.sketchImporter.presenter;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.model.SketchFile;
 import com.android.tools.idea.resourceExplorer.sketchImporter.logic.VectorDrawableFile;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
