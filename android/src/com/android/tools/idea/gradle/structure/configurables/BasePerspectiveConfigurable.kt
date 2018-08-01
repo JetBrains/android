@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
+import com.android.tools.idea.gradle.structure.configurables.ui.ModuleSelectorDropDownPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint
@@ -58,6 +59,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
   private var toolWindowHeader: ToolWindowHeader? = null
   private var loadingPanel: JBLoadingPanel? = null
   private var centerComponent: JComponent? = null
+  private var moduleSelectorDropDownPanel: ModuleSelectorDropDownPanel? = null
 
   private var treeInitiated: Boolean = false
   private var treeMinimized: Boolean = false
@@ -171,12 +173,16 @@ abstract class BasePerspectiveConfigurable protected constructor(
       splitter.secondComponent = null
       myWholePanel.remove(splitter)
       myWholePanel.add(centerComponent!!, BorderLayout.CENTER)
+      moduleSelectorDropDownPanel = ModuleSelectorDropDownPanel(context, this)
+      myWholePanel.add(moduleSelectorDropDownPanel, BorderLayout.NORTH)
       revalidateAndRepaint(myWholePanel)
     }
     else {
       if (myWholePanel == null) {
         super.reInitWholePanelIfNeeded()
       }
+      moduleSelectorDropDownPanel?.let { it.parent.remove(it) }
+      moduleSelectorDropDownPanel = null
       myToReInitWholePanel = false
 
       if (centerComponent !== null && centerComponent !== splitter) {
