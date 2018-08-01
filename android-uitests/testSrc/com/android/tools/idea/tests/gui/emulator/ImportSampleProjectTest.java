@@ -55,7 +55,7 @@ public class ImportSampleProjectTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/76023451
   @Test
   public void importSampleProject() {
     BrowseSamplesWizardFixture samplesWizard = guiTest.welcomeFrame()
