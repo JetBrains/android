@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.SketchParser.generateFiles
+import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchParser
+import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchParser.generateFiles
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.*
 import com.intellij.testFramework.ProjectRule
 import org.jetbrains.android.AndroidTestBase

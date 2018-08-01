@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.logic.VectorDrawableFile;
+import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchParser;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
 import com.android.tools.idea.testing.AndroidProjectRule;
