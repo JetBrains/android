@@ -59,7 +59,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     return TargetElementUtil.findReference(myFixture.editor)!!.resolve()
   }
 
-  class SingleModule : LightClassesTestBase() {
+  open class SingleModule : LightClassesTestBase() {
     override fun setUp() {
       super.setUp()
 
@@ -72,6 +72,30 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         </resources>
         """.trimIndent()
       )
+    }
+
+    fun testHighlighting() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(R.string.appString);
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
     }
 
     fun testTopLevelClassCompletion() {
@@ -177,6 +201,14 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       }
 
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(AndroidLightField::class.java)
+      myFixture.checkHighlighting()
+    }
+  }
+
+  class SingleModuleNamespaced : SingleModule() {
+    override fun setUp() {
+      super.setUp()
+      enableNamespacing("p1.p2")
     }
   }
 
@@ -293,6 +325,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       )
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(NamespacedAarPackageRClass::class.java)
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("R", "BuildConfig")
@@ -360,6 +393,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       )
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(NonNamespacedAarPackageRClass::class.java)
     }
 
