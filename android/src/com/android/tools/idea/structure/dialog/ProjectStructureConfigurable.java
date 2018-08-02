@@ -97,10 +97,13 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
   private JComponent myToFocus;
 
   private boolean myUiInitialized;
+  private boolean myShowing = false;
+
   private Configurable mySelectedConfigurable;
 
-  private final JLabel myEmptySelection = new JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>",
-                                                     SwingConstants.CENTER);
+  private final JLabel myEmptySelection =
+    new JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>",
+               SwingConstants.CENTER);
   private final EventDispatcher<ProjectStructureChangeListener> myChangeEventDispatcher =
     EventDispatcher.create(ProjectStructureChangeListener.class);
 
@@ -304,8 +307,8 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
 
   @Override
   @Nls
-  public String getDisplayName () {
-      return ProjectBundle.message("project.settings.display.name");
+  public String getDisplayName() {
+    return ProjectBundle.message("project.settings.display.name");
   }
 
   @Override
@@ -500,20 +503,22 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
     if (!myUiInitialized) {
       return;
     }
+    try {
+      PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
+      propertiesComponent.setValue(LAST_EDITED_PROPERTY, myUiState.lastEditedConfigurable);
+      propertiesComponent.setValue(PROPORTION_PROPERTY, String.valueOf(myUiState.proportion));
+      propertiesComponent.setValue(SIDE_PROPORTION_PROPERTY, String.valueOf(myUiState.sideProportion));
 
-    PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
-    propertiesComponent.setValue(LAST_EDITED_PROPERTY, myUiState.lastEditedConfigurable);
-    propertiesComponent.setValue(PROPORTION_PROPERTY, String.valueOf(myUiState.proportion));
-    propertiesComponent.setValue(SIDE_PROPORTION_PROPERTY, String.valueOf(myUiState.sideProportion));
+      myUiState.proportion = mySplitter.getProportion();
+      saveSideProportion();
+      myConfigurables.keySet().forEach(Configurable::disposeUIResources);
 
-    myUiState.proportion = mySplitter.getProportion();
-    saveSideProportion();
-    myConfigurables.keySet().forEach(Configurable::disposeUIResources);
-    myConfigurables.clear();
-
-    Disposer.dispose(myDisposable);
-
-    myUiInitialized = false;
+      Disposer.dispose(myDisposable);
+    }
+    finally {
+      myConfigurables.clear();
+      myUiInitialized = false;
+    }
   }
 
   @Nullable
@@ -571,6 +576,8 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
   }
 
   public void showPlace(@Nullable Place place) {
+    // TODO(IDEA-196602):  Pressing Ctrl+Alt+S or Ctrl+Alt+Shift+S for a little longer shows tens of dialogs. Remove when fixed.
+    if (myShowing) return;
     if (GradleSyncState.getInstance(myProject).isSyncInProgress()) {
       IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(myProject);
       if (ideFrame != null) {
@@ -596,11 +603,17 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
             .setPsdEvent(PSDEvent.newBuilder().setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002))
         );
       }
-      ((Runnable)() -> showDialog(() -> {
+      myShowing = true;
+      try {
+      showDialog(() -> {
         if (place != null) {
           navigateTo(place, true);
         }
-      })).run();
+      });
+      }
+      finally {
+        myShowing = false;
+      }
     }
     finally {
       remove(changeListener);
