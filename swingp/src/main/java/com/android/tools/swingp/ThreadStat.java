@@ -15,10 +15,10 @@
  */
 package com.android.tools.swingp;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
+import com.android.tools.swingp.json.IncludeMethodsSerializer;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,19 +31,40 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Root of every call tree. As in, all {@link MethodStat} call trees are rooted at a {@link ThreadStat}.
  */
-class ThreadStat {
+@JsonAdapter(IncludeMethodsSerializer.class)
+public class ThreadStat {
   @NotNull private final SoftReference<Thread> myThread;
-  @NotNull private final String myThreadName;
   @NotNull private final LinkedBlockingQueue<MethodStat> myRootStats;
   @NotNull private Stack<MethodStat> myMethodStack = new Stack<>();
-  private final long myThreadId;
+
   private boolean myIsRecording;
 
+  @SerializedName("threadId")
+  private final long myThreadId;
+  @SerializedName("threadName")
+  @NotNull private final String myThreadName;
+
+  @SerializedName("classType")
+  private String getClassType() {
+    return getClass().getSimpleName();
+  }
+
+  @SerializedName("events")
+  private List<MethodStat> getEvents() {
+    List<MethodStat> methodStatList = new ArrayList<>();
+    myRootStats.drainTo(methodStatList);
+    return methodStatList;
+  }
+
   ThreadStat() {
-    Thread currentThread = Thread.currentThread();
-    myThread = new SoftReference<>(currentThread);
-    myThreadId = currentThread.getId();
-    myThreadName = currentThread.getName();
+    this(Thread.currentThread());
+  }
+
+  @VisibleForTesting
+  public ThreadStat(@NotNull Thread thread) {
+    myThread = new SoftReference<>(thread);
+    myThreadId = thread.getId();
+    myThreadName = thread.getName();
     myRootStats = new LinkedBlockingQueue<>();
   }
 
@@ -52,7 +73,7 @@ class ThreadStat {
     return myThread.get();
   }
 
-  void pushMethod(@NotNull MethodStat currentStat) {
+  public void pushMethod(@NotNull MethodStat currentStat) {
     // If recording is stopped, let stats go through until the stack is popped.
     if (myMethodStack.empty() && !myIsRecording) {
       return;
@@ -64,7 +85,7 @@ class ThreadStat {
     myMethodStack.push(currentStat);
   }
 
-  void popMethod(@NotNull MethodStat verification) {
+  public void popMethod(@NotNull MethodStat verification) {
     // If recording is stopped, let stats go through until the stack is popped.
     if (myMethodStack.empty() && !myIsRecording) {
       return;
@@ -89,27 +110,5 @@ class ThreadStat {
   public ThreadStat setIsRecording(boolean recording) {
     myIsRecording = recording;
     return this;
-  }
-
-  @NotNull
-  public JsonElement getDescription() {
-    // Don't write anything unless we have at least one complete stat.
-    if (myRootStats.isEmpty()) {
-      return JsonNull.INSTANCE;
-    }
-
-    JsonObject description = new JsonObject();
-
-    description.addProperty("classType", getClass().getSimpleName());
-    description.addProperty("threadId", myThreadId);
-    description.addProperty("threadName", myThreadName);
-
-    List<MethodStat> methodStatList = new ArrayList<>();
-    myRootStats.drainTo(methodStatList);
-    JsonArray events = new JsonArray();
-    methodStatList.stream().map(methodStat -> methodStat.getDescription()).forEach(jsonElement -> events.add(jsonElement));
-    description.add("events", events);
-
-    return description;
   }
 }

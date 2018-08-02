@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.swingp;
+package com.android.tools.swingp.json;
 
-import com.google.gson.annotations.SerializedName;
-import org.jetbrains.annotations.NotNull;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 
-public class BufferStrategyPaintMethodStat extends MethodStat {
-  @SerializedName("isBufferStrategy")
-  private final boolean myIsBufferStrategy;
+import java.awt.geom.AffineTransform;
+import java.lang.reflect.Type;
 
-  public BufferStrategyPaintMethodStat(@NotNull Object owner, boolean isBufferStrategy) {
-    super(owner);
-    myIsBufferStrategy = isBufferStrategy;
+public final class AffineTransformSerializer implements JsonSerializer<AffineTransform> {
+  @Override
+  public JsonElement serialize(AffineTransform transform, Type typeOfSrc, JsonSerializationContext context) {
+    double[] matrix = new double[6];
+    transform.getMatrix(matrix);
+    return context.serialize(matrix);
   }
 }
