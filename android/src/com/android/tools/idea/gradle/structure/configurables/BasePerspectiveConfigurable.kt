@@ -69,6 +69,8 @@ abstract class BasePerspectiveConfigurable protected constructor(
   private var currentModuleSelectorStyle: ModuleSelectorStyle? = null
 
   protected abstract val navigationPathName: String
+  val selectedModule: PsModule? get() = myCurrentConfigurable?.editableObject as? PsModule
+  val selectedModuleName: String? get() = selectedModule?.name
 
   init {
     (splitter as JBSplitter).splitterProportionKey = "android.psd.proportion.modules"
@@ -127,6 +129,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
       context.setSelectedModule(module.name, this)
     }
     myHistory.pushQueryPlace()
+    moduleSelectorDropDownPanel?.update()
   }
 
 
