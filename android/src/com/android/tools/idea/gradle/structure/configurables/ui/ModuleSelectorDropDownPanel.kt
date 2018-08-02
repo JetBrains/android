@@ -18,10 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.SideBorder
@@ -33,27 +30,35 @@ class ModuleSelectorDropDownPanel(
   perspective: BasePerspectiveConfigurable
 ) : JPanel(BorderLayout()) {
 
+  private val actions = createToolbarActions(context, perspective)
+  private val toolbar = createToolbar(actions)
+
   init {
-    addToolbar(createToolbarActions(context, perspective))
+    addToolbar(toolbar)
   }
 
-  private fun createToolbarActions(context: PsContext, perspective: BasePerspectiveConfigurable) =
-    DefaultActionGroup(
-      ModulesComboBoxAction(context, perspective),
-      object : DumbAwareAction("Restore 'Modules' List", "", AllIcons.Actions.MoveTo2) {
-        override fun actionPerformed(e: AnActionEvent) =
-          with(context.uiSettings) {
-            MODULES_LIST_MINIMIZE = false
-            fireUISettingsChanged()
-          }
-      })
+  fun update() {
+    toolbar.updateActionsImmediately()
+  }
 
-  private fun createToolbar(actions: ActionGroup) =
-    ActionManager.getInstance().createActionToolbar("TOP", actions, true).apply {
-      component.border = IdeBorderFactory.createBorder(SideBorder.BOTTOM)
-    }
-
-  private fun addToolbar(actions: ActionGroup) {
-    add(createToolbar(actions).component, BorderLayout.CENTER)
+  private fun addToolbar(toolbar: ActionToolbar) {
+    add(toolbar.component, BorderLayout.CENTER)
   }
 }
+
+private fun createToolbarActions(context: PsContext, perspective: BasePerspectiveConfigurable) =
+  DefaultActionGroup(
+    ModulesComboBoxAction(context, perspective),
+    object : DumbAwareAction("Restore 'Modules' List", "", AllIcons.Actions.MoveTo2) {
+      override fun actionPerformed(e: AnActionEvent) =
+        with(context.uiSettings) {
+          MODULES_LIST_MINIMIZE = false
+          fireUISettingsChanged()
+        }
+    })
+
+private fun createToolbar(actions: ActionGroup) =
+  ActionManager.getInstance().createActionToolbar("TOP", actions, true).apply {
+    component.border = IdeBorderFactory.createBorder(SideBorder.BOTTOM)
+  }
+
