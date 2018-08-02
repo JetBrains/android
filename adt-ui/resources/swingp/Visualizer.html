@@ -124,48 +124,48 @@ The basic architecture is based on a cooperative multithreading model, with the 
 
         // Recursively ingests the JSON tree rooted at the ThreadStat level.
         function ingest(result, node, anchor, windowNode, isPrimary) {
-            var xform = node.__xform;
+            var xform = node.xform;
 
-            if (node.__type == "ThreadStat") {
-                for (event in node.__events) {
-                    ingest(result, node.__events[event], anchor, windowNode, isPrimary);
+            if (node.classType == "ThreadStat") {
+                for (event in node.events) {
+                    ingest(result, node.events[event], anchor, windowNode, isPrimary);
                 }
                 return;
             }
 
             var newAnchor = anchor.slice();
-            if (node.__type === "WindowPaintMethodStat") {
+            if (node.classType === "WindowPaintMethodStat") {
                 // We hit this node when there are more than one heavy weight component being rendered (e.g. main window + tooltip).
                 newAnchor = [
-                    node.__location[0] * xform[0] + xform[4],
-                    node.__location[1] * xform[3] + xform[5],
+                    node.location[0] * xform[0] + xform[4],
+                    node.location[1] * xform[3] + xform[5],
                 ];
-                windowNode = {"__anchor": newAnchor.slice()};
+                windowNode = {"anchor": newAnchor.slice()};
             }
-            else if (node.__type === "PaintImmediatelyMethodStat") {
-                if (node.__bufferType === "IdeRootPane") {
+            else if (node.classType === "PaintImmediatelyMethodStat") {
+                if (node.bufferType === "IdeRootPane") {
                     result.ideRootPaneBounds = [
-                        node.__bufferBounds[0] * xform[0] * frameScale,
-                        node.__bufferBounds[1] * xform[3] * frameScale,
-                        node.__bufferBounds[2] * xform[0] * frameScale,
-                        node.__bufferBounds[3] * xform[3] * frameScale
+                        node.bufferBounds[0] * xform[0] * frameScale,
+                        node.bufferBounds[1] * xform[3] * frameScale,
+                        node.bufferBounds[2] * xform[0] * frameScale,
+                        node.bufferBounds[3] * xform[3] * frameScale
                     ];
                 }
                 else {
                     if (windowNode !== null) {
-                        windowNode.__bufferType = node.__bufferType;
-                        windows[node.__bufferId] = windowNode;
+                        windowNode.bufferType = node.bufferType;
+                        windows[node.bufferId] = windowNode;
                     }
-                    newAnchor[0] = windows[node.__bufferId].__anchor[0] + result.ideRootPaneBounds[0];
-                    newAnchor[1] = windows[node.__bufferId].__anchor[1] + result.ideRootPaneBounds[1];
+                    newAnchor[0] = windows[node.bufferId].anchor[0] + result.ideRootPaneBounds[0];
+                    newAnchor[1] = windows[node.bufferId].anchor[1] + result.ideRootPaneBounds[1];
                     isPrimary = false;
                 }
                 // Add the (x, y) of the bounds, since the paintImmediatelyImpl method deliberately offsets to render to the top-left corner of the buffer.
-                newAnchor[0] += node.__bounds[0] * xform[0] + node.__constrain[0];
-                newAnchor[1] += node.__bounds[1] * xform[3] + node.__constrain[1];
+                newAnchor[0] += node.bounds[0] * xform[0] + node.constrain[0];
+                newAnchor[1] += node.bounds[1] * xform[3] + node.constrain[1];
             }
-            else if (node.__type === "PaintComponentMethodStat" && !node.__isImage) {
-                bounds = node.__clip;
+            else if (node.classType === "PaintComponentMethodStat" && !node.isImage) {
+                bounds = node.clip;
 
                 var rect = [
                     (xform[0] * bounds[0] + xform[1] * bounds[1] + xform[4] + newAnchor[0]) * frameScale,
@@ -176,8 +176,8 @@ The basic architecture is based on a cooperative multithreading model, with the 
                 isPrimary ? result.primary.push(rect) : result.secondary.push(rect);
             }
 
-            for (i in node.__callee) {
-                ingest(result, node.__callee[i], newAnchor, windowNode, isPrimary);
+            for (i in node.callee) {
+                ingest(result, node.callee[i], newAnchor, windowNode, isPrimary);
             }
         }
 

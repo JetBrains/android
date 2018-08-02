@@ -48,13 +48,13 @@ public class WindowPaintMethodStat extends MethodStat {
   protected void addAttributeDescriptions(@NotNull JsonObject description) {
     super.addAttributeDescriptions(description);
 
-    description.addProperty("__windowId", System.identityHashCode(myOwner.get()));
+    description.addProperty("windowId", System.identityHashCode(myOwner.get()));
 
     int[] location = new int[]{myLocation.x, myLocation.y};
-    description.add("__location", SerializationHelpers.arrayToJsonArray(location));
+    description.add("location", SerializationHelpers.arrayToJsonArray(location));
 
     double[] matrix = new double[6];
     myTransform.getMatrix(matrix);
-    description.add("__xform", SerializationHelpers.arrayToJsonArray(matrix));
+    description.add("xform", SerializationHelpers.arrayToJsonArray(matrix));
   }
 }

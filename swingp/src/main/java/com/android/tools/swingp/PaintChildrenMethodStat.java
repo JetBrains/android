@@ -34,6 +34,6 @@ public class PaintChildrenMethodStat extends MethodStat {
     super.addAttributeDescriptions(description);
     double[] matrix = new double[6];
     myTransform.getMatrix(matrix);
-    description.add("__xform", SerializationHelpers.arrayToJsonArray(matrix));
+    description.add("xform", SerializationHelpers.arrayToJsonArray(matrix));
   }
 }

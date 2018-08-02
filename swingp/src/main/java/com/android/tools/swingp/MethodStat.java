@@ -48,23 +48,26 @@ public abstract class MethodStat {
   @NotNull
   public final JsonElement getDescription() {
     JsonObject description = new JsonObject();
-    description.addProperty("__type", getClass().getSimpleName());
-    description.addProperty("__startTime", getStartTime());
+    description.addProperty("classType", getClass().getSimpleName());
+    description.addProperty("startTime", getStartTime());
+
+    Object owner = myOwner.get();
+    description.addProperty("owner", owner == null ? "<gc>" : owner.getClass().getSimpleName());
+    description.addProperty("endTime", getEndTime());
+
+    JsonArray callees = new JsonArray();
+    myChildStats.stream().map(methodStat -> methodStat.getDescription()).forEach(jsonElement -> callees.add(jsonElement));
+    description.add("callee", callees);
+
     addAttributeDescriptions(description);
+
     return description;
   }
 
   /**
-   * Subclasses of this class should override this method with more relevant attribute/child attributes related to the implementing stats.
+   * Override this method with additional attributes related to the implementing stat.
    */
   protected void addAttributeDescriptions(@NotNull JsonObject description) {
-    Object owner = myOwner.get();
-    description.addProperty("__owner", owner == null ? "<gc>" : owner.getClass().getSimpleName());
-    description.addProperty("__endTime", getEndTime());
-
-    JsonArray callees = new JsonArray();
-    myChildStats.stream().map(methodStat -> methodStat.getDescription()).forEach(jsonElement -> callees.add(jsonElement));
-    description.add("__callee", callees);
   }
 
   /**
