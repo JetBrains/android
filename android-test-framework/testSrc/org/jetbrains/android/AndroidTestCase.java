@@ -22,7 +22,6 @@ import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
@@ -40,6 +39,7 @@ import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.InspectionTestUtil;
 import com.intellij.testFramework.InspectionsKt;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
@@ -192,8 +192,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
    */
   public void makeSureThatProjectVirtualFileIsNotNull() {
     if (getProject().getProjectFile() == null) {
-      ApplicationManagerEx.getApplicationEx().setSaveAllowed(false);
-      getProject().save();
+      PlatformTestUtil.saveProject(getProject());
       assert getProject().getProjectFile() != null;
     }
   }
