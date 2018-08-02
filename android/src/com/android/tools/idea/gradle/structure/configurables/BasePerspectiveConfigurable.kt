@@ -41,11 +41,9 @@ import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
 import java.awt.BorderLayout
-import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ToolTipManager
-import javax.swing.tree.DefaultTreeModel
 
 abstract class BasePerspectiveConfigurable protected constructor(
   protected val context: PsContext,
@@ -212,8 +210,13 @@ abstract class BasePerspectiveConfigurable protected constructor(
   }
 
   private fun loadTree() {
-    (myTree.model as DefaultTreeModel).reload()
-    createModuleNodes()
+    myTree.model = createTreeModel(object : NamedContainerConfigurableBase<PsModule>("root") {
+      override fun getChildrenModels(): Collection<PsModule> = context.project.modules.filter { it.isDeclared } + extraModules
+      override fun createChildConfigurable(model: PsModule) = createConfigurableFor(model).also { it.setHistory(myHistory) }
+      override fun onChange(disposable: Disposable, listener: () -> Unit) = context.project.modules.onChange(disposable, listener)
+      override fun dispose() = Unit
+    })
+    myRoot = myTree.model.root as MyNode
     uiDisposed = false
   }
 
@@ -227,19 +230,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
     }
   }
 
-  private fun createModuleNodes() {
-    context.project.forEachModule(Consumer<PsModule> { this.addConfigurableFor(it) })
-    extraModules.forEach(Consumer<PsModule> { this.addConfigurableFor(it) })
-  }
-
-  private fun addConfigurableFor(module: PsModule) {
-    createConfigurableFor(module)
-      ?.also { it.setHistory(myHistory) }
-      ?.let { MasterDetailsComponent.MyNode(it) }
-      ?.also { myRoot.add(it) }
-  }
-
-  protected abstract fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<*, *>?
+  protected abstract fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *>
 
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback {
     fun Place.getModuleName() = (getPath(navigationPathName) as? String)?.takeIf { moduleName -> moduleName.isNotEmpty() }
