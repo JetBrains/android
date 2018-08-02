@@ -13,7 +13,6 @@ import com.android.tools.idea.testing.Sdks;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.application.UtilKt;
 import com.intellij.codeInspection.CommonProblemDescriptor;
 import com.intellij.codeInspection.GlobalInspectionTool;
 import com.intellij.codeInspection.InspectionManager;
@@ -40,6 +39,7 @@ import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.InspectionTestUtil;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
@@ -49,7 +49,6 @@ import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
-import kotlin.Unit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -198,10 +197,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
    */
   public void makeSureThatProjectVirtualFileIsNotNull() {
     if (getProject().getProjectFile() == null) {
-      UtilKt.runInAllowSaveMode(() -> {
-        getProject().save();
-        return Unit.INSTANCE;
-      });
+      PlatformTestUtil.saveProject(getProject());
       assert getProject().getProjectFile() != null;
     }
   }
