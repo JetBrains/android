@@ -36,7 +36,7 @@ public class AndroidModuleDependenciesConfigurable extends AbstractModuleConfigu
   }
 
   @Override
-  public MainPanel createPanel(@NotNull PsAndroidModule module) {
+  public MainPanel createPanel() {
     return new MainPanel(getModule(), getContext(), myExtraModules);
   }
 

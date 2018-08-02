@@ -41,11 +41,11 @@ abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
           PanelT : Place.Navigator {
 
 
-  private val lazyPanel = lazy(mode = LazyThreadSafetyMode.NONE) { createPanel(module).apply { setHistory(history) } }
+  private val lazyPanel = lazy(mode = LazyThreadSafetyMode.NONE) { createPanel().apply { setHistory(history) } }
   protected val modulePanel by lazyPanel
   protected var uiDisposed = false; private set
 
-  protected abstract fun createPanel(module: ModuleT): PanelT
+  protected abstract fun createPanel(): PanelT
 
   final override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = modulePanel.navigateTo(place, requestFocus)
   final override fun queryPlace(place: Place) = modulePanel.queryPlace(place)

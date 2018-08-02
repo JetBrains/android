@@ -42,8 +42,8 @@ public class ProjectDependenciesConfigurable extends AbstractModuleConfigurable<
   }
 
   @Override
-  public MainPanel createPanel(@NotNull PsAllModulesFakeModule module) {
-    return new MainPanel(module, getContext(), myExtraModules);
+  public MainPanel createPanel() {
+    return new MainPanel(getModule(), getContext(), myExtraModules);
   }
 
   @Override
