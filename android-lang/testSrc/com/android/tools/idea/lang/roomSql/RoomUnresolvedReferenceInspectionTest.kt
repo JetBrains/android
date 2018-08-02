@@ -61,6 +61,28 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.checkHighlighting()
   }
 
+  fun testValidColumnInKotlinStringTemplate() {
+    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+
+    myFixture.configureByText("UserDao.kt", """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+        import java.util.List;
+
+        const val tableName = "user"
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT * FROM ${'$'}tableName WHERE name IS NOT NULL")
+          List<User> getUsersWithName();
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
   fun testInvalidColumnWithClause() {
     myFixture.addRoomEntity("com.example.User","name" ofType "String")
 
