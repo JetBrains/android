@@ -24,7 +24,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Condition;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
@@ -32,43 +31,70 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 
-final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
-  private final Supplier<Boolean> mySelectSnapshotDeviceComboBoxVisible;
+final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
+  private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxVisible;
   private final AsyncDevicesGetter myDevicesGetter;
+  private final AnAction myOpenAvdManagerAction;
 
   private List<Device> myDevices;
+
   private Device mySelectedDevice;
+  private String mySelectedSnapshot;
 
   @SuppressWarnings("unused")
-  private SnapshotOrDeviceComboBoxAction() {
-    this(() -> StudioFlags.SELECT_SNAPSHOT_DEVICE_COMBO_BOX_VISIBLE.get(), new AsyncDevicesGetter(ApplicationManager.getApplication()));
+  private DeviceAndSnapshotComboBoxAction() {
+    this(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get(), new AsyncDevicesGetter(ApplicationManager.getApplication()));
   }
 
   @VisibleForTesting
-  SnapshotOrDeviceComboBoxAction(@NotNull Supplier<Boolean> selectSnapshotDeviceComboBoxVisible,
-                                 @NotNull AsyncDevicesGetter devicesGetter) {
-    mySelectSnapshotDeviceComboBoxVisible = selectSnapshotDeviceComboBoxVisible;
+  DeviceAndSnapshotComboBoxAction(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxVisible,
+                                  @NotNull AsyncDevicesGetter devicesGetter) {
+    mySelectDeviceSnapshotComboBoxVisible = selectDeviceSnapshotComboBoxVisible;
     myDevicesGetter = devicesGetter;
+    myOpenAvdManagerAction = new RunAndroidAvdManagerAction();
+
+    Presentation presentation = myOpenAvdManagerAction.getTemplatePresentation();
+
+    presentation.setIcon(StudioIcons.Shell.Toolbar.DEVICE_MANAGER);
+    presentation.setText("Open AVD Manager");
+
+    myDevices = Collections.emptyList();
   }
 
+  @NotNull
+  @VisibleForTesting
+  AnAction getOpenAvdManagerAction() {
+    return myOpenAvdManagerAction;
+  }
+
+  @NotNull
   @VisibleForTesting
   List<Device> getDevices() {
     return myDevices;
   }
 
+  @Nullable
   @VisibleForTesting
   Device getSelectedDevice() {
     return mySelectedDevice;
   }
 
-  void setSelectedDevice(@NotNull Device selectedDevice) {
+  void setSelectedDevice(@Nullable Device selectedDevice) {
     mySelectedDevice = selectedDevice;
+  }
+
+  @Nullable
+  @VisibleForTesting
+  String getSelectedSnapshot() {
+    return mySelectedSnapshot;
+  }
+
+  void setSelectedSnapshot(@Nullable String selectedSnapshot) {
+    mySelectedSnapshot = selectedSnapshot;
   }
 
   @NotNull
@@ -97,14 +123,14 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
   protected DefaultActionGroup createPopupActionGroup(@NotNull JComponent button) {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    Collection<AnAction> actions = newSnapshotOrDeviceActions();
+    Collection<AnAction> actions = newSelectDeviceAndSnapshotActions();
     group.addAll(actions);
 
     if (!actions.isEmpty()) {
       group.addSeparator();
     }
 
-    group.add(newOpenAvdManagerAction());
+    group.add(myOpenAvdManagerAction);
     AnAction action = getTroubleshootDeviceConnectionsAction();
 
     if (action == null) {
@@ -118,17 +144,16 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
   }
 
   @NotNull
-  @VisibleForTesting
-  Collection<AnAction> newSnapshotOrDeviceActions() {
+  private Collection<AnAction> newSelectDeviceAndSnapshotActions() {
     Collection<VirtualDevice> virtualDevices = new ArrayList<>(myDevices.size());
-    Collection<PhysicalDevice> physicalDevices = new ArrayList<>(myDevices.size());
+    Collection<Device> physicalDevices = new ArrayList<>(myDevices.size());
 
     myDevices.forEach(device -> {
       if (device instanceof VirtualDevice) {
         virtualDevices.add((VirtualDevice)device);
       }
       else if (device instanceof PhysicalDevice) {
-        physicalDevices.add((PhysicalDevice)device);
+        physicalDevices.add(device);
       }
       else {
         assert false;
@@ -138,7 +163,7 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
     Collection<AnAction> actions = new ArrayList<>(virtualDevices.size() + 1 + physicalDevices.size());
 
     virtualDevices.stream()
-                  .map(this::newSnapshotAction)
+                  .map(this::newSelectDeviceAndSnapshotAction)
                   .forEach(actions::add);
 
     if (!virtualDevices.isEmpty() && !physicalDevices.isEmpty()) {
@@ -146,30 +171,21 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
     }
 
     physicalDevices.stream()
-                   .map(device -> new SelectPhysicalDeviceAction(device, this))
+                   .map(device -> new SelectDeviceAndSnapshotAction(this, device))
                    .forEach(actions::add);
 
     return actions;
   }
 
   @NotNull
-  private AnAction newSnapshotAction(@NotNull VirtualDevice device) {
-    if (device.getSnapshots().equals(VirtualDevice.DEFAULT_SNAPSHOT_LIST)) {
-      return new SelectDefaultSnapshotAction(device, this);
+  private AnAction newSelectDeviceAndSnapshotAction(@NotNull VirtualDevice device) {
+    Collection<String> snapshots = device.getSnapshots();
+
+    if (snapshots.isEmpty() || snapshots.equals(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)) {
+      return new SelectDeviceAndSnapshotAction(this, device);
     }
 
     return new SnapshotActionGroup(device, this);
-  }
-
-  @NotNull
-  private static AnAction newOpenAvdManagerAction() {
-    AnAction action = new RunAndroidAvdManagerAction();
-
-    Presentation presentation = action.getTemplatePresentation();
-    presentation.setIcon(StudioIcons.Shell.Toolbar.DEVICE_MANAGER);
-    presentation.setText("Open AVD Manager");
-
-    return action;
   }
 
   @Nullable
@@ -198,7 +214,7 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
 
     Presentation presentation = event.getPresentation();
 
-    if (!mySelectSnapshotDeviceComboBoxVisible.get()) {
+    if (!mySelectDeviceSnapshotComboBoxVisible.get()) {
       presentation.setVisible(false);
       return;
     }
@@ -208,6 +224,7 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
 
     if (myDevices.isEmpty()) {
       mySelectedDevice = null;
+      mySelectedSnapshot = null;
 
       presentation.setIcon(null);
       presentation.setText("No devices");
@@ -216,9 +233,10 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
     }
 
     updateSelectedDevice();
+    updateSelectedSnapshot();
 
     presentation.setIcon(mySelectedDevice.getIcon());
-    presentation.setText(mySelectedDevice.getName());
+    presentation.setText(mySelectedSnapshot == null ? mySelectedDevice.getName() : mySelectedDevice + " - " + mySelectedSnapshot);
   }
 
   private void updateSelectedDevice() {
@@ -227,12 +245,30 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
       return;
     }
 
-    Object selectedName = mySelectedDevice.getName();
+    Object selectedDeviceName = mySelectedDevice.getName();
 
     Optional<Device> selectedDevice = myDevices.stream()
-                                               .filter(device -> device.getName().equals(selectedName))
+                                               .filter(device -> device.getName().equals(selectedDeviceName))
                                                .findFirst();
 
     mySelectedDevice = selectedDevice.orElseGet(() -> myDevices.get(0));
+  }
+
+  private void updateSelectedSnapshot() {
+    Collection<String> snapshots = mySelectedDevice.getSnapshots();
+
+    if (mySelectedSnapshot == null) {
+      Optional<String> selectedDeviceSnapshot = snapshots.stream().findFirst();
+      selectedDeviceSnapshot.ifPresent(snapshot -> mySelectedSnapshot = snapshot);
+
+      return;
+    }
+
+    if (snapshots.contains(mySelectedSnapshot)) {
+      return;
+    }
+
+    Optional<String> selectedSnapshot = snapshots.stream().findFirst();
+    mySelectedSnapshot = selectedSnapshot.orElse(null);
   }
 }

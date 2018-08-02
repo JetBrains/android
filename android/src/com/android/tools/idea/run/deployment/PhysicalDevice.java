@@ -17,6 +17,8 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.ddms.DeviceNameProperties;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.intellij.execution.runners.ExecutionUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -63,17 +65,23 @@ final class PhysicalDevice extends Device {
     return ourIcon;
   }
 
+  @NotNull
+  @Override
+  ImmutableCollection<String> getSnapshots() {
+    return ImmutableList.of();
+  }
+
   @Override
   public boolean equals(@Nullable Object object) {
     if (!(object instanceof PhysicalDevice)) {
       return false;
     }
 
-    return myName.equals(((PhysicalDevice)object).myName);
+    return getName().equals(((PhysicalDevice)object).getName());
   }
 
   @Override
   public int hashCode() {
-    return myName.hashCode();
+    return getName().hashCode();
   }
 }
