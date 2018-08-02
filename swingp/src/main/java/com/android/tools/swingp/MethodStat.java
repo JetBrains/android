@@ -23,8 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
 
 /**
  * A stat counter that surrounds and captures timing and call information of a sequence of calls within a stack frame.
