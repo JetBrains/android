@@ -30,7 +30,7 @@ class AndroidModuleRootConfigurable(
   private val signingConfigsModel = createTreeModel(SigningConfigsConfigurable(module))
 
   override fun getId() = "android.psd.modules." + displayName
-  override fun createPanel(module: PsAndroidModule) =
+  override fun createPanel() =
       ModulePanel(context, module, signingConfigsModel)
 }
 
