@@ -38,7 +38,7 @@ public class WindowClassTransformer implements ClassFileTransformer {
       return classfileBuffer;
     }
 
-    System.out.println("Transforming Window");
+    System.out.println("Transforming Window...");
     ClassReader reader = new ClassReader(classfileBuffer);
     ClassWriter defaultWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     ClassVisitor visitor = new WindowVisitor(defaultWriter);
@@ -64,7 +64,6 @@ public class WindowClassTransformer implements ClassFileTransformer {
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
       if (WINDOW_NAME.equals(name)) {
         myIsWindow = true;
-        System.out.println("Visiting Window");
       }
       super.visit(version, access, name, signature, superName, interfaces);
     }
@@ -91,15 +90,12 @@ public class WindowClassTransformer implements ClassFileTransformer {
 
     public PaintMethodVisitor(MethodVisitor mv, int access, String name, String desc) {
       super(Opcodes.ASM5, mv, access, name, desc);
-      System.out.println("Found Window " + name + ", instrumenting...");
+      System.out.println("\t...instrumenting " + name);
     }
 
     @Override
     public void visitCode() {
       super.visitCode();
-
-      System.out.println("Instrumenting paint method...");
-
       newInstance(myWindowPaintMethodStatType);
       dup();
       loadThis(); // Prepare the stack for the call to the constructor of WindowPaintMethodStat.
@@ -110,7 +106,6 @@ public class WindowClassTransformer implements ClassFileTransformer {
 
     @Override
     public void visitInsn(int opcode) {
-      System.out.println("Instrumenting exit for paint...");
       switch (opcode) {
         case Opcodes.IRETURN:
         case Opcodes.LRETURN:
