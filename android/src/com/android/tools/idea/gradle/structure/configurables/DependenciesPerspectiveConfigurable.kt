@@ -35,8 +35,6 @@ const val DEPENDENCIES_PERSPECTIVE_PLACE_NAME = "dependencies.place"
 class DependenciesPerspectiveConfigurable(context: PsContext)
   : BasePerspectiveConfigurable(context, extraModules = listOf(PsAllModulesFakeModule(context.project))), TrackedConfigurable {
 
-  private val myExtraModules = mutableListOf<PsModule>()
-
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_DEPENDENCIES
   override fun getId(): String = "android.psd.dependencies"
 
@@ -45,12 +43,12 @@ class DependenciesPerspectiveConfigurable(context: PsContext)
 
   override val navigationPathName: String = DEPENDENCIES_PERSPECTIVE_PLACE_NAME
 
-  override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<*, *>? =
+  override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *> =
     when (module) {
       is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context, extraModules)
       is PsAndroidModule -> AndroidModuleDependenciesConfigurable(module, context, extraModules)
       is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context, extraModules)
-      else -> null
+      else -> throw IllegalStateException()
     }
 
   override fun createComponent(): JComponent = super.createComponent().also { it.name = DEPENDENCIES_VIEW }
