@@ -469,7 +469,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
     }
 
     @Override
-    public boolean isReferenceTo(PsiElement element) {
+    public boolean isReferenceTo(@NotNull PsiElement element) {
       return myElement.getManager().areElementsEquivalent(resolve(), element);
     }
 
