@@ -37,7 +37,7 @@ public class RepaintManagerClassTransformer implements ClassFileTransformer {
       return classfileBuffer;
     }
 
-    System.out.println("Transforming RepaintManager");
+    System.out.println("Transforming RepaintManager...");
     ClassReader reader = new ClassReader(classfileBuffer);
     ClassWriter defaultWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     ClassVisitor visitor = new RepaintManagerVisitor(defaultWriter);
@@ -63,7 +63,6 @@ public class RepaintManagerClassTransformer implements ClassFileTransformer {
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
       if (REPAINT_MANAGER_NAME.equals(name)) {
         myIsRepaintManager = true;
-        System.out.println("Visiting RepaintManager");
       }
       super.visit(version, access, name, signature, superName, interfaces);
     }
@@ -90,14 +89,12 @@ public class RepaintManagerClassTransformer implements ClassFileTransformer {
 
     public PaintMethodVisitor(MethodVisitor mv, int access, String name, String desc) {
       super(Opcodes.ASM5, mv, access, name, desc);
-      System.out.println("Found RepaintManager " + name + ", instrumenting...");
+      System.out.println("\t...instrumenting " + name);
     }
 
     @Override
     public void visitCode() {
       super.visitCode();
-
-      System.out.println("Instrumenting paint method...");
 
       newInstance(paintImmediatelyMethodStatType);
       dup();
@@ -115,7 +112,6 @@ public class RepaintManagerClassTransformer implements ClassFileTransformer {
 
     @Override
     public void visitInsn(int opcode) {
-      System.out.println("Instrumenting exit for paint...");
       switch (opcode) {
         case Opcodes.IRETURN:
         case Opcodes.LRETURN:
