@@ -16,6 +16,9 @@ The basic architecture is based on a cooperative multithreading model, with the 
     * Primary (main window) is rendered in green, and secondary (popups and other heavy weight components on top) are rendered in red.
 -->
 <body>
+    <form>
+        Filter Root: <input type="text" id="root_filter_element" placeholder="e.g. SomeAwtOrSwingComponentType"><br>
+    </form>
     <canvas width="1280" height="1024" id="canvas" />
     <script>
 
@@ -38,6 +41,8 @@ The basic architecture is based on a cooperative multithreading model, with the 
         var lastStartLoop = window.performance.now();
         var mostRecentFrameBounds = [0, 0, 800, 600];
         var frameScale = 0.25;
+        // An element which, if set, means only elements in that subtree should render.
+        var rootFilterElement = document.getElementById("root_filter_element");
 
         ctx.fillStyle = 'rgb(0,0,0,255)';
         ctx.fillRect(mostRecentFrameBounds[0], mostRecentFrameBounds[1], mostRecentFrameBounds[2], mostRecentFrameBounds[3]);
@@ -122,13 +127,22 @@ The basic architecture is based on a cooperative multithreading model, with the 
             var startLoop = window.performance.now();
         }
 
-        // Recursively ingests the JSON tree rooted at the ThreadStat level.
-        function ingest(result, node, anchor, windowNode, isPrimary) {
+        /**
+         * Recursively ingests the JSON tree rooted at the ThreadStat level.
+         *
+         * @param result Stateful output of the method.
+         * @param node The swingp node being processed at this step of the recursion.
+         * @param anchor Updated translate position for use by the current node.
+         * @param windowNode The heavy weight window in which the current node may fall under.
+         * @param isPrimary Whether or not the current node resides under the main heavy weight Window, or some secondary Window (e.g. popup).
+         * @param rootFilter A string representing a filter for nodes to be rendered (by Java class), or null for no filter.
+         */
+        function ingest(result, node, anchor, windowNode, isPrimary, rootFilter) {
             var xform = node.xform;
 
             if (node.classType == "ThreadStat") {
                 for (event in node.events) {
-                    ingest(result, node.events[event], anchor, windowNode, isPrimary);
+                    ingest(result, node.events[event], anchor, windowNode, isPrimary, rootFilter);
                 }
                 return;
             }
@@ -164,7 +178,7 @@ The basic architecture is based on a cooperative multithreading model, with the 
                 newAnchor[0] += node.bounds[0] * xform[0] + node.constrain[0];
                 newAnchor[1] += node.bounds[1] * xform[3] + node.constrain[1];
             }
-            else if (node.classType === "PaintComponentMethodStat" && !node.isImage) {
+            else if (node.classType === "PaintComponentMethodStat" && !node.isImage && isRootFilterDisabled(rootFilter)) {
                 bounds = node.clip;
 
                 var rect = [
@@ -175,10 +189,21 @@ The basic architecture is based on a cooperative multithreading model, with the 
                 ];
                 isPrimary ? result.primary.push(rect) : result.secondary.push(rect);
             }
+            else if (node.classType === "PaintChildrenMethodStat" && isRootFilterEnabled(rootFilter)) {
+                rootFilter = node.pathToRoot.includes(rootFilter) ? null : rootFilter;
+            }
 
             for (i in node.callee) {
-                ingest(result, node.callee[i], newAnchor, windowNode, isPrimary);
+                ingest(result, node.callee[i], newAnchor, windowNode, isPrimary, rootFilter);
             }
+        }
+
+        function isRootFilterEnabled(rootFilter) {
+            return !!rootFilter;
+        }
+
+        function isRootFilterDisabled(rootFilter) {
+            return !rootFilter;
         }
 
         // Process each complete JSON tree, and split up ThreadStats individually for processing.
@@ -189,8 +214,9 @@ The basic architecture is based on a cooperative multithreading model, with the 
                 "secondary": [],
                 "ideRootPaneBounds": mostRecentFrameBounds.slice()
             };
+            var rootFilter = rootFilterElement.value;
             for (var i = 0; i < rootNode.length; i++) {
-                ingest(result, rootNode[i], [0.0, 0.0], null, true);
+                ingest(result, rootNode[i], [0.0, 0.0], null, true, isRootFilterEnabled(rootFilter) ? rootFilter : null);
             }
             rectGroups.push(result);
         }
