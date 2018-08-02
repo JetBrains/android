@@ -20,6 +20,7 @@ import com.android.repository.api.*;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -54,6 +55,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
@@ -141,7 +143,12 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
   @Override
   protected void onEntering() {
     mySdkManagerOutput.setText("");
-    myLabelSdkPath.setText(myRepoManager.getLocalPath().getPath());
+    File path = myRepoManager.getLocalPath();
+    if (path == null) {
+      path = IdeSdks.getInstance().getAndroidSdkPath();
+      myRepoManager.setLocalPath(path);
+    }
+    myLabelSdkPath.setText(path.getPath());
 
     myInstallationFinished.set(false);
     startSdkInstall();

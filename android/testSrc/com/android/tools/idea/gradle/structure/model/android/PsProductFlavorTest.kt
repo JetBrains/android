@@ -34,7 +34,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     assertThat(appModule, notNullValue())
 
     run {
-      val productFlavor = appModule.findProductFlavor("paid")
+      val productFlavor = appModule.findProductFlavor("foo", "paid")
       assertThat(productFlavor, notNullValue()); productFlavor!!
 
       val applicationId = PsProductFlavor.ProductFlavorDescriptors.applicationId.bind(productFlavor).getValue()
@@ -128,7 +128,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(editableTestInstrumentationRunnerArguments["c"]?.parsedValue?.asTestValue(), equalTo("CCC"))
     }
     run {
-      val productFlavor = appModule.findProductFlavor("bar")
+      val productFlavor = appModule.findProductFlavor("bar", "bar")
       assertThat(productFlavor, notNullValue()); productFlavor!!
       val applicationIdSuffix = PsProductFlavor.ProductFlavorDescriptors.applicationIdSuffix.bind(productFlavor).getValue()
 
@@ -136,7 +136,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("barSuffix"))
     }
     run {
-      val productFlavor = appModule.findProductFlavor("otherBar")
+      val productFlavor = appModule.findProductFlavor("bar", "otherBar")
       assertThat(productFlavor, notNullValue()); productFlavor!!
       val matchingFallbacks = PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).getValue()
       val resConfigs = PsProductFlavor.ProductFlavorDescriptors.resConfigs.bind(productFlavor).getValue()
@@ -158,7 +158,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
 
-    val productFlavor = appModule.findProductFlavor("paid")
+    val productFlavor = appModule.findProductFlavor("foo", "paid")
     assertThat(productFlavor, notNullValue()); productFlavor!!
 
     assertThat(
@@ -175,7 +175,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     var appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
 
-    val productFlavor = appModule.findProductFlavor("paid")
+    val productFlavor = appModule.findProductFlavor("foo", "paid")
     assertThat(productFlavor, notNullValue()); productFlavor!!
 
     productFlavor.applicationId = "com.example.psd.sample.app.unpaid".asParsed()
@@ -288,6 +288,6 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
-    verifyValues(appModule.findProductFlavor("paid")!!, afterSync = true)
+    verifyValues(appModule.findProductFlavor("bar", "paid")!!, afterSync = true)
   }
 }

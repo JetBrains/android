@@ -21,15 +21,17 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Type;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PointDeserializer implements JsonDeserializer<SketchPoint2D> {
-  static final Pattern pattern = Pattern.compile("\\{([+-]?[0-9.]+),\\s*([+-]?[0-9.]+)}");
+  static final Pattern pattern = Pattern.compile("\\{([+-]?[0-9.]+e?[+-]?[0-9]*),\\s*([+-]?[0-9.]+e?[+-]?[0-9]*)}");
 
   @Override
+  @Nullable
   public SketchPoint2D deserialize(@NotNull JsonElement json,
                                    @NotNull Type typeOfT,
                                    @NotNull JsonDeserializationContext context) {
@@ -39,7 +41,10 @@ public class PointDeserializer implements JsonDeserializer<SketchPoint2D> {
     Matcher matcher = pattern.matcher(positionString);
 
     if (matcher.matches()) {
-      return new SketchPoint2D(Double.parseDouble(matcher.group(1)), Double.parseDouble(matcher.group(2)));
+      double x = Double.parseDouble(matcher.group(1));
+      double y = Double.parseDouble(matcher.group(2));
+
+      return new SketchPoint2D(x, y);
     }
     else {
       Logger.getInstance(PointDeserializer.class).warn("Bad point format: " + positionString);

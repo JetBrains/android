@@ -36,17 +36,21 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import icons.StudioIcons;
+import icons.StudioIllustrations;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.util.function.Predicate;
 
-public class AndroidProfilerToolWindow extends AspectObserver implements Disposable {
+import static com.android.tools.profilers.ProfilerFonts.H1_FONT;
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
+public class AndroidProfilerToolWindow implements Disposable {
 
   /**
    * Key for storing the last app that was run when the profiler window was not opened. This allows the Profilers to start auto-profiling
@@ -61,64 +65,92 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   private static final String OPEN_FILE_FAILURE_BALLOON_TEXT = "The profiler was unable to open the selected file. Please try opening it " +
                                                                "again or select a different file.";
 
+  private static final String NO_CLIENT_TITLE = "Initialization failed";
+  private static final String NO_CLIENT_MESSAGE = "You can run the profiler for a single project at a time.";
+
   @NotNull
-  private final StudioProfilersView myView;
-  @NotNull
-  private final StudioProfilers myProfilers;
+  private final JPanel myPanel;
+  @Nullable
+  private StudioProfilersWrapper myProfilersWrapper;
   @NotNull
   private final ToolWindow myWindow;
   @NotNull
   private final Project myProject;
-  @NotNull
-  private final IntellijProfilerComponents myIdeProfilerComponents;
-  @NotNull
-  private final AndroidProfilerWindowManagerListener myToolWindowManagerListener;
 
   public AndroidProfilerToolWindow(@NotNull ToolWindow window, @NotNull Project project) {
     myWindow = window;
     myProject = project;
 
-    ProfilerClient client = null;
-    IdeProfilerServices ideProfilerServices = new IntellijProfilerServices(myProject);
+    myPanel = new JPanel(new BorderLayout());
+    if (!tryInitializeProfilers()) {
+      myPanel.add(buildInitializationFailedUi());
+    }
+  }
+
+  /**
+   * Attempt to create the {@link StudioProfilers} and its facilities. Note that the StudioProfilers will not be re-created if one already
+   * exists, or if the profilers is already running in a separate project.
+   *
+   * @return true if the StudioProfilers already exists or is successfully created. False otherwise.
+   */
+  private boolean tryInitializeProfilers() {
+    if (myProfilersWrapper != null) {
+      return true;
+    }
+
     ProfilerService service = ProfilerService.getInstance(myProject);
-    if (service != null) {
-      service.getDataStoreService().setNoPiiExceptionHanlder(ideProfilerServices::reportNoPiiException);
-      client = service.getProfilerClient();
+    if (service == null) {
+      return false;
     }
-    myProfilers = new StudioProfilers(client, ideProfilerServices);
+    myProfilersWrapper = new StudioProfilersWrapper(myProject, myWindow, service);
+    Disposer.register(this, myProfilersWrapper);
+    myPanel.removeAll();
+    myPanel.add(myProfilersWrapper.getProfilersView().getComponent());
+    myPanel.revalidate();
+    myPanel.repaint();
 
-    // Attempt to find the last-run process and start profiling it. This covers the case where the user presses "Run" (without profiling),
-    // but then opens the profiling window manually.
-    PreferredProcessInfo processInfo = myProject.getUserData(LAST_RUN_APP_INFO);
-    if (processInfo != null) {
-      myProfilers.setPreferredProcess(processInfo.deviceName, processInfo.processName, processInfo.processFilter);
-      myProject.putUserData(LAST_RUN_APP_INFO, null);
-    }
-    else {
-      // Note the always-false predicate, which prevents the Profilers from randomly start profiling.
-      StartupManager
-        .getInstance(project)
-        .runWhenProjectIsInitialized(() -> myProfilers.setPreferredProcess(null, getPreferredProcessName(myProject), p -> false));
-    }
-
-    myIdeProfilerComponents = new IntellijProfilerComponents(myProject, myProfilers.getIdeServices().getFeatureTracker());
-    myView = new StudioProfilersView(myProfilers, myIdeProfilerComponents);
-    Disposer.register(this, myView);
-
-    myProfilers.addDependency(this)
-               .onChange(ProfilerAspect.MODE, this::modeChanged)
-               .onChange(ProfilerAspect.STAGE, this::stageChanged);
-    myProfilers.getSessionsManager().addDependency(this)
-               .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
-               .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
-
-    myToolWindowManagerListener = new AndroidProfilerWindowManagerListener();
-    ToolWindowManagerEx.getInstanceEx(myProject).addToolWindowManagerListener(myToolWindowManagerListener);
+    return true;
   }
 
   @NotNull
+  private JComponent buildInitializationFailedUi() {
+    JPanel panel = new JPanel();
+    BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
+    panel.setLayout(layout);
+    panel.add(Box.createVerticalGlue());
+    panel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+
+    JLabel icon = new JLabel(StudioIllustrations.Common.DISCONNECT_PROFILER);
+    icon.setHorizontalAlignment(SwingConstants.CENTER);
+    icon.setAlignmentX(Component.CENTER_ALIGNMENT);
+    panel.add(icon);
+
+    JLabel title = new JLabel(NO_CLIENT_TITLE);
+    title.setHorizontalAlignment(SwingConstants.CENTER);
+    title.setAlignmentX(Component.CENTER_ALIGNMENT);
+    title.setFont(H1_FONT);
+    title.setForeground(ProfilerColors.MESSAGE_COLOR);
+    panel.add(title);
+    panel.add(Box.createRigidArea(new Dimension(1, 15)));
+
+    JLabel message = new JLabel(NO_CLIENT_MESSAGE);
+    message.setHorizontalAlignment(SwingConstants.CENTER);
+    message.setAlignmentX(Component.CENTER_ALIGNMENT);
+    message.setFont(STANDARD_FONT);
+    message.setForeground(ProfilerColors.MESSAGE_COLOR);
+    panel.add(message);
+    panel.add(Box.createVerticalGlue());
+
+    return panel;
+  }
+
+  /**
+   * @return The {@link StudioProfilers} instance. Null if the profilers cannot be initialized, such as if it is already opened in another
+   *         project.
+   */
+  @Nullable
   StudioProfilers getProfilers() {
-    return myProfilers;
+    return myProfilersWrapper != null ? myProfilersWrapper.getProfilers() : null;
   }
 
   /**
@@ -130,7 +162,10 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
    *                         or process that starts after a certain time.
    */
   public void profile(@NotNull PreferredProcessInfo processInfo) {
-    myProfilers.setPreferredProcess(processInfo.deviceName, processInfo.processName, processInfo.processFilter);
+    if (tryInitializeProfilers()) {
+      StudioProfilers profilers = myProfilersWrapper.getProfilers();
+      profilers.setPreferredProcess(processInfo.deviceName, processInfo.processName, processInfo.processFilter);
+    }
   }
 
   /**
@@ -138,59 +173,31 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
    * See: {@link StudioProfilers#setAutoProfilingEnabled(boolean)}
    */
   void disableAutoProfiling() {
-    myProfilers.setAutoProfilingEnabled(false);
+    if (tryInitializeProfilers()) {
+      StudioProfilers profilers = myProfilersWrapper.getProfilers();
+      profilers.setAutoProfilingEnabled(false);
+    }
   }
 
   /**
    * Tries to import a file into an imported session of the profilers and shows an error balloon if it fails to do so.
    */
   public void openFile(@NotNull VirtualFile file) {
-    if (!myProfilers.getSessionsManager().importSessionFromFile(new File(file.getPath()))) {
-      myProfilers.getIdeServices().showErrorBalloon(OPEN_FILE_FAILURE_BALLOON_TITLE, OPEN_FILE_FAILURE_BALLOON_TEXT, null, null);
-    }
-  }
-
-  private void modeChanged() {
-    ToolWindowManager manager = ToolWindowManager.getInstance(myProject);
-    boolean maximize = myProfilers.getMode() == ProfilerMode.EXPANDED;
-    if (maximize != manager.isMaximized(myWindow)) {
-      manager.setMaximized(myWindow, maximize);
-    }
-  }
-
-  private void stageChanged() {
-    if (myProfilers.isStopped()) {
-      AndroidProfilerToolWindowFactory.removeContent(myWindow);
-      ToolWindowManagerEx.getInstanceEx(myProject).removeToolWindowManagerListener(myToolWindowManagerListener);
-    }
-  }
-
-  private void selectedSessionChanged() {
-    Common.SessionMetaData metaData = myProfilers.getSessionsManager().getSelectedSessionMetaData();
-    // setTitle appends to the ToolWindow's existing name (i.e. "Profiler"), hence we only
-    // need to create and set the string for the session's name.
-    myWindow.setTitle(metaData.getSessionName());
-  }
-
-  private void profilingSessionChanged() {
-    Common.Session profilingSession = myProfilers.getSessionsManager().getProfilingSession();
-    if (SessionsManager.isSessionAlive(profilingSession)) {
-      myWindow.setIcon(ExecutionUtil.getLiveIndicator(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER));
-    }
-    else {
-      myWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER);
+    if (tryInitializeProfilers()) {
+      StudioProfilers profilers = myProfilersWrapper.getProfilers();
+      if (!profilers.getSessionsManager().importSessionFromFile(new File(file.getPath()))) {
+        profilers.getIdeServices().showErrorBalloon(OPEN_FILE_FAILURE_BALLOON_TITLE, OPEN_FILE_FAILURE_BALLOON_TEXT, null, null);
+      }
     }
   }
 
   @Override
   public void dispose() {
-    myProfilers.removeDependencies(this);
-    myProfilers.stop();
   }
 
   @NotNull
   public JComponent getComponent() {
-    return myView.getComponent();
+    return myPanel;
   }
 
   @Nullable
@@ -240,12 +247,112 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     return deviceNameBuilder.toString();
   }
 
+  private static class StudioProfilersWrapper extends AspectObserver implements Disposable {
+    @NotNull private final Project myProject;
+    @NotNull private final ToolWindow myWindow;
+    @NotNull private final StudioProfilers myProfilers;
+    @NotNull private final StudioProfilersView myView;
+
+    StudioProfilersWrapper(@NotNull Project project, @NotNull ToolWindow window, @NotNull ProfilerService service) {
+      myProject = project;
+      myWindow = window;
+
+      IdeProfilerServices ideProfilerServices = new IntellijProfilerServices(myProject);
+      service.getDataStoreService().setNoPiiExceptionHanlder(ideProfilerServices::reportNoPiiException);
+      ProfilerClient client = service.getProfilerClient();
+      myProfilers = new StudioProfilers(client, ideProfilerServices);
+
+      myProfilers.addDependency(this)
+                 .onChange(ProfilerAspect.MODE, this::modeChanged)
+                 .onChange(ProfilerAspect.STAGE, this::stageChanged);
+      myProfilers.getSessionsManager().addDependency(this)
+                 .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
+                 .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
+
+      // Attempt to find the last-run process and start profiling it. This covers the case where the user presses "Run" (without profiling),
+      // but then opens the profiling window manually.
+      PreferredProcessInfo processInfo = myProject.getUserData(LAST_RUN_APP_INFO);
+      if (processInfo != null) {
+        myProfilers.setPreferredProcess(processInfo.deviceName, processInfo.processName, processInfo.processFilter);
+        myProject.putUserData(LAST_RUN_APP_INFO, null);
+      }
+      else {
+        // Note the always-false predicate, which prevents the Profilers from randomly start profiling.
+        StartupManager
+          .getInstance(myProject)
+          .runWhenProjectIsInitialized(() -> myProfilers.setPreferredProcess(null, getPreferredProcessName(myProject), p -> false));
+      }
+
+      IdeProfilerComponents profilerComponents = new IntellijProfilerComponents(myProject, myProfilers.getIdeServices().getFeatureTracker());
+      myView = new StudioProfilersView(myProfilers, profilerComponents);
+      Disposer.register(this, myView);
+
+      myProject.getMessageBus().connect(this).subscribe(ToolWindowManagerListener.TOPIC,
+                                                        new AndroidProfilerWindowManagerListener(myProject, myProfilers, myView));
+    }
+
+    @Override
+    public void dispose() {
+      myProfilers.stop();
+    }
+
+    @NotNull
+    private StudioProfilers getProfilers() {
+      return myProfilers;
+    }
+
+    @NotNull
+    private StudioProfilersView getProfilersView() {
+      return myView;
+    }
+
+    private void modeChanged() {
+      ToolWindowManager manager = ToolWindowManager.getInstance(myProject);
+      boolean maximize = myProfilers.getMode() == ProfilerMode.EXPANDED;
+      if (maximize != manager.isMaximized(myWindow)) {
+        manager.setMaximized(myWindow, maximize);
+      }
+    }
+
+    private void stageChanged() {
+      if (myProfilers.isStopped()) {
+        AndroidProfilerToolWindowFactory.removeContent(myWindow);
+      }
+    }
+
+    private void selectedSessionChanged() {
+      Common.SessionMetaData metaData = myProfilers.getSessionsManager().getSelectedSessionMetaData();
+      // setTitle appends to the ToolWindow's existing name (i.e. "Profiler"), hence we only
+      // need to create and set the string for the session's name.
+      myWindow.setTitle(metaData.getSessionName());
+    }
+
+    private void profilingSessionChanged() {
+      Common.Session profilingSession = myProfilers.getSessionsManager().getProfilingSession();
+      if (SessionsManager.isSessionAlive(profilingSession)) {
+        myWindow.setIcon(ExecutionUtil.getLiveIndicator(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER));
+      }
+      else {
+        myWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER);
+      }
+    }
+  }
+
   /**
    * This class maps 1-to-1 with an {@link AndroidProfilerToolWindow} instance.
    */
-  private class AndroidProfilerWindowManagerListener extends ToolWindowManagerAdapter {
+  private static class AndroidProfilerWindowManagerListener implements ToolWindowManagerListener {
     private boolean myIsProfilingActiveBalloonShown = false;
     private boolean myWasWindowExpanded = false;
+    @NotNull private final Project myProject;
+    @NotNull private final StudioProfilers myProfilers;
+    @NotNull private final StudioProfilersView myProfilersView;
+
+    AndroidProfilerWindowManagerListener(@NotNull Project project, @NotNull StudioProfilers profilers, @NotNull StudioProfilersView view) {
+      myProject = project;
+      myProfilers = profilers;
+      myProfilersView = view;
+    }
 
     /**
      * How the profilers should respond to the tool window's state changes is as follow:
@@ -270,7 +377,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
       if (isWindowTabHidden) {
         if (hasAliveSession) {
           boolean hidePrompt = myProfilers.getIdeServices().getTemporaryProfilerPreferences().getBoolean(HIDE_STOP_PROMPT, false);
-          boolean confirm = hidePrompt || myIdeProfilerComponents.createUiMessageHandler().displayOkCancelMessage(
+          boolean confirm = hidePrompt || myProfilersView.getIdeProfilerComponents().createUiMessageHandler().displayOkCancelMessage(
             "Confirm Stop Profiling",
             "Hiding the window will stop the current profiling session. Are you sure?",
             "Yes",

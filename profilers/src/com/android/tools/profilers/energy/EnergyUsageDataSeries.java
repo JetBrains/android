@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-class EnergyUsageDataSeries implements DataSeries<Long> {
+public class EnergyUsageDataSeries implements DataSeries<Long> {
 
   @NotNull private final ProfilerClient myClient;
   private final Common.Session mySession;
@@ -41,7 +41,7 @@ class EnergyUsageDataSeries implements DataSeries<Long> {
   /**
    * Construct a data series which adds up all the different sources of energy in any given {@link EnergySample}
    */
-  EnergyUsageDataSeries(@NotNull ProfilerClient client, Common.Session session) {
+  public EnergyUsageDataSeries(@NotNull ProfilerClient client, Common.Session session) {
     this(client, session, EnergyUsageDataSeries::getTotalUsage);
   }
 

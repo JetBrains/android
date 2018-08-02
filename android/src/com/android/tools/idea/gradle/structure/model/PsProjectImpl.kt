@@ -40,8 +40,8 @@ class PsProjectImpl(override val ideProject: Project) : PsChildModel(), PsProjec
   override val isDeclared: Boolean = true
   override val icon: Icon? = null
 
-  override val modules: Collection<PsModule> get() = moduleCollection.items()
-  override val modelCount: Int get() = moduleCollection.items().size
+  override val modules: Collection<PsModule> get() = moduleCollection
+  override val modelCount: Int get() = moduleCollection.size
 
   init {
     // TODO(b/77695733): Ensure that getProjectBuildModel() is indeed not null.
@@ -51,13 +51,13 @@ class PsProjectImpl(override val ideProject: Project) : PsChildModel(), PsProjec
   }
 
   override fun findModuleByName(moduleName: String): PsModule? =
-    moduleCollection.items().stream().filter { it -> it.name == moduleName }.findFirst().orElse(null)
+    moduleCollection.stream().filter { it -> it.name == moduleName }.findFirst().orElse(null)
 
   override fun findModuleByGradlePath(gradlePath: String): PsModule? =
-    moduleCollection.items().stream().filter { it -> it.gradlePath == gradlePath }.findFirst().orElse(null)
+    moduleCollection.stream().filter { it -> it.gradlePath == gradlePath }.findFirst().orElse(null)
 
   override fun forEachModule(consumer: Consumer<PsModule>) {
-    moduleCollection.items().sortedBy { it.name.toLowerCase() }.forEach(consumer)
+    moduleCollection.sortedBy { it.name.toLowerCase() }.forEach(consumer)
   }
 
   override fun applyChanges() {

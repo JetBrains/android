@@ -50,7 +50,7 @@ public class LintTest {
    *   Verify:
    *   Verify that unnecessary conditional statements are detected by Lint.
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void obsoleteSdkIntLintCheck() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LintTest");

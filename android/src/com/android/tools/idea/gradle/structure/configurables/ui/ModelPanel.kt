@@ -22,7 +22,6 @@ import javax.swing.JComponent
 /**
  * A configuration UI for type [ModelT].
  */
-interface ModelPanel<ModelT> : Place.Navigator, Disposable {
+interface ModelPanel<ModelT> : Place.Navigator, ComponentProvider, Disposable {
   val title: String
-  fun createComponent(): JComponent
 }

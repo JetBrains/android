@@ -37,7 +37,7 @@ public class ScreenRecorderAction extends AbstractDeviceAction {
   private static final String PKG_NAME = "";
 
   private final Project myProject;
-  private final DeviceStateCache<CompletableFuture> myCache;
+  private final DeviceStateCache<CompletableFuture<Boolean>> myCache;
 
   public ScreenRecorderAction(@NotNull Project project, @NotNull DeviceContext context) {
     super(context,
@@ -80,7 +80,7 @@ public class ScreenRecorderAction extends AbstractDeviceAction {
       myCache.put(device, PKG_NAME, cf);
     }
 
-    // default return false until future is complete since this method will be called each time studio udpates
+    // default return false until future is complete since this method will be called each time studio updates
     return cf.getNow(false);
   }
 

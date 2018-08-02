@@ -80,8 +80,8 @@ import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
  * example, when it notices that the user is editing the value inside a <string> element in a value folder XML file, it will directly update
  * the resource value for the given resource item, and so on.
  *
- * <p>For efficiency, the ResourceFolderRepository is initialized via the same parsers as the {@link AarSourceResourceRepository} and then lazily
- * switches to PSI parsers after edits. See also {@code README.md} in this package.
+ * <p>For efficiency, the ResourceFolderRepository is initialized via the same parsers as the {@link AarSourceResourceRepository} and then
+ * lazily switches to PSI parsers after edits. See also {@code README.md} in this package.
  *
  * <p>Remaining work:
  * <ul>
@@ -713,25 +713,25 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
     Set<String> usedAliases = new HashSet<>();
     for (XmlTag tag : dataTag.findSubTags(TAG_IMPORT)) {
-      String nameValue = tag.getAttributeValue(ATTR_TYPE);
-      if (nameValue == null) {
+      String typeValue = tag.getAttributeValue(ATTR_TYPE);
+      if (typeValue == null) {
         continue;
       }
-      String name = StringUtil.unescapeXml(nameValue);
+      String type = StringUtil.unescapeXml(typeValue);
       String aliasValue = tag.getAttributeValue(ATTR_ALIAS);
       String alias = null;
       if (aliasValue != null) {
         alias = StringUtil.unescapeXml(aliasValue);
       }
       if (alias == null) {
-        int lastIndexOfDot = name.lastIndexOf('.');
+        int lastIndexOfDot = type.lastIndexOf('.');
         if (lastIndexOfDot >= 0) {
-          alias = name.substring(lastIndexOfDot + 1);
+          alias = type.substring(lastIndexOfDot + 1);
         }
       }
       if (StringUtil.isNotEmpty(alias)) {
-        if (usedAliases.add(name)) {
-          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(name, DataBindingResourceType.IMPORT, tag, resourceFile);
+        if (usedAliases.add(type)) {
+          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(alias, DataBindingResourceType.IMPORT, tag, resourceFile);
           items.add(item);
         }
       }
@@ -1433,6 +1433,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                 if (convertToPsiIfNeeded(psiFile, folderType)) {
                   return;
                 }
+                if (affectsDataBinding((XmlTag)child)) {
+                  rescanJustDataBinding(psiFile);
+                }
                 List<PsiResourceItem> ids = new ArrayList<>();
                 Map<ResourceType, ListMultimap<String, ResourceItem>> result = new HashMap<>();
                 addIds(result, ids, child, true);
@@ -1450,19 +1453,19 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                   }
                 }
                 return;
-              } else if (child instanceof XmlAttributeValue) {
-                assert parent instanceof XmlAttribute : parent;
-                @SuppressWarnings("CastConflictsWithInstanceof") // IDE bug? Cast is valid.
-                XmlAttribute attribute = (XmlAttribute)parent;
+              } else if (child instanceof XmlAttribute || parent instanceof XmlAttribute) {
+                // we check both because invalidation might come from XmlAttribute if it is inserted at once.
+                XmlAttribute attribute = parent instanceof XmlAttribute
+                                         ? (XmlAttribute)parent
+                                         : (XmlAttribute) child;
                 // warning for separate if branches suppressed because to do.
                 //noinspection IfStatementWithIdenticalBranches
                 if (ATTR_ID.equals(attribute.getLocalName()) &&
                     ANDROID_URI.equals(attribute.getNamespace())) {
                   // TODO: Update it incrementally
                   rescan(psiFile, folderType);
-                } else if (ArrayUtil.contains(attribute.getLocalName(), ATTRS_DATA_BINDING)
-                           && ArrayUtil.contains(attribute.getParent().getLocalName(), TAGS_DATA_BINDING)) {
-                  rescan(psiFile, folderType);
+                } else if (affectsDataBinding(attribute)){
+                  rescanJustDataBinding(psiFile);
                 }
               }
             }
@@ -1830,15 +1833,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                   }
 
                   rescan(psiFile, folderType);
-                } else if (ArrayUtil.contains(attribute.getLocalName(), ATTRS_DATA_BINDING)
-                           && ArrayUtil.contains(attribute.getParent().getLocalName(), TAGS_DATA_BINDING)) {
-                  ResourceItemSource<? extends ResourceItem> resFile = sources.get(psiFile.getVirtualFile());
-                  if (resFile != null) {
-                    // Data-binding files are always scanned as PsiResourceFiles.
-                    PsiResourceFile resourceFile = (PsiResourceFile)resFile;
-                    setModificationCount(ourModificationCounter.incrementAndGet());
-                    scanDataBinding(resourceFile, getModificationCount());
-                  }
+                } else if (affectsDataBinding(attribute)) {
+                  rescanJustDataBinding(psiFile);
                 } else if (folderType != VALUES) {
                   // This is an XML change within an ID generating folder to something that it's not an ID. While we do not need
                   // to generate the ID, we need to notify that something relevant has changed.
@@ -2321,6 +2317,36 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       // and what about PROP_FILE_TYPES -- can users change the type of an XML File to something else?
 
       mySeenPrePropertyChange = false;
+    }
+
+
+    /**
+     * Checks if changes in the given attribute affects data binding
+     * @param attribute The XML attribute
+     * @return true if changes in this element would affect data binding
+     */
+    private boolean affectsDataBinding(XmlAttribute attribute) {
+      return ArrayUtil.contains(attribute.getLocalName(), ATTRS_DATA_BINDING)
+             && ArrayUtil.contains(attribute.getParent().getLocalName(), TAGS_DATA_BINDING);
+    }
+
+    /**
+     * Checks if changes in the given XmlTag affects data binding.
+     * @param xmlTag
+     * @return true if changes in the xml tag would affect data binding info, false otherwise
+     */
+    private boolean affectsDataBinding(XmlTag xmlTag) {
+      return ArrayUtil.contains(xmlTag.getLocalName(), TAGS_DATA_BINDING);
+    }
+  }
+
+  private void rescanJustDataBinding(@NotNull PsiFile psiFile) {
+    ResourceItemSource<? extends ResourceItem> resFile = sources.get(psiFile.getVirtualFile());
+    if (resFile != null) {
+      // Data-binding files are always scanned as PsiResourceFiles.
+      PsiResourceFile resourceFile = (PsiResourceFile)resFile;
+      setModificationCount(ourModificationCounter.incrementAndGet());
+      scanDataBinding(resourceFile, getModificationCount());
     }
   }
 

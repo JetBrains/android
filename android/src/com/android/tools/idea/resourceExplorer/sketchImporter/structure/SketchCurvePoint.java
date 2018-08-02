@@ -55,6 +55,7 @@ public class SketchCurvePoint {
     return cornerRadius;
   }
 
+  @NotNull
   public SketchPoint2D getCurveFrom() {
     return curveFrom;
   }
@@ -63,6 +64,7 @@ public class SketchCurvePoint {
     return curveMode;
   }
 
+  @NotNull
   public SketchPoint2D getCurveTo() {
     return curveTo;
   }
@@ -75,6 +77,7 @@ public class SketchCurvePoint {
     return hasCurveTo;
   }
 
+  @NotNull
   public SketchPoint2D getPoint() {
     return point;
   }

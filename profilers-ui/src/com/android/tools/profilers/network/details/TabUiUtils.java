@@ -16,7 +16,6 @@
 package com.android.tools.profilers.network.details;
 
 import com.android.tools.adtui.TreeWalker;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.ui.BreakWordWrapHtmlTextPane;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.intellij.openapi.ui.VerticalFlowLayout;
@@ -27,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.text.html.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +47,6 @@ final class TabUiUtils {
   public static final int TAB_SECTION_VGAP = JBUI.scale(5);
   public static final int PAGE_VGAP = JBUI.scale(28);
   public static final int SECTION_VGAP = JBUI.scale(10);
-  public static final int HGAP = JBUI.scale(22);
 
   public static final String SECTION_TITLE_HEADERS = "Headers";
 
@@ -88,16 +85,6 @@ final class TabUiUtils {
   }
 
   /**
-   * Creates a separator to visually divide areas of a panel.
-   */
-  @NotNull
-  public static JSeparator createSeparator() {
-    JSeparator separator = new JSeparator();
-    separator.setForeground(UIManager.getColor("Table.gridColor"));
-    return separator;
-  }
-
-  /**
    * Creates a {@link HideablePanel} with a consistent style.
    */
   @NotNull
@@ -125,48 +112,10 @@ final class TabUiUtils {
     StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append("<html>");
     for (Map.Entry<String, String> entry : map.entrySet()) {
-      stringBuilder.append("<p><b>").append(entry.getKey()).append("</b>:&nbsp&nbsp");
-      stringBuilder.append("<span>").append(entry.getValue()).append("</span></p>");
+      stringBuilder.append(String.format("<p><b>%s</b>:&nbsp;<span>%s</span></p>", entry.getKey(), entry.getValue()));
     }
     stringBuilder.append("</html>");
     textPane.setText(stringBuilder.toString());
-    return textPane;
-  }
-
-  /**
-   * Create a component that shows a list of key/value pairs. If there are no values in the map,
-   * this returns a label indicating that no data is available.
-   */
-  @NotNull
-  public static JComponent createMapComponent(@NotNull Map<String, String> argsMap) {
-    if (argsMap.isEmpty()) {
-      return new JLabel("Not available");
-    }
-
-    StringBuilder stringBuilder = new StringBuilder();
-    stringBuilder.append("<html>");
-    for (Map.Entry<String, String> entry : argsMap.entrySet()) {
-      stringBuilder.append("<p><nobr><b>").append(entry.getKey()).append(":&nbsp&nbsp</b></nobr>");
-      stringBuilder.append("<span>").append(entry.getValue()).append("</span></p>");
-    }
-    stringBuilder.append("</html>");
-    return createTextPane(stringBuilder.toString());
-  }
-
-  /**
-   * Wraps a string with a read-only text panel, allowing users to select and copy the text if they
-   * want to.
-   */
-  @NotNull
-  private static JTextPane createTextPane(String text) {
-    JTextPane textPane = new JTextPane();
-    textPane.setContentType("text/html");
-    textPane.setBackground(null);
-    textPane.setBorder(null);
-    textPane.setEditable(false);
-    textPane.setText(text);
-    String rule = "body { font-family: " + STANDARD_FONT.getFamily() + "; font-size: " + STANDARD_FONT.getSize2D() + "pt; }";
-    ((HTMLDocument)textPane.getDocument()).getStyleSheet().addRule(rule);
     return textPane;
   }
 

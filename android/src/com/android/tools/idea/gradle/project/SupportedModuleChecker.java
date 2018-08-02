@@ -51,7 +51,7 @@ public class SupportedModuleChecker {
       return;
     }
     List<Module> unsupportedModules = new ArrayList<>();
-
+    boolean androidGradleSeen = false;
     for (Module module : modules) {
       ModuleType moduleType = ModuleType.get(module);
       if (moduleType instanceof JavaModuleType) {
@@ -59,10 +59,12 @@ public class SupportedModuleChecker {
         if (!GRADLE_SYSTEM_ID.getId().equals(externalSystemId)) {
           unsupportedModules.add(module);
         }
+        else
+          androidGradleSeen = true;
       }
     }
 
-    if (unsupportedModules.isEmpty()) {
+    if (!androidGradleSeen || unsupportedModules.isEmpty()) {
       return;
     }
     String moduleNames = join(unsupportedModules, Module::getName, ", ");

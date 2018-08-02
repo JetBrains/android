@@ -32,7 +32,8 @@ public class SketchGradient {
   public SketchGradient(int elipseLength,
                         @NotNull SketchPoint2D from,
                         int gradientType,
-                        @NotNull SketchGradientStop[] stops, SketchPoint2D to) {
+                        @NotNull SketchGradientStop[] stops,
+                        @NotNull SketchPoint2D to) {
     this.elipseLength = elipseLength;
     this.from = from;
     this.gradientType = gradientType;
@@ -44,6 +45,7 @@ public class SketchGradient {
     return elipseLength;
   }
 
+  @NotNull
   public SketchPoint2D getFrom() {
     return from;
   }
@@ -52,10 +54,12 @@ public class SketchGradient {
     return gradientType;
   }
 
+  @NotNull
   public SketchGradientStop[] getStops() {
     return stops;
   }
 
+  @NotNull
   public SketchPoint2D getTo() {
     return to;
   }

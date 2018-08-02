@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayerable;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
 
-public class SketchShapeGroup extends SketchLayer {
+import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathDataUtils.buildShapeString;
+
+public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
   private final SketchStyle style;
   private final SketchLayer[] layers;
   private final short clippingMaskMode;
@@ -50,10 +56,14 @@ public class SketchShapeGroup extends SketchLayer {
     this.windingRule = windingRule;
   }
 
+  @Override
+  @NotNull
   public SketchStyle getStyle() {
     return style;
   }
 
+  @Override
+  @NotNull
   public SketchLayer[] getLayers() {
     return layers;
   }
@@ -68,6 +78,11 @@ public class SketchShapeGroup extends SketchLayer {
 
   public short getWindingRule() {
     return windingRule;
+  }
+
+  @Override
+  public void setAbsoluteLocation(ArrayList<String> paths, Point2D.Double parentCoords) {
+    paths.add(buildShapeString(this, parentCoords));
   }
 }
 

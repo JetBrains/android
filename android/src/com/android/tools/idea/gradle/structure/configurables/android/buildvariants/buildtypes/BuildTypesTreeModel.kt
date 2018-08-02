@@ -13,40 +13,17 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.configurables.android.buildvariants.buildtypes
 
-import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeModel
 import com.android.tools.idea.gradle.structure.configurables.NamedContainerConfigurableBase
-import com.android.tools.idea.gradle.structure.configurables.createConfigurablesTree
-import com.android.tools.idea.gradle.structure.configurables.listFromGenerator
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.NamedConfigurable
-import javax.swing.tree.DefaultMutableTreeNode
+import com.intellij.openapi.util.Disposer
 
-class BuildTypesTreeModel(
-    module: PsAndroidModule,
-    rootNode: DefaultMutableTreeNode
-) : ConfigurablesTreeModel(module, rootNode) {
-
-  fun createBuildType(newName: String): Pair<BuildTypeConfigurable, DefaultMutableTreeNode> {
-    val buildType = module.addNewBuildType(newName)
-    val configurable = BuildTypeConfigurable(buildType)
-    val node = createNode(rootNode, configurable)
-    return configurable to node
-  }
-
-  fun removeBuildType(node: DefaultMutableTreeNode) {
-    val buildTypeConfigurable = node.userObject as BuildTypeConfigurable
-    val buildType = buildTypeConfigurable.model
-    module.removeBuildType(buildType)
-    removeNodeFromParent(node)
-  }
+class BuildTypesConfigurable(val module: PsAndroidModule) : NamedContainerConfigurableBase<PsBuildType>("Build Types") {
+  override fun getChildrenModels(): Collection<PsBuildType> = module.buildTypes
+  override fun createChildConfigurable(model: PsBuildType): NamedConfigurable<PsBuildType> =
+    BuildTypeConfigurable(model).also { Disposer.register(this, it) }
+  override fun onChange(disposable: Disposable, listener: () -> Unit) = module.buildTypes.onChange(disposable, listener)
+  override fun dispose() = Unit
 }
-
-fun createBuildTypesModel(module: PsAndroidModule): BuildTypesTreeModel =
-    BuildTypesTreeModel(
-        module,
-        createConfigurablesTree(
-            object : NamedContainerConfigurableBase<PsBuildType>("Build Types") {
-              override fun getChildren(): List<NamedConfigurable<PsBuildType>> = module.buildTypes.map(::BuildTypeConfigurable)
-            }
-        ))

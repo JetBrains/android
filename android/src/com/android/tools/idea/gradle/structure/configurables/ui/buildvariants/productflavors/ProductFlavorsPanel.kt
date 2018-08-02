@@ -13,12 +13,15 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors
 
-import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.FlavorDimensionConfigurable
-import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.ProductFlavorConfigurable
-import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.ProductFlavorsTreeModel
+import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeModel
+import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.*
+import com.android.tools.idea.gradle.structure.configurables.findChildFor
+import com.android.tools.idea.gradle.structure.configurables.getModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
+import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.intellij.openapi.actionSystem.AnAction
@@ -32,7 +35,8 @@ import javax.swing.tree.TreePath
 
 const val PRODUCT_FLAVORS_DISPLAY_NAME: String = "Flavors"
 class ProductFlavorsPanel(
-  val treeModel: ProductFlavorsTreeModel,
+  val module: PsAndroidModule,
+  val treeModel: ConfigurablesTreeModel,
   uiSettings: PsUISettings
 ) : ConfigurablesMasterDetailsPanel<PsProductFlavor>(
   PRODUCT_FLAVORS_DISPLAY_NAME,
@@ -59,7 +63,7 @@ class ProductFlavorsPanel(
                 Messages.getQuestionIcon()
               ) == Messages.YES) {
               val nodeToSelectAfter = selectedNode.nextSibling ?: selectedNode.previousSibling
-              treeModel.removeFlavorDimension(selectedNode)
+              module.removeFlavorDimension(selectedNode.getModel() ?: return)
               selectNode(nodeToSelectAfter)
             }
           }
@@ -71,7 +75,7 @@ class ProductFlavorsPanel(
                 Messages.getQuestionIcon()
               ) == Messages.YES) {
               val nodeToSelectAfter = selectedNode.nextSibling ?: selectedNode.previousSibling ?: selectedNode.parent
-              treeModel.removeProductFlavor(selectedNode)
+              module.removeProductFlavor(selectedNode.getModel() ?: return)
               selectNode(nodeToSelectAfter)
             }
           }
@@ -95,7 +99,8 @@ class ProductFlavorsPanel(
                   override fun canClose(inputString: String?): Boolean = !inputString.isNullOrBlank()
                 })
             if (newName != null) {
-              val (_, node) = treeModel.createFlavorDimension(newName)
+              val flavorDimension = module.addNewFlavorDimension(newName)
+              val node = treeModel.rootNode.findChildFor(flavorDimension)
               tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
             }
           }
@@ -115,11 +120,15 @@ class ProductFlavorsPanel(
             if (newName != null) {
               val selectedObject = selectedConfigurable
               val currentDimension = when (selectedObject) {
-                is FlavorDimensionConfigurable -> selectedObject.flavorDimension
+                is FlavorDimensionConfigurable -> selectedObject.flavorDimension.name
                 is ProductFlavorConfigurable -> selectedObject.model.dimension.maybeValue
-                else -> null
+                else -> return
               }
-              val (_, node) = treeModel.createProductFlavor(newName, currentDimension)
+              val productFlavor = module.addNewProductFlavor(currentDimension.orEmpty(), newName)
+              val dimension = module.findFlavorDimension(currentDimension.orEmpty())
+              val node =
+                dimension?.let { treeModel.rootNode.findChildFor(dimension) } ?: treeModel.rootNode
+                  .findChildFor(productFlavor)
               tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
             }
           }

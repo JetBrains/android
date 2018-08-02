@@ -38,6 +38,7 @@ public class SketchBorder {
     return isEnabled;
   }
 
+  @NotNull
   public Color getColor() {
     return color;
   }

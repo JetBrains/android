@@ -51,7 +51,7 @@ class GradleProjectSystem(val project: Project, @TestOnly private val mavenRepos
       listOf(
         ResourceTypeClassFinder.INSTANCE,
         AndroidManifestClassPsiElementFinder.getInstance(project),
-        AndroidResourceClassPsiElementFinder(ProjectLightResourceClassService.getInstance(project))
+        AndroidResourceClassPsiElementFinder(getLightResourceClassService())
       )
     } else {
       listOf(ResourceTypeClassFinder.INSTANCE)
@@ -112,4 +112,6 @@ class GradleProjectSystem(val project: Project, @TestOnly private val mavenRepos
   override fun getPsiElementFinders(): List<PsiElementFinder> = myPsiElementFinders
 
   override fun getAugmentRClasses() = !StudioFlags.IN_MEMORY_R_CLASSES.get()
+
+  override fun getLightResourceClassService() = ProjectLightResourceClassService.getInstance(project)
 }

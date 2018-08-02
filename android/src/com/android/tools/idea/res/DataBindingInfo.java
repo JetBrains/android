@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.resources.DataBindingResourceType;
+import com.android.utils.HashCodes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * A data class that keeps data binding related information that was extracted from a layout file.
@@ -59,8 +61,9 @@ public interface DataBindingInfo extends ModificationTracker {
   DataBindingInfo getMergedInfo();
 
   @NotNull
-  List<PsiDataBindingResourceItem> getItems(DataBindingResourceType type);
+  Map<String, PsiDataBindingResourceItem> getItems(@NotNull DataBindingResourceType type);
 
+  @NotNull
   List<ViewWithId> getViewsWithIds();
 
   @Nullable
@@ -69,13 +72,43 @@ public interface DataBindingInfo extends ModificationTracker {
   @Override
   long getModificationCount();
 
+  @Nullable
+  default String resolveImport(@NotNull String nameOrAlias) {
+    Map<String, PsiDataBindingResourceItem> imports = getItems(DataBindingResourceType.IMPORT);
+    PsiDataBindingResourceItem importItem = imports.get(nameOrAlias);
+    return importItem == null ? null : importItem.getTypeDeclaration();
+  }
+
   class ViewWithId {
+    @NotNull
     public final String name;
+    @NotNull
     public final XmlTag tag;
 
-    public ViewWithId(String name, XmlTag tag) {
+    public ViewWithId(@NotNull String name, @NotNull XmlTag tag) {
       this.name = name;
       this.tag = tag;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof ViewWithId)) return false;
+      ViewWithId id = (ViewWithId)o;
+      return name.equals(id.name) && tag.equals(id.tag);
+    }
+
+    @Override
+    public int hashCode() {
+      return HashCodes.mix(name.hashCode(), tag.hashCode());
+    }
+
+    @Override
+    public String toString() {
+      return "ViewWithId{" +
+             "name='" + name + '\'' +
+             ", tag=" + tag +
+             '}';
     }
   }
 }

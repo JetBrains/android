@@ -24,7 +24,7 @@ import com.intellij.openapi.command.WriteCommandAction
 
 class ToSelfAction(private val mySurface: DesignSurface, private val component: NlComponent) : AnAction("To Self") {
   override fun actionPerformed(e: AnActionEvent?) {
-    WriteCommandAction.runWriteCommandAction(null) {
+    WriteCommandAction.runWriteCommandAction(component.model.project) {
       val action = component.createSelfAction()
       mySurface.selectionModel.setSelection(listOf(action))
     }

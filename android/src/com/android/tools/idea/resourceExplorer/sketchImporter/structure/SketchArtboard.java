@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayerable;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.List;
 
-public class SketchArtboard extends SketchLayer {
+public class SketchArtboard extends SketchLayer implements SketchLayerable {
   private final SketchStyle style;
   private final SketchLayer[] layers;
   private final Color backgroundColor;
@@ -48,19 +53,36 @@ public class SketchArtboard extends SketchLayer {
     this.hasBackgroundColor = hasBackgroundColor;
   }
 
+  @Override
+  @NotNull
   public SketchStyle getStyle() {
     return style;
   }
 
+  @Override
+  @NotNull
   public SketchLayer[] getLayers() {
     return layers;
   }
 
+  @NotNull
   public Color getBackgroundColor() {
     return backgroundColor;
   }
 
   public boolean hasBackgroundColor() {
     return hasBackgroundColor;
+  }
+
+  public List<String> getPaths() {
+
+    ArrayList<String> paths = new ArrayList<>();
+    SketchLayer[] layers = getLayers();
+
+    for (SketchLayer layer : layers) {
+      layer.setAbsoluteLocation(paths, new Point2D.Double(0, 0));
+    }
+
+    return paths;
   }
 }

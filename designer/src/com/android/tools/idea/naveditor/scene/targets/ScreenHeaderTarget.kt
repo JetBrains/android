@@ -101,4 +101,6 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
   override fun addHit(transform: SceneContext, picker: ScenePicker) {
     picker.addRect(this, 0, getSwingLeft(transform), getSwingTop(transform), getSwingRight(transform), getSwingBottom(transform))
   }
+
+  override fun newSelection() = listOf(component)
 }

@@ -20,9 +20,12 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawLasso;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -188,7 +191,15 @@ public class LassoTarget extends BaseTarget {
         myIntersectingComponents.add(component);
       }
     }
-    return;
+  }
+
+  @Nullable
+  @Override
+  public List<SceneComponent> newSelection() {
+    if (getHasDragged()) {
+      return ImmutableList.copyOf(getIntersectingComponents());
+    }
+    return null;
   }
 
   //endregion

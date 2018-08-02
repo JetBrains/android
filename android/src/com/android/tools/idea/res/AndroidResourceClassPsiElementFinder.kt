@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res
 
+import com.android.tools.idea.projectsystem.LightResourceClassService
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
@@ -23,7 +24,7 @@ import com.intellij.psi.search.GlobalSearchScope
 /**
  * Adapter for [LightResourceClassService] to satisfy the [PsiElementFinder] interface.
  */
-class AndroidResourceClassPsiElementFinder(private val service: LightResourceClassService) : PsiElementFinder() {
+class AndroidResourceClassPsiElementFinder(val lightResourceClassService: LightResourceClassService) : PsiElementFinder() {
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope) = findClasses(qualifiedName, scope).firstOrNull()
 
@@ -41,9 +42,9 @@ class AndroidResourceClassPsiElementFinder(private val service: LightResourceCla
     if (!qualifiedName.endsWith(".R")) {
       return PsiClass.EMPTY_ARRAY
     }
-    val result = service.getLightRClasses(qualifiedName, scope)
+    val result = lightResourceClassService.getLightRClasses(qualifiedName, scope)
     return result.toTypedArray()
   }
 
-  override fun findPackage(qualifiedName: String): PsiPackage? = service.findRClassPackage(qualifiedName)
+  override fun findPackage(qualifiedName: String): PsiPackage? = lightResourceClassService.findRClassPackage(qualifiedName)
 }

@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
+import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.structure.dialog.CounterDisplayConfigurable
 import com.intellij.openapi.Disposable
 import com.intellij.util.EventDispatcher
 
-abstract class AbstractCounterDisplayConfigurable protected constructor(context: PsContext) :
-    BasePerspectiveConfigurable(context), CounterDisplayConfigurable {
+abstract class AbstractCounterDisplayConfigurable protected constructor(context: PsContext, extraModules: List<PsModule>) :
+    BasePerspectiveConfigurable(context, extraModules), CounterDisplayConfigurable {
 
   private val myEventDispatcher = EventDispatcher.create(CounterDisplayConfigurable.CountChangeListener::class.java)
 

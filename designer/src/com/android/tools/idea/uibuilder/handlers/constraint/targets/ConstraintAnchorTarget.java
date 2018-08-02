@@ -16,9 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
@@ -505,6 +503,17 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   @Override
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     super.mouseDown(x, y);
+
+    Scene scene = myComponent.getScene();
+    if (isHorizontalAnchor()) {
+      scene.setFilterType(Scene.FilterType.HORIZONTAL_ANCHOR);
+    }
+    else {
+      scene.setFilterType(Scene.FilterType.VERTICAL_ANCHOR);
+    }
+    if (getType() == AnchorTarget.Type.BASELINE) {
+      scene.setFilterType(Scene.FilterType.BASELINE_ANCHOR);
+    }
 
     myConnectedX = -1;
     myConnectedY = -1;

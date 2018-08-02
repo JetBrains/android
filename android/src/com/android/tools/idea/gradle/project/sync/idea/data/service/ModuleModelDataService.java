@@ -46,7 +46,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
                                @NotNull IdeModifiableModelsProvider modelsProvider) {
     if (toImport.isEmpty()) {
       // there can be other build systems which can use the same project elements for the import
-      if(projectData != null && projectData.getOwner().equals(GradleUtil.GRADLE_SYSTEM_ID)) {
+      if(projectData != null && GradleUtil.GRADLE_SYSTEM_ID.equals(projectData.getOwner())) {
         onModelsNotFound(modelsProvider);
       }
       return;

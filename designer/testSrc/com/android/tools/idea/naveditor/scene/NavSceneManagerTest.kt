@@ -19,8 +19,6 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.State
-import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation

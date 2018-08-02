@@ -112,7 +112,7 @@ class NavInspectorPanelTest : NavTestCase() {
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
     assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
-    assertInstanceOf(captor.value["Arguments"], NavDestinationArgumentsProperty::class.java)
+    assertInstanceOf(captor.value["Arguments"], NavArgumentDefaultValuesProperty::class.java)
     assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
     validateProperties("navigation", captor.value.keys)
   }
@@ -140,7 +140,7 @@ class NavInspectorPanelTest : NavTestCase() {
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
     assertFalse(captor.value.containsKey("Actions"))
     assertFalse(captor.value.containsKey("Deeplinks"))
-    assertInstanceOf(captor.value["Arguments"], NavActionArgumentsProperty::class.java)
+    assertInstanceOf(captor.value["Arguments"], NavArgumentDefaultValuesProperty::class.java)
     assertFalse(captor.value.containsKey(SET_START_DESTINATION_PROPERTY_NAME))
     validateProperties("action", captor.value.keys)
   }

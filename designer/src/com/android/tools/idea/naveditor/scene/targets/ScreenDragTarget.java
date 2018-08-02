@@ -23,7 +23,7 @@ import com.android.tools.idea.common.scene.target.DragBaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
+import com.android.tools.idea.common.scene.target.MultiComponentTarget;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 

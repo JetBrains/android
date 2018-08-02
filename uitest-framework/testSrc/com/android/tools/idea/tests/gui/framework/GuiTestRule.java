@@ -87,7 +87,7 @@ public class GuiTestRule implements TestRule {
    */
   private static final int DEFAULT_TEST_TIMEOUT_MINUTES = 3;
   private Timeout myInnerTimeout = new Timeout(DEFAULT_TEST_TIMEOUT_MINUTES, TimeUnit.MINUTES);
-  private Timeout myOuterTimeout = new Timeout(DEFAULT_TEST_TIMEOUT_MINUTES + 1, TimeUnit.MINUTES);
+  private Timeout myOuterTimeout = new Timeout(DEFAULT_TEST_TIMEOUT_MINUTES + 2, TimeUnit.MINUTES);
 
   private final PropertyChangeListener myGlobalFocusListener = e -> {
     Object oldValue = e.getOldValue();
@@ -111,8 +111,8 @@ public class GuiTestRule implements TestRule {
   @Override
   public Statement apply(final Statement base, final Description description) {
     RuleChain chain = RuleChain.emptyRuleChain()
-      .around(myOuterTimeout)
       .around(new LogStartAndStop())
+      .around(myOuterTimeout) // all Rules other than LogStartAndStop should be inside myOuterTimeout
       .around(new IdeControl())
       .around(new BlockReloading())
       .around(new BazelUndeclaredOutputs())
@@ -464,7 +464,7 @@ public class GuiTestRule implements TestRule {
 
   public GuiTestRule withTimeout(long timeout, @NotNull TimeUnit timeUnits) {
     myInnerTimeout = new Timeout(timeout, timeUnits);
-    myOuterTimeout = new Timeout(timeUnits.toSeconds(timeout) + 60, TimeUnit.SECONDS);
+    myOuterTimeout = new Timeout(timeUnits.toSeconds(timeout) + 120, TimeUnit.SECONDS);
     return this;
   }
 }

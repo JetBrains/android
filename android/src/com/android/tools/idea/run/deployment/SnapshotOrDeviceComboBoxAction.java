@@ -21,12 +21,16 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.popup.JBPopup;
+import com.intellij.openapi.util.Condition;
+import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
 import icons.AndroidIcons;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -68,6 +72,27 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
 
   @NotNull
   @Override
+  protected ComboBoxButton createComboBoxButton(@NotNull Presentation presentation) {
+    return new ComboBoxButton(presentation) {
+      @Override
+      protected JBPopup createPopup(@NotNull Runnable runnable) {
+        DataContext context = getDataContext();
+
+        ActionGroup group = createPopupActionGroup(this, context);
+        boolean show = shouldShowDisabledActions();
+        int count = getMaxRows();
+        Condition<AnAction> condition = getPreselectCondition();
+
+        JBPopup popup = new ActionGroupPopup(null, group, context, false, true, show, false, runnable, count, condition, null, true);
+        popup.setMinimumSize(new Dimension(getMinWidth(), getMinHeight()));
+
+        return popup;
+      }
+    };
+  }
+
+  @NotNull
+  @Override
   protected DefaultActionGroup createPopupActionGroup(@NotNull JComponent button) {
     DefaultActionGroup group = new DefaultActionGroup();
 
@@ -95,14 +120,14 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
   @VisibleForTesting
   Collection<AnAction> newSnapshotOrDeviceActions() {
     Collection<VirtualDevice> virtualDevices = new ArrayList<>(myDevices.size());
-    Collection<Device> physicalDevices = new ArrayList<>(myDevices.size());
+    Collection<PhysicalDevice> physicalDevices = new ArrayList<>(myDevices.size());
 
     myDevices.forEach(device -> {
       if (device instanceof VirtualDevice) {
         virtualDevices.add((VirtualDevice)device);
       }
       else if (device instanceof PhysicalDevice) {
-        physicalDevices.add(device);
+        physicalDevices.add((PhysicalDevice)device);
       }
       else {
         assert false;
@@ -112,7 +137,7 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
     Collection<AnAction> actions = new ArrayList<>(virtualDevices.size() + 1 + physicalDevices.size());
 
     virtualDevices.stream()
-                  .map(device -> new SnapshotActionGroup(device, this))
+                  .map(this::newSnapshotAction)
                   .forEach(actions::add);
 
     if (!virtualDevices.isEmpty() && !physicalDevices.isEmpty()) {
@@ -120,10 +145,19 @@ final class SnapshotOrDeviceComboBoxAction extends ComboBoxAction {
     }
 
     physicalDevices.stream()
-                   .map(device -> new SelectDeviceAction(device, this))
+                   .map(device -> new SelectPhysicalDeviceAction(device, this))
                    .forEach(actions::add);
 
     return actions;
+  }
+
+  @NotNull
+  private AnAction newSnapshotAction(@NotNull VirtualDevice device) {
+    if (device.getSnapshots().equals(VirtualDevice.DEFAULT_SNAPSHOT_LIST)) {
+      return new SelectDefaultSnapshotAction(device, this);
+    }
+
+    return new SnapshotActionGroup(device, this);
   }
 
   @NotNull

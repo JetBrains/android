@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.res.LocalResourceRepository;
 import org.jetbrains.android.AndroidTestCase;
 
 public final class ResourceLoadingTaskTest extends AndroidTestCase {
   public void testRunDoesntThrowClassCastException() {
     // TODO Is the facet the right parentDisposable to pass to StringResourceViewPanel? The StringResourceEditor is passed in production.
-    new ResourceLoadingTask(new StringResourceViewPanel(myFacet, myFacet), LocalResourceRepository.EmptyRepository::new).queue();
+    new ResourceLoadingTask(
+      new StringResourceViewPanel(myFacet, myFacet),
+      () -> new LocalResourceRepository.EmptyRepository(ResourceNamespace.RES_AUTO)).queue();
   }
 }

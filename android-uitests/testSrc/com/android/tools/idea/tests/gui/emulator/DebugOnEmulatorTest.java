@@ -64,7 +64,7 @@ public class DebugOnEmulatorTest {
    *   The application is deployed on the emulator/device and the breakpoint is hit when the first screen loads
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/76023451
   @Test
   public void debugOnEmulator() throws IOException {
     guiTest.importSimpleLocalApplication();

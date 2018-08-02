@@ -23,24 +23,18 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.target.*;
+import com.android.tools.idea.common.scene.target.LassoTarget;
+import com.android.tools.idea.common.scene.target.MultiComponentTarget;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget;
-import com.android.tools.idea.naveditor.scene.targets.ScreenHeaderTarget;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderSettings;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
-import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeAnchorTarget;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.model.NlSelectionModel;
 import com.android.tools.idea.uibuilder.model.SelectionHandle;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneMode;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -69,6 +63,7 @@ import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIU
  * <p>
  * Methods in this class must be called in the dispatch thread.
  */
+@SuppressWarnings("ForLoopReplaceableByForEach")
 public class Scene implements SelectionListener, Disposable {
 
   @SwingCoordinate
@@ -106,15 +101,15 @@ public class Scene implements SelectionListener, Disposable {
   @Nullable private Target myHitTarget = null;
   private Cursor myMouseCursor;
   private SceneComponent myHitComponent;
-  ArrayList<SceneComponent> myNewSelectedComponentsOnRelease = new ArrayList<>();
-  ArrayList<SceneComponent> myNewSelectedComponentsOnDown = new ArrayList<>();
+  List<SceneComponent> myNewSelectedComponentsOnRelease = new ArrayList<>();
+  List<SceneComponent> myNewSelectedComponentsOnDown = new ArrayList<>();
   private boolean myIsControlDown;
   private boolean myIsShiftDown;
   private boolean myIsAltDown;
 
   public enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
 
-  private FilterType myFilterType = FilterType.NONE;
+  @NotNull private FilterType myFilterType = FilterType.NONE;
 
   public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface) {
     myDesignSurface = surface;
@@ -601,22 +596,6 @@ public class Scene implements SelectionListener, Disposable {
     myHitTarget = myHitListener.getClosestTarget();
     myHitComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
-      if (myHitTarget instanceof ConstraintAnchorTarget) {
-        ConstraintAnchorTarget anchor = (ConstraintAnchorTarget)myHitTarget;
-        if (anchor.isHorizontalAnchor()) {
-          myFilterType = FilterType.HORIZONTAL_ANCHOR;
-        }
-        else {
-          myFilterType = FilterType.VERTICAL_ANCHOR;
-        }
-        if (anchor.getType() == AnchorTarget.Type.BASELINE) {
-          myFilterType = FilterType.BASELINE_ANCHOR;
-        }
-      }
-      else if (myHitTarget instanceof RelativeAnchorTarget) {
-        RelativeAnchorTarget anchor = (RelativeAnchorTarget)myHitTarget;
-        myFilterType = anchor.getPreferredFilterType();
-      }
       myHitTarget.mouseDown(x, y);
       if (myHitTarget instanceof MultiComponentTarget) {
         delegateMouseDownToSelection(x, y, myHitTarget.getComponent());
@@ -642,8 +621,9 @@ public class Scene implements SelectionListener, Disposable {
         return;
       }
 
+      LassoTarget lassoTarget = null;
       if (myHitTarget instanceof LassoTarget) {
-        LassoTarget lassoTarget = (LassoTarget)myHitTarget;
+        lassoTarget = (LassoTarget)myHitTarget;
 
         if (lassoTarget.getSelectWhileDragging() && lassoTarget.getHasChanged()) {
           myNewSelectedComponentsOnRelease.clear();
@@ -656,7 +636,8 @@ public class Scene implements SelectionListener, Disposable {
       myHitListener.skipTarget(myHitTarget);
       myHitListener.find(transform, myRoot, x, y);
       SceneComponent targetComponent = myHitTarget.getComponent();
-      if (targetComponent != null && !inCurrentSelection(targetComponent)) {
+      if ((lassoTarget == null || lassoTarget.getIntersectingComponents().isEmpty())
+          && targetComponent != null && !inCurrentSelection(targetComponent)) {
         myNewSelectedComponentsOnRelease.clear();
         myNewSelectedComponentsOnRelease.add(targetComponent);
         select(myNewSelectedComponentsOnRelease);
@@ -684,16 +665,7 @@ public class Scene implements SelectionListener, Disposable {
         return;
       }
 
-      /*
-       * When asking for the layout status, we need to render under the following conditions:
-       *  - live render is enabled, and
-       *  - we are displaying the design surface
-       */
-      boolean renderOnLayout = RenderSettings.getDefault().getUseLiveRendering();
-      renderOnLayout &= (myDesignSurface instanceof NlDesignSurface) &&
-                        ((NlDesignSurface)myDesignSurface).getSceneMode() != SceneMode.BLUEPRINT_ONLY;
-
-      if (renderOnLayout && manager instanceof LayoutlibSceneManager) {
+      if (RenderSettings.getDefault().getUseLiveRendering()) {
         manager.requestLayoutAndRender(mNeedsLayout == ANIMATED_LAYOUT);
       }
       else {
@@ -705,6 +677,7 @@ public class Scene implements SelectionListener, Disposable {
   public void mouseRelease(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
+    SceneComponent closestComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
       myHitListener.find(transform, myRoot, x, y);
       Target closest = myHitListener.getFilteredTarget(myHitTarget);
@@ -716,50 +689,17 @@ public class Scene implements SelectionListener, Disposable {
     }
     myFilterType = FilterType.NONE;
     myNewSelectedComponentsOnRelease.clear();
-    if (myHitComponent != null && myHitListener.getClosestComponent() == myHitComponent
-        && !myNewSelectedComponentsOnRelease.contains(myHitComponent)) {
+    if (myHitComponent != null && closestComponent == myHitComponent) {
       myNewSelectedComponentsOnRelease.add(myHitComponent);
     }
-    // TODO: Refactor this to use an override method instead of type checks
-    if (myHitTarget instanceof ActionTarget
-        || myHitTarget instanceof GuidelineTarget
-        || myHitTarget instanceof BarrierTarget
-        || myHitTarget instanceof ScreenHeaderTarget) {
-      // it will be outside the bounds of the component, so will likely have
-      // selected a different one...
-      myNewSelectedComponentsOnRelease.clear();
-      myNewSelectedComponentsOnRelease.add(myHitTarget.getComponent());
-    }
-    if (myHitTarget instanceof DragBaseTarget) {
-      DragBaseTarget dragTarget = (DragBaseTarget)myHitTarget;
-      if (dragTarget.hasChangedComponent()) {
-        myNewSelectedComponentsOnRelease.clear();
-        myNewSelectedComponentsOnRelease.add(dragTarget.getComponent());
-      }
-    }
-    if (myHitTarget instanceof LassoTarget) {
-      LassoTarget lassoTarget = (LassoTarget)myHitTarget;
-      if (lassoTarget.getHasDragged()) {
-        myNewSelectedComponentsOnRelease.clear();
-        myNewSelectedComponentsOnRelease.addAll(lassoTarget.getIntersectingComponents());
-      }
-    }
-    if (myHitTarget instanceof ActionHandleTarget) {
-      // TODO: Refactor this so explicit cast not required
-      SceneComponent closestComponent = myHitListener.getClosestComponent();
-      if (closestComponent != null && closestComponent != myRoot) {
-        ActionHandleTarget actionHandleTarget = (ActionHandleTarget)myHitTarget;
-        NlComponent action = actionHandleTarget.createAction(closestComponent);
-        if (action != null) {
-          myDesignSurface.getSelectionModel().setSelection(ImmutableList.of(action));
-        }
-      }
-    }
-    boolean canChangeSelection = true;
     if (myHitTarget != null) {
-      canChangeSelection = myHitTarget.canChangeSelection();
+      List<SceneComponent> changed = myHitTarget.newSelection();
+      if (changed != null) {
+        myNewSelectedComponentsOnRelease.clear();
+        myNewSelectedComponentsOnRelease.addAll(changed);
+      }
     }
-    if (canChangeSelection && !sameSelection()) {
+    if (!sameSelection() && (myHitTarget == null || myHitTarget.canChangeSelection())) {
       select(myNewSelectedComponentsOnRelease);
     }
     checkRequestLayoutStatus();
@@ -884,8 +824,13 @@ public class Scene implements SelectionListener, Disposable {
     myRoot = root;
   }
 
+  @NotNull
   public FilterType getFilterType() {
     return myFilterType;
+  }
+
+  public void setFilterType(@NotNull FilterType filterType) {
+    myFilterType = filterType;
   }
 
   @Nullable

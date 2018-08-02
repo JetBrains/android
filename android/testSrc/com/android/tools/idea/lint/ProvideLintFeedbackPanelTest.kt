@@ -17,6 +17,7 @@ package com.android.tools.idea.lint
 
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.AnalyticsSettings
+import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.lint.checks.ApiDetector
@@ -29,7 +30,7 @@ import javax.swing.JButton
 class ProvideLintFeedbackPanelTest : AndroidTestCase() {
   fun testFeedback() {
     val scheduler = VirtualTimeScheduler()
-    val analyticsSettings = AnalyticsSettings()
+    val analyticsSettings = AnalyticsSettingsData()
     analyticsSettings.optedIn = true
     AnalyticsSettings.setInstanceForTest(analyticsSettings)
     val usageTracker = TestUsageTracker(scheduler)

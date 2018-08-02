@@ -44,7 +44,7 @@ public class StringResourceTableModel extends AbstractTableModel {
   private List<Locale> myLocales;
 
   StringResourceTableModel() {
-    myRepository = StringResourceRepository.create();
+    myRepository = StringResourceRepository.empty();
     myData = null;
 
     myKeys = Collections.emptyList();

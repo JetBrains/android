@@ -50,7 +50,7 @@ public class IdePermissionTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   public void ideAddsPermissionChecks() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleLocalApplication")
       .getEditor()

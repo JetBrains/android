@@ -334,7 +334,7 @@ public class AddArgumentDialog extends DialogWrapper {
   }
 
   public void save() {
-    WriteCommandAction.runWriteCommandAction(null, () -> {
+    WriteCommandAction.runWriteCommandAction(myParent.getModel().getProject(), () -> {
       NlComponent realComponent = myExistingComponent;
       if (realComponent == null) {
         XmlTag tag = myParent.getTag().createChildTag(TAG_ARGUMENT, null, null, false);

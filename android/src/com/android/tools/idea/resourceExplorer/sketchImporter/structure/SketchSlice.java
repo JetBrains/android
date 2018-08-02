@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -41,6 +42,7 @@ public class SketchSlice extends SketchLayer {
     this.hasBackgroundColor = hasBackgroundColor;
   }
 
+  @NotNull
   public Color getBackgroundColor() {
     return backgroundColor;
   }

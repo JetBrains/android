@@ -445,6 +445,29 @@ public class DrawConnectionUtils {
    * @param archLen
    */
   public static void drawRound(GeneralPath path, @SwingCoordinate int[] xPoints, @SwingCoordinate int[] yPoints, int length, int archLen) {
+    int[] arches = new int[xPoints.length - 1];
+    for (int i = 0; i < arches.length; i++) {
+      arches[i] = archLen;
+    }
+
+    drawRound(path, xPoints, yPoints, length, arches);
+  }
+
+  /**
+   * This will generate a rounded path for a path described by xPoints and yPoints.
+   * This will only work if the path consist of only vertical or horizontal lines.
+   * it assumes the path has already been moved to the start point
+   * arches should contain length - 1 elements
+   * The ith element in arches represents the radius of the curve between
+   * the ith and ith + 1 points in xPoints and yPoints
+   *
+   * @param path    path that will be filled
+   * @param xPoints
+   * @param yPoints
+   * @param length
+   * @param arches
+   */
+  public static void drawRound(GeneralPath path, @SwingCoordinate int[] xPoints, @SwingCoordinate int[] yPoints, int length, int[] arches) {
     int lastx = xPoints[0];
     int lasty = yPoints[0];
     int p = 1;
@@ -460,7 +483,7 @@ public class DrawConnectionUtils {
       int d0ys = Integer.signum(d0y);
       int d1xs = Integer.signum(d1x);
       int d1ys = Integer.signum(d1y);
-      int useArch = Math.min(len0 - 2, Math.min(len1 / 2 - 2, archLen));
+      int useArch = Math.min(len0 - 2, Math.min(len1 / 2 - 2, arches[p - 1]));
       if (useArch < 2) {
         path.lineTo(xPoints[p], yPoints[p]);
         lastx = xPoints[p];

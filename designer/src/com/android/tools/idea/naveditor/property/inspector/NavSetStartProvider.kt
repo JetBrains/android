@@ -22,11 +22,11 @@ import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.common.property.inspector.InspectorComponent
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.common.property.inspector.InspectorProvider
-import com.android.tools.idea.naveditor.model.destinationType
+import com.android.tools.idea.naveditor.model.isActivity
+import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.SET_START_DESTINATION_PROPERTY_NAME
 import com.android.tools.idea.naveditor.property.SetStartDestinationProperty
-import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.BorderLayout
 import javax.swing.JButton
 
@@ -37,7 +37,7 @@ class NavSetStartProvider : InspectorProvider<NavPropertiesManager> {
     if (components.size != 1 || components[0].isRoot) {
       return false
     }
-    return components[0].destinationType.let { it != null && it != NavigationSchema.DestinationType.ACTIVITY }
+    return components[0].let { it.isDestination && !it.isActivity }
   }
 
   override fun createCustomInspector(components: List<NlComponent>,

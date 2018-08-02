@@ -27,9 +27,16 @@ class WrongThreadInterproceduralTest : AndroidTestCase() {
 
   fun testKotlinThreadAnnotations() = doTest(".kt")
 
+  private fun addFile(file: String) = myFixture.copyFileToProject("callgraph/$file", "src/$file")
+
   private fun doTest(ext: String) {
     myFixture.testDataPath = PathManager.getHomePath() + "/../adt/idea/kotlin-integration/testData"
-    val virtualFile = myFixture.copyFileToProject("callgraph/ThreadAnnotations$ext", "src/ThreadAnnotations$ext")
+
+    // Most of the test uses the new AndroidX annotations, but we make sure that the old annotations work too.
+    addFile("AndroidxAnnotations$ext")
+    addFile("SupportAnnotations$ext")
+
+    val virtualFile = addFile("ThreadAnnotations$ext")
     val (_, receiverEval, graph) = buildInterproceduralAnalysesForTest(virtualFile, myFixture.project)
     val paths = searchForInterproceduralThreadAnnotationViolations(graph, receiverEval)
 
@@ -43,6 +50,7 @@ class WrongThreadInterproceduralTest : AndroidTestCase() {
         .joinToString(separator = "\n")
 
     val expectedPathStrs = listOf(
+        "Test#oldAnnotationA -> Test#oldAnnotationB -> Test#oldAnnotationC",
         "Test#uiThreadStatic -> Test#unannotatedStatic -> Test#workerThreadStatic",
         "Test#uiThread -> Test#unannotated -> Test#workerThread",
         "Test#callRunIt -> Test#runIt -> Test#callRunIt#lambda -> Test#runUi",

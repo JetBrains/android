@@ -1,7 +1,9 @@
 package org.jetbrains.android.augment;
 
+import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
@@ -16,16 +18,23 @@ import org.jetbrains.annotations.NotNull;
  * Implementation of {@link ResourceTypeClassBase} for a local module.
  */
 public class ModuleResourceTypeClass extends ResourceTypeClassBase {
-  protected final AndroidFacet myFacet;
+  @NotNull private final AndroidFacet myFacet;
+  @NotNull private final AaptOptions.Namespacing myNamespacing;
 
-  public ModuleResourceTypeClass(@NotNull AndroidFacet facet, @NotNull ResourceType resourceType, @NotNull PsiClass context) {
+
+  public ModuleResourceTypeClass(@NotNull AndroidFacet facet,
+                                 @NotNull AaptOptions.Namespacing namespacing,
+                                 @NotNull ResourceType resourceType,
+                                 @NotNull PsiClass context) {
     super(context, resourceType);
     myFacet = facet;
+    myNamespacing = namespacing;
   }
 
   @NotNull
   static PsiField[] buildLocalResourceFields(@NotNull AndroidFacet facet,
                                              @NotNull ResourceType resourceType,
+                                             @NotNull AaptOptions.Namespacing namespacing,
                                              @NotNull PsiClass context) {
     Module circularDepLibWithSamePackage = AndroidCompileUtil.findCircularDependencyOnLibraryWithSamePackage(facet);
     AndroidLightField.FieldModifier modifier = !facet.getConfiguration().isLibraryProject() && circularDepLibWithSamePackage == null ?
@@ -34,14 +43,21 @@ public class ModuleResourceTypeClass extends ResourceTypeClassBase {
 
     LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
-    ResourceNamespace namespace = repositoryManager.getNamespace();
-    return buildResourceFields(resourceManager, repositoryManager.getAppResources(true), namespace, modifier,
-                               resourceType, context);
+    ResourceNamespace namespace;
+    LocalResourceRepository repository;
+    if (namespacing == AaptOptions.Namespacing.DISABLED) {
+      namespace = ResourceNamespace.RES_AUTO;
+      repository = repositoryManager.getAppResources(true);
+    } else {
+      namespace = repositoryManager.getNamespace();
+      repository = repositoryManager.getModuleResources(true);
+    }
+    return buildResourceFields(resourceManager, repository, namespace, modifier, resourceType, context);
   }
 
   @NotNull
   @Override
   protected PsiField[] doGetFields() {
-    return buildLocalResourceFields(myFacet, myResourceType, this);
+    return buildLocalResourceFields(myFacet, myResourceType, myNamespacing, this);
   }
 }

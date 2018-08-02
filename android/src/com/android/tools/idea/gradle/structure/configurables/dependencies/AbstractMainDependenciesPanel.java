@@ -35,4 +35,7 @@ public abstract class AbstractMainDependenciesPanel extends AbstractMainPanel {
   protected JBSplitter createMainVerticalSplitter() {
     return new OnePixelSplitter(false, "psd.dependencies.main.vertical.splitter.proportion", .75f);
   }
+
+  @Override
+  public void restoreUiState() {}
 }

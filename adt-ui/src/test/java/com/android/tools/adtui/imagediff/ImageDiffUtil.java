@@ -228,7 +228,7 @@ public final class ImageDiffUtil {
     Graphics g = deltaImage.getGraphics();
 
     // Compute delta map
-    long delta = 0;
+    double delta = 0;
     for (int y = 0; y < imageHeight; y++) {
       for (int x = 0; x < imageWidth; x++) {
         int goldenRgb = goldenImage.getRGB(x, y);
@@ -257,15 +257,20 @@ public final class ImageDiffUtil {
         int newRGB = avgAlpha | newR << 16 | newG << 8 | newB;
         deltaImage.setRGB(imageWidth + x, y, newRGB);
 
-        delta += Math.abs(deltaR);
-        delta += Math.abs(deltaG);
-        delta += Math.abs(deltaB);
+        double opacity = 1 - ((rgb & 0xFF000000) >>> 24) / 255.;
+        double goldenOpacity = 1 - ((goldenRgb & 0xFF000000) >>> 24) / 255.;
+        double averageOpacity = (opacity + goldenOpacity) / 2;
+        double deltaOpacity = opacity - goldenOpacity;
+        double dR = deltaR / 255. * averageOpacity;
+        double dG = deltaG / 255. * averageOpacity;
+        double dB = deltaB / 255. * averageOpacity;
+        // Notice that maximum difference per pixel is 1, which is realized for completely opaque black and white colors.
+        delta += Math.sqrt((deltaOpacity * deltaOpacity + dR * dR + dG * dG + dB * dB) / 3.);
       }
     }
 
-    // 3 different colors, 256 color levels
-    long total = imageHeight * imageWidth * 3L * 256L;
-    float percentDifference = (float) (delta * 100 / (double) total);
+    double maxDiff = imageHeight * imageWidth;
+    double percentDifference = (delta / maxDiff) * 100;
 
     String error = null;
     if (percentDifference > maxPercentDifferent) {

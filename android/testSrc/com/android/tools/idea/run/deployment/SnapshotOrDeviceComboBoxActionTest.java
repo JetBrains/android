@@ -109,7 +109,7 @@ public final class SnapshotOrDeviceComboBoxActionTest {
     SnapshotOrDeviceComboBoxAction action = new SnapshotOrDeviceComboBoxAction(() -> true, myDevicesGetter);
     action.update(myEvent);
 
-    Object expectedActions = Collections.singletonList(new SelectDeviceAction(new PhysicalDevice("LGE Nexus 5X"), action));
+    Object expectedActions = Collections.singletonList(new SelectPhysicalDeviceAction(new PhysicalDevice("LGE Nexus 5X"), action));
     assertEquals(expectedActions, action.newSnapshotOrDeviceActions());
   }
 
@@ -125,7 +125,7 @@ public final class SnapshotOrDeviceComboBoxActionTest {
     Object expectedActions = Arrays.asList(
       new SnapshotActionGroup(new VirtualDevice(false, "Pixel 2 XL API 27"), action),
       Separator.getInstance(),
-      new SelectDeviceAction(new PhysicalDevice("LGE Nexus 5X"), action));
+      new SelectPhysicalDeviceAction(new PhysicalDevice("LGE Nexus 5X"), action));
 
     assertEquals(expectedActions, action.newSnapshotOrDeviceActions());
   }

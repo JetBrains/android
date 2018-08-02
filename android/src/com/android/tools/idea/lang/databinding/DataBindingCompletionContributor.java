@@ -161,7 +161,7 @@ public class DataBindingCompletionContributor extends CompletionContributor {
     if (dataBindingInfo == null) {
       return;
     }
-    for (PsiDataBindingResourceItem resourceItem : dataBindingInfo.getItems(DataBindingResourceType.VARIABLE)) {
+    for (PsiDataBindingResourceItem resourceItem : dataBindingInfo.getItems(DataBindingResourceType.VARIABLE).values()) {
       result.addElement(LookupElementBuilder.create(resourceItem.getXmlTag(), resourceItem.getName()));
     }
   }

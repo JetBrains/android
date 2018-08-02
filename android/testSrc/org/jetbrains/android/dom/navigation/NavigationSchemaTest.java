@@ -114,16 +114,16 @@ public class NavigationSchemaTest extends AndroidTestCase {
     PsiClass otherNavigator2 = findClass("OtherNavigator2");
 
 
-    assertSameElements(schema.getDestinationClassesByTagSlowly("activity"), ImmutableList.of(activityNavigator));
-    assertSameElements(schema.getDestinationClassesByTagSlowly("activity_sub"),
+    assertSameElements(schema.getDestinationClassesByTag("activity"), ImmutableList.of(activityNavigator));
+    assertSameElements(schema.getDestinationClassesByTag("activity_sub"),
                        ImmutableList.of(activityNavigatorSub, activityNavigatorSub2));
-    assertSameElements(schema.getDestinationClassesByTagSlowly("fragment"), ImmutableList.of(fragmentNavigator));
-    assertSameElements(schema.getDestinationClassesByTagSlowly("fragment_sub"), ImmutableList.of(fragmentNavigatorSub));
-    assertSameElements(schema.getDestinationClassesByTagSlowly("fragment_sub_sub"), ImmutableList.of(fragmentNavigatorSubSub));
-    assertSameElements(schema.getDestinationClassesByTagSlowly("navigation"), ImmutableList.of(navGraphNavigator));
-    assertSameElements(schema.getDestinationClassesByTagSlowly("navigation_sub"), ImmutableList.of(navGraphNavigatorSub));
-    assertSameElements(schema.getDestinationClassesByTagSlowly("other_1"), ImmutableList.of(otherNavigator1));
-    assertSameElements(schema.getDestinationClassesByTagSlowly("other_2"), ImmutableList.of(otherNavigator2));
+    assertSameElements(schema.getDestinationClassesByTag("fragment"), ImmutableList.of(fragmentNavigator));
+    assertSameElements(schema.getDestinationClassesByTag("fragment_sub"), ImmutableList.of(fragmentNavigatorSub));
+    assertSameElements(schema.getDestinationClassesByTag("fragment_sub_sub"), ImmutableList.of(fragmentNavigatorSubSub));
+    assertSameElements(schema.getDestinationClassesByTag("navigation"), ImmutableList.of(navGraphNavigator));
+    assertSameElements(schema.getDestinationClassesByTag("navigation_sub"), ImmutableList.of(navGraphNavigatorSub));
+    assertSameElements(schema.getDestinationClassesByTag("other_1"), ImmutableList.of(otherNavigator1));
+    assertSameElements(schema.getDestinationClassesByTag("other_2"), ImmutableList.of(otherNavigator2));
   }
 
   @NotNull

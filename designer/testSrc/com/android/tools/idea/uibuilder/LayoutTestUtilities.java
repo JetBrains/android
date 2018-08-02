@@ -18,10 +18,7 @@ package com.android.tools.idea.uibuilder;
 import android.view.View;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.analytics.AnalyticsSettings;
-import com.android.tools.analytics.TestUsageTracker;
-import com.android.tools.analytics.UsageTracker;
-import com.android.tools.analytics.UsageTrackerWriter;
+import com.android.tools.analytics.*;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.analytics.NlUsageTracker;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
@@ -296,8 +293,9 @@ public class LayoutTestUtilities {
   }
 
   public static NlUsageTracker mockNlUsageTracker(@NotNull DesignSurface surface) {
-    AnalyticsSettings settings = new AnalyticsSettings();
+    AnalyticsSettingsData settings = new AnalyticsSettingsData();
     settings.setOptedIn(true);
+    AnalyticsSettings.setInstanceForTest(settings);
 
     UsageTrackerWriter tracker = new TestUsageTracker(new VirtualTimeScheduler());
     UsageTracker.setWriterForTest(tracker);

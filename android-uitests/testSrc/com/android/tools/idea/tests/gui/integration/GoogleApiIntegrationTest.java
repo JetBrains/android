@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.integration;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -24,6 +25,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.Confi
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,6 +44,16 @@ public class GoogleApiIntegrationTest {
       "(.*'com.google.android.gms:play-services-ads:.*'.*\n" +
       ".*'com.google.android.gms:play-services-auth:.*'.*\n" +
       ".*'com.google.firebase:firebase-messaging:.*'.*)";
+
+  @Before
+  public void setUp() {
+    StudioFlags.NEW_PSD_ENABLED.override(false);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.NEW_PSD_ENABLED.clearOverride();
+  }
 
   /**
    * To verify that Developer Services dependencies can be added to a module.

@@ -154,6 +154,15 @@ public interface Target {
   }
 
   /**
+   * Returns the list of components to be selected after mouse release, or {@code null} if the default (the clicked component)
+   * should be used.
+   */
+  @Nullable
+  default List<SceneComponent> newSelection() {
+    return null;
+  }
+
+  /**
    * Notified when the associated component changes the status of selection.
    *
    * @param selection the new selection status of associated component

@@ -19,11 +19,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
+/**
+ * Refers to objects that have the "_class" field set to be one of the following:
+ * <ul>
+ * <li>"innerShadow"</li>
+ * <li>"shadow"</li>
+ * </ul>
+ * <p>
+ * {@link com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer}
+ */
 public class SketchShadow {
   private final boolean isEnabled;
   private final int blurRadius;
   private final Color color;
-  private final SketchContextSettings contextSettings;
+  private final SketchGraphicContextSettings contextSettings;
   private final int offsetX;
   private final int offsetY;
   private final short spread;
@@ -31,7 +40,7 @@ public class SketchShadow {
   public SketchShadow(boolean enabled,
                       int blurRadius,
                       @NotNull Color color,
-                      @NotNull SketchContextSettings settings,
+                      @NotNull SketchGraphicContextSettings settings,
                       int offsetX,
                       int offsetY,
                       short spread) {
@@ -52,11 +61,13 @@ public class SketchShadow {
     return blurRadius;
   }
 
+  @NotNull
   public Color getColor() {
     return color;
   }
 
-  public SketchContextSettings getContextSettings() {
+  @NotNull
+  public SketchGraphicContextSettings getContextSettings() {
     return contextSettings;
   }
 

@@ -92,20 +92,12 @@ fun Module.dependsOnAppCompat(): Boolean =
  * are added successfully and [requestSync] is set to true, this method will request a sync to make sure the artifacts are resolved.
  * In this case, the sync will happen asynchronously and this method will not wait for it to finish before returning.
  *
- * Callers may configure preview version preferences with [preferPreview]:
-
- * If [preferPreview] is false this method will first look for stable versions of the dependency for addition. In the event that a stable
- * version does not exist, this method will fallback and look for a preview version of the dependency instead.
- *
- * If [preferPreview] is true this method will look for the latest version regardless if it's a preview version.
- *
  * This method shows no confirmation dialog and performs a no-op if the list of artifacts is the empty list.
  * This method does not trigger a sync if none of the artifacts were added successfully or if [requestSync] is false.
  * @return list of artifacts that were not successfully added. i.e. If the returned list is empty, then all were added successfully.
  */
 @JvmOverloads
-fun Module.addDependencies(coordinates: List<GradleCoordinate>, promptUserBeforeAdding: Boolean, requestSync: Boolean = true,
-                           preferPreview: Boolean = false)
+fun Module.addDependencies(coordinates: List<GradleCoordinate>, promptUserBeforeAdding: Boolean, requestSync: Boolean = true)
   : List<GradleCoordinate> {
 
   if (coordinates.isEmpty()) {
@@ -120,12 +112,7 @@ fun Module.addDependencies(coordinates: List<GradleCoordinate>, promptUserBefore
   // Separate the list of deps into a list of versioned coordinates and a list of unavailable coordinates.
   distinctCoordinates.forEach {
     val versionedCoordinate =
-      if (preferPreview) {
-        project.getProjectSystem().getAvailableDependency(it, true)
-      }
-      else {
-        project.getProjectSystem().getAvailableDependency(it, false) ?: project.getProjectSystem().getAvailableDependency(it, true)
-      }
+      project.getProjectSystem().getAvailableDependency(it, false) ?: project.getProjectSystem().getAvailableDependency(it, true)
 
     if (versionedCoordinate == null) {
       unavailableDependencies.add(it)
@@ -175,7 +162,7 @@ private fun getExistingPlatformSupportLibraryVersion(moduleSystem: AndroidModule
     .mapNotNull { it.version }
     .firstOrNull()
 
-private fun userWantsToAdd(project: Project, coordinates: List<GradleCoordinate>): Boolean {
+fun userWantsToAdd(project: Project, coordinates: List<GradleCoordinate>): Boolean {
   if (ApplicationManager.getApplication().isUnitTestMode) {
     return true
   }

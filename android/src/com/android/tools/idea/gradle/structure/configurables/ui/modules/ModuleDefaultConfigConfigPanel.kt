@@ -23,19 +23,16 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefa
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
-import javax.swing.JComponent
 
-class ModuleDefaultConfigConfigPanel(
-    val defaultConfig: PsAndroidModuleDefaultConfig
-) : ConfigPanel<PsAndroidModuleDefaultConfig>(defaultConfigPropertiesModel(defaultConfig.module.isLibrary)), ModelPanel<PsAndroidModule> {
-
-  init {
-    bind(defaultConfig.module, defaultConfig)
-  }
+class ModuleDefaultConfigConfigPanel(defaultConfig: PsAndroidModuleDefaultConfig) :
+  ConfigPanel<PsAndroidModuleDefaultConfig>(
+    defaultConfig.module,
+    defaultConfig,
+    defaultConfigPropertiesModel(defaultConfig.module.isLibrary)
+  ),
+  ModelPanel<PsAndroidModule> {
 
   override val title = "Default Config"
-  override fun createComponent(): JComponent = component
-
   override fun setHistory(history: History?) = Unit
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = ActionCallback.DONE
   override fun queryPlace(place: Place) = Unit

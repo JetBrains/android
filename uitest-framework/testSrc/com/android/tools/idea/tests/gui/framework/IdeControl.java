@@ -50,7 +50,7 @@ public class IdeControl extends TestWatcher {
         protected boolean isMatching(@NotNull Frame frame) {
           return (frame instanceof IdeFrame && frame.isShowing());
         }
-      }).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(robot);
+      }).withTimeout(TimeUnit.MINUTES.toMillis(1)).using(robot);
     } finally {
       GuiActionRunner.executeInEDT(true);
       if (robot != null) {

@@ -27,10 +27,11 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
@@ -213,9 +214,9 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     // However, if the main module happens to get a handle on the lib's R class
     // (e.g., via "import p1.p2.lib.R;"), then that R class should be recognized
     // (e.g., for goto navigation).
-    PsiFile libRClassFile = myFixture.getJavaFacade().findClass("p1.p2.lib.R").getContainingFile();
-    assertNotNull(libRClassFile);
-    assertTrue(AndroidResourceUtil.isRJavaFile(myFacet, libRClassFile));
+    PsiClass libRClass = myFixture.getJavaFacade().findClass("p1.p2.lib.R", GlobalSearchScope.everythingScope(getProject()));
+    assertNotNull(libRClass);
+    assertTrue(AndroidResourceUtil.isRJavaClass(libRClass));
   }
 
   public void testValidResourceFileName() {

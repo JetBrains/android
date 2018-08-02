@@ -64,7 +64,7 @@ public class PrivateResourceTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/111399767
+  @RunIn(TestGroup.FAST_BAZEL)
   public void verifyNoPrivateResourcesSuggested() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("PrivateResource");
 

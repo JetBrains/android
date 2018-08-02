@@ -34,13 +34,11 @@ import com.android.tools.profilers.FakeProfilerService.FAKE_PROCESS_NAME
 import com.android.tools.profilers.cpu.CpuProfilerStageView.KERNEL_VIEW_SPLITTER_RATIO
 import com.android.tools.profilers.cpu.CpuProfilerStageView.SPLITTER_DEFAULT_RATIO
 import com.android.tools.profilers.cpu.atrace.AtraceParser
-import com.android.tools.profilers.cpu.capturedetails.CpuCaptureView
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
 import com.android.tools.profilers.stacktrace.CodeLocation
 import com.android.tools.profilers.stacktrace.ContextMenuItem
-import com.google.common.collect.Iterators
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.JBSplitter
 import org.junit.Before
@@ -316,6 +314,21 @@ class CpuProfilerStageViewTest {
     // Setting the state to STOPPING should disable the recording button and clear the text of the capture status label
     assertThat(recordButton.isEnabled).isFalse()
     assertThat(captureStatus.text).isEmpty()
+  }
+
+  @Test
+  fun recordButtonShouldntHaveTooltip() {
+    val stageView = CpuProfilerStageView(myProfilersView, myStage)
+    val recordButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first {
+      it.text == CpuProfilerStageView.RECORD_TEXT
+    }
+    assertThat(recordButton.toolTipText).isNull()
+
+    myStage.captureState = CpuProfilerStage.CaptureState.CAPTURING
+    val stopButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first {
+      it.text == CpuProfilerStageView.STOP_TEXT
+    }
+    assertThat(stopButton.toolTipText).isNull()
   }
 
   /**

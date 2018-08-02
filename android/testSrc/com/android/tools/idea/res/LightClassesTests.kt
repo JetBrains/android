@@ -22,7 +22,6 @@ import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.light.LightElement
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
@@ -60,7 +59,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     return TargetElementUtil.findReference(myFixture.editor)!!.resolve()
   }
 
-  class SingleModule : LightClassesTestBase() {
+  open class SingleModule : LightClassesTestBase() {
     override fun setUp() {
       super.setUp()
 
@@ -75,11 +74,28 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       )
     }
 
-    fun testFindClass() {
-      val javaPsiFacade = JavaPsiFacade.getInstance(project)
-      assertThat(javaPsiFacade.findClass("p1.p2.R", myModule.moduleScope)).named("module R class").isNotNull()
-      assertThat(javaPsiFacade.findClass("p1.p2.R.string", myModule.moduleScope)).named("existing subclass").isNotNull()
-      assertThat(javaPsiFacade.findClass("p1.p2.R.color", myModule.moduleScope)).named("non-existing subclass").isNull()
+    fun testHighlighting() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(R.string.appString);
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
     }
 
     fun testTopLevelClassCompletion() {
@@ -185,6 +201,14 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       }
 
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(AndroidLightField::class.java)
+      myFixture.checkHighlighting()
+    }
+  }
+
+  class SingleModuleNamespaced : SingleModule() {
+    override fun setUp() {
+      super.setUp()
+      enableNamespacing("p1.p2")
     }
   }
 
@@ -243,9 +267,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       assertThat(utilPackage.parentPackage).isEqualTo(myFixture.javaFacade.findPackage("p1.p2"))
     }
 
-    // TODO(b/111110952): fix this.
-    @Suppress("unused")
-    fun ignore_testTopLevelClassCompletion() {
+    fun testTopLevelClassCompletion() {
       val activity = myFixture.addFileToProject(
         "/src/p1/p2/MainActivity.java",
         // language=java
@@ -303,6 +325,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       )
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(NamespacedAarPackageRClass::class.java)
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("R", "BuildConfig")
@@ -370,6 +393,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       )
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(NonNamespacedAarPackageRClass::class.java)
     }
 

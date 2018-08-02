@@ -121,7 +121,8 @@ public class NewCppProjectTestUtil {
     newProjectWizard.getConfigureCppStepFixture()
                     .selectToolchain(toolChain);
 
-    newProjectWizard.clickFinish();
+    // the QA tests don't care that much about timeouts occurring. Be generous with the timeouts
+    newProjectWizard.clickFinish(Wait.seconds(30), Wait.seconds(30), Wait.seconds(180));
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
     guiTest.waitForBackgroundTasks();

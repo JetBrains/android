@@ -13,9 +13,12 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.buildtypes
 
-import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.buildtypes.BuildTypesTreeModel
+import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeModel
+import com.android.tools.idea.gradle.structure.configurables.findChildFor
+import com.android.tools.idea.gradle.structure.configurables.getModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -27,7 +30,8 @@ import javax.swing.tree.TreePath
 
 const val BUILD_TYPES_DISPLAY_NAME: String = "Build Types"
 class BuildTypesPanel(
-  val treeModel: BuildTypesTreeModel,
+  val module: PsAndroidModule,
+  val treeModel: ConfigurablesTreeModel,
   uiSettings: PsUISettings
 ) :
   ConfigurablesMasterDetailsPanel<PsBuildType>(BUILD_TYPES_DISPLAY_NAME, "android.psd.build_type", treeModel, uiSettings) {
@@ -45,7 +49,7 @@ class BuildTypesPanel(
             Messages.getQuestionIcon()
           ) == Messages.YES) {
           val nodeToSelectAfter = selectedNode.nextSibling ?: selectedNode.previousSibling
-          treeModel.removeBuildType(selectedNode)
+          module.removeBuildType(selectedNode.getModel() ?: return)
           selectNode(nodeToSelectAfter)
         }
       }
@@ -67,7 +71,8 @@ class BuildTypesPanel(
                   override fun canClose(inputString: String?): Boolean = !inputString.isNullOrBlank()
                 })
             if (newName != null) {
-              val (_, node) = treeModel.createBuildType(newName)
+              val buildType = module.addNewBuildType(newName)
+              val node = treeModel.rootNode.findChildFor(buildType)
               tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
             }
           }

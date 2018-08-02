@@ -16,13 +16,11 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.*;
-import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.databinding.DataBindingUtil;
 import com.google.common.collect.Collections2;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -48,12 +46,12 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.ide.PooledThreadExecutor;
 import org.picocontainer.MutablePicoContainer;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -106,7 +104,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     myRegistry = ResourceFolderRegistry.getInstance(getProject());
   }
 
-  private static ResourceFolderRepositoryFileCache overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
+  /**
+   * package private to be able to re-use from {@link ResourceFolderDataBindingTest}
+   */
+  static ResourceFolderRepositoryFileCache overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
     MutablePicoContainer applicationContainer = (MutablePicoContainer)
       ApplicationManager.getApplication().getPicoContainer();
 
@@ -3369,51 +3370,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
   }
 
-  public void testDataBindingVariables() {
-    VirtualFile file1 = myFixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml");
-    final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
-    assertNotNull(psiFile1);
-    final ResourceFolderRepository resources = createRepository();
-    assertNotNull(resources);
-    AndroidFacet facet = resources.getFacet();
-    assertEquals(1, resources.getDataBindingResourceFiles().size());
-    final String appPackage = DataBindingUtil.getGeneratedPackageName(facet);
-    final DataBindingInfo info = resources.getDataBindingResourceFiles().get(appPackage + ".databinding.LayoutWithDataBindingBinding");
-    assertNotNull(info);
-    List<PsiDataBindingResourceItem> variables = info.getItems(DataBindingResourceType.VARIABLE);
-    assertEquals(1, variables.size());
-    final PsiDataBindingResourceItem variable1 = variables.get(0);
-    assertEquals("variable1", variable1.getName());
-    assertEquals("String", variable1.getExtra(ATTR_TYPE));
-    assertNotNull(variable1.getXmlTag());
-
-    List<PsiDataBindingResourceItem> imports = new ArrayList<>();// clone to be able to sort
-    imports.addAll(info.getItems(DataBindingResourceType.IMPORT));
-    assertEquals(2, imports.size());
-
-    Collections.sort(imports, Comparator.comparing(item -> item.getExtra(ATTR_TYPE)));
-
-    PsiDataBindingResourceItem import1 = imports.get(0);
-    assertEquals("p1.p2.import1", import1.getExtra(ATTR_TYPE));
-    assertNull(import1.getExtra(ATTR_ALIAS));
-    assertNotNull(import1.getXmlTag());
-
-    PsiDataBindingResourceItem import2 = imports.get(1);
-    assertEquals("p1.p2.import2", import2.getExtra(ATTR_TYPE));
-    assertEquals("i2", import2.getExtra(ATTR_ALIAS));
-    assertNotNull(import2.getXmlTag());
-
-    List<DataBindingInfo.ViewWithId> viewsWithIds = info.getViewsWithIds();
-    assertEquals(6, viewsWithIds.size());
-    Collections.sort(viewsWithIds, (v1, v2) -> v1.name.compareTo(v2.name));
-    validateViewWithId(facet, viewsWithIds.get(0), "foo.bar.Magic", "magicView");
-    validateViewWithId(facet, viewsWithIds.get(1), "android.view.View", "normalViewTag");
-    validateViewWithId(facet, viewsWithIds.get(2), "android.view.SurfaceView", "surfaceView1");
-    validateViewWithId(facet, viewsWithIds.get(3), "android.widget.TextView", "textView1");
-    validateViewWithId(facet, viewsWithIds.get(4), "android.view.ViewGroup", "viewTag");
-    validateViewWithId(facet, viewsWithIds.get(5), "android.webkit.WebView", "webView1");
-  }
-
   public void testInitFromHelperThread() throws Exception {
     // By default, unit tests run from the EDT thread, which automatically have read access. Try loading a repository from a
     // helper thread that doesn't have read access to make sure we grab the appropriate read locks.
@@ -3886,11 +3842,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     dumbService.setDumb(false);
     // Before the fix, item.getResourceValue would return null since the file is not invalid after getting out of dumb mode
     assertNotNull(item.getResourceValue());
-  }
-
-  private static void validateViewWithId(AndroidFacet facet, DataBindingInfo.ViewWithId viewWithId, String qualified, String variableName) {
-    assertTrue(DataBindingUtil.resolveViewPsiType(viewWithId, facet).equalsToText(qualified));
-    assertEquals(variableName, viewWithId.name);
   }
 
   @Nullable

@@ -520,7 +520,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
         myWorkBench.setMinimizePanelsVisible(true);
       }
     }
-
+    updateCaret(); // otherwise the selection stays on the previous model.
     initAnimationsToolbar();
   }
 

@@ -93,6 +93,11 @@ final class SubTable extends JBTable implements DataProvider, PasteProvider {
     }
   }
 
+  @NotNull
+  FrozenColumnTable getFrozenColumnTable() {
+    return myFrozenColumnTable;
+  }
+
   void setSelectedRow(int selectedViewRowIndex) {
     if (getSelectedRow() == selectedViewRowIndex) {
       return;

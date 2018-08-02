@@ -52,7 +52,7 @@ public class ShortcutNavigationTest extends DebuggerTestBase {
    *      "Java_com_example_hellojni_HelloJni_stringFromJNI" (the native implementation).
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void testShortcutNavigateFromJavaDefinitionToJniFunction() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProject("debugger/NdkHelloJni");

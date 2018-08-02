@@ -75,7 +75,7 @@ public class ColdSwapTest {
    *   2. Make sure the instant run cold swap is applied in Run tool window.
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/76023451
   @Test
   public void coldSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();

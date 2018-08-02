@@ -17,6 +17,7 @@ package com.android.tools.idea.instantapp;
 
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.AnalyticsSettings;
+import com.android.tools.analytics.AnalyticsSettingsData;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
@@ -43,7 +44,6 @@ public class InstantAppSdksTest extends IdeaTestCase {
   private @Mock ApplicationInfo myApplicationInfo;
 
   private TestUsageTracker myUsageTracker;
-  private AnalyticsSettings myAnalyticsSettings;
   private final VirtualTimeScheduler myVirtualTimeScheduler = new VirtualTimeScheduler();
 
   @Override
@@ -52,8 +52,8 @@ public class InstantAppSdksTest extends IdeaTestCase {
     MockitoAnnotations.initMocks(this);
     when(myApplicationInfo.getFullVersion()).thenReturn("testVersion");
     new IdeComponents(getProject()).replaceApplicationService(ApplicationInfo.class, myApplicationInfo);
-    myAnalyticsSettings = new AnalyticsSettings();
-    AnalyticsSettings.setInstanceForTest(myAnalyticsSettings);
+    AnalyticsSettingsData analyticsSettings = new AnalyticsSettingsData();
+    AnalyticsSettings.setInstanceForTest(analyticsSettings);
     myUsageTracker = new TestUsageTracker(myVirtualTimeScheduler);
     UsageTracker.setWriterForTest(myUsageTracker);
   }
@@ -76,16 +76,16 @@ public class InstantAppSdksTest extends IdeaTestCase {
   }
 
   public void testGetSdkLibraryPassThroughOptIn() {
-    AnalyticsSettings.getInstance(new NullLogger()).setOptedIn(true);
+    AnalyticsSettings.setOptedIn(true);
     installFakeLib();
-    myAnalyticsSettings.setOptedIn(true);
+    AnalyticsSettings.setOptedIn(true);
     Sdk loadedSdk = myInstantAppSdks.loadLibrary();
     assertThat(loadedSdk.getTelemetryManager().getOptInStatus()).isEqualTo(OptInStatus.OPTED_IN);
   }
 
   public void testGetSdkLibraryPassThroughOptOut() {
     installFakeLib();
-    myAnalyticsSettings.setOptedIn(false);
+    AnalyticsSettings.setOptedIn(false);
     Sdk loadedSdk = myInstantAppSdks.loadLibrary();
     assertThat(loadedSdk.getTelemetryManager().getOptInStatus()).isEqualTo(OptInStatus.OPTED_OUT);
   }
