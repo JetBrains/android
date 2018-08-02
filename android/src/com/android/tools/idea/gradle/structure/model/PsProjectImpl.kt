@@ -89,4 +89,22 @@ class PsProjectImpl(override val ideProject: Project) : PsChildModel(), PsProjec
 
   internal fun getResolvedModuleModelsByGradlePath(): Map<String, PsResolvedModuleModel> =
     internalResolvedModuleModels ?: mapOf()
+
+  fun applyRunAndReparse(runnable: () -> Boolean) {
+    if (isModified) {
+      object : WriteCommandAction<Nothing>(ideProject, "Applying changes to the project structure.") {
+        override fun run(result: Result<Nothing>) {
+          parsedModel.applyChanges()
+          isModified = false
+        }
+      }.execute()
+    }
+    if (runnable()) {
+      parsedModel = GradleModelProvider.get().getProjectModel(ideProject)
+      variables = PsVariables(
+        this, "Project: $name", Objects.requireNonNull<GradleBuildModel>(parsedModel.projectBuildModel).ext(), null)
+      internalResolvedModuleModels = null
+      moduleCollection.refresh()
+    }
+  }
 }

@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.testing.TestProjectPaths
 import org.hamcrest.core.IsEqual.equalTo
@@ -79,5 +81,64 @@ class PsProjectImplTest : DependencyTestCase() {
 
     project.testResolve()  // A removed module should reappear because it is in the middle of the hierarchy.
     assertThat(project.findModuleByGradlePath(":nested2")?.isDeclared, equalTo(false))
+  }
+
+  fun testApplyRunAndReparse() {
+    val newSuffix = "testApplyRunAndReparse"
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val project = PsProjectImpl(myFixture.project).also { it.testResolve() }
+    val appModule = project.findModuleByGradlePath(":app") as PsAndroidModule
+    // Make a random change.
+    appModule.findBuildType("debug")!!.applicationIdSuffix = newSuffix.asParsed()
+
+    // Make an independent change to the configuration while in the "run" phase.
+    project.applyRunAndReparse {
+      val anotherProjectInstance = PsProjectImpl(myFixture.project)
+      assumeThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
+      assumeThat(anotherProjectInstance.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
+      // Any previously pending changes should be applied and visible at this point.
+      assertThat(
+        (anotherProjectInstance.findModuleByGradlePath(":app") as PsAndroidModule).findBuildType("debug")!!.applicationIdSuffix,
+        equalTo(newSuffix.asParsed()))
+
+      anotherProjectInstance.removeModule(gradlePath = ":nested2:deep")
+      anotherProjectInstance.applyChanges()
+
+      // Different DSL models are independent.
+      assumeThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
+      // The removed module should disappear from the project which does not have a resolved Gradle model.
+      assumeThat(anotherProjectInstance.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
+      true
+    }
+
+    // The module collection should be refreshed and the removed module should disappear.
+    assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
+    project.testResolve()  // A removed module should not reappear unless it is in the middle of a hierarchy.
+    assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
+  }
+
+  fun testApplyRunAndReparse_cancel() {
+    val newSuffix = "testApplyRunAndReparse"
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val project = PsProjectImpl(myFixture.project).also { it.testResolve() }
+
+    // Make an independent change to the configuration while in the "run" phase.
+    project.applyRunAndReparse {
+      val anotherProjectInstance = PsProjectImpl(myFixture.project)
+      assumeThat(anotherProjectInstance.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
+
+      anotherProjectInstance.removeModule(gradlePath = ":nested2:deep")
+      anotherProjectInstance.applyChanges()
+
+      // Different DSL models are independent.
+      assumeThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
+      // The removed module should disappear from the project which does not have a resolved Gradle model.
+      assumeThat(anotherProjectInstance.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
+      false
+    }
+    // The model is not reloaded if change cancelled, even when some real changes have been made.
+    assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
   }
 }

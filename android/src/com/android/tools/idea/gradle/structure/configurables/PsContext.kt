@@ -40,5 +40,6 @@ interface PsContext : Disposable {
 
   fun setSelectedModule(moduleName: String, source: Any)
   fun add(listener: GradleSyncListener, parentDisposable: Disposable)
+  fun applyRunAndReparse(runnable: () -> Boolean)
 }
 
