@@ -15,17 +15,10 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import org.jetbrains.annotations.NotNull;
+final class Devices {
+  static final String PIXEL_2_XL_API_28 = "Pixel 2 XL API 28";
+  static final String LGE_NEXUS_5X = "LGE Nexus 5X";
 
-final class SelectSnapshotAction extends AnAction {
-  SelectSnapshotAction(@NotNull String snapshot, @NotNull SnapshotOrDeviceComboBoxAction comboBoxAction) {
-    super(snapshot);
-  }
-
-  @Override
-  public void actionPerformed(@NotNull AnActionEvent event) {
-    // TODO
+  private Devices() {
   }
 }
