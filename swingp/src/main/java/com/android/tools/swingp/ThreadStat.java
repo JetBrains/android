@@ -100,15 +100,15 @@ class ThreadStat {
 
     JsonObject description = new JsonObject();
 
-    description.addProperty("__type", getClass().getSimpleName());
-    description.addProperty("__tId", myThreadId);
-    description.addProperty("__tName", myThreadName);
+    description.addProperty("classType", getClass().getSimpleName());
+    description.addProperty("threadId", myThreadId);
+    description.addProperty("threadName", myThreadName);
 
     List<MethodStat> methodStatList = new ArrayList<>();
     myRootStats.drainTo(methodStatList);
     JsonArray events = new JsonArray();
     methodStatList.stream().map(methodStat -> methodStat.getDescription()).forEach(jsonElement -> events.add(jsonElement));
-    description.add("__events", events);
+    description.add("events", events);
 
     return description;
   }
