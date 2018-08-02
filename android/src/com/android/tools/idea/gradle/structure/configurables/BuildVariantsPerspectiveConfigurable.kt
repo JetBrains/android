@@ -32,13 +32,14 @@ class BuildVariantsPerspectiveConfigurable(context: PsContext)
 
   override fun getId() = "android.psd.build_variants"
 
-  override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<*, *>? =
-      if (module is PsAndroidModule) createConfigurable(module) else null
+  override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *> =
+    if (module is PsAndroidModule) createConfigurable(module)
+    else JavaModuleUnsupportedConfigurable(context, module)
 
   override val navigationPathName: String = BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME
 
   override fun getDisplayName() = BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME
 
-  private fun createConfigurable(module: PsAndroidModule) =
+  private fun createConfigurable(module: PsAndroidModule): AndroidModuleBuildVariantsConfigurable =
       AndroidModuleBuildVariantsConfigurable(context, module).apply { history = myHistory }
 }
