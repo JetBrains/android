@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.swingp;
+package com.android.tools.swingp.json;
 
-import com.google.gson.annotations.SerializedName;
-import org.jetbrains.annotations.NotNull;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 
-public class BufferStrategyPaintMethodStat extends MethodStat {
-  @SerializedName("isBufferStrategy")
-  private final boolean myIsBufferStrategy;
+import java.lang.ref.SoftReference;
+import java.lang.reflect.Type;
 
-  public BufferStrategyPaintMethodStat(@NotNull Object owner, boolean isBufferStrategy) {
-    super(owner);
-    myIsBufferStrategy = isBufferStrategy;
+public final class SoftReferenceSerializer implements JsonSerializer<SoftReference<?>> {
+  @Override
+  public JsonElement serialize(SoftReference<?> reference, Type typeOfSrc, JsonSerializationContext context) {
+    Object value = reference.get();
+    return new JsonPrimitive(value == null ? "<gc>" : value.getClass().getSimpleName());
   }
 }
