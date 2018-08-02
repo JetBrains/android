@@ -24,11 +24,13 @@ interface PsProject : PsModel {
   val parsedModel: ProjectBuildModel
   val variables: PsVariables
   val pomDependencyCache: PsPomDependencyCache
-  val modules: Collection<PsModule>
+  val modules: PsModelCollection<PsModule>
   val modelCount: Int
 
   fun findModuleByName(moduleName: String): PsModule?
   fun findModuleByGradlePath(gradlePath: String): PsModule?
   fun forEachModule(consumer: Consumer<PsModule>)
   fun applyChanges()
+
+  fun removeModule(gradlePath: String)
 }
