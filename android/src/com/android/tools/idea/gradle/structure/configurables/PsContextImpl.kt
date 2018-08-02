@@ -49,6 +49,7 @@ class PsContextImpl constructor(
 
   private val gradleSyncEventDispatcher = EventDispatcher.create(
     GradleSyncListener::class.java)
+  private var disableSync: Boolean = false
 
   override var selectedModule: String? = null ; private set
 
@@ -63,7 +64,7 @@ class PsContextImpl constructor(
 
   init {
     mainConfigurable.add(
-      ProjectStructureConfigurable.ProjectStructureChangeListener { this.requestGradleModels() }, this)
+      ProjectStructureConfigurable.ProjectStructureChangeListener { if (!disableSync) this.requestGradleModels() }, this)
     // The UI has not yet subscribed to notifications which is fine since we don't want to see "Loading..." at startup.
     requestGradleModels()
 
@@ -117,6 +118,16 @@ class PsContextImpl constructor(
           ArtifactRepositorySearch(module.getArtifactRepositories())) })
     }
 
+  override fun applyRunAndReparse(runnable: () -> Boolean) {
+    disableSync = true
+    try {
+      project.applyRunAndReparse(runnable)
+    }
+    finally {
+      disableSync = false
+    }
+    requestGradleModels()
+  }
 
   private class CachingArtifactRepositorySearch(
     private val artifactRepositorySearch: ArtifactRepositorySearchService
