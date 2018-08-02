@@ -25,7 +25,7 @@ import com.intellij.openapi.util.Disposer
  */
 interface ContainerConfigurable<ModelT> : Disposable {
   fun getChildrenModels(): Collection<ModelT>
-  fun createChildConfigurable(model: ModelT): NamedConfigurable<ModelT>
+  fun createChildConfigurable(model: ModelT): NamedConfigurable<out ModelT>
   fun onChange(disposable: Disposable, listener: () -> Unit)
 }
 
@@ -47,7 +47,7 @@ abstract class NamedContainerConfigurableBase<ModelT>(
 /**
  * Creates a tree representing the hierarchy of [ContainerConfigurable]s represented by its root [rootConfigurable].
  */
-fun createTreeModel(rootConfigurable: NamedContainerConfigurableBase<*>): ConfigurablesTreeModel =
+fun createTreeModel(rootConfigurable: NamedConfigurable<*>): ConfigurablesTreeModel =
   ConfigurablesTreeModel(MasterDetailsComponent.MyNode(rootConfigurable, false))
     .also { it.initializeNode(it.rootNode, fromConfigurable = rootConfigurable) }
 
