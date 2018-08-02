@@ -83,7 +83,9 @@ abstract class RenderedComboBox<T>(
     beingLoaded = true
     try {
       lastValueSet = value
-      selectedItem = value
+      if (selectedItem != value) {
+        selectedItem = value
+      }
     }
     finally {
       beingLoaded = false
@@ -93,11 +95,15 @@ abstract class RenderedComboBox<T>(
   private var currentStatusTriggerText: String? = null
 
   override fun selectedItemChanged() {
+    super.selectedItemChanged()
+    updateWatermark()
+  }
+
+  private fun updateWatermark() {
     @Suppress("UNCHECKED_CAST")
     val value = selectedItem as T?
-    super.selectedItemChanged()
-    val jbTextField = comboBoxEditor.editorComponent
     currentStatusTriggerText = toEditorText(value)
+    val jbTextField = comboBoxEditor.editorComponent
     val emptyText = jbTextField.emptyText
     emptyText.clear()
     emptyText.toRenderer().renderCell(value)
@@ -113,13 +119,26 @@ abstract class RenderedComboBox<T>(
     try {
       val prevItemCount = itemsModel.size
       val selectedItem = itemsModel.selectedItem
-      itemsModel.removeAllElements()
-      knownValues.forEach { itemsModel.addElement(it) }
-      if (isPopupVisible &&prevItemCount == 0) {
+      val existing = (0 until itemsModel.size).asSequence().map { itemsModel.getElementAt(it) }.toMutableSet()
+      knownValues.forEachIndexed { index, value ->
+        if (existing.contains(value)) {
+          while (itemsModel.size > index && itemsModel.getElementAt(index) != value) {
+            itemsModel.removeElementAt(index)
+            existing.remove(value)
+          }
+        }
+        if (itemsModel.size == index || itemsModel.getElementAt(index) != value) {
+          itemsModel.insertElementAt(value, index)
+        }
+      }
+      if (isPopupVisible && prevItemCount == 0) {
         hidePopup()
         showPopup()
       }
-      itemsModel.selectedItem = selectedItem
+      if (itemsModel.selectedItem != selectedItem) {
+        itemsModel.selectedItem = selectedItem
+      }
+      updateWatermark()
     }
     finally {
       beingLoaded = false

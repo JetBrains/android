@@ -139,7 +139,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
 
     LibraryDependency dependency = dependencies.get(0);
     assertNotNull(dependency);
-    assertEquals("Gradle: com.android.support:support-core-ui-25.3.1", dependency.getName());
+    assertEquals("Gradle: com.android.support:support-core-ui:25.3.1@aar", dependency.getName());
 
     File[] binaryPaths = dependency.getBinaryPaths();
     assertThat(binaryPaths).hasLength(3);

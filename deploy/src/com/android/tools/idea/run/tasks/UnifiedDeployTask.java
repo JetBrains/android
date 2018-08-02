@@ -20,13 +20,13 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.Apk;
 import com.android.tools.deployer.DdmDevice;
 import com.android.tools.deployer.Deployer;
+import com.android.tools.deployer.DeployerRunner;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -52,14 +52,42 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+
+    boolean error = false;
     for (ApkInfo apk : myApks) {
+      System.err.println("Processing application:" + apk.getApplicationId());
+
       List<String> paths = apk.getFiles().stream().map(
         apkunit -> apkunit.getApkFile().getPath()).collect(Collectors.toList());
       Deployer deployer = new Deployer(apk.getApplicationId(), paths, this, new DdmDevice(device));
-      HashMap<String, HashMap<String, Apk.ApkEntryStatus>> changes = deployer.run();
-      for (Map.Entry<String, HashMap<String, Apk.ApkEntryStatus>> entry : changes.entrySet()) {
-        System.err.println("Apk: " + entry.getKey());
-        for (Map.Entry<String, Apk.ApkEntryStatus> statusEntry : entry.getValue().entrySet()) {
+      Deployer.RunResponse response = deployer.run();
+
+      if (response.status == Deployer.RunResponse.Status.ERROR) {
+        System.err.println(response.errorMessage);
+        return error;
+      }
+
+      if (response.status == Deployer.RunResponse.Status.NOT_INSTALLED) {
+        // TODO: Skip code swap and resource swap altogether.
+        // Save localApk using localApkHash key.
+        for (String apkAnalysisKey : response.result.keySet()) {
+          Deployer.RunResponse.Analysis analysis = response.result.get(apkAnalysisKey);
+          System.err.println("Apk: " + apkAnalysisKey);
+          System.err.println("    local apk id: " + analysis.localApkHash);
+        }
+        continue;
+      }
+
+      // For each APK, a diff, a local if and a remote id were generated.
+      for (String apkAnalysisKey : response.result.keySet()) {
+        // TODO: Analysis diff, see if resource or code swap are needed. Use local and remote hash as key
+        // to query the apk database.
+        Deployer.RunResponse.Analysis analysis = response.result.get(apkAnalysisKey);
+        System.err.println("Apk: " + apkAnalysisKey);
+        System.err.println("    local apk id: " + analysis.localApkHash);
+        System.err.println("    remot apk id: " + analysis.remoteApkHash);
+
+        for (Map.Entry<String, Apk.ApkEntryStatus> statusEntry : analysis.diffs.entrySet()) {
           System.err.println("  " + statusEntry.getKey() +
                              " [" + statusEntry.getValue().toString().toLowerCase() + "]");
         }

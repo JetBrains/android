@@ -17,8 +17,9 @@ import com.android.tools.idea.gradle.structure.configurables.android.buildvarian
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ConfigPanel
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 
-class BuildTypeConfigPanel(val buildType: PsBuildType) : ConfigPanel<PsBuildType>(buildTypePropertiesModel(buildType.parent.isLibrary)) {
-  init {
-    bind(buildType.parent, buildType)
-  }
-}
+class BuildTypeConfigPanel(buildType: PsBuildType) :
+  ConfigPanel<PsBuildType>(
+    buildType.parent,
+    buildType,
+    buildTypePropertiesModel(buildType.parent.isLibrary)
+  )

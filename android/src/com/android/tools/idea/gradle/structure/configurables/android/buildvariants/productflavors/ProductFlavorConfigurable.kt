@@ -18,9 +18,12 @@ import com.android.tools.idea.gradle.structure.configurables.android.ChildModelC
 import com.android.tools.idea.gradle.structure.configurables.ui.*
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors.ProductFlavorConfigPanel
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.PsFlavorDimension
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.maybeValue
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.NamedConfigurable
+import com.intellij.openapi.util.Disposer
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -33,26 +36,20 @@ class ProductFlavorConfigurable(private val productFlavor: PsProductFlavor)
 
 class FlavorDimensionConfigurable(
     private val module: PsAndroidModule,
-    val flavorDimension: String
-) : NamedConfigurable<String>(), ContainerConfigurable<PsProductFlavor> {
-  override fun getEditableObject(): String = flavorDimension
+    val flavorDimension: PsFlavorDimension
+) : NamedConfigurable<PsFlavorDimension>(), ContainerConfigurable<PsProductFlavor> {
+  override fun getEditableObject(): PsFlavorDimension = flavorDimension
   override fun getBannerSlogan(): String = "Dimension '$flavorDimension'"
   override fun isModified(): Boolean = false
-  override fun getDisplayName(): String = flavorDimension
+  override fun getDisplayName(): String = flavorDimension.name
   override fun apply() = Unit
   override fun setDisplayName(name: String?) = throw UnsupportedOperationException()
-
-  override fun getChildren(): List<NamedConfigurable<PsProductFlavor>> =
-    module
-      .productFlavors
-      .filter { productFlavor ->
-        val dimension = productFlavor.dimension
-        dimension is ParsedValue.Set.Parsed<String> && dimension.value == flavorDimension
-      }
-      .map { productFlavor ->
-        ProductFlavorConfigurable(productFlavor)
-      }
-
+  override fun getChildrenModels(): Collection<PsProductFlavor> =
+    module.productFlavors.filter { it.dimension.maybeValue == flavorDimension.name }
+  override fun createChildConfigurable(model: PsProductFlavor): NamedConfigurable<PsProductFlavor> =
+    ProductFlavorConfigurable(model).also { Disposer.register(this, it) }
+  override fun onChange(disposable: Disposable, listener: () -> Unit) = module.productFlavors.onChange(disposable, listener)
+  override fun dispose() = Unit
 
   private val component = JPanel()
   override fun createOptionsPanel(): JComponent = component

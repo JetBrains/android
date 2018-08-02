@@ -65,8 +65,8 @@ class ToolWindowTrackerService(private val toolWindowManager: ToolWindowManager?
                                                              .setToolWindowId(id)
                                                              .setEventType(when (currentState) {
                                                                              ToolWindowState.UNKNOWN -> StudioToolWindowActionStats.EventType.UNKNOWN_EVENT_TYPE
-                                                                             ToolWindowState.OPENED -> StudioToolWindowActionStats.EventType.OPEN
-                                                                             ToolWindowState.CLOSED -> StudioToolWindowActionStats.EventType.CLOSED
+                                                                             ToolWindowState.OPENED -> StudioToolWindowActionStats.EventType.OPEN_EVENT_TYPE
+                                                                             ToolWindowState.CLOSED -> StudioToolWindowActionStats.EventType.CLOSED_EVENT_TYPE
                                                                            })))
         stateMap[id] = currentState
       }

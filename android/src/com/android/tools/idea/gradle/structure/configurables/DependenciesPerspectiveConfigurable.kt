@@ -18,13 +18,13 @@ package com.android.tools.idea.gradle.structure.configurables
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.AndroidModuleDependenciesConfigurable
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.ProjectDependenciesConfigurable
+import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
 import com.android.tools.idea.gradle.structure.configurables.java.dependencies.JavaModuleDependenciesConfigurable
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
-import com.intellij.openapi.ui.NamedConfigurable
 import org.jetbrains.annotations.Nls
 import javax.swing.JComponent
 
@@ -33,11 +33,9 @@ const val DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME = "Dependencies"
 const val DEPENDENCIES_PERSPECTIVE_PLACE_NAME = "dependencies.place"
 
 class DependenciesPerspectiveConfigurable(context: PsContext)
-  : BasePerspectiveConfigurable(context), TrackedConfigurable {
+  : BasePerspectiveConfigurable(context, extraModules = listOf(PsAllModulesFakeModule(context.project))), TrackedConfigurable {
 
-  private val myConfigurablesByGradlePath = mutableMapOf<String, AbstractDependenciesConfigurable<out PsModule>>()
   private val myExtraModules = mutableListOf<PsModule>()
-  private val myExtraTopConfigurables = mutableMapOf<PsModule, AbstractDependenciesConfigurable<out PsModule>>()
 
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_DEPENDENCIES
   override fun getId(): String = "android.psd.dependencies"
@@ -45,33 +43,15 @@ class DependenciesPerspectiveConfigurable(context: PsContext)
   @Nls
   override fun getDisplayName(): String = DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME
 
-  override fun getNavigationPathName(): String = DEPENDENCIES_PERSPECTIVE_PLACE_NAME
+  override val navigationPathName: String = DEPENDENCIES_PERSPECTIVE_PLACE_NAME
 
-  override fun getConfigurable(module: PsModule): NamedConfigurable<out PsModule>? =
+  override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<*, *>? =
     when (module) {
-      is PsAllModulesFakeModule -> myExtraTopConfigurables.getOrPut(module) {
-        ProjectDependenciesConfigurable(module, context, extraModules).also { it.history = myHistory }
-      }
-      is PsAndroidModule -> myConfigurablesByGradlePath.getOrPut(module.gradlePath) {
-        AndroidModuleDependenciesConfigurable(module, context, extraModules).also { it.history = myHistory }
-      }
-      is PsJavaModule -> myConfigurablesByGradlePath.getOrPut(module.gradlePath) {
-        JavaModuleDependenciesConfigurable(module, context, extraModules).also { it.history = myHistory }
-      }
+      is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context, extraModules)
+      is PsAndroidModule -> AndroidModuleDependenciesConfigurable(module, context, extraModules)
+      is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context, extraModules)
       else -> null
     }
 
   override fun createComponent(): JComponent = super.createComponent().also { it.name = DEPENDENCIES_VIEW }
-
-  override fun getExtraModules(): List<PsModule> =
-    myExtraModules.also {
-      if (it.isEmpty()) {
-        it.add(PsAllModulesFakeModule(context.project))
-      }
-    }
-
-  override fun dispose() {
-    super.dispose()
-    myConfigurablesByGradlePath.clear()
-  }
 }

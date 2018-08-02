@@ -362,8 +362,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   /**
-   * Returns the list of external JAR files referenced by the class loader. This method also registers
-   * any resource files in the referenced AARs that haven't been registered before.
+   * Returns the list of external JAR files referenced by the class loader.
    */
   @Override
   @NotNull
@@ -372,9 +371,6 @@ public final class ModuleClassLoader extends RenderClassLoader {
     if (module == null) {
       return Collections.emptyList();
     }
-
-    // TODO: Is this really needed?
-    registerResources(module);
 
     List<URL> result = new ArrayList<>();
 

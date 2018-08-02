@@ -105,6 +105,7 @@ public class AttributeDefinitionsTest extends AndroidTestCase {
   }
 
   // TODO: Remove this test when the AttributeDefinitions.getStyleableByName method is removed.
+  @Deprecated
   public void testStyleByName() {
     assertThat(getDefs().getStyleableByName("Theme").getResourceReference())
         .isEqualTo(ResourceReference.styleable(ResourceNamespace.RES_AUTO, "Theme"));
@@ -113,6 +114,7 @@ public class AttributeDefinitionsTest extends AndroidTestCase {
   }
 
   // TODO: Remove this test when the AttributeDefinitions.getAttrDefByName method is removed.
+  @Deprecated
   public void testAttrDefByName() {
     assertThat(getDefs().getAttrDefByName("colorForeground").getResourceReference())
         .isEqualTo(ResourceReference.attr(ResourceNamespace.RES_AUTO, "colorForeground"));

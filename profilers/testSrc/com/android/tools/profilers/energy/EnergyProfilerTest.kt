@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.energy
 
+import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilersTestData
@@ -36,7 +37,7 @@ class EnergyProfilerTest {
   @Before
   fun setUp() {
     val services = FakeIdeProfilerServices().apply { enableEnergyProfiler(true) }
-    myProfiler = EnergyProfiler(StudioProfilers(myGrpcChannel.client, services))
+    myProfiler = EnergyProfiler(StudioProfilers(myGrpcChannel.client, services, FakeTimer()))
   }
 
   @Test

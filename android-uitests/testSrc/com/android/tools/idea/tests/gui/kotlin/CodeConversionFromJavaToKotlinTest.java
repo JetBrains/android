@@ -69,7 +69,7 @@ public class CodeConversionFromJavaToKotlinTest {
    * <p>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.FAST_BAZEL)
   public void testConvertJavaCodeToKotlinInEditor() throws Exception {
     IdeFrameFixture ideFrameFixture =
       guiTest.importProjectAndWaitForProjectSyncToFinish("JavaToKotlinCode");

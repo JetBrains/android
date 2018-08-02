@@ -286,7 +286,7 @@ public class GradleFilePsiMerger {
     if (element.getParent() instanceof GroovyFile) {
       // If we are a top level element being added to the end of a file then make sure to add two new lines to
       // keep formatting consistent with the project wizards generated files.
-      int newLines = scanAndCountNewLinesOrNulls(element.getPrevSibling(), false, 2);
+      int newLines = element.getPrevSibling() == null ? -1 : scanAndCountNewLinesOrNulls(element.getPrevSibling(), false, 2);
       if (newLines >= 0 && newLines < 2) {
         PsiElement doubleNewLineElement = getNewLineElement(element, 2 - newLines);
         element.getParent().addBefore(doubleNewLineElement, element);

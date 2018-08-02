@@ -512,7 +512,6 @@ public class AndroidRenameTest extends AndroidTestCase {
     // the XML declare-styleable reference rather than a Java field reference.
     createManifest();
     enableNamespacing("p1.p2");
-    copyRJavaToGeneratedSources();
     myFixture.copyFileToProject(BASE_PATH + "MyView4.java", "src/p1/p2/MyView.java");
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "attrs13.xml", "res/values/attrs13.xml");
     myFixture.configureFromExistingVirtualFile(file);

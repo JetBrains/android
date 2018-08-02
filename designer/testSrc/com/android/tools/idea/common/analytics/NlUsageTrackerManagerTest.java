@@ -23,10 +23,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.State;
 import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.analytics.AnalyticsSettings;
-import com.android.tools.analytics.TestUsageTracker;
-import com.android.tools.analytics.UsageTracker;
-import com.android.tools.analytics.UsageTrackerWriter;
+import com.android.tools.analytics.*;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
@@ -83,7 +80,7 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
-    AnalyticsSettings settings = new AnalyticsSettings();
+    AnalyticsSettingsData settings = new AnalyticsSettingsData();
     AnalyticsSettings.setInstanceForTest(settings);
     usageTracker = new TestUsageTracker(myVirtualTimeScheduler);
     UsageTracker.setWriterForTest(usageTracker);

@@ -16,45 +16,35 @@
 package com.android.tools.idea.gradle.structure.configurables.suggestions
 
 import com.android.tools.idea.gradle.structure.configurables.AbstractCounterDisplayConfigurable
-import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
+import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
-import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import javax.swing.JComponent
 
 class SuggestionsPerspectiveConfigurable(context: PsContext)
-  : AbstractCounterDisplayConfigurable(context), TrackedConfigurable {
-  private val configurablesByGradlePath: Map<String, BaseNamedConfigurable<PsModule>> = HashMap()
-  private var extraModules: MutableList<PsModule>? = null
+  : AbstractCounterDisplayConfigurable(context, extraModules = listOf(PsAllModulesFakeModule(context.project))), TrackedConfigurable {
   private var messageCount: Int = 0
 
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_SUGGESTIONS
 
   override fun getId(): String = "android.psd.suggestions"
 
-  override fun getConfigurable(module: PsModule): NamedConfigurable<out PsModule>? =
+  override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<PsModule, *>? =
       when (module) {
-        is PsAndroidModule -> getOrCreateConfigurable(module)
-        is PsAllModulesFakeModule -> getOrCreateConfigurable(module)
+        is PsAndroidModule -> createConfigurable(module)
+        is PsAllModulesFakeModule -> createConfigurable(module)
         else -> null
       }
 
-  override fun getNavigationPathName(): String = "suggestions.place"
+  override val navigationPathName: String = "suggestions.place"
 
   override fun getDisplayName(): String = "Suggestions"
 
-
-  override fun getExtraModules(): MutableList<PsModule> {
-    if (extraModules == null) {
-      extraModules = mutableListOf(PsAllModulesFakeModule(context.project))
-    }
-    return extraModules!!
-  }
 
   override fun getCount(): Int = messageCount
 
@@ -67,9 +57,6 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
     return component
   }
 
-  private fun getOrCreateConfigurable(module: PsModule) =
-      configurablesByGradlePath[module.gradlePath] ?: createConfigurable(module)
-
   private fun createConfigurable(module: PsModule) =
-      AndroidModuleSuggestionsConfigurable(context, module, getExtraModules()).apply { setHistory(myHistory) }
+      AndroidModuleSuggestionsConfigurable(context, module, extraModules).apply { setHistory(myHistory) }
 }

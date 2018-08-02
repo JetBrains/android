@@ -947,7 +947,7 @@ public class HtmlLinkManager {
       Logger.getInstance(HtmlLinkManager.class).warn("Invalid coordinate " + coordinateStr);
       return;
     }
-    if (DependencyManagementUtil.addDependencies(module, Collections.singletonList(coordinate), false, false, false)
+    if (DependencyManagementUtil.addDependencies(module, Collections.singletonList(coordinate), false, false)
                                 .isEmpty()) {
       return;
     }

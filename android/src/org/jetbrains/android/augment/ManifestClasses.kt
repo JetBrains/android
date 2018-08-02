@@ -33,15 +33,16 @@ import org.jetbrains.android.util.AndroidResourceUtil.getFieldNameByResourceName
  * Manifest class for a given module.
  */
 class ManifestClass(
-  packageName: String,
   private val facet: AndroidFacet,
   psiManager: PsiManager
 ) : AndroidClassWithOnlyInnerClassesBase(
   SdkConstants.FN_MANIFEST_BASE,
-  packageName,
+  AndroidManifestUtils.getPackageName(facet),
   psiManager,
   listOf(PsiModifier.PUBLIC, PsiModifier.FINAL)
 ) {
+  override fun getQualifiedName(): String? = AndroidManifestUtils.getPackageName(facet)?.let { it + "." + SdkConstants.FN_MANIFEST_BASE }
+
   override fun doGetInnerClasses(): Array<PsiClass> {
     val classes = mutableListOf<PsiClass>()
 

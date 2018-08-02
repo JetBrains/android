@@ -484,10 +484,10 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     // Verify that the library has sources.
     ProjectLibraries libraries = new ProjectLibraries(getProject());
-    String libraryNameRegex = "Gradle: com.foo.bar:bar-0.1";
+    String libraryNameRegex = "Gradle: com.foo.bar:bar:0.1@aar";
     Library library = libraries.findMatchingLibrary(libraryNameRegex);
 
-    assertNotNull("Library com.foo.bar:bar-0.1 is missing", library);
+    assertNotNull("Library com.foo.bar:bar:0.1 is missing", library);
     VirtualFile[] files = library.getFiles(SOURCES);
     assertThat(files).asList().hasSize(1);
   }

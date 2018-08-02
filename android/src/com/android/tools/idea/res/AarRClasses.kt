@@ -36,10 +36,12 @@ import java.io.File
  */
 class NamespacedAarPackageRClass(
   psiManager: PsiManager,
-  packageName: String,
+  private val packageName: String,
   private val aarResources: AbstractResourceRepository,
   private val resourceNamespace: ResourceNamespace
 ) : AndroidPackageRClassBase(psiManager, packageName) {
+
+  override fun getQualifiedName(): String? = "$packageName.R"
 
   override fun doGetInnerClasses(): Array<PsiClass> {
     return aarResources.getAvailableResourceTypes(resourceNamespace)
@@ -78,9 +80,11 @@ private class NamespacedAarResourceTypeClass(
  */
 class NonNamespacedAarPackageRClass(
   psiManager: PsiManager,
-  packageName: String,
+  private val packageName: String,
   symbolFile: File
 ) : AndroidPackageRClassBase(psiManager, packageName) {
+
+  override fun getQualifiedName(): String? = "$packageName.R"
 
   /**
    * [SymbolTable] read from the symbol file.

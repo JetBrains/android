@@ -21,6 +21,7 @@ import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.ui.AdtUiCursors;
 import com.intellij.openapi.util.EmptyRunnable;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import javax.swing.*;
 import java.awt.*;
@@ -364,6 +365,24 @@ public class SelectionComponentTest {
     ui.mouse.dragTo(20, 0);
     assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
     ui.mouse.release();
+  }
+
+  @Test
+  public void componentIsNotDrawnIfInvisible() {
+    Range selectionRange = new Range (60, 70);
+    Range viewRange = new Range(30, 50);
+    SelectionComponent component = new SelectionComponent(new SelectionModel(selectionRange), viewRange);
+    Dimension dimension = new Dimension(100, 100);
+    component.setSize(dimension);
+    Graphics2D graphics = Mockito.mock(Graphics2D.class);
+    component.draw(graphics, dimension);
+    Mockito.verifyZeroInteractions(graphics);
+    selectionRange.set(10, 20);
+    component.draw(graphics, dimension);
+    Mockito.verifyZeroInteractions(graphics);
+    selectionRange.set(0, -1);
+    component.draw(graphics, dimension);
+    Mockito.verifyZeroInteractions(graphics);
   }
 
   private void shiftAndValidateShift(FakeUi ui, SelectionModel model, FakeKeyboard.Key key, int min, int max) {

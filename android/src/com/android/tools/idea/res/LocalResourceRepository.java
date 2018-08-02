@@ -22,6 +22,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -440,9 +441,12 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
   }
 
-  public static final class EmptyRepository extends LocalResourceRepository {
-    public EmptyRepository() {
+  public static final class EmptyRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {
+    @NotNull private final ResourceNamespace myNamespace;
+
+    public EmptyRepository(@NotNull ResourceNamespace namespace) {
       super("");
+      myNamespace = namespace;
     }
 
     @NotNull
@@ -473,6 +477,18 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     @Override
     public Set<ResourceNamespace> getNamespaces() {
       return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public ResourceNamespace getNamespace() {
+      return myNamespace;
+    }
+
+    @Nullable
+    @Override
+    public String getPackageName() {
+      return myNamespace.getPackageName();
     }
   }
 }

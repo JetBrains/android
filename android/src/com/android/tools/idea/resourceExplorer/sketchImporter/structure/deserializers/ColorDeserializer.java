@@ -25,7 +25,9 @@ import java.awt.*;
 import java.lang.reflect.Type;
 
 public class ColorDeserializer implements JsonDeserializer<Color> {
+
   @Override
+  @NotNull
   public Color deserialize(@NotNull JsonElement json,
                            @NotNull Type typeOfT,
                            @NotNull JsonDeserializationContext context) {

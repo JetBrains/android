@@ -29,13 +29,13 @@ import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidResourceUtil
-import org.jetbrains.android.util.AndroidResourceUtil.isManifestJavaFile
-import org.jetbrains.android.util.AndroidResourceUtil.isRJavaFile
+import org.jetbrains.android.util.AndroidResourceUtil.*
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
+import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.load.java.descriptors.JavaClassDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
 import org.jetbrains.kotlin.psi.KtClass
@@ -46,7 +46,6 @@ import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.resolve.source.PsiSourceFile
 
 internal fun KtClass.findComponentDeclarationInManifest(manifest: Manifest): AndroidAttributeValue<PsiClass>? {
     val application = manifest.application ?: return null
@@ -102,6 +101,7 @@ internal fun getReferredResourceOrManifestField(facet: AndroidFacet, expression:
                                        className: String?, localOnly: Boolean): AndroidResourceUtil.MyReferredResourceFieldInfo? {
     val resFieldName = expression.getReferencedName()
     val resClassReference = expression.getPreviousInQualifiedChain() as? KtSimpleNameExpression ?: return null
+    val resolvedClass = resClassReference.mainReference.resolve() as? PsiClass ?: return null
     val resClassName = resClassReference.getReferencedName()
 
     if (resClassName.isEmpty() || className != null && className != resClassName) {
@@ -123,16 +123,15 @@ internal fun getReferredResourceOrManifestField(facet: AndroidFacet, expression:
         val qName = rClassDescriptor.fqNameSafe.asString()
 
         if (SdkConstants.CLASS_R == qName || AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME == qName) {
-            return AndroidResourceUtil.MyReferredResourceFieldInfo(resClassName, resFieldName, facet.module, true, false)
+            return MyReferredResourceFieldInfo(resClassName, resFieldName, facet.module, true, false)
         }
     }
 
-    val containingFile = (rClassDescriptor.source.containingFile as? PsiSourceFile)?.psiFile ?: return null
-    if (if (fromManifest) !isManifestJavaFile(facet, containingFile) else !isRJavaFile(facet, containingFile)) {
+    if (if (fromManifest) !isManifestClass(resolvedClass) else !isRJavaClass(resolvedClass)) {
         return null
     }
 
-    return AndroidResourceUtil.MyReferredResourceFieldInfo(resClassName, resFieldName, facet.module, false, false)
+    return MyReferredResourceFieldInfo(resClassName, resFieldName, facet.module, false, false)
 }
 
 private fun KtExpression.getPreviousInQualifiedChain(): KtExpression? {

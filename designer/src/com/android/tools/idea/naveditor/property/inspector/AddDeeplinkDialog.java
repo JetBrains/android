@@ -103,11 +103,12 @@ public class AddDeeplinkDialog extends DialogWrapper {
   }
 
   public void save() {
-    WriteCommandAction.runWriteCommandAction(null, () -> {
+    WriteCommandAction.runWriteCommandAction(myParent.getModel().getProject(), () -> {
       NlComponent realComponent = myExistingComponent;
       if (realComponent == null) {
         XmlTag tag = myParent.getTag().createChildTag(TAG_DEEP_LINK, null, null, false);
         realComponent = myParent.getModel().createComponent(null, tag, myParent, null, InsertType.CREATE);
+        realComponent.ensureId();
       }
 
       realComponent.setAttribute(AUTO_URI, ATTR_URI, getUri());

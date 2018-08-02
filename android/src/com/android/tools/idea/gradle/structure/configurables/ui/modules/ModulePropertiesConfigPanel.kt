@@ -22,19 +22,16 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
-import javax.swing.JComponent
 
-class ModulePropertiesConfigPanel(
-    val module: PsAndroidModule
-) : ConfigPanel<PsAndroidModule>(androidModulePropertiesModel()), ModelPanel<PsAndroidModule> {
-
-  init {
-    bind(module, module)
-  }
+class ModulePropertiesConfigPanel(module: PsAndroidModule) :
+  ConfigPanel<PsAndroidModule>(
+    module,
+    module,
+    androidModulePropertiesModel()
+  ),
+  ModelPanel<PsAndroidModule> {
 
   override val title = "Properties"
-  override fun createComponent(): JComponent = component
-
   override fun setHistory(history: History?) = Unit
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = ActionCallback.DONE
   override fun queryPlace(place: Place) = Unit

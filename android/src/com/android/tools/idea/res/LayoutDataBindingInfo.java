@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
 import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -31,20 +27,19 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A data class that keeps data binding related information that was extracted from a layout file.
  */
 public class LayoutDataBindingInfo implements DataBindingInfo {
-  private final Map<DataBindingResourceType, List<PsiDataBindingResourceItem>> myItems =
-    Maps.newEnumMap(DataBindingResourceType.class);
+  @NotNull private final Map<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>> myItems =
+      new EnumMap<>(DataBindingResourceType.class);
 
   private String myClassName;
   private String myNonConfigurationClassName;
@@ -55,12 +50,11 @@ public class LayoutDataBindingInfo implements DataBindingInfo {
   private long myBindingModificationCount;
   private boolean myClassNameSpecifiedByUser;
   private final AndroidFacet myFacet;
-  @NonNull
-  private String myConfigurationName;
+  @NotNull private final String myConfigurationName;
   private MergedDataBindingInfo myMergedInfo;
 
-  public LayoutDataBindingInfo(@NonNull AndroidFacet facet, @NonNull PsiResourceFile psiResourceFile, @NonNull String className,
-                               @NonNull String packageName, boolean classNameSpecifiedByUser) {
+  public LayoutDataBindingInfo(@NotNull AndroidFacet facet, @NotNull PsiResourceFile psiResourceFile, @NotNull String className,
+                               @NotNull String packageName, boolean classNameSpecifiedByUser) {
     myFacet = facet;
     myNonConfigurationClassName = className;
     myClassName = className;
@@ -90,41 +84,17 @@ public class LayoutDataBindingInfo implements DataBindingInfo {
     myLayoutModificationCount = modificationCount;
   }
 
-  protected boolean addItem(PsiDataBindingResourceItem item) {
-    List<PsiDataBindingResourceItem> items = myItems.get(item.getType());
-    if (items == null) {
-      items = Lists.newArrayList();
-      myItems.put(item.getType(), items);
+  public void replaceItems(@NotNull List<PsiDataBindingResourceItem> newItems, long modificationCount) {
+    Map<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>> itemsByType = new EnumMap<>(DataBindingResourceType.class);
+    for (PsiDataBindingResourceItem item : newItems) {
+      DataBindingResourceType type = item.getType();
+      Map<String, PsiDataBindingResourceItem> itemsByName = itemsByType.computeIfAbsent(type, t -> new HashMap<>());
+      itemsByName.put(item.getName(), item);
     }
-    boolean newItem = !items.contains(item);
-    if (newItem) {
-      items.add(item);
-    }
-    return newItem;
-  }
 
-  public void replaceItems(@NonNull Iterable<PsiDataBindingResourceItem> items, long modificationCount) {
-    boolean changed = myItems == null;
-    if (myItems == null) {
-      changed = true;
-    } else {
-      List<PsiDataBindingResourceItem> removed = Lists.newArrayList();
-      for (Map.Entry<DataBindingResourceType, List<PsiDataBindingResourceItem>> entry : myItems.entrySet()) {
-        for (PsiDataBindingResourceItem item : entry.getValue()) {
-          if (!Iterables.contains(items, item)) {
-            removed.add(item);
-          }
-        }
-        changed |= !removed.isEmpty();
-        for (PsiDataBindingResourceItem item : removed) {
-          entry.getValue().remove(item);
-        }
-      }
-      for (PsiDataBindingResourceItem item : items) {
-        changed = addItem(item) | changed;
-      }
-    }
-    if (changed) {
+    if (!itemsByType.equals(myItems)) {
+      myItems.clear();
+      myItems.putAll(itemsByType);
       myLayoutModificationCount = modificationCount;
     }
   }
@@ -133,7 +103,7 @@ public class LayoutDataBindingInfo implements DataBindingInfo {
     if (myMergedInfo == mergedInfo) {
       return;
     }
-    myBindingModificationCount ++;
+    myBindingModificationCount++;
     myMergedInfo = mergedInfo;
     if (mergedInfo != null) {
       myClassName = calculateConfigurationName(myConfigurationName, myNonConfigurationClassName);
@@ -204,14 +174,15 @@ public class LayoutDataBindingInfo implements DataBindingInfo {
 
   @Override
   @NotNull
-  public List<PsiDataBindingResourceItem> getItems(DataBindingResourceType type) {
-    List<PsiDataBindingResourceItem> items = myItems.get(type);
-    return items != null ? items : Collections.emptyList();
+  public Map<String, PsiDataBindingResourceItem> getItems(@NotNull DataBindingResourceType type) {
+    Map<String, PsiDataBindingResourceItem> itemsByName = myItems.get(type);
+    return itemsByName == null ? Collections.emptyMap() : itemsByName;
   }
 
   @Override
+  @NotNull
   public List<ViewWithId> getViewsWithIds() {
-    List<ViewWithId> result = Lists.newArrayList();
+    List<ViewWithId> result = new ArrayList<>();
     for (ResourceItem item : myPsiResourceFile) {
       if (!ResourceType.ID.equals(item.getType())) {
         continue;
@@ -220,14 +191,15 @@ public class LayoutDataBindingInfo implements DataBindingInfo {
         continue;
       }
       PsiResourceItem psiResourceItem = (PsiResourceItem)item;
-      if (psiResourceItem.getTag() == null) {
+      XmlTag tag = psiResourceItem.getTag();
+      if (tag == null) {
         continue;
       }
       String name = item.getName();
       if (StringUtil.isEmpty(name)) {
         continue;
       }
-      result.add(new ViewWithId(DataBindingUtil.convertToJavaFieldName(name.trim()), psiResourceItem.getTag()));
+      result.add(new ViewWithId(DataBindingUtil.convertToJavaFieldName(name.trim()), tag));
     }
     return result;
   }
@@ -254,7 +226,7 @@ public class LayoutDataBindingInfo implements DataBindingInfo {
     return myMergedInfo;
   }
 
-  @NonNull
+  @NotNull
   public String getConfigurationName() {
     return myConfigurationName;
   }

@@ -334,6 +334,7 @@ filegroup(
         ":analytics-artifacts",
         ":nosyncbuilder-artifacts",
         ":profiler-artifacts",
+        "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     ],

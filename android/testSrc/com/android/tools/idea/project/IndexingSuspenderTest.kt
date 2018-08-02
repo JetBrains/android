@@ -28,29 +28,24 @@ import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.GradleSyncStats
-import com.intellij.mock.MockDumbService
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.ide.file.BatchFileChangeListener
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.impl.stores.BatchUpdateListener
-import com.intellij.openapi.progress.EmptyProgressIndicator
-import com.intellij.openapi.project.DumbModeTask
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.IdeaTestCase
-import com.intellij.testFramework.UsefulTestCase
 import com.intellij.util.messages.MessageBusConnection
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.mock
-import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
 
 class IndexingSuspenderTest : IdeaTestCase() {
   private lateinit var batchUpdateConnection: MessageBusConnection
   private var expectedBatchUpdateCount = 0
   private var actualBatchUpdateCount = 0
   private var currentBatchUpdateLevel = 0
-
-  private var expectedDumbModeCount = 0
+  private lateinit var batchFileUpdateConnection: MessageBusConnection
+  private var expectedBatchFileUpdateCount = 0
+  private var actualBatchFileUpdateCount = 0
+  private var currentBatchFileUpdateLevel = 0
 
   /**
    * We don't intend to run IndexingSuspender and its tests outside of Android Studio context as of yet.
@@ -68,20 +63,18 @@ class IndexingSuspenderTest : IdeaTestCase() {
 
     AndroidTestCase.addAndroidFacet(module)
 
-    val dumbService = ThreadingAwareDumbService(project)
     val indexingSuspenderService = IndexingSuspender(project, true)
     val ideComponents = IdeComponents(project)
-    ideComponents.replaceProjectDumbService(dumbService)
     ideComponents.replaceProjectService(IndexingSuspender::class.java, indexingSuspenderService)
 
     // Ensure the services are replaced globally as expected. If not, there is a bug in IdeComponents implementation,
     // and it doesn't make sense to execute this test further.
-    assertSame(DumbService.getInstance(project), dumbService)
     assertSame(ServiceManager.getService(project, IndexingSuspender::class.java), indexingSuspenderService)
 
-    expectedDumbModeCount = 0
     currentBatchUpdateLevel = 0
     actualBatchUpdateCount = 0
+    currentBatchFileUpdateLevel = 0
+    actualBatchFileUpdateCount = 0
   }
 
   override fun tearDown() {
@@ -99,24 +92,19 @@ class IndexingSuspenderTest : IdeaTestCase() {
   }
 
   private fun verifyIndexingSpecificExpectations() {
-    // verify dumb mode counters
-    val dumbService = DumbService.getInstance(project) as ThreadingAwareDumbService
-
-    // we allow some time for the "dumb mode" thread to join, but if it does not happen, then it's a risk of a deadlock
-    // and there is probably a bug either in the event system or in the suspender implementation
-    dumbService.waitForSmartMode()
-    assertFalse("Dumb mode must have ended by this point.", dumbService.isDumb)
-    assertEquals("Dumb mode was not entered as many times as expected",
-        expectedDumbModeCount, dumbService.actualDumbModeCount)
-
     // verify batch update
     assertEquals("Did not unwind batch updates. Each batch update start must be paired with a corresponding finish call.",
-        0, currentBatchUpdateLevel)
+                 0, currentBatchUpdateLevel)
     assertEquals("Batch update sessions were not started as many times as expected.",
-        expectedBatchUpdateCount, actualBatchUpdateCount)
+                 expectedBatchUpdateCount, actualBatchUpdateCount)
+    // verify batch file update
+    assertEquals("Did not unwind batch file updates. Each batch update start must be paired with a corresponding finish call.",
+                 0, currentBatchFileUpdateLevel)
+    assertEquals("Batch file update sessions were not started as many times as expected.",
+                 expectedBatchFileUpdateCount, actualBatchFileUpdateCount)
   }
 
-  private fun setUpIndexingSpecificExpectations(dumbModeCount: Int, batchUpdateCount: Int) {
+  private fun setUpIndexingSpecificExpectations(batchUpdateCount: Int, batchFileUpdateCount: Int) {
     batchUpdateConnection = project.messageBus.connect(project)
     batchUpdateConnection.subscribe<BatchUpdateListener>(BatchUpdateListener.TOPIC, object : BatchUpdateListener {
       override fun onBatchUpdateStarted() {
@@ -129,8 +117,20 @@ class IndexingSuspenderTest : IdeaTestCase() {
       }
     })
 
-    expectedDumbModeCount = dumbModeCount
+    batchFileUpdateConnection = project.messageBus.connect(project)
+    batchFileUpdateConnection.subscribe<BatchFileChangeListener>(BatchFileChangeListener.TOPIC, object : BatchFileChangeListener {
+      override fun batchChangeStarted(project: Project, activityName: String?) {
+        actualBatchFileUpdateCount += 1
+        currentBatchFileUpdateLevel += 1
+      }
+
+      override fun batchChangeCompleted(project: Project) {
+        currentBatchFileUpdateLevel -= 1
+      }
+    })
+
     expectedBatchUpdateCount = batchUpdateCount
+    expectedBatchFileUpdateCount = batchFileUpdateCount
   }
 
   fun testGradleBuildSucceeded() {
@@ -163,7 +163,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
       return
     }
 
-    setUpIndexingSpecificExpectations(dumbModeCount = 0, batchUpdateCount = 0)
+    setUpIndexingSpecificExpectations(batchUpdateCount = 0, batchFileUpdateCount = 0)
 
     val buildState = GradleBuildState.getInstance(project)
     buildState.buildFinished(BuildStatus.SKIPPED)
@@ -191,7 +191,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
       return
     }
 
-    setUpIndexingSpecificExpectations(dumbModeCount = 0, batchUpdateCount = 0)
+    setUpIndexingSpecificExpectations(batchUpdateCount = 0, batchFileUpdateCount = 0)
 
     val syncState = GradleSyncState.getInstance(project)
     syncState.syncSkipped(42)
@@ -204,14 +204,10 @@ class IndexingSuspenderTest : IdeaTestCase() {
     }
 
     // this tests the correct event handling when build is triggered during sync (e.g., source generation)
-    setUpIndexingSpecificExpectations(dumbModeCount = 1, batchUpdateCount = 1)
-    val dumbService = DumbService.getInstance(project)
+    setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
     val syncState = GradleSyncState.getInstance(project)
     syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
-    assertFalse(dumbService.isDumb)
-    // Sentinel dumb mode is expected only during project setup
     syncState.setupStarted()
-    assertTrue(dumbService.isDumb)
 
     val buildContext = BuildContext(project, listOf(":app:something"), BuildMode.DEFAULT_BUILD_MODE)
     val buildState = GradleBuildState.getInstance(project)
@@ -223,19 +219,17 @@ class IndexingSuspenderTest : IdeaTestCase() {
     assertFalse(syncState.isSyncInProgress)
     // must be still within a batch update session - sync has finished, but it should have not deactivated the suspender
     assertEquals(1, currentBatchUpdateLevel)
+    assertEquals(1, currentBatchFileUpdateLevel)
 
     buildState.buildStarted(buildContext)
 
-    // Verify that dumb mode ends once build starts. Builds are expected to be still under a batch update, but outside of
-    // the sentinel dumb mode (see b/69455108).
-    dumbService.waitForSmartMode()
-    assertFalse("Build is expected to be executed outside of dumb mode", dumbService.isDumb)
-    // must be still within a batch update session - suspender is still active, just the means of indexing suspension changed
-    // from dumbmode + batchupdate to just batchupdate
+    // must be still within a batch update session - suspender is still active
     assertEquals(1, currentBatchUpdateLevel)
+    assertEquals(1, currentBatchFileUpdateLevel)
     buildState.buildFinished(BuildStatus.SUCCESS)
     assertFalse(buildState.isBuildInProgress)
     assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
   }
 
   /**
@@ -247,8 +241,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
       return
     }
 
-    setUpIndexingSpecificExpectations(dumbModeCount = 1, batchUpdateCount = 1)
-    val dumbService = DumbService.getInstance(project)
+    setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
     val syncState = GradleSyncState.getInstance(project)
     syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
 
@@ -262,115 +255,105 @@ class IndexingSuspenderTest : IdeaTestCase() {
     buildState.buildExecutorCreated(buildRequest)
     syncState.syncEnded()
 
-    // Make sure we're still in dumb mode.
     assertEquals(1, currentBatchUpdateLevel)
-    assertTrue(dumbService.isDumb)
+    assertEquals(1, currentBatchFileUpdateLevel)
 
     buildState.buildStarted(buildContext)
     assertEquals(1, currentBatchUpdateLevel)
-    assertTrue(dumbService.isDumb)
+    assertEquals(1, currentBatchFileUpdateLevel)
 
-    // We leave dumb mode only after the build is finished.
     buildState.buildFinished(BuildStatus.SUCCESS)
-    dumbService.waitForSmartMode()
     assertFalse(buildState.isBuildInProgress)
-    assertFalse(dumbService.isDumb)
     assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
   }
 
   fun testTemplateRenderingRegularEventsWorkflow() {
-    setUpIndexingSpecificExpectations(dumbModeCount = 1, batchUpdateCount = 1)
+    setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
 
     MultiTemplateRenderer.multiRenderingStarted(project)
-    val dumbService = DumbService.getInstance(project)
-    // We should already enter both sentinel dumb mode and start a batch update no matter what.
-    assertTrue(dumbService.isDumb)
+    // We should start a batch update no matter what.
     assertEquals(1, currentBatchUpdateLevel)
+    assertEquals(1, currentBatchFileUpdateLevel)
 
     val syncState = GradleSyncState.getInstance(project)
     syncState.syncTaskCreated(mock(GradleSyncInvoker.Request::class.java))
     MultiTemplateRenderer.multiRenderingFinished(project)
     // Yes, rendering finished but we were notified that sync is imminent, so suspension should continue.
-    assertTrue(dumbService.isDumb)
     assertEquals(1, currentBatchUpdateLevel)
+    assertEquals(1, currentBatchFileUpdateLevel)
 
     syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
     // No change
-    assertTrue(dumbService.isDumb)
     assertEquals(1, currentBatchUpdateLevel)
+    assertEquals(1, currentBatchFileUpdateLevel)
 
     syncState.setupStarted()
     // No change
-    assertTrue(dumbService.isDumb)
     assertEquals(1, currentBatchUpdateLevel)
+    assertEquals(1, currentBatchFileUpdateLevel)
 
     val buildContext = mock(BuildContext::class.java)
     val buildState = GradleBuildState.getInstance(project)
     buildState.buildExecutorCreated(mock(GradleBuildInvoker.Request::class.java))
     // No change
-    assertTrue(dumbService.isDumb)
     assertEquals(1, currentBatchUpdateLevel)
+    assertEquals(1, currentBatchFileUpdateLevel)
 
     syncState.syncEnded()
     // No change
-    assertTrue(dumbService.isDumb)
     assertEquals(1, currentBatchUpdateLevel)
+    assertEquals(1, currentBatchFileUpdateLevel)
 
     buildState.buildStarted(buildContext)
     // No change even during build (for template-rendering initiated suspension only).
-    assertTrue(dumbService.isDumb)
     assertEquals(1, currentBatchUpdateLevel)
+    assertEquals(1, currentBatchFileUpdateLevel)
 
     buildState.buildFinished(BuildStatus.SUCCESS)
-    dumbService.waitForSmartMode()
-    assertFalse(dumbService.isDumb)
     assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
   }
 
   fun testTemplateRenderingWhenSyncFailed() {
-    setUpIndexingSpecificExpectations(dumbModeCount = 1, batchUpdateCount = 1)
+    setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
 
     MultiTemplateRenderer.multiRenderingStarted(project)
-    val dumbService = DumbService.getInstance(project)
-    // We should already enter both sentinel dumb mode and start a batch update no matter what.
-    assertTrue(dumbService.isDumb)
+    // We should start a batch update no matter what.
     assertEquals(1, currentBatchUpdateLevel)
+    assertEquals(1, currentBatchFileUpdateLevel)
 
     val syncState = GradleSyncState.getInstance(project)
     syncState.syncTaskCreated(mock(GradleSyncInvoker.Request::class.java))
     MultiTemplateRenderer.multiRenderingFinished(project)
     // Yes, rendering finished but we were notified that sync is imminent, so suspension should continue.
-    assertTrue(dumbService.isDumb)
     assertEquals(1, currentBatchUpdateLevel)
+    assertEquals(1, currentBatchFileUpdateLevel)
 
     syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
     // No change
-    assertTrue(dumbService.isDumb)
     assertEquals(1, currentBatchUpdateLevel)
+    assertEquals(1, currentBatchFileUpdateLevel)
 
     syncState.setupStarted()
     // No change
-    assertTrue(dumbService.isDumb)
     assertEquals(1, currentBatchUpdateLevel)
+    assertEquals(1, currentBatchFileUpdateLevel)
 
     syncState.syncFailed("Test!")
-    dumbService.waitForSmartMode()
-    assertFalse(dumbService.isDumb)
     assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
   }
 
   private fun doTestGradleSyncWhen(failed: Boolean) {
-    setUpIndexingSpecificExpectations(dumbModeCount = 1, batchUpdateCount = 1)
+    setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
 
-    val dumbService = DumbService.getInstance(project)
     val syncState = GradleSyncState.getInstance(project)
     syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
-    // Sentinel dumb mode is expected only during project setup
-    assertFalse(dumbService.isDumb)
     syncState.setupStarted()
 
-    assertTrue(dumbService.isDumb)
-    assertEquals(1, actualBatchUpdateCount)
+    assertEquals(1, currentBatchUpdateLevel)
+    assertEquals(1, actualBatchFileUpdateCount)
 
     if (failed) {
       syncState.syncFailed("Test")
@@ -379,61 +362,21 @@ class IndexingSuspenderTest : IdeaTestCase() {
       syncState.syncEnded()
     }
     assertEquals(0, currentBatchUpdateLevel)
-    dumbService.waitForSmartMode()
-    assertFalse(dumbService.isDumb)
+    assertEquals(0, currentBatchFileUpdateLevel)
   }
 
   private fun doTestGradleBuildWhen(buildStatus: BuildStatus) {
-    setUpIndexingSpecificExpectations(dumbModeCount = 0, batchUpdateCount = 1)
+    setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
 
-    val dumbService = DumbService.getInstance(project)
     val buildContext = mock(BuildContext::class.java)
     val buildState = GradleBuildState.getInstance(project)
     buildState.buildStarted(buildContext)
 
-    assertFalse(dumbService.isDumb)
-    assertEquals(1, actualBatchUpdateCount)
+    assertEquals(1, currentBatchUpdateLevel)
+    assertEquals(1, actualBatchFileUpdateCount)
 
     buildState.buildFinished(buildStatus)
     assertEquals(0, currentBatchUpdateLevel)
-    dumbService.waitForSmartMode()
-    assertFalse(dumbService.isDumb)
-  }
-
-  /**
-   * This class serves as a mock for project's DumbService in the context of IndexingSuspender tests. We need a mock because
-   * the default DumbServiceImpl executes the task being queued right away, directly on the event dispatch thread. This would
-   * not work for IndexingSuspenderTask because it invokes wait() in an expectation to be notified later when the sentinel
-   * dumb mode is supposed to finish (e.g., on gradle sync completion). Therefore, running these tests without a specially
-   * adjusted DumbService mock would lead to a dead-lock, and this class solves this problem by asserting the type of task being
-   * queued and executing it on a separate thread.
-   *
-   * @see IndexingSuspender.startSentinelDumbModeIfNeeded
-   */
-  private class ThreadingAwareDumbService(project: Project) : MockDumbService(project) {
-    var actualDumbModeCount = 0
-      private set
-
-    private var dumbModeFuture: Future<*>? = null
-
-    override fun isDumb() = dumbModeFuture != null && dumbModeFuture?.isDone != true && dumbModeFuture?.isCancelled != true
-
-    override fun queueTask(dumbModeTask: DumbModeTask) {
-      assertFalse("IndexingSuspender must not attempt to queue its dumb mode task while one is already running", isDumb)
-      UsefulTestCase.assertInstanceOf(dumbModeTask, IndexingSuspender.IndexingSuspenderTask::class.java)
-
-      dumbModeFuture = ApplicationManager.getApplication().executeOnPooledThread{
-        actualDumbModeCount += 1
-        dumbModeTask.performInDumbMode(EmptyProgressIndicator())
-      }
-    }
-
-    override fun waitForSmartMode() {
-      // The future is expected to return sooner than the entire timeout, since the IndexingSuspenderTask's wait condition must be updated
-      // before calling this method.
-      // Division by 2 ensures that the join timeout is significantly less than the wait timeout, and this, in turn,
-      // helps to make sure that we actually quit the wait loop on notify() rather than by timeout
-      dumbModeFuture?.get((IndexingSuspender.INDEXING_WAIT_TIMEOUT_MILLIS/2).toLong(), TimeUnit.MILLISECONDS)
-    }
+    assertEquals(0, currentBatchFileUpdateLevel)
   }
 }

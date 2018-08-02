@@ -20,7 +20,9 @@ import com.android.tools.idea.common.util.NlTreeDumper
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.fileEditor.FileDocumentManager
 
 /**
  * Tests for [NlModel] as used in the navigation editor
@@ -53,5 +55,23 @@ class NavNlModelTest : NavTestCase() {
         "    NlComponent{tag=<fragment>, instance=2}\n" +
         "    NlComponent{tag=<action>, instance=3}",
         treeDumper.toTree(model.components))
+  }
+
+  fun testDeleteChild() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action("a1", destination = "f2")
+        }
+        fragment("f2")
+      }
+    }
+
+    model.delete(listOf(model.find("a1")))
+    FileDocumentManager.getInstance().saveAllDocuments()
+    val result = String(model.virtualFile.contentsToByteArray())
+    // ensure that we end up with a self-closing tag
+    Truth.assertThat(result.replace("\n *".toRegex(), "\n")).contains("<fragment\n" +
+                                                                      "android:id=\"@+id/f1\"/>\n")
   }
 }

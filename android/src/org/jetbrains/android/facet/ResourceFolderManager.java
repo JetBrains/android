@@ -16,6 +16,7 @@
 package org.jetbrains.android.facet;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
@@ -241,6 +242,12 @@ public class ResourceFolderManager extends AndroidFacetScopedService implements 
           final LibraryOrSdkOrderEntry entry = (LibraryOrSdkOrderEntry)orderEntry;
           final VirtualFile[] roots = entry.getRootFiles(OrderRootType.CLASSES);
           String libraryName = entry.getPresentableName();
+          // We may end up here if there's no model (yet?) but this is project created by Gradle Sync. In this case recover the artifact
+          // address from the library name by stripping the Gradle prefix.
+          if (libraryName.startsWith(LibraryDependency.NAME_PREFIX)) {
+            libraryName = libraryName.substring(LibraryDependency.NAME_PREFIX.length());
+          }
+
           File res = null;
           for (VirtualFile root : roots) {
             if (root.getName().equals(FD_RES)) {

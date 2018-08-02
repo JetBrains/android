@@ -121,6 +121,8 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
 
   override fun mouseDown(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
     super.mouseDown(x, y)
+    component.scene.filterType = getPreferredFilterType()
+
     if (isParent) {
       return
     }

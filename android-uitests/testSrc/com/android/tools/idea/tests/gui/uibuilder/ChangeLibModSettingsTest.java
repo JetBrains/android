@@ -54,7 +54,7 @@ public class ChangeLibModSettingsTest {
    *   1. Module setting is updated.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void changeLibraryModuleSettings() throws Exception {
     new NewProjectDescriptor("MyTestApp").withMinSdk("24").create(guiTest)

@@ -55,7 +55,7 @@ import static org.junit.Assert.*;
 public class RenderTestUtil {
   public static final String DEFAULT_DEVICE_ID = "Nexus 4";
   public static final String HOLO_THEME = "@android:style/Theme.Holo";
-  private static final float MAX_PERCENT_DIFFERENT = 5.0f;
+  private static final float MAX_PERCENT_DIFFERENT = 1.0f;
 
   /**
    * Method to be called before every render test case. If you are using JUnit 4, use the {@link RenderTest} instead.

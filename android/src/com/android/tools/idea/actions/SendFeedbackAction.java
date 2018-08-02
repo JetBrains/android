@@ -77,6 +77,10 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
   }
 
   public static void launchBrowser(@Nullable Project project) {
+    launchBrowser(project, "");
+  }
+
+  public static void launchBrowser(@Nullable Project project, @Nullable String extraDescriptionDetails) {
     final ApplicationInfoEx appInfo = ApplicationInfoEx.getInstanceEx();
     boolean eap = appInfo.isEAP();
     String urlTemplate = eap ? appInfo.getEAPFeedbackUrl() : appInfo.getReleaseFeedbackUrl();
@@ -85,7 +89,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       .replace("$TIMEZONE", System.getProperty("user.timezone"))
       .replace("$VERSION", appInfo.getFullVersion())
       .replace("$EVAL", "false") // always false for Android Studio
-      .replace("$DESCR", getDescription(project));
+      .replace("$DESCR", getDescription(project) + extraDescriptionDetails);
     BrowserUtil.browse(urlTemplate, project);
   }
 

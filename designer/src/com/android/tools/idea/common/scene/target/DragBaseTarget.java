@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.common.scene.target;
 
-import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
-import com.intellij.openapi.util.text.StringUtil;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
@@ -61,9 +60,14 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
   //region Layout
   /////////////////////////////////////////////////////////////////////////////
 
+
+  @Nullable
   @Override
-  public boolean canChangeSelection() {
-    return true;
+  public List<SceneComponent> newSelection() {
+    if (hasChangedComponent()) {
+      return ImmutableList.of(getComponent());
+    }
+    return null;
   }
 
   @Override

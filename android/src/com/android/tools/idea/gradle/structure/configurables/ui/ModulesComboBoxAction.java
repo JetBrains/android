@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
+import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
@@ -25,18 +26,18 @@ import com.intellij.openapi.project.DumbAwareAction;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.List;
 
 import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 
 public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @NotNull private final PsContext myContext;
-  @NotNull private final List<PsModule> myExtraModules;
+  @NotNull private final BasePerspectiveConfigurable myBasePerspective;
 
-  public ModulesComboBoxAction(@NotNull PsContext context, @NotNull List<PsModule> extraModules) {
+  public ModulesComboBoxAction(@NotNull PsContext context,
+                               @NotNull BasePerspectiveConfigurable basePerspective) {
     super("Module: ");
     myContext = context;
-    myExtraModules = extraModules;
+    myBasePerspective = basePerspective;
   }
 
   @Override
@@ -51,7 +52,7 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   protected DefaultActionGroup createPopupActionGroup(JComponent button) {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    for (PsModule module : myExtraModules) {
+    for (PsModule module : myBasePerspective.getExtraModules()) {
       group.add(new ModuleAction(module));
     }
 
@@ -69,7 +70,7 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      myContext.setSelectedModule(myModuleName, this);
+      myBasePerspective.selectModule(myModuleName);
     }
   }
 }

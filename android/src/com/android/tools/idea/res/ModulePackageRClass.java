@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.SdkConstants;
+import com.android.builder.model.AaptOptions;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -24,8 +26,10 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.augment.ModuleResourceTypeClass;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,14 +40,27 @@ public class ModulePackageRClass extends AndroidPackageRClassBase {
   private static final Logger LOG = Logger.getInstance(ModulePackageRClass.class);
 
   @NotNull private final Module myModule;
+  @NotNull private final AaptOptions.Namespacing myNamespacing;
 
-  public ModulePackageRClass(
-      @NotNull PsiManager psiManager, @NotNull String packageName, @NotNull Module module) {
-    super(psiManager, packageName);
+  public ModulePackageRClass(@NotNull PsiManager psiManager, @NotNull Module module, @NotNull AaptOptions.Namespacing namespacing) {
+    // TODO(b/110188226): Update the file package name when the module's package name changes.
+    super(psiManager, getPackageName(module));
     myModule = module;
+    myNamespacing = namespacing;
     this.putUserData(ModuleUtilCore.KEY_MODULE, module);
     // Some scenarios move up to the file level and then attempt to get the module from the file.
     myFile.putUserData(ModuleUtilCore.KEY_MODULE, module);
+  }
+
+  /** Helper static method that can be called to compute the value to be passed to the super constructor. */
+  @Nullable
+  private static String getPackageName(@NotNull Module module) {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet == null) {
+      return null;
+    }
+
+    return AndroidManifestUtils.getPackageName(androidFacet);
   }
 
   @NotNull
@@ -51,6 +68,7 @@ public class ModulePackageRClass extends AndroidPackageRClassBase {
     return myModule;
   }
 
+  @NotNull
   @Override
   protected PsiClass[] doGetInnerClasses() {
     if (DumbService.isDumb(getProject())) {
@@ -70,10 +88,31 @@ public class ModulePackageRClass extends AndroidPackageRClassBase {
 
     for (ResourceType type : types) {
       if (type.getHasInnerClass()) {
-        result.add(new ModuleResourceTypeClass(facet, type, this));
+        result.add(new ModuleResourceTypeClass(facet, myNamespacing, type, this));
       }
     }
     LOG.debug("R_CLASS_AUGMENT: " + result.size() + " classes added");
     return result.toArray(PsiClass.EMPTY_ARRAY);
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * For {@link ModulePackageRClass} this is the package name specified in the module's manifest.
+   */
+  @Nullable
+  @Override
+  public String getQualifiedName() {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(myModule);
+    if (androidFacet == null) {
+      return null;
+    }
+
+    String packageName = AndroidManifestUtils.getPackageName(androidFacet);
+    if (packageName == null) {
+      return null;
+    }
+
+    return packageName + "." + SdkConstants.R_CLASS;
   }
 }

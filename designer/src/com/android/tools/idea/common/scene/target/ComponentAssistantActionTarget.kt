@@ -21,9 +21,16 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.uibuilder.graphics.NlIcon
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory
 import com.intellij.openapi.ui.popup.Balloon
+import com.intellij.openapi.wm.IdeFocusManager
 import icons.StudioIcons
 import java.awt.Point
+import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
+import javax.swing.AbstractAction
 import javax.swing.JComponent
+import javax.swing.KeyStroke
+
+private const val ACTION_HIDE = "actionHide"
 
 /**
  * An [ActionTarget] that displays a popup displaying a [JComponent]
@@ -50,6 +57,8 @@ class ComponentAssistantActionTarget(
       name = "Component Assistant" // For UI tests
     }
 
+    setupActionInputMap(component)
+
     onClose = { cancelled ->
       onClose = {} // One-off trigger. Disable the callback
       assistantContext.onClose(cancelled)
@@ -63,6 +72,21 @@ class ComponentAssistantActionTarget(
       val location = Point(context.getSwingXDip(centerX), context.getSwingYDip(myTop))
       popup.show(component, parentComponent, location, position = Balloon.Position.above)
     }
+
+    IdeFocusManager.getGlobalInstance().requestFocus(component, true)
+  }
+
+  /**
+   * Add an action to the action map so that the popup is hidden when the user presses escape.
+   */
+  private fun setupActionInputMap(component: JComponent) {
+    component.actionMap.put(ACTION_HIDE, object : AbstractAction() {
+      override fun actionPerformed(e: ActionEvent?) {
+        fireCancelEvent()
+        popup.cancel()
+      }
+    })
+    component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), ACTION_HIDE)
   }
 
   private fun fireCloseEvent() {

@@ -3,6 +3,7 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -361,6 +362,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     facet.getConfiguration().setModel(TestAndroidModel.namespaced(facet));
     runWriteCommandAction(getProject(), () -> facet.getManifest().getPackage().setValue(appPackageName));
     LocalResourceManager.getInstance(facet.getModule()).invalidateAttributeDefinitions();
+
+    StudioFlags.IN_MEMORY_R_CLASSES.override(true);
+    Disposer.register(getProject(), () -> StudioFlags.IN_MEMORY_R_CLASSES.clearOverride());
   }
 
   protected final void createProjectProperties() throws IOException {

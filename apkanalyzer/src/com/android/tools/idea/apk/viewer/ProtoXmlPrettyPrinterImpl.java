@@ -18,7 +18,6 @@ package com.android.tools.idea.apk.viewer;
 import com.android.aapt.Resources;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.utils.XmlUtils;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

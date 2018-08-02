@@ -85,7 +85,7 @@ public class ProjectStructure {
     ModuleFinder moduleFinder = new ModuleFinder(myProject);
 
     JobLauncher jobLauncher = JobLauncher.getInstance();
-    jobLauncher.invokeConcurrentlyUnderProgress(modules, progressIndicator, true /* fail fast */, module -> {
+    jobLauncher.invokeConcurrentlyUnderProgress(modules, progressIndicator, module -> {
       GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet != null) {
         String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;

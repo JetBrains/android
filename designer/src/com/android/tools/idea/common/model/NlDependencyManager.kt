@@ -17,12 +17,12 @@ package com.android.tools.idea.common.model
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
-import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.util.addDependencies
 import com.android.tools.idea.util.dependsOn
+import com.android.tools.idea.util.userWantsToAdd
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ex.ApplicationManagerEx
-import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -31,13 +31,10 @@ import org.jetbrains.android.facet.AndroidFacet
  * This class acts as an abstraction layer between Layout Editor component and the build system to manage
  * dependencies required by the provided [NlComponent]
  */
-class NlDependencyManager private constructor(private val dependencyManager: DependencyManager) {
+class NlDependencyManager {
 
   companion object {
-    @JvmOverloads
-    fun get(dependencyManager: DependencyManager = GradleManager()) = NlDependencyManager(
-        dependencyManager
-    )
+    fun get() = NlDependencyManager()
   }
 
   /**
@@ -49,12 +46,25 @@ class NlDependencyManager private constructor(private val dependencyManager: Dep
   fun addDependencies(components: Iterable<NlComponent>,
                       facet: AndroidFacet,
                       syncDoneCallback: (() -> Unit)? = null): Boolean {
-    val dependencies = collectDependencies(components)
-    if (dependencies.none() || dependencyManager.findMissingDependencies(facet.module, dependencies).none()) {
+    val moduleSystem = facet.module.getModuleSystem()
+    val missingDependencies = collectDependencies(components).filter { moduleSystem.getRegisteredDependency(it) == null }
+    if (missingDependencies.isEmpty()) {
       syncDoneCallback?.invoke()
       return true
     }
-    return dependencyManager.addDependencies(facet.module, dependencies, syncDoneCallback)
+
+    if (facet.module.addDependencies(missingDependencies, false, false).isNotEmpty()) {
+      return false
+    }
+
+    val syncResult: ListenableFuture<ProjectSystemSyncManager.SyncResult> =
+      facet.module.project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true)
+
+    if (syncDoneCallback != null) {
+      syncResult.addCallback(success = { _ -> syncDoneCallback() }, failure = { _ -> syncDoneCallback() })
+    }
+
+    return true
   }
 
   /**
@@ -77,8 +87,8 @@ class NlDependencyManager private constructor(private val dependencyManager: Dep
    */
   fun checkIfUserWantsToAddDependencies(toAdd: List<NlComponent>, facet: AndroidFacet): Boolean {
     val dependencies = collectDependencies(toAdd)
-    val module = facet.module
-    val missing = dependencyManager.findMissingDependencies(module, dependencies)
+    val moduleSystem = facet.module.getModuleSystem()
+    val missing = dependencies.filter { moduleSystem.getRegisteredDependency(it) == null }
     if (missing.none()) {
       return true
     }
@@ -91,7 +101,8 @@ class NlDependencyManager private constructor(private val dependencyManager: Dep
       }
       return true
     }
-    return dependencyManager.dependenciesAccepted(module, dependencies)
+
+    return userWantsToAdd(facet.module.project, missing)
   }
 
   /**
@@ -103,30 +114,5 @@ class NlDependencyManager private constructor(private val dependencyManager: Dep
         .flatMap { it.dependencies}
         .mapNotNull { artifact -> GradleCoordinate.parseCoordinateString(artifact + ":+") }
         .toList()
-  }
-
-  /**
-   * Abstraction for call to the build system related code for testability.
-   *
-   * This won't be needed once the OneStudio abstraction is in place
-   */
-  interface DependencyManager {
-    fun dependenciesAccepted(module: Module, missingDependencies: Iterable<GradleCoordinate>): Boolean
-    fun findMissingDependencies(module: Module, dependencies: Iterable<GradleCoordinate>): Iterable<GradleCoordinate>
-    fun addDependencies(module: Module, dependencies: Iterable<GradleCoordinate>, syncDoneCallback: (() -> Unit)?): Boolean
-  }
-
-  private class GradleManager : DependencyManager {
-    override fun dependenciesAccepted(module: Module, missingDependencies: Iterable<GradleCoordinate>): Boolean {
-      return GradleDependencyManager.getInstance(module.project).userWantToAddDependencies(module, missingDependencies.toList())
-    }
-
-    override fun findMissingDependencies(module: Module, dependencies: Iterable<GradleCoordinate>): Iterable<GradleCoordinate> {
-      return GradleDependencyManager.getInstance(module.project).findMissingDependencies(module, dependencies)
-    }
-
-    override fun addDependencies(module: Module, dependencies: Iterable<GradleCoordinate>, syncDoneCallback: (() -> Unit)?): Boolean {
-      return GradleDependencyManager.getInstance(module.project).addDependenciesAndSync(module, dependencies, syncDoneCallback)
-    }
   }
 }

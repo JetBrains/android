@@ -360,11 +360,13 @@ public final class SelectionComponent extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
-    if (myModel.getSelectionRange().isEmpty()) {
+    // Draws if the selection range is fully visible or partially visible; and hide if it is empty or not visible.
+    Range selectionRange = myModel.getSelectionRange();
+    if (selectionRange.isEmpty() || selectionRange.getMin() > myViewRange.getMax() || selectionRange.getMax() < myViewRange.getMin()) {
       return;
     }
-    float startXPos = rangeToX(myModel.getSelectionRange().getMin(), dim);
-    float endXPos = rangeToX(myModel.getSelectionRange().getMax(), dim);
+    float startXPos = rangeToX(selectionRange.getMin(), dim);
+    float endXPos = rangeToX(selectionRange.getMax(), dim);
 
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     g.setColor(DEFAULT_SELECTION_COLOR);

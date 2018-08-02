@@ -30,10 +30,11 @@ import javax.swing.JComponent
  */
 abstract class ChildModelConfigurable<T : PsChildModel, out PanelT>(
   val model: T
-) : NamedConfigurable<T>(), Place.Navigator
+) : NamedConfigurable<T>(), Place.Navigator, Disposable
   where PanelT : ComponentProvider,
         PanelT : Disposable {
   var myHistory: History? = null
+  var disposed = false
 
   private val lazyPanel = lazy(mode = LazyThreadSafetyMode.NONE) { createPanel().apply { setHistory(myHistory) } }
   private val panel by lazyPanel
@@ -42,7 +43,14 @@ abstract class ChildModelConfigurable<T : PsChildModel, out PanelT>(
 
   final override fun createOptionsPanel(): JComponent = panel.getComponent()
 
+  override fun dispose() {
+    disposeUIResources()
+  }
+
   override fun disposeUIResources() {
+    // DisposedUIResources is also directly invoked by MasterDetailsComponent.
+    if (disposed) return
+    disposed = true
     super.disposeUIResources()
     if (lazyPanel.isInitialized()) {
       Disposer.dispose(panel)

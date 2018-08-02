@@ -134,7 +134,7 @@ public final class EnergyEventsView {
     TableUtils.setTableHeaderBorder(myEventsTable, ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
 
     myEventsTable.getEmptyText().setText("No system events for the selected range or filter.");
-    myEventsTable.getEmptyText().getComponent().setFont(H2_FONT);
+    myEventsTable.getEmptyText().setShowAboveCenter(false).setFont(H2_FONT);
 
     myEventsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myEventsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);

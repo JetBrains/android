@@ -16,8 +16,10 @@
 package com.android.tools.idea.res
 
 import com.android.SdkConstants
+import com.android.tools.idea.util.androidFacet
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.components.ServiceManager
-import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiClass
@@ -25,10 +27,12 @@ import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.util.containers.isNullOrEmpty
 import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidUtils
 
 /**
  * [PsiElementFinder] that provides light Manifest classes.
@@ -37,8 +41,8 @@ import org.jetbrains.android.facet.AndroidFacet
  * the project system to decide whether to use this logic (see [ProjectSystemPsiElementFinder]).
  */
 class AndroidManifestClassPsiElementFinder(
-  private val moduleManager: ModuleManager,
   private val psiManager: PsiManager,
+  private val projectFacetManager: ProjectFacetManager,
   private val androidLightPackagesCache: AndroidLightPackage.InstanceCache
 ) : PsiElementFinder() {
 
@@ -69,25 +73,21 @@ class AndroidManifestClassPsiElementFinder(
     }
     val packageName = qualifiedName.dropLast(SUFFIX.length)
 
-    return findAllAndroidFacets().mapNotNull { facet ->
-      if (AndroidManifestUtils.getPackageName(facet) == packageName &&
-          scope.isSearchInModuleContent(facet.module) &&
-          facet.hasManifestClass()) {
-        val cached = facet.getUserData(MODULE_MANIFEST_CLASS)
-        if (cached?.qualifiedName == qualifiedName) {
-          cached
-        }
-        else {
-          facet.putUserDataIfAbsent(MODULE_MANIFEST_CLASS, ManifestClass(packageName, facet, psiManager))
-        }
-      } else {
-        null
-      }
+    return findAndroidFacetsWithPackageName(packageName).mapNotNull { facet ->
+      getManifestClassForFacet(facet)?.takeIf { PsiSearchScopeUtil.isInScope(scope, it) }
     }.toTypedArray()
   }
 
+  private fun getManifestClassForFacet(facet: AndroidFacet): PsiClass? {
+    return if (facet.hasManifestClass()) {
+      facet.getUserData(MODULE_MANIFEST_CLASS) ?: facet.putUserDataIfAbsent(MODULE_MANIFEST_CLASS, ManifestClass(facet, psiManager))
+    } else {
+      null
+    }
+  }
+
   override fun findPackage(qualifiedName: String): PsiPackage? {
-    return if (findAllAndroidFacets().any { AndroidManifestUtils.getPackageName(it) == qualifiedName }) {
+    return if (findAndroidFacetsWithPackageName(qualifiedName).isNotEmpty()) {
       androidLightPackagesCache.get(qualifiedName)
     }
     else {
@@ -95,9 +95,21 @@ class AndroidManifestClassPsiElementFinder(
     }
   }
 
-  private fun findAllAndroidFacets(): List<AndroidFacet> {
+  fun getManifestClassesAccessibleFromModule(module: Module): Collection<PsiClass> {
+    val androidFacet = module.androidFacet ?: return emptySet()
+
+    val result = mutableListOf<PsiClass>()
+    getManifestClassForFacet(androidFacet)?.let(result::add)
+    for (dependency in AndroidUtils.getAllAndroidDependencies(module, false)) {
+      getManifestClassForFacet(dependency)?.let(result::add)
+    }
+
+    return result
+  }
+
+  private fun findAndroidFacetsWithPackageName(packageName: String): List<AndroidFacet> {
     // TODO(b/77801019): cache this and figure out how to invalidate that cache.
-    return moduleManager.modules.mapNotNull(AndroidFacet::getInstance)
+    return projectFacetManager.getFacets(AndroidFacet.ID).filter { AndroidManifestUtils.getPackageName(it) == packageName }
   }
 
   private fun AndroidFacet.hasManifestClass(): Boolean {

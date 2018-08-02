@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 /**
  * A data series of all energy events in a time range.
  */
-final class EnergyEventsDataSeries implements DataSeries<EnergyEvent> {
+public final class EnergyEventsDataSeries implements DataSeries<EnergyEvent> {
 
   @NotNull private final ProfilerClient myClient;
   @NotNull private final Common.Session mySession;

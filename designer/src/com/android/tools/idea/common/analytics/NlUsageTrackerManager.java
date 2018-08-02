@@ -114,7 +114,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
   public static NlUsageTracker getInstance(@Nullable DesignSurface surface) {
     // If we are in unit testing mode, do not allow creating new NlUsageTrackerManager instances.
     // Test instances should be used.
-    return AnalyticsSettings.getInstance(new NullLogger()).getOptedIn()
+    return AnalyticsSettings.getOptedIn()
            ? getInstanceInner(surface, !ApplicationManager.getApplication().isUnitTestMode())
            : NOP_TRACKER;
   }

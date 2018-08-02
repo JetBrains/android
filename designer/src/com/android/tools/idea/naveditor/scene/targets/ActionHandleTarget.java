@@ -24,12 +24,12 @@ import com.android.tools.idea.common.scene.draw.DrawFilledCircle;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
-import com.android.tools.idea.naveditor.scene.NavDrawHelperKt;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,9 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.List;
 
-import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_BACKGROUND_LEVEL;
-import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_LEVEL;
-import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.ACTION_HANDLE_OFFSET;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.*;
 
 /**
  * {@linkplain ActionHandleTarget} is a target for handling drag-creation of actions.
@@ -54,8 +52,8 @@ public class ActionHandleTarget extends NavBaseTarget {
 
   private enum HandleState {
     INVISIBLE(0, 0),
-    SMALL(NavDrawHelperKt.INNER_RADIUS_SMALL, NavDrawHelperKt.OUTER_RADIUS_SMALL),
-    LARGE(NavDrawHelperKt.INNER_RADIUS_LARGE, NavDrawHelperKt.OUTER_RADIUS_LARGE);
+    SMALL(INNER_RADIUS_SMALL, OUTER_RADIUS_SMALL),
+    LARGE(INNER_RADIUS_LARGE, OUTER_RADIUS_LARGE);
 
     HandleState(@NavCoordinate int innerRadius, @NavCoordinate int outerRadius) {
       myInnerRadius = innerRadius;
@@ -99,17 +97,34 @@ public class ActionHandleTarget extends NavBaseTarget {
     scene.getDesignSurface().getSelectionModel().setSelection(ImmutableList.of(getComponent().getNlComponent()));
     myIsDragging = true;
     scene.needsRebuildList();
-    myComponent.getParent().getNlComponent().putClientProperty(DRAG_CREATE_IN_PROGRESS, true);
+    SceneComponent parent = myComponent.getParent();
+    assert parent != null;
+    parent.getNlComponent().putClientProperty(DRAG_CREATE_IN_PROGRESS, true);
     getComponent().setDragging(true);
     scene.repaint();
   }
 
   @Override
-  public void mouseRelease(@NavCoordinate int x, @NavCoordinate int y, @NotNull List<Target> closestTargets) {
+  public void mouseRelease(@NavCoordinate int x,
+                           @NavCoordinate int y,
+                           @NotNull List<Target> closestTargets) {
     myIsDragging = false;
-    myComponent.getScene().needsRebuildList();
-    myComponent.getParent().getNlComponent().removeClientProperty(DRAG_CREATE_IN_PROGRESS);
+    Scene scene = myComponent.getScene();
+    SceneComponent parent = myComponent.getParent();
+    assert parent != null;
+    parent.getNlComponent().removeClientProperty(DRAG_CREATE_IN_PROGRESS);
     getComponent().setDragging(false);
+    SceneComponent closestComponent =
+      scene.findComponent(SceneContext.get(getComponent().getScene().getSceneManager().getSceneView()), x, y);
+    if (closestComponent != null &&
+        closestComponent != getComponent().getScene().getRoot() &&
+        StringUtil.isNotEmpty(closestComponent.getId())) {
+      NlComponent action = createAction(closestComponent);
+      if (action != null) {
+        getComponent().getScene().getDesignSurface().getSelectionModel().setSelection(ImmutableList.of(action));
+      }
+    }
+    scene.needsRebuildList();
   }
 
   /* When true, this causes Scene.mouseRelease to change the selection to the associated SceneComponent.
@@ -150,7 +165,7 @@ public class ActionHandleTarget extends NavBaseTarget {
     @SwingCoordinate Point center = new Point(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext));
     @SwingCoordinate int initialRadius = sceneContext.getSwingDimension(myHandleState.myOuterRadius);
     @SwingCoordinate int finalRadius = sceneContext.getSwingDimension(newState.myOuterRadius);
-    int duration = Math.abs(DURATION * (finalRadius - initialRadius) / NavDrawHelperKt.OUTER_RADIUS_LARGE);
+    int duration = Math.abs(DURATION * (finalRadius - initialRadius) / OUTER_RADIUS_LARGE);
 
     ColorSet colorSet = sceneContext.getColorSet();
     list.add(new DrawFilledCircle(DRAW_ACTION_HANDLE_BACKGROUND_LEVEL, center, colorSet.getBackground(),
@@ -174,7 +189,7 @@ public class ActionHandleTarget extends NavBaseTarget {
   @Override
   public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
     picker.addCircle(this, 0, getSwingCenterX(transform), getSwingCenterY(transform),
-                     transform.getSwingDimension(NavDrawHelperKt.OUTER_RADIUS_LARGE));
+                     transform.getSwingDimension(OUTER_RADIUS_LARGE));
   }
 
   @Override

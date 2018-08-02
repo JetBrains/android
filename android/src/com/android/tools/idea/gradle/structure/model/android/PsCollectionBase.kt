@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.tools.idea.gradle.structure.model.ChangeDispatcher
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsModelCollection
-import java.util.function.Consumer
+import com.intellij.openapi.Disposable
 
 abstract class PsCollectionBase<TModel : PsModel, TKey, TParent: PsModel>(val parent: TParent) : PsModelCollection<TModel> {
+  private val changedDispatcher = ChangeDispatcher()
+
   protected abstract fun getKeys(from: TParent): Set<TKey>
   protected abstract fun create(key: TKey): TModel
   protected abstract fun update(key: TKey, model: TModel)
@@ -34,17 +37,20 @@ abstract class PsCollectionBase<TModel : PsModel, TKey, TParent: PsModel>(val pa
     entries.forEach { update(it.key, it.value) }
   }
 
-  override fun forEach(consumer: Consumer<TModel>) = entries.values.forEach(consumer)
-
   override fun forEach(consumer: (TModel) -> Unit) = entries.values.forEach(consumer)
 
-  override fun items(): Collection<TModel> = entries.values
+  override val items: Collection<TModel> get() = entries.values
 
   fun findElement(key: TKey): TModel? = entries[key]
 
   fun refresh() {
     entries = getKeys(parent).map { key -> key to (entries[key] ?: create(key)).also { update(key, it) } }.toMap()
+    notifyChanged()
   }
+
+  override fun onChange(disposable: Disposable, listener: () -> Unit) = changedDispatcher.add(disposable, listener)
+
+  protected fun notifyChanged() = changedDispatcher.changed()
 }
 
 abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel>(parent: TParent)
@@ -59,6 +65,7 @@ abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel
     val model = create(key).also { update(key, it) }
     entries += (key to model)
     parent.isModified = true
+    notifyChanged()
     return model
   }
 
@@ -67,6 +74,7 @@ abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel
     removeExisting(key)
     entries -= key
     parent.isModified = true
+    notifyChanged()
   }
 
   // TODO(b/111739005): support renames

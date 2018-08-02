@@ -13,10 +13,8 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.configurables.ui.buildvariants
 
+import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeModel
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.buildtypes.BuildTypesTreeModel
-import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.ProductFlavorsTreeModel
-
 import com.android.tools.idea.gradle.structure.configurables.ui.AbstractTabbedMainPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.buildtypes.BuildTypesPanel
@@ -27,13 +25,13 @@ const val BUILD_VARIANTS_PLACE_NAME: String = "android.psd.build_variants"
 class BuildVariantsPanel(
     context: PsContext,
     val module: PsAndroidModule,
-    buildTypesTreeModel: BuildTypesTreeModel,
-    productFlavorsTreeModel: ProductFlavorsTreeModel
+    buildTypesTreeModel: ConfigurablesTreeModel,
+    productFlavorsTreeModel: ConfigurablesTreeModel
 ) : AbstractTabbedMainPanel(
   context, placeName = BUILD_VARIANTS_PLACE_NAME
 ) {
-  private val buildTypesPanel = BuildTypesPanel(buildTypesTreeModel, context.uiSettings)
-  private val productFlavorsPanel = ProductFlavorsPanel(productFlavorsTreeModel, context.uiSettings)
+  private val buildTypesPanel = BuildTypesPanel(module, buildTypesTreeModel, context.uiSettings)
+  private val productFlavorsPanel = ProductFlavorsPanel(module, productFlavorsTreeModel, context.uiSettings)
 
   init {
     addTab(buildTypesPanel)

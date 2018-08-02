@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
@@ -31,6 +32,7 @@ import com.android.tools.idea.projectsystem.TestRepositories;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -137,6 +139,17 @@ public class ThemeResolverTest extends AndroidTestCase {
     assertNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V20OnlyTheme")));
     assertNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V19OnlyTheme")));
     assertNotNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V17OnlyTheme")));
+  }
+
+  /**
+   * Regression test for b/111857682. Checks that we can handle LocalResourceRepository.EmptyRepository as the module resources.
+   */
+  public void testEmptyModuleResources() throws IOException {
+    WriteAction.run(() -> myFixture.getTempDirFixture().getFile("res").delete(this));
+    Configuration configuration = Configuration.create(ConfigurationManager.getOrCreateInstance(myModule),
+                                                       null,
+                                                       FolderConfiguration.createDefault());
+    new ThemeResolver(configuration);
   }
 
   public void testRecommendedThemesNoDependencies() {

@@ -115,7 +115,7 @@ val NlComponent.includeFileName: String?
 
 val NlComponent.isStartDestination: Boolean
   get() {
-    val actualStart = parent?.startDestination
+    val actualStart = parent?.startDestinationId
     return actualStart != null && actualStart == id
   }
 
@@ -137,8 +137,11 @@ val NlComponent.isActivity: Boolean
 val NlComponent.isNavigation: Boolean
   get() = model.schema.isNavigationTag(tagName)
 
+val NlComponent.isOther: Boolean
+  get() = model.schema.isOtherTag(tagName)
+
 val NlComponent.isInclude: Boolean
-  get() = tagName == TAG_INCLUDE
+  get() = model.schema.isIncludeTag(tagName)
 
 val NlComponent.isSelfAction: Boolean
   get() = actionType == ActionType.SELF
@@ -189,7 +192,7 @@ var NlComponent.typeAttr: String? by StringAttributeDelegate(AUTO_URI, ATTR_TYPE
 var NlComponent.defaultValue: String? by StringAttributeDelegate(ANDROID_URI, ATTR_DEFAULT_VALUE)
 var NlComponent.nullable: Boolean by BooleanAutoAttributeDelegate(ATTR_NULLABLE)
 
-var NlComponent.startDestination: String? by IdAutoAttributeDelegate(ATTR_START_DESTINATION)
+var NlComponent.startDestinationId: String? by IdAutoAttributeDelegate(ATTR_START_DESTINATION)
 
 val NlComponent.actionDestination: NlComponent?
   get() {
@@ -204,6 +207,9 @@ val NlComponent.effectiveDestination: NlComponent?
     val targetId = effectiveDestinationId ?: return null
     return findVisibleDestination(targetId)
   }
+
+val NlComponent.startDestination: NlComponent?
+  get() = startDestinationId?.let { start -> children.find { it.id == start } }
 
 /**
  * [actionSetup] should include everything needed to set the default id (destination, popTo, and popToInclusive).
@@ -254,7 +260,7 @@ fun NlComponent.createReturnToSourceAction(): NlComponent {
 }
 
 fun NlComponent.setAsStartDestination() {
-  parent?.startDestination = id
+  parent?.startDestinationId = id
 }
 
 fun NlComponent.createNestedGraph(): NlComponent {
@@ -293,7 +299,7 @@ val NlComponent.idPath: List<String?>
   get() = parentSequence().asIterable().reversed().map {
     when {
       it.isRoot -> model.virtualFile.name
-      it.tagName == TAG_INCLUDE -> it.getAttribute(AUTO_URI, ATTR_GRAPH)?.substring(NAVIGATION_PREFIX.length)
+      it.isInclude -> it.getAttribute(AUTO_URI, ATTR_GRAPH)?.substring(NAVIGATION_PREFIX.length)
       else -> it.id
     }
   }
@@ -311,7 +317,7 @@ class NavComponentMixin(component: NlComponent)
   })
 
   override fun getAttribute(namespace: String?, attribute: String): String? {
-    if (component.tagName == TAG_INCLUDE) {
+    if (component.isInclude) {
       if (attribute == ATTR_GRAPH) {
         // To avoid recursion
         return null

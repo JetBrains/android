@@ -137,42 +137,44 @@ public class NewInstantAppTest {
       .getResults();
 
     verifyOnlyExpectedWarnings(inspectionResults,
-                               "    Android\n" +
-                               "        Lint\n" +
-                               "            Correctness\n" +
-                               "                Obsolete Gradle Dependency\n" +
-                               "                    build.gradle\n" +
-                               "                        A newer version of com.android.support.test.espresso:espresso-core than 3.0.1 is available: 3.0.2\n" +
-                               "                        A newer version of com.android.support.test:runner than 1.0.1 is available: 1.0.2\n" +
-                               "                        A newer version of com.android.support.constraint:constraint-layout than 1.0.2 is available: 1.1.0\n" +
-                               "                        A newer version of com.android.support:appcompat-v7 than 27.0.2 is available: 27.1.1\n" +
-                               "            Security\n" +
-                               "                AllowBackup/FullBackupContent Problems\n" +
-                               "                    AndroidManifest.xml\n" +
-                               "                        On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: <a href=\"https://developer.android.com/training/backup/autosyncapi.html\">https://developer.android.com/training/backup/autosyncapi.html</a>\n" +
-                               "            Usability\n" +
-                               "                Missing support for Firebase App Indexing\n" +
-                               "                    AndroidManifest.xml\n" +
-                               "                        App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details.\n" +
-                               "    Java\n" +
-                               "        Declaration redundancy\n" +
-                               "            Redundant throws clause\n" +
-                               "                ExampleInstrumentedTest\n" +
-                               "                ExampleUnitTest\n" +
-                               "                    The declared exception 'Exception' is never thrown\n" +
-                               "            Unnecessary module dependency\n" +
-                               "                app\n" +
-                               "                    Module 'app' sources do not depend on module 'base' sources\n" +
-                               "                    Module 'app' sources do not depend on module 'feature' sources\n" +
-                               "                feature\n" +
-                               "                    Module 'feature' sources do not depend on module 'base' sources\n" +
-                               "    XML\n" +
-                               "        Unused XML schema declaration\n" +
-                               "            AndroidManifest.xml\n" +
-                               "                Namespace declaration is never used\n" +
-                               "        XML tag empty body\n" +
-                               "            strings.xml\n" +
-                               "                XML tag has empty body\n"
+                               "Project '.*testNoWarningsInDefaultNewInstantAppProjects/Warning' Warning",
+                               "    Android",
+                               "        Lint",
+                               "            Correctness",
+                               "                Obsolete Gradle Dependency",
+                               "                    build.gradle",
+                               "                        A newer version of .*",
+                               "            Performance",
+                               "                Unused resources",
+                               "                    mobile_navigation.xml",
+                               "                        The resource 'R.navigation.mobile_navigation' appears to be unused",
+                               "            Security",
+                               "                AllowBackup/FullBackupContent Problems",
+                               "                    AndroidManifest.xml",
+                               "                        On SDK version 23 and up, your app data will be automatically backed up and .*",
+                               "            Usability",
+                               "                Missing support for Firebase App Indexing",
+                               "                    AndroidManifest.xml",
+                               "                        App is not indexable by Google Search; consider adding at least one Activity .*",
+                               "    Java",
+                               "        Declaration redundancy",
+                               "            Redundant throws clause",
+                               "                ExampleInstrumentedTest",
+                               "                ExampleUnitTest",
+                               "                    The declared exception 'Exception' is never thrown",
+                               "            Unnecessary module dependency",
+                               "                app",
+                               "                    Module 'app' sources do not depend on module 'base' sources",
+                               "                    Module 'app' sources do not depend on module 'feature' sources",
+                               "                feature",
+                               "                    Module 'feature' sources do not depend on module 'base' sources",
+                               "    XML",
+                               "        Unused XML schema declaration",
+                               "            AndroidManifest.xml",
+                               "                Namespace declaration is never used",
+                               "        XML tag empty body",
+                               "            strings.xml",
+                               "                XML tag has empty body"
     );
   }
 
@@ -331,12 +333,19 @@ public class NewInstantAppTest {
   // With warnings coming from multiple projects the order of warnings is not deterministic, also there are some warnings that show up only
   // on local machines. This method allows us to check that the warnings in the actual result are a sub-set of the expected warnings.
   // This is not a perfect solution, but this state where we have multiple warnings on a new project should only be temporary
-  private static void verifyOnlyExpectedWarnings(@NotNull String actualResults, @NotNull String acceptedWarnings) {
-    ArrayList<String> lines = new ArrayList<>(Arrays.asList(actualResults.split("\n")));
+  public static void verifyOnlyExpectedWarnings(@NotNull String actualResults, @NotNull String... acceptedWarnings) {
+    ArrayList<String> actualResultLines = new ArrayList<>();
 
-    // Ignore the first line of the error report
-    for (String line : lines.subList(1, lines.size())) {
-      assertThat(acceptedWarnings.split("\n")).asList().contains(line);
+    outLoop:
+    for (String resultLine : actualResults.split("\n")) {
+      for (String acceptedWarning : acceptedWarnings) {
+        if (resultLine.matches(acceptedWarning)) {
+          continue outLoop;
+        }
+      }
+      actualResultLines.add(resultLine);
     }
+
+    assertThat(actualResultLines).isEmpty();
   }
 }

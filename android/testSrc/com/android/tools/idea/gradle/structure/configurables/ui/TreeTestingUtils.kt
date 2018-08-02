@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
 import com.intellij.util.containers.nullize
+import javax.swing.tree.TreeNode
 
 internal data class TestTree(val text: String, val children: List<TestTree>?) {
   override fun toString(): String =
@@ -29,4 +30,8 @@ internal fun AbstractPsNode.testStructure(filter: (AbstractPsNode) -> Boolean = 
     name ?: "(null)"
   },
            children.mapNotNull { it as? AbstractPsNode }.filter { filter(it) }.map { it.testStructure(filter) })
+
+internal fun TreeNode.testStructure(filter: (TreeNode) -> Boolean = { true }): TestTree =
+  TestTree(
+    toString(), children().asSequence().mapNotNull { it as? TreeNode }.filter { filter(it) }.map { it.testStructure(filter) }.toList())
 

@@ -79,8 +79,8 @@ public class StringResourceRepository {
   }
 
   @NotNull
-  public static StringResourceRepository create() {
-    return new StringResourceRepository(new EmptyRepository());
+  public static StringResourceRepository empty() {
+    return new StringResourceRepository(new EmptyRepository(ResourceNamespace.RES_AUTO));
   }
 
   @NotNull

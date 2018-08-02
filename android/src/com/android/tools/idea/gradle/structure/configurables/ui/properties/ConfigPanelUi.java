@@ -30,7 +30,7 @@ public class ConfigPanelUi {
   private JPanel myPanel;
   private JPanel myComponentPanel;
 
-  public final JComponent getComponent() {
+  public final JComponent getUiComponent() {
     return myComponentPanel;
   }
 

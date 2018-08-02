@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res
 
-import com.android.utils.concurrency.CacheUtils
+import com.android.utils.concurrency.getAndUnwrap
 import com.google.common.base.MoreObjects
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
@@ -75,6 +75,6 @@ class AndroidLightPackage private constructor(
      */
     private val packageCache: Cache<String, PsiPackage> = CacheBuilder.newBuilder().softValues().build()
 
-    fun get(name: String): PsiPackage = CacheUtils.getAndUnwrap(packageCache, name) { AndroidLightPackage(psiManager, name) }
+    fun get(name: String): PsiPackage = packageCache.getAndUnwrap(name) { AndroidLightPackage(psiManager, name) }
   }
 }

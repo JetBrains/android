@@ -78,7 +78,7 @@ public class ThemeEditorTest {
    *   and that they need to create a new theme with the selected background color.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void themeEditor() throws Exception {
     guiTest.importSimpleLocalApplication();

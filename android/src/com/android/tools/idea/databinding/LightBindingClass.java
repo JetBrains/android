@@ -22,22 +22,16 @@ import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;
-import com.intellij.lang.java.JavaParserDefinition;
-import com.intellij.lexer.Lexer;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.light.LightField;
-import com.intellij.psi.impl.light.LightIdentifier;
-import com.intellij.psi.impl.light.LightMethod;
+import com.intellij.psi.impl.light.*;
 import com.intellij.psi.scope.ElementClassHint;
 import com.intellij.psi.scope.NameHint;
 import com.intellij.psi.scope.PsiScopeProcessor;
-import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiUtil;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
@@ -45,7 +39,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -58,17 +51,15 @@ public class LightBindingClass extends AndroidLightClassBase {
   private DataBindingInfo myInfo;
   private CachedValue<PsiMethod[]> myPsiMethodsCache;
   private CachedValue<PsiField[]> myPsiFieldsCache;
-  private CachedValue<Map<String, String>> myAliasCache;
 
   private PsiReferenceList myExtendsList;
   private PsiClassType[] myExtendsListTypes;
   private final AndroidFacet myFacet;
-  private static Lexer ourJavaLexer;
   private PsiFile myVirtualPsiFile;
   private final DataBindingMode myMode;
   private final Object myLock = new Object();
 
-  protected LightBindingClass(final AndroidFacet facet, @NotNull PsiManager psiManager, DataBindingInfo info) {
+  protected LightBindingClass(AndroidFacet facet, @NotNull PsiManager psiManager, DataBindingInfo info) {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
     myInfo = info;
     myFacet = facet;
@@ -77,49 +68,30 @@ public class LightBindingClass extends AndroidLightClassBase {
     myMode = ModuleDataBinding.getInstance(facet).getDataBindingMode();
 
     CachedValuesManager cachedValuesManager = CachedValuesManager.getManager(info.getProject());
-    myAliasCache =
-      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<Map<String, String>>(facet, myLock) {
-        @Override
-        Map<String, String> doCompute() {
-          Map<String, String> result = new HashMap<>();
-          for (PsiDataBindingResourceItem imp : myInfo.getItems(DataBindingResourceType.IMPORT)) {
-            String alias = imp.getExtra(SdkConstants.ATTR_ALIAS);
-            if (alias != null) {
-              result.put(alias, imp.getExtra(SdkConstants.ATTR_TYPE));
-            }
-          }
-          return result;
-        }
-
-        @Override
-        Map<String, String> defaultValue() {
-          return new HashMap<>();
-        }
-      }, false);
 
     myPsiMethodsCache =
       cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiMethod[]>(facet, myLock) {
         @Override
         PsiMethod[] doCompute() {
-          List<PsiDataBindingResourceItem> variables = myInfo.getItems(DataBindingResourceType.VARIABLE);
-          PsiElementFactory factory = PsiElementFactory.SERVICE.getInstance(myInfo.getProject());
-          // generate getter if this is merged or does not have an alternative layout in another configuration
+          Map<String, PsiDataBindingResourceItem> variables = myInfo.getItems(DataBindingResourceType.VARIABLE);
+          // Generate getter if this is merged or does not have an alternative layout in another configuration.
           List<PsiMethod> methods = new ArrayList<>(variables.size() * 2 + STATIC_METHOD_COUNT);
-          // if this is merged, we override all setters (even if we don't use that variable
+          // If this is merged, we override all setters (even if we don't use that variable.
           DataBindingInfo mergedInfo = myInfo.getMergedInfo();
           if (mergedInfo == null) {
-            for (PsiDataBindingResourceItem variable : variables) {
-              createVariableMethods(factory, variable, methods, true);
+            for (PsiDataBindingResourceItem variable : variables.values()) {
+              createVariableMethods(variable, methods, true);
             }
-            createStaticMethods(factory, methods);
+            PsiElementFactory factory = PsiElementFactory.SERVICE.getInstance(myInfo.getProject());
+            createStaticMethods(factory.createType(LightBindingClass.this), methods);
           } else {
-            for (PsiDataBindingResourceItem variable : mergedInfo.getItems(DataBindingResourceType.VARIABLE)) {
-              // just the setters to be overriding super class abstract setters
-              createVariableMethods(factory, variable, methods, false);
+            for (PsiDataBindingResourceItem variable : mergedInfo.getItems(DataBindingResourceType.VARIABLE).values()) {
+              // Just the setters to be overriding super class abstract setters.
+              createVariableMethods(variable, methods, false);
             }
           }
-          // create hidden constructor
-          PsiMethod constructor = createConstructor(factory);
+          // Create a private constructor.
+          PsiMethod constructor = createConstructor();
           methods.add(constructor);
           return methods.toArray(PsiMethod.EMPTY_ARRAY);
         }
@@ -144,7 +116,7 @@ public class LightBindingClass extends AndroidLightClassBase {
           int i = 0;
           int unresolved = 0;
           for (DataBindingInfo.ViewWithId viewWithId : viewsWithIds) {
-            PsiField psiField = createPsiField(factory, viewWithId);
+            PsiField psiField = createPsiField(viewWithId);
             if (psiField == null) {
               unresolved++;
             }
@@ -167,10 +139,14 @@ public class LightBindingClass extends AndroidLightClassBase {
       }, false);
   }
 
+  /**
+   * Creates a private no-argument constructor.
+   */
   @NotNull
-  private static PsiMethod createConstructor(PsiElementFactory factory) {
-    PsiMethod constructor = factory.createConstructor();
-    PsiUtil.setModifierProperty(constructor, PsiModifier.PRIVATE, true);
+  private PsiMethod createConstructor() {
+    LightMethodBuilder constructor = new LightMethodBuilder(this, JavaLanguage.INSTANCE);
+    constructor.setConstructor(true);
+    constructor.addModifier("private");
     return constructor;
   }
 
@@ -214,7 +190,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     DataBindingInfo mergedInfo = myInfo.getMergedInfo();
     String superClassName = mergedInfo == null ? myMode.viewDataBinding : mergedInfo.getQualifiedName();
     return JavaPsiFacade.getInstance(myInfo.getProject())
-      .findClass(superClassName, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
+        .findClass(superClassName, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
   }
 
   @Override
@@ -277,18 +253,18 @@ public class LightBindingClass extends AndroidLightClassBase {
     if (!continueProcessing) {
       return false;
     }
-    List<PsiDataBindingResourceItem> imports = myInfo.getItems(DataBindingResourceType.IMPORT);
+    Map<String, PsiDataBindingResourceItem> imports = myInfo.getItems(DataBindingResourceType.IMPORT);
     if (imports.isEmpty()) {
       return true;
     }
-    final ElementClassHint classHint = processor.getHint(ElementClassHint.KEY);
+    ElementClassHint classHint = processor.getHint(ElementClassHint.KEY);
     if (classHint != null && classHint.shouldProcess(ElementClassHint.DeclarationKind.CLASS)) {
-      final NameHint nameHint = processor.getHint(NameHint.KEY);
-      final String name = nameHint != null ? nameHint.getName(state) : null;
-      for (PsiDataBindingResourceItem imp : imports) {
+      NameHint nameHint = processor.getHint(NameHint.KEY);
+      String name = nameHint != null ? nameHint.getName(state) : null;
+      for (PsiDataBindingResourceItem imp : imports.values()) {
         String alias = imp.getExtra(SdkConstants.ATTR_ALIAS);
         if (alias != null) {
-          continue; // aliases are pre-resolved in {@linkplain #replaceImportAliases}
+          continue; // Aliases are pre-resolved in replaceImportAliases.
         }
         String qName = imp.getExtra(SdkConstants.ATTR_TYPE);
         if (qName == null) {
@@ -316,139 +292,101 @@ public class LightBindingClass extends AndroidLightClassBase {
     return true;
   }
 
-  private static Lexer getJavaLexer() {
-    if (ourJavaLexer == null) {
-      ourJavaLexer = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_6);
+  private void createVariableMethods(@NotNull PsiDataBindingResourceItem item, @NotNull List<PsiMethod> outPsiMethods, boolean addGetter) {
+    PsiManager psiManager = getManager();
+
+    String typeName = item.getExtra(SdkConstants.ATTR_TYPE);
+    String variableType = DataBindingUtil.getQualifiedType(typeName, myInfo, true);
+    if (variableType == null) {
+      return;
     }
-    return ourJavaLexer;
-  }
-
-  private String replaceImportAliases(String type) {
-    Map<String, String> lookup = myAliasCache.getValue();
-    if (lookup == null || lookup.isEmpty()) {
-      return type;
-    }
-    Lexer lexer = getJavaLexer();
-    lexer.start(type);
-    boolean checkNext = true;
-    StringBuilder out = new StringBuilder();
-    IElementType tokenType = lexer.getTokenType();
-    while (tokenType != null) {
-      if (checkNext && tokenType == JavaTokenType.IDENTIFIER) {
-        // this might be something we want to replace
-        String tokenText = lexer.getTokenText();
-        String replacement = lookup.get(tokenText);
-        if (replacement != null) {
-          out.append(replacement);
-        }
-        else {
-          out.append(tokenText);
-        }
-      }
-      else {
-        out.append(lexer.getTokenText());
-      }
-      if (tokenType != TokenType.WHITE_SPACE) { // ignore spaces
-        if (tokenType == JavaTokenType.LT || tokenType == JavaTokenType.COMMA) {
-          checkNext = true;
-        }
-        else {
-          checkNext = false;
-        }
-      }
-      lexer.advance();
-      tokenType = lexer.getTokenType();
-    }
-    return out.toString();
-  }
-
-  private void createVariableMethods(PsiElementFactory factory, PsiDataBindingResourceItem item, List<PsiMethod> outPsiMethods,
-                                     boolean addGetter) {
-    PsiManager psiManager = PsiManager.getInstance(myInfo.getProject());
-    PsiMethod setter = factory.createMethod("set" + StringUtil.capitalize(item.getName()), PsiType.VOID);
-
-    String variableType = replaceImportAliases(item.getExtra(SdkConstants.ATTR_TYPE));
-
     PsiType type = DataBindingUtil.parsePsiType(variableType, myFacet, this);
     if (type == null) {
       return;
     }
-    PsiParameter param = factory.createParameter(item.getName(), type);
-    setter.getParameterList().add(param);
-    PsiUtil.setModifierProperty(setter, PsiModifier.PUBLIC, true);
-    if (myInfo.isMerged()) {
-      PsiUtil.setModifierProperty(setter, PsiModifier.ABSTRACT, true);
-    }
 
+    String capitalizedName = StringUtil.capitalize(item.getName());
+    LightMethodBuilder setter = createPublicMethod("set" + capitalizedName, PsiType.VOID);
+    setter.addParameter(item.getName(), type);
+    if (myInfo.isMerged()) {
+      setter.addModifier("abstract");
+    }
     outPsiMethods.add(new LightDataBindingMethod(item.getXmlTag(), psiManager, setter, this, JavaLanguage.INSTANCE));
+
     if (addGetter) {
-      PsiMethod getter = factory.createMethod("get" + StringUtil.capitalize(item.getName()), type);
-      PsiUtil.setModifierProperty(getter, PsiModifier.PUBLIC, true);
+      LightMethodBuilder getter = createPublicMethod("get" + capitalizedName, type);
       outPsiMethods.add(new LightDataBindingMethod(item.getXmlTag(), psiManager, getter, this, JavaLanguage.INSTANCE));
     }
   }
 
-  private void createStaticMethods(PsiElementFactory factory, List<PsiMethod> outPsiMethods) {
-    PsiClassType myType = factory.createType(this);
-    PsiClassType viewGroupType = PsiType
-      .getTypeByName(SdkConstants.CLASS_VIEWGROUP, myInfo.getProject(),
-                     myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
-    PsiClassType layoutInflaterType = PsiType.getTypeByName(SdkConstants.CLASS_LAYOUT_INFLATER, myInfo.getProject(),
-                                                            myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
-    PsiClassType dataBindingComponent = PsiType.getTypeByName(myMode.dataBindingComponent, myInfo.getProject(),
-                                                              myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
-    PsiClassType viewType = PsiType
-      .getTypeByName(SdkConstants.CLASS_VIEW, myInfo.getProject(), myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
-    PsiParameter layoutInflaterParam = factory.createParameter("inflater", layoutInflaterType);
-    PsiParameter rootParam = factory.createParameter("root", viewGroupType);
-    PsiParameter attachToRootParam = factory.createParameter("attachToRoot", PsiType.BOOLEAN);
-    PsiParameter viewParam = factory.createParameter("view", viewType);
-    PsiParameter componentParam = factory.createParameter("bindingComponent", dataBindingComponent);
+  private void createStaticMethods(@NotNull PsiClassType ownerType, @NotNull List<PsiMethod> outPsiMethods) {
+    Project project = myInfo.getProject();
+    Module module = myFacet.getModule();
+    PsiClassType viewGroupType =
+        PsiType.getTypeByName(SdkConstants.CLASS_VIEWGROUP, project, module.getModuleWithDependenciesAndLibrariesScope(true));
+    PsiClassType layoutInflaterType =
+        PsiType.getTypeByName(SdkConstants.CLASS_LAYOUT_INFLATER, project, module.getModuleWithDependenciesAndLibrariesScope(true));
+    PsiClassType dataBindingComponent =
+        PsiType.getTypeByName(myMode.dataBindingComponent, project, module.getModuleWithDependenciesAndLibrariesScope(true));
+    PsiClassType viewType =
+        PsiType.getTypeByName(SdkConstants.CLASS_VIEW, project, module.getModuleWithDependenciesAndLibrariesScope(true));
 
-    PsiMethod inflate4Arg = factory.createMethod("inflate", myType);
-    inflate4Arg.getParameterList().add(layoutInflaterParam);
-    inflate4Arg.getParameterList().add(rootParam);
-    inflate4Arg.getParameterList().add(attachToRootParam);
-    inflate4Arg.getParameterList().add(componentParam);
+    LightMethodBuilder inflate4Arg = createPublicStaticMethod("inflate", ownerType);
+    inflate4Arg.addParameter("inflater", layoutInflaterType);
+    inflate4Arg.addParameter("root", viewGroupType);
+    inflate4Arg.addParameter("attachToRoot", PsiType.BOOLEAN);
+    inflate4Arg.addParameter("bindingComponent", dataBindingComponent);
 
-    PsiMethod inflate3Arg = factory.createMethod("inflate", myType);
-    inflate3Arg.getParameterList().add(layoutInflaterParam);
-    inflate3Arg.getParameterList().add(rootParam);
-    inflate3Arg.getParameterList().add(attachToRootParam);
+    LightMethodBuilder inflate3Arg = createPublicStaticMethod("inflate", ownerType);
+    inflate3Arg.addParameter("inflater", layoutInflaterType);
+    inflate3Arg.addParameter("root", viewGroupType);
+    inflate3Arg.addParameter("attachToRoot", PsiType.BOOLEAN);
 
-    PsiMethod inflate2Arg = factory.createMethod("inflate", myType);
-    inflate2Arg.getParameterList().add(layoutInflaterParam);
-    inflate2Arg.getParameterList().add(componentParam);
+    LightMethodBuilder inflate2Arg = createPublicStaticMethod("inflate", ownerType);
+    inflate2Arg.addParameter("inflater", layoutInflaterType);
+    inflate2Arg.addParameter("bindingComponent", dataBindingComponent);
 
-    PsiMethod inflate1Arg = factory.createMethod("inflate", myType);
-    inflate1Arg.getParameterList().add(layoutInflaterParam);
+    LightMethodBuilder inflate1Arg = createPublicStaticMethod("inflate", ownerType);
+    inflate1Arg.addParameter("inflater", layoutInflaterType);
 
+    LightMethodBuilder bind = createPublicStaticMethod("bind", ownerType);
+    bind.addParameter("view", viewType);
 
-    PsiMethod bind = factory.createMethod("bind", myType);
-    bind.getParameterList().add(viewParam);
+    LightMethodBuilder bindWithComponent = createPublicStaticMethod("bind", ownerType);
+    bindWithComponent.addParameter("view", viewType);
+    bindWithComponent.addParameter("bindingComponent", dataBindingComponent);
 
-    PsiMethod bindWithComponent = factory.createMethod("bind", myType);
-    bindWithComponent.getParameterList().add(viewParam);
-    bindWithComponent.getParameterList().add(componentParam);
-
+    PsiManager psiManager = getManager();
     PsiMethod[] methods = new PsiMethod[]{inflate1Arg, inflate2Arg, inflate3Arg, inflate4Arg, bind, bindWithComponent};
-    PsiManager psiManager = PsiManager.getInstance(myInfo.getProject());
     for (PsiMethod method : methods) {
-      PsiUtil.setModifierProperty(method, PsiModifier.PUBLIC, true);
-      PsiUtil.setModifierProperty(method, PsiModifier.STATIC, true);
       outPsiMethods.add(new LightDataBindingMethod(myInfo.getPsiFile(), psiManager, method, this, JavaLanguage.INSTANCE));
     }
   }
 
+  @NotNull
+  private LightMethodBuilder createPublicStaticMethod(@NotNull String name, @NotNull PsiType returnType) {
+    LightMethodBuilder method = createPublicMethod(name, returnType);
+    method.addModifier("static");
+    return method;
+  }
+
+  @NotNull
+  private LightMethodBuilder createPublicMethod(@NotNull String name, @NotNull PsiType returnType) {
+    LightMethodBuilder method = new LightMethodBuilder(getManager(), JavaLanguage.INSTANCE, name);
+    method.setContainingClass(this);
+    method.setMethodReturnType(returnType);
+    method.addModifier("public");
+    return method;
+  }
+
   @Nullable
-  private PsiField createPsiField(PsiElementFactory factory, DataBindingInfo.ViewWithId viewWithId) {
+  private PsiField createPsiField(@NotNull DataBindingInfo.ViewWithId viewWithId) {
     PsiType type = DataBindingUtil.resolveViewPsiType(viewWithId, myFacet);
     if (type == null) {
       return null;
     }
-    PsiField field = factory.createField(viewWithId.name, type);
-    PsiUtil.setModifierProperty(field, PsiModifier.PUBLIC, true);
-    PsiUtil.setModifierProperty(field, PsiModifier.FINAL, true);
+    LightFieldBuilder field = new LightFieldBuilder(viewWithId.name, type, viewWithId.tag);
+    field.setModifiers("public", "final");
     return new LightDataBindingField(viewWithId, PsiManager.getInstance(myInfo.getProject()), field, this);
   }
 

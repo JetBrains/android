@@ -58,7 +58,7 @@ public class FilterIconTest {
    * <p>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.FAST_BAZEL)
   public void testFilterIcon() throws Exception {
     String fileContents = guiTest.importSimpleLocalApplication()
       .getProjectView()

@@ -40,7 +40,7 @@ open class PsVariant(
   var resolvedModel: IdeVariant? = null ; private set
   private var myArtifactCollection: PsAndroidArtifactCollection? = null
 
-  val artifacts: Collection<PsAndroidArtifact> get() = artifactCollection.items()
+  val artifacts: Collection<PsAndroidArtifact> get() = artifactCollection
   open val buildType: PsBuildType get() = parent.findBuildType(buildTypeName)!!
 
   internal fun init(resolvedModel: IdeVariant?) {
@@ -71,8 +71,10 @@ open class PsVariant(
   }
 
   open fun forEachProductFlavor(consumer: (PsProductFlavor) -> Unit) {
-    for (name in productFlavorNames) {
-      val productFlavor = parent.findProductFlavor(name)
+    // Pre AGP 3.0 project might not have any dimensions.
+    val effectiveDimensions = parent.flavorDimensions.takeUnless { it.isEmpty() } ?: listOf(null)
+    for ((dimension, name) in effectiveDimensions zip productFlavorNames) {
+      val productFlavor = parent.findProductFlavor(dimension?.name.orEmpty(), name)
       consumer(productFlavor!!)
     }
   }

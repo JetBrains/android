@@ -28,7 +28,7 @@ class UserSentimentProjectComponent(val project: Project) : AbstractProjectCompo
   override fun projectOpened() {
     super.projectOpened()
 
-    if (!AnalyticsSettings.getInstance(NullLogger()).optedIn) {
+    if (!AnalyticsSettings.optedIn) {
       return
     }
 

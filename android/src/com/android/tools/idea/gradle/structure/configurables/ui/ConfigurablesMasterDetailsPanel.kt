@@ -31,6 +31,9 @@ import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.tree.TreeUtil
 import java.util.*
+import javax.swing.JComponent
+import javax.swing.event.TreeModelEvent
+import javax.swing.event.TreeModelListener
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 
@@ -42,7 +45,7 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
     private val placeName: String,
     private val treeModel: ConfigurablesTreeModel,
     private val uiSettings: PsUISettings
-) : MasterDetailsComponent(), ModelPanel<ModelT>, Place.Navigator, PanelWithUiState, Disposable {
+) : MasterDetailsComponent(), ModelPanel<ModelT>, Place.Navigator, CrossModuleUiStateComponent, Disposable {
 
   private var inQuietSelection = false
 
@@ -56,9 +59,27 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
     (splitter as JBSplitter).splitterProportionKey = "android.psd.proportion.configurables"
     tree.model = treeModel
     myRoot = treeModel.rootNode as MyNode
+    treeModel.addTreeModelListener(object: TreeModelListener{
+      override fun treeNodesInserted(e: TreeModelEvent?) {
+        val treePath = e?.treePath
+        if (treePath?.parentPath == null) {
+          tree.expandPath(treePath)
+        }
+      }
+
+      override fun treeStructureChanged(e: TreeModelEvent?)= Unit
+
+      override fun treeNodesChanged(e: TreeModelEvent?) = Unit
+
+      override fun treeNodesRemoved(e: TreeModelEvent?) = Unit
+    })
     tree.isRootVisible = false
     TreeUtil.expandAll(tree)
   }
+
+  private var myComponent: JComponent? = null
+  override fun getComponent(): JComponent = myComponent ?: super.createComponent().also { myComponent = it }
+  final override fun createComponent(): Nothing = throw UnsupportedOperationException("Use getComponent() instead.")
 
   override fun dispose() = disposeUIResources()
 
@@ -134,6 +155,8 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
   }
 
   override fun updateSelection(configurable: NamedConfigurable<*>?) {
+    // UpdateSelection might be expensive as it always rebuilds the element tree.
+    if (configurable === myCurrentConfigurable) return
     super.updateSelection(configurable)
     if (!inQuietSelection) {
       saveUiState()

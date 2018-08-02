@@ -13,9 +13,9 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.configurables.suggestions
 
-import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
+import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.AbstractMainPanel
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsModule
@@ -25,45 +25,22 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import java.awt.BorderLayout
-import javax.swing.JComponent
 
 class AndroidModuleSuggestionsConfigurable(
-    private val context: PsContext,
+    context: PsContext,
     module: PsModule,
     private val extraModules: List<PsModule>
-) : BaseNamedConfigurable<PsModule>(module) {
-  private var panel: AbstractMainPanel? = null
-  private var uiDisposed = false
-
+) : AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, module) {
   override fun getId() = "android.psd.suggestions." + displayName
-  override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback =
-      ensurePanelCreated().navigateTo(place, requestFocus)
 
-  override fun queryPlace(place: Place) {
-    ensurePanelCreated().queryPlace(place)
-  }
-
-  override fun restoreUiState() = Unit
-
-  override fun createOptionsPanel(): JComponent = ensurePanelCreated()
-
-  private fun ensurePanelCreated(): AbstractMainPanel {
-    val current = panel
-    if (current != null) {
-      return current
-    }
-    val created = createPanel()
-    panel = created
-    return created
-  }
-
-  private fun createPanel() = object : AbstractMainPanel(context, extraModules) {
+  override fun createPanel(module: PsModule): AbstractMainPanel = object : AbstractMainPanel(context, extraModules) {
     private val panel = createInnerPanel().also {
       add(it.panel, BorderLayout.CENTER)
     }
 
     override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = panel.navigateTo(place, requestFocus)
     override fun queryPlace(place: Place) = panel.queryPlace(place)
+    override fun restoreUiState() = Unit
     override fun dispose() {
       Disposer.dispose(panel)
     }
@@ -86,13 +63,6 @@ class AndroidModuleSuggestionsConfigurable(
         }
       }, this)
     }
-  }
-
-  override fun disposeUIResources() {
-    super.disposeUIResources()
-    panel?.run { Disposer.dispose(this) }
-    panel = null
-    uiDisposed = true
   }
 
   companion object {

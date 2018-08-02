@@ -16,7 +16,10 @@
 package com.android.tools.idea.databinding;
 
 import com.android.ide.common.resources.DataBindingResourceType;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.PsiDataBindingResourceItem;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
@@ -28,13 +31,13 @@ import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -72,7 +75,7 @@ public class LightBrClass extends AndroidLightClassBase {
             }
             Set<String> variableNames = new HashSet<>();
             for (DataBindingInfo info : dataBindingResourceFiles.values()) {
-              for (PsiDataBindingResourceItem item : info.getItems(DataBindingResourceType.VARIABLE)) {
+              for (PsiDataBindingResourceItem item : info.getItems(DataBindingResourceType.VARIABLE).values()) {
                 variableNames.add(item.getName());
               }
             }

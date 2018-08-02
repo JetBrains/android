@@ -24,6 +24,8 @@ import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.collect.HashBasedTable
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBList
 import org.mockito.ArgumentMatchers.any
@@ -46,10 +48,11 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
     assertTrue(provider.isApplicable(listOf(component1), mapOf("Deeplinks" to NavDeeplinkProperty(listOf(component1))), manager))
     // One component, deeplink + other property
     assertTrue(provider.isApplicable(listOf(component1),
-        mapOf("Deeplinks" to NavDeeplinkProperty(listOf(component1)), "foo" to Mockito.mock(NlProperty::class.java)), manager))
+                                     mapOf("Deeplinks" to NavDeeplinkProperty(listOf(component1)),
+                                           "foo" to Mockito.mock(NlProperty::class.java)), manager))
     // Two components
     assertFalse(provider.isApplicable(listOf(component1, component2),
-        mapOf("Deeplinks" to NavDeeplinkProperty(listOf(component1, component2))), manager))
+                                      mapOf("Deeplinks" to NavDeeplinkProperty(listOf(component1, component2))), manager))
     // zero components
     assertFalse(provider.isApplicable(listOf(), mapOf("Deeplinks" to NavDeeplinkProperty(listOf())), manager))
     // Non-deeplink property only
@@ -128,7 +131,33 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
     assertEquals("http://example.com", deeplink.getAttribute(AUTO_URI, ATTR_URI))
     assertEquals("true", deeplink.getAndroidAttribute(ATTR_AUTO_VERIFY))
     dialog.close(0)
+  }
 
+  fun testXmlFormatting() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1")
+      }
+    }
+    val fragment = model.find("f1")!!
+    val dialog = spy(AddDeeplinkDialog(null, fragment))
+    `when`(dialog.uri).thenReturn("a")
+    doReturn(true).`when`(dialog).showAndGet()
+
+    val navDeeplinkInspectorProvider = NavDeeplinkInspectorProvider { _, _ -> dialog }
+    navDeeplinkInspectorProvider.addItem(null, listOf(fragment), null)
+    `when`(dialog.uri).thenReturn("b")
+    navDeeplinkInspectorProvider.addItem(null, listOf(fragment), null)
+    FileDocumentManager.getInstance().saveAllDocuments()
+    val result = String(model.virtualFile.contentsToByteArray())
+    // Don't care about other contents or indent, but deeplink tags and attributes should be on their own lines.
+    assertThat(result.replace("\n *".toRegex(), "\n")).contains("<deepLink\n" +
+                                                                "android:id=\"@+id/deepLink\"\n" +
+                                                                "app:uri=\"a\" />\n" +
+                                                                "<deepLink\n" +
+                                                                "android:id=\"@+id/deepLink2\"\n" +
+                                                                "app:uri=\"b\" />\n")
+    dialog.close(0)
   }
 }
 

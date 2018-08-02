@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.actions
 
 import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
@@ -137,6 +138,30 @@ class DragCreateActionTest : NavTestCase() {
     dragFromActionHandle(interactionManager, component, component.centerX, (rootRect.y + componentRect.y) / 2, surface.currentSceneView)
 
     val expected = "NlComponent{tag=<navigation>, instance=0}\n" + "    NlComponent{tag=<fragment>, instance=1}"
+
+    verifyModel(model, expected)
+  }
+
+  fun testDragInvalid() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment(FRAGMENT1)
+        addChild(ComponentDescriptor("fragment"), null)
+      }
+    }
+
+    val surface = initializeNavDesignSurface(model)
+    val scene = initializeScene(surface)
+    val interactionManager = initializeInteractionManager(surface)
+
+    val component = scene.sceneComponents.find { it.id == null }!!
+
+    dragFromActionHandle(interactionManager, scene.getSceneComponent(FRAGMENT1)!!, component.centerX, component.centerY,
+                         surface.currentSceneView)
+
+    val expected = "NlComponent{tag=<navigation>, instance=0}\n" +
+                   "    NlComponent{tag=<fragment>, instance=1}\n" +
+                   "    NlComponent{tag=<fragment>, instance=2}"
 
     verifyModel(model, expected)
   }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
 import com.android.ide.common.resources.DataBindingResourceType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -25,34 +24,30 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Data Binding Info that merges Multiple DataBindingInfo classes from different configurations.
  */
 class MergedDataBindingInfo implements DataBindingInfo {
-  @NonNull
-  final List<LayoutDataBindingInfo> myInfoList;
-  @NonNull
-  private LayoutDataBindingInfo myBaseInfo;
+  @NotNull private final List<LayoutDataBindingInfo> myInfoList;
+  @NotNull private final LayoutDataBindingInfo myBaseInfo;
 
   private PsiClass myPsiClass;
 
-  private final CachedValue<List<ViewWithId>> myViewWithIdsCache;
+  @NotNull private final CachedValue<List<ViewWithId>> myViewWithIdsCache;
 
-  private final CachedValue<List<PsiDataBindingResourceItem>>[] myResourceItemCache;
+  @NotNull private final CachedValue<Map<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>>> myResourceItemCache;
 
-  public MergedDataBindingInfo(List<LayoutDataBindingInfo> infoList) {
+  public MergedDataBindingInfo(@NotNull List<LayoutDataBindingInfo> infoList) {
     myInfoList = infoList;
     myBaseInfo = selectBaseInfo();
     CachedValuesManager cacheManager = CachedValuesManager.getManager(myBaseInfo.getProject());
+
     myViewWithIdsCache = cacheManager.createCachedValue(() -> {
       Set<String> used = new HashSet<>();
       List<ViewWithId> result = new ArrayList<>();
@@ -65,23 +60,23 @@ class MergedDataBindingInfo implements DataBindingInfo {
       }
       return CachedValueProvider.Result.create(result, myInfoList);
     }, false);
-    //noinspection unchecked
-    myResourceItemCache = new CachedValue[DataBindingResourceType.values().length];
-    for (DataBindingResourceType type : DataBindingResourceType.values()) {
-      myResourceItemCache[type.ordinal()] = cacheManager.createCachedValue(() -> {
-        Set<String> used = new HashSet<>();
-        List<PsiDataBindingResourceItem> result = new ArrayList<>();
-        for (DataBindingInfo info : myInfoList) {
-          List<PsiDataBindingResourceItem> items = info.getItems(type);
-          for (PsiDataBindingResourceItem item : items) {
-            if (used.add(item.getName())) {
-              result.add(item);
-            }
+
+    myResourceItemCache = cacheManager.createCachedValue(() -> {
+      Map<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>> result = new EnumMap<>(DataBindingResourceType.class);
+      for (DataBindingInfo info : myInfoList) {
+        for (DataBindingResourceType type : DataBindingResourceType.values()) {
+          Set<String> used = new HashSet<>();
+          Map<String, PsiDataBindingResourceItem> itemsByName = info.getItems(type);
+          for (Map.Entry<String, PsiDataBindingResourceItem> entry : itemsByName.entrySet()) {
+            Map<String, PsiDataBindingResourceItem> resultItemsByName = result.computeIfAbsent(type, t -> new HashMap<>());
+            String name = entry.getKey();
+            PsiDataBindingResourceItem item = entry.getValue();
+            resultItemsByName.putIfAbsent(name, item);
           }
         }
-        return CachedValueProvider.Result.create(result, myInfoList);
-      }, false);
-    }
+      }
+      return CachedValueProvider.Result.create(result, myInfoList);
+    }, false);
   }
 
   @SuppressWarnings("ConstantConditions")
@@ -141,19 +136,21 @@ class MergedDataBindingInfo implements DataBindingInfo {
     myPsiClass = psiClass;
   }
 
-  @NotNull
   @Override
-  public List<PsiDataBindingResourceItem> getItems(DataBindingResourceType type) {
-    return myResourceItemCache[type.ordinal()].getValue();
+  @NotNull
+  public Map<String, PsiDataBindingResourceItem> getItems(@NotNull DataBindingResourceType type) {
+    Map<String, PsiDataBindingResourceItem> itemsByName = myResourceItemCache.getValue().get(type);
+    return itemsByName == null ? Collections.emptyMap() : itemsByName;
   }
 
   @Override
+  @NotNull
   public List<ViewWithId> getViewsWithIds() {
     return myViewWithIdsCache.getValue();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Module getModule() {
     return myBaseInfo.getModule();
   }
@@ -172,8 +169,8 @@ class MergedDataBindingInfo implements DataBindingInfo {
     return true;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public DataBindingInfo getMergedInfo() {
     return null;
   }

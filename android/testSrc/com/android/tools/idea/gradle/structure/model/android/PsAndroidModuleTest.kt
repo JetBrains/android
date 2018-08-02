@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.TestProjectPaths.*
-import com.google.common.collect.Lists
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.Disposer
@@ -33,6 +32,12 @@ import java.util.concurrent.TimeUnit
  * Tests for [PsAndroidModule].
  */
 class PsAndroidModuleTest : DependencyTestCase() {
+
+  var buildTypesChanged = 0
+  var productFlavorsChanged = 0
+  var flavorDimensionsChanged = 0
+  var signingConfigsChanged = 0
+  var variantsChanged = 0
 
   fun testFlavorDimensions() {
     loadProject(PSD_SAMPLE)
@@ -70,11 +75,12 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
+    appModule.testSubscribeToChangeNotifications()
 
     appModule.addNewFlavorDimension("new")
+    assertThat(flavorDimensionsChanged).isEqualTo(1)
     // A product flavor is required for successful sync.
-    val newInNew = appModule.addNewProductFlavor("new_in_new")
-    newInNew.dimension = ParsedValue.Set.Parsed("new", DslText.Literal)
+    val newInNew = appModule.addNewProductFlavor("new", "new_in_new")
     appModule.applyChanges()
 
     requestSyncAndWait()
@@ -95,13 +101,13 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     var appModule = moduleWithSyncedModel(project, "lib")
     assertNotNull(appModule)
+    appModule.testSubscribeToChangeNotifications()
 
     appModule.addNewFlavorDimension("bar")
+    assertThat(flavorDimensionsChanged).isEqualTo(1)
     // A product flavor is required for successful sync.
-    val bar = appModule.addNewProductFlavor("bar")
-    bar.dimension = ParsedValue.Set.Parsed("bar", DslText.Literal)
-    val otherBar = appModule.addNewProductFlavor("otherBar")
-    otherBar.dimension = ParsedValue.Set.Parsed("bar", DslText.Literal)
+    val bar = appModule.addNewProductFlavor("bar", "bar")
+    val otherBar = appModule.addNewProductFlavor("bar", "otherBar")
     appModule.applyChanges()
 
     requestSyncAndWait()
@@ -121,13 +127,15 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     var appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
+    appModule.testSubscribeToChangeNotifications()
 
-    appModule.removeFlavorDimension("bar")
+    appModule.removeFlavorDimension(appModule.findFlavorDimension("bar")!!)
+    assertThat(flavorDimensionsChanged).isEqualTo(1)
     // A product flavor must be removed for successful sync.
-    appModule.removeProductFlavor(appModule.findProductFlavor("bar")!!)
-    appModule.removeProductFlavor(appModule.findProductFlavor("otherBar")!!)
+    appModule.removeProductFlavor(appModule.findProductFlavor("bar", "bar")!!)
+    appModule.removeProductFlavor(appModule.findProductFlavor("bar", "otherBar")!!)
     var flavorDimensions = getFlavorDimensions(appModule)
-    assertThat(flavorDimensions).containsExactly("foo", "bar").inOrder()
+    assertThat(flavorDimensions).containsExactly("foo").inOrder()
     appModule.applyChanges()
 
     requestSyncAndWait()
@@ -139,9 +147,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(flavorDimensions).containsExactly("foo")
   }
 
-  private fun getFlavorDimensions(module: PsAndroidModule): List<String> {
-    return Lists.newArrayList(module.flavorDimensions)
-  }
+  private fun getFlavorDimensions(module: PsAndroidModule): List<String> = module.flavorDimensions.map { it.name }
 
   fun testProductFlavors() {
     loadProject(PROJECT_WITH_APPAND_LIB)
@@ -157,11 +163,11 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .containsExactly("basic", "paid").inOrder()
     assertThat(productFlavors).hasSize(2)
 
-    val basic = appModule.findProductFlavor("basic")
+    val basic = appModule.findProductFlavor("foo", "basic")
     assertNotNull(basic)
     assertTrue(basic!!.isDeclared)
 
-    val release = appModule.findProductFlavor("paid")
+    val release = appModule.findProductFlavor("foo", "paid")
     assertNotNull(release)
     assertTrue(release!!.isDeclared)
   }
@@ -180,11 +186,11 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .containsExactly("basic", "paid").inOrder()
     assertThat(productFlavors).hasSize(2)
 
-    val basic = appModule.findProductFlavor("basic")
+    val basic = appModule.findProductFlavor("foo", "basic")
     assertNotNull(basic)
     assertTrue(basic!!.isDeclared)
 
-    val release = appModule.findProductFlavor("paid")
+    val release = appModule.findProductFlavor("foo", "paid")
     assertNotNull(release)
     assertTrue(release!!.isDeclared)
   }
@@ -196,19 +202,21 @@ class PsAndroidModuleTest : DependencyTestCase() {
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = moduleWithSyncedModel(project, "app")
+    appModule.testSubscribeToChangeNotifications()
     assertNotNull(appModule)
 
     var productFlavors = appModule.productFlavors
     assertThat(productFlavors.map { it.name })
       .containsExactly("basic", "paid").inOrder()
 
-    appModule.addNewProductFlavor("new_flavor")
+    appModule.addNewProductFlavor("foo", "new_flavor")
+    assertThat(productFlavorsChanged).isEqualTo(1)
 
     productFlavors = appModule.productFlavors
     assertThat(productFlavors.map { it.name })
       .containsExactly("basic", "paid", "new_flavor").inOrder()
 
-    var newFlavor = appModule.findProductFlavor("new_flavor")
+    var newFlavor = appModule.findProductFlavor("foo", "new_flavor")
     assertNotNull(newFlavor)
     assertNull(newFlavor!!.resolvedModel)
 
@@ -222,7 +230,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(productFlavors.map { it.name })
       .containsExactly("basic", "paid", "new_flavor").inOrder()
 
-    newFlavor = appModule.findProductFlavor("new_flavor")
+    newFlavor = appModule.findProductFlavor("foo", "new_flavor")
     assertNotNull(newFlavor)
     assertNotNull(newFlavor!!.resolvedModel)
   }
@@ -234,13 +242,15 @@ class PsAndroidModuleTest : DependencyTestCase() {
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = moduleWithSyncedModel(project, "app")
+    appModule.testSubscribeToChangeNotifications()
     assertNotNull(appModule)
 
     var productFlavors = appModule.productFlavors
     assertThat(productFlavors.map { it.name })
       .containsExactly("basic", "paid", "bar", "otherBar").inOrder()
 
-    appModule.removeProductFlavor(appModule.findProductFlavor("paid")!!)
+    appModule.removeProductFlavor(appModule.findProductFlavor("foo", "paid")!!)
+    assertThat(productFlavorsChanged).isEqualTo(1)
 
     productFlavors = appModule.productFlavors
     assertThat(productFlavors.map { it.name })
@@ -305,6 +315,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = moduleWithSyncedModel(project, "app")
+    appModule.testSubscribeToChangeNotifications()
     assertNotNull(appModule)
 
     var buildTypes = appModule.buildTypes
@@ -312,6 +323,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .containsExactly("release", "debug").inOrder()
 
     appModule.addNewBuildType("new_build_type")
+    assertThat(buildTypesChanged).isEqualTo(1)
 
     buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
@@ -343,6 +355,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = moduleWithSyncedModel(project, "app")
+    appModule.testSubscribeToChangeNotifications()
     assertNotNull(appModule)
 
     var buildTypes = appModule.buildTypes
@@ -350,6 +363,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .containsExactly("release", "specialRelease", "debug").inOrder()
 
     appModule.removeBuildType(appModule.findBuildType("release")!!)
+    assertThat(buildTypesChanged).isEqualTo(1)
 
     buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
@@ -448,11 +462,13 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     var appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
+    appModule.testSubscribeToChangeNotifications()
 
     var signingConfigs = appModule.signingConfigs
     assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug").inOrder()
 
     val myConfig = appModule.addNewSigningConfig("config2")
+    assertThat(signingConfigsChanged).isEqualTo(1)
     myConfig.storeFile = ParsedValue.Set.Parsed(File("/tmp/1"), DslText.Literal)
 
     assertNotNull(myConfig)
@@ -479,11 +495,13 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     var appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
+    appModule.testSubscribeToChangeNotifications()
 
     var signingConfigs = appModule.signingConfigs
     assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug").inOrder()
 
     appModule.removeSigningConfig(appModule.findSigningConfig("myConfig")!!)
+    assertThat(signingConfigsChanged).isEqualTo(1)
     appModule.removeBuildType(appModule.findBuildType("debug")!!)  // Remove (clean) the build type that refers to the signing config.
 
     signingConfigs = appModule.signingConfigs
@@ -607,6 +625,27 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .containsExactly("debugApi support-v13", "api support-v4")
   }
 
+  fun testResolvingProjectReloadsCollections() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+    val appModule = moduleWithSyncedModel(project, "app")
+
+    appModule.testSubscribeToChangeNotifications()
+    assertThat(buildTypesChanged).isEqualTo(0)
+    assertThat(productFlavorsChanged).isEqualTo(0)
+    assertThat(signingConfigsChanged).isEqualTo(0)
+    assertThat(variantsChanged).isEqualTo(0)
+
+    project.testResolve()
+
+    assertThat(buildTypesChanged).isEqualTo(1)
+    assertThat(productFlavorsChanged).isEqualTo(1)
+    assertThat(signingConfigsChanged).isEqualTo(1)
+    assertThat(variantsChanged).isEqualTo(1)
+  }
+
   fun testConfigurations() {
     loadProject(PSD_SAMPLE)
 
@@ -698,6 +737,14 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "androidTestOtherBarImplementation",
       "androidTestBasicOtherBarImplementation",
       "androidTestPaidOtherBarImplementation")
+  }
+
+  private fun PsAndroidModule.testSubscribeToChangeNotifications() {
+    buildTypes.onChange(testRootDisposable) { buildTypesChanged++ }
+    productFlavors.onChange(testRootDisposable) { productFlavorsChanged++ }
+    flavorDimensions.onChange(testRootDisposable) { flavorDimensionsChanged++ }
+    signingConfigs.onChange(testRootDisposable) { signingConfigsChanged++ }
+    variants.onChange(testRootDisposable) { variantsChanged++ }
   }
 }
 

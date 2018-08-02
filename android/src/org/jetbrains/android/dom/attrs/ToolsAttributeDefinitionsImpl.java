@@ -23,10 +23,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Describes built-in attributes defined in the "tools" namespace.
+ *
+ * @see ToolsAttributeUtil#getAttributeNames()
+ */
 public class ToolsAttributeDefinitionsImpl implements AttributeDefinitions {
   private static final Set<ResourceReference> ATTRIBUTE_REFERENCES =
       ToolsAttributeUtil.getAttributeNames().stream()
-          .map(name -> ResourceReference.attr(ResourceNamespace.TOOLS, name)).collect( Collectors.toSet());
+          .map(name -> ResourceReference.attr(ResourceNamespace.TOOLS, name)).collect(Collectors.toSet());
 
   @Override
   @Nullable

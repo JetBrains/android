@@ -17,10 +17,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.analytics.AnalyticsSettings;
-import com.android.tools.analytics.LoggedUsage;
-import com.android.tools.analytics.TestUsageTracker;
-import com.android.tools.analytics.UsageTracker;
+import com.android.tools.analytics.*;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.lint.*;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -89,7 +86,7 @@ public class AndroidLintTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    AnalyticsSettings analyticsSettings = new AnalyticsSettings();
+    AnalyticsSettingsData analyticsSettings = new AnalyticsSettingsData();
     analyticsSettings.setOptedIn(false);
     AnalyticsSettings.setInstanceForTest(analyticsSettings);
 

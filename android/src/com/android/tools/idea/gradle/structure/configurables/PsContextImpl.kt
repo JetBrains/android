@@ -47,7 +47,6 @@ class PsContextImpl constructor(
   private val gradleSync: GradleResolver = GradleResolver()
   override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon
 
-  private val changeEventDispatcher = EventDispatcher.create(PsContext.ChangeListener::class.java)
   private val gradleSyncEventDispatcher = EventDispatcher.create(
     GradleSyncListener::class.java)
 
@@ -103,12 +102,7 @@ class PsContextImpl constructor(
 
   override fun setSelectedModule(moduleName: String, source: Any) {
     selectedModule = moduleName
-    changeEventDispatcher.multicaster.moduleSelectionChanged(moduleName, source)
   }
-
-  override fun add(listener: PsContext.ChangeListener, parentDisposable: Disposable) =
-    changeEventDispatcher.addListener(listener, parentDisposable)
-
 
   override fun dispose() {}
 

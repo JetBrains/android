@@ -32,6 +32,12 @@ import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
  * An IDEA module's dependency on a library (e.g. a jar file.)
  */
 public class LibraryDependency extends Dependency {
+  /**
+   * Prefix added to all created libraries, recognized by {@link com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil}.
+   */
+  @NotNull
+  public static final String NAME_PREFIX = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
+
   @NotNull private final Collection<File> myBinaryPaths = new HashSet<>();
   @NotNull private final File myArtifactPath;
 
@@ -88,10 +94,9 @@ public class LibraryDependency extends Dependency {
   }
 
   void setName(@NotNull String name) {
-    // let's use the same format for libraries imported from Gradle, to be compatible with API like ExternalSystemApiUtil.isExternalSystemLibrary()
-    // and be able to reuse common cleanup service, see LibraryDataService.postProcess()
-    String prefix = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
-    myName = name.isEmpty() || StringUtil.startsWith(name, prefix) ? name : prefix + name;
+    // Let's use the same format for libraries imported from Gradle, to be compatible with API like
+    // ExternalSystemApiUtil.isExternalSystemLibrary() and be able to reuse common cleanup service, see LibraryDataService.postProcess()
+    myName = name.isEmpty() || StringUtil.startsWith(name, NAME_PREFIX) ? name : NAME_PREFIX + name;
   }
 
   @Override

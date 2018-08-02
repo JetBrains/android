@@ -59,10 +59,10 @@ class NamespacedRenderTest : AndroidGradleTestCase() {
     checkRendering(
       createRenderTask(
         myAndroidFacet,
-        project.baseDir.findFileByRelativePath("app/src/main/res/layout/attrs_from_lib.xml")!!,
+        project.baseDir.findFileByRelativePath("app/src/main/res/layout/parent_from_lib.xml")!!,
         "@style/ParentFromLib"
       ),
-      AndroidTestBase.getTestDataPath() + "/layouts/namespaced/attrs_from_lib.png"
+      AndroidTestBase.getTestDataPath() + "/layouts/namespaced/parent_from_lib.png"
     )
   }
 }
