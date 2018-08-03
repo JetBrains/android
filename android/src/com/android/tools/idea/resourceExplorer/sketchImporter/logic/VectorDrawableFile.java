@@ -17,13 +17,17 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 
 import com.android.ddmlib.Log;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.DrawableShape;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
 import com.android.tools.layoutlib.annotations.NotNull;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.testFramework.LightVirtualFile;
 
+import java.awt.geom.Rectangle2D;
 import java.io.*;
+import java.util.List;
 
 import static com.intellij.openapi.application.ApplicationManager.getApplication;
 
@@ -31,7 +35,6 @@ public class VectorDrawableFile {
 
   private static final String TAG_VECTOR_HEAD = "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"";
   private static final String TAG_PATH = "<path/>";
-
   private static final String ATTRIBUTE_BASE = "android:";
   private static final String ATTRIBUTE_HEIGHT = "height";
   private static final String ATTRIBUTE_WIDTH = "width";
@@ -43,11 +46,17 @@ public class VectorDrawableFile {
   private static final String ATTRIBUTE_STROKE_COLOR = "strokeColor";
   private static final String ATTRIBUTE_STROKE_WIDTH = "strokeWidth";
 
+  @NotNull private SketchArtboard artboard;
   @NotNull private Project project;
   @NotNull private XmlTag root;
 
   public VectorDrawableFile(@NotNull Project projectParam) {
     project = projectParam;
+  }
+
+  public VectorDrawableFile(@NotNull Project projectParam, @NotNull SketchArtboard artboardParam) {
+    project = projectParam;
+    artboard = artboardParam;
   }
 
   public void createVectorDrawable() {
@@ -72,11 +81,13 @@ public class VectorDrawableFile {
   public void addPath(@NotNull DrawableShape shape) {
     getApplication().runReadAction(() -> {
       XmlTag pathTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_PATH);
+
       pathTag.setAttribute(ATTRIBUTE_BASE + ATTRIBUTE_NAME, shape.getName());
       pathTag.setAttribute(ATTRIBUTE_BASE + ATTRIBUTE_PATH_DATA, shape.getPathData());
       pathTag.setAttribute(ATTRIBUTE_BASE + ATTRIBUTE_FILL_COLOR, shape.getFillColor());
       pathTag.setAttribute(ATTRIBUTE_BASE + ATTRIBUTE_STROKE_COLOR, shape.getStrokeColor());
       pathTag.setAttribute(ATTRIBUTE_BASE + ATTRIBUTE_STROKE_WIDTH, shape.getStrokeWidth());
+
       root.addSubTag(pathTag, false);
     });
   }
@@ -105,5 +116,28 @@ public class VectorDrawableFile {
     catch (IOException e) {
       Log.e(VectorDrawableFile.class.getName(), e);
     }
+  }
+
+  @NotNull
+  public LightVirtualFile generateFile() {
+    LightVirtualFile virtualFile = new LightVirtualFile();
+    createVectorDrawable();
+    if (artboard != null) {
+      Rectangle2D.Double frame = artboard.getFrame();
+      setVectorDimensions(frame.getHeight(), frame.getWidth());
+      setViewportDimensions(frame.getHeight(), frame.getWidth());
+      List<DrawableShape> shapes = artboard.getShapes();
+      for (DrawableShape shape : shapes) {
+        addPath(shape);
+      }
+    }
+    String content = getApplication().runReadAction(new Computable<String>() {
+      @Override
+      public String compute() {
+        return root.getText();
+      }
+    });
+    virtualFile.setContent(null, content, false);
+    return virtualFile;
   }
 }

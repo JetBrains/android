@@ -20,11 +20,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class DrawableShape {
 
-  @NotNull private String name;
+  @Nullable private String name;
   @NotNull private String pathData;
-  @NotNull private String fillColor;
-  @NotNull private String strokeColor;
-  @NotNull private String strokeWidth;
+  @Nullable private String fillColor;
+  @Nullable private String strokeColor;
+  @Nullable private String strokeWidth;
 
   public DrawableShape(@Nullable String nameParam,
                        @NotNull String pathDataParam,
@@ -38,7 +38,7 @@ public class DrawableShape {
     strokeWidth = strokeWidthParam == null ? "" : strokeWidthParam;
   }
 
-  @NotNull
+  @Nullable
   public String getName() {
     return name;
   }
@@ -48,17 +48,17 @@ public class DrawableShape {
     return pathData;
   }
 
-  @NotNull
+  @Nullable
   public String getFillColor() {
     return fillColor;
   }
 
-  @NotNull
+  @Nullable
   public String getStrokeColor() {
     return strokeColor;
   }
 
-  @NotNull
+  @Nullable
   public String getStrokeWidth() {
     return strokeWidth;
   }

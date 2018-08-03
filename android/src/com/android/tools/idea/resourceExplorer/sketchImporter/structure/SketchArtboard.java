@@ -78,8 +78,8 @@ public class SketchArtboard extends SketchLayer implements SketchLayerable {
     return hasBackgroundColor;
   }
 
+  @NotNull
   public List<DrawableShape> getShapes() {
-
     ImmutableList.Builder<DrawableShape> shapes = new ImmutableList.Builder<>();
     SketchLayer[] layers = getLayers();
 

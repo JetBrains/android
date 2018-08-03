@@ -24,6 +24,7 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 
 public class Path2DBuilder {
+  @NotNull
   private Path2D.Double path;
 
   public Path2DBuilder() {
@@ -48,9 +49,9 @@ public class Path2DBuilder {
     path.quadTo(controlPoint.getX(), controlPoint.getY(), endPoint.getX(), endPoint.getY());
   }
 
-  public void createClosedOval(@NotNull SketchShapePath shapePath,
-                               @NotNull SketchCurvePoint currentPoint,
-                               @NotNull Rectangle2D.Double parentFrame) {
+  public void createClosedShape(@NotNull SketchShapePath shapePath,
+                                @NotNull SketchCurvePoint currentPoint,
+                                @NotNull Rectangle2D.Double parentFrame) {
     SketchPoint2D currentPointCurveFrom = currentPoint.getCurveFrom().makeAbsolutePosition(parentFrame, shapePath.getFrame());
     SketchPoint2D firstPointCurveTo = shapePath.getPoints()[0].getCurveTo().makeAbsolutePosition(parentFrame, shapePath.getFrame());
     SketchPoint2D firstPoint = shapePath.getPoints()[0].getPoint().makeAbsolutePosition(parentFrame, shapePath.getFrame());
@@ -62,6 +63,7 @@ public class Path2DBuilder {
     path.closePath();
   }
 
+  @NotNull
   public Path2D.Double build() {
     return path;
   }

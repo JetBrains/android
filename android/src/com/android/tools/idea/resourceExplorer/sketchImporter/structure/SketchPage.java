@@ -24,7 +24,6 @@ import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.ARTBOARD_CLASS_TYPE;
 
@@ -73,8 +72,8 @@ public class SketchPage extends SketchLayer implements SketchLayerable {
     return layers;
   }
 
+  @NotNull
   public List<SketchArtboard> getArtboards() {
-
     ArrayList<SketchArtboard> artboards = new ArrayList<>();
 
     for (SketchLayer layer : getLayers()) {
@@ -88,25 +87,15 @@ public class SketchPage extends SketchLayer implements SketchLayerable {
 
   @NotNull
   @Override
-  public List<DrawableShape> getTranslatedShapes(Point2D.Double parentCoords) {
+  public List<DrawableShape> getTranslatedShapes(@NotNull Point2D.Double parentCoords) {
     Point2D.Double currentCoord = new Point2D.Double(parentCoords.getX() + getFrame().getX(),
                                                      parentCoords.getY() + getFrame().getY());
     ImmutableList.Builder<DrawableShape> builder = new ImmutableList.Builder<>();
+
     for (SketchLayer groupLayer : this.getLayers()) {
       builder.addAll(groupLayer.getTranslatedShapes(currentCoord));
     }
-    return builder.build();
-  }
 
-  public List<String> getFirstArtboardPaths() {
-    List<SketchArtboard> artboards = getArtboards();
-    if (!artboards.isEmpty()) {
-      return artboards.get(0)
-                      .getShapes()
-                      .stream()
-                      .map((shape) -> shape.getPathData())
-                      .collect(Collectors.toList());
-    }
-    return ImmutableList.of();
+    return builder.build();
   }
 }
