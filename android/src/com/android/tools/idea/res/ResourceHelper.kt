@@ -36,7 +36,9 @@ import com.android.ide.common.util.toPathString
 import com.android.resources.*
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.editors.theme.MaterialColorUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.rendering.GutterIconCache
 import com.android.tools.idea.res.aar.AarProtoResourceRepository
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
@@ -64,8 +66,11 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.*
 import com.intellij.ui.ColorUtil
-import com.intellij.util.io.URLUtil.JAR_SEPARATOR
 import com.intellij.util.text.nullize
+import com.intellij.util.ui.ColorIcon
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.TwoColorsIcon
+import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.sdk.AndroidPlatform
@@ -73,8 +78,10 @@ import org.jetbrains.annotations.Contract
 import java.awt.Color
 import java.io.File
 import java.util.*
+import javax.swing.Icon
 import kotlin.collections.HashSet
 
+const val RESOURCE_ICON_SIZE = 16
 const val ALPHA_FLOATING_ERROR_FORMAT = "The alpha attribute in %1\$s/%2\$s does not resolve to a floating point number"
 private val LOG = Logger.getInstance("#com.android.tools.idea.res.ResourceHelper")
 
@@ -368,6 +375,37 @@ private fun RenderResources.resolveColor(colorValue: ResourceValue?, project: Pr
  */
 fun RenderResources.resolveMultipleColors(value: ResourceValue?, project: Project): List<Color> {
   return resolveMultipleColors(value, project, 0)
+}
+
+/**
+ * Tries to resolve a given resource value as a square Icon of max 16x16 (scaled size).
+ * <ul>
+ *   <li> A single color is represented as a [ColorIcon] </li>
+ *   <li> A color state list is represented as a [TwoColorsIcon] with 2 of the possible colors in the list </li>
+ *   <li> A drawable is shown as a scaled image if reasonable small version of the drawable exists </li>
+ *   <li> Otherwise a null is returned. </li>
+ * </ul>
+ */
+fun RenderResources.resolveAsIcon(value: ResourceValue?, project: Project): Icon? {
+  return resolveAsColorIcon(value, RESOURCE_ICON_SIZE, project) ?: resolveAsDrawable(value, project)
+}
+
+private fun RenderResources.resolveAsColorIcon(value: ResourceValue?, size: Int, project: Project): Icon? {
+  val colors = resolveMultipleColors(value, project)
+  return when (colors.size) {
+    0 -> null
+    1 -> JBUI.scale(ColorIcon(size, colors.first(), false))
+    else -> JBUI.scale(TwoColorsIcon(size, colors.last(), findContrastingOtherColor(colors, colors.last())))
+  }
+}
+
+private fun findContrastingOtherColor(colors: List<Color>, color: Color): Color {
+  return colors.maxBy { MaterialColorUtils.colorDistance(it, color) } ?: colors.first()
+}
+
+private fun RenderResources.resolveAsDrawable(value: ResourceValue?, project: Project): Icon? {
+  val bitmap = AndroidAnnotatorUtil.pickBestBitmap(resolveDrawable(value, project)) ?: return null
+  return GutterIconCache.getInstance().getIcon(bitmap.path, this)
 }
 
 /**
