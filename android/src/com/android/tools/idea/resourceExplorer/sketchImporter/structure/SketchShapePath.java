@@ -26,7 +26,6 @@ import java.util.ArrayList;
 
 import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.OVAL_CLASS_TYPE;
 import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.RECTANGLE_CLASS_TYPE;
-import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.SHAPE_PATH_CLASS_TYPE;
 
 /**
  * Refers to objects that have the "_class" field set to be one of the following:
@@ -47,6 +46,7 @@ public class SketchShapePath extends SketchLayer {
   public SketchShapePath(@NotNull String classType,
                          @NotNull String objectId,
                          int booleanOperation,
+                         @NotNull SketchExportOptions exportOptions,
                          @NotNull Rectangle.Double frame,
                          boolean isFlippedHorizontal,
                          boolean isFlippedVertical,
@@ -56,7 +56,7 @@ public class SketchShapePath extends SketchLayer {
                          boolean shouldBreakMaskChain,
                          boolean isClosed,
                          @NotNull SketchCurvePoint[] points) {
-    super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
+    super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
           shouldBreakMaskChain);
 
     this.isClosed = isClosed;

@@ -44,6 +44,7 @@ public class SketchPage extends SketchLayer implements SketchLayerable {
   public SketchPage(@NotNull String classType,
                     @NotNull String objectId,
                     int booleanOperation,
+                    @NotNull SketchExportOptions exportOptions,
                     @NotNull Rectangle.Double frame,
                     boolean isFlippedHorizontal,
                     boolean isFlippedVertical,
@@ -53,7 +54,7 @@ public class SketchPage extends SketchLayer implements SketchLayerable {
                     boolean shouldBreakMaskChain,
                     @NotNull SketchStyle style,
                     @NotNull SketchLayer[] layers) {
-    super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
+    super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
           shouldBreakMaskChain);
 
     this.style = style;

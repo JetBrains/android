@@ -40,6 +40,7 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
   public SketchShapeGroup(@NotNull String classType,
                           @NotNull String objectId,
                           int booleanOperation,
+                          @NotNull SketchExportOptions exportOptions,
                           @NotNull Rectangle.Double frame,
                           boolean isFlippedHorizontal,
                           boolean isFlippedVertical,
@@ -52,7 +53,7 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
                           short clippingMaskMode,
                           boolean hasClippingMask,
                           short windingRule) {
-    super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
+    super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
           shouldBreakMaskChain);
     this.style = style;
     this.layers = layers;

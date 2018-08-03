@@ -29,10 +29,12 @@ public class SketchArtboard extends SketchLayer implements SketchLayerable {
   private final SketchLayer[] layers;
   private final Color backgroundColor;
   private final boolean hasBackgroundColor;
+  private final boolean includeBackgroundColorInExport;
 
   public SketchArtboard(@NotNull String classType,
                         @NotNull String objectId,
                         int booleanOperation,
+                        @NotNull SketchExportOptions exportOptions,
                         @NotNull Rectangle.Double frame,
                         boolean isFlippedHorizontal,
                         boolean isFlippedVertical,
@@ -43,14 +45,16 @@ public class SketchArtboard extends SketchLayer implements SketchLayerable {
                         @NotNull SketchStyle style,
                         @NotNull SketchLayer[] layers,
                         @NotNull Color backgroundColor,
-                        boolean hasBackgroundColor) {
-    super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
+                        boolean hasBackgroundColor,
+                        boolean includeBackgroundColorInExport) {
+    super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
           shouldBreakMaskChain);
 
     this.style = style;
     this.layers = layers;
     this.backgroundColor = backgroundColor;
     this.hasBackgroundColor = hasBackgroundColor;
+    this.includeBackgroundColorInExport = includeBackgroundColorInExport;
   }
 
   @Override
@@ -84,5 +88,9 @@ public class SketchArtboard extends SketchLayer implements SketchLayerable {
     }
 
     return shapes.build();
+  }
+
+  public boolean includeBackgroundColorInExport() {
+    return includeBackgroundColorInExport;
   }
 }
