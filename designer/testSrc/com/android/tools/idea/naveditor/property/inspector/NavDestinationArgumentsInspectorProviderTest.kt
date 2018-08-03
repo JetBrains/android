@@ -43,8 +43,8 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
     val provider = NavDestinationArgumentsInspectorProvider()
     val surface = mock(NavDesignSurface::class.java)
     val manager = NavPropertiesManager(myFacet, surface)
-    Disposer.register(myRootDisposable, surface)
-    Disposer.register(myRootDisposable, manager)
+    Disposer.register(project, surface)
+    Disposer.register(project, manager)
     val component1 = mock(NlComponent::class.java)
     val component2 = mock(NlComponent::class.java)
     val model = mock(NlModel::class.java)
@@ -80,12 +80,12 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
     }
 
     val manager = Mockito.mock(NavPropertiesManager::class.java)
-    val navInspectorProviders = Mockito.spy(NavInspectorProviders(manager, myRootDisposable))
+    val navInspectorProviders = Mockito.spy(NavInspectorProviders(manager, project))
     Mockito.`when`(navInspectorProviders.providers).thenReturn(listOf(NavDestinationArgumentsInspectorProvider()))
     Mockito.`when`(manager.getInspectorProviders(ArgumentMatchers.any())).thenReturn(navInspectorProviders)
     Mockito.`when`(manager.facet).thenReturn(myFacet)
 
-    val panel = NavInspectorPanel(myRootDisposable)
+    val panel = NavInspectorPanel(project)
     panel.setComponent(listOf(model.find("f1")!!), HashBasedTable.create<String, String, NlProperty>(), manager)
 
     @Suppress("UNCHECKED_CAST")

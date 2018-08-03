@@ -75,7 +75,7 @@ class AddDestinationMenuTest : NavTestCase() {
       }
     }
 
-    _surface = NavDesignSurface(project, myRootDisposable)
+    _surface = NavDesignSurface(project, project)
     surface.setSize(1000, 1000)
     surface.model = model
     _menu = AddDestinationMenu(surface)

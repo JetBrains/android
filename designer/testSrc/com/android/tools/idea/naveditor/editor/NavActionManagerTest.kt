@@ -56,7 +56,7 @@ class NavActionManagerTest : NavTestCase() {
         }
       }
     }
-    surface = NavDesignSurface(project, myRootDisposable)
+    surface = NavDesignSurface(project, project)
     surface.setSize(1000, 1000)
     surface.model = model
   }
