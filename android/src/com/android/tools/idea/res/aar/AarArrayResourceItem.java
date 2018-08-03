@@ -15,63 +15,70 @@
  */
 package com.android.tools.idea.res.aar;
 
+import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.res.ResolvableResourceItem;
-import com.android.utils.HashCodes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
+import java.util.Iterator;
+import java.util.List;
 
 /**
- * Resource item representing a value resource, e.g. a string or a color.
+ * Resource item representing an array resource.
  */
-class AarValueResourceItem extends AbstractAarValueResourceItem implements ResolvableResourceItem {
-  @NotNull private final ResourceType myResourceType;
-  @Nullable private final String myValue;
+final class AarArrayResourceItem extends AbstractAarValueResourceItem implements ArrayResourceValue {
+  @NotNull private final List<String> myElements;
 
   /**
    * Initializes the resource.
    *
-   * @param type the type of the resource
    * @param name the name of the resource
    * @param configuration the configuration the resource belongs to
    * @param visibility the visibility of the resource
-   * @param value the value associated with the resource
+   * @param elements the elements  or the array
    */
-  public AarValueResourceItem(@NotNull ResourceType type,
-                              @NotNull String name,
+  public AarArrayResourceItem(@NotNull String name,
                               @NotNull AarConfiguration configuration,
                               @NotNull ResourceVisibility visibility,
-                              @Nullable String value) {
+                              @NotNull List<String> elements) {
     super(name, configuration, visibility);
-    myResourceType = type;
-    myValue = value;
+    myElements = elements;
   }
 
   @Override
   @NotNull
-  public final ResourceType getResourceType() {
-    return myResourceType;
+  public ResourceType getResourceType() {
+    return ResourceType.ARRAY;
+  }
+
+  @Override
+  public int getElementCount() {
+    return myElements.size();
+  }
+
+  @Override
+  @NotNull
+  public String getElement(int index) {
+    return myElements.get(index);
+  }
+
+  @Override
+  public Iterator<String> iterator() {
+    return myElements.iterator();
   }
 
   @Override
   @Nullable
   public String getValue() {
-    return myValue;
+    return myElements.isEmpty() ? null : myElements.get(0);
   }
 
   @Override
   public boolean equals(@Nullable Object obj) {
     if (this == obj) return true;
     if (!super.equals(obj)) return false;
-    AarValueResourceItem other = (AarValueResourceItem) obj;
-    return Objects.equals(myValue, other.myValue);
-  }
-
-  @Override
-  public int hashCode() {
-    return HashCodes.mix(super.hashCode(), Objects.hashCode(myValue));
+    AarArrayResourceItem other = (AarArrayResourceItem) obj;
+    return myElements.equals(other.myElements);
   }
 }

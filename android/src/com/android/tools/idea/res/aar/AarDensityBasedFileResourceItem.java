@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.res.aar;
 
-import com.android.ide.common.rendering.api.DensityBasedResourceValueImpl;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.util.PathString;
+import com.android.ide.common.rendering.api.DensityBasedResourceValue;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
+import com.android.utils.HashCodes;
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,84 +27,46 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Resource item representing a density-specific file resource inside an AAR, e.g. a drawable or a layout.
  */
-// TODO: Rework inheritance structure once DensityBasedResourceValue becomes an interface.
-class AarDensityBasedFileResourceItem extends DensityBasedResourceValueImpl implements AarResourceItem {
-  @NotNull private final AarConfiguration myConfiguration;
-  @NotNull private final ResourceVisibility myVisibility;
+final class AarDensityBasedFileResourceItem extends AarFileResourceItem implements DensityBasedResourceValue {
+  @NotNull private final Density myDensity;
 
   /**
    * Initializes a file resource.
    *
    * @param type the type of the resource
    * @param name the name of the resource
-   * @param relativePath the path of the resource relative to the res folder, or path of a zip entry inside res.apk
-   * @param density the screen density this resource is associated with
    * @param configuration the configuration the resource belongs to
    * @param visibility the visibility of the resource
+   * @param relativePath the path of the resource relative to the res folder, or path of a zip entry inside res.apk
+   * @param density the screen density this resource is associated with
    */
   public AarDensityBasedFileResourceItem(@NotNull ResourceType type,
                                          @NotNull String name,
-                                         @NotNull String relativePath,
-                                         @NotNull Density density,
                                          @NotNull AarConfiguration configuration,
-                                         @NotNull ResourceVisibility visibility) {
-    super(configuration.getRepository().getNamespace(), type, name, relativePath, density, configuration.getRepository().getLibraryName());
-    myConfiguration = configuration;
-    myVisibility = visibility;
+                                         @NotNull ResourceVisibility visibility,
+                                         @NotNull String relativePath,
+                                         @NotNull Density density) {
+    super(type, name, configuration, visibility, relativePath);
+    myDensity = density;
   }
 
   @Override
   @NotNull
-  public ResourceType getType() {
-    return getResourceType();
+  public Density getResourceDensity() {
+    return myDensity;
   }
 
   @Override
-  @NotNull
-  public FolderConfiguration getConfiguration() {
-    return myConfiguration.getFolderConfiguration();
+  public boolean equals(@Nullable Object obj) {
+    if (this == obj) return true;
+    if (!super.equals(obj)) return false;
+    AarDensityBasedFileResourceItem other = (AarDensityBasedFileResourceItem) obj;
+    return myDensity == other.myDensity;
   }
 
   @Override
-  @NotNull
-  public ResourceReference getReferenceToSelf() {
-    return asReference();
-  }
-
-  @Override
-  @Nullable
-  public ResourceValue getResourceValue() {
-    return this;
-  }
-
-  @Override
-  public boolean isFileBased() {
-    return true;
-  }
-
-  @Override
-  @Nullable
-  public String getValue() {
-    return myConfiguration.getRepository().getResourceUrl(super.getValue());
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * <p>The returned PathString points either to a file on disk, or to a ZIP entry inside a res.apk file.
-   * In the latter case the filesystem URI part points to res.apk itself, e.g. {@code "zip:///foo/bar/res.apk"}.
-   * The path part is the path of the ZIP entry containing the resource.
-   */
-  @Override
-  @Nullable
-  public PathString getSource() {
-    return myConfiguration.getRepository().getPathString(super.getValue());
-  }
-
-  @Override
-  @NotNull
-  public ResourceVisibility getVisibility() {
-    return myVisibility;
+  public int hashCode() {
+    return HashCodes.mix(super.hashCode(), myDensity.hashCode());
   }
 
   @Override
@@ -116,7 +75,7 @@ class AarDensityBasedFileResourceItem extends DensityBasedResourceValueImpl impl
     return MoreObjects.toStringHelper(this)
                       .add("name", getName())
                       .add("namespace", getNamespace())
-                      .add("type", getType())
+                      .add("type", getResourceType())
                       .add("source", getSource())
                       .add("density", getResourceDensity())
                       .toString();
