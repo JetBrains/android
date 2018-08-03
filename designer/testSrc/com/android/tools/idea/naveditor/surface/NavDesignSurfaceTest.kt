@@ -58,7 +58,7 @@ import kotlin.test.assertNotEquals
 class NavDesignSurfaceTest : NavTestCase() {
 
   fun testSkipContentResize() {
-    val surface = NavDesignSurface(project, myRootDisposable)
+    val surface = NavDesignSurface(project, project)
     surface.model = model("nav.xml") {
       navigation("root") {
         fragment("f1")
@@ -80,7 +80,7 @@ class NavDesignSurfaceTest : NavTestCase() {
   fun testLayers() {
     val droppedLayers: ImmutableList<Layer>
 
-    val surface = NavDesignSurface(project, myRootDisposable)
+    val surface = NavDesignSurface(project, project)
     assertEmpty(surface.myLayers)
 
     val model = model("nav.xml") { navigation("root") }
@@ -95,7 +95,7 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testComponentActivated() {
-    val surface = NavDesignSurface(project, myRootDisposable)
+    val surface = NavDesignSurface(project, project)
     val model = model("nav.xml") {
       navigation("root") {
         fragment("fragment1", layout = "activity_main", name = "mytest.navtest.MainActivity")
@@ -112,7 +112,7 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testNoLayoutComponentActivated() {
-    val surface = NavDesignSurface(project, myRootDisposable)
+    val surface = NavDesignSurface(project, project)
     val model = model("nav.xml") {
       navigation("root") {
         fragment("fragment1", name = "mytest.navtest.MainActivity")
@@ -129,7 +129,7 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testSubflowActivated() {
-    val surface = NavDesignSurface(project, myRootDisposable)
+    val surface = NavDesignSurface(project, project)
     val model = model("nav.xml") {
       navigation("root") {
         fragment("fragment1")
@@ -146,7 +146,7 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testRootActivated() {
-    val surface = NavDesignSurface(project, myRootDisposable)
+    val surface = NavDesignSurface(project, project)
     val model = model("nav.xml") {
       navigation("root") {
         fragment("fragment1")
