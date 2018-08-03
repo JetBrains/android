@@ -55,7 +55,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
                                     @NotNull StyleResourceValue styleResourceValue,
                                     @Nullable Module sourceModule) {
     super(configuration.getConfigurationManager(), styleResourceValue.asReference());
-    myStyleResourceValue = new StyleResourceValueImpl(styleResourceValue);
+    myStyleResourceValue = StyleResourceValueImpl.copyOf(styleResourceValue);
     myConfiguration = configuration;
     mySourceModule = sourceModule;
   }
