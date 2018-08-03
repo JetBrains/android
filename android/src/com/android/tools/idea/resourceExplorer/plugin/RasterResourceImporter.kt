@@ -13,8 +13,15 @@
 // limitations under the License.
 package com.android.tools.idea.resourceExplorer.plugin
 
+import com.android.ide.common.resources.configuration.DensityQualifier
+import com.android.resources.Density
+import com.android.resources.ResourceType
+import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
+import com.android.tools.idea.resourceExplorer.model.StaticStringMapper
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.vfs.VfsUtil
+import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.JPanel
 
@@ -25,6 +32,31 @@ val logger = Logger.getInstance(RasterResourceImporter::class.java)
  * (png, jpg, etc...)
  */
 class RasterResourceImporter : ResourceImporter {
+  private val iOsMapper = StaticStringMapper(mapOf(
+    "@4x" to DensityQualifier(Density.XXXHIGH),
+    "@3x" to DensityQualifier(Density.XXHIGH),
+    "@2x" to DensityQualifier(Density.XHIGH),
+    "@1x" to DensityQualifier(Density.MEDIUM)
+  ))
+
+  private val androidMapper = StaticStringMapper(mapOf(
+    "xxxhdpi" to DensityQualifier(Density.XXXHIGH),
+    "xxhdpi" to DensityQualifier(Density.XXHIGH),
+    "xhdpi" to DensityQualifier(Density.XHIGH),
+    "hdpi" to DensityQualifier(Density.HIGH),
+    "mdpi" to DensityQualifier(Density.MEDIUM),
+    "ldpi" to DensityQualifier(Density.LOW)
+  ))
+
+  val matcher = QualifierMatcher(androidMapper, iOsMapper)
+
+  override fun processFiles(files: List<File>): List<DesignAsset> {
+    return files
+      .mapNotNull { VfsUtil.findFileByIoFile(it, true) }
+      .associate { it to matcher.parsePath(it.path) }
+      .map { (file, result) -> DesignAsset(file, result.qualifiers.toList(), ResourceType.DRAWABLE, result.resourceName) }
+  }
+
   companion object {
 
     val imageTypeExtensions = ImageIO.getReaderFormatNames().toSet()
