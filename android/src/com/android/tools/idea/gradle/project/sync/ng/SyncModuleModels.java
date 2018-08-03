@@ -45,11 +45,11 @@ public class SyncModuleModels implements GradleModuleModels {
 
   @NotNull private String myModuleName;
 
-  SyncModuleModels(@NotNull GradleProject gradleProject,
-                   @NotNull BuildIdentifier buildId,
-                   @NotNull Set<Class<?>> extraAndroidModelTypes,
-                   @NotNull Set<Class<?>> extraJavaModelTypes,
-                   @NotNull SyncActionOptions options) {
+  public SyncModuleModels(@NotNull GradleProject gradleProject,
+                          @NotNull BuildIdentifier buildId,
+                          @NotNull Set<Class<?>> extraAndroidModelTypes,
+                          @NotNull Set<Class<?>> extraJavaModelTypes,
+                          @NotNull SyncActionOptions options) {
     myBuildId = buildId;
     myExtraAndroidModelTypes = extraAndroidModelTypes;
     myExtraJavaModelTypes = extraJavaModelTypes;
@@ -156,7 +156,7 @@ public class SyncModuleModels implements GradleModuleModels {
     }).collect(Collectors.toList());
   }
 
-  <T> void addModel(@NotNull Class<T> modelType, @NotNull T model) {
+  public <T> void addModel(@NotNull Class<T> modelType, @NotNull T model) {
     List<Object> models = myModelsByType.computeIfAbsent(modelType, k -> new ArrayList<>());
     models.add(model);
   }
