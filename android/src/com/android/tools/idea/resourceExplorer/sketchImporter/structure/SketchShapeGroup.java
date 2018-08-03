@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.Objects;
 
-import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathUtils.toPathString;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathUtils.*;
 
 public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
   private final SketchStyle style;
@@ -88,7 +88,7 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
 
   @NotNull
   @Override
-  public List<DrawableShape> getTranslatedShapes(Point2D.Double parentCoords) {
+  public List<DrawableShape> getTranslatedShapes(@NotNull Point2D.Double parentCoords) {
     String shapePathData = buildShapeString(parentCoords);
     String shapeName = getName();
     String shapeBorderWidth = null;
@@ -107,47 +107,66 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
     return ImmutableList.of(new DrawableShape(shapeName, shapePathData, shapeFillColor, shapeBorderColor, shapeBorderWidth));
   }
 
+  /*
+  * Method that computes the pathData string of the shape in the SketchShapeGroup object.
+  *
+  * Shape operations can only be performed on Area objects, and to make sure that the conversion
+  * between Path2D.Double to Area is correct, the Path2D.Double object MUST be closed
+  * */
   @NotNull
   private String buildShapeString(@NotNull Point2D.Double parentCoordinates) {
-
     SketchLayer[] shapeGroupLayers = getLayers();
-    Rectangle2D.Double frame = getFrame();
+    Rectangle2D.Double parentFrame = getFrame();
     Rectangle.Double newFrame = new Rectangle2D.Double();
-    newFrame.setRect(frame.getX() + parentCoordinates.getX(),
-                     frame.getY() + parentCoordinates.getY(),
-                     frame.getWidth(),
-                     frame.getHeight());
-
-    if (shapeGroupLayers.length == 1) {
-      SketchLayer layer = shapeGroupLayers[0];
-
-      SketchShapePath sketchShapePath = (SketchShapePath)layer;
-
-      return buildSingleShapeString(sketchShapePath, newFrame);
-    }
-    else {
-
-      return buildCombinedShapeString(shapeGroupLayers, newFrame);
-    }
-  }
-
-  private static String buildSingleShapeString(SketchShapePath sketchShapePath, Rectangle.Double parentFrame) {
-
-    Path2D.Double shapePath = sketchShapePath.toPath2D(parentFrame);
-
-    return toPathString(shapePath);
-  }
-
-  private static String buildCombinedShapeString(SketchLayer[] shapeGroupLayers, Rectangle.Double parentFrame) {
+    newFrame.setRect(parentFrame.getX() + parentCoordinates.getX(),
+                     parentFrame.getY() + parentCoordinates.getY(),
+                     parentFrame.getWidth(),
+                     parentFrame.getHeight());
 
     SketchShapePath baseSketchShapePath = (SketchShapePath)shapeGroupLayers[0];
-    Path2D.Double baseShapePath = baseSketchShapePath.toPath2D(parentFrame);
-    Area baseShapeArea = new Area(baseShapePath);
+    Area baseShapeArea;
+    Path2D.Double baseShapePath = baseSketchShapePath.getPath2D(newFrame);
+
+
+    // However, if the path is not closed
+    if(shapeGroupLayers.length == 1) {
+      if (getRotation() != 0) {
+        baseShapePath = rotatePath(baseShapePath, baseSketchShapePath.getRotation());
+      }
+      if (baseSketchShapePath.isFlippedHorizontal() || baseSketchShapePath.isFlippedVertical()) {
+        baseShapePath = flipPath(baseShapePath, baseSketchShapePath.isFlippedHorizontal(), baseSketchShapePath.isFlippedVertical());
+      }
+      return toStringPath(baseShapePath);
+    } else {
+      // If the path is already closed, the conversion to Area is completely safe
+      if (baseSketchShapePath.isClosed()) {
+        baseShapeArea = new Area(baseShapePath);
+      }
+      else {
+        baseShapePath.closePath();
+        baseShapeArea = new Area(baseShapePath);
+      }
+    }
+    if (baseSketchShapePath.getRotation() != 0) {
+      baseShapeArea = rotateArea(baseShapeArea, baseSketchShapePath.getRotation());
+    }
+    if (baseSketchShapePath.isFlippedHorizontal() || baseSketchShapePath.isFlippedVertical()) {
+      baseShapeArea = flipArea(baseShapeArea, baseSketchShapePath.isFlippedHorizontal(), baseSketchShapePath.isFlippedVertical());
+    }
 
     for (int i = 1; i < shapeGroupLayers.length; i++) {
       SketchShapePath sketchShapePath = (SketchShapePath)shapeGroupLayers[i];
-      Path2D.Double shapePath = sketchShapePath.toPath2D(parentFrame);
+      Path2D.Double shapePath = sketchShapePath.getPath2D(newFrame);
+      if (!sketchShapePath.isClosed()) {
+        shapePath.closePath();
+      }
       Area shapeArea = new Area(shapePath);
+      if (sketchShapePath.getRotation() != 0) {
+        shapeArea = rotateArea(shapeArea, sketchShapePath.getRotation());
+      }
+      if (sketchShapePath.isFlippedHorizontal() || sketchShapePath.isFlippedVertical()) {
+        shapeArea = flipArea(shapeArea, sketchShapePath.isFlippedHorizontal(), sketchShapePath.isFlippedVertical());
+      }
 
       int booleanOperation = sketchShapePath.getBooleanOperation();
       switch (booleanOperation) {
@@ -165,8 +184,13 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
           break;
       }
     }
-
-    return toPathString(baseShapeArea);
+    if (getRotation() != 0) {
+      baseShapeArea = rotateArea(baseShapeArea, getRotation());
+    }
+    if (isFlippedHorizontal() || isFlippedVertical()) {
+      baseShapeArea = flipArea(baseShapeArea, isFlippedHorizontal(), isFlippedVertical());
+    }
+    return toStringPath(baseShapeArea);
   }
 }
 

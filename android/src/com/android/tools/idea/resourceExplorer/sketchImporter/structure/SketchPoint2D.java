@@ -31,6 +31,7 @@ public class SketchPoint2D extends Point2D.Double {
    * @param parentFrame
    * @param ownFrame
    */
+  @NotNull
   public SketchPoint2D makeAbsolutePosition(@NotNull Rectangle.Double parentFrame, @NotNull Rectangle.Double ownFrame) {
     return new SketchPoint2D(getX() * ownFrame.getWidth() + parentFrame.getX() + ownFrame.getX(),
                              getY() * ownFrame.getHeight() + parentFrame.getY() + ownFrame.getY());
@@ -41,6 +42,7 @@ public class SketchPoint2D extends Point2D.Double {
    *
    * @param parentFrame
    */
+  @NotNull
   public SketchPoint2D makeAbsolutePosition(@NotNull Rectangle.Double parentFrame) {
     return new SketchPoint2D(getX() + parentFrame.getX(),
                              getY() + parentFrame.getY());

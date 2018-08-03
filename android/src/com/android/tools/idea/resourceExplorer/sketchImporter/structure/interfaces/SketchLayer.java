@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.List;
 
@@ -124,7 +124,7 @@ public abstract class SketchLayer {
   }
 
   @NotNull
-  public List<DrawableShape> getTranslatedShapes(Point2D.Double parentCoords) {
+  public List<DrawableShape> getTranslatedShapes(@NotNull Point2D.Double parentCoords) {
     return ImmutableList.of();
   }
 }
