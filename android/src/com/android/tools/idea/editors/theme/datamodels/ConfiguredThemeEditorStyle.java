@@ -162,7 +162,8 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
 
   public boolean hasItem(@Nullable EditedStyleItem item) {
     //TODO: add isOverriden() method to EditedStyleItem
-    return item != null && getStyleResourceValue().getItem(item.getAttrNamespace(), item.getAttrName()) != null;
+    ResourceReference attrReference = item == null ? null : item.getAttrReference();
+    return attrReference != null && getStyleResourceValue().getItem(attrReference) != null;
   }
 
   public StyleItemResourceValue getItem(@NotNull String name, boolean isFramework) {
