@@ -18,10 +18,7 @@ package com.android.tools.idea.resourceExplorer.editor
 import com.android.tools.idea.resourceExplorer.importer.ImportConfigurationManager
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
-import com.android.tools.idea.resourceExplorer.view.DesignAssetDetailView
-import com.android.tools.idea.resourceExplorer.view.ExternalResourceBrowser
-import com.android.tools.idea.resourceExplorer.view.QualifierMatcherPanel
-import com.android.tools.idea.resourceExplorer.view.ResourceExplorerView
+import com.android.tools.idea.resourceExplorer.view.*
 import com.android.tools.idea.resourceExplorer.viewmodel.*
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
@@ -42,13 +39,16 @@ private const val withDetailView: Boolean = false
 class ResourceExplorer private constructor(
   parentDisposable: Disposable,
   facet: AndroidFacet
-
-) : JPanel(BorderLayout()) {
+) : JPanel(BorderLayout()), Disposable {
 
   var facet by Delegates.observable(facet) { _, _, newValue -> updateFacet(newValue) }
 
   private val synchronizationManager = SynchronizationManager(facet)
   private val projectResourcesBrowserViewModel = ProjectResourcesBrowserViewModel(facet, synchronizationManager)
+  private val importersProvider = ImportersProvider()
+  private val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
+
+  private val resourceExplorerView = ResourceExplorerView(projectResourcesBrowserViewModel, resourceImportDragTarget)
 
   companion object {
 
@@ -77,7 +77,6 @@ class ResourceExplorer private constructor(
   }
 
   init {
-    val importersProvider = ImportersProvider()
     val configurationManager = ServiceManager.getService(facet.module.project, ImportConfigurationManager::class.java)
     val centerContainer = Box.createVerticalBox()
 
@@ -90,8 +89,6 @@ class ResourceExplorer private constructor(
       val externalResourceBrowser = ExternalResourceBrowser(facet, externalResourceBrowserViewModel, qualifierParserPanel)
       add(externalResourceBrowser, BorderLayout.EAST)
     }
-
-    val resourceExplorerView = ResourceExplorerView(projectResourcesBrowserViewModel)
     centerContainer.add(resourceExplorerView)
 
     @Suppress("ConstantConditionIf")
@@ -106,10 +103,17 @@ class ResourceExplorer private constructor(
         resourceExplorerView.cellWidth = (event.source as JSlider).value
       }
     }, BorderLayout.NORTH)
-    Disposer.register(parentDisposable, synchronizationManager)
+
+    Disposer.register(parentDisposable, this)
+    Disposer.register(this, synchronizationManager)
   }
 
   private fun updateFacet(facet: AndroidFacet) {
     projectResourcesBrowserViewModel.facet = facet
+    resourceImportDragTarget.facet = facet
+  }
+
+  override fun dispose() {
+    Disposer.dispose(resourceExplorerView)
   }
 }
