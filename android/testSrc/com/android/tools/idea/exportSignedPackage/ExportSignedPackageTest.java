@@ -17,17 +17,17 @@ package com.android.tools.idea.exportSignedPackage;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.testing.TestProjectPaths.SIGNAPK_MULTIFLAVOR;
 import static com.android.tools.idea.testing.TestProjectPaths.SIGNAPK_NO_FLAVORS;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 public class ExportSignedPackageTest extends AndroidGradleTestCase {
   public void testNoFlavors() throws Exception {
@@ -38,8 +38,8 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     // debug and release
     assertEquals(2, androidProject.getVariants().size());
 
-    List<String> assembleTasks = ExportSignedPackageWizard
-      .getGradleTasks("", androidProject, "release", Collections.emptyList(), ExportSignedPackageWizard.APK);
+    List<String> assembleTasks =
+      ExportSignedPackageWizard.getGradleTasks("", getModel(), singletonList("release"), ExportSignedPackageWizard.APK);
     assertEquals(1, assembleTasks.size());
     assertEquals(":assembleRelease", assembleTasks.get(0));
   }
@@ -52,9 +52,8 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     // (free,pro) x (arm,x86) x (debug,release) = 8
     assertEquals(8, androidProject.getVariants().size());
 
-    Set<String> assembleTasks =
-      Sets.newHashSet(ExportSignedPackageWizard.getGradleTasks("", androidProject, "release", Lists.newArrayList("pro-x86", "free-arm"),
-                                                               ExportSignedPackageWizard.APK));
+    Set<String> assembleTasks = Sets.newHashSet(
+      ExportSignedPackageWizard.getGradleTasks("", getModel(), asList("proX86Release", "freeArmRelease"), ExportSignedPackageWizard.APK));
     assertEquals(2, assembleTasks.size());
     assertTrue(assembleTasks.contains(":assembleProX86Release"));
     assertTrue(assembleTasks.contains(":assembleFreeArmRelease"));
@@ -62,7 +61,8 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
 
   public void testApkLocationCorrect() {
     // This test guarantees user is taken to the folder with the selected build type outputs
-    assertEquals(toSystemDependentName("path/to/folder/release"), ExportSignedPackageWizard.getApkLocation("path/to/folder", "release").toString());
+    assertEquals(toSystemDependentName("path/to/folder/release"),
+                 ExportSignedPackageWizard.getApkLocation("path/to/folder", "release").toString());
   }
 
   public void testBundleNoFlavors() throws Exception {
@@ -73,8 +73,8 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     // debug and release
     assertEquals(2, androidProject.getVariants().size());
 
-    List<String> assembleTasks = ExportSignedPackageWizard
-      .getGradleTasks("", androidProject, "release", Collections.emptyList(), ExportSignedPackageWizard.BUNDLE);
+    List<String> assembleTasks =
+      ExportSignedPackageWizard.getGradleTasks("", getModel(), singletonList("release"), ExportSignedPackageWizard.BUNDLE);
     assertEquals(1, assembleTasks.size());
     assertEquals(":bundleRelease", assembleTasks.get(0));
   }
@@ -87,9 +87,9 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     // (free,pro) x (arm,x86) x (debug,release) = 8
     assertEquals(8, androidProject.getVariants().size());
 
-    Set<String> assembleTasks =
-      Sets.newHashSet(ExportSignedPackageWizard.getGradleTasks("", androidProject, "release", Lists.newArrayList("pro-x86", "free-arm"),
-                                                               ExportSignedPackageWizard.BUNDLE));
+    Set<String> assembleTasks = Sets.newHashSet(ExportSignedPackageWizard
+                                                  .getGradleTasks("", getModel(), asList("proX86Release", "freeArmRelease"),
+                                                                  ExportSignedPackageWizard.BUNDLE));
     assertEquals(2, assembleTasks.size());
     assertTrue(assembleTasks.contains(":bundleProX86Release"));
     assertTrue(assembleTasks.contains(":bundleFreeArmRelease"));
