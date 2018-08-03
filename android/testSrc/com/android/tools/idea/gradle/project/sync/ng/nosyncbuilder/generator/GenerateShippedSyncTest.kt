@@ -21,6 +21,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.Projects
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NPW_GENERATED_PROJECTS_DIR
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.getProjectCacheDir
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleWrapper
@@ -50,8 +51,6 @@ import org.mockito.Mockito.mock
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
-
-const val NPW_GENERATED_PROJECTS_DIR = "npw_generated_projects"
 
 // New project is created only in first iteration of first test. Later only modules/activities are created
 private var firstRun = true

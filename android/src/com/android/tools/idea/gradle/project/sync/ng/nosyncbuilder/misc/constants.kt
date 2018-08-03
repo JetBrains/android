@@ -22,3 +22,4 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc
  * This constant is used in a workaround.
  */
 const val BUILD_TYPE_NAME = "buildType"
+const val NPW_GENERATED_PROJECTS_DIR = "npw_generated_projects"
