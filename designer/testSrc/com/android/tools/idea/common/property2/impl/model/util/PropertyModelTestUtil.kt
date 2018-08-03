@@ -43,7 +43,11 @@ object PropertyModelTestUtil {
     val toggleCount: Int
   }
 
-  fun makeProperty(namespace: String, name: String, initialValue: String?): TestPropertyItem {
+  fun makeProperty(namespace: String,
+                   name: String,
+                   initialValue: String?,
+                   browseButton: ActionIconButton? = null,
+                   colorButton: ActionIconButton? = null): TestPropertyItem {
     return object : TestPropertyItem {
 
       override val namespace: String
@@ -64,6 +68,12 @@ object PropertyModelTestUtil {
 
       override val isReference: Boolean
         get() = false
+
+      override val browseButton: ActionIconButton?
+        get() = browseButton
+
+      override val colorButton: ActionIconButton?
+        get() = colorButton
     }
   }
 

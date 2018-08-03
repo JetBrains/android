@@ -97,6 +97,12 @@ public class MotionPropertyItem implements PropertyItem, PTableItem {
 
   @Nullable
   @Override
+  public ActionIconButton getColorButton() {
+    return null;
+  }
+
+  @Nullable
+  @Override
   public Icon getNamespaceIcon() {
     return null;
   }
