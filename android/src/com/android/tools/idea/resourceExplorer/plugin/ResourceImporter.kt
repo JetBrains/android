@@ -13,8 +13,11 @@
 // limitations under the License.
 package com.android.tools.idea.resourceExplorer.plugin
 
+import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.vfs.VfsUtil
+import java.io.File
 import javax.swing.JPanel
 
 /**
@@ -61,6 +64,18 @@ interface ResourceImporter {
    * Return [DesignAssetRenderer] needed to preview the result of the importation.
    */
   fun getImportPreview(asset: DesignAsset): DesignAssetRenderer?
+
+  /**
+   * Wrap the provided files into [DesignAsset].
+   *
+   * The default implementation wrap each file if found on disk into a [DesignAsset] of with [ResourceType.RAW] and no qualifiers
+   * Implementing methods can do some processing on the files like converting, or resizing...
+   */
+  fun processFiles(files: List<File>): List<DesignAsset> =
+    files.mapNotNull {
+      val file = VfsUtil.findFileByIoFile(it, true) ?: return@mapNotNull null
+      DesignAsset(file, listOf(), ResourceType.RAW)
+    }
 }
 
 /**
