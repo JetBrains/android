@@ -22,6 +22,8 @@ import com.android.tools.idea.resourceExplorer.viewmodel.ResourceSection
 import com.android.tools.idea.resourceExplorer.widget.Section
 import com.android.tools.idea.resourceExplorer.widget.SectionList
 import com.android.tools.idea.resourceExplorer.widget.SectionListModel
+import com.intellij.ide.dnd.DnDManager
+import com.intellij.openapi.Disposable
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
@@ -50,8 +52,9 @@ private val SECTION_HEADER_BORDER = BorderFactory.createCompoundBorder(
  * It uses an [ProjectResourcesBrowserViewModel] to populates the views
  */
 class ResourceExplorerView(
-  private val resourcesBrowserViewModel: ProjectResourcesBrowserViewModel
-) : JPanel(BorderLayout()) {
+  private val resourcesBrowserViewModel: ProjectResourcesBrowserViewModel,
+  private val resourceImportDragTarget: ResourceImportDragTarget
+) : JPanel(BorderLayout()), Disposable {
 
   var cellWidth = DEFAULT_CELL_WIDTH
     set(value) {
@@ -70,6 +73,8 @@ class ResourceExplorerView(
   private val listPanel: JBScrollPane
 
   init {
+    DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
+
     sectionList.setSectionListCellRenderer(createSectionListCellRenderer())
     resourcesBrowserViewModel.updateCallback = ::populateResourcesLists
     populateResourcesLists()
@@ -173,5 +178,9 @@ class ResourceExplorerView(
         border = SECTION_HEADER_BORDER
       }
     }
+  }
+
+  override fun dispose() {
+    DnDManager.getInstance().unregisterTarget(resourceImportDragTarget, this)
   }
 }
