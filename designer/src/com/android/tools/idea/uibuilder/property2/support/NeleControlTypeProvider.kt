@@ -43,6 +43,9 @@ class NeleControlTypeProvider(private val enumSupportProvider: EnumSupportProvid
       property.type == NelePropertyType.BOOLEAN ->
         ControlType.BOOLEAN
 
+      property.type == NelePropertyType.COLOR_OR_DRAWABLE || property.type == NelePropertyType.COLOR ->
+        ControlType.COLOR_EDITOR
+
       else ->
         ControlType.TEXT_EDITOR
     }

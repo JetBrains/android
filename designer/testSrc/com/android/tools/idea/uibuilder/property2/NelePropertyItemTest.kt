@@ -23,8 +23,13 @@ import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValu
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import java.awt.Color
+import com.intellij.util.ui.TwoColorsIcon
+
+
 
 internal const val EXPECTED_ID_TOOLTIP = """
 android:id: Supply an identifier name for this view, to later retrieve it
@@ -69,6 +74,7 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(property.libraryName).isEmpty()
     assertThat(property.components).hasSize(1)
     assertThat(property.components[0].tagName).isEqualTo(TEXT_VIEW)
+    assertThat(property.colorButton).isNull()
     val browseButton = property.browseButton!!
     assertThat(browseButton.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
     assertThat(browseButton.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND_FOCUS)
@@ -82,6 +88,7 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(property.value).isEqualTo("Hardcoded string")
     assertThat(property.isReference).isFalse()
     assertThat(property.resolvedValue).isEqualTo("Hardcoded string")
+    assertThat(property.colorButton).isNull()
     val browseButton = property.browseButton!!
     assertThat(browseButton.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
     assertThat(browseButton.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND_FOCUS)
@@ -103,10 +110,61 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(design.libraryName).isEmpty()
     assertThat(design.components).hasSize(1)
     assertThat(design.components[0].tagName).isEqualTo(TEXT_VIEW)
+    assertThat(property.colorButton).isNull()
     val browseButton = property.browseButton!!
     assertThat(browseButton.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
     assertThat(browseButton.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND_FOCUS)
     assertThat(design.designProperty).isEqualTo(design)
+  }
+
+  fun testColorPropertyWithColorWithoutValue() {
+    val property = createPropertyItem(ATTR_TEXT_COLOR, NelePropertyType.COLOR_OR_DRAWABLE, createTextView())
+    assertThat(property.name).isEqualTo(ATTR_TEXT_COLOR)
+    assertThat(property.namespace).isEqualTo(ANDROID_URI)
+    assertThat(property.type).isEqualTo(NelePropertyType.COLOR_OR_DRAWABLE)
+    assertThat(property.value).isNull()
+    assertThat(property.isReference).isFalse()
+    val colorButton = property.colorButton!!
+    assertThat(colorButton.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
+    assertThat(colorButton.getActionIcon(true)).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
+    val browseButton = property.browseButton!!
+    assertThat(browseButton.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
+    assertThat(browseButton.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND_FOCUS)
+  }
+
+  fun testColorPropertyWithColorConstant() {
+    val property = createPropertyItem(ATTR_TEXT_COLOR, NelePropertyType.COLOR_OR_DRAWABLE, createTextViewWithTextColor("#FF990033"))
+    assertThat(property.name).isEqualTo(ATTR_TEXT_COLOR)
+    assertThat(property.namespace).isEqualTo(ANDROID_URI)
+    assertThat(property.type).isEqualTo(NelePropertyType.COLOR_OR_DRAWABLE)
+    assertThat(property.value).isEqualTo("#FF990033")
+    assertThat(property.isReference).isFalse()
+    val colorIcon = ColorIcon(16, Color(0x990033))
+    val colorButton = property.colorButton!!
+    assertThat(colorButton.getActionIcon(false)).isEqualTo(colorIcon)
+    assertThat(colorButton.getActionIcon(true)).isEqualTo(colorIcon)
+    val browseButton = property.browseButton!!
+    assertThat(browseButton.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
+    assertThat(browseButton.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND_FOCUS)
+  }
+
+  fun testColorPropertyWithColorStateList() {
+    val property = createPropertyItem(ATTR_TEXT_COLOR,
+                                      NelePropertyType.COLOR_OR_DRAWABLE,
+                                      createTextViewWithTextColor("@android:color/primary_text_dark"))
+    property.model.showResolvedValues = false
+    assertThat(property.name).isEqualTo(ATTR_TEXT_COLOR)
+    assertThat(property.namespace).isEqualTo(ANDROID_URI)
+    assertThat(property.type).isEqualTo(NelePropertyType.COLOR_OR_DRAWABLE)
+    assertThat(property.value).isEqualTo("@android:color/primary_text_dark")
+    assertThat(property.isReference).isTrue()
+    val colorIcon = TwoColorsIcon(16, Color(0xFFFFFF), Color(0x000000))
+    val colorButton = property.colorButton!!
+    assertThat(colorButton.getActionIcon(false)).isEqualTo(colorIcon)
+    assertThat(colorButton.getActionIcon(true)).isEqualTo(colorIcon)
+    val browseButton = property.browseButton!!
+    assertThat(browseButton.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
+    assertThat(browseButton.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND_FOCUS)
   }
 
   fun testIsReference() {
@@ -215,6 +273,15 @@ class NelePropertyItemTest : PropertyTestCase() {
       component(TEXT_VIEW)
         .withAttribute(ANDROID_URI, ATTR_TEXT, "Hardcoded string")
         .withAttribute(TOOLS_URI, ATTR_TEXT, "Hardcoded design string")
+    )
+  }
+
+  private fun createTextViewWithTextColor(textColor: String): List<NlComponent> {
+    return createComponents(
+      component(TEXT_VIEW)
+        .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "wrap_content")
+        .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "wrap_content")
+        .withAttribute(ANDROID_URI, ATTR_TEXT_COLOR, textColor)
     )
   }
 
