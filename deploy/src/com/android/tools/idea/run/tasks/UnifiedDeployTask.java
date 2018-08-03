@@ -17,8 +17,8 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.Apk;
-import com.android.tools.deployer.DdmDevice;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerRunner;
 import com.android.tools.idea.run.ApkInfo;
@@ -59,7 +59,7 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
 
       List<String> paths = apk.getFiles().stream().map(
         apkunit -> apkunit.getApkFile().getPath()).collect(Collectors.toList());
-      Deployer deployer = new Deployer(apk.getApplicationId(), paths, this, new DdmDevice(device));
+      Deployer deployer = new Deployer(apk.getApplicationId(), paths, this, new AdbClient(device));
       Deployer.RunResponse response = deployer.run();
 
       if (response.status == Deployer.RunResponse.Status.ERROR) {
