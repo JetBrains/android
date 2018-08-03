@@ -17,12 +17,26 @@ package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants
 import com.android.resources.ResourceType
+import com.android.tools.adtui.LightCalloutPopup
+import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerComponentProvider
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPalette
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CustomShortcutSet
+import com.intellij.openapi.actionSystem.KeyboardShortcut
+import java.awt.Color
+import java.awt.Point
 import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
 import java.util.*
+import javax.swing.JComponent
 import javax.swing.KeyStroke
 
 /**
@@ -90,5 +104,54 @@ class OpenResourceManagerAction(val property: NelePropertyItem) : AnAction("Open
         -> ResourceType.DRAWABLE
       else -> null
     }
+  }
+}
+
+class ColorSelectionAction(private val property: NelePropertyItem, private val currentColor: Color?): AnAction("Select Color") {
+
+  override fun actionPerformed(event: AnActionEvent) {
+    selectFromColorDialog(locationFromEvent(event), currentColor)
+  }
+
+  private fun selectFromColorDialog(location: Point, initialColor: Color?) {
+    val dialog = LightCalloutPopup()
+
+    val okCallback = { color: Color ->
+      property.value = colorToString(color)
+      dialog.close()
+    }
+
+    val cancelCallback = { _: Color ->
+      dialog.close()
+    }
+
+    val panel = ColorPickerBuilder()
+      .setOriginalColor(initialColor)
+      .addSaturationBrightnessComponent()
+      .addColorAdjustPanel(MaterialGraphicalColorPipetteProvider())
+      .addColorValuePanel()
+      .addSeparator()
+      .addCustomComponent(object: ColorPickerComponentProvider {
+        override fun createComponent(colorPickerModel: ColorPickerModel): JComponent {
+          return MaterialColorPalette(colorPickerModel)
+        }
+      })
+      .addSeparator()
+      .addOperationPanel(okCallback, cancelCallback)
+      .build()
+
+    dialog.show(panel, null, location)
+  }
+
+  private fun locationFromEvent(event: AnActionEvent): Point {
+    val input = event.inputEvent
+    if (input is MouseEvent) {
+      return input.locationOnScreen
+    }
+    val source = input?.source
+    if (source is JComponent) {
+      return source.locationOnScreen
+    }
+    return Point(20, 20)
   }
 }

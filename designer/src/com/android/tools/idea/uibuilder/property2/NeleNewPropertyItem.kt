@@ -93,6 +93,9 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
   override val browseButton: ActionIconButton?
     get() = delegate?.browseButton
 
+  override val colorButton: ActionIconButton?
+    get() = delegate?.colorButton
+
   override val children: List<NeleFlagPropertyItem>
     get() = (delegate as? NeleFlagsPropertyItem)?.children ?: emptyList()
 
