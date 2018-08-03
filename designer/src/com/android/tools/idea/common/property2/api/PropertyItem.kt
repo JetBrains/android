@@ -65,6 +65,16 @@ interface PropertyItem : PTableItem {
     get() = null
 
   /**
+   * A color control may display an icon on the left
+   *
+   * An implementation should use this to provide custom
+   * representation and editing color values. This value
+   * is used for [ControlType.COLOR_EDITOR] controls.
+   */
+  val colorButton: ActionIconButton?
+    get() = null
+
+  /**
    * The tooltip for this property name
    */
   val tooltipForName: String

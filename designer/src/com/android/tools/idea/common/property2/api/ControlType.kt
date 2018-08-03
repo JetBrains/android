@@ -27,4 +27,5 @@ enum class ControlType {
   COMBO_BOX,
   THREE_STATE_BOOLEAN,
   FLAG_EDITOR,
+  COLOR_EDITOR,
 }

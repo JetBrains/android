@@ -50,6 +50,12 @@ class EditorProviderImpl<in P : PropertyItem>(
         return Pair(model, addActionButtonBinding(model, editor))
       }
 
+      ControlType.COLOR_EDITOR -> {
+        val model = ColorFieldPropertyEditorModel(property)
+        val editor = PropertyColorField(model, asTableCellEditor)
+        return Pair(model, addActionButtonBinding(model, editor))
+      }
+
       ControlType.THREE_STATE_BOOLEAN -> {
         val model = ThreeStateBooleanPropertyEditorModel(property)
         val editor = PropertyThreeStateCheckBox(model)
