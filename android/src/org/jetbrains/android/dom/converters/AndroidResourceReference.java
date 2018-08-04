@@ -72,7 +72,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
   }
 
   @Override
-  public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+  public PsiElement handleElementRename(@NotNull String newElementName) throws IncorrectOperationException {
     if (newElementName.startsWith(SdkConstants.NEW_ID_PREFIX)) {
       newElementName = AndroidResourceUtil.getResourceNameByReferenceText(newElementName);
     }
