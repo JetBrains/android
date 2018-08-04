@@ -220,7 +220,7 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
 
     @Nullable
     @Override
-    public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+    public PsiElement handleElementRename(@NotNull String newElementName) throws IncorrectOperationException {
       final ElementManipulator<PsiElement> manipulator = ElementManipulators.getManipulator(myNameElement);
       assert manipulator != null : "Cannot find manipulator for " + myNameElement;
       return manipulator.handleContentChange(myNameElement, myRangeInNameElement, newElementName);
