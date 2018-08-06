@@ -69,9 +69,9 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(property.libraryName).isEmpty()
     assertThat(property.components).hasSize(1)
     assertThat(property.components[0].tagName).isEqualTo(TEXT_VIEW)
-    assertThat(property.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
-    assertThat(property.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND_FOCUS)
-    assertThat(property.showActionButton).isTrue()
+    val browseButton = property.browseButton!!
+    assertThat(browseButton.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
+    assertThat(browseButton.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND_FOCUS)
   }
 
   fun testUnboundTextProperty() {
@@ -82,9 +82,9 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(property.value).isEqualTo("Hardcoded string")
     assertThat(property.isReference).isFalse()
     assertThat(property.resolvedValue).isEqualTo("Hardcoded string")
-    assertThat(property.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
-    assertThat(property.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND_FOCUS)
-    assertThat(property.showActionButton).isTrue()
+    val browseButton = property.browseButton!!
+    assertThat(browseButton.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
+    assertThat(browseButton.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND_FOCUS)
   }
 
   fun testTextDesignProperty() {
@@ -103,9 +103,9 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(design.libraryName).isEmpty()
     assertThat(design.components).hasSize(1)
     assertThat(design.components[0].tagName).isEqualTo(TEXT_VIEW)
-    assertThat(property.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
-    assertThat(property.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND_FOCUS)
-    assertThat(design.showActionButton).isTrue()
+    val browseButton = property.browseButton!!
+    assertThat(browseButton.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
+    assertThat(browseButton.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND_FOCUS)
     assertThat(design.designProperty).isEqualTo(design)
   }
 

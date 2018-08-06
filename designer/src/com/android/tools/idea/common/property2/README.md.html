@@ -18,7 +18,7 @@
 
 **Property Inspector v2**
 
-*Last updated: March 28th 2018*
+*Last updated: Aug 7th 2018*
 
 Overview
 ========
@@ -87,10 +87,10 @@ interface which should be used for all properties. The most important fields are
 - isReference: Which is true if the value is a reference to a different value
 - resolvedValue: The resolved value if the original value is a reference. Some
   editors e.g. a boolean editor is only able to show resolved values.
+- browseButton: Describe a button to show on the right side of the property
+  editor.
 
 In addition an implementation could also implement the following interfaces:
-- [ActionButtonSupport.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/api/ActionButtonSupport.kt)
-   for displaying an icon after the editor with an action or an action group.
 - [HelpSupport.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/api/HelpSupport.kt)
    for supporting F1 and shift-F1 help while an editor has focus.
 

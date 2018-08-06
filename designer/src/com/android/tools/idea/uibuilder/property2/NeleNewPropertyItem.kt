@@ -22,12 +22,10 @@ import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.property2.api.ActionIconButton
 import com.android.tools.idea.common.property2.api.FlagsPropertyItem
 import com.android.tools.idea.common.property2.api.NewPropertyItem
 import com.android.tools.idea.common.property2.api.PropertiesTable
-import com.intellij.openapi.actionSystem.AnAction
-import icons.StudioIcons
-import javax.swing.Icon
 
 /**
  * A [NelePropertyItem] where it is possible to edit the name of the property.
@@ -92,17 +90,8 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
   override val tooltipForValue: String
     get() = delegate?.tooltipForValue ?: ""
 
-  override val showActionButton: Boolean
-    get() = delegate?.showActionButton == true
-
-  override val actionButtonFocusable: Boolean
-    get() = delegate?.actionButtonFocusable == true
-
-  override fun getActionIcon(focused: Boolean): Icon =
-    delegate?.getActionIcon(focused) ?: StudioIcons.Common.ADD
-
-  override fun getAction(): AnAction? =
-    delegate?.getAction()
+  override val browseButton: ActionIconButton?
+    get() = delegate?.browseButton
 
   override val children: List<NeleFlagPropertyItem>
     get() = (delegate as? NeleFlagsPropertyItem)?.children ?: emptyList()

@@ -50,29 +50,6 @@ interface PropertyEditorModel {
   var onEnter: () -> Unit
 
   /**
-   * Returns true if the action button should be focusable.
-   *
-   * Each editor can optionally display a button on the right of the editor.
-   * This button is controlled by [ActionButtonSupport] which a [PropertyItem]
-   * may implement.
-   */
-  val actionButtonFocusable: Boolean
-    get() = (property as? ActionButtonSupport)?.actionButtonFocusable == true
-
-  /**
-   * The icon to show in the action button if present.
-   */
-  fun getActionIcon(focused: Boolean): Icon? {
-    return (property as? ActionButtonSupport)?.getActionIcon(focused)
-  }
-
-  /**
-   * The action performed when user presses the action button if any.
-   */
-  val buttonAction: AnAction?
-    get() = (property as? ActionButtonSupport)?.getAction()
-
-  /**
    * Controls the visibility of the editor.
    *
    * The editor should show/hide itself based on this value.

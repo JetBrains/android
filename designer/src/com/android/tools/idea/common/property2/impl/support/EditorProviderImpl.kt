@@ -81,9 +81,6 @@ class EditorProviderImpl<in P : PropertyItem>(
   }
 
   private fun addActionButtonBinding(model: PropertyEditorModel, editor: JComponent): JComponent {
-    if ((model.property as? ActionButtonSupport)?.showActionButton == true) {
-      return ActionButtonBinding(model, editor)
-    }
-    return editor
+    return if (model.property.browseButton == null) editor else ActionButtonBinding(model, editor)
   }
 }
