@@ -91,12 +91,12 @@ public class UpdateSitesPanel {
       }
     }).setEditActionUpdater(new AnActionButtonUpdater() {
       @Override
-      public boolean isEnabled(AnActionEvent e) {
+      public boolean isEnabled(@NotNull AnActionEvent e) {
         return myUpdateSitesTable.getSelectedRowCount() == 1 && mySourcesTableModel.isEditable(myUpdateSitesTable.getSelectedRow());
       }
     }).setAddActionUpdater(new AnActionButtonUpdater() {
       @Override
-      public boolean isEnabled(AnActionEvent e) {
+      public boolean isEnabled(@NotNull AnActionEvent e) {
         return mySourcesTableModel.isEditable();
       }
     }).addExtraAction(new AnActionButton("Select All", AllIcons.Actions.Selectall) {
@@ -121,7 +121,7 @@ public class UpdateSitesPanel {
       }
     }).setMoveDownAction(null).setMoveUpAction(null).setRemoveActionUpdater(new AnActionButtonUpdater() {
       @Override
-      public boolean isEnabled(AnActionEvent e) {
+      public boolean isEnabled(@NotNull AnActionEvent e) {
         if (myUpdateSitesTable.getSelectedRowCount() < 1) {
           return false;
         }

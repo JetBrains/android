@@ -315,7 +315,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       }
 
       @Override
-      public boolean isEnabled(AnActionEvent e) {
+      public boolean isEnabled(@NotNull AnActionEvent e) {
         return true;
       }
 
@@ -372,7 +372,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       }
 
       @Override
-      public boolean isEnabled(AnActionEvent e) {
+      public boolean isEnabled(@NotNull AnActionEvent e) {
         return nonDefaultSelectionExists();
       }
 
@@ -416,7 +416,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       }
 
       @Override
-      public boolean isEnabled(AnActionEvent e) {
+      public boolean isEnabled(@NotNull AnActionEvent e) {
         return validSelectionExists();
       }
 
