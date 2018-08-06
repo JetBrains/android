@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -45,14 +46,14 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     boolean isAvailable = project != null && ProjectSystemUtil.getProjectSystem(project).allowsFileCreation();
     e.getPresentation().setVisible(isAvailable);
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project != null && ProjectSystemUtil.getProjectSystem(project).allowsFileCreation()) {
       if (!AndroidSdkUtils.isAndroidSdkAvailable()) {

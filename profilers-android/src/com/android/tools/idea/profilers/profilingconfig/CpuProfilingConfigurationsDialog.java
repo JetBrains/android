@@ -305,7 +305,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       }
 
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         addConfiguration();
       }
 
@@ -362,7 +362,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       }
 
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         removeSelectedConfiguration();
       }
 
@@ -406,7 +406,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       }
 
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         moveSelectedElement();
       }
 

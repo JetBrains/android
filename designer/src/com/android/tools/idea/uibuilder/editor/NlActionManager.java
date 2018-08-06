@@ -125,12 +125,12 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       myRefactoringAction.actionPerformed(e);
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       myRefactoringAction.update(e);
       Presentation p = e.getPresentation();
       if (!p.isVisible()) {
@@ -371,7 +371,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       if (myAction.affectsUndo()) {
         NlWriteCommandAction.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () ->
           myAction.perform(myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers()));
@@ -390,7 +390,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       // Unfortunately, the action event we're fed here does *not* have the correct
       // current modifier state; there are code paths which just feed in a value of 0
       // when manufacturing their own ActionEvents; for example, Utils#expandActionGroup
@@ -468,7 +468,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       boolean newState = !myAction.isSelected(myEditor, myHandler, myComponent, mySelectedChildren);
       if (myAction.affectsUndo()) {
         NlWriteCommandAction.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () -> applySelection(newState));
@@ -564,7 +564,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       myCurrentPresentation = e.getPresentation();
       try {
         myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers());
@@ -632,7 +632,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       myCurrentPresentation = e.getPresentation();
       try {
         myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers());

@@ -55,7 +55,7 @@ public abstract class AbstractClientToggleAction extends ToggleAction {
   }
 
   @Override
-  public final void update(AnActionEvent e) {
+  public final void update(@NotNull AnActionEvent e) {
     super.update(e);
 
     Presentation presentation = e.getPresentation();

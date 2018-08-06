@@ -45,7 +45,7 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     openAvdManager(e.getProject());
   }
 

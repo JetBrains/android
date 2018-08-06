@@ -446,7 +446,7 @@ final class EditLogFilterDialog extends DialogWrapper {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       myActiveFilter = createNewFilter();
       myFiltersListModel.add(myActiveFilter.getName());
       updateFilters();
@@ -467,13 +467,13 @@ final class EditLogFilterDialog extends DialogWrapper {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       super.update(e);
       e.getPresentation().setEnabled(getSelectedFilterName() != null);
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       int i = myFiltersList.getSelectedIndex();
 
       // remove the filter from the model and from the displayed list

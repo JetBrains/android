@@ -104,7 +104,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     }
 
     @Override
-    public void actionPerformed(AnActionEvent event) {
+    public void actionPerformed(@NotNull AnActionEvent event) {
       final Editor editor = CommonDataKeys.EDITOR.getData(event.getDataContext());
 
       if (editor != null) {

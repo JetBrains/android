@@ -38,7 +38,7 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
  */
 public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAction {
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
       e.getPresentation().setEnabledAndVisible(GradleProjectInfo.getInstance(project).isBuildWithGradle());
@@ -47,7 +47,7 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project == null && IdeInfo.getInstance().isAndroidStudio()) {
       project = ProjectManager.getInstance().getDefaultProject();

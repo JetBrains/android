@@ -738,7 +738,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
     }
   }
 }

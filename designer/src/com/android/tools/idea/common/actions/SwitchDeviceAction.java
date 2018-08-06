@@ -20,6 +20,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class SwitchDeviceAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Configuration configuration = mySurface.getConfiguration();
     if (configuration == null) {
       return;

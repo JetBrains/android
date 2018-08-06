@@ -17,6 +17,7 @@ package com.android.tools.idea.stats;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A "Tools/Internal Actions/Android" action to show a dialog displaying statistics as they're logged.
@@ -25,12 +26,12 @@ public class ShowStatisticsViewerAction extends AnAction {
   private StatisticsViewer myStatisticsViewer;
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     e.getPresentation().setText(StatisticsViewer.TITLE);
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     if (myStatisticsViewer == null) {
       myStatisticsViewer = new StatisticsViewer() {
         @Override

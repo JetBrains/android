@@ -77,7 +77,7 @@ public class CreateXmlResourceSubdirPanel {
 
     final AnActionButton selectAll = new AnActionButton("Select All", null, PlatformIcons.SELECT_ALL_ICON) {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         doSelectAllDirs();
       }
     };
@@ -85,7 +85,7 @@ public class CreateXmlResourceSubdirPanel {
 
     final AnActionButton unselectAll = new AnActionButton("Unselect All", null, PlatformIcons.UNSELECT_ALL_ICON) {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         doUnselectAllDirs();
       }
     };

@@ -42,7 +42,7 @@ final class RemoveKeysAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(@Nullable AnActionEvent event) {
+  public void actionPerformed(@NotNull AnActionEvent event) {
     perform();
   }
 

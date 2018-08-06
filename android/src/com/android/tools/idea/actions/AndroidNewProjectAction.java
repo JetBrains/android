@@ -47,7 +47,7 @@ public class AndroidNewProjectAction extends AnAction implements DumbAware {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
       SdkQuickfixUtils.showSdkMissingDialog();
       return;

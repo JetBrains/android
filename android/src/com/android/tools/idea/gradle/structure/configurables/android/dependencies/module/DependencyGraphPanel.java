@@ -273,7 +273,7 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
 
     actions.add(new AbstractBaseExpandAllAction(myTree, Expandall) {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         myTree.requestFocusInWindow();
         myTreeBuilder.expandAllNodes();
         selectFirstNode();
@@ -282,7 +282,7 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
 
     actions.add(new AbstractBaseCollapseAllAction(myTree, Collapseall) {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         myTreeBuilder.clearSelection();
 
         myTree.requestFocusInWindow();

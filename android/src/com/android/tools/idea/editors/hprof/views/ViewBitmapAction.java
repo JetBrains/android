@@ -31,6 +31,7 @@ import com.intellij.xdebugger.impl.ui.DebuggerUIUtil;
 import icons.ImagesIcons;
 import org.intellij.images.editor.impl.ImageEditorManagerImpl;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -43,7 +44,7 @@ public final class ViewBitmapAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     ClassInstance selectedClassInstance = e.getData(InstancesTreeView.SELECTED_CLASS_INSTANCE);
     Presentation presentation = e.getPresentation();
     if (selectedClassInstance != null) {
@@ -57,7 +58,7 @@ public final class ViewBitmapAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     ClassInstance selectedClassInstance = e.getData(InstancesTreeView.SELECTED_CLASS_INSTANCE);
     if (selectedClassInstance == null) {
       return;

@@ -456,7 +456,7 @@ public class AndroidLogcatView implements Disposable {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       myView.notifyDeviceUpdated(true);
     }
   }
@@ -472,7 +472,7 @@ public class AndroidLogcatView implements Disposable {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       DialogWrapper dialog = new ConfigureLogcatFormatDialog(myView.myProject);
 
       if (dialog.showAndGet()) {

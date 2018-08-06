@@ -102,7 +102,7 @@ public class NlFlagsEditor extends BaseComponentEditor implements NlComponentEdi
   private AnAction createDisplayFlagEditorAction() {
     return new AnAction() {
       @Override
-      public void update(AnActionEvent event) {
+      public void update(@NotNull AnActionEvent event) {
         Presentation presentation = event.getPresentation();
         if (myProperty != null) {
           presentation.setIcon(AllIcons.General.Ellipsis);
@@ -119,7 +119,7 @@ public class NlFlagsEditor extends BaseComponentEditor implements NlComponentEdi
       }
 
       @Override
-      public void actionPerformed(AnActionEvent event) {
+      public void actionPerformed(@NotNull AnActionEvent event) {
         displayFlagEditor();
       }
     };

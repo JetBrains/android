@@ -40,7 +40,7 @@ public class GotoComponentAction extends DumbAwareAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     SelectionModel selectionModel = mySurface.getSelectionModel();
     NlComponent primary = selectionModel.getPrimary();
     PsiElement psiElement = null;

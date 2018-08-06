@@ -95,7 +95,7 @@ class TargetModulesPanel extends ToolWindowPanel {
     List<AnAction> additionalActions = Lists.newArrayList();
     additionalActions.add(new AbstractBaseExpandAllAction(myTree) {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         myTree.requestFocusInWindow();
         myTreeBuilder.expandAllNodes();
       }
@@ -103,7 +103,7 @@ class TargetModulesPanel extends ToolWindowPanel {
 
     additionalActions.add(new AbstractBaseCollapseAllAction(myTree) {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         myTree.requestFocusInWindow();
         myTreeBuilder.collapseAllNodes();
       }

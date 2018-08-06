@@ -97,7 +97,7 @@ public class AndroidImportProjectAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     try {
       AddModuleWizard wizard = selectFileAndCreateWizard(e.getProject());
       if (wizard != null) {

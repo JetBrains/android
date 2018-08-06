@@ -17,6 +17,7 @@ package com.android.tools.idea.flags;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A "Tools/Internal Actions/Android" action to show a dialog that allows the modifications of
@@ -28,7 +29,7 @@ public final class ShowStudioFlagsDialogAction extends DumbAwareAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     new StudioFlagsDialog(e.getProject()).show();
   }
 }

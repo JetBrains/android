@@ -32,7 +32,7 @@ public class DumpSysActions {
   public static DefaultActionGroup create(@NotNull Project p, @NotNull final DeviceContext context) {
     DefaultActionGroup group = new DefaultActionGroup("System Information", true) {
       @Override
-      public void update(AnActionEvent e) {
+      public void update(@NotNull AnActionEvent e) {
         e.getPresentation().setText("System Information");
         e.getPresentation().setIcon(AndroidIcons.Ddms.SysInfo);
         e.getPresentation().setEnabled(context.getSelectedDevice() != null);

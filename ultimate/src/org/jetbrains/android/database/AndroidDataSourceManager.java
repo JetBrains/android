@@ -71,7 +71,7 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
     if (!ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)) return null;
     return new DumbAwareAction("Android SQLite", null, AndroidIcons.Android) {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         AndroidDataSource result = new AndroidDataSource();
         result.setName(getTemplatePresentation().getText());
         result.resolveDriver();

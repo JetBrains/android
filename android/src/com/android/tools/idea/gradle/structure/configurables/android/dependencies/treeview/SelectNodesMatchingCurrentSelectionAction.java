@@ -27,13 +27,13 @@ public abstract class SelectNodesMatchingCurrentSelectionAction extends DumbAwar
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     AbstractPsModelNode<?> node = getTreeBuilder().getSelectedNode();
     e.getPresentation().setEnabled(node != null);
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     getTreeBuilder().selectNodesMatchingCurrentSelection();
   }
 

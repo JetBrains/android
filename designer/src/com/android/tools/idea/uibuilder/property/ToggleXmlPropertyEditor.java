@@ -31,14 +31,14 @@ public class ToggleXmlPropertyEditor extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent event) {
+  public void update(@NotNull AnActionEvent event) {
     PropertiesComponent properties = PropertiesComponent.getInstance();
     boolean visible = properties.getBoolean(NL_XML_PROPERTY_EDITOR);
     event.getPresentation().setText(!visible ? "XML attribute editor" : "All attributes table");
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     PropertiesComponent properties = PropertiesComponent.getInstance();
     properties.setValue(NL_XML_PROPERTY_EDITOR, !properties.getBoolean(NL_XML_PROPERTY_EDITOR));
     myPropertiesManager.updateSelection();

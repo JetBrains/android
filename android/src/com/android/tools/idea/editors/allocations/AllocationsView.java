@@ -360,7 +360,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
       }
 
       @Override
-      public void update(AnActionEvent e) {
+      public void update(@NotNull AnActionEvent e) {
         super.update(e);
         getTemplatePresentation().setText(myGroupBy.get(myGroupByName).getName());
         e.getPresentation().setText(myGroupBy.get(myGroupByName).getName());
@@ -394,14 +394,14 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
         DefaultActionGroup group = new DefaultActionGroup();
         group.add(new AnAction("Sunburst") {
           @Override
-          public void actionPerformed(AnActionEvent e) {
+          public void actionPerformed(@NotNull AnActionEvent e) {
             myChartOrientation = "Sunburst";
             myLayout.setAngle(360.0f);
           }
         });
         group.add(new AnAction("Layout") {
           @Override
-          public void actionPerformed(AnActionEvent e) {
+          public void actionPerformed(@NotNull AnActionEvent e) {
             myChartOrientation = "Layout";
             myLayout.setAngle(0.0f);
           }
@@ -410,7 +410,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
       }
 
       @Override
-      public void update(AnActionEvent e) {
+      public void update(@NotNull AnActionEvent e) {
         super.update(e);
         getTemplatePresentation().setText(myChartOrientation);
         e.getPresentation().setText(myChartOrientation);
@@ -423,14 +423,14 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
         DefaultActionGroup group = new DefaultActionGroup();
         group.add(new AnAction("Size") {
           @Override
-          public void actionPerformed(AnActionEvent e) {
+          public void actionPerformed(@NotNull AnActionEvent e) {
             myChartUnit = "Size";
             myLayout.setUseCount(false);
           }
         });
         group.add(new AnAction("Count") {
           @Override
-          public void actionPerformed(AnActionEvent e) {
+          public void actionPerformed(@NotNull AnActionEvent e) {
             myChartUnit = "Count";
             myLayout.setUseCount(true);
           }
@@ -439,7 +439,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
       }
 
       @Override
-      public void update(AnActionEvent e) {
+      public void update(@NotNull AnActionEvent e) {
         super.update(e);
         getTemplatePresentation().setText(myChartUnit);
         e.getPresentation().setText(myChartUnit);
@@ -633,7 +633,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       setGroupByName(myGroupByName);
     }
   }

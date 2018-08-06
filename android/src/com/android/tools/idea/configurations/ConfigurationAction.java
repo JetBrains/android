@@ -59,7 +59,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     final ActionManagerEx manager = ActionManagerEx.getInstanceEx();
     final DataContext dataContext = e.getDataContext();
     // Regular actions invoke this method before performing the action. We do so as well since the analytics subsystem hooks into

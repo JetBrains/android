@@ -266,7 +266,7 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       e.getPresentation().setText(mySelectedVariant.getName());
     }
 
@@ -288,7 +288,7 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       mySelectedVariant = myVariant;
       myGraph.render(myModule, myAndroidModel, mySelectedVariant);
       myGraphComponent.refresh();
@@ -326,12 +326,12 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       e.getPresentation().setEnabled(myGraph != null);
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       if (myGraph != null) {
         myGraph.resetLayout();
       }
@@ -344,12 +344,12 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       e.getPresentation().setEnabled(myGraphComponent != null);
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       if (myGraphComponent != null) {
         myGraphComponent.zoomIn();
       }
@@ -362,12 +362,12 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       e.getPresentation().setEnabled(myGraphComponent != null);
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       if (myGraphComponent != null) {
         myGraphComponent.zoomOut();
       }
@@ -380,12 +380,12 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       e.getPresentation().setEnabled(myGraphComponent != null);
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       if (myGraphComponent != null) {
         myGraphComponent.zoomActual();
       }

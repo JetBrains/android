@@ -22,13 +22,14 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Eugene.Kudelevsky
  */
 public class AndroidToolsActionGroup extends DefaultActionGroup implements DumbAware {
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     final Project project = e.getData(CommonDataKeys.PROJECT);
     e.getPresentation().setVisible(project != null && !project.isDisposed()
                                    && !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty());

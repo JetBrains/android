@@ -20,6 +20,7 @@ import com.intellij.ide.actions.StoreDefaultLayoutAction;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Stores the layout of tool windows.
@@ -33,7 +34,7 @@ public class StoreDefaultWindowLayoutAction extends AnAction implements DumbAwar
   }
 
   @Override
-  public void actionPerformed(AnActionEvent event) {
+  public void actionPerformed(@NotNull AnActionEvent event) {
     myDelegate.actionPerformed(event);
 
     WorkBenchManager workBenchManager = WorkBenchManager.getInstance();
@@ -41,7 +42,7 @@ public class StoreDefaultWindowLayoutAction extends AnAction implements DumbAwar
   }
 
   @Override
-  public void update(AnActionEvent event){
+  public void update(@NotNull AnActionEvent event){
     myDelegate.update(event);
   }
 }

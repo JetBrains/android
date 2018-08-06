@@ -51,7 +51,7 @@ public class AddSampleDataFileAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     super.update(e);
 
     if (!StudioFlags.NELE_SAMPLE_DATA.get()) {
@@ -62,7 +62,7 @@ public class AddSampleDataFileAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     if (!StudioFlags.NELE_SAMPLE_DATA.get()) {
       return;
     }

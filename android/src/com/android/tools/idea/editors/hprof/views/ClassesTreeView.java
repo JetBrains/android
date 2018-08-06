@@ -99,7 +99,7 @@ public final class ClassesTreeView implements DataProvider, Disposable {
         for (final DisplayMode mode : DisplayMode.values()) {
           group.add(new AnAction(mode.toString()) {
             @Override
-            public void actionPerformed(AnActionEvent e) {
+            public void actionPerformed(@NotNull AnActionEvent e) {
               myDisplayMode = mode;
               boolean isTreeMode = myDisplayMode == DisplayMode.TREE;
               myTree.setShowsRootHandles(isTreeMode);
@@ -119,7 +119,7 @@ public final class ClassesTreeView implements DataProvider, Disposable {
       }
 
       @Override
-      public void update(AnActionEvent e) {
+      public void update(@NotNull AnActionEvent e) {
         super.update(e);
         getTemplatePresentation().setText(myDisplayMode.toString());
         e.getPresentation().setText(myDisplayMode.toString());

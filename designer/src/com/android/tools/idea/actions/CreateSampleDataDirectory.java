@@ -61,7 +61,7 @@ public class CreateSampleDataDirectory extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     if (!StudioFlags.NELE_SAMPLE_DATA.get()) {
       e.getPresentation().setEnabledAndVisible(false);
       return;
@@ -80,7 +80,7 @@ public class CreateSampleDataDirectory extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     if (!StudioFlags.NELE_SAMPLE_DATA.get()) {
       return;
     }

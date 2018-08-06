@@ -461,7 +461,7 @@ public class AndroidColorAnnotator implements Annotator {
       }
       return new AnAction() {
         @Override
-        public void actionPerformed(AnActionEvent e) {
+        public void actionPerformed(@NotNull AnActionEvent e) {
           final Editor editor = CommonDataKeys.EDITOR.getData(e.getDataContext());
           if (editor != null) {
             // Need ARGB support in platform color chooser; see
