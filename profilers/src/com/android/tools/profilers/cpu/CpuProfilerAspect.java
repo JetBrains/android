@@ -30,6 +30,6 @@ public enum CpuProfilerAspect {
   PROFILING_CONFIGURATION,
   // Clock type (i.e. wall or thread) has changed.
   CLOCK_TYPE,
-  // Time elapsed since the capture has started has changed.
+  // Time elapsed since the capture recording or parsing has started has changed.
   CAPTURE_ELAPSED_TIME,
 }

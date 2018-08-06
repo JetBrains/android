@@ -83,6 +83,11 @@ public class CpuCaptureParser {
    */
   private boolean myIsParsing;
 
+  /**
+   * Unix epoch time when capture parsing started.
+   */
+  private long myParsingStartTimeMs;
+
   public CpuCaptureParser(@NotNull IdeProfilerServices services) {
     myServices = services;
     myCaptures = new HashMap<>();
@@ -113,7 +118,7 @@ public class CpuCaptureParser {
   /**
    * Abort every capture parsing that might still be in progress.
    */
-  void abortParsing() {
+  public void abortParsing() {
     myCaptures.forEach((id, capture) -> {
       boolean isCaptureCancelled = capture.cancel(true);
       if (!isCaptureCancelled) {
@@ -126,13 +131,17 @@ public class CpuCaptureParser {
     return myIsParsing;
   }
 
+  public long getParsingElapsedTimeMs() {
+    return System.currentTimeMillis() - myParsingStartTimeMs;
+  }
+
   /**
    * Updates {@link #myIsParsing} to false once the given {@link CompletableFuture<CpuCapture>} is done.
    */
   private void updateParsingStateWhenDone(CompletableFuture<CpuCapture> future) {
     future.handleAsync((capture, exception) -> {
       myIsParsing = false;
-      // No need to fire CAPTURE_PARSING. Listeners are only interested in knowing when parsing started.
+      myAspect.changed(CpuProfilerAspect.CAPTURE_PARSING);
       return capture;
     }, myServices.getPoolExecutor());
   }
@@ -140,7 +149,9 @@ public class CpuCaptureParser {
   /**
    * Updates {@link #myIsParsing} to true and fire {@link CpuProfilerAspect#CAPTURE_PARSING} to notify the listeners about it.
    */
-  void updateParsingStateWhenStarting() {
+  @VisibleForTesting // In order to be accessible from com.android.tools.profilers.cpu.capturedetails
+  public void updateParsingStateWhenStarting() {
+    myParsingStartTimeMs = System.currentTimeMillis();
     myIsParsing = true;
     myAspect.changed(CpuProfilerAspect.CAPTURE_PARSING);
   }
