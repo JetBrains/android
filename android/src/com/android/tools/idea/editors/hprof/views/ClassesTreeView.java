@@ -506,7 +506,7 @@ public final class ClassesTreeView implements DataProvider, Disposable {
 
   @Nullable
   @Override
-  public Object getData(@NonNls String dataId) {
+  public Object getData(@NotNull @NonNls String dataId) {
     if (CommonDataKeys.NAVIGATABLE_ARRAY.is(dataId)) {
       return getTargetFiles();
     }

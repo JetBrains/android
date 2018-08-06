@@ -664,7 +664,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
   private class TreeDataProvider implements DataProvider {
     @Nullable
     @Override
-    public Object getData(@NonNls String dataId) {
+    public Object getData(@NotNull @NonNls String dataId) {
       return AllocationsView.this.getData(dataId, myTree.getLastSelectedPathComponent());
     }
   }
@@ -672,7 +672,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
   private class TableDataProvider implements DataProvider {
     @Nullable
     @Override
-    public Object getData(@NonNls String dataId) {
+    public Object getData(@NotNull @NonNls String dataId) {
       int selectedRow = myInfoTable.getSelectedRow();
       if (selectedRow < 0) {
         return null;

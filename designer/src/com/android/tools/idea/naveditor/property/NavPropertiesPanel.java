@@ -116,7 +116,7 @@ public class NavPropertiesPanel extends PropertiesPanel<NavPropertiesManager> {
 
   @Nullable
   @Override
-  public Object getData(String dataId) {
+  public Object getData(@NotNull String dataId) {
     return null;
   }
 }

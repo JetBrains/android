@@ -30,6 +30,7 @@ import com.intellij.usages.PsiElementUsageTarget;
 import com.intellij.usages.UsageTarget;
 import com.intellij.usages.UsageTargetUtil;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -457,7 +458,7 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
 
     final UsageTarget[] targets = UsageTargetUtil.findUsageTargets(new DataProvider() {
       @Override
-      public Object getData(@NonNls String dataId) {
+      public Object getData(@NotNull @NonNls String dataId) {
         return ((EditorEx)fixture.getEditor()).getDataContext().getData(dataId);
       }
     });

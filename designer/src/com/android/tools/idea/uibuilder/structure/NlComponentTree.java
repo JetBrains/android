@@ -569,7 +569,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   // ---- Implements DataProvider ----
   @Override
-  public Object getData(@NonNls String dataId) {
+  public Object getData(@NotNull @NonNls String dataId) {
     return mySurface == null ? null : mySurface.getData(dataId);
   }
 

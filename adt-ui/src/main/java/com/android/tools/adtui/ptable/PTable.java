@@ -335,7 +335,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
   // ---- Implements DataProvider ----
 
   @Override
-  public Object getData(@NonNls String dataId) {
+  public Object getData(@NotNull @NonNls String dataId) {
     if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
         PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
         PlatformDataKeys.COPY_PROVIDER.is(dataId) ||

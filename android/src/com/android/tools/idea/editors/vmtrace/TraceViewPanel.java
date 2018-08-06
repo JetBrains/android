@@ -303,7 +303,7 @@ public class TraceViewPanel {
 
     @Nullable
     @Override
-    public Object getData(@NonNls String dataId) {
+    public Object getData(@NotNull @NonNls String dataId) {
       return KEY.is(dataId) ? TraceViewPanel.this : null;
     }
   }

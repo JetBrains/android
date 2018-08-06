@@ -208,7 +208,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   }
 
   @Override
-  public Object getData(String dataId) {
+  public Object getData(@NotNull String dataId) {
     if (PROJECT.is(dataId)) {
       return myProject;
     }
@@ -356,7 +356,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
     @Nullable
     @Override
-    public Object getData(@NonNls String dataId) {
+    public Object getData(@NotNull @NonNls String dataId) {
       return AndroidProjectViewPane.this.getData(dataId);
     }
   }
