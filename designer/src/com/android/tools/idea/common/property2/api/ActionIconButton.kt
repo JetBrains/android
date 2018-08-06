@@ -20,30 +20,22 @@ import com.intellij.openapi.actionSystem.AnAction
 import javax.swing.Icon
 
 /**
- * Support for a property action button shown to the right of a property editor.
+ * An action button consisting of an icon and an associated action.
  *
- * A [PropertyItem] may optionally implement this interface and supply
- * actions that can be used to manage the value of the property in ways
- * the supplied editor cannot.
+ * This interface is used for supplying a browse button to the right
+ * of a property editor. See [PropertyItem.browseButton].
  */
-interface ActionButtonSupport {
-  /**
-   * Return true if this property should show an action button.
-   */
-  val showActionButton: Boolean
-
+interface ActionIconButton {
   /**
    * Return true if the action icon should be focusable.
    *
-   * If [getAction] is not null this should be true to make the
+   * If [action] is not null this should be true to make the
    * button accessible from the keyboard.
    */
   val actionButtonFocusable: Boolean
 
   /**
    * Return the icon indicating the nature of this action button.
-   *
-   * An implementation may throw an exception if [showActionButton] is false.
    */
   fun getActionIcon(focused: Boolean): Icon
 
@@ -51,8 +43,7 @@ interface ActionButtonSupport {
    * Return the action to be performed when the user activates the action button.
    *
    * If the action provided is an [ActionGroup] a menu will be shown instead.
-   * An implementation may return null if [showActionButton] is false or if
-   * the icon is for information purposes only.
+   * An implementation may return null if the icon is for information purposes only.
    */
-  fun getAction(): AnAction?
+  val action: AnAction?
 }

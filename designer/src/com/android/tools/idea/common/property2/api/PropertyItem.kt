@@ -56,6 +56,15 @@ interface PropertyItem : PTableItem {
   val isReference: Boolean
 
   /**
+   * An editor may display a button on the right
+   *
+   * The use is implementation defined, but is usually used to
+   * provide a dialog where possible values can be selected.
+   */
+  val browseButton: ActionIconButton?
+    get() = null
+
+  /**
    * The tooltip for this property name
    */
   val tooltipForName: String

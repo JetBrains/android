@@ -25,7 +25,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
-import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.border.Border
 
@@ -49,8 +48,8 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     }
     val property = itemClass.cast(item)
     val controlType = controlTypeProvider(property)
-    val icon = findActionIcon(property)
-    val key = ControlKey(controlType, icon)
+    val hasBrowseButton = property.browseButton != null
+    val key = ControlKey(controlType, hasBrowseButton)
     val (model, editor) = componentCache[key] ?: createEditor(key, property, column, table.gridLineColor)
     model.property = property
     if (isSelected && hasFocus) {
@@ -81,10 +80,5 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
       PTableColumn.VALUE -> JBUI.Borders.customLine(gridLineColor, 0, 1, 0, 0)
     }
 
-  private fun findActionIcon(property: P): Icon? {
-    val actionSupport = property as? ActionButtonSupport ?: return null
-    return if (actionSupport.showActionButton) actionSupport.getActionIcon(false) else null
-  }
-
-  private data class ControlKey(val type: ControlType, val actionIcon: Icon?)
+  private data class ControlKey(val type: ControlType, val hasBrowseButton: Boolean)
 }

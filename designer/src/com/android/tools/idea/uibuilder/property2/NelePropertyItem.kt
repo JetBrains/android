@@ -27,7 +27,7 @@ import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.property2.api.ActionButtonSupport
+import com.android.tools.idea.common.property2.api.ActionIconButton
 import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -69,7 +69,7 @@ open class NelePropertyItem(
   val libraryName: String,
   val model: NelePropertiesModel,
   val components: List<NlComponent>
-) : PropertyItem, ActionButtonSupport {
+) : PropertyItem {
 
   override var value: String?
     get() {
@@ -290,26 +290,33 @@ open class NelePropertyItem(
     return EDITOR_NO_ERROR
   }
 
-  // region Implementation of ActionButtonSupport
+  override val browseButton = createBrowseButton()
 
-  override val showActionButton: Boolean
-    get() = type.resourceTypes.isNotEmpty() && name != ATTR_ID
+  // region Implementation of browseButton
 
-  override val actionButtonFocusable: Boolean
-    get() = true
-
-  override fun getActionIcon(focused: Boolean): Icon {
-    val reference = isReferenceValue(rawValue)
-    return when {
-      reference && !focused -> StudioIcons.Common.PROPERTY_BOUND
-      reference && focused -> StudioIcons.Common.PROPERTY_BOUND_FOCUS
-      !reference && !focused -> StudioIcons.Common.PROPERTY_UNBOUND
-      else -> StudioIcons.Common.PROPERTY_UNBOUND_FOCUS
+  private fun createBrowseButton(): ActionIconButton? {
+    if (name == ATTR_ID || type.resourceTypes.isEmpty()) {
+      return null
     }
+    return BrowseActionIconButton()
   }
 
-  override fun getAction(): AnAction? {
-    return OpenResourceManagerAction(this)
+  private inner class BrowseActionIconButton: ActionIconButton {
+    override val actionButtonFocusable
+      get() = true
+
+    override fun getActionIcon(focused: Boolean): Icon {
+      val reference = isReferenceValue(rawValue)
+      return when {
+        reference && !focused -> StudioIcons.Common.PROPERTY_BOUND
+        reference && focused -> StudioIcons.Common.PROPERTY_BOUND_FOCUS
+        !reference && !focused -> StudioIcons.Common.PROPERTY_UNBOUND
+        else -> StudioIcons.Common.PROPERTY_UNBOUND_FOCUS
+      }
+    }
+
+    override val action: AnAction?
+      get() = OpenResourceManagerAction(this@NelePropertyItem)
   }
 
   // endregion
