@@ -19,9 +19,9 @@ import com.android.SdkConstants;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.apk.analyzer.*;
-import com.android.tools.apk.analyzer.internal.AndroidArtifact;
+import com.android.tools.apk.analyzer.internal.ApkArchive;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
-import com.android.tools.apk.analyzer.internal.ZipArtifact;
+import com.android.tools.apk.analyzer.internal.InstantAppBundleArchive;
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.stats.AnonymizerUtil;
@@ -289,7 +289,7 @@ public class ApkViewPanel implements TreeSelectionListener {
     }
 
     mySizeComponent.setIcon(AllIcons.General.BalloonInformation);
-    if (myApkParser.getArchive() instanceof AndroidArtifact) {
+    if (myApkParser.getArchive() instanceof ApkArchive) {
       mySizeComponent.append("APK size: ");
       mySizeComponent.append(getHumanizedSize(uncompressed), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
       mySizeComponent.append(", Download Size: ");
@@ -300,7 +300,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         + "version of the file).\n"
         + "For application updates, Google Play serves patches that are typically much smaller.\n"
         + "The installation size may be higher than the APK size depending on various other factors.");
-    } else if (myApkParser.getArchive() instanceof ZipArtifact) {
+    } else if (myApkParser.getArchive() instanceof InstantAppBundleArchive) {
       mySizeComponent.append("Zip file size: ");
       mySizeComponent.setToolTipText("The <b>zip file size</b> reflects the actual size of the zip file on disk.\n");
     } else {
