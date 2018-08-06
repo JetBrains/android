@@ -29,7 +29,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
 
 import static com.intellij.openapi.util.text.StringUtil.unquoteString;
-import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mSTRING_LITERAL;
+import static org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes.STRING_SQ;
+import static org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes.STRING_TSQ;
 
 class DependencyPositionFinder {
   @NotNull
@@ -61,7 +62,7 @@ class DependencyPositionFinder {
     lexer.start(buildFile.getText());
     while (lexer.getTokenType() != null) {
       IElementType type = lexer.getTokenType();
-      if (type == mSTRING_LITERAL) {
+      if (type == STRING_SQ || type == STRING_TSQ) {
         String text = unquoteString(lexer.getTokenText());
         if (text.startsWith(dependency)) {
           return consumer.fun(Pair.create(text, lexer));
