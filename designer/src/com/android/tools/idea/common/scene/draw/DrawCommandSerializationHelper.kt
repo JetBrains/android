@@ -18,6 +18,7 @@ package com.android.tools.idea.common.scene.draw
 import com.android.tools.idea.common.scene.LerpInt
 import com.google.common.base.Joiner
 import java.awt.*
+import java.awt.geom.RoundRectangle2D
 
 fun parse(s: String, expected: Int): Array<String> {
   val sp = splitString(s, ',').toTypedArray()
@@ -49,6 +50,22 @@ fun stringToRect(s: String): Rectangle {
 
 fun rectToString(r: Rectangle): String {
   return Joiner.on('x').join(r.x, r.y, r.width, r.height)
+}
+
+fun stringToRoundRect2D(s: String): RoundRectangle2D.Float {
+  val sp = splitString(s, 'x')
+  val r = RoundRectangle2D.Float()
+  r.x = sp[0].toFloat()
+  r.y = sp[1].toFloat()
+  r.width = sp[2].toFloat()
+  r.height = sp[3].toFloat()
+  r.arcwidth = sp[4].toFloat()
+  r.archeight = sp[5].toFloat()
+  return r
+}
+
+fun roundRect2DToString(r: RoundRectangle2D.Float): String {
+  return Joiner.on('x').join(r.x, r.y, r.width, r.height, r.arcwidth, r.arcHeight)
 }
 
 fun stringToColor(s: String): Color {

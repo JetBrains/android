@@ -25,7 +25,7 @@ import java.awt.Point
 class DrawFilledCircle(private val level: Int,
                        @SwingCoordinate private val center: Point,
                        private val color: Color,
-                       @SwingCoordinate private val radius: LerpInt) : DrawCommand {
+                       @SwingCoordinate private val radius: LerpInt) : DrawCommandBase() {
 
   constructor(myLevel: Int,
               @SwingCoordinate myCenter: Point,
@@ -49,15 +49,11 @@ class DrawFilledCircle(private val level: Int,
         lerpToString(radius))
   }
 
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
+  override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     val r = radius.getValue(sceneContext.time)
 
-    val g2 = g.create()
-
-    g2.color = color
-    g2.fillOval(center.x - r, center.y - r, 2 * r, 2 * r)
-
-    g2.dispose()
+    g.color = color
+    g.fillOval(center.x - r, center.y - r, 2 * r, 2 * r)
 
     if (radius.isComplete(sceneContext.time)) {
       sceneContext.repaint()

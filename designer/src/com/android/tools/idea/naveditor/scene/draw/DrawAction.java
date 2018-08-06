@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
+import com.android.tools.idea.common.scene.draw.DrawCommandBase;
 import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
 import com.android.tools.idea.naveditor.scene.NavColorSet;
 import com.android.tools.idea.naveditor.scene.NavDrawHelperKt;
@@ -37,7 +38,7 @@ import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SE
 /**
  * {@link DrawCommand} that draw a nav editor action (an arrow between two screens).
  */
-public class DrawAction extends NavBaseDrawCommand {
+public class DrawAction extends DrawCommandBase {
   private static final GeneralPath PATH = new GeneralPath();
   private final ActionTarget.ConnectionType myConnectionType;
   @SwingCoordinate private final Rectangle mySource = new Rectangle();

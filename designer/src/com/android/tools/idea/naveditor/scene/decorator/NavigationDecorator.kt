@@ -34,7 +34,7 @@ import java.awt.Font
 
 // Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
 @NavCoordinate
-private val NAVIGATION_ARC_SIZE = JBUI.scale(12)
+private val NAVIGATION_ARC_SIZE = JBUI.scale(12f)
 
 /**
  * [SceneDecorator] for the whole of a navigation flow (that is, the root component).
@@ -50,15 +50,17 @@ object NavigationDecorator : SceneDecorator() {
       return
     }
 
-    @SwingCoordinate val drawRectangle = Coordinates.getSwingRect(sceneContext, component.fillDrawRect(0, null))
-    @SwingCoordinate val arcSize = Coordinates.getSwingDimension(sceneContext, NAVIGATION_ARC_SIZE)
-    list.add(DrawFilledRectangle(DRAW_FRAME_LEVEL, drawRectangle, sceneContext.colorSet.componentBackground, arcSize))
-    list.add(DrawRectangle(DRAW_FRAME_LEVEL, drawRectangle, frameColor(sceneContext, component), frameThickness(component), arcSize))
+    val sceneView = sceneContext.surface?.currentSceneView ?: return
+
+    @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
+    setArcSize(sceneView, drawRectangle, NAVIGATION_ARC_SIZE)
+    list.add(DrawFilledRectangle(DRAW_FRAME_LEVEL, drawRectangle, sceneContext.colorSet.componentBackground))
+    list.add(DrawRectangle(DRAW_FRAME_LEVEL, drawRectangle, frameColor(sceneContext, component), frameThickness(component)))
 
     val text = component.nlComponent.includeFileName ?: "Nested Graph"
 
     val font = scaledFont(sceneContext, Font.BOLD)
-    list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, text, drawRectangle,
+    list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, text, roundRect2DToRect(drawRectangle),
                                textColor(sceneContext, component), font, true))
   }
 

@@ -27,7 +27,7 @@ import java.awt.Point
  */
 // TODO: Integrate with DisplayList.addLine
 class DrawLine(private val myLevel: Int, @SwingCoordinate private val myFrom: Point, @SwingCoordinate private val myTo: Point,
-               private val myColor: Color, private val myStroke: BasicStroke) : DrawCommand {
+               private val myColor: Color, private val myStroke: BasicStroke) : DrawCommandBase() {
 
   private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToPoint(sp[1]), stringToPoint(sp[2]),
       stringToColor(sp[3]), stringToStroke(sp[4]))
@@ -44,13 +44,9 @@ class DrawLine(private val myLevel: Int, @SwingCoordinate private val myFrom: Po
         colorToString(myColor), strokeToString(myStroke))
   }
 
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
-    val g2 = g.create() as Graphics2D
-
-    g2.color = myColor
-    g2.stroke = myStroke
-    g2.drawLine(myFrom.x, myFrom.y, myTo.x, myTo.y)
-
-    g2.dispose()
+  override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
+    g.color = myColor
+    g.stroke = myStroke
+    g.drawLine(myFrom.x, myFrom.y, myTo.x, myTo.y)
   }
 }

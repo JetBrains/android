@@ -20,6 +20,7 @@ import com.android.tools.idea.common.scene.draw.*
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget
 import junit.framework.TestCase
 import java.awt.*
+import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_RGB
 import java.util.concurrent.CompletableFuture
@@ -68,25 +69,25 @@ class SerializationTest : TestCase() {
   fun testDrawRectangle() {
     val factory = { s: String -> DrawRectangle(s) }
 
-    testSerialization("DrawRectangle,0,10x20x30x40,ffff0000,1,0",
-        DrawRectangle(0, Rectangle(10, 20, 30, 40),
-            Color.RED, 1), factory)
+    testSerialization("DrawRectangle,0,10.0x20.0x30.0x40.0x0.0x0.0,ffff0000,1.0",
+                      DrawRectangle(0, RoundRectangle2D.Float(10f, 20f, 30f, 40f, 0f, 0f),
+                                    Color.RED, 1f), factory)
 
-    testSerialization("DrawRectangle,1,50x60x70x80,ff0000ff,3,4",
-        DrawRectangle(1, Rectangle(50, 60, 70, 80),
-            Color.BLUE, 3, 4), factory)
+    testSerialization("DrawRectangle,1,50.0x60.0x70.0x80.0x4.0x4.0,ff0000ff,3.0",
+                      DrawRectangle(1, RoundRectangle2D.Float(50f, 60f, 70f, 80f, 4f, 4f),
+                                    Color.BLUE, 3f), factory)
   }
 
   fun testDrawFilledRectangle() {
     val factory = { s: String -> DrawFilledRectangle(s) }
 
-    testSerialization("DrawFilledRectangle,0,10x20x30x40,ffff0000,2",
-        DrawFilledRectangle(0, Rectangle(10, 20, 30, 40),
-            Color.RED, 2), factory)
+    testSerialization("DrawFilledRectangle,0,10.0x20.0x30.0x40.0x1.0x2.0,ffff0000",
+                      DrawFilledRectangle(0, RoundRectangle2D.Float(10f, 20f, 30f, 40f, 1f, 2f),
+                                          Color.RED), factory)
 
-    testSerialization("DrawFilledRectangle,1,50x60x70x80,ff0000ff,4",
-        DrawFilledRectangle(1, Rectangle(50, 60, 70, 80),
-            Color.BLUE, 4), factory)
+    testSerialization("DrawFilledRectangle,1,50.0x60.0x70.0x80.0x3.0x4.0,ff0000ff",
+                      DrawFilledRectangle(1, RoundRectangle2D.Float(50f, 60f, 70f, 80f, 3f, 4f),
+                                          Color.BLUE), factory)
   }
 
   fun testDrawCircle() {
