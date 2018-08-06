@@ -72,7 +72,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
   private static final Pattern CMAKE_VERSION_PATTERN = Pattern.compile("cmake version\\s+(.*)");
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     launchBrowser(e.getProject());
   }
 
@@ -367,7 +367,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     super.update(e);
     if (e.getPresentation().isEnabled()) {
       e.getPresentation().setEnabled(SystemInfo.isMac || SystemInfo.isLinux || SystemInfo.isWindows);

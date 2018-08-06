@@ -84,7 +84,7 @@ public class HprofView implements Disposable {
           }
           group.add(new AnAction(StringUtil.capitalize(heap.getName() + " heap")) {
             @Override
-            public void actionPerformed(AnActionEvent e) {
+            public void actionPerformed(@NotNull AnActionEvent e) {
               mySelectionModel.setHeap(heap);
             }
           });
@@ -93,7 +93,7 @@ public class HprofView implements Disposable {
       }
 
       @Override
-      public void update(AnActionEvent e) {
+      public void update(@NotNull AnActionEvent e) {
         super.update(e);
         if (mySnapshot != null) { // Perform a check since the IDE sometimes updates the buttons after the view/snapshot is disposed.
           getTemplatePresentation().setText(StringUtil.capitalize(mySelectionModel.getHeap().getName() + " heap"));

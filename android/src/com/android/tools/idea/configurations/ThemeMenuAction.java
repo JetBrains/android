@@ -32,7 +32,7 @@ public class ThemeMenuAction extends DropDownAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     super.update(e);
     updatePresentation(e.getPresentation());
   }

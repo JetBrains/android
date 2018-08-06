@@ -38,7 +38,7 @@ class MonitorMoveAction extends AnAction implements RightAlignedToolbarAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     switch (myDirection) {
       case -1:
         myMonitorPanel.moveMonitorUp(myMonitor);
@@ -51,7 +51,7 @@ class MonitorMoveAction extends AnAction implements RightAlignedToolbarAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     e.getPresentation()
       .setEnabled(myMonitorPanel.canMove(myMonitor, myDirection));
   }

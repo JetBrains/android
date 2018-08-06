@@ -32,7 +32,7 @@ public class DeleteAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     SceneView view = mySurface.getCurrentSceneView();
     if (view == null) {
       return;

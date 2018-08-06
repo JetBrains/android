@@ -41,12 +41,12 @@ public class GoToInstanceAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     e.getPresentation().setEnabled(e.getData(InstanceReferenceTreeView.NAVIGATABLE_INSTANCE) != null);
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Instance instance = e.getData(InstanceReferenceTreeView.NAVIGATABLE_INSTANCE);
     if (instance == null) {
       return;

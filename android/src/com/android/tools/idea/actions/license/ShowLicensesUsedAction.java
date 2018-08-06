@@ -50,7 +50,7 @@ public class ShowLicensesUsedAction extends DumbAwareAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = getEventProject(e);
 
     new Task.Backgroundable(project, "Collecting Licenses", true) {

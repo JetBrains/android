@@ -18,15 +18,16 @@ package com.android.tools.idea.explorer.actions;
 import com.android.tools.idea.explorer.DeviceExplorerController;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
+import org.jetbrains.annotations.NotNull;
 
 public class GotoDatabaseFolderAction extends DumbAwareAction {
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     DeviceExplorerController controller = DeviceExplorerController.getProjectController(e.getProject());
     e.getPresentation().setEnabled(controller != null && controller.hasActiveDevice());
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
   }
 }

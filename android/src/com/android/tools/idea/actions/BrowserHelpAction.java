@@ -33,7 +33,7 @@ public class BrowserHelpAction extends AnAction {
   }
 
   @Override
-  public final void actionPerformed(AnActionEvent e) {
+  public final void actionPerformed(@NotNull AnActionEvent e) {
     BrowserUtil.browse(myDocUrl);
   }
 }

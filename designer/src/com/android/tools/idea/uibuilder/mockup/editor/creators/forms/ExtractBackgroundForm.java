@@ -109,24 +109,24 @@ public class ExtractBackgroundForm {
       new AnAction("Undo", "Undo", AllIcons.Actions.Undo) {
 
         @Override
-        public void update(AnActionEvent e) {
+        public void update(@NotNull AnActionEvent e) {
           e.getPresentation().setEnabled(myRemoveBackgroundPanel.canUndo());
         }
 
         @Override
-        public void actionPerformed(AnActionEvent e) {
+        public void actionPerformed(@NotNull AnActionEvent e) {
           myRemoveBackgroundPanel.undo();
         }
       },
       new AnAction("Redo", "Redo", AllIcons.Actions.Redo) {
 
         @Override
-        public void update(AnActionEvent e) {
+        public void update(@NotNull AnActionEvent e) {
           e.getPresentation().setEnabled(myRemoveBackgroundPanel.canRedo());
         }
 
         @Override
-        public void actionPerformed(AnActionEvent e) {
+        public void actionPerformed(@NotNull AnActionEvent e) {
           myRemoveBackgroundPanel.redo();
         }
       }

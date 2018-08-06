@@ -749,7 +749,7 @@ java.lang.IllegalArgumentException: could not find extension implementation clas
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       Object selectedValue = mySidePanel.myList.getSelectedValue();
       if (!(selectedValue instanceof AndroidModuleConfigurable)) {
         throw new IllegalStateException("The current selection does not represent a module");
@@ -830,7 +830,7 @@ java.lang.IllegalArgumentException: could not find extension implementation clas
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       Object selectedValue = mySidePanel.myList.getSelectedValue();
       e.getPresentation().setEnabled(selectedValue instanceof AndroidModuleConfigurable);
     }

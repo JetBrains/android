@@ -59,7 +59,7 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent event) {
+  public void update(@NotNull AnActionEvent event) {
     event.getPresentation().setEnabled(getModel(event.getProject()) != null);
   }
 

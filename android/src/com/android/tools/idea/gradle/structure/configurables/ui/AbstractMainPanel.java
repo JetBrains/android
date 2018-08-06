@@ -76,7 +76,7 @@ public abstract class AbstractMainPanel extends JPanel implements Disposable, Pl
 
     AnAction restoreModuleListAction = new DumbAwareAction("Restore 'Modules' List", "", AllIcons.Actions.MoveTo2) {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         PsUISettings settings = PsUISettings.getInstance();
         settings.MODULES_LIST_MINIMIZE = myShowModulesDropDown = false;
         settings.fireUISettingsChanged();

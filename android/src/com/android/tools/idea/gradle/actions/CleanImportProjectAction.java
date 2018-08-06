@@ -63,7 +63,7 @@ public class CleanImportProjectAction extends DumbAwareAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project != null && isGradleProjectIfNotNull(project)) {
       String projectName = project.getName();
@@ -145,7 +145,7 @@ public class CleanImportProjectAction extends DumbAwareAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     boolean isGradleProject = isGradleProjectIfNotNull(e.getProject());
     Presentation presentation = e.getPresentation();
     presentation.setVisible(isGradleProject);

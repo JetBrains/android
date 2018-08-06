@@ -174,7 +174,7 @@ public class LocaleMenuAction extends DropDownAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     super.update(e);
     updatePresentation(e.getPresentation());
   }
@@ -271,7 +271,7 @@ public class LocaleMenuAction extends DropDownAction {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       super.actionPerformed(e);
       updateActions();
     }
@@ -316,7 +316,7 @@ public class LocaleMenuAction extends DropDownAction {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
         Module module = configuration.getConfigurationManager().getModule();

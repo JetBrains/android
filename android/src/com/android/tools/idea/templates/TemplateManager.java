@@ -447,7 +447,7 @@ public class TemplateManager {
         // Create the menu group item
         NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup() {
           @Override
-          public void update(AnActionEvent e) {
+          public void update(@NotNull AnActionEvent e) {
             updateAction(e, category, getChildrenCount() > 0, false);
           }
         };
@@ -476,12 +476,12 @@ public class TemplateManager {
     if (CATEGORY_ACTIVITY.equals(category)) {
       AnAction galleryAction = new AnAction() {
         @Override
-        public void update(AnActionEvent e) {
+        public void update(@NotNull AnActionEvent e) {
           updateAction(e, "Gallery...", true, true);
         }
 
         @Override
-        public void actionPerformed(AnActionEvent e) {
+        public void actionPerformed(@NotNull AnActionEvent e) {
           DataContext dataContext = e.getDataContext();
           Module module = LangDataKeys.MODULE.getData(dataContext);
           assert module != null;

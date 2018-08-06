@@ -64,7 +64,7 @@ public class TargetMenuAction extends DropDownAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     Configuration configuration = myRenderContext.getConfiguration();
     boolean visible = configuration != null;

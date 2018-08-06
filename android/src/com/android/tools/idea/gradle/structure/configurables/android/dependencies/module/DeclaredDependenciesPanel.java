@@ -248,13 +248,13 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel implements Dep
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       DependencyDetails details = getCurrentDependencyDetails();
       e.getPresentation().setEnabled(details != null);
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
     }
   }
 }

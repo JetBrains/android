@@ -36,7 +36,7 @@ public class DensityMenuAction extends DropDownAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     super.update(e);
     int currentValue = myModel.getConfiguration().getDensity().getDpiValue();
     for (int i = 0; i < DENSITIES.length; i++) {
@@ -58,7 +58,7 @@ public class DensityMenuAction extends DropDownAction {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       NlModelHelperKt.overrideConfigurationDensity(myModel, myDensity);
     }
   }

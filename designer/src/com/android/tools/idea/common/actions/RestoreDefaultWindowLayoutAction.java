@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Restores the layout of tool windows.
@@ -35,7 +36,7 @@ public class RestoreDefaultWindowLayoutAction extends AnAction implements DumbAw
   }
 
   @Override
-  public void actionPerformed(AnActionEvent event) {
+  public void actionPerformed(@NotNull AnActionEvent event) {
     myDelegate.actionPerformed(event);
 
     WorkBenchManager workBenchManager = WorkBenchManager.getInstance();
@@ -50,7 +51,7 @@ public class RestoreDefaultWindowLayoutAction extends AnAction implements DumbAw
   }
 
   @Override
-  public void update(AnActionEvent event){
+  public void update(@NotNull AnActionEvent event){
     myDelegate.update(event);
   }
 }

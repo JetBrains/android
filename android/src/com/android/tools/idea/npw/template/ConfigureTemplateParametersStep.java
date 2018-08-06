@@ -769,12 +769,12 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       e.getPresentation().setEnabled(myUserValues.containsKey(myParameter));
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       myUserValues.remove(myParameter);
       evaluateParameters();
     }

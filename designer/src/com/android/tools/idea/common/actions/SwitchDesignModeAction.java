@@ -17,6 +17,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Switch between {@link NlDesignSurface}'s design modes
@@ -30,7 +31,7 @@ public class SwitchDesignModeAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     SceneMode nextMode = mySurface.getSceneMode().next();
     mySurface.setScreenMode(nextMode, true);
   }

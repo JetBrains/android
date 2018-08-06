@@ -45,7 +45,7 @@ public class RenameCaptureFileAction extends DumbAwareAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     VirtualFile virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
     DialogWrapper dialog = new RenameDialog(project, virtualFile);

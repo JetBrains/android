@@ -50,7 +50,7 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       super.actionPerformed(e);
       //noinspection ConstantConditions  In practice we'll always have a view at this point
       mySurface.getCurrentSceneView().setLocation(0, 0);

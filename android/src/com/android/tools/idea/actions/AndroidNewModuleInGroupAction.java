@@ -19,6 +19,7 @@ package com.android.tools.idea.actions;
 import com.intellij.ide.projectView.impl.ModuleGroup;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.ide.projectView.impl.ModuleGroup.ARRAY_DATA_KEY;
@@ -30,7 +31,7 @@ public class AndroidNewModuleInGroupAction extends AndroidNewModuleAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     super.update(e);
 
     if (!e.getPresentation().isVisible()) {

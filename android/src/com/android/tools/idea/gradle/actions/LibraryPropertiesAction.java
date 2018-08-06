@@ -39,12 +39,12 @@ public class LibraryPropertiesAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     e.getPresentation().setVisible(findLibrary(e) != null);
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Library library = findLibrary(e);
     if (library != null) {
       Project project = e.getProject();

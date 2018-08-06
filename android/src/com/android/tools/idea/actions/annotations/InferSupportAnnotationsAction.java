@@ -108,7 +108,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
   private static final int MIN_SDK_WITH_NULLABLE = 19;
 
   @Override
-  public void update(AnActionEvent event) {
+  public void update(@NotNull AnActionEvent event) {
     if (!ENABLED) {
       return;
     }

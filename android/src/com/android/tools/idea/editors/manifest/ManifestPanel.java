@@ -253,7 +253,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private void registerGotoAction() {
     AnAction goToDeclarationAction = new AnAction() {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         ManifestTreeNode node = (ManifestTreeNode)myTree.getLastSelectedPathComponent();
         if (node != null) {
           goToDeclaration(node.getUserObject());

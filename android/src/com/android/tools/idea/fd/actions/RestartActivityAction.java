@@ -59,7 +59,7 @@ public class RestartActivityAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     Module module = LangDataKeys.MODULE.getData(e.getDataContext());
 
     if (module == null) {
@@ -119,7 +119,7 @@ public class RestartActivityAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Module module = LangDataKeys.MODULE.getData(e.getDataContext());
     if (module == null) {
       return;

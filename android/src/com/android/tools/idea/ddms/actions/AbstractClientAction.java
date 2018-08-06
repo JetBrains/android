@@ -38,7 +38,7 @@ public abstract class AbstractClientAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     e.getPresentation().setEnabled(isEnabled());
   }
 
@@ -48,7 +48,7 @@ public abstract class AbstractClientAction extends AnAction {
   }
 
   @Override
-  public final void actionPerformed(AnActionEvent e) {
+  public final void actionPerformed(@NotNull AnActionEvent e) {
     if (isEnabled()) {
       performAction(myDeviceContext.getSelectedClient());
     }

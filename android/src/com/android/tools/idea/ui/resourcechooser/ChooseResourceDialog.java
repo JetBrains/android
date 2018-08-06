@@ -593,7 +593,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private AnAction createNewResourceValueAction() {
     return new AnAction() {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         ResourceType type = (ResourceType)getTemplatePresentation().getClientProperty(TYPE_KEY);
         createNewResourceValue(type);
       }
@@ -604,7 +604,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private AnAction createNewResourceFileAction() {
     return new AnAction() {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         ResourceFolderType type = (ResourceFolderType)getTemplatePresentation().getClientProperty(FOLDER_TYPE_KEY);
         createNewResourceFile(type);
       }
@@ -627,7 +627,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private AnAction createExtractStyleAction() {
     return new AnAction("Extract Style...") {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         extractStyle();
       }
     };
@@ -637,7 +637,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private AnAction createNewResourceReferenceAction() {
     return new AnAction() {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         ResourcePanel panel = getSelectedPanel();
         panel.showNewResource(panel.myReferencePanel);
       }
@@ -2255,12 +2255,12 @@ public class ChooseResourceDialog extends DialogWrapper {
       for (final Action action : actions) {
         final AnAction anAction = new AnAction() {
           @Override
-          public void actionPerformed(AnActionEvent e) {
+          public void actionPerformed(@NotNull AnActionEvent e) {
             action.actionPerformed(new ActionEvent(source, 0, ""));
           }
 
           @Override
-          public void update(AnActionEvent e) {
+          public void update(@NotNull AnActionEvent e) {
             Presentation presentation = e.getPresentation();
             String name = (String)action.getValue(Action.NAME);
             if (name != null) {

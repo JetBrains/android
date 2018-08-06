@@ -405,7 +405,7 @@ public class GradleBuildInvoker {
             }
 
             @Override
-            public void actionPerformed(AnActionEvent e) {
+            public void actionPerformed(@NotNull AnActionEvent e) {
               // Recreate the reader since the one created with the listener can be already closed (see b/73102585)
               myReader.close();
               // noinspection resource, IOResourceOpenedButNotSafelyClosed

@@ -71,7 +71,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     boolean showFiles = project != null || PlatformProjectOpenProcessor.getInstanceIfItExists() != null;
     FileChooserDescriptor descriptor = showFiles ? new ProjectOrFileChooserDescriptor() : new ProjectOnlyFileChooserDescriptor();

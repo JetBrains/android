@@ -39,7 +39,7 @@ public class SelectParentAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     boolean enabled;
     SceneView screenView = mySurface.getCurrentSceneView();
     if (screenView != null) {
@@ -53,7 +53,7 @@ public class SelectParentAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     SceneView screenView = mySurface.getCurrentSceneView();
     if (screenView != null) {
       SelectionModel selectionModel = screenView.getSelectionModel();
