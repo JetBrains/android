@@ -214,7 +214,7 @@ public class CapturesToolWindow
 
   @Nullable
   @Override
-  public Object getData(@NonNls String dataId) {
+  public Object getData(@NotNull @NonNls String dataId) {
     if (CommonDataKeys.VIRTUAL_FILE.is(dataId)) {
       VirtualFile[] files = getSelectedFiles();
       return files.length == 1 ? files[0] : null;

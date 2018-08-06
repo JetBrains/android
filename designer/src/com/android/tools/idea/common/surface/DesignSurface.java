@@ -960,7 +960,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     @Nullable
     @Override
-    public Object getData(@NonNls String dataId) {
+    public Object getData(@NotNull @NonNls String dataId) {
       if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
         if (getCurrentSceneView() != null) {
           SelectionModel selectionModel = getCurrentSceneView().getSelectionModel();
@@ -1191,7 +1191,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @Override
-  public Object getData(@NonNls String dataId) {
+  public Object getData(@NotNull @NonNls String dataId) {
     if (PlatformDataKeys.FILE_EDITOR.is(dataId)) {
       return myFileEditorDelegate.get();
     }

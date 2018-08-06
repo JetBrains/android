@@ -188,7 +188,7 @@ public class LayoutInspectorPanel extends JPanel implements DataProvider, ImageC
 
   @Nullable
   @Override
-  public Object getData(@NonNls String dataId) {
+  public Object getData(@NotNull @NonNls String dataId) {
     if (ImageComponentDecorator.DATA_KEY.is(dataId)) {
       return this;
     }

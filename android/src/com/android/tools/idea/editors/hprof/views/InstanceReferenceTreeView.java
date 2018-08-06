@@ -413,7 +413,7 @@ public final class InstanceReferenceTreeView implements DataProvider {
 
   @Nullable
   @Override
-  public Object getData(@NonNls String dataId) {
+  public Object getData(@NotNull @NonNls String dataId) {
     if (CommonDataKeys.NAVIGATABLE_ARRAY.is(dataId)) {
       return getTargetFiles();
     }

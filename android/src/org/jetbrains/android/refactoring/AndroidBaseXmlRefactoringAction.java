@@ -171,7 +171,7 @@ abstract class AndroidBaseXmlRefactoringAction extends BaseRefactoringAction {
 
     final DataContext patchedContext = new DataContext() {
       @Override
-      public Object getData(@NonNls String dataId) {
+      public Object getData(@NotNull @NonNls String dataId) {
         final Object data = context.getData(dataId);
         if (data != null) {
           return data;

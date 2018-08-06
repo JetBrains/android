@@ -157,7 +157,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   }
 
   @Override
-  public boolean canBePerformed(@Nullable DataContext context) {
+  public boolean canBePerformed(@NotNull DataContext context) {
     return true;
   }
 

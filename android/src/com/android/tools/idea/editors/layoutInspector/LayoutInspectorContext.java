@@ -273,7 +273,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
 
   @Nullable
   @Override
-  public Object getData(@NonNls String dataId) {
+  public Object getData(@NotNull @NonNls String dataId) {
     return null;
   }
 
