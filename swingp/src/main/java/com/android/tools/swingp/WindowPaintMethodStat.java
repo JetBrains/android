@@ -15,18 +15,23 @@
  */
 package com.android.tools.swingp;
 
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
 public class WindowPaintMethodStat extends MethodStat {
+  @Nullable private final Window myOwnerWindow;
   @NotNull private final AffineTransform myTransform;
   @NotNull private final Point myLocation;
 
   public WindowPaintMethodStat(@NotNull Window owner) {
     super(owner);
+    myOwnerWindow = owner.getOwner();
     if (owner.getParent() == null) {
       myLocation = new Point(0, 0);
       myTransform = new AffineTransform();
@@ -49,6 +54,7 @@ public class WindowPaintMethodStat extends MethodStat {
     super.addAttributeDescriptions(description);
 
     description.addProperty("windowId", System.identityHashCode(myOwner.get()));
+    description.add("ownerWindowId", myOwnerWindow == null ? JsonNull.INSTANCE : new JsonPrimitive(System.identityHashCode(myOwnerWindow)));
 
     int[] location = new int[]{myLocation.x, myLocation.y};
     description.add("location", SerializationHelpers.arrayToJsonArray(location));

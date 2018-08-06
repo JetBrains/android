@@ -36,8 +36,10 @@ The basic architecture is based on a cooperative multithreading model, with the 
 
         var textDecoder = new TextDecoder("utf-8");
 
-        var rectGroups = [];
         var windows = {};
+        var buffers = {};
+
+        var rectGroups = [];
         var lastStartLoop = window.performance.now();
         var mostRecentFrameBounds = [0, 0, 800, 600];
         var frameScale = 0.25;
@@ -150,11 +152,14 @@ The basic architecture is based on a cooperative multithreading model, with the 
             var newAnchor = anchor.slice();
             if (node.classType === "WindowPaintMethodStat") {
                 // We hit this node when there are more than one heavy weight component being rendered (e.g. main window + tooltip).
+                ownerWindowId = node.ownerWindowId;
+                var parentPosition = windows[ownerWindowId] ? windows[ownerWindowId].anchor : [0, 0];
                 newAnchor = [
-                    node.location[0] * xform[0] + xform[4],
-                    node.location[1] * xform[3] + xform[5],
+                    node.location[0] * xform[0] + xform[4] + parentPosition[0],
+                    node.location[1] * xform[3] + xform[5] + parentPosition[1],
                 ];
                 windowNode = {"anchor": newAnchor.slice()};
+                windows[node.windowId] = windowNode;
             }
             else if (node.classType === "PaintImmediatelyMethodStat") {
                 if (node.bufferType === "IdeRootPane") {
@@ -167,11 +172,14 @@ The basic architecture is based on a cooperative multithreading model, with the 
                 }
                 else {
                     if (windowNode !== null) {
-                        windowNode.bufferType = node.bufferType;
-                        windows[node.bufferId] = windowNode;
+                        buffers[node.bufferId] = {
+                            "window": windowNode,
+                            "bufferType": node.bufferType,
+                        }
                     }
-                    newAnchor[0] = windows[node.bufferId].anchor[0] + result.ideRootPaneBounds[0];
-                    newAnchor[1] = windows[node.bufferId].anchor[1] + result.ideRootPaneBounds[1];
+                    var windowAnchor = buffers[node.bufferId] ? buffers[node.bufferId].window.anchor : [0, 0];
+                    newAnchor[0] = windowAnchor[0] + result.ideRootPaneBounds[0];
+                    newAnchor[1] = windowAnchor[1] + result.ideRootPaneBounds[1];
                     isPrimary = false;
                 }
                 // Add the (x, y) of the bounds, since the paintImmediatelyImpl method deliberately offsets to render to the top-left corner of the buffer.
