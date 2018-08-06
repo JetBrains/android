@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu.capturedetails
 
 import com.android.tools.adtui.FilterComponent
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ART
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE
@@ -133,8 +132,8 @@ class CpuCaptureViewTest {
   }
 
   @Test
-  fun interactionDisabledWhenLoadingPane() {
-    val capturePane = CpuCaptureView.LoadingPane(stageView)
+  fun interactionDisabledWhenParsingPane() {
+    val capturePane = CpuCaptureView.ParsingPane(stageView)
     val toolbar = TreeWalker(capturePane).descendants().filterIsInstance<CapturePane.Toolbar>().first()
     val tab = TreeWalker(capturePane).descendants().filterIsInstance<CommonTabbedPane>().first()
     assertThat(toolbar.isEnabled).isFalse()
@@ -172,21 +171,28 @@ class CpuCaptureViewTest {
   }
 
   @Test
-  fun showsLoadingPaneWhenParsing() {
-    val observer = AspectObserver()
-    var parsingCalled = false
-    stageView.stage.captureParser.aspect.addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_PARSING) {
-      if (stageView.stage.captureParser.isParsing) {
-        parsingCalled = true
-        assertThat(getCapturePane()).isInstanceOf(CpuCaptureView.LoadingPane::class.java)
-      }
+  fun showsParsingPaneWhenParsing() {
+    assertThat(getCapturePane()).isNotInstanceOf(CpuCaptureView.ParsingPane::class.java)
+    stageView.stage.captureParser.updateParsingStateWhenStarting()
+    assertThat(getCapturePane()).isInstanceOf(CpuCaptureView.ParsingPane::class.java)
+  }
+
+  @Test
+  fun abortParsingShouldDisableTheButtonAndGoToIdle() {
+    stageView.stage.captureParser.updateParsingStateWhenStarting()
+    val parsingPane = getCapturePane()
+    val abortButton = TreeWalker(parsingPane).descendants().filterIsInstance<JButton>().first {
+      it.text == CpuCaptureView.ParsingPane.ABORT_BUTTON_TEXT
     }
-    assertThat(parsingCalled).isFalse()
-    cpuProfiler.apply {
-      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(profilerType = ART)
-    }
-    assertThat(parsingCalled).isTrue()
+    stageView.stage.captureState = CpuProfilerStage.CaptureState.STOPPING
+
+    assertThat(stageView.stage.captureState).isEqualTo(CpuProfilerStage.CaptureState.STOPPING) // Sanity check
+    assertThat(abortButton.isEnabled).isTrue()
+
+    abortButton.doClick()
+
+    assertThat(stageView.stage.captureState).isEqualTo(CpuProfilerStage.CaptureState.IDLE)
+    assertThat(abortButton.isEnabled).isFalse()
   }
 
   @Test

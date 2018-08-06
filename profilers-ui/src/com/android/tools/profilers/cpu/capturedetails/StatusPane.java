@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
+import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -44,8 +45,12 @@ abstract class StatusPane extends CapturePane {
   @NotNull
   private JLabel myDurationLabel;
 
+  @NotNull
+  protected final CpuProfilerStage myStage;
+
   public StatusPane(@NotNull CpuProfilerStageView stageView, @NotNull String statusLabel) {
     super(stageView);
+    myStage = stageView.getStage();
     myStatus = statusLabel;
     myDurationLabel = createLabel("", false);
     disableInteraction();
