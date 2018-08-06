@@ -20,37 +20,33 @@ import com.android.tools.idea.common.scene.SceneContext
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.Rectangle
+import java.awt.geom.RoundRectangle2D
 
 class DrawRectangle(
   private val level: Int,
-  @SwingCoordinate private val rectangle: Rectangle,
+  @SwingCoordinate private val rectangle: RoundRectangle2D.Float,
   @SwingCoordinate private val color: Color,
-  @SwingCoordinate private val brushThickness: Int,
-  @SwingCoordinate private val arcSize: Int = 0
-) : DrawCommand {
+  @SwingCoordinate private val brushThickness: Float
+) : DrawCommandBase() {
 
   private constructor(sp: Array<String>) : this(
-      sp[0].toInt(), stringToRect(sp[1]),
-      stringToColor(sp[2]), sp[3].toInt(), sp[4].toInt()
+    sp[0].toInt(), stringToRoundRect2D(sp[1]),
+    stringToColor(sp[2]), sp[3].toFloat()
   )
 
-  constructor(s: String) : this(parse(s, 5))
+  constructor(s: String) : this(parse(s, 4))
 
   override fun getLevel(): Int = level
 
   override fun serialize(): String = buildString(
-      javaClass.simpleName, level, rectToString(rectangle),
-      colorToString(color), brushThickness, arcSize
+    javaClass.simpleName, level, roundRect2DToString(rectangle),
+    colorToString(color), brushThickness
   )
 
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
-    val g2 = g.create() as Graphics2D
-
-    g2.color = color
-    g2.stroke = BasicStroke(brushThickness.toFloat())
-    g2.drawRoundRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
-
-    g2.dispose()
+  override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
+    g.setRenderingHints(HQ_RENDERING_HINTS)
+    g.color = color
+    g.stroke = BasicStroke(brushThickness)
+    g.draw(rectangle)
   }
 }

@@ -27,7 +27,7 @@ class DrawCircle(private val myLevel: Int,
                  @SwingCoordinate private val myCenter: Point,
                  private val myColor: Color,
                  private val myStroke: BasicStroke,
-                 @SwingCoordinate private val myRadius: LerpInt) : DrawCommand {
+                 @SwingCoordinate private val myRadius: LerpInt) : DrawCommandBase() {
 
   private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToPoint(sp[1]),
       stringToColor(sp[2]), BasicStroke(sp[3].toFloat()), stringToLerp(sp[4]))
@@ -47,16 +47,12 @@ class DrawCircle(private val myLevel: Int,
         lerpToString(myRadius))
   }
 
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
+  override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     val r = myRadius.getValue(sceneContext.time)
 
-    val g2 = g.create() as Graphics2D
-
-    g2.color = myColor
-    g2.stroke = myStroke
-    g2.drawOval(myCenter.x - r, myCenter.y - r, 2 * r, 2 * r)
-
-    g2.dispose()
+    g.color = myColor
+    g.stroke = myStroke
+    g.drawOval(myCenter.x - r, myCenter.y - r, 2 * r, 2 * r)
 
     if (!myRadius.isComplete(sceneContext.time)) {
       sceneContext.repaint()
