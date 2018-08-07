@@ -31,9 +31,11 @@ public class Agent {
       instrumentation.addTransformer(new JComponentClassTransformer(), true);
       instrumentation.addTransformer(new RepaintManagerClassTransformer(), true);
       instrumentation.addTransformer(new WindowClassTransformer(), true);
+      instrumentation.addTransformer(new BufferStrategyPaintManagerClassTransform(), true);
       instrumentation.retransformClasses(JComponent.class);
       instrumentation.retransformClasses(RepaintManager.class);
       instrumentation.retransformClasses(Window.class);
+      instrumentation.retransformClasses(Class.forName("javax.swing.BufferStrategyPaintManager"));
     }
     catch (Exception e) {
       System.out.println(e);
