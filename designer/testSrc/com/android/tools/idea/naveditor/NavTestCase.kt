@@ -22,7 +22,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC
 import com.google.common.base.Preconditions
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.util.io.ZipUtil
@@ -31,10 +33,17 @@ import org.jetbrains.android.AndroidTestCase
 import java.io.File
 
 abstract class NavTestCase : AndroidTestCase() {
+  // The normal test root disposable is disposed after Timer leak checking is done, which can cause problems.
+  // We'll dispose this one first, so it should be used instead of getTestRootDisposable().
+  protected lateinit var myRootDisposable: Disposable
 
   public override fun setUp() {
     super.setUp()
 
+    @Suppress("ObjectLiteralToLambda") // Otherwise a static instance is created and used between tests.
+    myRootDisposable = object : Disposable {
+      override fun dispose() {}
+    }
     myFixture.copyDirectoryToProject("$NAVIGATION_EDITOR_BASIC/app/src/main/java", "src")
     myFixture.copyDirectoryToProject("$NAVIGATION_EDITOR_BASIC/app/src/main/res", "res")
     myFixture.copyFileToProject("$NAVIGATION_EDITOR_BASIC/app/src/main/AndroidManifest.xml", "AndroidManifest.xml")
@@ -63,12 +72,13 @@ abstract class NavTestCase : AndroidTestCase() {
       myFixture.testDataPath = testDataPath
     }
 
-    TestableThumbnailManager.register(myFacet, project)
+    TestableThumbnailManager.register(myFacet, myRootDisposable)
     StudioFlags.ENABLE_NAV_EDITOR.override(true)
   }
 
   override fun tearDown() {
     try {
+      Disposer.dispose(myRootDisposable)
       deleteManifest()
       StudioFlags.ENABLE_NAV_EDITOR.clearOverride()
     }

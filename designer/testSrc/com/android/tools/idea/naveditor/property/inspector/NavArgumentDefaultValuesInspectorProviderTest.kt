@@ -50,7 +50,6 @@ class NavArgumentDefaultValuesInspectorProviderTest : NavTestCase() {
     }
     val provider = NavArgumentDefaultValuesInspectorProvider()
     val manager = NavPropertiesManager(myFacet, model.surface)
-    Disposer.register(project, manager)
     val component1 = model.find("component1")!!
     val component2 = model.find("component2")!!
     val popAction = model.find("pop")!!
@@ -75,6 +74,7 @@ class NavArgumentDefaultValuesInspectorProviderTest : NavTestCase() {
       provider.isApplicable(listOf(popAction), mapOf("Arguments" to NavArgumentDefaultValuesProperty(listOf(component1), manager)),
                             manager))
 
+    Disposer.dispose(manager)
   }
 
   fun testListContent() {
@@ -94,9 +94,8 @@ class NavArgumentDefaultValuesInspectorProviderTest : NavTestCase() {
       }
     }
 
-    val panel = NavInspectorPanel(project)
+    val panel = NavInspectorPanel(myRootDisposable)
     val navPropertiesManager = NavPropertiesManager(myFacet, model.surface)
-    Disposer.register(project, navPropertiesManager)
     panel.setComponent(listOf(model.find("a1")!!), HashBasedTable.create<String, String, NlProperty>(),
                        navPropertiesManager)
 
@@ -133,6 +132,7 @@ class NavArgumentDefaultValuesInspectorProviderTest : NavTestCase() {
     assertEquals(null, (argumentsTable.getValueAt(0, 2) as NlProperty).value)
     assertEquals("arg2", (argumentsTable.getValueAt(1, 0) as NlProperty).value)
     assertEquals("foo", (argumentsTable.getValueAt(1, 2) as NlProperty).value)
+    Disposer.dispose(navPropertiesManager)
   }
 
   private fun setValue(value: String, row: Int, column: Int, argumentsTable: JBTable) {

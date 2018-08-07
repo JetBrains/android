@@ -41,9 +41,7 @@ class NavActionsInspectorProviderTest : NavTestCase() {
   fun testIsApplicable() {
     val provider = NavActionsInspectorProvider()
     val surface = mock(NavDesignSurface::class.java)
-    Disposer.register(project, surface)
     val manager = NavPropertiesManager(myFacet, surface)
-    Disposer.register(project, manager)
     val component1 = mock(NlComponent::class.java)
     val component2 = mock(NlComponent::class.java)
     // Simple case: one component, actions property
@@ -58,6 +56,8 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     assertFalse(provider.isApplicable(listOf(), mapOf("Actions" to NavActionsProperty(listOf())), manager))
     // Non-actions property only
     assertFalse(provider.isApplicable(listOf(component1), mapOf("foo" to mock(NlProperty::class.java)), manager))
+    Disposer.dispose(surface)
+    Disposer.dispose(manager)
   }
 
   fun testListContent() {
@@ -73,14 +73,14 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     }
 
     val manager = mock(NavPropertiesManager::class.java)
-    val navInspectorProviders = spy(NavInspectorProviders(manager, project))
+    val navInspectorProviders = spy(NavInspectorProviders(manager, myRootDisposable))
     val provider = NavActionsInspectorProvider()
     `when`(navInspectorProviders.providers).thenReturn(listOf(provider))
     `when`(manager.getInspectorProviders(any())).thenReturn(navInspectorProviders)
     `when`(manager.facet).thenReturn(myFacet)
     `when`(manager.designSurface).thenReturn(model.surface)
 
-    val panel = NavInspectorPanel(project)
+    val panel = NavInspectorPanel(myRootDisposable)
     val f1 = model.find("f1")!!
     val f2 = model.find("f2")!!
     panel.setComponent(listOf(f1), HashBasedTable.create<String, String, NlProperty>(), manager)
@@ -134,7 +134,7 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     }
 
     val manager = mock(NavPropertiesManager::class.java)
-    val navInspectorProviders = spy(NavInspectorProviders(manager, project))
+    val navInspectorProviders = spy(NavInspectorProviders(manager, myRootDisposable))
     val provider = spy(NavActionsInspectorProvider())
     `when`(navInspectorProviders.providers).thenReturn(listOf(provider))
     `when`(manager.getInspectorProviders(any())).thenReturn(navInspectorProviders)
@@ -148,7 +148,7 @@ class NavActionsInspectorProviderTest : NavTestCase() {
           (invocation?.callRealMethod() as NavListInspectorProvider<NavActionsProperty>.NavListInspectorComponent).also { result = it }
     }
     doAnswer(answer).`when`(provider).createCustomInspector(any(), any(), any())
-    val panel = NavInspectorPanel(project)
+    val panel = NavInspectorPanel(myRootDisposable)
     panel.setComponent(listOf(model.find("f1")!!), HashBasedTable.create<String, String, NlProperty>(), manager)
 
     @Suppress("UNCHECKED_CAST")
@@ -200,13 +200,13 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     }
 
     val manager = mock(NavPropertiesManager::class.java)
-    val navInspectorProviders = spy(NavInspectorProviders(manager, project))
+    val navInspectorProviders = spy(NavInspectorProviders(manager, myRootDisposable))
     `when`(navInspectorProviders.providers).thenReturn(listOf(NavActionsInspectorProvider()))
     `when`(manager.getInspectorProviders(any())).thenReturn(navInspectorProviders)
     `when`(manager.facet).thenReturn(myFacet)
     `when`(manager.designSurface).thenReturn(model.surface)
 
-    val panel = NavInspectorPanel(project)
+    val panel = NavInspectorPanel(myRootDisposable)
     val f1 = model.find("f1")!!
     panel.setComponent(listOf(f1), HashBasedTable.create<String, String, NlProperty>(), manager)
 
