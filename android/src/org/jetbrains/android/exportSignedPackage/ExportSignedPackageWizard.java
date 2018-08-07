@@ -59,6 +59,7 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
@@ -70,6 +71,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
+import static com.intellij.openapi.util.text.StringUtil.decapitalize;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 /**
@@ -283,18 +286,42 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
                                             @NotNull List<String> buildVariants,
                                             @NotNull String targetType) {
     List<String> gradleTasks = Lists.newArrayListWithExpectedSize(buildVariants.size());
+    Variant selectedVariant = androidModuleModel.getSelectedVariant();
+    String selectedTaskName = getTaskName(selectedVariant, targetType);
+    String selectedVariantName = selectedVariant.getName();
+    if (selectedTaskName == null) {
+      getLog().warn("Could not get tasks for target " + targetType + " on variant " + selectedVariantName);
+      return Collections.emptyList();
+    }
 
     for (String variantName : buildVariants) {
-      Variant variant = androidModuleModel.findVariantByName(variantName);
-      if (variant != null) {
-        String taskName = getTaskName(variant, targetType);
+      String taskName = replaceVariantFromTask(selectedTaskName, selectedVariantName, variantName);
+      if (taskName != null) {
         gradleTasks.add(GradleTaskFinder.getInstance().createBuildTask(gradleProjectPath, taskName));
       }
       else {
-        getLog().warn("Variant " + variantName + " is not synced yet.");
+        getLog().warn("Could not replace variant " + selectedVariantName + " with " + variantName + " for task " + selectedTaskName + ".");
       }
     }
     return gradleTasks;
+  }
+
+  @Nullable
+  public static String replaceVariantFromTask(@NotNull String task, @NotNull String oldVariant, @NotNull String newVariant) {
+    oldVariant = decapitalize(oldVariant);
+    if (task.indexOf(oldVariant) == 1) {
+      // it has the pattern ":variantName[suffix]".
+      newVariant = decapitalize(newVariant);
+      return task.replaceFirst(oldVariant, newVariant);
+    }
+    oldVariant = capitalize(oldVariant);
+    if (task.contains(oldVariant)) {
+      // it has the pattern ":prefixVariantName[suffix]".
+      newVariant = capitalize(newVariant);
+      return task.replaceFirst(oldVariant, newVariant);
+    }
+    // Variant name could not be found capitalized as expected.
+    return null;
   }
 
   private static String getTaskName(Variant v, String targetType) {
