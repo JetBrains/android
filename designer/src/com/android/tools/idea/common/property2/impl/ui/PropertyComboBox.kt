@@ -22,6 +22,7 @@ import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
+import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.EventQueue
@@ -65,6 +66,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
   private val textField = editor.editorComponent as CommonTextField<*>
 
   init {
+    putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
     registerKeyAction({ model.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
     registerKeyAction({ model.escapeKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "escape")
     if (asTableCellEditor) {
