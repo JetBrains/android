@@ -16,16 +16,16 @@
 
 package org.jetbrains.kotlin.android
 
+import com.android.testutils.TestUtils
 import org.jetbrains.kotlin.android.quickfix.AbstractAndroidQuickFixMultiFileTest
 import org.jetbrains.kotlin.idea.test.ConfigLibraryUtil
-import org.jetbrains.kotlin.test.KotlinTestUtils
 import java.io.File
 
 abstract class AbstractParcelQuickFixTest : AbstractAndroidQuickFixMultiFileTest() {
     override fun setUp() {
         super.setUp()
 
-        val androidSdk = KotlinTestUtils.findAndroidSdk()
+        val androidSdk = TestUtils.getSdk()
         val androidJarDir = File(androidSdk, "platforms").listFiles().first { it.name.startsWith("android-") }
         ConfigLibraryUtil.addLibrary(myModule, "androidJar", androidJarDir.absolutePath, arrayOf("android.jar"))
 
