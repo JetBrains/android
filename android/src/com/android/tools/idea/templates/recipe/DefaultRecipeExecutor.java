@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.templates.FmGetConfigurationNameMethod;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
@@ -33,7 +32,6 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.SetMultimap;
 import com.intellij.diff.comparison.ComparisonManager;
 import com.intellij.diff.comparison.ComparisonPolicy;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -66,6 +64,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePa
 import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateUtils.*;
+import static com.android.tools.idea.util.DependencyManagementUtil.dependsOnOldSupportLib;
 import static com.android.utils.XmlUtils.XML_PROLOG;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
@@ -511,6 +510,11 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     Object buildApiObj = getParamMap().get(ATTR_BUILD_API);
     int buildApi = buildApiObj == null ? 0 : Integer.parseInt(buildApiObj.toString());
     if (MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED.get() && buildApi >= 28) {
+      Module module = myContext.getModule();
+      if (module != null && dependsOnOldSupportLib(module)) {
+          return dep;
+      }
+
       return AndroidxNameUtils.getVersionedCoordinateMapping(dep);
     }
     return dep;
