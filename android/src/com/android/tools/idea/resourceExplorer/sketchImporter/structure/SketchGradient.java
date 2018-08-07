@@ -17,6 +17,9 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+
 public class SketchGradient {
   private final int elipseLength;
   private final SketchPoint2D from;
@@ -28,6 +31,14 @@ public class SketchGradient {
   private final int gradientType;
   private final SketchGradientStop[] stops;
   private final SketchPoint2D to;
+
+  public static final String GRADIENT_LINEAR = "linear";
+  public static final String GRADIENT_RADIAL = "radial";
+  public static final String GRADIENT_SWEEP = "sweep";
+  /**
+   * The index in the array corresponds to each of the gradient types
+   */
+  private static final String[] TYPES = new String[]{GRADIENT_LINEAR, GRADIENT_RADIAL, GRADIENT_SWEEP};
 
   public SketchGradient(int elipseLength,
                         @NotNull SketchPoint2D from,
@@ -54,6 +65,10 @@ public class SketchGradient {
     return gradientType;
   }
 
+  public String getDrawableGradientType() {
+    return TYPES[getGradientType()];
+  }
+
   @NotNull
   public SketchGradientStop[] getStops() {
     return stops;
@@ -62,5 +77,53 @@ public class SketchGradient {
   @NotNull
   public SketchPoint2D getTo() {
     return to;
+  }
+
+  @NotNull
+  public String getGradientEndX() {
+    return Double.toString(to.getX());
+  }
+
+  @NotNull
+  public String getGradientEndY() {
+    return Double.toString(to.getY());
+  }
+
+  @NotNull
+  public String getGradientStartX() {
+    return Double.toString(from.getX());
+  }
+
+  @NotNull
+  public String getGradientStartY() {
+    return Double.toString(from.getY());
+  }
+
+  @NotNull
+  public String getGradientRadius() {
+    double radiusX = Math.pow(to.x - from.x, 2);
+    double radiusY = Math.pow(to.y - from.y, 2);
+
+    return Double.toString(Math.sqrt(radiusX + radiusY));
+  }
+
+  @NotNull
+  public String getSweepCenterY() {
+    return String.valueOf((to.y + from.y) / 2);
+  }
+
+  /**
+   * This method does not modify the current object but creates a new instance with coordinates in its parent coordinate system.
+   **/
+  public SketchGradient toAbsoluteGradient(Point2D.Double parentCoords, Rectangle2D.Double ownFrame) {
+    Rectangle2D.Double parentFrame = new Rectangle2D.Double(parentCoords.getX(),
+                                                            parentCoords.getY(),
+                                                            ownFrame.getWidth(),
+                                                            ownFrame.getHeight());
+    return new SketchGradient(elipseLength,
+                              from.makeAbsolutePosition(parentFrame, ownFrame),
+                              gradientType,
+                              stops,
+                              to.makeAbsolutePosition(parentFrame, ownFrame));
   }
 }
