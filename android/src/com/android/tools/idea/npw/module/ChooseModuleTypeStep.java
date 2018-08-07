@@ -69,6 +69,15 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
   }
 
   @NotNull
+  public static ChooseModuleTypeStep createWithDefaultGallery(Project project, ProjectSyncInvoker projectSyncInvoker) {
+    ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
+    for (ModuleDescriptionProvider provider : ModuleDescriptionProvider.EP_NAME.getExtensions()) {
+      moduleDescriptions.addAll(provider.getDescriptions());
+    }
+    return new ChooseModuleTypeStep(project, moduleDescriptions, projectSyncInvoker);
+  }
+
+  @NotNull
   @Override
   protected JComponent getComponent() {
     return myRootPanel;

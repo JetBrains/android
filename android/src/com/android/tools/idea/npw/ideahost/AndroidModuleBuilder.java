@@ -19,8 +19,6 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
-import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
-import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.npw.project.ChooseAndroidProjectStep;
 import com.android.tools.idea.npw.project.ConfigureAndroidSdkStep;
 import com.android.tools.idea.npw.project.deprecated.ConfigureAndroidProjectStep;
@@ -44,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.ArrayList;
 
 /**
  * AndroidModuleBuilder integrates the AndroidStudio new project and new module wizards into the IDEA new project and new module wizards.
@@ -176,12 +173,9 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
       }
     }
     else {
-      ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
-      for (ModuleDescriptionProvider provider : ModuleDescriptionProvider.EP_NAME.getExtensions()) {
-        moduleDescriptions.addAll(provider.getDescriptions());
-      }
-
-      builder.addStep(new ChooseModuleTypeStep(project, moduleDescriptions, new ProjectSyncInvoker.DefaultProjectSyncInvoker()));
+      ChooseModuleTypeStep chooseModuleTypeStep =
+        ChooseModuleTypeStep.createWithDefaultGallery(project, new ProjectSyncInvoker.DefaultProjectSyncInvoker());
+      builder.addStep(chooseModuleTypeStep);
     }
     myWizardAdapter = new IdeaWizardAdapter(hostWizard, builder.build());
   }
