@@ -105,6 +105,7 @@ class PsProjectImpl(override val ideProject: Project) : PsChildModel(), PsProjec
         this, "Project: $name", Objects.requireNonNull<GradleBuildModel>(parsedModel.projectBuildModel).ext(), null)
       internalResolvedModuleModels = null
       moduleCollection.refresh()
+      isModified = true  // This is to trigger apply() which in turn will trigger the final sync.
     }
   }
 }
