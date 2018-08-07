@@ -41,17 +41,17 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
-import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
 class DataSeriesPerformanceTest {
   companion object {
     private val START_TIME = TimeUnit.SECONDS.toNanos(0)
-    private val END_TIME = TimeUnit.MINUTES.toNanos(60)
+    private val END_TIME = TimeUnit.MINUTES.toNanos(30)
     private val INTERVAL = TimeUnit.MILLISECONDS.toNanos(200)
-    private val QUERY_INTERVAL = TimeUnit.SECONDS.toNanos(30)
+    private val QUERY_INTERVAL = TimeUnit.SECONDS.toNanos(60)
   }
+
   private val ticker = PollTicker()
   private lateinit var service: DataStoreService
   private lateinit var client: ProfilerClient
@@ -74,7 +74,7 @@ class DataSeriesPerformanceTest {
       val manager = DataGeneratorManager(db.connection, performantDatabase)
       manager.beginSession(0x123456789)
       // Generate data in an interlaced fashion to better match studio sampled data.
-      for(i in START_TIME..END_TIME step INTERVAL) {
+      for (i in START_TIME..END_TIME step INTERVAL) {
         // Adding variability in the timing so generators can use it to better represent sparse data.
         manager.generateData(i)
       }
@@ -93,22 +93,30 @@ class DataSeriesPerformanceTest {
     val dataSeriesToTest = mapOf(Pair("Event Activities", ActivityEventDataSeries(client, session, false)),
                                  Pair("Event Interactions", SimpleEventDataSeries(client, session)),
                                  Pair("Energy Usage", EnergyUsageDataSeries(client, session)),
-                                 Pair("Energy Events", MergedEnergyEventsDataSeries(EnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK, EnergyDuration.Kind.JOB))
+                                 Pair("Energy Events",
+                                      MergedEnergyEventsDataSeries(EnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,
+                                                                   EnergyDuration.Kind.JOB))
     )
-    for(name in dataSeriesToTest.keys) {
-      collectAndReportAverageTimes(name, dataSeriesToTest[name]!!)
+    val nameToMetrics = mutableMapOf<String, Metric>()
+    val queryStep = QUERY_INTERVAL / 2
+    for (i in START_TIME..END_TIME step queryStep) {
+      for (name in dataSeriesToTest.keys) {
+        if (!nameToMetrics.containsKey(name)) {
+          nameToMetrics[name] = Metric(name)
+        }
+        // We ignore the first query as it does a bunch of cache optimizations we don't want to account for.
+        collectAndReportAverageTimes(i, nameToMetrics[name]!!, dataSeriesToTest[name]!!, i != START_TIME)
+      }
     }
+    nameToMetrics.values.forEach { it.commit() }
   }
 
-  private fun <T> collectAndReportAverageTimes(name: String, series: DataSeries<T>) {
-    val queryStep = QUERY_INTERVAL / 2
-    val metric = Metric(name)
-    for(i in START_TIME..END_TIME step queryStep) {
-      val startTime = System.nanoTime()
-      series.getDataForXRange(Range(i.toDouble(), (i + QUERY_INTERVAL).toDouble()))
+  private fun <T> collectAndReportAverageTimes(offset: Long, metric: Metric, series: DataSeries<T>, recordMetric: Boolean) {
+    val startTime = System.nanoTime()
+    series.getDataForXRange(Range(offset.toDouble(), (offset + QUERY_INTERVAL).toDouble()))
+    if (recordMetric) {
       metric.addSamples(benchmark, Metric.MetricSample(Instant.now().toEpochMilli(), (System.nanoTime() - startTime)))
     }
-    metric.commit()
   }
 
   private class PollTicker {
