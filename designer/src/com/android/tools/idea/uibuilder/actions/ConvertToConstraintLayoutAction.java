@@ -43,7 +43,9 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
@@ -162,11 +164,21 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     GoogleMavenArtifactId artifact = StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get() ?
                                      GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
                                      GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
+
     // Step #2: Ensure ConstraintLayout is available in the project
-    List<GradleCoordinate> notAdded = DependencyManagementUtil
-      .addDependencies(screenView.getModel().getModule(), Collections.singletonList(artifact.getCoordinate("+")), false);
-    if (!notAdded.isEmpty()) {
-      return;
+
+    Module module =  sceneView.getModel().getModule();
+    if (!DependencyManagementUtil.dependsOn(module, artifact)) {
+      // If we don't already depend on constraint layout, try to add it.
+      List<GradleCoordinate> notAdded = DependencyManagementUtil
+        .addDependencies(module, Collections.singletonList(artifact.getCoordinate("+")), false);
+
+      if (!notAdded.isEmpty()) {
+        String message = "Converting to ConstraintLayout requires that the '" + module.getName() + "' module\n"
+                         + "depend on the constraint layout library. Please update the module's dependencies and try the action again.";
+        Messages.showErrorDialog(project, message, "Couldn't Convert Layout");
+        return;
+      }
     }
 
     // Step #3: Migrate
