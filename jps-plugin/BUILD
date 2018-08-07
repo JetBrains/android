@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "android-jps-plugin",
     srcs = ["src"],
+    resources = ["resources"],
     iml_files = ["android-jps-plugin.iml"],
     tags = ["managed"],
     # do not sort: must match IML order
