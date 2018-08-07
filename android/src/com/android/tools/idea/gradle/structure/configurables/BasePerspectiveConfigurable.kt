@@ -23,10 +23,17 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint
 import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.npw.model.ProjectSyncInvoker
+import com.android.tools.idea.npw.module.ChooseModuleTypeStep
+import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.options.SearchableConfigurable
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MasterDetailsComponent
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
@@ -38,8 +45,10 @@ import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
 import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.ui.navigation.Place.queryFurther
+import com.intellij.util.IconUtil
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
+import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -269,6 +278,54 @@ abstract class BasePerspectiveConfigurable protected constructor(
     val dependenciesConfigurable = configurable as BaseNamedConfigurable<*>
     dependenciesConfigurable.putNavigationPath(place, dependency)
   }
+
+
+  override fun createActions(fromPopup: Boolean): List<AnAction> =
+    listOf(
+      object : DumbAwareAction("New Module", "Add new module", IconUtil.getAddIcon()) {
+        override fun actionPerformed(e: AnActionEvent?) {
+          if (!context.project.isModified ||
+              Messages.showYesNoDialog(
+                e?.project,
+                "Pending changes will be applied to the project. Continue?",
+                "Add Module",
+                Messages.getQuestionIcon()) == Messages.YES
+          ) {
+            var synced = false
+            val chooseModuleTypeStep =
+              ChooseModuleTypeStep.createWithDefaultGallery(context.project.ideProject, ProjectSyncInvoker { synced = true })
+            context.applyRunAndReparse {
+              StudioWizardDialogBuilder(chooseModuleTypeStep, AndroidBundle.message("android.wizard.module.new.module.title"))
+                .setUxStyle(StudioWizardDialogBuilder.UxStyle.INSTANT_APP)
+                .build()
+                .show()
+              synced  // Tells whether the context needs to reparse the config.
+            };
+          }
+        }
+      },
+      object : DumbAwareAction("Remove Module", "Remove module", IconUtil.getRemoveIcon()) {
+        override fun actionPerformed(e: AnActionEvent?) {
+          val module = (selectedObject as PsModule)
+          if (Messages.showYesNoDialog(
+              e?.project,
+              buildString {
+                append(when {
+                         module.parent.modelCount == 1 -> "Are you sure you want to remove the only module form the project?"
+                         else -> "Remove module '${module.name}' from the project?"
+                       })
+                append("\n")
+                append("No files will be deleted on disk.")
+              },
+              "Remove Module",
+              Messages.getQuestionIcon()
+            ) == Messages.YES) {
+            module.parent.removeModule(module.gradlePath!!)
+          }
+        }
+      }
+
+    )
 
   override fun disposeUIResources() {
     if (uiDisposed) return
