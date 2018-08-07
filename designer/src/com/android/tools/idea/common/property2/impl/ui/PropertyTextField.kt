@@ -20,6 +20,7 @@ import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
+import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import java.awt.Color
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
@@ -39,6 +40,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel,
     registerKeyAction({ editorModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
     registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
     addFocusListener(EditorFocusListener(editorModel))
+    putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
     if (asTableCellEditor) {
       border = textBorder
     }
