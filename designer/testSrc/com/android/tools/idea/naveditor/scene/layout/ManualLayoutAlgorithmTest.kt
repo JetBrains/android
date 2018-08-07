@@ -112,7 +112,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
         fragment("fragment2")
       }
     }
-    var surface = NavDesignSurface(project, project)
+    var surface = NavDesignSurface(project, myRootDisposable)
     surface.model = model
     var component = surface.scene!!.getSceneComponent("fragment1")!!
     component.setPosition(100, 200)
@@ -131,7 +131,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
       }
     }
 
-    surface = NavDesignSurface(project, project)
+    surface = NavDesignSurface(project, myRootDisposable)
     surface.model = model
     component = surface.scene!!.getSceneComponent("fragment1")!!
     algorithm = ManualLayoutAlgorithm(model.module, mock(NavSceneManager::class.java))
@@ -223,7 +223,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     val editor = object: NlEditor(model.virtualFile, project), DocumentsEditor {
       override fun getDocuments() = arrayOf(FileDocumentManager.getInstance().getDocument(model.virtualFile))
     }
-    val surface = NavDesignSurface(project, project)
+    val surface = NavDesignSurface(project, myRootDisposable)
     surface.model = model
     val component = surface.scene!!.getSceneComponent("fragment1")!!
     component.setPosition(100, 200)

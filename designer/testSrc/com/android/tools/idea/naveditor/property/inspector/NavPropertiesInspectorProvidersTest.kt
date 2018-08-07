@@ -53,7 +53,11 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
     }
 
     propertiesManager = NavPropertiesManager(myFacet, model.surface)
-    Disposer.register(project, propertiesManager)
+  }
+
+  override fun tearDown() {
+    Disposer.dispose(propertiesManager)
+    super.tearDown()
   }
 
   fun testFragmentInspector() {

@@ -60,12 +60,12 @@ class NavSetStartProviderTest : NavTestCase() {
   fun testButtonEnabled() {
     val model = createModel()
     val manager = Mockito.mock(NavPropertiesManager::class.java)
-    val navInspectorProviders = Mockito.spy(NavInspectorProviders(manager, project))
+    val navInspectorProviders = Mockito.spy(NavInspectorProviders(manager, myRootDisposable))
     Mockito.`when`(navInspectorProviders.providers).thenReturn(listOf(NavSetStartProvider()))
     Mockito.`when`(manager.getInspectorProviders(ArgumentMatchers.any())).thenReturn(navInspectorProviders)
     Mockito.`when`(manager.facet).thenReturn(myFacet)
 
-    val panel = NavInspectorPanel(project)
+    val panel = NavInspectorPanel(myRootDisposable)
     val table = HashBasedTable.create<String, String, NlProperty>()
 
     panel.setComponent(listOf(model.find("f1")!!), table, manager)

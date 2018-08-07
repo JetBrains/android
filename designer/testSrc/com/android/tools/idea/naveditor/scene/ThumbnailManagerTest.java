@@ -20,14 +20,17 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.NavTestCase;
+import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
+import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualFileSystemEntry;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -50,7 +53,7 @@ public class ThumbnailManagerTest extends NavTestCase {
   @Override
   public void setUp() {
     super.setUp();
-    TestableThumbnailManager.register(myFacet, getProject());
+    TestableThumbnailManager.register(myFacet, myRootDisposable);
   }
 
   public void testCaching() throws Exception {
@@ -58,7 +61,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    NlModel model = NlModel.create(getProject(), myFacet, psiFile.getVirtualFile());
+    NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
     CompletableFuture<BufferedImage> imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
     BufferedImage image = imageFuture.get();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
@@ -91,7 +94,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    NlModel model = NlModel.create(getProject(), myFacet, psiFile.getVirtualFile());
+    NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
     Configuration configuration = model.getConfiguration();
     BufferedImage orig = manager.getThumbnail(psiFile, configuration).get();
     assertNull(manager.getOldThumbnail(file, configuration));
@@ -150,7 +153,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    NlModel model = NlModel.create(getProject(), myFacet, psiFile.getVirtualFile());
+    NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
     CompletableFuture<BufferedImage> imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
     CompletableFuture<BufferedImage> imageFuture2 = manager.getThumbnail(psiFile, model.getConfiguration());
 
