@@ -23,19 +23,22 @@ public class DrawableShape {
   @Nullable private String name;
   @NotNull private String pathData;
   @Nullable private String fillColor;
+  @Nullable private SketchGradient gradient;
   @Nullable private String strokeColor;
   @Nullable private String strokeWidth;
 
   public DrawableShape(@Nullable String nameParam,
                        @NotNull String pathDataParam,
                        @Nullable String fillColorParam,
+                       @Nullable SketchGradient gradientParam,
                        @Nullable String strokeColorParam,
                        @Nullable String strokeWidthParam) {
     pathData = pathDataParam;
-    name = nameParam == null ? "" : nameParam;
-    fillColor = fillColorParam == null ? "" : fillColorParam;
-    strokeColor = strokeColorParam == null ? "" : strokeColorParam;
-    strokeWidth = strokeWidthParam == null ? "" : strokeWidthParam;
+    name = nameParam;
+    fillColor = fillColorParam;
+    strokeColor = strokeColorParam;
+    strokeWidth = strokeWidthParam;
+    gradient = gradientParam;
   }
 
   @Nullable
@@ -61,5 +64,10 @@ public class DrawableShape {
   @Nullable
   public String getStrokeWidth() {
     return strokeWidth;
+  }
+
+  @Nullable
+  public SketchGradient getGradient() {
+    return gradient;
   }
 }
