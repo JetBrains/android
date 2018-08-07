@@ -614,6 +614,9 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
       } else {
         prefixEnd = 0;
       }
+      if (resourceUrl.startsWith("*", prefixEnd)) {
+        prefixEnd++;
+      }
       slashPos = resourceUrl.lastIndexOf('/');
       if (slashPos >= 0) {
         colonPos = resourceUrl.lastIndexOf(':', slashPos);
