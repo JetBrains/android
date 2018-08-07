@@ -17,6 +17,7 @@ package com.android.tools.idea.actions;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
@@ -140,7 +141,9 @@ public class NewAndroidComponentAction extends AnAction {
     Project project = module.getProject();
 
     RenderTemplateModel templateModel = new RenderTemplateModel(
-      facet, new TemplateHandle(file), initialPackageSuggestion, moduleTemplates.get(0), "New " + activityDescription, myShouldOpenFiles);
+      facet, new TemplateHandle(file), initialPackageSuggestion, moduleTemplates.get(0), "New " + activityDescription,
+      new ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+      myShouldOpenFiles);
 
     boolean isActivity = isActivityTemplate();
     String dialogTitle = AndroidBundle.message(isActivity ? "android.wizard.new.activity.title" : "android.wizard.new.component.title");

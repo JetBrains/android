@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.module;
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.idea.npw.model.NewModuleModel;
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.ui.WizardGallery;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -48,17 +49,21 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
   public static final String GOOGLE_CLOUD_MODULE_NAME = "Google Cloud Module";
 
   private final List<ModuleGalleryEntry> myModuleGalleryEntryList;
+  private final ProjectSyncInvoker myProjectSyncInvoker;
   private final JComponent myRootPanel;
   private final Project myProject;
 
   private ASGallery<ModuleGalleryEntry> myFormFactorGallery;
   private Map<ModuleGalleryEntry, SkippableWizardStep> myModuleDescriptionToStepMap;
 
-  public ChooseModuleTypeStep(@NotNull Project project, @NotNull List<ModuleGalleryEntry> moduleGalleryEntries) {
+  public ChooseModuleTypeStep(@NotNull Project project,
+                              @NotNull List<ModuleGalleryEntry> moduleGalleryEntries,
+                              @NotNull ProjectSyncInvoker projectSyncInvoker) {
     super(message("android.wizard.module.new.module.header"));
 
     myProject = project;
     myModuleGalleryEntryList = sortModuleEntries(moduleGalleryEntries);
+    myProjectSyncInvoker = projectSyncInvoker;
     myRootPanel = createGallery();
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
@@ -75,7 +80,7 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
     List<ModelWizardStep> allSteps = Lists.newArrayList();
     myModuleDescriptionToStepMap = new HashMap<>();
     for (ModuleGalleryEntry moduleGalleryEntry : myModuleGalleryEntryList) {
-      NewModuleModel model = new NewModuleModel(myProject);
+      NewModuleModel model = new NewModuleModel(myProject, myProjectSyncInvoker);
       if (moduleGalleryEntry instanceof ModuleTemplateGalleryEntry) {
         ModuleTemplateGalleryEntry templateEntry =  (ModuleTemplateGalleryEntry) moduleGalleryEntry;
         model.isLibrary().set(templateEntry.isLibrary());

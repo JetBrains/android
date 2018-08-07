@@ -104,7 +104,7 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
       Project project = model.getProject().getValue();
       String basePackage = getSuggestedProjectPackage(project, false);
-      return new ConfigureDynamicModuleStep(new DynamicFeatureModel(project, myTemplateHandle), basePackage);
+      return new ConfigureDynamicModuleStep(new DynamicFeatureModel(project, myTemplateHandle, model.getProjectSyncInvoker()), basePackage);
     }
   }
 }

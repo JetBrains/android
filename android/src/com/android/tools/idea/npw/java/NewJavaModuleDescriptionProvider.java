@@ -70,7 +70,7 @@ public class NewJavaModuleDescriptionProvider implements ModuleDescriptionProvid
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new ConfigureJavaModuleStep(new NewJavaModuleModel(model.getProject().getValue(), myTemplateHandle), getName());
+      return new ConfigureJavaModuleStep(new NewJavaModuleModel(model.getProject().getValue(), myTemplateHandle, model.getProjectSyncInvoker()), getName());
     }
   }
 }

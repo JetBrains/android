@@ -23,9 +23,10 @@ import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
+import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
-import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -482,6 +483,8 @@ public class TemplateManager {
 
         @Override
         public void actionPerformed(AnActionEvent e) {
+          ProjectSyncInvoker projectSyncInvoker = new ProjectSyncInvoker.DefaultProjectSyncInvoker();
+
           DataContext dataContext = e.getDataContext();
           Module module = LangDataKeys.MODULE.getData(dataContext);
           assert module != null;
@@ -505,9 +508,11 @@ public class TemplateManager {
           Project project = facet.getModule().getProject();
 
           RenderTemplateModel renderModel = new RenderTemplateModel(facet, null, initialPackageSuggestion, moduleTemplates.get(0),
-            AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id), true);
+                                                                    AndroidBundle
+                                                                      .message("android.wizard.activity.add", FormFactor.MOBILE.id),
+                                                                    projectSyncInvoker, true);
 
-          NewModuleModel moduleModel = new NewModuleModel(project);
+          NewModuleModel moduleModel = new NewModuleModel(project, projectSyncInvoker);
           ChooseActivityTypeStep chooseActivityTypeStep =
             new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, targetDirectory);
           ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();

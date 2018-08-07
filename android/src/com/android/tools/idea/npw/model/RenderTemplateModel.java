@@ -91,6 +91,7 @@ public final class RenderTemplateModel extends WizardModel {
                              @NotNull String initialPackageSuggestion,
                              @NotNull NamedModuleTemplate template,
                              @NotNull String commandName,
+                             @NotNull ProjectSyncInvoker projectSyncInvoker,
                              boolean shouldOpenFiles) {
     Project project = facet.getModule().getProject();
     myProject = new OptionalValueProperty<>(project);
@@ -100,7 +101,7 @@ public final class RenderTemplateModel extends WizardModel {
     myTemplates = new ObjectValueProperty<>(template);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
-    myMultiTemplateRenderer = new MultiTemplateRenderer(project);
+    myMultiTemplateRenderer = new MultiTemplateRenderer(project, projectSyncInvoker);
     myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(project));
     myShouldOpenFiles = shouldOpenFiles;
     init();
