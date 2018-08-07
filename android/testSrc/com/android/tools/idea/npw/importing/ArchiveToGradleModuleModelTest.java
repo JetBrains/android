@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -59,7 +60,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
   }
 
   public void testImportStandaloneArchive() throws Exception {
-    ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
+    ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
     model.archive().set(myJarOutsideProject.getAbsolutePath());
 
     model.gradlePath().set(":library");
@@ -70,7 +71,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
   }
 
   public void testImportStandaloneArchiveWithCustomPath() throws Exception {
-    ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
+    ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
     model.archive().set(myJarOutsideProject.getAbsolutePath());
 
     String gradlePath = ":amodulename";
@@ -82,7 +83,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
   }
 
   public void testImportStandaloneArchiveWithNestedPath() throws Exception {
-    ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
+    ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
     model.archive().set(myJarOutsideProject.getAbsolutePath());
 
     String gradlePath = ":category:module";
@@ -98,7 +99,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     File archiveToImport = new File(createTempDirectory("archiveLocation", null), "library.jar");
     copyFileOrDir(myJarOutsideProject, archiveToImport);
 
-    ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
+    ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
     model.archive().set(archiveToImport.getAbsolutePath());
 
     model.gradlePath().set(":library");
@@ -188,7 +189,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
 
   public void testPropertiesAreStripped() {
     String testString = "some Test String";
-    ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
+    ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
 
     model.archive().set(" " + testString + " ");
     assertEquals(testString, model.archive().get());
@@ -264,7 +265,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     String archivePath = join(moduleName, "lib", "library.jar");
     File archiveToImport = new File(getProject().getBasePath(), archivePath);
 
-    ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
+    ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
     model.archive().set(archiveToImport.getAbsolutePath());
     model.gradlePath().set(":library");
     model.moveArchive().set(move);

@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.npw.importing;
 
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 
@@ -23,13 +24,13 @@ public class SourceToGradleModuleModelTest extends AndroidGradleTestCase {
 
   public void testContextCreation() {
     Project project = getProject();
-    SourceToGradleModuleModel model = new SourceToGradleModuleModel(project);
+    SourceToGradleModuleModel model = new SourceToGradleModuleModel(project, new ProjectSyncInvoker.DefaultProjectSyncInvoker());
     assertEquals(project, model.getContext().getProject());
   }
 
   public void testPropertiesAreStripped() {
     String testString = "some Test String";
-    SourceToGradleModuleModel model = new SourceToGradleModuleModel(getProject());
+    SourceToGradleModuleModel model = new SourceToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
 
     model.sourceLocation().set(" " + testString + " ");
     assertEquals(testString, model.sourceLocation().get());

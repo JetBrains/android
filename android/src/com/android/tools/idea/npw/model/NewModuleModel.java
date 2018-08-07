@@ -63,6 +63,7 @@ public final class NewModuleModel extends WizardModel {
   @NotNull private final BoolProperty myIncludeNavController = new BoolValueProperty();
   @NotNull private final BoolProperty myEnableCppSupport;
   @NotNull private final OptionalProperty<Project> myProject;
+  @NotNull private final ProjectSyncInvoker myProjectSyncInvoker;
   @NotNull private final MultiTemplateRenderer myMultiTemplateRenderer;
   private final boolean myCreateInExistingProject;
 
@@ -71,8 +72,10 @@ public final class NewModuleModel extends WizardModel {
     mySplitName.addConstraint(String::trim);
   }
 
-  public NewModuleModel(@NotNull Project project) {
+  public NewModuleModel(@NotNull Project project,
+                        @NotNull ProjectSyncInvoker projectSyncInvoker) {
     myProject = new OptionalValueProperty<>(project);
+    myProjectSyncInvoker = projectSyncInvoker;
     myProjectPackageName = myPackageName;
     myCreateInExistingProject = true;
     myEnableCppSupport = new BoolValueProperty();
@@ -82,12 +85,13 @@ public final class NewModuleModel extends WizardModel {
     myIsLibrary.addListener(sender -> updateApplicationName());
     myIsInstantApp.addListener(sender -> updateApplicationName());
 
-    myMultiTemplateRenderer = new MultiTemplateRenderer(project);
+    myMultiTemplateRenderer = new MultiTemplateRenderer(project, projectSyncInvoker);
   }
 
   public NewModuleModel(@NotNull NewProjectModel projectModel, @NotNull File templateFile) {
     myProject = projectModel.project();
     myProjectPackageName = projectModel.packageName();
+    myProjectSyncInvoker = projectModel.getProjectSyncInvoker();
     myCreateInExistingProject = false;
     myEnableCppSupport = projectModel.enableCppSupport();
     myApplicationName = projectModel.applicationName();
@@ -108,6 +112,9 @@ public final class NewModuleModel extends WizardModel {
   public OptionalProperty<Project> getProject() {
     return myProject;
   }
+
+  @NotNull
+  public ProjectSyncInvoker getProjectSyncInvoker() { return myProjectSyncInvoker; }
 
   @NotNull
   public StringProperty applicationName() {

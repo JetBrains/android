@@ -91,7 +91,8 @@ public class NewProjectModel extends WizardModel {
   private final OptionalProperty<Project> myProject = new OptionalValueProperty<>();
   private final Map<String, Object> myTemplateValues = Maps.newHashMap();
   private final Set<NewModuleModel> myNewModels = new HashSet<>();
-  private final MultiTemplateRenderer myMultiTemplateRenderer = new MultiTemplateRenderer(null);
+  private final ProjectSyncInvoker myProjectSyncInvoker;
+  private final MultiTemplateRenderer myMultiTemplateRenderer;
   private final BoolProperty myEnableKotlinSupport = new BoolValueProperty();
 
   private  NewProjectExtraInfo myNewProjectExtraInfo;
@@ -101,6 +102,12 @@ public class NewProjectModel extends WizardModel {
   }
 
   public NewProjectModel() {
+    this(new ProjectSyncInvoker.DefaultProjectSyncInvoker());
+  }
+
+  public NewProjectModel(@NotNull ProjectSyncInvoker projectSyncInvoker) {
+    myProjectSyncInvoker = projectSyncInvoker;
+    myMultiTemplateRenderer = new MultiTemplateRenderer(null, myProjectSyncInvoker);
     // Save entered company domain
     myCompanyDomain.addListener(sender -> {
       String domain = myCompanyDomain.get();
@@ -126,6 +133,9 @@ public class NewProjectModel extends WizardModel {
     myEnableCppSupport.set(getInitialCppSupport());
     myEnableKotlinSupport.set(getInitialKotlinSupport());
   }
+
+  @NotNull
+  public ProjectSyncInvoker getProjectSyncInvoker() { return myProjectSyncInvoker; }
 
   public StringProperty packageName() {
     return myPackageName;

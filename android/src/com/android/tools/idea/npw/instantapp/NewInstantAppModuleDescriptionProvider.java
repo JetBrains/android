@@ -141,7 +141,7 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new ConfigureInstantAppModuleStep(new NewInstantAppModuleModel(model.getProject().getValue(), myTemplateHandle), getName());
+      return new ConfigureInstantAppModuleStep(new NewInstantAppModuleModel(model.getProject().getValue(), myTemplateHandle, model.getProjectSyncInvoker()), getName());
     }
   }
 }

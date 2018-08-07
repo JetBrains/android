@@ -46,6 +46,7 @@ public final class NewProjectModuleModel extends WizardModel {
   public static final String ANDROID_MODULE = "Android Module";
 
   @NotNull private final NewProjectModel myProjectModel;
+  @NotNull private final ProjectSyncInvoker myProjectSyncInvoker;
   @NotNull private final NewModuleModel myNewModuleModel;
   @NotNull private final RenderTemplateModel myExtraRenderTemplateModel;
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
@@ -56,10 +57,14 @@ public final class NewProjectModuleModel extends WizardModel {
 
   public NewProjectModuleModel(@NotNull NewProjectModel projectModel) {
     myProjectModel = projectModel;
+    myProjectSyncInvoker = projectModel.getProjectSyncInvoker();
     myNewModuleModel = new NewModuleModel(myProjectModel, new File(""));
     myExtraRenderTemplateModel =
       new RenderTemplateModel(myNewModuleModel, null, createDummyTemplate(), message("android.wizard.config.activity.title"));
   }
+
+  @NotNull
+  public ProjectSyncInvoker getProjectSyncInvoker() { return myProjectSyncInvoker; }
 
   @NotNull
   public BoolProperty instantApp() {

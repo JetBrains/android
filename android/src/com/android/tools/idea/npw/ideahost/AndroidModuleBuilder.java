@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.ideahost;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.model.NewProjectModel;
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
@@ -36,7 +37,6 @@ import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import icons.AndroidIcons;
@@ -181,7 +181,7 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
         moduleDescriptions.addAll(provider.getDescriptions());
       }
 
-      builder.addStep(new ChooseModuleTypeStep(project, moduleDescriptions));
+      builder.addStep(new ChooseModuleTypeStep(project, moduleDescriptions, new ProjectSyncInvoker.DefaultProjectSyncInvoker()));
     }
     myWizardAdapter = new IdeaWizardAdapter(hostWizard, builder.build());
   }

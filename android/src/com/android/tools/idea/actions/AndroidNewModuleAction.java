@@ -16,8 +16,8 @@
 
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
@@ -70,7 +70,8 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
         moduleDescriptions.addAll(provider.getDescriptions());
       }
 
-      ChooseModuleTypeStep chooseModuleTypeStep = new ChooseModuleTypeStep(project, moduleDescriptions);
+      ChooseModuleTypeStep chooseModuleTypeStep =
+        new ChooseModuleTypeStep(project, moduleDescriptions, new ProjectSyncInvoker.DefaultProjectSyncInvoker());
       ModelWizard wizard = new ModelWizard.Builder().addStep(chooseModuleTypeStep).build();
 
       new StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).setUxStyle(INSTANT_APP).build().show();
