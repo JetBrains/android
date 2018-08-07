@@ -16,9 +16,14 @@
 package com.android.tools.adtui.stdui
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder
+import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI
+import com.intellij.util.ui.JBUI
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.awt.BorderLayout
+import javax.swing.JPanel
 
 @RunWith(JUnit4::class)
 class CommonTextFieldTest {
@@ -39,9 +44,26 @@ class CommonTextFieldTest {
 
   @Test
   fun testErrorStateIsSetAndResetOnTextField() {
+    // Only the Darcula UI supplies a ErrorBorderCapable border.
+    field.ui = DarculaTextFieldUI()
+    field.border = DarculaEditorTextFieldBorder()
+
     field.text = "Error"
     assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(ERROR_VALUE)
     field.text = "Fixed"
     assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isNull()
+  }
+
+  @Test
+  fun testErrorStateIsSetAndResetOnTextFieldEmbeddedInJPanel() {
+    val panel = JPanel(BorderLayout())
+    panel.border = DarculaEditorTextFieldBorder()
+    panel.add(field, BorderLayout.CENTER)
+    field.border = JBUI.Borders.empty()
+
+    field.text = "Error"
+    assertThat(panel.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(ERROR_VALUE)
+    field.text = "Fixed"
+    assertThat(panel.getClientProperty(OUTLINE_PROPERTY)).isNull()
   }
 }
