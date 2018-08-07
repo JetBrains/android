@@ -38,8 +38,7 @@ public class AndroidTypedIntegerRenderer extends NodeRendererImpl {
   public AndroidTypedIntegerRenderer() {
     // TODO: we need a good presentation name. This is the name that shows up when you right click on the value and click "Show as".
     // We can detect if something is a resource reference, RGB color integer or a flag (@IntDef)
-    super("Android Typed Integer");
-    myProperties.setEnabled(true);
+    super("Android Typed Integer", true);
   }
 
   @Override
