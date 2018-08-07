@@ -22,6 +22,7 @@ import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +41,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionProvider {
   @Override
-  public Collection<ModuleTemplateGalleryEntry> getDescriptions() {
+  public Collection<ModuleTemplateGalleryEntry> getDescriptions(Project project) {
     ArrayList<ModuleTemplateGalleryEntry> res = new ArrayList<>();
 
     TemplateManager manager = TemplateManager.getInstance();
