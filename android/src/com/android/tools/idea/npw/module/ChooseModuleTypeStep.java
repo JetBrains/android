@@ -17,6 +17,10 @@ package com.android.tools.idea.npw.module;
 
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.dsl.api.PluginModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.npw.instantapp.NewInstantAppModuleDescriptionProvider;
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.ui.WizardGallery;
@@ -25,6 +29,8 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
@@ -72,7 +78,7 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
   public static ChooseModuleTypeStep createWithDefaultGallery(Project project, ProjectSyncInvoker projectSyncInvoker) {
     ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
     for (ModuleDescriptionProvider provider : ModuleDescriptionProvider.EP_NAME.getExtensions()) {
-      moduleDescriptions.addAll(provider.getDescriptions());
+      moduleDescriptions.addAll(provider.getDescriptions(project));
     }
     return new ChooseModuleTypeStep(project, moduleDescriptions, projectSyncInvoker);
   }

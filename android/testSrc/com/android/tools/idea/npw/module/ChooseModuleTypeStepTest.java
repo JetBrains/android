@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider;
 import com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider;
@@ -72,20 +73,43 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
    * This test exists to ensure that template names have stayed consistent. If a template name has changed and we should update our
    * module order, please update {@link ChooseModuleTypeStep#sortModuleEntries(List)}
    */
-  public void testSortExistingModuleEntries() {
+  public void testSortExistingModuleEntries_FlagFalse() {
     // Note: Cloud Module is not in the class path, so we don't test it (is the last one anyway)
+    StudioFlags.UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS.override(false);
     ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
-    moduleDescriptions.addAll(new ImportModuleGalleryEntryProvider().getDescriptions());
-    moduleDescriptions.addAll(new NewAndroidModuleDescriptionProvider().getDescriptions());
-    moduleDescriptions.addAll(new NewDynamicAppModuleDescriptionProvider().getDescriptions());
-    moduleDescriptions.addAll(new NewInstantAppModuleDescriptionProvider().getDescriptions());
-    moduleDescriptions.addAll(new NewJavaModuleDescriptionProvider().getDescriptions());
+    moduleDescriptions.addAll(new ImportModuleGalleryEntryProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewAndroidModuleDescriptionProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewDynamicAppModuleDescriptionProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewInstantAppModuleDescriptionProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewJavaModuleDescriptionProvider().getDescriptions(getProject()));
 
     List<String> sortedEntries = ChooseModuleTypeStep.sortModuleEntries(moduleDescriptions).stream()
       .map(ModuleGalleryEntry::getName).collect(Collectors.toList());
 
     List<String> expectedEntries = Lists.newArrayList(
       "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant App", "Instant App Feature Module", "Wear OS Module",
+      "Android TV Module", "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project",
+      "Import .JAR/.AAR Package", "Java Library"
+    );
+
+    Assert.assertThat(sortedEntries, equalTo(expectedEntries));
+  }
+
+  public void testSortExistingModuleEntries_FlagTrue() {
+    // Note: Cloud Module is not in the class path, so we don't test it (is the last one anyway)
+    StudioFlags.UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS.override(true);
+    ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
+    moduleDescriptions.addAll(new ImportModuleGalleryEntryProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewAndroidModuleDescriptionProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewDynamicAppModuleDescriptionProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewInstantAppModuleDescriptionProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewJavaModuleDescriptionProvider().getDescriptions(getProject()));
+
+    List<String> sortedEntries = ChooseModuleTypeStep.sortModuleEntries(moduleDescriptions).stream()
+                                                     .map(ModuleGalleryEntry::getName).collect(Collectors.toList());
+
+    List<String> expectedEntries = Lists.newArrayList(
+      "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Wear OS Module",
       "Android TV Module", "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project",
       "Import .JAR/.AAR Package", "Java Library"
     );

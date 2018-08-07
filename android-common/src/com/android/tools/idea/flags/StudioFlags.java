@@ -374,6 +374,14 @@ public final class StudioFlags {
     ANALYZER, "enable.app.size.optimizer", "Enable size optimization suggestions in apk analyzer",
     "If enabled, it will enable the apk analyzer tool to display suggestions for reducing application size", false);
 
+  private static final FlagGroup UAB = new FlagGroup(FLAGS, "uab", "Unified App Bundle");
+
+  public static final Flag<Boolean> UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS = Flag.create(
+    UAB, "hide.instant.modules", "Hide Instant Modules for non-feature plugin Project",
+    "If a user is working on an older instant app project, they will be able to create instant modules. Otherwise the option won't be avialble",
+    false
+  );
+
   private StudioFlags() {
   }
 }
