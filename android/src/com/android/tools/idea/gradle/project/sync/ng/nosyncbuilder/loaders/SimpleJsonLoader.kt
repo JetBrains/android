@@ -61,7 +61,7 @@ open class SimpleJsonLoader(
     val fullAndroidProjectPath = path.resolve(ANDROID_PROJECT_CACHE_PATH)
     val newAndroidProject = loadNewAndroidProjectFromJSON(fullAndroidProjectPath)
 
-    val fullVariantPath = path.resolve(VARIANTS_CACHE_DIR_PATH).resolve(variant)
+    val fullVariantPath = path.resolve(VARIANTS_CACHE_DIR_PATH).resolve("$variant.json")
     val newVariant = loadNewVariantFromJSON(fullVariantPath)
 
     return LegacyAndroidProjectStub(newAndroidProject, newVariant)
