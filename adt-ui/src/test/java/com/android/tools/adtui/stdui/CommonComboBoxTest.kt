@@ -16,6 +16,7 @@
 package com.android.tools.adtui.stdui
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -48,6 +49,9 @@ class CommonComboBoxTest {
 
   @Test
   fun testErrorStateIsSetAndResetOnComboBox() {
+    // Only the Darcula UI supplies a ErrorBorderCapable border.
+    comboBox.ui = DarculaComboBoxUI()
+
     model.value = "Error"
     assertThat(comboBox.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(ERROR_VALUE)
     model.value = "Fixed"

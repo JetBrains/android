@@ -18,13 +18,13 @@ package com.android.tools.adtui.stdui
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.EDITOR_NO_COMPLETIONS
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.intellij.openapi.ui.ErrorBorderCapable
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.UIUtil
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
-import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.KeyStroke
 import javax.swing.event.DocumentEvent
@@ -126,7 +126,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
   private fun updateOutline() {
     // If this text field is an editor in a ComboBox set the property on the ComboBox,
     // otherwise set the property on this text field.
-    val component = parent as? JComboBox<*> ?: this as JComponent
+    val component = getComponentWithErrorBorder() ?: return
     val current = component.getClientProperty(OUTLINE_PROPERTY)
     val (code, _) = editorModel.editingSupport.validation(editorModel.text)
     val newOutline = code.outline
@@ -134,5 +134,16 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
       component.putClientProperty(OUTLINE_PROPERTY, newOutline)
       component.repaint()
     }
+  }
+
+  private fun getComponentWithErrorBorder(): JComponent? {
+    if (border is ErrorBorderCapable) {
+      return this
+    }
+    val parent = parent as? JComponent ?: return null
+    if (parent.border is ErrorBorderCapable) {
+      return parent
+    }
+    return null
   }
 }
