@@ -37,7 +37,7 @@ import java.awt.Rectangle
  * [ActionDecorator] responsible for creating draw commands for actions.
  */
 
-class ActionDecorator : SceneDecorator() {
+object ActionDecorator : SceneDecorator() {
   override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
   }
 
