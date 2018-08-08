@@ -160,6 +160,7 @@ public class NavSceneManager extends SceneManager {
           break;
         case FRAGMENT:
         case ACTIVITY:
+        case OTHER:
           State state = getModel().getConfiguration().getDeviceState();
           assert state != null;
           Screen screen = state.getHardware().getScreen();
@@ -250,8 +251,7 @@ public class NavSceneManager extends SceneManager {
       shouldCreateHierarchy = shouldCreateActionHierarchy(component);
     }
     else {
-      if (NavComponentHelperKt.isDestination(component) && !NavComponentHelperKt.isOther(component)) {
-        // TODO: handle the OTHER case
+      if (NavComponentHelperKt.isDestination(component)) {
         shouldCreateHierarchy = shouldCreateDestinationHierarchy(component);
       }
     }
