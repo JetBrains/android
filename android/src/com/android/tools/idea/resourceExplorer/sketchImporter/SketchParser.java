@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.logic.VectorDrawableFile;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPoint2D;
@@ -26,6 +28,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.LightVirtualFile;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,9 +37,11 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.List;
 
 public class SketchParser {
   /**
@@ -134,5 +140,27 @@ public class SketchParser {
       .registerTypeAdapter(SketchPoint2D.class, new PointDeserializer())
       .create();
     return gson.fromJson(reader, SketchPage.class);
+  }
+
+  /**
+   * Read the given sketchFile and generate the needed vector drawable files
+   * for the icons in the sketch file.
+   *
+   * @return a list of virtual files with the contents of each artboard in the sketchFile
+   */
+  @NotNull
+  public static List<LightVirtualFile> generateFiles(@NotNull SketchFile sketchFile, @NotNull Project project){
+    List<LightVirtualFile> generatedFiles = new ArrayList<>();
+    List<SketchPage> pages = sketchFile.getPages();
+
+    for(SketchPage page:pages){
+      for(SketchArtboard artboard:page.getArtboards()){
+        VectorDrawableFile vectorDrawableFile = new VectorDrawableFile(project, artboard);
+        LightVirtualFile lightVirtualFile = vectorDrawableFile.generateFile();
+        generatedFiles.add(lightVirtualFile);
+      }
+    }
+
+    return generatedFiles;
   }
 }
