@@ -59,5 +59,5 @@ private fun createComboBox(module: PsModule): EditorComboBox {
   val initialSelection = configurations.firstOrNull()
   val document = LanguageTextField.createDocument(initialSelection, PlainTextLanguage.INSTANCE, module.parent.ideProject, documentCreator)
   return EditorComboBox(document, module.parent.ideProject, StdFileTypes.PLAIN_TEXT)
-    .apply { configurations.forEach { addItem(it) } }
+    .apply { module.getConfigurations(onlyImportant = true).forEach { addItem(it) } }
 }

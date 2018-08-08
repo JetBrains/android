@@ -646,6 +646,63 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(variantsChanged).isEqualTo(1)
   }
 
+  fun testImportantConfigurations() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
+
+    assertThat(appModule.getConfigurations(onlyImportant = true)).containsExactly(
+      "implementation",
+      "releaseImplementation",
+      "specialReleaseImplementation",
+      "debugImplementation",
+      "basicImplementation",
+      "basicReleaseImplementation",
+      "basicSpecialReleaseImplementation",
+      "basicDebugImplementation",
+      "paidImplementation",
+      "paidReleaseImplementation",
+      "paidSpecialReleaseImplementation",
+      "paidDebugImplementation",
+      "barImplementation",
+      "barReleaseImplementation",
+      "barSpecialReleaseImplementation",
+      "barDebugImplementation",
+      "otherBarImplementation",
+      "otherBarReleaseImplementation",
+      "otherBarSpecialReleaseImplementation",
+      "otherBarDebugImplementation",
+      "testImplementation",
+      "testReleaseImplementation",
+      "testSpecialReleaseImplementation",
+      "testDebugImplementation",
+      "testBasicImplementation",
+      "testBasicReleaseImplementation",
+      "testBasicSpecialReleaseImplementation",
+      "testBasicDebugImplementation",
+      "testPaidImplementation",
+      "testPaidReleaseImplementation",
+      "testPaidSpecialReleaseImplementation",
+      "testPaidDebugImplementation",
+      "testBarImplementation",
+      "testBarReleaseImplementation",
+      "testBarSpecialReleaseImplementation",
+      "testBarDebugImplementation",
+      "testOtherBarImplementation",
+      "testOtherBarReleaseImplementation",
+      "testOtherBarSpecialReleaseImplementation",
+      "testOtherBarDebugImplementation",
+      "androidTestImplementation",
+      "androidTestBasicImplementation",
+      "androidTestPaidImplementation",
+      "androidTestBarImplementation",
+      "androidTestOtherBarImplementation")
+  }
+
   fun testConfigurations() {
     loadProject(PSD_SAMPLE)
 

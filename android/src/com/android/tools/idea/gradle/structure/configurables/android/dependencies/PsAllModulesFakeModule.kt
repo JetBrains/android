@@ -30,7 +30,7 @@ open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule("<A
 
   override fun applyChanges() = parent.applyChanges()
 
-  override fun getConfigurations(): List<String> = throw UnsupportedOperationException()
+  override fun getConfigurations(onlyImportant: Boolean): List<String> = throw UnsupportedOperationException()
 
   override fun resetDependencies() = throw UnsupportedOperationException()
 
