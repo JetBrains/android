@@ -16,15 +16,12 @@
 package com.android.tools.idea.uibuilder.util;
 
 import com.intellij.ide.actions.ExternalJavaDocAction;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NotNull;
 
-public class JavaDocViewer extends ApplicationComponent.Adapter {
-
+public class JavaDocViewer {
   public static JavaDocViewer getInstance() {
     return ServiceManager.getService(JavaDocViewer.class);
   }
