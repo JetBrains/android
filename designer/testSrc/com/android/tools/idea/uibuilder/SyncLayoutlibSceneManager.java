@@ -18,10 +18,11 @@ package com.android.tools.idea.uibuilder;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandAdapter;
 import com.intellij.openapi.command.CommandEvent;
-import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.command.CommandListener;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,11 +51,12 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
 
   private static void runAfterCommandIfNecessary(Runnable runnable) {
     if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
-      CommandProcessor.getInstance().addCommandListener(new CommandAdapter() {
+      Disposable disposable = Disposer.newDisposable();
+      ApplicationManager.getApplication().getMessageBus().connect(disposable).subscribe(CommandListener.TOPIC, new CommandListener() {
         @Override
         public void commandFinished(CommandEvent event) {
+          Disposer.dispose(disposable);
           runnable.run();
-          CommandProcessor.getInstance().removeCommandListener(this);
         }
       });
     }
