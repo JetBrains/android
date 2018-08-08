@@ -71,6 +71,11 @@ public final class StudioFlags {
     "Let the user keep templates in the .android folder such that they are kept after a Studio install/upgrade",
     true);
 
+  public static final Flag<Boolean> NPW_OFFLINE_REPO_CHECKBOX = Flag.create(
+    NPW, "offline.repo.checkbox", "Use offline repo shipped with Android Studio",
+    "Checkbox mark adds a path to shipped offline repo to local.properties and references it in build.gradle's dependencies",
+    false);
+
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
   public static final Flag<Boolean> PROFILER_SHOW_SESSIONS = Flag.create(
