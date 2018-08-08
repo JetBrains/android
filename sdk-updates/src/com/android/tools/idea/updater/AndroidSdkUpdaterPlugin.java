@@ -26,7 +26,7 @@ import com.intellij.ide.externalComponents.ExternalComponentManager;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.components.ApplicationComponent;
+import com.intellij.openapi.components.BaseComponent;
 import com.intellij.util.proxy.CommonProxy;
 import com.intellij.util.proxy.NonStaticAuthenticator;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +45,7 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabl
  * Plugin to set up the android sdk {@link UpdatableExternalComponent} and
  * {@link com.android.tools.idea.updater.configure.SdkUpdaterConfigurable}.
  */
-public class AndroidSdkUpdaterPlugin implements ApplicationComponent {
+public class AndroidSdkUpdaterPlugin implements BaseComponent {
   @Override
   public void initComponent() {
     if (isAndroidSdkManagerEnabled()) {
@@ -78,12 +78,6 @@ public class AndroidSdkUpdaterPlugin implements ApplicationComponent {
 
   private void setUpAuthenticator() {
     CommonProxy.getInstance().setCustomAuth(getClass().getName(), new AndroidAuthenticator());
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return "Android Sdk Updater";
   }
 
   public static String getCredentialServiceName(@NotNull String host) {
