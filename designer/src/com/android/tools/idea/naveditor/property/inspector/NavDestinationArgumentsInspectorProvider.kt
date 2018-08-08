@@ -27,7 +27,7 @@ class NavDestinationArgumentsInspectorProvider(
     { existing: NlComponent?, parent: NlComponent -> AddArgumentDialog(existing, parent) })
   : NavListInspectorProvider<NavDestinationArgumentsProperty>(
   NavDestinationArgumentsProperty::class.java,
-  StudioIcons.Common.MISSING, // TODO: need argument icon
+  StudioIcons.NavEditor.Properties.ARGUMENT,
   "Argument"
 ) {
 
