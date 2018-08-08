@@ -17,10 +17,11 @@ package com.android.tools.idea.apk.viewer;
 
 import com.android.ide.common.util.PathString;
 import com.android.testutils.TestResources;
-import com.android.tools.apk.analyzer.Archive;
+import com.android.tools.apk.analyzer.ArchiveContext;
 import com.android.tools.apk.analyzer.ArchiveNode;
 import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.apk.analyzer.internal.GzipSizeCalculator;
+import com.android.utils.StdLogger;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -56,8 +57,8 @@ public class ApkParserTest {
   }
 
   private static void checkArchive(@NotNull PathString archivePath) throws Exception {
-    try (Archive archive = Archives.open(archivePath.toPath())) {
-      ApkParser parser = new ApkParser(archive, new GzipSizeCalculator());
+    try (ArchiveContext archiveContext = Archives.open(archivePath.toPath(), new StdLogger(StdLogger.Level.VERBOSE))) {
+      ApkParser parser = new ApkParser(archiveContext, new GzipSizeCalculator());
 
       ListenableFuture<ArchiveNode> futureTree = parser.constructTreeStructure();
       ArchiveNode tree = futureTree.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
