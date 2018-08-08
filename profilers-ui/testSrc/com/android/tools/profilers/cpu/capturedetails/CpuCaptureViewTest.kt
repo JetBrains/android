@@ -79,6 +79,9 @@ class CpuCaptureViewTest {
     val tabPane = TreeWalker(captureView.component).descendants().filterIsInstance<CommonTabbedPane>()[0]
     assertThat(tabPane.selectedIndex).isEqualTo(0)
     assertThat(tabPane.getTitleAt(0)).matches("Call Chart")
+
+    // TODO(b/112355906): This shouldn't be needed. Investigate why references are leaking across test executions.
+    stage.setCaptureDetails(CaptureDetails.Type.BOTTOM_UP)
   }
 
   @Test
