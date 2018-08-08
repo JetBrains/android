@@ -19,7 +19,6 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fileTypes.FontFileType;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
@@ -34,8 +33,9 @@ import java.util.Map;
 
 import static com.android.SdkConstants.FD_RES_RAW;
 
-public class PsiProjectListener extends AbstractProjectComponent implements PsiTreeChangeListener {
+public class PsiProjectListener implements PsiTreeChangeListener {
   @NotNull private final Map<VirtualFile, ResourceFolderRepository> myListeners = Maps.newHashMap();
+  @NotNull private final Project myProject;
 
   public static void addRoot(@NotNull Project project, @NotNull VirtualFile root, @NotNull ResourceFolderRepository repository) {
     synchronized (PsiProjectListener.class) {
@@ -55,7 +55,7 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
   }
 
   public PsiProjectListener(@NotNull Project project) {
-    super(project);
+    myProject = project;
     PsiManager.getInstance(project).addPsiTreeChangeListener(this);
   }
 
