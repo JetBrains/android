@@ -95,4 +95,23 @@ class BasePropertyEditorModelTest {
     model.enterKeyPressed()
     assertThat(line.gotoNextLineWasRequested).isTrue()
   }
+
+  @Test
+  fun testListenersAreConcurrentModificationSafe() {
+    // Make sure that ConcurrentModificationException is NOT generated from the code below:
+    val model = createModel()
+    val listener = RecursiveValueChangedListener(model)
+    model.addListener(listener)
+    model.visible = true
+    assertThat(listener.called).isTrue()
+  }
+
+  private class RecursiveValueChangedListener(private val model: BasePropertyEditorModel) : ValueChangedListener {
+    var called = false
+
+    override fun valueChanged() {
+      model.addListener(RecursiveValueChangedListener(model))
+      called = true
+    }
+  }
 }

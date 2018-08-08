@@ -23,6 +23,8 @@ import com.android.tools.idea.uibuilder.property2.testutils.FakeInspectorLine
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.*
+import javax.swing.event.ListDataEvent
+import javax.swing.event.ListDataListener
 
 class ComboBoxPropertyEditorModelTest {
 
@@ -140,5 +142,30 @@ class ComboBoxPropertyEditorModelTest {
     model.focusLost()
     assertThat(model.property.value).isEqualTo("visible")
     verify(listener, never()).valueChanged()
+  }
+
+  @Test
+  fun testListenersAreConcurrentModificationSafe() {
+    // Make sure that ConcurrentModificationException is NOT generated from the code below:
+    val model = createModel()
+    val listener = RecursiveListDataListener(model)
+    model.addListDataListener(listener)
+    model.selectedItem = "text"
+    assertThat(listener.called).isTrue()
+  }
+
+  private class RecursiveListDataListener(private val model: ComboBoxPropertyEditorModel): ListDataListener {
+    var called = false
+
+    override fun intervalRemoved(event: ListDataEvent) {
+    }
+
+    override fun intervalAdded(event: ListDataEvent) {
+    }
+
+    override fun contentsChanged(event: ListDataEvent) {
+      model.addListDataListener(RecursiveListDataListener(model))
+      called = true
+    }
   }
 }

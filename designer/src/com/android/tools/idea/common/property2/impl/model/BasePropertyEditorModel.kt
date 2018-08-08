@@ -137,7 +137,7 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
 
   protected fun fireValueChanged() {
     if (!blockUpdates) {
-      valueChangeListeners.forEach { it.valueChanged() }
+      valueChangeListeners.toTypedArray().forEach { it.valueChanged() }
     }
   }
 
