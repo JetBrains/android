@@ -34,6 +34,7 @@ import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import javax.swing.*
 
+
 private const val HEIGHT_WIDTH_RATIO = 3 / 4f
 private const val DEFAULT_CELL_WIDTH = 300
 private const val COMPACT_MODE_TRIGGER_SIZE = 150
@@ -45,6 +46,8 @@ private val SECTION_HEADER_BORDER = BorderFactory.createCompoundBorder(
   BorderFactory.createEmptyBorder(0, 0, 8, 0),
   JBUI.Borders.customLine(SECTION_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
 )
+
+private val ADD_BUTTON_SIZE = JBUI.size(30)
 
 /**
  * View meant to display [com.android.tools.idea.resourceExplorer.model.DesignAsset] located
@@ -74,6 +77,26 @@ class ResourceExplorerView(
 
   init {
     DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
+
+    add(JPanel(BorderLayout()).apply {
+      val menuBar = JMenuBar()
+      val addButton = JMenu("+")
+      addButton.font = addButton.font.deriveFont(JBUI.scaleFontSize(24f))
+      addButton.preferredSize = ADD_BUTTON_SIZE
+
+      val importSketchFile = JMenuItem("Import .sketch file...")
+      importSketchFile.addActionListener { _ ->
+        resourcesBrowserViewModel.importSketchFile()
+      }
+
+      addButton.add(importSketchFile)
+
+      // TODO add mnemonic, accelerator
+
+      menuBar.add(addButton, BorderLayout.WEST)
+      add(menuBar)
+      border = SECTION_HEADER_BORDER
+    }, BorderLayout.NORTH)
 
     sectionList.setSectionListCellRenderer(createSectionListCellRenderer())
     resourcesBrowserViewModel.updateCallback = ::populateResourcesLists

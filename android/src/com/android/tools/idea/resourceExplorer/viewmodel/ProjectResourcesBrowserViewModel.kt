@@ -25,13 +25,16 @@ import com.android.tools.idea.configurations.ResourceResolverCache
 import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.resolveDrawable
+import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.plugin.ConfigurationDoneCallback
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.ui.DialogBuilder
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Image
@@ -46,7 +49,8 @@ private val LOG = Logger.getInstance(ProjectResourcesBrowserViewModel::class.jav
  */
 class ProjectResourcesBrowserViewModel(
   facet: AndroidFacet,
-  synchronizationManager: SynchronizationManager // TODO listen for update
+  synchronizationManager: SynchronizationManager, // TODO listen for update
+  val importerProvider: ImportersProvider
 ) {
 
 
@@ -119,6 +123,22 @@ class ProjectResourcesBrowserViewModel(
           createResourceSection(resourceType, libName, resourceItems)
         }
       listOf(moduleResources) + librariesResources
+    }
+  }
+
+  fun importSketchFile() {
+    val configurationPanel = importerProvider
+      .getImportersForExtension("sketch")
+      .first()
+      .getConfigurationPanel(facet, object : ConfigurationDoneCallback {
+        override fun configurationDone() {
+
+        }
+      })
+    with(DialogBuilder(facet.module.project)) {
+      setCenterPanel(configurationPanel)
+      showModal(true)
+      setTitle("Choose the assets you would like to import")  // FIXME
     }
   }
 }

@@ -25,6 +25,7 @@
     <resourceImporter implementation="com.android.tools.idea.resourceExplorer.plugin.RasterResourceImporter"/>
     <resourceImporter implementation="com.android.tools.idea.resourceExplorer.plugin.SVGImporter"/>
     <resourceImporter implementation="com.android.tools.idea.resourceExplorer.plugin.VectorDrawableImporter"/>
+    <resourceImporter implementation="com.android.tools.idea.resourceExplorer.plugin.SketchImporter"/>
     <resourceViewer implementation="com.android.tools.idea.resourceExplorer.plugin.SVGAssetRenderer"/>
     <resourceViewer implementation="com.android.tools.idea.resourceExplorer.plugin.RasterAssetRenderer"/>
     <resourceViewer implementation="com.android.tools.idea.resourceExplorer.plugin.VectorDrawableAssetRenderer"/>
