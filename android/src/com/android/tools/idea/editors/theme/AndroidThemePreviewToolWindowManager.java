@@ -182,12 +182,6 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
     });
   }
 
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return AndroidThemePreviewToolWindowManager.class.getSimpleName();
-  }
-
   @Nullable/*if there is no available configuration that would select the passed file*/
   private static Configuration getBestConfiguration(@Nullable PsiFile psiFile) {
     Module module = psiFile != null ? ModuleUtilCore.findModuleForPsiElement(psiFile) : null;
