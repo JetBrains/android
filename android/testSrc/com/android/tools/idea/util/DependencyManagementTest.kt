@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.util
 
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.projectsystem.*
 import com.google.common.truth.Truth
@@ -30,41 +29,12 @@ import java.util.*
 class DependencyManagementTest : IdeaTestCase() {
 
   private lateinit var projectSystem: TestProjectSystem
-  private lateinit var syncManager: ProjectSystemSyncManager
 
   override fun setUp() {
     super.setUp()
-    projectSystem = TestProjectSystem(myProject, availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS,
-                                      lastSyncResult = ProjectSystemSyncManager.SyncResult.UNKNOWN)
+    projectSystem = TestProjectSystem(myProject, availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
     PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME,
-                                                                     projectSystem, testRootDisposable)
-    syncManager = projectSystem.getSyncManager()
-  }
-
-  fun testDependsOnAndroidX() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
-    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
-
-    Truth.assertThat(myModule.dependsOnAndroidx()).isTrue()
-  }
-
-  fun testDependsOnOldSupportLib() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
-    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
-
-    Truth.assertThat(myModule.dependsOnOldSupportLib()).isTrue()
-  }
-
-  fun testDoesNotDependOnAndroidX() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
-
-    Truth.assertThat(myModule.dependsOnAndroidx()).isFalse()
-  }
-
-  fun testDoesNotDependOnOldSupportLib() {
-    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
-
-    Truth.assertThat(myModule.dependsOnOldSupportLib()).isFalse()
+        projectSystem, testRootDisposable)
   }
 
   fun testUserConfirmationMultipleArtifactsMessage() {
@@ -95,7 +65,7 @@ class DependencyManagementTest : IdeaTestCase() {
   fun testDependsOnWhenDependencyDoesNotExist() {
     projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
 
-    Truth.assertThat(myModule.dependsOn(GoogleMavenArtifactId.DESIGN)).isFalse()
+    Truth.assertThat(myModule.dependsOn(GoogleMavenArtifactId.DESIGN)).isFalse();
   }
 
   fun testAddEmptyListOfDependencies() {
@@ -104,92 +74,68 @@ class DependencyManagementTest : IdeaTestCase() {
     val dependenciesNotAdded = myModule.addDependencies(Collections.emptyList(), false)
 
     Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
-    Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
   }
 
-  fun testAddDependency() {
-    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val dependenciesNotAdded = myModule.addDependencies(Collections.singletonList(constraintLayout), false)
+  fun testAddNonPlatformSupportDependency() {
+    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
 
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
+    val constraintLayoutQuery = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
+    val dependenciesNotAdded = myModule.addDependencies(
+      Collections.singletonList(constraintLayoutQuery), false)
+
+    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(constraintLayoutQuery)).isEqualTo(
+      constraintLayoutQuery)
     Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
-    Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
   }
 
-  fun testAddMultipleDependencies() {
-    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
-    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val dependenciesNotAdded = myModule.addDependencies(listOf(constraintLayout, appCompat), false)
+  fun testAddPlatformSupportDependencyWithExistingPlatformSupportDependency() {
+    // Add a platform support lib artifact to the list of existing dependencies.
+    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
 
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(appCompat)).isEqualTo(appCompat)
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
-    Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
-    Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
+    val dependenciesNotAdded = myModule.addDependencies(Collections.singletonList(GoogleMavenArtifactId.DESIGN.getCoordinate("+")), false)
+
+    // Version of design lib should match the version of previously added appcompat.
+    Truth.assertThat(getResolvedVersion(GoogleMavenArtifactId.DESIGN)).isEqualTo(GradleVersion(1337, 600613))
+    Truth.assertThat(dependenciesNotAdded).isEmpty()
   }
 
-  fun testAddSingleUnavailableDependencies() {
-    // Note that during setup PLAY_SERVICES is not included in the list of available dependencies.
-    val playServices = GoogleMavenArtifactId.PLAY_SERVICES.getCoordinate("+")
-    val dependenciesNotAdded = myModule.addDependencies(listOf(playServices), false)
+  fun testAddPlatformSupportDependencyWithoutExistingPlatformSupportDependency() {
+    // Add a non-platform support lib artifact to the list of existing dependencies.
+    projectSystem.addDependency(GoogleMavenArtifactId.ESPRESSO_CORE, myModule, GradleVersion(1337, 600613))
 
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(playServices)).isNull()
-    Truth.assertThat(dependenciesNotAdded).containsExactly(playServices)
-    Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
+    val dependenciesNotAdded = myModule.addDependencies(Collections.singletonList(GoogleMavenArtifactId.DESIGN.getCoordinate("+")), false)
+
+    // Version of design lib should be [TestProjectSystem.TEST_VERSION_LATEST] because there does not already exist a platform support lib.
+    Truth.assertThat(getResolvedVersion(GoogleMavenArtifactId.DESIGN)).isEqualTo(TestProjectSystem.TEST_VERSION_LATEST.mavenVersion)
+    Truth.assertThat(dependenciesNotAdded).isEmpty()
   }
 
-  fun testAddMultipleUnavailableDependencies() {
-    // Note that during setup PLAY_SERVICES and PLAY_SERVICES_MAPS are not included in the list of available dependencies.
-    val playServicesMaps = GoogleMavenArtifactId.PLAY_SERVICES_MAPS.getCoordinate("+")
-    val playServices = GoogleMavenArtifactId.PLAY_SERVICES.getCoordinate("+")
-    val dependenciesNotAdded = myModule.addDependencies(listOf(playServicesMaps, playServices), false)
+  fun testAddMultiplePlatformSupportDependencyWithoutExistingPlatformSupportDependency() {
+    // Add a non-platform support lib artifact to the list of existing dependencies.
+    projectSystem.addDependency(GoogleMavenArtifactId.ESPRESSO_CORE, myModule, GradleVersion(1337, 600613))
 
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(playServicesMaps)).isNull()
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(playServices)).isNull()
-    Truth.assertThat(dependenciesNotAdded).containsExactly(playServices, playServicesMaps)
-    Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
+    val dependenciesNotAdded = myModule.addDependencies(
+      listOf(GoogleMavenArtifactId.DESIGN.getCoordinate("+"), GoogleMavenArtifactId.LEANBACK_V17.getCoordinate("+")), false)
+
+    // Version of both libraries should be [TestProjectSystem.TEST_VERSION_LATEST] because there does not already exist a platform support lib.
+    Truth.assertThat(getResolvedVersion(GoogleMavenArtifactId.DESIGN)).isEqualTo(TestProjectSystem.TEST_VERSION_LATEST.mavenVersion)
+    Truth.assertThat(getResolvedVersion(GoogleMavenArtifactId.LEANBACK_V17)).isEqualTo(TestProjectSystem.TEST_VERSION_LATEST.mavenVersion)
+    Truth.assertThat(dependenciesNotAdded).isEmpty()
   }
 
-  fun testAddMultipleDependenciesWithSomeUnavailable() {
-    // Note that during setup PLAY_SERVICES is not included in the list of available dependencies.
-    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
-    val playServices = GoogleMavenArtifactId.PLAY_SERVICES.getCoordinate("+")
-    val dependenciesNotAdded = myModule.addDependencies(listOf(appCompat, playServices), false)
+  fun testAddMultiplePlatformSupportDependencyWithExistingPlatformSupportDependency() {
+    // Add a platform support lib artifact to the list of existing dependencies.
+    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
 
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(appCompat)).isEqualTo(appCompat)
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(playServices)).isNull()
-    Truth.assertThat(dependenciesNotAdded).containsExactly(playServices)
-    Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
+    val dependenciesNotAdded = myModule.addDependencies(
+      listOf(GoogleMavenArtifactId.DESIGN.getCoordinate("+"), GoogleMavenArtifactId.LEANBACK_V17.getCoordinate("+")), false)
+
+    // Version of both libraries should match version of AppCompat GradleVersion(1337, 600613) added above.
+    Truth.assertThat(getResolvedVersion(GoogleMavenArtifactId.DESIGN)).isEqualTo(GradleVersion(1337, 600613))
+    Truth.assertThat(getResolvedVersion(GoogleMavenArtifactId.LEANBACK_V17)).isEqualTo(GradleVersion(1337, 600613))
+    Truth.assertThat(dependenciesNotAdded).isEmpty()
   }
 
-  fun testAddDependenciesWithoutTriggeringSync() {
-    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val dependenciesNotAdded = myModule.addDependencies(Collections.singletonList(constraintLayout), false, false)
-
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
-    Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
-    Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
-  }
-
-  fun testAddDependenciesWithoutUserApproval() {
-    DEPENDENCY_MANAGEMENT_TEST_ASSUME_USER_WILL_ACCEPT_DEPENDENCIES = false
-    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val dependenciesNotAdded = myModule.addDependencies(Collections.singletonList(constraintLayout), true, false)
-
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(constraintLayout)).isNull()
-    Truth.assertThat(dependenciesNotAdded).containsExactly(constraintLayout)
-    Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
-  }
-
-  fun testAddSomeInvalidDependenciesWithoutUserApproval() {
-    DEPENDENCY_MANAGEMENT_TEST_ASSUME_USER_WILL_ACCEPT_DEPENDENCIES = false
-    // Here CONSTRAINT_LAYOUT is valid but bad:worse:1.2.3 is not. If the user rejects the adding of dependencies then the resulting list
-    // should contain both dependencies because none of them were added.
-    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val badNonExistentDependency = GradleCoordinate("bad", "worse", "1.2.3")
-    val dependenciesNotAdded = myModule.addDependencies(listOf(constraintLayout, badNonExistentDependency), true, false)
-
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(constraintLayout)).isNull()
-    Truth.assertThat(dependenciesNotAdded).containsExactly(constraintLayout, badNonExistentDependency)
-    Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
-  }
+  private fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GradleVersion? =
+    myModule.getModuleSystem().getResolvedDependency(artifactId.getCoordinate("+"))?.version
 }

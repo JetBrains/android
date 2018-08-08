@@ -36,20 +36,20 @@ import java.util.concurrent.CountDownLatch
  * to stub project system functionalities.
  */
 class TestProjectSystem @JvmOverloads constructor(val project: Project,
-                                                  availableDependencies: List<GradleCoordinate> = listOf(),
+                                                  private val availableDependencies: List<GradleCoordinate> = listOf(),
                                                   @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS)
   : AndroidProjectSystem, AndroidProjectSystemProvider {
 
-  private val dependenciesByModule: HashMultimap<Module, GradleCoordinate> = HashMultimap.create()
-  private val availablePreviewDependencies: List<GradleCoordinate>
-  private val availableStableDependencies: List<GradleCoordinate>
-
-  init {
-    val sortedHighToLowDeps = availableDependencies.sortedWith(GradleCoordinate.COMPARE_PLUS_HIGHER).reversed()
-    val (previewDeps, stableDeps) = sortedHighToLowDeps.partition(GradleCoordinate::isPreview)
-    availablePreviewDependencies = previewDeps
-    availableStableDependencies = stableDeps
+  data class TestDependencyVersion(override val mavenVersion: GradleVersion?) : GoogleMavenArtifactVersion {
+    override fun equals(other: Any?) = other is GoogleMavenArtifactVersion && other.mavenVersion?.equals(mavenVersion) ?: false
+    override fun hashCode() = mavenVersion?.hashCode() ?: 0
   }
+
+  companion object {
+    val TEST_VERSION_LATEST = TestDependencyVersion(GradleVersion.parse("+"))
+  }
+
+  private val dependenciesByModule: HashMultimap<Module, GradleCoordinate> = HashMultimap.create()
 
   /**
    * Adds the given artifact to the given module's list of dependencies.
@@ -70,14 +70,11 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
 
   override fun isApplicable(): Boolean = true
 
+  override fun getAvailableDependency(coordinate: GradleCoordinate, includePreview: Boolean): GradleCoordinate? =
+    availableDependencies.firstOrNull { coordinate.matches(it) }
+
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
-      override fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate? {
-        val wildcardCoordinate = GradleCoordinate(mavenGroupId, mavenArtifactId, "+")
-        return availableStableDependencies.firstOrNull { it.matches(wildcardCoordinate) }
-               ?: availablePreviewDependencies.firstOrNull { it.matches(wildcardCoordinate) }
-      }
-
       override fun getDependentLibraries(): Collection<Library> {
         return emptySet()
       }

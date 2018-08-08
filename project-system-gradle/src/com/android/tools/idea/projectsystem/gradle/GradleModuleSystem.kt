@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.util.PathString
 import com.android.projectmodel.AarLibrary
 import com.android.projectmodel.JavaLibrary
@@ -28,15 +26,15 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNam
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.projectsystem.*
-import com.android.tools.idea.templates.IdeGoogleMavenRepository
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.CapabilityStatus
+import com.android.tools.idea.projectsystem.ClassFileFinder
+import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.annotations.TestOnly
 import java.util.*
-import java.util.function.Predicate
 
-class GradleModuleSystem(val module: Module, @TestOnly private val mavenRepository: GoogleMavenRepository = IdeGoogleMavenRepository) : AndroidModuleSystem, ClassFileFinder by GradleClassFileFinder(module) {
+class GradleModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFinder by GradleClassFileFinder(module) {
 
   override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
     return getDependentLibraries()
@@ -98,34 +96,4 @@ class GradleModuleSystem(val module: Module, @TestOnly private val mavenReposito
   override fun getInstantRunSupport(): CapabilityStatus {
     return getInstantRunCapabilityStatus(module)
   }
-
-  override fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate? {
-    val versionPredicate = getVersionCompatibilityPredicate(mavenGroupId, mavenArtifactId)
-    val foundVersion = mavenRepository.findVersion(mavenGroupId, mavenArtifactId, versionPredicate, false)
-                       ?: mavenRepository.findVersion(mavenGroupId, mavenArtifactId, versionPredicate, true)
-                       ?: return null
-    return GradleCoordinate.parseCoordinateString("$mavenGroupId:$mavenArtifactId:$foundVersion")
-  }
-
-  private fun getVersionCompatibilityPredicate(mavenGroupId: String, mavenArtifactId: String): Predicate<GradleVersion> {
-    if (isPlatformSupportLibrary(GradleCoordinate(mavenGroupId, mavenArtifactId, "+"))) {
-      val supportLibVersion = getExistingPlatformSupportLibraryVersion()
-      if (supportLibVersion != null) {
-        return Predicate { otherVersion -> supportLibVersion == otherVersion }
-      }
-    }
-
-    return Predicate { true; }
-  }
-
-  private fun isPlatformSupportLibrary(coordinate: GradleCoordinate) =
-    GoogleMavenArtifactId.forCoordinate(coordinate)?.isPlatformSupportLibrary ?: false
-
-  private fun getExistingPlatformSupportLibraryVersion(): GradleVersion? =
-    GoogleMavenArtifactId.values()
-      .asSequence()
-      .filter { it.isPlatformSupportLibrary }
-      .mapNotNull { getRegisteredDependency(it.getCoordinate("+")) }
-      .mapNotNull { it.version }
-      .firstOrNull()
 }
