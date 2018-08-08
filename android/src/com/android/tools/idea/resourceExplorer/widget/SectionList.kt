@@ -70,6 +70,7 @@ class SectionList(private val model: SectionListModel) {
       override fun contentsChanged(e: ListDataEvent?) {
         sectionToComponentMap.clear()
         allInnerLists.clear()
+        sectionList.selectionModel.clearSelection()
         content = createMultiListPanel(sectionToComponentMap, allInnerLists, innerListSelectionListener)
         scrollView.setViewportView(content)
       }
@@ -82,7 +83,10 @@ class SectionList(private val model: SectionListModel) {
     sectionList.selectedIndex = 0
     sectionList.cellRenderer = createSectionCellRenderer()
     sectionList.addListSelectionListener {
-      scrollView.viewport.viewPosition = sectionList.selectedValue.header.location
+      val selectedValue = sectionList.selectedValue
+      if (selectedValue != null) {
+        scrollView.viewport.viewPosition = selectedValue.header.location
+      }
     }
 
     scrollView.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
