@@ -26,8 +26,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.CaretState;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.VisualPosition;
-import com.intellij.openapi.editor.event.EditorMouseAdapter;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
+import com.intellij.openapi.editor.event.EditorMouseListener;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
@@ -219,7 +219,7 @@ public class TutorialStep extends JPanel {
    * Achieved through tracking whether text is selected when the mouse is depressed. If nothing was selected then and nothing
    * is selected after the mouse is released then select all of the text.
    */
-  private static class AutoTextSelectionListener extends EditorMouseAdapter {
+  private static class AutoTextSelectionListener implements EditorMouseListener {
     private final EditorEx myEditor;
     private boolean myIsTextSelectedOnMousePressed = false;
 
@@ -392,11 +392,11 @@ public class TutorialStep extends JPanel {
         public void keyReleased(KeyEvent e) {
           if (e.getKeyChar() != KeyEvent.VK_TAB) return;
 
-          if (e.getModifiers() == KeyEvent.SHIFT_MASK) {
+          if (e.getModifiers() == InputEvent.SHIFT_MASK) {
             editor.getContentComponent().transferFocusBackward();
             return;
           }
-          
+
           editor.getContentComponent().transferFocus();
         }
       });
