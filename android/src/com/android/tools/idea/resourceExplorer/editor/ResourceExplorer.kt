@@ -27,7 +27,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import javax.swing.Box
 import javax.swing.JPanel
-import javax.swing.JSlider
 import kotlin.properties.Delegates
 
 private const val withExternalBrowser: Boolean = false
@@ -98,12 +97,6 @@ class ResourceExplorer private constructor(
       centerContainer.add(designAssetDetailView)
     }
     add(centerContainer, BorderLayout.CENTER)
-    add(JSlider(JSlider.HORIZONTAL, 100, 300, 300).apply {
-      addChangeListener { event ->
-        resourceExplorerView.cellWidth = (event.source as JSlider).value
-      }
-    }, BorderLayout.NORTH)
-
     Disposer.register(parentDisposable, this)
     Disposer.register(this, synchronizationManager)
   }
