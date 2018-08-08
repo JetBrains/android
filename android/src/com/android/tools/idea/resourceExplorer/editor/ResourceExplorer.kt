@@ -44,8 +44,8 @@ class ResourceExplorer private constructor(
   var facet by Delegates.observable(facet) { _, _, newValue -> updateFacet(newValue) }
 
   private val synchronizationManager = SynchronizationManager(facet)
-  private val projectResourcesBrowserViewModel = ProjectResourcesBrowserViewModel(facet, synchronizationManager)
   private val importersProvider = ImportersProvider()
+  private val projectResourcesBrowserViewModel = ProjectResourcesBrowserViewModel(facet, synchronizationManager, importersProvider)
   private val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
 
   private val resourceExplorerView = ResourceExplorerView(projectResourcesBrowserViewModel, resourceImportDragTarget)

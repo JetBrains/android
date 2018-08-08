@@ -22,6 +22,7 @@ import com.android.tools.idea.resourceExplorer.model.StaticStringMapper
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
+import org.jetbrains.android.facet.AndroidFacet
 import javax.imageio.ImageIO
 import javax.swing.JPanel
 
@@ -68,7 +69,9 @@ class RasterResourceImporter : ResourceImporter {
 
   override fun supportsBatchImport(): Boolean = true
 
-  override fun getConfigurationPanel(callback: ConfigurationDoneCallback): JPanel? {
+  override fun getConfigurationPanel(facet: AndroidFacet,
+                                     callback: ConfigurationDoneCallback)
+    : JPanel? {
     callback.configurationDone()
     return null
   }

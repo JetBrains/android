@@ -16,31 +16,32 @@
 package com.android.tools.idea.resourceExplorer.plugin
 
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
+import com.android.tools.idea.resourceExplorer.sketchImporter.view.SketchImporterView
 import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.JPanel
 
-
-private val supportedFileTypes = setOf("xml")
+private val supportedFileTypes = setOf("sketch")
 
 /**
- * Importer for VectorDrawable
+ * Importer for Sketch files
  */
-class VectorDrawableImporter : ResourceImporter {
-  override fun getPresentableName() = "Vector Drawable Importer"
+class SketchImporter : ResourceImporter {
+  override fun getPresentableName() = "Sketch Importer"
 
   override fun getConfigurationPanel(facet: AndroidFacet,
-                                     callback: ConfigurationDoneCallback)
-    : JPanel? {
+                                     callback: ConfigurationDoneCallback): JPanel? {
+
+    val sketchImporterPanel = SketchImporterView().getConfigurationPanel(facet, supportedFileTypes.first())
     callback.configurationDone()
-    return null
+    return sketchImporterPanel
   }
 
   override fun userCanEditQualifiers() = true
 
-  override fun getSupportedFileTypes() = supportedFileTypes // TODO reuse DesignAssetRenderer.isFileSupported
+  override fun getSupportedFileTypes() = supportedFileTypes
 
   override fun getSourcePreview(asset: DesignAsset): DesignAssetRenderer? =
-    DesignAssetRendererManager.getInstance().getViewer(VectorDrawableAssetRenderer::class.java)
+    DesignAssetRendererManager.getInstance().getViewer(SVGAssetRenderer::class.java)
 
   override fun getImportPreview(asset: DesignAsset): DesignAssetRenderer? = getSourcePreview(asset)
 }
