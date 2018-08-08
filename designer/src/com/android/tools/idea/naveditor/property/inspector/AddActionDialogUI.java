@@ -36,8 +36,6 @@ public class AddActionDialogUI {
   JComboBox<ValueWithDisplayString> myPopEnterComboBox;
   JComboBox<ValueWithDisplayString> myPopExitComboBox;
   JCheckBox mySingleTopCheckBox;
-  JCheckBox myDocumentCheckBox;
-  JCheckBox myClearTaskCheckBox;
   JPanel myContentPanel;
   JBTextField myIdTextField;
 }

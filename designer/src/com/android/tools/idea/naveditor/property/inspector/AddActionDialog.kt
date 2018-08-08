@@ -99,14 +99,6 @@ open class AddActionDialog(
   open val isSingleTop: Boolean
     get() = dialog.mySingleTopCheckBox.isSelected
 
-  // Open for testing
-  open val isDocument: Boolean
-    get() = dialog.myDocumentCheckBox.isSelected
-
-  // Open for testing
-  open val isClearTask: Boolean
-    get() = dialog.myClearTaskCheckBox.isSelected
-
   enum class Defaults {
     NORMAL, RETURN_TO_SOURCE, GLOBAL
   }
