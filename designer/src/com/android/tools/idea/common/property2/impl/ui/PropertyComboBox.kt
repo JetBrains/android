@@ -75,6 +75,8 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     textField.registerKeyAction({ escape() }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape")
     textField.registerKeyAction({ model.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
     textField.registerKeyAction({ model.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
+    textField.foreground = foreground
+    textField.background = background
 
     val focusListener = EditorFocusListener(model)
     addFocusListener(focusListener)
@@ -135,12 +137,16 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
 
   override fun setForeground(color: Color?) {
     super.setForeground(color)
-    textField.foreground = color
+
+    // This method may be called in constructor of super class. Don't use textField here:
+    editor?.editorComponent?.foreground = color
   }
 
   override fun setBackground(color: Color?) {
     super.setBackground(color)
-    textField.background = color
+
+    // This method may be called in constructor of super class. Don't use textField here:
+    editor?.editorComponent?.background = color
   }
 
   override fun getToolTipText(): String? = model.tooltip
