@@ -28,7 +28,7 @@ import javax.swing.JComponent
  * The editor wraps a component configured for editing of a specific property of type [ValueT].  The editor is bound to the property and the
  * property is automatically updated with the current value of the editor.
  */
-interface ModelPropertyEditor<out ValueT> : Disposable {
+interface ModelPropertyEditor<out ValueT : Any> : Disposable {
   /**
    * The component to be added to the model editor.
    */
@@ -58,6 +58,8 @@ interface ModelPropertyEditor<out ValueT> : Disposable {
    * Reloads the editor from the bound property.
    */
   fun reload()
+
+  val property: ModelPropertyCore<out ValueT>
 }
 
 /**
