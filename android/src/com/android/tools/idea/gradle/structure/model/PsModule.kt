@@ -81,7 +81,7 @@ abstract class PsModule protected constructor(
 
   abstract val rootDir: File?
   abstract val projectType: PsModuleType
-  abstract fun getConfigurations(): List<String>
+  abstract fun getConfigurations(onlyImportant: Boolean = false): List<String>
   protected abstract fun resetDependencies()
   protected abstract fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency>
 
