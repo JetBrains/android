@@ -219,7 +219,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
     if (nativeAndroidProject != null) {
       IdeNativeAndroidProject copy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
-      NdkModuleModel ndkModuleModel = new NdkModuleModel(moduleName, moduleRootDirPath, copy);
+      NdkModuleModel ndkModuleModel = new NdkModuleModel(moduleName, moduleRootDirPath, copy, emptyList());
       ideModule.createChild(NDK_MODEL, ndkModuleModel);
     }
 
@@ -230,7 +230,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         !hasArtifacts(gradleModule)) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
-      createJavaProject(gradleModule, ideModule,  syncIssues /* empty list */, false);
+      createJavaProject(gradleModule, ideModule, syncIssues /* empty list */, false);
       return;
     }
 

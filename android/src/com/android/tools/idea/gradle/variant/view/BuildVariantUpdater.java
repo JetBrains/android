@@ -54,7 +54,6 @@ import java.util.List;
 import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static com.intellij.util.ThreeState.YES;
@@ -110,9 +109,9 @@ public class BuildVariantUpdater {
   /**
    * Updates a module's structure when the user selects a build variant from the tool window.
    *
-   * @param project                         the module's project.
-   * @param moduleName                      the module's name.
-   * @param buildVariantName                the name of the selected build variant.
+   * @param project          the module's project.
+   * @param moduleName       the module's name.
+   * @param buildVariantName the name of the selected build variant.
    */
   void updateSelectedVariant(@NotNull Project project,
                              @NotNull String moduleName,
@@ -192,18 +191,22 @@ public class BuildVariantUpdater {
 
     boolean ndkVariantExists = true;
     boolean androidVariantExists = true;
+    String variantName = variantToSelect;
     if (ndkFacet != null) {
       NdkModuleModel ndkModuleModel = getNativeAndroidModel(ndkFacet, variantToSelect);
       if (ndkModuleModel != null) {
         ndkVariantExists = updateAffectedFacetsForNdkModule(ndkFacet, ndkModuleModel, variantToSelect, affectedNdkFacets);
+        // The variant name to use for AndroidModuleModel.
+        // For example, variantToSelect for ndk module is debug-x86, and for AndroidModuleModel it should be debug.
+        variantName = ndkModuleModel.getVariantName(variantToSelect);
       }
     }
 
     if (androidFacet != null) {
-      AndroidModuleModel androidModel = getAndroidModel(androidFacet, variantToSelect);
+      AndroidModuleModel androidModel = getAndroidModel(androidFacet, variantName);
       if (androidModel != null) {
         androidVariantExists =
-          updateAffectedFacetsForAndroidModule(project, androidFacet, androidModel, variantToSelect, affectedAndroidFacets);
+          updateAffectedFacetsForAndroidModule(project, androidFacet, androidModel, variantName, affectedAndroidFacets);
       }
     }
     return ndkVariantExists && androidVariantExists;
@@ -217,7 +220,7 @@ public class BuildVariantUpdater {
       return true;
     }
     affectedFacets.add(ndkFacet);
-    ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT = ndkModuleModel.getSelectedVariant().getName();
+    ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT = variantToSelect;
     boolean variantToSelectExists = ndkModuleModel.variantExists(variantToSelect);
     if (variantToSelectExists) {
       ndkModuleModel.setSelectedVariantName(variantToSelect);
@@ -318,11 +321,16 @@ public class BuildVariantUpdater {
       GradleFacet gradleFacet = GradleFacet.getInstance(moduleToUpdate);
       if (gradleFacet != null) {
         AndroidModuleModel androidModel = AndroidModuleModel.get(moduleToUpdate);
+        NdkModuleModel ndkModuleModel = NdkModuleModel.get(moduleToUpdate);
         GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
         if (androidModel != null && gradleModel != null) {
           GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
+          String variantName = buildVariantName;
+          if (ndkModuleModel != null) {
+            variantName = ndkModuleModel.getVariantName(buildVariantName);
+          }
           request.variantOnlySyncOptions =
-            new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), buildVariantName);
+            new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName);
           // TODO: It is not necessary to generate source for all modules, only the modules that have variant changes need to be re-generated.
           // Need to change generateSource functions to accept specified modules.
           request.generateSourcesOnSuccess = true;
