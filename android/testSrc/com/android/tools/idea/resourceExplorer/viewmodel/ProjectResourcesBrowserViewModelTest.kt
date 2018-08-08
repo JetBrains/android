@@ -91,12 +91,15 @@ class ProjectResourcesBrowserViewModelTest {
     Truth.assertThat(colorSection).hasSize(2)
     Truth.assertThat(colorSection[0].assets).isEmpty()
     Truth.assertThat(colorSection[1].assets).isNotEmpty()
+    Truth.assertThat(colorSection[1].assets).isNotEmpty()
+    Truth.assertThat(colorSection[1].assets[0].designAssets[0].type).isEqualTo(ResourceType.COLOR)
 
     viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.DRAWABLE)
     val drawableSection = viewModel.getResourcesLists()
     Truth.assertThat(drawableSection).hasSize(2)
     Truth.assertThat(drawableSection[0].assets).isEmpty()
     Truth.assertThat(drawableSection[1].assets).isNotEmpty()
+    Truth.assertThat(drawableSection[1].assets[0].designAssets[0].type).isEqualTo(ResourceType.DRAWABLE)
   }
 
   @RunsInEdt

@@ -24,29 +24,38 @@ import com.android.tools.idea.resourceExplorer.widget.SectionList
 import com.android.tools.idea.resourceExplorer.widget.SectionListModel
 import com.intellij.ide.dnd.DnDManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBMenu
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.event.InputEvent
 import javax.swing.*
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 
 private const val HEIGHT_WIDTH_RATIO = 3 / 4f
-private const val DEFAULT_CELL_WIDTH = 300
-private const val COMPACT_MODE_TRIGGER_SIZE = 150
-private const val SECTION_CELL_MARGIN = 4
-private const val SECTION_CELL_MARGIN_LEFT = 8
-private const val COLORED_BORDER_WIDTH = 4
+private val DEFAULT_CELL_WIDTH = JBUI.scale(150)
+private val MAX_CELL_WIDTH = JBUI.scale(300)
+private val MIN_CELL_WIDTH = JBUI.scale(100)
+private val COMPACT_MODE_TRIGGER_SIZE = JBUI.scale(150)
+private val SECTION_CELL_MARGIN = JBUI.scale(4)
+private val SECTION_CELL_MARGIN_LEFT = JBUI.scale(8)
+private val COLORED_BORDER_WIDTH = JBUI.scale(4)
 private val SECTION_HEADER_SECONDARY_COLOR = Gray.x66
 private val SECTION_HEADER_BORDER = BorderFactory.createCompoundBorder(
-  BorderFactory.createEmptyBorder(0, 0, 8, 0),
+  JBUI.Borders.emptyBottom(8),
   JBUI.Borders.customLine(SECTION_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
 )
 
@@ -62,11 +71,14 @@ class ResourceExplorerView(
   private val resourceImportDragTarget: ResourceImportDragTarget
 ) : JPanel(BorderLayout()), Disposable {
 
-  var cellWidth = DEFAULT_CELL_WIDTH
+  private var cellWidth = DEFAULT_CELL_WIDTH
     set(value) {
-      field = value
-      sectionList.getLists().forEach {
-        it.setupListUI()
+      val boundedValue = min(MAX_CELL_WIDTH, max(MIN_CELL_WIDTH, value))
+      if (boundedValue != field) {
+        field = boundedValue
+        sectionList.getLists().forEach {
+          it.setupListUI()
+        }
       }
     }
 
@@ -77,6 +89,24 @@ class ResourceExplorerView(
   private val dragHandler = resourceDragHandler()
 
   private val headerPanel = Box.createVerticalBox().apply {
+    add(JPanel(BorderLayout()).apply {
+      val menuBar = JMenuBar()
+      val addButton = JBMenu().apply {
+        font = font.deriveFont(JBUI.scaleFontSize(24f))
+        preferredSize = ADD_BUTTON_SIZE
+        icon = StudioIcons.Common.ADD
+      }
+
+      addButton.add(JBMenuItem("Import .sketch file...").apply {
+        addActionListener { _ -> resourcesBrowserViewModel.importSketchFile() }
+      })
+
+      // TODO add mnemonic, accelerator
+
+      menuBar.add(addButton, BorderLayout.WEST)
+      add(menuBar)
+    })
+
     add(JTabbedPane(JTabbedPane.NORTH).apply {
       tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT
       resourcesBrowserViewModel.resourceTypes.forEach {
@@ -94,35 +124,29 @@ class ResourceExplorerView(
     horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
     addMouseWheelListener { event ->
       val modifierKey = if (SystemInfo.isMac) InputEvent.META_MASK else InputEvent.CTRL_MASK
-      val modifierPressed = event.modifiers and modifierKey == modifierKey
+      val modifierPressed = (event.modifiers and modifierKey) == modifierKey
       if (modifierPressed) {
         cellWidth = (cellWidth * (1 - event.preciseWheelRotation * 0.1)).roundToInt()
       }
     }
   }
 
+  private val footerPanel = JPanel(BorderLayout()).apply {
+    border = JBUI.Borders.customLine(JBColor.border(), 1, 0, 0, 0)
+
+    add(ActionManager.getInstance().createActionToolbar(
+      "resourceExplorer",
+      DefaultActionGroup(
+        ActionButton(StudioIcons.LayoutEditor.Palette.GRID_VIEW) {},
+        ActionButton(StudioIcons.LayoutEditor.Palette.LIST_VIEW) {},
+        Separator(),
+        ActionButton(StudioIcons.Common.ZOOM_OUT) { cellWidth = (cellWidth * 0.9).roundToInt() },
+        ActionButton(StudioIcons.Common.ZOOM_IN) { cellWidth = (cellWidth * 1.1).roundToInt() }
+      ), true).component, BorderLayout.EAST)
+  }
+
   init {
     DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
-
-    add(JPanel(BorderLayout()).apply {
-      val menuBar = JMenuBar()
-      val addButton = JMenu("+")
-      addButton.font = addButton.font.deriveFont(JBUI.scaleFontSize(24f))
-      addButton.preferredSize = ADD_BUTTON_SIZE
-
-      val importSketchFile = JMenuItem("Import .sketch file...")
-      importSketchFile.addActionListener { _ ->
-        resourcesBrowserViewModel.importSketchFile()
-      }
-
-      addButton.add(importSketchFile)
-
-      // TODO add mnemonic, accelerator
-
-      menuBar.add(addButton, BorderLayout.WEST)
-      add(menuBar)
-      border = SECTION_HEADER_BORDER
-    }, BorderLayout.NORTH)
 
     sectionList.setSectionListCellRenderer(createSectionListCellRenderer())
     resourcesBrowserViewModel.updateCallback = ::populateResourcesLists
@@ -130,6 +154,7 @@ class ResourceExplorerView(
 
     add(headerPanel, BorderLayout.NORTH)
     add(listPanel)
+    add(footerPanel, BorderLayout.SOUTH)
   }
 
   private fun populateResourcesLists() {
@@ -231,5 +256,11 @@ class ResourceExplorerView(
 
   override fun dispose() {
     DnDManager.getInstance().unregisterTarget(resourceImportDragTarget, this)
+  }
+}
+
+private class ActionButton(icon: Icon, private val action: () -> Unit) : AnAction(icon), DumbAware {
+  override fun actionPerformed(e: AnActionEvent?) {
+    action()
   }
 }
