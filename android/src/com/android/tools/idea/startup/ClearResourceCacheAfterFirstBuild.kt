@@ -19,10 +19,10 @@ import com.android.annotations.VisibleForTesting
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
-import com.android.tools.idea.util.listenUntilNextSuccessfulSync
 import com.android.tools.idea.res.AppResourceRepository
 import com.android.tools.idea.res.ResourceClassRegistry
-import com.intellij.openapi.components.AbstractProjectComponent
+import com.android.tools.idea.util.listenUntilNextSuccessfulSync
+import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidUtils
@@ -32,7 +32,7 @@ import org.jetbrains.android.util.AndroidUtils
  * were accessed before source generation. If the last build of the project in the previous session was successful
  * (i.e. the initial build of this session is skipped), then the resource cache is already valid and will not be cleared.
  */
-class ClearResourceCacheAfterFirstBuild(project: Project) : AbstractProjectComponent(project) {
+class ClearResourceCacheAfterFirstBuild(private val project: Project) : ProjectComponent {
   private class CacheClearedCallback(val onCacheCleared: Runnable, val onSourceGenerationError: Runnable)
 
   private val lock = Any()
@@ -43,7 +43,7 @@ class ClearResourceCacheAfterFirstBuild(project: Project) : AbstractProjectCompo
   private val callbacks = mutableListOf<CacheClearedCallback>()
 
   override fun projectOpened() {
-    listenUntilNextSuccessfulSync(myProject, listener = object: SyncResultListener {
+    listenUntilNextSuccessfulSync(project, listener = object: SyncResultListener {
       override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
         if (result.isSuccessful) {
           syncSucceeded()
@@ -90,10 +90,10 @@ class ClearResourceCacheAfterFirstBuild(project: Project) : AbstractProjectCompo
    */
   @VisibleForTesting
   fun clearResourceCacheIfNecessary() {
-    if (AppResourceRepository.testAndClearTempResourceCached(myProject)) {
-      ResourceClassRegistry.get(myProject).clearCache()
+    if (AppResourceRepository.testAndClearTempResourceCached(project)) {
+      ResourceClassRegistry.get(project).clearCache()
 
-      AndroidUtils.getApplicationFacets(myProject).forEach { facet ->
+      AndroidUtils.getApplicationFacets(project).forEach { facet ->
         facet.refreshResources()
         ModuleResourceManagers.getInstance(facet).localResourceManager.invalidateAttributeDefinitions()
       }

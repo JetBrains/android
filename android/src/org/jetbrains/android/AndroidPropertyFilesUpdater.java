@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2013 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
@@ -28,7 +14,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.components.AbstractProjectComponent;
+import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -47,7 +33,6 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.Processor;
 import com.intellij.util.SingleAlarm;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.importDependencies.ImportDependenciesUtil;
@@ -62,16 +47,17 @@ import java.util.*;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
+public class AndroidPropertyFilesUpdater implements BaseComponent {
   private static final NotificationGroup PROPERTY_FILES_UPDATING_NOTIFICATION =
     NotificationGroup.balloonGroup("Android Property Files Updating");
   private static final Key<List<Object>> ANDROID_PROPERTIES_STATE_KEY = Key.create("ANDROID_PROPERTIES_STATE");
   private Notification myNotification;
   private final SingleAlarm myAlarm;
+  private final Project myProject;
 
   protected AndroidPropertyFilesUpdater(Project project) {
-    super(project);
     myAlarm = new SingleAlarm(() -> TransactionGuard.submitTransaction(project, this::updatePropertyFilesIfNecessary), 50, project);
+    myProject = project;
   }
 
   @Override
@@ -103,12 +89,12 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     if (myProject.isDisposed()) return;
     PsiDocumentManager.getInstance(myProject).commitAllDocuments();
 
-    final List<VirtualFile> toAskFiles = new ArrayList<VirtualFile>();
-    final List<AndroidFacet> toAskFacets = new ArrayList<AndroidFacet>();
-    final List<Runnable> toAskChanges = new ArrayList<Runnable>();
+    final List<VirtualFile> toAskFiles = new ArrayList<>();
+    final List<AndroidFacet> toAskFacets = new ArrayList<>();
+    final List<Runnable> toAskChanges = new ArrayList<>();
 
-    final List<VirtualFile> files = new ArrayList<VirtualFile>();
-    final List<Runnable> changes = new ArrayList<Runnable>();
+    final List<VirtualFile> files = new ArrayList<>();
+    final List<Runnable> changes = new ArrayList<>();
 
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -218,7 +204,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
 
     final Pair<Properties, VirtualFile> localProperties =
       AndroidRootUtil.readPropertyFile(module, SdkConstants.FN_LOCAL_PROPERTIES);
-    final List<Runnable> changes = new ArrayList<Runnable>();
+    final List<Runnable> changes = new ArrayList<>();
 
     final IAndroidTarget androidTarget = facet.getConfiguration().getAndroidTarget();
     final String androidTargetHashString = androidTarget != null ? androidTarget.hashString() : null;
@@ -254,10 +240,10 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     }
     final Set<VirtualFile> localDependencies = localProperties != null
                                                ? ImportDependenciesUtil.getLibDirs(localProperties)
-                                               : Collections.<VirtualFile>emptySet();
+                                               : Collections.emptySet();
     final VirtualFile baseDir = vFile.getParent();
     final String baseDirPath = baseDir.getPath();
-    final List<String> newDepValues = new ArrayList<String>();
+    final List<String> newDepValues = new ArrayList<>();
 
     for (VirtualFile dependency : dependencies) {
       if (!localDependencies.contains(dependency)) {
@@ -266,7 +252,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
         newDepValues.add(value);
       }
     }
-    final Set<String> oldDepValues = new HashSet<String>();
+    final Set<String> oldDepValues = new HashSet<>();
 
     for (IProperty property : projectProperties.getProperties()) {
       final String name = property.getName();
@@ -275,7 +261,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
       }
     }
 
-    if (!new HashSet<String>(newDepValues).equals(oldDepValues)) {
+    if (!new HashSet<>(newDepValues).equals(oldDepValues)) {
       changes.add(new Runnable() {
         @Override
         public void run() {
@@ -297,7 +283,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
 
   @NotNull
   private static VirtualFile[] collectDependencies(@NotNull Module module) {
-    final List<VirtualFile> dependenciesList = new ArrayList<VirtualFile>();
+    final List<VirtualFile> dependenciesList = new ArrayList<>();
 
     for (AndroidFacet depFacet : AndroidUtils.getAndroidLibraryDependencies(module)) {
       final Module depModule = depFacet.getModule();

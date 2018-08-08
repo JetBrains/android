@@ -29,7 +29,7 @@ import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.compiler.CompilerManager;
-import com.intellij.openapi.components.AbstractProjectComponent;
+import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.project.Project;
@@ -50,7 +50,8 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class AndroidGradleProjectComponent extends AbstractProjectComponent {
+public class AndroidGradleProjectComponent implements ProjectComponent {
+  @NotNull private final Project myProject;
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
   @NotNull private final ExternalSystemNotificationManager myNotificationManager;
@@ -93,7 +94,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
                                        @NotNull SupportedModuleChecker supportedModuleChecker,
                                        @NotNull IdeInfo ideInfo,
                                        @NotNull LegacyAndroidProjects legacyAndroidProjects) {
-    super(project);
+    myProject = project;
     myGradleProjectInfo = gradleProjectInfo;
     myAndroidProjectInfo = androidProjectInfo;
     myNotificationManager = notificationManager;
