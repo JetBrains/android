@@ -58,4 +58,23 @@ class GenericInspectorLineModelTest {
     assertThat(model.visible).isFalse()
     verifyZeroInteractions(listener)
   }
+
+  @Test
+  fun testListenersAreConcurrentModificationSafe() {
+    // Make sure that ConcurrentModificationException is NOT generated from the code below:
+    val (model, _) = createModel()
+    val listener = RecursiveValueChangedListener(model)
+    model.addValueChangedListener(listener)
+    model.hidden = true
+    assertThat(listener.called).isTrue()
+  }
+
+  private class RecursiveValueChangedListener(private val model: GenericInspectorLineModel) : ValueChangedListener {
+    var called = false
+
+    override fun valueChanged() {
+      model.addValueChangedListener(RecursiveValueChangedListener(model))
+      called = true
+    }
+  }
 }

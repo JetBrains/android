@@ -164,6 +164,6 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
 
   private fun fireListDataChanged() {
     val event = ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, size)
-    listListeners.forEach { it.contentsChanged(event) }
+    listListeners.toTypedArray().forEach { it.contentsChanged(event) }
   }
 }
