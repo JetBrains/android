@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.sync.ng.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.ng.SyncModuleModels
 import com.android.tools.idea.gradle.project.sync.ng.SyncProjectModels
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.loaders.NewProjectJsonLoader
-import com.google.common.collect.ImmutableSet
 import org.gradle.tooling.model.BuildIdentifier
 import org.gradle.tooling.model.GradleProject
 
@@ -58,13 +57,13 @@ internal fun doFetchShippedModels(extraInfo: NewProjectExtraInfo): SyncProjectMo
 
   val moduleAndroidProject = newModuleLoader.loadAndroidProject(DEBUG_VARIANT_NAME)
 
-  val rootModuleModels = SyncModuleModels(rootGradleProject, buildId, ImmutableSet.of(), ImmutableSet.of(), syncActionOptions)
+  val rootModuleModels = SyncModuleModels(rootGradleProject, buildId, setOf(), setOf(), syncActionOptions)
   rootModuleModels.addModel(GradleProject::class.java, rootGradleProject)
-  val moduleModuleModels = SyncModuleModels(moduleGradleProject, buildId, ImmutableSet.of(), ImmutableSet.of(), syncActionOptions)
+  val moduleModuleModels = SyncModuleModels(moduleGradleProject, buildId, setOf(), setOf(), syncActionOptions)
   moduleModuleModels.addModel(GradleProject::class.java, moduleGradleProject)
   moduleModuleModels.addModel(AndroidProject::class.java, moduleAndroidProject)
 
-  return object : SyncProjectModels(ImmutableSet.of(), ImmutableSet.of(), syncActionOptions) {
+  return object : SyncProjectModels(setOf(), setOf(), syncActionOptions) {
     override fun getModuleModels(): List<SyncModuleModels> = listOf(rootModuleModels, moduleModuleModels)
     override fun getGlobalLibraryMap(): List<GlobalLibraryMap> = listOf(globalLibraryMap)
     override fun getRootBuildId(): BuildIdentifier = buildId
