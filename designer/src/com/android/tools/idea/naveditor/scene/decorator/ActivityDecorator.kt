@@ -40,7 +40,7 @@ import java.awt.Rectangle
 @NavCoordinate private val ACTIVITY_TEXT_HEIGHT = JBUI.scale(26)
 @SwingCoordinate private val ACTIVITY_BORDER_WIDTH = JBUI.scale(1)
 
-class ActivityDecorator : NavScreenDecorator() {
+object ActivityDecorator : NavScreenDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     super.addContent(list, time, sceneContext, component)
 

@@ -39,7 +39,7 @@ private val NAVIGATION_ARC_SIZE = JBUI.scale(12)
 /**
  * [SceneDecorator] for the whole of a navigation flow (that is, the root component).
  */
-class NavigationDecorator : SceneDecorator() {
+object NavigationDecorator : SceneDecorator() {
 
   override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {}
 
@@ -55,7 +55,7 @@ class NavigationDecorator : SceneDecorator() {
     list.add(DrawFilledRectangle(DRAW_FRAME_LEVEL, drawRectangle, sceneContext.colorSet.componentBackground, arcSize))
     list.add(DrawRectangle(DRAW_FRAME_LEVEL, drawRectangle, frameColor(sceneContext, component), frameThickness(component), arcSize))
 
-    var text = component.nlComponent.includeFileName ?: "Nested Graph"
+    val text = component.nlComponent.includeFileName ?: "Nested Graph"
 
     val font = scaledFont(sceneContext, Font.BOLD)
     list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, text, drawRectangle,

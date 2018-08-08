@@ -29,7 +29,7 @@ import java.awt.Rectangle
  * [SceneDecorator] responsible for creating draw commands for one fragment in the navigation editor.
  */
 
-class FragmentDecorator : NavScreenDecorator() {
+object FragmentDecorator : NavScreenDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     super.addContent(list, time, sceneContext, component)
 
