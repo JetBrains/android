@@ -120,5 +120,5 @@ public class VectorDrawableFileTest {
 //virtualFile.setContent();
 //new VectorDrawableAssetRenderer().getImage(virtualFile, rule.module, new Dimension(10,10));
 //ImageDiffUtil.assertImageSimilar();
-//String resultingFilePath = getTestFilePath("/sketch/test.xml");
+//String resultingFilePath = getTestFilePath("/sketch/generated/test.xml");
 //vectorDrawableFile.saveDrawableToDisk(resultingFilePath);
