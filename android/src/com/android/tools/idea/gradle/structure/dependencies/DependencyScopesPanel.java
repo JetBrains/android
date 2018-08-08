@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.dependencies.AbstractDependencyScopesPanel;
 import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -84,7 +85,7 @@ public class DependencyScopesPanel extends AbstractDependencyScopesPanel {
   @Override
   @Nullable
   public ValidationInfo validateInput() {
-    if (getSelectedScopeNames().isEmpty()) {
+    if (Strings.isNullOrEmpty(myConfigurationsList.getSelectedValue())) {
       return new ValidationInfo("Please select at least one configuration", myConfigurationsList);
     }
     return null;
@@ -92,8 +93,8 @@ public class DependencyScopesPanel extends AbstractDependencyScopesPanel {
 
   @Override
   @NotNull
-  public List<String> getSelectedScopeNames() {
-    return ImmutableList.of(myConfigurationsList.getSelectedValue());
+  public String getSelectedScopeName() {
+    return myConfigurationsList.getSelectedValue();
   }
 
   @Override

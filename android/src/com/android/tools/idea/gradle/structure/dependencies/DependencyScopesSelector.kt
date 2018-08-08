@@ -13,18 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.dependencies;
+package com.android.tools.idea.gradle.structure.dependencies
 
-import com.intellij.openapi.ui.ValidationInfo;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.openapi.ui.ValidationInfo
 
-import java.util.List;
-
-public interface DependencyScopesSelector {
-  @NotNull
-  List<String> getSelectedScopeNames();
-
-  @Nullable
-  ValidationInfo validateInput();
+interface DependencyScopesSelector {
+  val selectedScopeName: String
+  fun validateInput(): ValidationInfo?
 }
