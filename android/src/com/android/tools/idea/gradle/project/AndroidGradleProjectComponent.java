@@ -32,7 +32,7 @@ import com.intellij.ide.SaveAndSyncHandler;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
-import com.intellij.openapi.components.AbstractProjectComponent;
+import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -52,7 +52,8 @@ import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradl
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT;
 
-public class AndroidGradleProjectComponent extends AbstractProjectComponent {
+public class AndroidGradleProjectComponent implements ProjectComponent {
+  @NotNull private final Project myProject;
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
   @NotNull private final GradleSyncInvoker myGradleSyncInvoker;
@@ -92,7 +93,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
                                        @NotNull SupportedModuleChecker supportedModuleChecker,
                                        @NotNull IdeInfo ideInfo,
                                        @NotNull LegacyAndroidProjects legacyAndroidProjects) {
-    super(project);
+    myProject = project;
     myGradleProjectInfo = gradleProjectInfo;
     myAndroidProjectInfo = androidProjectInfo;
     myGradleSyncInvoker = gradleSyncInvoker;
