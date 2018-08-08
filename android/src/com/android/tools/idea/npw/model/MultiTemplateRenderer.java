@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.model;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.project.IndexingSuspender;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
@@ -26,8 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED;
 
 /**
  * Sometimes, there are several separate classes which want to render templates, in some order, but the whole process should be aborted if
