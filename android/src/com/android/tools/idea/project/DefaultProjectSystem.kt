@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.project
 
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
@@ -77,6 +78,8 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   override fun upgradeProjectToSupportInstantRun(): Boolean {
     return false
   }
+
+  override fun getAvailableDependency(coordinate: GradleCoordinate, includePreview: Boolean): GradleCoordinate? = null
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem = DefaultModuleSystem(module)
 

@@ -26,10 +26,7 @@ import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.projectsystem.*
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.roots.LibraryOrderEntry
-import com.intellij.openapi.roots.ModuleOrderEntry
-import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.roots.*
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile
 import com.intellij.openapi.vfs.VirtualFile
@@ -78,10 +75,6 @@ class DefaultModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFi
 
     return null
   }
-
-  // We don't offer maven artifact support for JPS projects because there aren't any use cases that requires this feature.
-  // JPS also import their dependencies as modules and don't translate very well to the original maven artifacts.
-  override fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate? = null
 
   override fun getDependentLibraries(): Collection<Library> {
     val libraries = mutableListOf<Library>()
