@@ -18,7 +18,6 @@ package com.android.tools.idea.res;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fileTypes.FontFileType;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
-import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
@@ -42,9 +41,10 @@ import static com.android.SdkConstants.FD_RES_RAW;
  *
  * PsiProjectListener also notifies {@link EditorNotifications} when it detects that a Gradle file has been modified.
  */
-public class PsiProjectListener extends AbstractProjectComponent implements PsiTreeChangeListener {
+public class PsiProjectListener implements PsiTreeChangeListener {
   private final ResourceFolderRegistry myRegistry;
   private SampleDataListener mySampleDataListener;
+  @NotNull private final Project myProject;
 
   @NotNull
   public static PsiProjectListener getInstance(@NotNull Project project) {
@@ -52,7 +52,7 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
   }
 
   public PsiProjectListener(@NotNull Project project) {
-    super(project);
+    myProject = project;
     PsiManager.getInstance(project).addPsiTreeChangeListener(this);
     myRegistry = ResourceFolderRegistry.getInstance(project);
   }
