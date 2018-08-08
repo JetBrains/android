@@ -59,7 +59,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myRenderSettings = renderSettings;
     // TODO make visible once Gradle Sync switches to L2 dependencies
     myUseL2DependenciesCheckBox.setVisible(false);
-    myUseSingleVariantSyncCheckbox.setVisible(false);
 
     Hashtable qualityLabels = new Hashtable();
     qualityLabels.put(new Integer(0), new JLabel("Fastest"));
