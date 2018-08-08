@@ -1,10 +1,7 @@
 <idea-plugin url="https://www.jetbrains.com/idea">
-  <application-components>
-    <component>
-      <implementation-class>org.jetbrains.android.database.AndroidDataSourceApplicationComponent</implementation-class>
-      <interface-class>org.jetbrains.android.database.AndroidDataSourceApplicationComponent</interface-class>
-    </component>
-  </application-components>
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationInitializedListener implementation="org.jetbrains.android.database.AndroidDataSourceApplicationComponent"/>
+  </extensions>
   <project-components>
     <component>
       <implementation-class>org.jetbrains.android.database.AndroidDataSourceProjectComponent</implementation-class>
