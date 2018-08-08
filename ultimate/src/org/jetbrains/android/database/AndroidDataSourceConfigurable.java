@@ -4,6 +4,8 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.FileListingService;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.MultiLineReceiver;
+import com.android.tools.idea.ddms.DeviceNameProperties;
+import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.intellij.database.dataSource.AbstractDataSourceConfigurable;
 import com.intellij.database.dataSource.DatabaseNameComponent;
@@ -51,7 +53,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
 
   private DatabaseNameComponent myNameComponent;
 
-  private ComboBox<Object> myDeviceComboBox;
+  private ComboBox myDeviceComboBox;
   private ComboBox<String> myPackageNameComboBox;
   private ComboBox<String> myDataBaseComboBox;
   private JPanel myPanel;
@@ -94,17 +96,14 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     myPanel.add(myNameComponent.getComponent(), BorderLayout.NORTH);
     myConfigurationPanel.setBorder(DsUiDefaults.DEFAULT_PANEL_BORDER);
 
-    myDeviceComboBox.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer("No Connected Devices", false) {
-      @Override
-      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value instanceof String) {
-          append(AndroidDbUtil.getPresentableNameFromDeviceId((String)value));
-        }
-        else {
-          super.customizeCellRenderer(list, value, index, selected, hasFocus);
-        }
-      }
-    });
+    myDeviceComboBox.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer("No Connected Devices", false,
+                                                                           new DeviceNamePropertiesProvider() {
+                                                                             @NotNull
+                                                                             @Override
+                                                                             public DeviceNameProperties get(@NotNull IDevice device) {
+                                                                               return new DeviceNameProperties(null, null, null, null);
+                                                                             }
+                                                                           }));
     myDeviceComboBox.setPreferredSize(new Dimension(JBUI.scale(300), myDeviceComboBox.getPreferredSize().height));
     myDeviceComboBox.addActionListener(new ActionListener() {
       @Override
