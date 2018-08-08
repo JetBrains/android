@@ -86,12 +86,14 @@ class ProjectResourcesBrowserViewModelTest {
 
     val viewModel = createViewModel(projectRule.module)
     Truth.assertThat(ResourceRepositoryManager.getModuleResources(projectRule.module)!!.allResourceItems).isEmpty()
-    val colorSection = viewModel.getResourcesLists(listOf(ResourceType.COLOR))
+    viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR)
+    val colorSection = viewModel.getResourcesLists()
     Truth.assertThat(colorSection).hasSize(2)
     Truth.assertThat(colorSection[0].assets).isEmpty()
     Truth.assertThat(colorSection[1].assets).isNotEmpty()
 
-    val drawableSection = viewModel.getResourcesLists(listOf(ResourceType.COLOR))
+    viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.DRAWABLE)
+    val drawableSection = viewModel.getResourcesLists()
     Truth.assertThat(drawableSection).hasSize(2)
     Truth.assertThat(drawableSection[0].assets).isEmpty()
     Truth.assertThat(drawableSection[1].assets).isNotEmpty()
@@ -103,7 +105,8 @@ class ProjectResourcesBrowserViewModelTest {
     projectRule.fixture.copyFileToProject("res/values/colors.xml", "res/values/colors.xml")
     val viewModel = createViewModel(projectRule.module)
 
-    val values = viewModel.getResourcesLists(listOf(ResourceType.COLOR))[0].assets
+    viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR)
+    val values = viewModel.getResourcesLists()[0].assets
     Truth.assertThat(values).isNotNull()
     Truth.assertThat(values.flatMap { it.designAssets }
                        .map { it.resourceItem.resourceValue?.value })

@@ -24,6 +24,7 @@ import com.android.tools.idea.resourceExplorer.widget.SectionList
 import com.android.tools.idea.resourceExplorer.widget.SectionListModel
 import com.intellij.ide.dnd.DnDManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
@@ -32,7 +33,9 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
+import java.awt.event.InputEvent
 import javax.swing.*
+import kotlin.math.roundToInt
 
 
 private const val HEIGHT_WIDTH_RATIO = 3 / 4f
@@ -73,7 +76,30 @@ class ResourceExplorerView(
   private val sectionList: SectionList = SectionList(sectionListModel)
   private val dragHandler = resourceDragHandler()
 
-  private val listPanel: JBScrollPane
+  private val headerPanel = Box.createVerticalBox().apply {
+    add(JTabbedPane(JTabbedPane.NORTH).apply {
+      tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT
+      resourcesBrowserViewModel.resourceTypes.forEach {
+        addTab(it.displayName, null)
+      }
+      addChangeListener { event ->
+        val index = (event.source as JTabbedPane).model.selectedIndex
+        resourcesBrowserViewModel.resourceTypeIndex = index
+      }
+    })
+  }
+
+  private val listPanel: JBScrollPane = sectionList.mainComponent.apply {
+    border = JBUI.Borders.empty(8)
+    horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+    addMouseWheelListener { event ->
+      val modifierKey = if (SystemInfo.isMac) InputEvent.META_MASK else InputEvent.CTRL_MASK
+      val modifierPressed = event.modifiers and modifierKey == modifierKey
+      if (modifierPressed) {
+        cellWidth = (cellWidth * (1 - event.preciseWheelRotation * 0.1)).roundToInt()
+      }
+    }
+  }
 
   init {
     DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
@@ -102,19 +128,16 @@ class ResourceExplorerView(
     resourcesBrowserViewModel.updateCallback = ::populateResourcesLists
     populateResourcesLists()
 
-    listPanel = sectionList.mainComponent
-    listPanel.border = JBUI.Borders.empty(8)
-    listPanel.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+    add(headerPanel, BorderLayout.NORTH)
     add(listPanel)
   }
 
   private fun populateResourcesLists() {
     sectionListModel.clear()
-    resourcesBrowserViewModel.getResourcesLists(listOf(ResourceType.DRAWABLE,
-                                                       ResourceType.COLOR))
+    resourcesBrowserViewModel.getResourcesLists()
       .filterNot { it.assets.isEmpty() }
       .forEach { (type, libName, assets): ResourceSection ->
-        sectionListModel.addSection(AssetSection(type.displayName + " ${libName}", JList<DesignAssetSet>().apply {
+        sectionListModel.addSection(AssetSection(libName, JList<DesignAssetSet>().apply {
           model = CollectionListModel(assets)
           cellRenderer = getRendererForType(type, this)
           dragHandler.registerSource(this)
