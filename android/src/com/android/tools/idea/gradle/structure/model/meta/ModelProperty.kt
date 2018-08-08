@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import kotlin.properties.ReadWriteProperty
 
@@ -199,4 +200,20 @@ inline fun <T : Any> ModelPropertyCore<T>.annotateParsedResolvedMismatchBy(
     }
   }
   return ValueAnnotation.Warning("Resolved value is unavailable.")
+}
+
+class SimplePropertyStub<ValueT : Any> : ModelPropertyCore<ValueT> {
+  override val description: String = ""
+  override fun getParsedValue(): Annotated<ParsedValue<ValueT>> = ParsedValue.NotSet.annotated()
+  override fun setParsedValue(value: ParsedValue<ValueT>) = Unit
+  override fun getResolvedValue(): ResolvedValue<ValueT> = ResolvedValue.NotResolved()
+  override val defaultValueGetter: (() -> ValueT?)? = null
+  override val isModified: Boolean? = null
+  override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
+}
+
+class PropertyContextStub<ValueT : Any> : ModelPropertyContext<ValueT> {
+  override fun parse(value: String): Annotated<ParsedValue<ValueT>> = throw UnsupportedOperationException()
+  override fun format(value: ValueT): String = value.toString()
+  override fun getKnownValues(): ListenableFuture<KnownValues<ValueT>> = Futures.immediateCancelledFuture()
 }
