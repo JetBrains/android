@@ -16,7 +16,7 @@
 
 @file:JvmName("EmulatorGenerator")
 
-package com.android.tools.idea.tests.gui.emulator
+package com.android.tools.idea.tests.gui.framework.emulator
 
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture
 import org.fest.swing.exception.ActionFailedException
