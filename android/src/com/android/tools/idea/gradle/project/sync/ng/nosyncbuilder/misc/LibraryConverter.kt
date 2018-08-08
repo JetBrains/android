@@ -22,19 +22,23 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 
+const val BUNDLE_DIR = "bundles"
+
 // properOfflineRepo have to exist
 class LibraryConverter(private val properOfflineRepo: Path) {
   fun convertCachedLibraryToProper(library: NewAndroidLibrary): NewAndroidLibrary {
-    val newBundleFolder = properOfflineRepo.resolve(library.artifactAddress)
+    val relativePath = artifactAddressToRelativePath(library.artifactAddress)
 
+    val newArtifactFolder = properOfflineRepo.resolve(relativePath)
+    val newBundleFolder = properOfflineRepo.resolve(BUNDLE_DIR).resolve(relativePath)
     val newLocalJarNames = library.localJars.map {library.bundleFolder.toPath().relativize(it.toPath())}
     val newLocalJars = newLocalJarNames.map { newBundleFolder.resolve(it)}
 
-    val newArtifactFolder = properOfflineRepo.resolve(artifactAddressToRelativePath(library.artifactAddress))
     Files.createDirectories(newArtifactFolder)
+    Files.createDirectories(newBundleFolder)
 
-    FileUtils.copyDirectory(library.bundleFolder, newBundleFolder.toFile())
     FileUtils.copyDirectory(library.artifact.parentFile, newArtifactFolder.toFile())
+    FileUtils.copyDirectory(library.bundleFolder, newBundleFolder.toFile())
 
     return NewAndroidLibrary(
       newArtifactFolder.resolve(library.artifact.name).toFile(),

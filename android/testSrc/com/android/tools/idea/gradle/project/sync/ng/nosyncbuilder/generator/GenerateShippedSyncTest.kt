@@ -36,7 +36,6 @@ import com.android.tools.idea.templates.TemplateMetadata.*
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME
-import com.google.common.collect.ImmutableList
 import com.intellij.idea.IdeaTestApplication
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -55,19 +54,13 @@ import java.nio.file.Paths
 // New project is created only in first iteration of first test. Later only modules/activities are created
 private var firstRun = true
 
-private val mobileActivities = ImmutableList.of(
+private val mobileActivities = listOf(
   "BasicActivity",
-  "BottomNavigationActivity",
   "EmptyActivity",
-  "ViewModelActivity",
+  "BottomNavigationActivity",
   "FullscreenActivity",
-  //"GoogleAdMobAdsActivity", FIXME not working because can't resolve some dependency
-  "LoginActivity",
   "MasterDetailFlow",
-  "NavigationDrawerActivity",
-  "ScrollActivity",
-  "SettingsActivity",
-  "TabbedActivity"
+  "NavigationDrawerActivity"
 )
 
 /**
