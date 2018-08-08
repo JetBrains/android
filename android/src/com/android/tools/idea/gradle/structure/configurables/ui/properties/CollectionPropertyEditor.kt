@@ -23,7 +23,6 @@ import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.table.JBTable
-import com.intellij.util.ui.AbstractTableCellEditor
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -118,50 +117,10 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
       val parsedValue = (value as CollectionPropertyEditor<*, ValueT>.Value?)?.value ?: ParsedValue.NotSet.annotated()
       return SimpleColoredComponent().also { parsedValue.renderTo(it.toRenderer(), formatter, knownValueRenderers) }
     }
-
   }
 
-  inner class MyCellEditor : AbstractTableCellEditor() {
-    private var currentRow: Int = -1
-    private var currentRowProperty : ModelPropertyCore<ValueT>? = null
-    private var lastEditor: ModelPropertyEditor<ValueT>? = null
-    private var lastValue: Annotated<ParsedValue<ValueT>>? = null
-
-    override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
-      currentRow = row
-      val rowProperty = getPropertyAt(row)
-      currentRowProperty = rowProperty
-      val editor = this@CollectionPropertyEditor.editor(rowProperty, propertyContext, variablesScope)
-      lastEditor = editor
-      lastValue = null
-      return editor.component
-    }
-
-    override fun stopCellEditing(): Boolean =
-      when (lastEditor?.updateProperty()) {
-        null,
-        UpdatePropertyOutcome.UPDATED,
-        UpdatePropertyOutcome.NOT_CHANGED -> {
-          lastValue = currentRowProperty?.getParsedValue()
-          currentRow = -1
-          currentRowProperty = null
-          lastEditor?.dispose()
-          lastEditor = null
-          fireEditingStopped()
-          true
-        }
-        UpdatePropertyOutcome.INVALID -> false
-      }
-
-    override fun cancelCellEditing() {
-      lastValue = null
-      currentRow = -1
-      currentRowProperty = null
-      lastEditor?.dispose()
-      lastEditor = null
-      super.cancelCellEditing()
-    }
-
-    override fun getCellEditorValue(): Any? = (lastValue ?: lastEditor?.getValue())?.toTableModelValue()
+  inner class MyCellEditor : PropertyCellEditor<ValueT>() {
+    override fun Annotated<ParsedValue<ValueT>>.toModelValue(): Any = toTableModelValue()
+    override fun initEditorFor(row: Int): ModelPropertyEditor<ValueT> = editor(getPropertyAt(row), propertyContext, variablesScope)
   }
 }
