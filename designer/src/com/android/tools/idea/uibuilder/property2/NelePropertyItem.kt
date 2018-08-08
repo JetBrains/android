@@ -161,7 +161,20 @@ open class NelePropertyItem(
   private fun resolveValueUsingResolver(value: String?): String? {
     if (value == null || !isReferenceValue(value)) return value
     val resValue = asResourceValue(value) ?: asFrameworkResourceValue(value) ?: return null
-    return if (resValue.resourceType == ResourceType.FONT) resValue.name else resValue.value ?: value
+    when (resValue.resourceType) {
+      ResourceType.BOOL,
+      ResourceType.DIMEN,
+      ResourceType.FRACTION,
+      ResourceType.ID,
+      ResourceType.INTEGER,
+      ResourceType.STRING -> if (resValue.value != null) return resValue.value
+      ResourceType.COLOR -> if (resValue.value?.startsWith("#") == true) return resValue.value
+      else -> {}
+    }
+    // The value of the remaining resource types are file names, which we don't want to display.
+    // Instead show the url of this resolved resource.
+    val defaultNamespace = ResourceRepositoryManager.getOrCreateInstance(model.facet).namespace
+    return resValue.asReference().getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString()
   }
 
   val resolver: ResourceResolver?
