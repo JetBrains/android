@@ -389,6 +389,7 @@ public class StudioIcons {
 
     public static class Properties {
       public static final Icon ACTION = load("/studio/icons/nav-editor/properties/action.png"); // 16x16
+      public static final Icon ARGUMENT = load("/studio/icons/nav-editor/properties/argument.png"); // 16x16
       public static final Icon GLOBAL_ACTION = load("/studio/icons/nav-editor/properties/global-action.png"); // 16x16
       public static final Icon SOURCE = load("/studio/icons/nav-editor/properties/source.png"); // 16x16
     }
