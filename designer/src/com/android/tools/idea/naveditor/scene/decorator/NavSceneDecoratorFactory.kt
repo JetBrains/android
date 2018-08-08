@@ -35,7 +35,7 @@ class NavSceneDecoratorFactory : SceneDecoratorFactory() {
     return when (component.destinationType) {
       NavigationSchema.DestinationType.NAVIGATION -> NavigationDecorator
       NavigationSchema.DestinationType.ACTIVITY -> ActivityDecorator
-      NavigationSchema.DestinationType.FRAGMENT -> FragmentDecorator
+      NavigationSchema.DestinationType.FRAGMENT, NavigationSchema.DestinationType.OTHER -> FragmentDecorator
       else -> SceneDecoratorFactory.BASIC_DECORATOR
     }
   }

@@ -26,7 +26,6 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.naveditor.model.schema
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -83,8 +82,8 @@ object NavModelBuilderUtil {
     }
 
     return ModelBuilder(facet, fixture, name, f(), managerFactory,
-        BiConsumer<NlModel, NlModel> { model, newModel -> NavSceneManager.updateHierarchy(model, newModel) }, path,
-        NavDesignSurface::class.java)
+                        BiConsumer<NlModel, NlModel> { model, newModel -> NavSceneManager.updateHierarchy(model, newModel) }, path,
+                        NavDesignSurface::class.java)
   }
 
   fun navigation(id: String? = null, label: String? = null, startDestination: String? = null,
@@ -110,6 +109,17 @@ object NavModelBuilderUtil {
       val fragment = FragmentComponentDescriptor(id, layout, name, label)
       addChild(fragment, null)
       fragment.apply(f)
+    }
+
+    fun custom(tag: String,
+               id: String = tag,
+               layout: String? = null,
+               name: String? = null,
+               label: String? = null,
+               f: FragmentlikeComponentDescriptor.() -> Unit = {}) {
+      val destination = FragmentlikeComponentDescriptor(tag, id, layout, name, label)
+      addChild(destination, null)
+      destination.apply(f)
     }
 
     fun activity(id: String, f: ActivityComponentDescriptor.() -> Unit = {}) {
@@ -143,7 +153,10 @@ object NavModelBuilderUtil {
   }
 
   class FragmentComponentDescriptor(id: String, layout: String?, name: String?, label: String?)
-    : NavComponentDescriptor(TAG_FRAGMENT) {
+    : FragmentlikeComponentDescriptor(TAG_FRAGMENT, id, layout, name, label)
+
+  open class FragmentlikeComponentDescriptor(tag: String, id: String, layout: String?, name: String?, label: String?)
+    : NavComponentDescriptor(tag) {
     init {
       id("@+id/" + id)
       layout?.let { withAttribute(TOOLS_URI, ATTR_LAYOUT, "@layout/" + it) }
