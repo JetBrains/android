@@ -165,13 +165,3 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
     override fun getCellEditorValue(): Any? = (lastValue ?: lastEditor?.getValue())?.toTableModelValue()
   }
 }
-
-class SimplePropertyStub<ValueT : Any> : ModelPropertyCore<ValueT> {
-  override val description: String = ""
-  override fun getParsedValue(): Annotated<ParsedValue<ValueT>> = ParsedValue.NotSet.annotated()
-  override fun setParsedValue(value: ParsedValue<ValueT>) = Unit
-  override fun getResolvedValue(): ResolvedValue<ValueT> = ResolvedValue.NotResolved()
-  override val defaultValueGetter: (() -> ValueT?)? = null
-  override val isModified: Boolean? = null
-  override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
-}
