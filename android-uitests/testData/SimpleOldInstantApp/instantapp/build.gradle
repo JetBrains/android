@@ -1,0 +1,7 @@
+apply plugin: 'com.android.instantapp'
+
+dependencies {
+    implementation project(':feature')
+    implementation project(':base')
+    implementation 'com.android.support.constraint:constraint-layout:+'
+}
