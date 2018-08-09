@@ -90,8 +90,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @VisibleForTesting
   static final String RECORD_TEXT = "Record";
-  @VisibleForTesting
-  static final String STOP_TEXT = "Stop";
+
+  public static final String STOP_TEXT = "Stop";
 
   private static final int MONITOR_PANEL_ROW = 0;
   private static final int DETAILS_PANEL_ROW = 1;

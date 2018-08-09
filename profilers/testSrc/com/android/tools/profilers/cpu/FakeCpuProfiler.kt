@@ -66,7 +66,10 @@ class FakeCpuProfiler(val grpcChannel: FakeGrpcChannel,
 
     cpuService.setStopProfilingStatus(
       when (success) {
-        true -> CpuProfilingAppStopResponse.Status.SUCCESS
+        true -> {
+          cpuService.setValidTrace(true)
+          CpuProfilingAppStopResponse.Status.SUCCESS
+        }
         false -> CpuProfilingAppStopResponse.Status.FAILURE
       }
     )
@@ -93,7 +96,6 @@ class FakeCpuProfiler(val grpcChannel: FakeGrpcChannel,
 
     cpuService.apply {
       setTraceId(id)
-      setValidTrace(true)
       this.profilerType = profilerType
     }
     stopCapturing()
