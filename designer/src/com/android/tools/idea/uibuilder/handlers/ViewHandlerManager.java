@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -40,7 +41,6 @@ import com.android.tools.idea.uibuilder.handlers.transition.TransitionLayoutHand
 import com.android.tools.idea.uibuilder.menu.GroupHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.menu.MenuViewHandlerManager;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.statelist.ItemHandler;
 import com.android.tools.idea.uibuilder.statelist.SelectorHandler;
@@ -529,26 +529,12 @@ public class ViewHandlerManager implements ProjectComponent {
   }
 
   @Override
-  public void projectOpened() {
-  }
-
-  @Override
   public void projectClosed() {
     myHandlers.clear();
   }
 
   @Override
-  public void initComponent() {
-  }
-
-  @Override
   public void disposeComponent() {
     myHandlers.clear();
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return "ViewHandlerManager";
   }
 }
