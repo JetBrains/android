@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.view
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchImporterPresenter
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.ui.VerticalFlowLayout
@@ -29,11 +30,25 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
+private val PAGE_HEADER_SECONDARY_COLOR = Gray.x66
+private val PAGE_HEADER_BORDER = BorderFactory.createCompoundBorder(
+  BorderFactory.createEmptyBorder(0, 0, 8, 0),
+  JBUI.Borders.customLine(PAGE_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
+)
+
 class SketchImporterView {
   private fun getPreviewPanel(filePath: String, facet: AndroidFacet): JPanel {
 
     return JPanel(VerticalFlowLayout()).apply {
-      // TODO
+      val presenter = SketchImporterPresenter(filePath)
+      val pageIdToFiles = presenter.generateFiles(facet.module.project)
+
+      if (pageIdToFiles == null)
+        add(JLabel("Invalid Sketch file!"))
+      else
+        for (pageId in pageIdToFiles.keys) {
+          add(createPageHeader(presenter.importOptions.getOptions(pageId)!!.name))
+        }
     }
   }
 
@@ -51,5 +66,13 @@ class SketchImporterView {
 
       add(getPreviewPanel(filePath.text, facet))
     }
+  }
+
+  private fun createPageHeader(name: String): JComponent = JPanel(BorderLayout()).apply {
+    val nameLabel = JBLabel(name)
+    nameLabel.font = nameLabel.font.deriveFont(24f)
+    add(nameLabel)
+
+    border = PAGE_HEADER_BORDER
   }
 }

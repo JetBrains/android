@@ -42,6 +42,7 @@ public class SketchLayerDeserializer implements JsonDeserializer<SketchLayer> {
   public static final String SYMBOL_INSTANCE_CLASS_TYPE = "symbolInstance";
   public static final String GROUP_CLASS_TYPE = "group";
   public static final String TEXT_CLASS_TYPE = "text";
+  public static final String BITMAP_CLASS_TYPE = "bitmap";
 
   @Override
   @Nullable
@@ -76,6 +77,8 @@ public class SketchLayerDeserializer implements JsonDeserializer<SketchLayer> {
         return context.deserialize(json, SketchSymbolInstance.class);
       case TEXT_CLASS_TYPE:
         return context.deserialize(json, SketchText.class);
+      case BITMAP_CLASS_TYPE:
+        return context.deserialize(json, SketchBitmap.class);
       default:
         Logger.getInstance(SketchLayerDeserializer.class).warn("Class " + classType + " not found!");
         return null;

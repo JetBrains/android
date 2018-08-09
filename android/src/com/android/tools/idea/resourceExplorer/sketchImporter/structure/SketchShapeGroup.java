@@ -26,7 +26,6 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
-import java.util.Objects;
 
 import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathUtils.*;
 
@@ -95,25 +94,33 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
     String shapeBorderColor = null;
     String shapeFillColor = null;
     SketchStyle style = getStyle();
-    SketchBorder border = Objects.requireNonNull(style.getBorders())[0];
-    if (border.isEnabled()) {
-      shapeBorderWidth = Integer.toString(border.getThickness());
-      shapeBorderColor = "#" + Integer.toHexString(border.getColor().getRGB());
+    SketchBorder[] borders = style.getBorders();
+    if (borders != null && borders.length != 0) {
+      SketchBorder border = borders[0];
+      if (border.isEnabled()) {
+        shapeBorderWidth = Integer.toString(border.getThickness());
+        shapeBorderColor = "#" + Integer.toHexString(border.getColor().getRGB());
+      }
     }
 
-    SketchFill fill = Objects.requireNonNull(style.getFills())[0];
+    SketchFill[] fills = style.getFills();
+
     SketchGradient shapeGradient = null;
-    if (fill.isEnabled()) {
-      if (fill.getGradient() == null) {
-        shapeFillColor = "#" + Integer.toHexString(fill.getColor().getRGB());
-      }
-      else {
-        shapeGradient = fill.getGradient();
-        shapeGradient = shapeGradient.toAbsoluteGradient(parentCoords, getFrame());
+    if (fills != null && fills.length != 0) {
+      SketchFill fill = fills[0];
+      if (fill.isEnabled()) {
+        if (fill.getGradient() == null) {
+          shapeFillColor = "#" + Integer.toHexString(fill.getColor().getRGB());
+        }
+        else {
+          shapeGradient = fill.getGradient();
+          shapeGradient = shapeGradient.toAbsoluteGradient(parentCoords, getFrame());
+        }
       }
     }
     return ImmutableList.of(new DrawableShape(shapeName, shapePathData, shapeFillColor, shapeGradient, shapeBorderColor, shapeBorderWidth));
   }
+
 
   /*
    * Method that computes the pathData string of the shape in the SketchShapeGroup object.

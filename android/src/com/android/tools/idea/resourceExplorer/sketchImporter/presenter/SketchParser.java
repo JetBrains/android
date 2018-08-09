@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.presenter;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.model.SketchFile;
 import com.android.tools.idea.resourceExplorer.sketchImporter.logic.VectorDrawableFile;
+import com.android.tools.idea.resourceExplorer.sketchImporter.model.PageOptions;
+import com.android.tools.idea.resourceExplorer.sketchImporter.model.SketchFile;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPoint2D;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.ColorDeserializer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.PointDeserializer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
@@ -40,9 +41,9 @@ import java.awt.geom.Point2D;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.List;
 
 public class SketchParser {
   /**
@@ -130,7 +131,7 @@ public class SketchParser {
    *
    * @return a {@code SketchPage} or {@code null} if the {@code json} is at EOF
    * @throws JsonSyntaxException if there was a problem reading from the Reader
-   * @throws JsonIOException if json is not a valid representation for an object of type
+   * @throws JsonIOException     if json is not a valid representation for an object of type
    */
   @Nullable
   private static SketchPage getPage(@NotNull Reader reader) throws JsonSyntaxException, JsonIOException {
@@ -141,27 +142,5 @@ public class SketchParser {
       .registerTypeAdapter(SketchPoint2D.class, new PointDeserializer())
       .create();
     return gson.fromJson(reader, SketchPage.class);
-  }
-
-  /**
-   * Read the given sketchFile and generate the needed vector drawable files
-   * for the icons in the sketch file.
-   *
-   * @return a list of virtual files with the contents of each artboard in the sketchFile
-   */
-  @NotNull
-  public static List<LightVirtualFile> generateFiles(@NotNull SketchFile sketchFile, @NotNull Project project){
-    List<LightVirtualFile> generatedFiles = new ArrayList<>();
-    List<SketchPage> pages = sketchFile.getPages();
-
-    for(SketchPage page:pages){
-      for(SketchArtboard artboard:page.getArtboards()){
-        VectorDrawableFile vectorDrawableFile = new VectorDrawableFile(project, artboard);
-        LightVirtualFile lightVirtualFile = vectorDrawableFile.generateFile();
-        generatedFiles.add(lightVirtualFile);
-      }
-    }
-
-    return generatedFiles;
   }
 }
