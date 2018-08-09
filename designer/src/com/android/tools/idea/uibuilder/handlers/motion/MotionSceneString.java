@@ -25,12 +25,13 @@ public class MotionSceneString {
   public static final String TransitionConstraintSetStart = "constraintSetStart";
   public static final String TransitionDuration = "duration";
 
+  public static final String KeyTypeTimeCycle = "KeyTimeCycle";
   public static final String KeyTypeCycle = "KeyCycle";
   public static final String KeyTypeAttribute = "KeyAttribute";
   public static final String KeyTypePosition = "KeyPosition";
 
-  public static final String KeyPosition_type = "type";
-  public static final String KeyPosition_type_cartesian = "cartesian";
+  public static final String KeyPosition_type = "keyPositionType";
+  public static final String KeyPosition_type_cartesian = "deltaRelative";
 
   public static final String Key_framePosition = "framePosition";
   public static final String Key_frameTarget = "target";

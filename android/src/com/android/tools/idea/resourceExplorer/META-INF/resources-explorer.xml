@@ -32,6 +32,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager"/>
+    <customPasteProvider implementation="com.android.tools.idea.resourceExplorer.ResourcePasteProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">

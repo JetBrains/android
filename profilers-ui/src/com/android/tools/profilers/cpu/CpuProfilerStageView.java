@@ -122,10 +122,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private final CpuProfilerStage myStage;
 
   private final JButton myCaptureButton;
-  /**
-   * Contains the elapsed time of the capture if there is a recording in progress.
-   */
-  private final JLabel myElapsedRecordingTime;
+
   @NotNull private final CpuThreadsView myThreads;
   @NotNull private final CpuKernelsView myCpus;
 
@@ -154,8 +151,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     stage.getAspect().addDependency(this)
          .onChange(CpuProfilerAspect.CAPTURE_STATE, this::updateCaptureState)
          .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCaptureSelection)
-         .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection)
-         .onChange(CpuProfilerAspect.CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
+         .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection);
     stage.getStudioProfilers().addDependency(this)
          .onChange(ProfilerAspect.MODE, this::updateCaptureViewVisibility);
 
@@ -243,11 +239,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myCaptureButton.setPreferredSize(JBDimension.create(myCaptureButton.getPreferredSize()).withHeight(
       (int)myProfilingConfigurationView.getComponent().getPreferredSize().getHeight()));
     myCaptureButton.addActionListener(event -> myStage.toggleCapturing());
-
-    myElapsedRecordingTime = new JLabel("");
-    myElapsedRecordingTime.setFont(ProfilerFonts.STANDARD_FONT);
-    myElapsedRecordingTime.setBorder(JBUI.Borders.emptyLeft(5));
-    myElapsedRecordingTime.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
 
     updateCaptureState();
 
@@ -354,7 +345,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     toolbar.add(myProfilingConfigurationView.getComponent());
     toolbar.add(myCaptureButton);
-    toolbar.add(myElapsedRecordingTime);
 
     SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
     sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, () -> myCaptureButton.setEnabled(shouldEnableCaptureButton()));
@@ -378,7 +368,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   private void updateCaptureState() {
-    myElapsedRecordingTime.setText("");
     switch (myStage.getCaptureState()) {
       case IDLE:
         myCaptureButton.setEnabled(shouldEnableCaptureButton());
@@ -440,13 +429,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private void updateCaptureViewVisibility() {
     if (myStage.getProfilerMode() == ProfilerMode.EXPANDED) {
       mySplitter.setSecondComponent(myCaptureView.getComponent());
-    }
-  }
-
-  private void updateCaptureElapsedTime() {
-    if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
-      long elapsedTimeUs = myStage.getCaptureElapsedTimeUs();
-      myElapsedRecordingTime.setText(TimeFormatter.getSemiSimplifiedClockString(elapsedTimeUs));
     }
   }
 

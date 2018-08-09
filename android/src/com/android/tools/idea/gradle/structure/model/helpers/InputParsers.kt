@@ -24,6 +24,12 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
 import java.io.File
 
+fun parseAny(context: Any?, text: String): Annotated<ParsedValue<Any>> =
+  if (text == "")
+    ParsedValue.NotSet.annotated()
+  else
+    ParsedValue.Set.Parsed(text.toIntOrNull() ?: text.toBigDecimalOrNull() ?: text.toBooleanOrNull() ?: text, DslText.Literal).annotated()
+
 fun parseString(context: Any?, text: String): Annotated<ParsedValue<String>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
@@ -48,12 +54,20 @@ inline fun <reified T> parseEnum(text: String, parser: (String) -> T?): Annotate
         .annotateWithError("'${text}' is not a valid value of type ${T::class.simpleName}")
   }
 
+private fun String.toBooleanOrNull() = when {
+  this.equals("true", ignoreCase = true) -> true
+  this.equals("false", ignoreCase = true) -> false
+  else -> null
+}
+
 fun parseBoolean(context: Any?, text: String): Annotated<ParsedValue<Boolean>> =
-  when {
-    text == "" -> ParsedValue.NotSet.annotated()
-    text.equals("true", ignoreCase = true) -> ParsedValue.Set.Parsed(true, DslText.Literal).annotated()
-    text.equals("false", ignoreCase = true) -> ParsedValue.Set.Parsed(false, DslText.Literal).annotated()
-    else ->
+  if (text == "")
+    ParsedValue.NotSet.annotated()
+  else {
+    val parsed = text.toBooleanOrNull()
+    if (parsed != null)
+      ParsedValue.Set.Parsed(parsed, DslText.Literal).annotated()
+    else
       ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
         .annotateWithError("Unknown boolean value: '$text'. Expected 'true' or 'false'")
   }

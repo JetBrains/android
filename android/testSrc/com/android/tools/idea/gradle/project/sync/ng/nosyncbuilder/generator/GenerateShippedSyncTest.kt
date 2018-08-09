@@ -21,6 +21,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.Projects
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NPW_GENERATED_PROJECTS_DIR
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.getProjectCacheDir
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleWrapper
@@ -35,7 +36,6 @@ import com.android.tools.idea.templates.TemplateMetadata.*
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME
-import com.google.common.collect.ImmutableList
 import com.intellij.idea.IdeaTestApplication
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -51,28 +51,21 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 
-const val NPW_GENERATED_PROJECTS_DIR = "npw_generated_projects"
-
 // New project is created only in first iteration of first test. Later only modules/activities are created
 private var firstRun = true
 
-private val mobileActivities = ImmutableList.of(
+private val mobileActivities = listOf(
   "BasicActivity",
-  "BottomNavigationActivity",
   "EmptyActivity",
-  "ViewModelActivity",
+  "BottomNavigationActivity",
   "FullscreenActivity",
-  //"GoogleAdMobAdsActivity", FIXME not working because can't resolve some dependency
-  "LoginActivity",
   "MasterDetailFlow",
-  "NavigationDrawerActivity",
-  "ScrollActivity",
-  "SettingsActivity",
-  "TabbedActivity"
+  "NavigationDrawerActivity"
 )
 
 /**
  * This generates NPW projects from "popular" sets of input combinations (e.g. mobile project with min API 21 and BasicActivity)
+ * Actually not a test but a tool. See b/111785663
  */
 class GenerateShippedSyncTest : AndroidTestBase() {
   // Generate projects only for the following (most popular/latest) version of sdks.
@@ -129,9 +122,8 @@ class GenerateShippedSyncTest : AndroidTestBase() {
       executeActivityTemplate(templateFile, projectDir.path)
     }
 
+    createGradleWrapper(projectDir)
     Files.move(projectDir.toPath(), Paths.get(NPW_GENERATED_PROJECTS_DIR))
-
-    createGradleWrapper(projectDir) // TODO(qumeric) consider dropping usage of Gradle wrapper?
   }
 
   private fun executeActivityTemplate(templateFile: File, projectLocation: String) {

@@ -20,6 +20,7 @@ import com.android.tools.idea.lang.roomSql.resolution.RoomColumnPsiReference
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemsHolder
+import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiReference
@@ -63,8 +64,15 @@ class RoomUnresolvedReferenceInspection : RoomQueryOnlyInspection() {
       }
 
       private fun checkReference(referenceElement: PsiElement) {
+        val roomSqlFile = referenceElement.containingFile as? RoomSqlFile ?: return
+
+        // FRANKENSTEIN_INJECTION means the file should not be checked, see e.g. FrankensteinErrorFilter. This may be the case if we're
+        // parsing a string expression and for some reason cannot compute its value. KotlinLanguageInjector marks every injection in a
+        // string template as such, see the splitLiteralToInjectionParts function and b/77211318. See KT-25906.
+        if (roomSqlFile.getUserData(InjectedLanguageManager.FRANKENSTEIN_INJECTION) == true) return
+
         // Make sure we're inside Room's @Query annotation, otherwise we don't know the schema.
-        if ((referenceElement.containingFile as? RoomSqlFile)?.queryAnnotation == null) return
+        if (roomSqlFile.queryAnnotation == null) return
 
         if (!(isWellUnderstood(PsiTreeUtil.findPrevParent(referenceElement.containingFile, referenceElement)))) return
 

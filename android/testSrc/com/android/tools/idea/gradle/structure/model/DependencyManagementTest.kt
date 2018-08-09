@@ -328,19 +328,19 @@ class DependencyManagementTest : DependencyTestCase() {
   fun testAddLibraryDependency() {
     var module = project.findModuleByName("moduleA") as PsAndroidModule
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
-    module.addLibraryDependency("com.example.libs:lib1:1.0".asParsed(), listOf("implementation"))
+    module.addLibraryDependency("com.example.libs:lib1:1.0".asParsed(), "implementation")
     assertThat(module.isModified, equalTo(true))
     assertThat(project.isModified, equalTo(true))
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
 
-    module.addLibraryDependency("com.example.libs:lib2:1.0".asParsed(), listOf("implementation"))
+    module.addLibraryDependency("com.example.libs:lib2:1.0".asParsed(), "implementation")
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib2:1.0"), notNullValue())
 
     var jModule = project.findModuleByName("jModuleM") as PsJavaModule
     assertThat(jModule.dependencies.findLibraryDependency("com.example.jlib:lib4:1.0"), nullValue())
 
-    jModule.addLibraryDependency("com.example.jlib:lib4:1.0".asParsed(), listOf("implementation"))
+    jModule.addLibraryDependency("com.example.jlib:lib4:1.0".asParsed(), "implementation")
     assertThat(jModule.dependencies.findLibraryDependency("com.example.jlib:lib4:1.0"), notNullValue())
 
     run {
@@ -383,7 +383,7 @@ class DependencyManagementTest : DependencyTestCase() {
       assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:0.6"), nullValue())
       module.addLibraryDependency(
         ParsedValue.Set.Parsed("com.example.libs:lib1:0.6", DslText.InterpolatedString("com.example.libs:lib1:\$var06")),
-        listOf("implementation"))
+        "implementation")
 
       val addedDep = module.dependencies.findLibraryDependency("com.example.libs:lib1:0.6")
       assertThat(addedDep, notNullValue())
@@ -586,13 +586,13 @@ class DependencyManagementTest : DependencyTestCase() {
   fun testAddModuleDependency() {
     var module = project.findModuleByName("mainModule") as PsAndroidModule
     assertThat(module.dependencies.findModuleDependency(":moduleA"), nullValue())
-    module.addModuleDependency(":moduleA", listOf("implementation"))
+    module.addModuleDependency(":moduleA", "implementation")
     assertThat(module.dependencies.findModuleDependency(":moduleA"), notNullValue())
 
     assertThat(module.isModified, equalTo(true))
     assertThat(project.isModified, equalTo(true))
 
-    module.addModuleDependency(":moduleB", listOf("implementation"))
+    module.addModuleDependency(":moduleB", "implementation")
     assertThat(module.dependencies.findModuleDependency(":moduleA"), notNullValue())
     assertThat(module.dependencies.findModuleDependency(":moduleB"), notNullValue())
 
@@ -620,7 +620,7 @@ class DependencyManagementTest : DependencyTestCase() {
   fun testAddJavaModuleDependency() {
     var module = project.findModuleByName("mainModule") as PsAndroidModule
     assertThat(module.dependencies.findModuleDependency(":jModuleK"), nullValue())
-    module.addModuleDependency(":jModuleK", listOf("implementation"))
+    module.addModuleDependency(":jModuleK", "implementation")
     assertThat(module.dependencies.findModuleDependency(":jModuleK"), notNullValue())
 
     run {
@@ -644,7 +644,7 @@ class DependencyManagementTest : DependencyTestCase() {
   fun testAddJavaModuleDependencyToJavaModule() {
     var module = project.findModuleByName("jModuleK") as PsJavaModule
     assertThat(module.dependencies.findModuleDependency(":jModuleM"), nullValue())
-    module.addModuleDependency(":jModuleM", listOf("implementation"))
+    module.addModuleDependency(":jModuleM", "implementation")
     assertThat(module.dependencies.findModuleDependency(":jModuleM"), notNullValue())
 
     assertThat(module.isModified, equalTo(true))

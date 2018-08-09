@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.suggestions
 
 import com.android.tools.idea.gradle.structure.configurables.AbstractCounterDisplayConfigurable
+import com.android.tools.idea.gradle.structure.configurables.JavaModuleUnsupportedConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
@@ -34,11 +35,11 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
 
   override fun getId(): String = "android.psd.suggestions"
 
-  override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<PsModule, *>? =
+  override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<PsModule, *> =
       when (module) {
         is PsAndroidModule -> createConfigurable(module)
         is PsAllModulesFakeModule -> createConfigurable(module)
-        else -> null
+        else -> JavaModuleUnsupportedConfigurable(context, module)
       }
 
   override val navigationPathName: String = "suggestions.place"

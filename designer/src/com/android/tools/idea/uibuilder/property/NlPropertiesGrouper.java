@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertyAccumulator.PropertyNamePrefixAccumulator;
 import com.android.tools.adtui.ptable.PTableItem;
@@ -35,7 +34,7 @@ public class NlPropertiesGrouper {
 
     // group theme attributes together
     NlPropertyAccumulator themePropertiesAccumulator = new NlPropertyAccumulator(
-      "Theme", "", p -> p != null && (isThemeAttribute(p) || p.getName().equalsIgnoreCase("theme")));
+      "Theme", "", p -> p != null && (p.isThemeAttribute() || p.getName().equalsIgnoreCase("theme")));
 
     // Disable this for now...
     //
@@ -82,10 +81,6 @@ public class NlPropertiesGrouper {
     }
 
     return result;
-  }
-
-  private static boolean isThemeAttribute(NlPropertyItem item) {
-    return item.getParentStyleables().stream().map(ResourceReference::getName).anyMatch(s -> s.equals("Theme"));
   }
 
   @Nullable

@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.project.build.invoker.TestBuildAction;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.stats.RunStatsService;
-import com.android.tools.idea.stats.RunStatsServiceImpl;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ArrayListMultimap;
@@ -30,9 +29,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.TimeoutUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
 import org.mockito.Answers;
-import org.mockito.Mockito;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -55,7 +52,6 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
     ideComponents.replaceProjectService(GradleBuildInvoker.class, buildInvoker);
 
     GradleTaskRunner runner = GradleTaskRunner.newRunner(project);
-    RunStatsService.setTestOverride(mock(RunStatsService.class, Answers.RETURNS_DEEP_STUBS));
     CountDownLatch countDownLatch = new CountDownLatch(1);
     ForkJoinPool.commonPool().execute(() -> {
       try {

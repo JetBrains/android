@@ -24,6 +24,20 @@ import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil
 import com.intellij.pom.java.LanguageLevel
 import java.io.File
 
+fun ResolvedPropertyModel.asAny(): Any? = when (valueType) {
+  ValueType.STRING -> getValue(GradlePropertyModel.STRING_TYPE)
+  ValueType.INTEGER -> getValue(GradlePropertyModel.INTEGER_TYPE)
+  ValueType.BIG_DECIMAL -> getValue(GradlePropertyModel.BIG_DECIMAL_TYPE)
+  ValueType.BOOLEAN -> getValue(GradlePropertyModel.BOOLEAN_TYPE)
+  ValueType.LIST -> getValue(GradlePropertyModel.LIST_TYPE)
+  ValueType.MAP -> getValue(GradlePropertyModel.MAP_TYPE)
+
+  ValueType.REFERENCE,
+  ValueType.CUSTOM,
+  ValueType.NONE,
+  ValueType.UNKNOWN -> null
+}
+
 fun ResolvedPropertyModel.asString(): String? = when (valueType) {
   ValueType.STRING -> getValue(GradlePropertyModel.STRING_TYPE)
 // Implicitly convert Integer values to String. Dual String/Integer properties are common

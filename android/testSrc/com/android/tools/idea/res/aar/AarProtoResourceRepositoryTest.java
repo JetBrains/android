@@ -180,8 +180,8 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     if (item1.getType() != ResourceType.ID && !Objects.equals(item1.getConfiguration(), item2.getConfiguration())) {
       return false;
     }
-    // TODO: AarValueResourceItem.getSource() method hasn't been fully implemented yet.
-    if (item1 instanceof AarValueResourceItem || item2 instanceof AarValueResourceItem) {
+    // TODO: AbstractAarValueResourceItem.getSource() method hasn't been fully implemented yet.
+    if (item1 instanceof AbstractAarValueResourceItem || item2 instanceof AbstractAarValueResourceItem) {
       return true;
     }
     return areEquivalentSources(item1.getSource(), item2.getSource());

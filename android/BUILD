@@ -336,6 +336,7 @@ filegroup(
         ":profiler-artifacts",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
+        "//tools/base/deploy/proto:java_proto",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     ],
 )
@@ -359,9 +360,12 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/android/arch/lifecycle/runtime/1.1.1:aar",
         "//prebuilts/tools/common/m2/repository/android/arch/lifecycle/viewmodel/1.1.0:aar",
         "//prebuilts/tools/common/m2/repository/android/arch/lifecycle/viewmodel/1.1.1:aar",
-        "//prebuilts/tools/common/m2/repository/android/arch/navigation/navigation-common/1.0.0-alpha01:aar",
-        "//prebuilts/tools/common/m2/repository/android/arch/navigation/navigation-fragment/1.0.0-alpha01:aar",
-        "//prebuilts/tools/common/m2/repository/android/arch/navigation/navigation-runtime/1.0.0-alpha01:aar",
+        "//prebuilts/tools/common/m2/repository/android/arch/navigation/navigation-common-ktx/1.0.0-alpha04:aar",
+        "//prebuilts/tools/common/m2/repository/android/arch/navigation/navigation-common/1.0.0-alpha04:aar",
+        "//prebuilts/tools/common/m2/repository/android/arch/navigation/navigation-fragment-ktx/1.0.0-alpha04:aar",
+        "//prebuilts/tools/common/m2/repository/android/arch/navigation/navigation-fragment/1.0.0-alpha04:aar",
+        "//prebuilts/tools/common/m2/repository/android/arch/navigation/navigation-runtime-ktx/1.0.0-alpha04:aar",
+        "//prebuilts/tools/common/m2/repository/android/arch/navigation/navigation-runtime/1.0.0-alpha04:aar",
         "//prebuilts/tools/common/m2/repository/android/arch/persistence/db-framework/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/android/arch/persistence/db/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/android/arch/persistence/room/common/1.0.0:jar",

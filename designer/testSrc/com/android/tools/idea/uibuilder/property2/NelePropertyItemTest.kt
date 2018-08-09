@@ -190,6 +190,16 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(referenceFromDefaultProperty.tooltipForValue).isEqualTo("[default] \"@dimen/lineSpacing\" = \"13sp\" ($keyStroke)")
   }
 
+  fun testCompletion() {
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val components = createTextView()
+    val text = createPropertyItem(ATTR_TEXT, NelePropertyType.STRING, components, model)
+    val values = text.editingSupport.completion()
+    assertThat(values.size).isAtLeast(25)
+    assertThat(values.filter { it.startsWith("@string/") }).containsExactly("@string/demo", "@string/design").inOrder()
+    assertThat(values).containsAllOf("@android:string/yes", "@android:string/no", "@android:string/cancel")
+  }
+
   private fun createTextView(): List<NlComponent> {
     return createComponents(
         component(TEXT_VIEW)

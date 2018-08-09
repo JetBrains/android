@@ -33,12 +33,23 @@ public final class AssistToolWindowFactory implements ToolWindowFactory {
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
+    createToolWindowContent(project, toolWindow, false);
+  }
+
+  /**
+   * If usePanelTitle is true, the bundle's name will show on the top bar next to the title
+   */
+  public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow, boolean usePanelTitle) {
     if (myAssistSidePanel == null) {
       myAssistSidePanel = new AssistSidePanel(myActionId, project);
     }
 
+    String tabTitle = null;
+    if (usePanelTitle)
+      tabTitle = myAssistSidePanel.getTitle();
+
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-    Content content = contentFactory.createContent(myAssistSidePanel, null, false);
+    Content content = contentFactory.createContent(myAssistSidePanel, tabTitle, false);
     ContentManager contentManager = toolWindow.getContentManager();
     contentManager.removeAllContents(true);
     contentManager.addContent(content);

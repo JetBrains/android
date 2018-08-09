@@ -16,75 +16,60 @@
 package com.android.tools.idea.res.aar;
 
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.ResourceValueImpl;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.google.common.base.MoreObjects;
+import com.android.utils.HashCodes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Resource item representing a file resource inside an AAR, e.g. a drawable or a layout.
  */
-class AarFileResourceItem extends ResourceValueImpl implements AarResourceItem {
-  @NotNull private final AarConfiguration myConfiguration;
-  @NotNull private final ResourceVisibility myVisibility;
+class AarFileResourceItem extends AbstractAarResourceItem {
+  @NotNull private final ResourceType myResourceType;
+  @NotNull private final String myRelativePath;
 
   /**
-   * Initializes a file resource.
+   * Initializes the resource.
    *
    * @param type the type of the resource
    * @param name the name of the resource
-   * @param zipEntryPath the path of the resource zip entry inside res.apk
    * @param configuration the configuration the resource belongs to
    * @param visibility the visibility of the resource
+   * @param relativePath the path of the resource relative to the res folder, or path of a zip entry inside res.apk
    */
   public AarFileResourceItem(@NotNull ResourceType type,
                              @NotNull String name,
-                             @NotNull String zipEntryPath,
                              @NotNull AarConfiguration configuration,
-                             @NotNull ResourceVisibility visibility) {
-    super(configuration.getRepository().getNamespace(), type, name, zipEntryPath, configuration.getRepository().getLibraryName());
-    myConfiguration = configuration;
-    myVisibility = visibility;
+                             @NotNull ResourceVisibility visibility,
+                             @NotNull String relativePath) {
+    super(name, configuration, visibility);
+    myResourceType = type;
+    myRelativePath = relativePath;
   }
 
   @Override
   @NotNull
-  public ResourceType getType() {
-    return getResourceType();
+  public final ResourceType getResourceType() {
+    return myResourceType;
   }
 
   @Override
-  @NotNull
-  public FolderConfiguration getConfiguration() {
-    return myConfiguration.getFolderConfiguration();
-  }
-
-  @Override
-  @NotNull
-  public ResourceReference getReferenceToSelf() {
-    return asReference();
-  }
-
-  @Override
-  @Nullable
-  public ResourceValue getResourceValue() {
-    return this;
-  }
-
-  @Override
-  public boolean isFileBased() {
+  public final boolean isFileBased() {
     return true;
   }
 
   @Override
   @Nullable
   public String getValue() {
-    return myConfiguration.getRepository().getResourceUrl(super.getValue());
+    return getRepository().getResourceUrl(myRelativePath);
+  }
+
+  @Override
+  @Nullable
+  public final ResourceReference getReference() {
+    return null;
   }
 
   /**
@@ -95,25 +80,21 @@ class AarFileResourceItem extends ResourceValueImpl implements AarResourceItem {
    * The path part is the path of the ZIP entry containing the resource.
    */
   @Override
-  @Nullable
-  public PathString getSource() {
-    return myConfiguration.getRepository().getPathString(super.getValue());
+  @NotNull
+  public final PathString getSource() {
+    return getRepository().getPathString(myRelativePath);
   }
 
   @Override
-  @NotNull
-  public ResourceVisibility getVisibility() {
-    return myVisibility;
+  public boolean equals(@Nullable Object obj) {
+    if (this == obj) return true;
+    if (!super.equals(obj)) return false;
+    AarFileResourceItem other = (AarFileResourceItem) obj;
+    return myRelativePath.equals(other.myRelativePath);
   }
 
   @Override
-  @NotNull
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-                      .add("name", getName())
-                      .add("namespace", getNamespace())
-                      .add("type", getType())
-                      .add("source", getSource())
-                      .toString();
+  public int hashCode() {
+    return HashCodes.mix(super.hashCode(), myRelativePath.hashCode());
   }
 }

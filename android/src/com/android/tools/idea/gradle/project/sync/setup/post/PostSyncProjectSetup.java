@@ -244,6 +244,10 @@ public class PostSyncProjectSetup {
       myModuleSetup.setUpModules(null);
 
       finishSuccessfulSync(taskId);
+      // If sync is successful and the project is eligible, ask user to opt-in single-variant sync.
+      if (!isInTestingMode()) {
+        myEnableDisableSingleVariantSyncStep.checkAndEnableOption(myProject);
+      }
     }
     catch (Throwable t) {
       mySyncState.syncFailed("setup project failed: " + t.getMessage());

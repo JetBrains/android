@@ -59,12 +59,12 @@ public class PaintComponentMethodStat extends MethodStat {
   protected void addAttributeDescriptions(@NotNull JsonObject description) {
     super.addAttributeDescriptions(description);
 
-    description.addProperty("__isImage", myIsImage);
+    description.addProperty("isImage", myIsImage);
 
     double[] matrix = new double[6];
     myTransform.getMatrix(matrix);
-    description.add("__xform", SerializationHelpers.arrayToJsonArray(matrix));
+    description.add("xform", SerializationHelpers.arrayToJsonArray(matrix));
 
-    description.add("__clip", SerializationHelpers.arrayToJsonArray(myClip));
+    description.add("clip", SerializationHelpers.arrayToJsonArray(myClip));
   }
 }

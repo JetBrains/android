@@ -82,6 +82,15 @@ class CpuCaptureViewTest {
   }
 
   @Test
+  fun whenRecordingThereShouldBeInstanceOfRecordingPane() {
+    cpuProfiler.apply {
+      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
+      startCapturing()
+    }
+    ReferenceWalker(captureView).assertReachable(CpuCaptureView.RecordingPane::class.java)
+  }
+
+  @Test
   fun testTraceEventTitleForATrace() {
     cpuProfiler.apply {
       setTrace(CpuProfilerUITestUtils.ATRACE_PID1_PATH)

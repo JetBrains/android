@@ -32,8 +32,9 @@ class ModulesPerspectiveConfigurable(context: PsContext)
 
   override fun getId() = "android.psd.modules"
 
-  override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<*, *>? =
-      if (module is PsAndroidModule) createConfigurable(module) else null
+  override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *> =
+      if (module is PsAndroidModule) createConfigurable(module)
+      else JavaModuleUnsupportedConfigurable(context, module)
 
   override val navigationPathName: String = MODULES_PERSPECTIVE_PLACE_NAME
 

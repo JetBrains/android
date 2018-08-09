@@ -136,6 +136,9 @@ public class TransitionPanel extends TagPanel {
 
   public void setTransitionTag(MotionSceneModel.TransitionTag tag) {
     myTag = tag;
+    if (tag == null) {
+      return;
+    }
     HashMap<String, Object> attr = tag.getAttributes();
     data.clear();
     for (String s : attr.keySet()) {

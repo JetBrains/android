@@ -29,6 +29,7 @@ import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.XmlUtils;
 import com.google.common.base.CharMatcher;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.BitUtil;
@@ -192,7 +193,7 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
         if (CharMatcher.whitespace().matchesAllOf(description)) {
           description = null;
         }
-        return createResourceItem(valueMsg.getCompoundValue(), resourceType, resourceName, description, configuration, visibility);
+        return createResourceItem(valueMsg.getCompoundValue(), resourceName, configuration, visibility, description);
 
       case VALUE_NOT_SET:
       default:
@@ -214,10 +215,10 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
         if (densityQualifier != null) {
           Density densityValue = densityQualifier.getValue();
           if (densityValue != null) {
-            return new AarDensityBasedFileResourceItem(resourceType, resourceName, path, densityValue, configuration, visibility);
+            return new AarDensityBasedFileResourceItem(resourceType, resourceName, configuration, visibility, path, densityValue);
           }
         }
-        return new AarFileResourceItem(resourceType, resourceName, path, configuration, visibility);
+        return new AarFileResourceItem(resourceType, resourceName, configuration, visibility, path);
       }
 
       case REF: {
@@ -227,9 +228,7 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
 
       case STR: {
         String textValue = itemMsg.getStr().getValue();
-        ResourceValue resourceValue =
-            new TextResourceValueImpl(getNamespace(), resourceType, resourceName, textValue, null, getLibraryName());
-        return new AarValueResourceItem(resourceValue, configuration, visibility);
+        return new AarTextValueResourceItem(resourceType, resourceName, configuration, visibility, textValue, null);
       }
 
       case RAW_STR: {
@@ -246,9 +245,7 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
         Resources.StyledString styledStrMsg = itemMsg.getStyledStr();
         String textValue = styledStrMsg.getValue();
         String rawXmlValue = ProtoStyledStringDecoder.getRawXmlValue(styledStrMsg);
-        ResourceValue resourceValue =
-            new TextResourceValueImpl(getNamespace(), resourceType, resourceName, textValue, rawXmlValue, getLibraryName());
-        return new AarValueResourceItem(resourceValue, configuration, visibility);
+        return new AarTextValueResourceItem(resourceType, resourceName, configuration, visibility, textValue, rawXmlValue);
       }
 
       case ID: {
@@ -264,60 +261,54 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
   }
 
   @NotNull
-  private AarResourceItem createResourceItem(@NotNull ResourceType resourceType, @NotNull String resourceName,
-                                             @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility,
-                                             @Nullable String value) {
-    ResourceValue resourceValue = new ResourceValueImpl(getNamespace(), resourceType, resourceName, value, getLibraryName());
-    return new AarValueResourceItem(resourceValue, configuration, visibility);
+  private static AarResourceItem createResourceItem(@NotNull ResourceType resourceType, @NotNull String resourceName,
+                                                    @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility,
+                                                    @Nullable String value) {
+    return new AarValueResourceItem(resourceType, resourceName, configuration, visibility, value);
   }
 
   @Nullable
-  private AarResourceItem createResourceItem(@NotNull Resources.CompoundValue compoundValueMsg,
-                                             @NotNull ResourceType resourceType,
-                                             @NotNull String resourceName,
-                                             @Nullable String description,
-                                             @NotNull AarConfiguration configuration,
-                                             @NotNull ResourceVisibility visibility) {
-    ResourceValue resourceValue;
+  private AarResourceItem createResourceItem(@NotNull Resources.CompoundValue compoundValueMsg, @NotNull String resourceName,
+                                             @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility,
+                                             @Nullable String description) {
     switch (compoundValueMsg.getValueCase()) {
       case ATTR:
-        resourceValue = createAttrValue(compoundValueMsg.getAttr(), resourceType, resourceName, description);
-        break;
+        return createAttr(compoundValueMsg.getAttr(), resourceName, configuration, visibility, description);
+
       case STYLE:
-        resourceValue = createStyleValue(compoundValueMsg.getStyle(), resourceType, resourceName);
-        break;
+        return createStyle(compoundValueMsg.getStyle(), resourceName, configuration, visibility);
+
       case STYLEABLE:
-        resourceValue = createStyleableValue(compoundValueMsg.getStyleable(), resourceName);
-        break;
+        return createStyleable(compoundValueMsg.getStyleable(), resourceName, configuration, visibility);
+
       case ARRAY:
-        resourceValue = createArrayValue(compoundValueMsg.getArray(), resourceType, resourceName);
-        break;
+        return createArray(compoundValueMsg.getArray(), resourceName, configuration, visibility);
+
       case PLURAL:
-        resourceValue = createPluralsValue(compoundValueMsg.getPlural(), resourceType, resourceName);
-        break;
+        return createPlurals(compoundValueMsg.getPlural(), resourceName, configuration, visibility);
+
       case VALUE_NOT_SET:
       default:
         LOG.warn("Unexpected CompoundValue message: " + compoundValueMsg);
         return null;
     }
-    if (resourceValue == null) {
-      return null;
-    }
-    return new AarValueResourceItem(resourceValue, configuration, visibility);
   }
 
   @Nullable
-  private ResourceValue createAttrValue(@NotNull Resources.Attribute attributeMsg, @NotNull ResourceType resourceType,
-                                        @NotNull String resourceName, @Nullable String description) {
-    AttrResourceValueImpl attrValue = new AttrResourceValueImpl(getNamespace(), resourceType, resourceName, getLibraryName());
-    attrValue.setDescription(description);
+  private static AarAttrResourceItem createAttr(@NotNull Resources.Attribute attributeMsg, @NotNull String resourceName,
+                                                @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility,
+                                                @Nullable String description) {
+    Set<AttributeFormat> formats = decodeFormatFlags(attributeMsg.getFormatFlags());
+
+    ImmutableMap.Builder<String, Integer> valueMap = ImmutableMap.builder();
+    ImmutableMap.Builder<String, String> valueDescriptionMap = ImmutableMap.builder();
     List<Resources.Attribute.Symbol> symbolList = attributeMsg.getSymbolList();
     if (symbolList.isEmpty() && attributeMsg.getFormatFlags() == Resources.Attribute.FormatFlags.ANY.getNumber()) {
       return null;
     }
     for (Resources.Attribute.Symbol symbolMsg : symbolList) {
       String name = symbolMsg.getName().getName();
-      // Remove the explicit resource type to match behavior of AarSourceResourceRepository.
+      // Remove the explicit resource type to match the behavior of AarSourceResourceRepository.
       int slashPos = name.lastIndexOf('/');
       if (slashPos >= 0) {
         name = name.substring(slashPos + 1);
@@ -326,69 +317,71 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
       if (CharMatcher.whitespace().matchesAllOf(symbolDescription)) {
         symbolDescription = null;
       }
-      attrValue.addValue(name, symbolMsg.getValue(), symbolDescription);
+      valueMap.put(name, symbolMsg.getValue());
+      if (symbolDescription != null) {
+        valueDescriptionMap.put(name, symbolDescription);
+      }
     }
 
-    attrValue.setFormats(decodeFormatFlags(attributeMsg.getFormatFlags()));
-    return attrValue;
+    return new AarAttrResourceItem(resourceName, configuration, visibility, description, formats, valueMap.build(),
+                                   valueDescriptionMap.build());
   }
 
   @NotNull
-  private ResourceValue createStyleValue(@NotNull Resources.Style styleMsg, @NotNull ResourceType resourceType,
-                                         @NotNull String resourceName) {
+  private AarStyleResourceItem createStyle(@NotNull Resources.Style styleMsg, @NotNull String resourceName,
+                                           @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility) {
     String parentStyle = styleMsg.getParent().getName();
-    StyleResourceValueImpl styleValue = new StyleResourceValueImpl(getNamespace(), resourceType, resourceName, parentStyle, getLibraryName());
+    List<StyleItemResourceValue> styleItems = new ArrayList<>(styleMsg.getEntryCount());
     for (Resources.Style.Entry entryMsg : styleMsg.getEntryList()) {
       String url = entryMsg.getKey().getName();
       myUrlParser.parseResourceUrl(url);
       String name = myUrlParser.withoutType();
       String value = decode(entryMsg.getItem());
       StyleItemResourceValueImpl itemValue = new StyleItemResourceValueImpl(getNamespace(), name, value, getLibraryName());
-      styleValue.addItem(itemValue);
+      styleItems.add(itemValue);
     }
 
-    return styleValue;
+    return new AarStyleResourceItem(resourceName, configuration, visibility, parentStyle, styleItems);
   }
 
   @NotNull
-  private ResourceValue createStyleableValue(@NotNull Resources.Styleable styleableMsg, @NotNull String resourceName) {
-    StyleableResourceValueImpl styleableValue =
-        new StyleableResourceValueImpl(getNamespace(), ResourceType.STYLEABLE, resourceName, null, getLibraryName());
+  private AarStyleableResourceItem createStyleable(@NotNull Resources.Styleable styleableMsg, @NotNull String resourceName,
+                                                   @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility) {
+    List<AttrResourceValue> attrs = new ArrayList<>(styleableMsg.getEntryCount());
     for (Resources.Styleable.Entry entryMsg : styleableMsg.getEntryList()) {
       String url = entryMsg.getAttr().getName();
       myUrlParser.parseResourceUrl(url);
       String packageName = myUrlParser.getPackageName();
       ResourceNamespace namespace = packageName == null ? getNamespace() : ResourceNamespace.fromPackageName(packageName);
       AttrResourceValue attrValue = new AttrResourceValueImpl(namespace, ResourceType.ATTR, myUrlParser.getName(), getLibraryName());
-      styleableValue.addValue(attrValue);
+      attrs.add(attrValue);
     }
-    return styleableValue;
+    return new AarStyleableResourceItem(resourceName, configuration, visibility, attrs);
   }
 
   @NotNull
-  private ResourceValue createArrayValue(@NotNull Resources.Array arrayMsg, @NotNull ResourceType resourceType,
-                                         @NotNull String resourceName) {
-    ArrayResourceValueImpl arrayValue = new ArrayResourceValueImpl(getNamespace(), resourceType, resourceName, getLibraryName());
+  private AarArrayResourceItem createArray(@NotNull Resources.Array arrayMsg, @NotNull String resourceName,
+                                           @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility) {
+    List<String> elements = new ArrayList<>(arrayMsg.getElementCount());
     for (Resources.Array.Element elementMsg : arrayMsg.getElementList()) {
       String text = decode(elementMsg.getItem());
       if (text != null) {
-        arrayValue.addElement(text);
+        elements.add(text);
       }
     }
-    return arrayValue;
+    return new AarArrayResourceItem(resourceName, configuration, visibility, elements);
   }
 
   @NotNull
-  private ResourceValue createPluralsValue(@NotNull Resources.Plural pluralMsg, @NotNull ResourceType resourceType,
-                                           @NotNull String resourceName) {
-    PluralsResourceValueImpl pluralsValue =
-        new PluralsResourceValueImpl(getNamespace(), resourceType, resourceName, null, getLibraryName());
+  private AarPluralsResourceItem createPlurals(@NotNull Resources.Plural pluralMsg, @NotNull String resourceName,
+                                               @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility) {
+    List<String> quantities = new ArrayList<>(pluralMsg.getEntryCount());
+    List<String> values = new ArrayList<>(pluralMsg.getEntryCount());
     for (Resources.Plural.Entry entryMsg : pluralMsg.getEntryList()) {
-      String value = decode(entryMsg.getItem());
-      String quantity = getQuantity(entryMsg.getArity());
-      pluralsValue.addPlural(quantity, value);
+      quantities.add(getQuantity(entryMsg.getArity()));
+      values.add(decode(entryMsg.getItem()));
     }
-    return pluralsValue;
+    return new AarPluralsResourceItem(resourceName, configuration, visibility, quantities, values);
   }
 
   @NotNull
@@ -571,7 +564,7 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
     if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.FLAGS_VALUE)) {
       result.add(AttributeFormat.FLAGS);
     }
-    return result;
+    return Collections.unmodifiableSet(result);
   }
 
   @NotNull
@@ -620,6 +613,9 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
         prefixEnd = 1;
       } else {
         prefixEnd = 0;
+      }
+      if (resourceUrl.startsWith("*", prefixEnd)) {
+        prefixEnd++;
       }
       slashPos = resourceUrl.lastIndexOf('/');
       if (slashPos >= 0) {

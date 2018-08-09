@@ -167,7 +167,7 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
     Truth.assertThat(result.replace("\n *".toRegex(), "\n")).contains("<argument android:name=\"a\" />\n" +
                                                                       "<argument\n" +
                                                                       "android:name=\"b\"\n" +
-                                                                      "app:type=\"integer\" />\n")
+                                                                      "app:argType=\"integer\" />\n")
     dialog.close(0)
   }
 }

@@ -65,6 +65,42 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAsAny() {
+    val text = """
+               ext {
+                 propValue = 'value'
+                 prop25 = 25
+                 propTrue = true
+                 propRef = propValue
+                 propInterpolated = "${'$'}{prop25}"
+                 propUnresolved = unresolvedReference
+                 propOtherExpression1 = z(1)
+                 propOtherExpression2 = 1 + 2
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val extModel = gradleBuildModel.ext()
+
+    val propValue = extModel.findProperty("propValue").wrap()
+    val prop25 = extModel.findProperty("prop25").wrap()
+    val propTrue = extModel.findProperty("propTrue").wrap()
+    val propRef = extModel.findProperty("propRef").wrap()
+    val propInterpolated = extModel.findProperty("propInterpolated").wrap()
+    val propUnresolved = extModel.findProperty("propUnresolved").wrap()
+    val propOtherExpression1 = extModel.findProperty("propOtherExpression1").wrap()
+    val propOtherExpression2 = extModel.findProperty("propOtherExpression2").wrap()
+
+    assertThat(propValue.asAny(), equalTo<Any>("value"))
+    assertThat(prop25.asAny(), equalTo<Any>(25))
+    assertThat(propTrue.asAny(), equalTo<Any>(true))
+    assertThat(propRef.asAny(), equalTo<Any>("value"))
+    assertThat(propInterpolated.asAny(), equalTo<Any>("25"))
+    assertThat(propUnresolved.asAny(), nullValue())
+    assertThat(propOtherExpression1.asAny(), nullValue())
+    assertThat(propOtherExpression2.asAny(), nullValue())
+  }
+
+  @Test
   fun testAsInt() {
     val text = """
                ext {

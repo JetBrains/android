@@ -15,6 +15,9 @@
  */
 package com.android.tools.adtui.model.stdui
 
+import com.google.common.util.concurrent.Futures
+import java.util.concurrent.Future
+
 /**
  * Support for editing a value.
  *
@@ -26,19 +29,37 @@ interface EditingSupport {
   /**
    * Validation support.
    *
-   * Supply a callback for validating a value currently int he editor.
+   * Supply a callback for validating a value currently in the editor.
    * The return of the validation is an error category (error / warning)
    * and a message to display to the user.
    */
   val validation: EditingValidation
     get() = { EDITOR_NO_ERROR }
 
-  private class DefaultEditingSupport : EditingSupport
+  /**
+   * Completion support.
+   *
+   * Supply a callback for providing completions.
+   */
+  val completion: EditorCompletion
+    get() = EDITOR_NO_COMPLETIONS
+
+  /**
+   * Support for loading completions asynchronously.
+   */
+  val execution: PooledThreadExecution
+    get() = EDITOR_IMMEDIATE_EXECUTION
 
   companion object {
     val INSTANCE: EditingSupport = DefaultEditingSupport()
   }
+
+  /**
+   * Default [EditingSupport] with no validations and no completions.
+   */
+  private class DefaultEditingSupport : EditingSupport
 }
+
 
 /** Possible error categories for [EditingValidation] lambdas */
 enum class EditingErrorCategory(val outline: String?) {
@@ -50,5 +71,17 @@ enum class EditingErrorCategory(val outline: String?) {
 /** A validation method for a text editor */
 typealias EditingValidation = (editedValue: String) -> Pair<EditingErrorCategory, String>
 
+/** Completion callback */
+typealias EditorCompletion = () -> List<String>
+
+/** */
+typealias PooledThreadExecution = (runnable: Runnable) -> Future<*>
+
 @JvmField
 val EDITOR_NO_ERROR = Pair(EditingErrorCategory.NONE, "")
+
+@JvmField
+val EDITOR_NO_COMPLETIONS: EditorCompletion = { listOf() }
+
+@JvmField
+val EDITOR_IMMEDIATE_EXECUTION: PooledThreadExecution = { runnable: Runnable -> runnable.run(); Futures.immediateFuture(null) }

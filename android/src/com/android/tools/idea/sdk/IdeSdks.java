@@ -470,11 +470,14 @@ public class IdeSdks {
   }
 
   /**
-   * Indicates whether the IDE is using its embedded JDK. This JDK is used to invoke Gradle.
+   * Indicates whether the IDE is Android Studio and it is using its embedded JDK. This JDK is used to invoke Gradle.
    *
-   * @return {@code true} if the IDE is using the embedded JDK; {@code false} otherwise.
+   * @return true if the embedded JDK is used
    */
   public boolean isUsingEmbeddedJdk() {
+    if (!myIdeInfo.isAndroidStudio()) {
+      return false;
+    }
     File jdkPath = doGetJdkPath(false);
     return jdkPath != null && filesEqual(jdkPath, myEmbeddedDistributionPaths.getEmbeddedJdkPath());
   }

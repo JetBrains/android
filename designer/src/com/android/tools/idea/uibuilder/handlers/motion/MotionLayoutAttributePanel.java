@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.motion.attributeEditor.AttributeTagPanel;
+import com.android.tools.idea.uibuilder.handlers.motion.attributeEditor.MotionSceneStatusPanel;
 import com.android.tools.idea.uibuilder.handlers.motion.attributeEditor.OnSwipePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.attributeEditor.TransitionPanel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
@@ -51,6 +52,7 @@ public class MotionLayoutAttributePanel implements AccessoryPanelInterface {
   TransitionPanel myTransitionPanel = new TransitionPanel(this);
   AttributeTagPanel myAttributeTagPanel = new AttributeTagPanel(this);
   private OnSwipePanel myOnSwipeTagPanel = new OnSwipePanel(this);
+  private MotionSceneStatusPanel myMotionSceneStatusPanel = new MotionSceneStatusPanel(this);
 
   public MotionLayoutAttributePanel(@NotNull NlComponent parent, @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
     myMotionLayout = parent;
@@ -87,6 +89,10 @@ public class MotionLayoutAttributePanel implements AccessoryPanelInterface {
     gbc.weightx = 1;
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.BOTH;
+
+    myAttribGroups.add(myMotionSceneStatusPanel, gbc);
+    gbc.gridy++;
+
     myAttribGroups.add(myTransitionPanel, gbc);
 
     gbc.gridy++;
@@ -146,6 +152,7 @@ public class MotionLayoutAttributePanel implements AccessoryPanelInterface {
   }
 
   private void updatePanel() {
+
     if (myTimelinePanel != null && mySelection != null) {
       myNlModel = mySelection.getModel();
       MotionSceneModel.KeyFrame keyframe = myTimelinePanel.getSelectedKeyframe();
@@ -155,6 +162,8 @@ public class MotionLayoutAttributePanel implements AccessoryPanelInterface {
 
       // fill out the key frame attributes
       myAttributeTagPanel.setKeyFrame(keyframe);
+      myMotionSceneStatusPanel.setModel(myTimelinePanel.getModel());
+
     }
   }
 

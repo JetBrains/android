@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.property2.testutils
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.AUTO_URI
+import com.android.ide.common.rendering.api.AttributeFormat
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -51,6 +53,14 @@ open class SupportTestUtil(private val facet: AndroidFacet, private val fixture:
 
   fun makeFlagsProperty(namespace: String, definition: AttributeDefinition): NelePropertyItem {
     return NeleFlagsPropertyItem(namespace, definition.name, NelePropertyType.STRING, definition, "", model, components)
+  }
+
+  fun makeFlagsProperty(namespace: String, name: String, values: List<String>): NelePropertyItem {
+    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, name, null, listOf(AttributeFormat.FLAGS))
+    val valueMappings = HashMap<String, Int?>()
+    values.forEach { valueMappings[it] = null }
+    definition.setValueMappings(valueMappings)
+    return makeFlagsProperty(namespace, definition)
   }
 
   private fun createComponent(tag: String, parentTag: String, activityName: String): NlComponent {

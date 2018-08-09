@@ -15,9 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc
 
+import org.apache.commons.io.FilenameUtils
 import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils
 import java.io.File
+import java.nio.file.Paths
+
+const val GLOBAL_LIBRARY_MAP_CACHE_PATH = "global_library_map.json"
+const val ANDROID_PROJECT_CACHE_PATH = "android_project.json"
+const val VARIANTS_CACHE_DIR_PATH = "variants"
+const val GRADLE_PROJECT_CACHE_PATH = "gradle_project.json"
+const val OFFLINE_REPO_PATH = "offline_repo"
 
 fun projectNameFromProjectLocation(location: String) = StringUtils.substringAfterLast(location, File.separator)!!
-
 fun getProjectCacheDir(activity: String, minApi: Int, targetApi: Int) = "${activity}_min_${minApi}_build_and_target_${targetApi}"
+
+fun getConverter(rootDir: File, moduleName: String, sdkDir: String): PathConverter {
+  // TODO(qumeric): fix path, also should offline_repo be in relative path?
+  return PathConverter(File(rootDir, moduleName), File(sdkDir),
+                       File(FilenameUtils.normalize(Paths.get("../../adt/idea/android/testData").toAbsolutePath().toString())))
+}
+

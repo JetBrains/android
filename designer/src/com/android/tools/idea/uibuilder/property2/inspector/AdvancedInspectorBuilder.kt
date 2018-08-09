@@ -20,6 +20,7 @@ import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.adtui.ptable2.PTableModelUpdateListener
 import com.android.tools.idea.common.property2.api.*
+import com.android.tools.idea.uibuilder.property2.NeleFlagPropertyItem
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
@@ -31,9 +32,10 @@ import org.jetbrains.android.formatter.AttributeComparator
 class AdvancedInspectorBuilder(model: NelePropertiesModel, private val tableUIProvider: TableUIProvider)
   : InspectorBuilder<NelePropertyItem> {
 
-  private val comparator = AttributeComparator<NelePropertyItem>({ it.name })
+  private val comparator = AttributeComparator<NelePropertyItem> { it.name }
   private val newPropertyInstance = NeleNewPropertyItem(model, PropertiesTable.emptyTable())
   private var lastDeclaredTable: TableLineModel? = null
+  private var lastNewDelegate: NelePropertyItem? = null
 
   init {
     model.addListener(object: PropertiesModelListener<NelePropertyItem> {
@@ -49,20 +51,28 @@ class AdvancedInspectorBuilder(model: NelePropertiesModel, private val tableUIPr
         val newProperty = tableModel.lastItem()
         if (newProperty != null) {
           declared.add(newProperty)
+          if (newProperty.rawValue != null) {
+            // This property should appear else where in the declared table.
+            // Make this new property item ready for adding another attribute.
+            newProperty.name = ""
+          }
         }
-        if (!tableModel.isSameItems(declared)) {
+        if (!tableModel.isSameItems(declared) || lastNewDelegate != newProperty?.delegate) {
           val selected = table.selectedItem
           table.stopEditing()
           tableModel.updateItems(declared)
           if (selected != null) {
             table.requestFocus(selected)
           }
+          lastNewDelegate = newProperty?.delegate
         }
       }
     })
   }
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+    lastDeclaredTable = null
+    lastNewDelegate = null
     if (properties.isEmpty) {
       return
     }
@@ -120,19 +130,28 @@ private class NeleTableModel(override val items: MutableList<NelePropertyItem>) 
   }
 
   fun updateItems(newItems: MutableList<NelePropertyItem>) {
-    if (isSameItems(newItems)) {
-      return
-    }
     items.clear()
     items.addAll(newItems)
     listeners.forEach { it.itemsUpdated() }
   }
 
+  /**
+   * Return the last property item if it is a NeleNewPropertyItem.
+   *
+   * Skip flag items if the property is currently expanded in the table.
+   */
   fun lastItem(): NeleNewPropertyItem? {
     if (items.isEmpty()) {
       return null
     }
-    return items[items.size - 1] as? NeleNewPropertyItem
+    var last = items[items.size - 1]
+    if (last is NeleFlagPropertyItem) {
+      val flags = last.flags.children.size
+      if (items.size - flags >= 1) {
+        last = items[items.size - flags - 1]
+      }
+    }
+    return last as? NeleNewPropertyItem
   }
 
   fun isSameItems(newItems: List<NelePropertyItem>): Boolean {
@@ -150,6 +169,7 @@ private class AddNewRowAction(val tableModel: NeleTableModel,
     val model = lineModel ?: return
     val last = tableModel.lastItem()
     if (last == null) {
+      newProperty.name = ""
       val newItems = mutableListOf<NelePropertyItem>()
       newItems.addAll(tableModel.items)
       newItems.add(newProperty)

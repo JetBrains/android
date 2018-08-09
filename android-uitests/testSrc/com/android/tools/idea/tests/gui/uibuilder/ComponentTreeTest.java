@@ -46,6 +46,7 @@ public final class ComponentTreeTest {
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
   @Test
+  @RunIn(TestGroup.UNRELIABLE)  // b/112014283
   public void testDropThatOpensDialog() throws IOException {
     WizardUtils.createNewProject(myGuiTest);
     Path activityMainXmlRelativePath = FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml");

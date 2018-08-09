@@ -16,18 +16,23 @@
 package com.android.tools.idea.exportSignedPackage;
 
 import com.android.builder.model.AndroidProject;
+import com.android.builder.model.Variant;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.testing.TestProjectPaths.SIGNAPK_MULTIFLAVOR;
 import static com.android.tools.idea.testing.TestProjectPaths.SIGNAPK_NO_FLAVORS;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
+import static com.intellij.openapi.util.text.StringUtil.decapitalize;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 public class ExportSignedPackageTest extends AndroidGradleTestCase {
   public void testNoFlavors() throws Exception {
@@ -38,8 +43,8 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     // debug and release
     assertEquals(2, androidProject.getVariants().size());
 
-    List<String> assembleTasks = ExportSignedPackageWizard
-      .getGradleTasks("", androidProject, "release", Collections.emptyList(), ExportSignedPackageWizard.APK);
+    List<String> assembleTasks =
+      ExportSignedPackageWizard.getGradleTasks("", getModel(), singletonList("release"), ExportSignedPackageWizard.APK);
     assertEquals(1, assembleTasks.size());
     assertEquals(":assembleRelease", assembleTasks.get(0));
   }
@@ -52,9 +57,8 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     // (free,pro) x (arm,x86) x (debug,release) = 8
     assertEquals(8, androidProject.getVariants().size());
 
-    Set<String> assembleTasks =
-      Sets.newHashSet(ExportSignedPackageWizard.getGradleTasks("", androidProject, "release", Lists.newArrayList("pro-x86", "free-arm"),
-                                                               ExportSignedPackageWizard.APK));
+    Set<String> assembleTasks = Sets.newHashSet(
+      ExportSignedPackageWizard.getGradleTasks("", getModel(), asList("proX86Release", "freeArmRelease"), ExportSignedPackageWizard.APK));
     assertEquals(2, assembleTasks.size());
     assertTrue(assembleTasks.contains(":assembleProX86Release"));
     assertTrue(assembleTasks.contains(":assembleFreeArmRelease"));
@@ -62,7 +66,8 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
 
   public void testApkLocationCorrect() {
     // This test guarantees user is taken to the folder with the selected build type outputs
-    assertEquals(toSystemDependentName("path/to/folder/release"), ExportSignedPackageWizard.getApkLocation("path/to/folder", "release").toString());
+    assertEquals(toSystemDependentName("path/to/folder/release"),
+                 ExportSignedPackageWizard.getApkLocation("path/to/folder", "release").toString());
   }
 
   public void testBundleNoFlavors() throws Exception {
@@ -73,8 +78,8 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     // debug and release
     assertEquals(2, androidProject.getVariants().size());
 
-    List<String> assembleTasks = ExportSignedPackageWizard
-      .getGradleTasks("", androidProject, "release", Collections.emptyList(), ExportSignedPackageWizard.BUNDLE);
+    List<String> assembleTasks =
+      ExportSignedPackageWizard.getGradleTasks("", getModel(), singletonList("release"), ExportSignedPackageWizard.BUNDLE);
     assertEquals(1, assembleTasks.size());
     assertEquals(":bundleRelease", assembleTasks.get(0));
   }
@@ -87,11 +92,112 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     // (free,pro) x (arm,x86) x (debug,release) = 8
     assertEquals(8, androidProject.getVariants().size());
 
-    Set<String> assembleTasks =
-      Sets.newHashSet(ExportSignedPackageWizard.getGradleTasks("", androidProject, "release", Lists.newArrayList("pro-x86", "free-arm"),
-                                                               ExportSignedPackageWizard.BUNDLE));
+    Set<String> assembleTasks = Sets.newHashSet(ExportSignedPackageWizard
+                                                  .getGradleTasks("", getModel(), asList("proX86Release", "freeArmRelease"),
+                                                                  ExportSignedPackageWizard.BUNDLE));
     assertEquals(2, assembleTasks.size());
     assertTrue(assembleTasks.contains(":bundleProX86Release"));
     assertTrue(assembleTasks.contains(":bundleFreeArmRelease"));
+  }
+
+  public void testReplaceVariantFromTask() throws Exception {
+    assertEquals(":flavorBuildType", ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantName", "oldVariantName", "flavorBuildType"));
+  }
+
+  public void testReplaceVariantFromTaskPre() throws Exception {
+    assertEquals(":prefixFlavorBuildType", ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantName", "oldVariantName", "flavorBuildType"));
+  }
+
+  public void testReplaceVariantFromTaskSuf() throws Exception {
+    assertEquals(":flavorBuildTypeSuffix", ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantNameSuffix", "oldVariantName", "flavorBuildType"));
+  }
+
+  public void testReplaceVariantFromTaskPreSuf() throws Exception {
+    assertEquals(":prefixFlavorBuildTypeSuffix", ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantNameSuffix", "oldVariantName", "flavorBuildType"));
+  }
+
+  public void testReplaceVariantFromTaskMissing() throws Exception {
+    assertNull(ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantName", "NonVariantName", "flavorBuildType"));
+  }
+
+  public void testReplaceVariantFromTaskMissingPre() throws Exception {
+    assertNull(ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantName", "NonVariantName", "flavorBuildType"));
+  }
+
+  public void testReplaceVariantFromTaskMissingSuf() throws Exception {
+    assertNull(ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantNameSuffix", "NonVariantName", "flavorBuildType"));
+  }
+
+  public void testReplaceVariantFromTaskMissingPreSuf() throws Exception {
+    assertNull(ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantNameSuffix", "NonVariantName", "flavorBuildType"));
+  }
+
+  /**
+   * Verify that assemble task contains variant name in the form expected by {@link ExportSignedPackageWizard#getGradleTasks} when there are
+   * no flavors.
+   */
+  public void testVariantNameInAssembleTaskNoFlavors() throws Exception {
+    loadProject(SIGNAPK_NO_FLAVORS);
+    AndroidModuleModel androidModel = getModel();
+
+    Variant selectedVariant = androidModel.getSelectedVariant();
+    String variantName = selectedVariant.getName();
+    String assembleTaskName = selectedVariant.getMainArtifact().getAssembleTaskName();
+    verifyContainsVariantName(assembleTaskName, variantName);
+  }
+
+  /**
+   * Verify that bundle task contains variant name in the form expected by {@link ExportSignedPackageWizard#getGradleTasks} when flavors are
+   * used.
+   */
+  public void testVariantNameInAssembleTaskWithFlavors() throws Exception {
+    loadProject(SIGNAPK_MULTIFLAVOR);
+    AndroidModuleModel androidModel = getModel();
+
+    Variant selectedVariant = androidModel.getSelectedVariant();
+    String variantName = selectedVariant.getName();
+    String assembleTaskName = selectedVariant.getMainArtifact().getAssembleTaskName();
+    verifyContainsVariantName(assembleTaskName, variantName);
+  }
+
+  /**
+   * Verify that assemble task contains variant name in the form expected by {@link ExportSignedPackageWizard#getGradleTasks} when there are
+   * no flavors.
+   */
+  public void testVariantNameInBundleTaskNoFlavors() throws Exception {
+    loadProject(SIGNAPK_NO_FLAVORS);
+    AndroidModuleModel androidModel = getModel();
+
+    Variant selectedVariant = androidModel.getSelectedVariant();
+    String variantName = selectedVariant.getName();
+    String bundleTaskName = selectedVariant.getMainArtifact().getBundleTaskName();
+    if (bundleTaskName != null) {
+      // Only test if bundle task exists
+      verifyContainsVariantName(bundleTaskName, variantName);
+    }
+  }
+
+  /**
+   * Verify that bundle task contains variant name in the form expected by {@link ExportSignedPackageWizard#getGradleTasks} when flavors are
+   * used.
+   */
+  public void testVariantNameInBundleTaskWithFlavors() throws Exception {
+    loadProject(SIGNAPK_MULTIFLAVOR);
+    AndroidModuleModel androidModel = getModel();
+
+    Variant selectedVariant = androidModel.getSelectedVariant();
+    String variantName = selectedVariant.getName();
+    String bundleTaskName = selectedVariant.getMainArtifact().getBundleTaskName();
+    if (bundleTaskName != null) {
+      // Only test if bundle task exists
+      verifyContainsVariantName(bundleTaskName, variantName);
+    }
+  }
+
+
+  private static void verifyContainsVariantName(@NotNull String taskName, @NotNull String variantName) {
+    boolean containsName = (taskName.indexOf(capitalize(variantName)) > 1) ||  // :prefixVariantName
+                           (taskName.indexOf(decapitalize(variantName)) == 1); // :variantNameSuffix
+    assertTrue("Variant name not found in task " + taskName, containsName);
   }
 }

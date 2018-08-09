@@ -48,7 +48,6 @@ public final class StyleableDefinitionImpl implements StyleableDefinition {
 
   public void addAttribute(@NotNull AttributeDefinition attrDef) {
     myAttributes.add(attrDef);
-    attrDef.addParent(myStyleable);
   }
 
   @Override

@@ -18,6 +18,7 @@ package com.android.tools.idea.resourceExplorer.importer
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.tools.idea.resourceExplorer.model.Mapper
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.PathUtil
 
 /**
  * Lexer that parses a file path and matches tokens to a list of [ResourceQualifier].
@@ -73,7 +74,9 @@ class QualifierMatcher(private val mappers: Set<Mapper<ResourceQualifier>> = emp
     return Result(resourceName, qualifiers)
   }
 
-  private fun getResourceName(path: String) = FileUtil.sanitizeFileName(FileUtil.getNameWithoutExtension(path))
+  private fun getResourceName(path: String) =
+    FileUtil.sanitizeFileName(FileUtil.getNameWithoutExtension(
+      PathUtil.getFileName(path)))
 
   /**
    * Result of a parsing with the lexer.

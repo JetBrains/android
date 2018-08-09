@@ -15,7 +15,7 @@
   <actions>
     <group id="Android.SdkUpdates.NavBarToolBar">
       <reference id="Android.RunAndroidSdkManager"/>
-      <add-to-group group-id="Android.NavBarToolBar"></add-to-group>
+      <add-to-group group-id="Android.NavBarToolBar" anchor="after" relative-to-action="Android.RunAndroidAvdManager" />
     </group>
   </actions>
 </idea-plugin>

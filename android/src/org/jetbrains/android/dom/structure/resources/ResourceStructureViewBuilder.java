@@ -16,7 +16,6 @@
 package org.jetbrains.android.dom.structure.resources;
 
 import com.android.resources.ResourceType;
-import com.google.common.collect.Lists;
 import com.intellij.ide.structureView.StructureViewModel;
 import com.intellij.ide.structureView.StructureViewModelBase;
 import com.intellij.ide.structureView.StructureViewTreeElement;
@@ -35,6 +34,7 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -66,8 +66,20 @@ public class ResourceStructureViewBuilder extends TreeBasedStructureViewBuilder 
     @NotNull
     @Override
     public Collection<StructureViewTreeElement> getChildrenBase() {
-      final List<StructureViewTreeElement> result = Lists.newArrayList();
-      final DomElementVisitor visitor = new DomElementVisitor() {
+      if (!myResources.isValid()) return Collections.emptySet();
+
+      List<StructureViewTreeElement> result = new ArrayList<>();
+
+      StructureUtils.acceptChildrenInOrder(myResources.getRootElement(), new DomElementVisitor() {
+        /**
+         * Instead of implementing this method, we add {@link #visitResourceElement(ResourceElement)} which is called reflectively only for
+         * {@link ResourceElement}s.
+         *
+         * @see DomElementVisitor
+         */
+        @Override
+        public void visitDomElement(DomElement element) {}
+
         public void visitResourceElement(ResourceElement element) {
           final ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(element.getXmlTag());
           final String name = element.getName().getValue();
@@ -77,11 +89,7 @@ public class ResourceStructureViewBuilder extends TreeBasedStructureViewBuilder 
           }
         }
 
-        @Override
-        public void visitDomElement(DomElement element) {
-        }
-      };
-      StructureUtils.acceptChildrenInOrder(myResources.getRootElement(), visitor);
+      });
       return result;
     }
 

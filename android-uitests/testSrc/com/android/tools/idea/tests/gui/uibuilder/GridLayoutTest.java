@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
@@ -39,6 +41,7 @@ public final class GridLayoutTest {
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
   @Test
+  @RunIn(TestGroup.UNRELIABLE) // b/112057518
   public void dragViewIntoEmptyGridLayout() throws IOException {
     WizardUtils.createNewProject(myGuiTest, "Empty Activity");
     Path activityMainXml = FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml");

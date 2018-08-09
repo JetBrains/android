@@ -23,10 +23,17 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint
 import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.npw.model.ProjectSyncInvoker
+import com.android.tools.idea.npw.module.ChooseModuleTypeStep
+import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.options.SearchableConfigurable
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MasterDetailsComponent
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
@@ -38,14 +45,14 @@ import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
 import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.ui.navigation.Place.queryFurther
+import com.intellij.util.IconUtil
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
+import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
-import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ToolTipManager
-import javax.swing.tree.DefaultTreeModel
 
 abstract class BasePerspectiveConfigurable protected constructor(
   protected val context: PsContext,
@@ -69,6 +76,8 @@ abstract class BasePerspectiveConfigurable protected constructor(
   private var currentModuleSelectorStyle: ModuleSelectorStyle? = null
 
   protected abstract val navigationPathName: String
+  val selectedModule: PsModule? get() = myCurrentConfigurable?.editableObject as? PsModule
+  val selectedModuleName: String? get() = selectedModule?.name
 
   init {
     (splitter as JBSplitter).splitterProportionKey = "android.psd.proportion.modules"
@@ -127,6 +136,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
       context.setSelectedModule(module.name, this)
     }
     myHistory.pushQueryPlace()
+    moduleSelectorDropDownPanel?.update()
   }
 
 
@@ -209,8 +219,13 @@ abstract class BasePerspectiveConfigurable protected constructor(
   }
 
   private fun loadTree() {
-    (myTree.model as DefaultTreeModel).reload()
-    createModuleNodes()
+    myTree.model = createTreeModel(object : NamedContainerConfigurableBase<PsModule>("root") {
+      override fun getChildrenModels(): Collection<PsModule> = context.project.modules.filter { it.isDeclared } + extraModules
+      override fun createChildConfigurable(model: PsModule) = createConfigurableFor(model).also { it.setHistory(myHistory) }
+      override fun onChange(disposable: Disposable, listener: () -> Unit) = context.project.modules.onChange(disposable, listener)
+      override fun dispose() = Unit
+    })
+    myRoot = myTree.model.root as MyNode
     uiDisposed = false
   }
 
@@ -224,19 +239,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
     }
   }
 
-  private fun createModuleNodes() {
-    context.project.forEachModule(Consumer<PsModule> { this.addConfigurableFor(it) })
-    extraModules.forEach(Consumer<PsModule> { this.addConfigurableFor(it) })
-  }
-
-  private fun addConfigurableFor(module: PsModule) {
-    createConfigurableFor(module)
-      ?.also { it.setHistory(myHistory) }
-      ?.let { MasterDetailsComponent.MyNode(it) }
-      ?.also { myRoot.add(it) }
-  }
-
-  protected abstract fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<*, *>?
+  protected abstract fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *>
 
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback {
     fun Place.getModuleName() = (getPath(navigationPathName) as? String)?.takeIf { moduleName -> moduleName.isNotEmpty() }
@@ -275,6 +278,54 @@ abstract class BasePerspectiveConfigurable protected constructor(
     val dependenciesConfigurable = configurable as BaseNamedConfigurable<*>
     dependenciesConfigurable.putNavigationPath(place, dependency)
   }
+
+
+  override fun createActions(fromPopup: Boolean): List<AnAction> =
+    listOf(
+      object : DumbAwareAction("New Module", "Add new module", IconUtil.getAddIcon()) {
+        override fun actionPerformed(e: AnActionEvent?) {
+          if (!context.project.isModified ||
+              Messages.showYesNoDialog(
+                e?.project,
+                "Pending changes will be applied to the project. Continue?",
+                "Add Module",
+                Messages.getQuestionIcon()) == Messages.YES
+          ) {
+            var synced = false
+            val chooseModuleTypeStep =
+              ChooseModuleTypeStep.createWithDefaultGallery(context.project.ideProject, ProjectSyncInvoker { synced = true })
+            context.applyRunAndReparse {
+              StudioWizardDialogBuilder(chooseModuleTypeStep, AndroidBundle.message("android.wizard.module.new.module.title"))
+                .setUxStyle(StudioWizardDialogBuilder.UxStyle.INSTANT_APP)
+                .build()
+                .show()
+              synced  // Tells whether the context needs to reparse the config.
+            };
+          }
+        }
+      },
+      object : DumbAwareAction("Remove Module", "Remove module", IconUtil.getRemoveIcon()) {
+        override fun actionPerformed(e: AnActionEvent?) {
+          val module = (selectedObject as PsModule)
+          if (Messages.showYesNoDialog(
+              e?.project,
+              buildString {
+                append(when {
+                         module.parent.modelCount == 1 -> "Are you sure you want to remove the only module form the project?"
+                         else -> "Remove module '${module.name}' from the project?"
+                       })
+                append("\n")
+                append("No files will be deleted on disk.")
+              },
+              "Remove Module",
+              Messages.getQuestionIcon()
+            ) == Messages.YES) {
+            module.parent.removeModule(module.gradlePath!!)
+          }
+        }
+      }
+
+    )
 
   override fun disposeUIResources() {
     if (uiDisposed) return

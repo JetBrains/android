@@ -19,7 +19,6 @@ package org.jetbrains.android.exportSignedPackage;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
-import com.android.prefs.AndroidLocation;
 import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.actions.GoToBundleLocationTask;
@@ -30,7 +29,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.wireless.android.vending.developer.signing.tools.extern.export.ExportEncryptedPrivateKeyTool;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeBundle;
@@ -61,11 +59,11 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -73,6 +71,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
+import static com.intellij.openapi.util.text.StringUtil.decapitalize;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 /**
@@ -84,6 +84,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private static final String ENCRYPTED_PRIVATE_KEY_FILE = "private_key.pepk";
   private static final String GOOGLE_PUBLIC_KEY =
     "eb10fe8f7c7c9df715022017b00c6471f8ba8170b13049a11e6c09ffe3056a104a3bbe4ac5a955f4ba4fe93fc8cef27558a3eb9d2a529a2092761fb833b656cd48b9de6a";
+
   private static Logger getLog() {
     return Logger.getInstance(ExportSignedPackageWizard.class);
   }
@@ -102,11 +103,10 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private String myExportKeyPath;
   @NotNull private String myTargetType = APK;
 
-  // build type, list of flavors and gradle signing info are valid only for Gradle projects
-  private String myBuildType;
+  // build variants and gradle signing info are valid only for Gradle projects
   @NotNull private ExportEncryptedPrivateKeyTool myEncryptionTool;
   private boolean myExportPrivateKey;
-  private List<String> myFlavors;
+  private List<String> myBuildVariants;
   private GradleSigningInfo myGradleSigningInfo;
 
 
@@ -115,7 +115,8 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
                                    boolean signed,
                                    Boolean showBundle,
                                    @NotNull ExportEncryptedPrivateKeyTool encryptionTool) {
-    super(AndroidBundle.message(showBundle ? "android.export.package.wizard.bundle.title" : "android.export.package.wizard.title"), project);
+    super(AndroidBundle.message(showBundle ? "android.export.package.wizard.bundle.title" : "android.export.package.wizard.title"),
+          project);
 
     myProject = project;
     mySigned = signed;
@@ -133,7 +134,8 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
     if (useGradleToSign) {
       addStep(new GradleSignStep(this));
-    } else {
+    }
+    else {
       addStep(new ApkStep(this));
     }
     init();
@@ -153,7 +155,8 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     assert myFacet != null;
     if (myFacet.requiresAndroidModel()) {
       buildAndSignGradleProject();
-    } else {
+    }
+    else {
       buildAndSignIntellijProject();
     }
   }
@@ -185,7 +188,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         }
         String gradleProjectPath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
         String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(myFacet.getModule());
-        if(StringUtil.isEmpty(rootProjectPath)) {
+        if (StringUtil.isEmpty(rootProjectPath)) {
           getLog().error("Unable to get gradle root project path for module: " + myFacet.getModule().getName());
           return;
         }
@@ -198,11 +201,11 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         }
 
         // should have been set by previous steps
-        if (myBuildType == null || myFlavors == null) {
+        if (myBuildVariants == null) {
           getLog().error("Unable to find required information. Please check the previous steps are completed.");
           return;
         }
-        List<String> gradleTasks = getGradleTasks(gradleProjectPath, androidModel.getAndroidProject(), myBuildType, myFlavors, myTargetType);
+        List<String> gradleTasks = getGradleTasks(gradleProjectPath, androidModel, myBuildVariants, myTargetType);
 
         List<String> projectProperties = Lists.newArrayList();
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
@@ -210,19 +213,13 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           createProperty(AndroidProject.PROPERTY_SIGNING_STORE_PASSWORD, new String(myGradleSigningInfo.keyStorePassword)));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_ALIAS, myGradleSigningInfo.keyAlias));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_PASSWORD, new String(myGradleSigningInfo.keyPassword)));
-        if (myTargetType.equals(BUNDLE)) {
-          myApkPath = Paths.get(myApkPath, myBuildType).toString();
-        }
         projectProperties.add(createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
 
         // These were introduced in 2.3, but gradle doesn't care if it doesn't know the properties and so they don't affect older versions.
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V1_ENABLED, Boolean.toString(myV1Signature)));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V2_ENABLED, Boolean.toString(myV2Signature)));
 
-        File apkDirectory = myTargetType.equals(BUNDLE)
-                            ? Paths.get(myApkPath, "bundle.aab").toFile()
-                            : getApkLocation(myApkPath, myBuildType);
-        Map<Module, File> appModulesToOutputs = Collections.singletonMap(myFacet.getModule(), apkDirectory);
+        Map<Module, File> appModulesToOutputs = Collections.singletonMap(myFacet.getModule(), new File(myApkPath));
 
         assert myProject != null;
 
@@ -253,19 +250,21 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           GoToBundleLocationTask task;
           if (exportedKeyFile != null) {
             task = new GoToBundleLocationTask(myProject, "Generate Signed Bundle", appModulesToOutputs, exportedKeyFile);
-          } else {
+          }
+          else {
             task = new GoToBundleLocationTask(myProject, "Generate Signed Bundle", appModulesToOutputs);
           }
           gradleBuildInvoker.add(task);
-        } else {
+        }
+        else {
           gradleBuildInvoker.add(new GoToApkLocationTask(appModulesToOutputs, "Generate Signed APK"));
         }
         gradleBuildInvoker.executeTasks(new File(rootProjectPath), gradleTasks, projectProperties);
 
         getLog().info("Export " + myTargetType.toUpperCase() + " command: " +
-                 Joiner.on(',').join(gradleTasks) +
-                 ", destination: " +
-                 createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
+                      Joiner.on(',').join(gradleTasks) +
+                      ", destination: " +
+                      createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
       }
 
       private String createProperty(@NotNull String name, @NotNull String value) {
@@ -283,53 +282,55 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   @VisibleForTesting
   @NotNull
   public static List<String> getGradleTasks(@NotNull String gradleProjectPath,
-                                            @NotNull AndroidProject androidProject,
-                                            @NotNull String buildType,
-                                            @NotNull List<String> flavors,
+                                            @NotNull AndroidModuleModel androidModuleModel,
+                                            @NotNull List<String> buildVariants,
                                             @NotNull String targetType) {
-    Map<String,Variant> variantsByFlavor = Maps.newHashMapWithExpectedSize(flavors.size());
-    for (Variant v : androidProject.getVariants()) {
-      if (!v.getBuildType().equals(buildType)) {
-        continue;
-      }
-
-      variantsByFlavor.put(getMergedFlavorName(v), v);
+    List<String> gradleTasks = Lists.newArrayListWithExpectedSize(buildVariants.size());
+    Variant selectedVariant = androidModuleModel.getSelectedVariant();
+    String selectedTaskName = getTaskName(selectedVariant, targetType);
+    String selectedVariantName = selectedVariant.getName();
+    if (selectedTaskName == null) {
+      getLog().warn("Could not get tasks for target " + targetType + " on variant " + selectedVariantName);
+      return Collections.emptyList();
     }
 
-    if (flavors.isEmpty()) {
-      // if there are no flavors defined, then the default merged flavor name is empty..
-      Variant v = variantsByFlavor.get("");
-      if (v != null) {
-        String taskName = getTaskName(v, targetType);
-        return Collections.singletonList(GradleTaskFinder.getInstance().createBuildTask(gradleProjectPath, taskName));
-      } else {
-        getLog().error("Unable to find default variant");
-        return Collections.emptyList();
-      }
-    }
-
-    List<String> gradleTasks = Lists.newArrayListWithExpectedSize(flavors.size());
-    for (String flavor : flavors) {
-      Variant v = variantsByFlavor.get(flavor);
-      if (v != null) {
-        String taskName = getTaskName(v,targetType);
+    for (String variantName : buildVariants) {
+      String taskName = replaceVariantFromTask(selectedTaskName, selectedVariantName, variantName);
+      if (taskName != null) {
         gradleTasks.add(GradleTaskFinder.getInstance().createBuildTask(gradleProjectPath, taskName));
       }
+      else {
+        getLog().warn("Could not replace variant " + selectedVariantName + " with " + variantName + " for task " + selectedTaskName + ".");
+      }
     }
-
     return gradleTasks;
+  }
+
+  @Nullable
+  public static String replaceVariantFromTask(@NotNull String task, @NotNull String oldVariant, @NotNull String newVariant) {
+    oldVariant = decapitalize(oldVariant);
+    if (task.indexOf(oldVariant) == 1) {
+      // it has the pattern ":variantName[suffix]".
+      newVariant = decapitalize(newVariant);
+      return task.replaceFirst(oldVariant, newVariant);
+    }
+    oldVariant = capitalize(oldVariant);
+    if (task.contains(oldVariant)) {
+      // it has the pattern ":prefixVariantName[suffix]".
+      newVariant = capitalize(newVariant);
+      return task.replaceFirst(oldVariant, newVariant);
+    }
+    // Variant name could not be found capitalized as expected.
+    return null;
   }
 
   private static String getTaskName(Variant v, String targetType) {
     if (targetType.equals(BUNDLE)) {
       return v.getMainArtifact().getBundleTaskName();
-    } else {
+    }
+    else {
       return v.getMainArtifact().getAssembleTaskName();
     }
-  }
-
-  public static String getMergedFlavorName(Variant variant) {
-    return Joiner.on('-').join(variant.getProductFlavors());
   }
 
   @Override
@@ -437,9 +438,8 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     myV2Signature = v2Signature;
   }
 
-  public void setGradleOptions(String buildType, @NotNull List<String> flavors) {
-    myBuildType = buildType;
-    myFlavors = flavors;
+  public void setGradleOptions(@NotNull List<String> buildVariants) {
+    myBuildVariants = buildVariants;
   }
 
   public void setTargetType(@NotNull String targetType) {

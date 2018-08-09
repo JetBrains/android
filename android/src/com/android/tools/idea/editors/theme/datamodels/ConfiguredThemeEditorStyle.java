@@ -16,10 +16,7 @@
 package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleItemResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
@@ -45,7 +42,7 @@ import java.util.List;
  * TODO: Move Configuration independent methods to ThemeEditorStyle.
  */
 public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
-  private final @NotNull StyleResourceValue myStyleResourceValue;
+  private final @NotNull StyleResourceValueImpl myStyleResourceValue;
   private final @NotNull Configuration myConfiguration;
 
   /**
@@ -58,7 +55,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
                                     @NotNull StyleResourceValue styleResourceValue,
                                     @Nullable Module sourceModule) {
     super(configuration.getConfigurationManager(), styleResourceValue.asReference());
-    myStyleResourceValue = styleResourceValue;
+    myStyleResourceValue = StyleResourceValueImpl.copyOf(styleResourceValue);
     myConfiguration = configuration;
     mySourceModule = sourceModule;
   }
@@ -73,10 +70,10 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
   }
 
   /**
-   * Returns StyleResourceValue for current Configuration.
+   * Returns StyleResourceValueImpl for the current Configuration.
    */
   @NotNull
-  public StyleResourceValue getStyleResourceValue() {
+  public StyleResourceValueImpl getStyleResourceValue() {
     return myStyleResourceValue;
   }
 
@@ -165,7 +162,8 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
 
   public boolean hasItem(@Nullable EditedStyleItem item) {
     //TODO: add isOverriden() method to EditedStyleItem
-    return item != null && getStyleResourceValue().getItem(item.getAttrNamespace(), item.getAttrName()) != null;
+    ResourceReference attrReference = item == null ? null : item.getAttrReference();
+    return attrReference != null && getStyleResourceValue().getItem(attrReference) != null;
   }
 
   public StyleItemResourceValue getItem(@NotNull String name, boolean isFramework) {

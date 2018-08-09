@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.DrawableShape;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchExportOptions;
+import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
+import java.util.List;
 
 public abstract class SketchLayer {
 
@@ -34,6 +37,7 @@ public abstract class SketchLayer {
   @SerializedName("do_objectID")
   private final String objectId;
   private final int booleanOperation;
+  private final SketchExportOptions exportOptions;
   private final Rectangle.Double frame;
   private final boolean isFlippedHorizontal;
   private final boolean isFlippedVertical;
@@ -49,6 +53,7 @@ public abstract class SketchLayer {
   public SketchLayer(@NotNull String classType,
                      @NotNull String objectId,
                      int booleanOperation,
+                     @NotNull SketchExportOptions exportOptions,
                      @NotNull Rectangle.Double frame,
                      boolean isFlippedHorizontal,
                      boolean isFlippedVertical,
@@ -59,6 +64,7 @@ public abstract class SketchLayer {
     this.classType = classType;
     this.objectId = objectId;
     this.booleanOperation = booleanOperation;
+    this.exportOptions = exportOptions;
     this.frame = frame;
     this.isFlippedHorizontal = isFlippedHorizontal;
     this.isFlippedVertical = isFlippedVertical;
@@ -80,6 +86,11 @@ public abstract class SketchLayer {
 
   public int getBooleanOperation() {
     return booleanOperation;
+  }
+
+  @NotNull
+  public SketchExportOptions getExportOptions() {
+    return exportOptions;
   }
 
   @NotNull
@@ -112,8 +123,9 @@ public abstract class SketchLayer {
     return shouldBreakMaskChain;
   }
 
-  public void setAbsoluteLocation(ArrayList<String> paths, Point2D.Double parentCoords) {
-    //TODO
+  @NotNull
+  public List<DrawableShape> getTranslatedShapes(@NotNull Point2D.Double parentCoords) {
+    return ImmutableList.of();
   }
 }
 

@@ -133,11 +133,10 @@ public class ProguardParser implements PsiParser, LightPsiParser {
   // (JAVA_DECL CRLF?)*
   private static boolean javaSection_2(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "javaSection_2")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!javaSection_2_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "javaSection_2", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -177,11 +176,10 @@ public class ProguardParser implements PsiParser, LightPsiParser {
   // FLAG_ARG*
   private static boolean multiLineFlag_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "multiLineFlag_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!consumeToken(b, FLAG_ARG)) break;
       if (!empty_element_parsed_guard_(b, "multiLineFlag_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -202,11 +200,10 @@ public class ProguardParser implements PsiParser, LightPsiParser {
   // (comment CRLF | flag CRLF | WS? CRLF)*
   private static boolean proguardFile_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "proguardFile_0")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!proguardFile_0_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "proguardFile_0", c)) break;
-      c = current_position_(b);
     }
     return true;
   }
@@ -305,11 +302,10 @@ public class ProguardParser implements PsiParser, LightPsiParser {
   // FLAG_ARG*
   private static boolean singleLineFlag_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "singleLineFlag_1")) return false;
-    int c = current_position_(b);
     while (true) {
+      int c = current_position_(b);
       if (!consumeToken(b, FLAG_ARG)) break;
       if (!empty_element_parsed_guard_(b, "singleLineFlag_1", c)) break;
-      c = current_position_(b);
     }
     return true;
   }

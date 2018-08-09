@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.TimeUnit;
 
 public class UpdateAppInfoTask implements LaunchTask {
+  private static final String ID = "UPDATE_APP_INFO";
   private final Project myProject;
   private final InstantRunContext myInstantRunContext;
 
@@ -50,6 +51,12 @@ public class UpdateAppInfoTask implements LaunchTask {
 
     // The timeout is quite large to accomodate ARM emulators.
     return ShellCommandLauncher.execute(command, device, launchStatus, printer, 15, TimeUnit.SECONDS);
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 
   @NotNull

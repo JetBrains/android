@@ -389,6 +389,7 @@ public class StudioIcons {
 
     public static class Properties {
       public static final Icon ACTION = load("/studio/icons/nav-editor/properties/action.png"); // 16x16
+      public static final Icon ARGUMENT = load("/studio/icons/nav-editor/properties/argument.png"); // 16x16
       public static final Icon GLOBAL_ACTION = load("/studio/icons/nav-editor/properties/global-action.png"); // 16x16
       public static final Icon SOURCE = load("/studio/icons/nav-editor/properties/source.png"); // 16x16
     }
@@ -568,6 +569,7 @@ public class StudioIcons {
       public static final Icon ATTACH_DEBUGGER = load("/studio/icons/shell/toolbar/attach-debugger.png"); // 16x16
       public static final Icon BUILD = load("/studio/icons/shell/toolbar/build.png"); // 16x16
       public static final Icon DEBUG = load("/studio/icons/shell/toolbar/debug.png"); // 16x16
+      public static final Icon DEVICE_MANAGER = load("/studio/icons/shell/toolbar/device-manager.png"); // 16x16
       public static final Icon GRADLE_SYNC = load("/studio/icons/shell/toolbar/gradle-sync.png"); // 16x16
       public static final Icon INSTANT_RUN = load("/studio/icons/shell/toolbar/instant-run.png"); // 16x16
       public static final Icon PROFILER = load("/studio/icons/shell/toolbar/profiler.png"); // 16x16
@@ -579,7 +581,6 @@ public class StudioIcons {
       public static final Icon STOP = load("/studio/icons/shell/toolbar/stop.png"); // 16x16
       public static final Icon USER_PROFILE_ACTIVE = load("/studio/icons/shell/toolbar/user-profile-active.png"); // 16x16
       public static final Icon USER_PROFILE = load("/studio/icons/shell/toolbar/user-profile.png"); // 16x16
-      public static final Icon VIRTUAL_DEVICES = load("/studio/icons/shell/toolbar/virtual-devices.png"); // 16x16
     }
   }
 }

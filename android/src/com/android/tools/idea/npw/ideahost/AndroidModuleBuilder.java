@@ -17,9 +17,8 @@ package com.android.tools.idea.npw.ideahost;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.model.NewProjectModel;
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
-import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
-import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.npw.project.ChooseAndroidProjectStep;
 import com.android.tools.idea.npw.project.ConfigureAndroidSdkStep;
 import com.android.tools.idea.npw.project.deprecated.ConfigureAndroidProjectStep;
@@ -36,7 +35,6 @@ import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import icons.AndroidIcons;
@@ -44,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.ArrayList;
 
 /**
  * AndroidModuleBuilder integrates the AndroidStudio new project and new module wizards into the IDEA new project and new module wizards.
@@ -176,12 +173,9 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
       }
     }
     else {
-      ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
-      for (ModuleDescriptionProvider provider : ModuleDescriptionProvider.EP_NAME.getExtensions()) {
-        moduleDescriptions.addAll(provider.getDescriptions());
-      }
-
-      builder.addStep(new ChooseModuleTypeStep(project, moduleDescriptions));
+      ChooseModuleTypeStep chooseModuleTypeStep =
+        ChooseModuleTypeStep.createWithDefaultGallery(project, new ProjectSyncInvoker.DefaultProjectSyncInvoker());
+      builder.addStep(chooseModuleTypeStep);
     }
     myWizardAdapter = new IdeaWizardAdapter(hostWizard, builder.build());
   }

@@ -35,12 +35,10 @@ class AddLibraryDependencyDialog(module: PsModule) : AbstractAddDependenciesDial
 
   override fun addNewDependencies() {
     val library = libraryDependenciesForm!!.selectedLibrary
-
-    val scopesPanel = scopesPanel
-    val scopesNames = scopesPanel.selectedScopeNames
+    val scopeName = scopesPanel.selectedScopeName
 
     when (library) {
-      is ParsedValue.Set.Parsed -> module.addLibraryDependency(library, scopesNames)
+      is ParsedValue.Set.Parsed -> module.addLibraryDependency(library, scopeName)
       else -> throw IllegalStateException()
     }
   }

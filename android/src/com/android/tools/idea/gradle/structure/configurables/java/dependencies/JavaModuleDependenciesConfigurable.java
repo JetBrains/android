@@ -41,7 +41,7 @@ public class JavaModuleDependenciesConfigurable extends AbstractModuleConfigurab
   }
 
   @Override
-  public MainPanel createPanel(@NotNull PsJavaModule module) {
+  public MainPanel createPanel() {
     return new MainPanel(getModule(), getContext(), myExtraModules);
   }
 }

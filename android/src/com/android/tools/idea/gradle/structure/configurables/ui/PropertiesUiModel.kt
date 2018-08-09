@@ -31,7 +31,7 @@ class PropertiesUiModel<in ModelT>(val properties: List<PropertyUiModel<ModelT, 
 /**
  * A UI model of a property of type [PropertyT] of a model of type [ModelT].
  */
-interface PropertyUiModel<in ModelT, out PropertyT> {
+interface PropertyUiModel<in ModelT, out PropertyT : Any> {
   /**
    * The plain text description of the property as it should appear in the UI.
    */
@@ -45,7 +45,7 @@ interface PropertyUiModel<in ModelT, out PropertyT> {
 
 typealias
   PropertyEditorFactory<ModelT, ContextT, ModelPropertyT, PropertyT> =
-  (project: PsProject, module: PsModule, context: ContextT, model: ModelT, ModelPropertyT, PsVariablesScope?) ->
+  (project: PsProject, module: PsModule?, context: ContextT, model: ModelT, ModelPropertyT, PsVariablesScope?) ->
   ModelPropertyEditor<PropertyT>
 
 typealias
@@ -84,13 +84,15 @@ class PropertyUiModelImpl<
 
 fun <T : Any, PropertyCoreT : ModelPropertyCore<T>> createDefaultEditorExtensions(
   project: PsProject,
-  module: PsModule): List<EditorExtensionAction<T, PropertyCoreT>> =
-  listOfNotNull(ExtractNewVariableExtension(project, module))
+  module: PsModule?
+): List<EditorExtensionAction<T, PropertyCoreT>> =
+  if (module != null) listOf(ExtractNewVariableExtension(project, module))
+  else listOf()
 
 fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ContextT, ModelT, ValueT, ValueT, ModelPropertyCore<ValueT>>>
   simplePropertyEditor(
   project: PsProject,
-  module: PsModule,
+  module: PsModule?,
   context: ContextT,
   model: ModelT,
   property: ModelPropertyT,
@@ -104,7 +106,7 @@ fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ContextT, Mo
 @Suppress("UNUSED_PARAMETER")
 fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ContextT, ModelT, ValueT>> listPropertyEditor(
   project: PsProject,
-  module: PsModule,
+  module: PsModule?,
   context: ContextT,
   model: ModelT,
   property: ModelPropertyT,
@@ -123,7 +125,7 @@ fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ContextT
 @Suppress("UNUSED_PARAMETER")
 fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ContextT, ModelT, ValueT>> mapPropertyEditor(
   project: PsProject,
-  module: PsModule,
+  module: PsModule?,
   context: ContextT,
   model: ModelT,
   property: ModelPropertyT,

@@ -41,7 +41,7 @@ public class JComponentClassTransformer implements ClassFileTransformer {
       return classfileBuffer;
     }
 
-    System.out.println("Transforming JComponent");
+    System.out.println("Transforming JComponent...");
     ClassReader reader = new ClassReader(classfileBuffer);
     ClassWriter defaultWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     ClassVisitor visitor = new JComponentVisitor(defaultWriter);
@@ -67,7 +67,6 @@ public class JComponentClassTransformer implements ClassFileTransformer {
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
       if (JCOMPONENT_NAME.equals(name)) {
         myIsJComponent = true;
-        System.out.println("Visiting JComponent");
       }
       super.visit(version, access, name, signature, superName, interfaces);
     }
@@ -105,14 +104,13 @@ public class JComponentClassTransformer implements ClassFileTransformer {
 
     public JComponentPaintMethodVisitor(MethodVisitor mv, int access, String name, String desc) {
       super(Opcodes.ASM5, mv, access, name, desc);
-      System.out.println("Found JComponent " + name + ", instrumenting...");
+      System.out.println("\t...instrumenting " + name);
     }
 
     @Override
     public void visitCode() {
       super.visitCode();
 
-      System.out.println("Instrumenting AffineTransform storage...");
       // Generate code to store the current transform of Graphics2D.
       myTransformLocalIndex = newLocal(Type.getType(AffineTransform.class));
       super.visitVarInsn(Opcodes.ALOAD, 1); // Load the Graphics parameter.
@@ -185,8 +183,6 @@ public class JComponentClassTransformer implements ClassFileTransformer {
       // Therefore, we enter prior to paintComponent/paintChildren, and exit after paintBorder/paintChildren.
       if (PAINT_DESCRIPTOR.equals(descriptor)) {
         if ("paintComponent".equals(name) && myClipStateMachine == CaptureClipStateMachine.INVOKEVIRTUAL) {
-          System.out.println("Instrumenting enter for " + name);
-
           // At this moment in the instruction stream, the "co" Graphics object is at the top of the stack. Dupe it and store it off.
           dup();
           int graphicsLocalIndex = newLocal(Type.getType(Graphics.class));
@@ -212,7 +208,6 @@ public class JComponentClassTransformer implements ClassFileTransformer {
           storeLocal(myPaintComponentMethodStatLocalIndex); // Store the initialized object.
         }
         else if ("paintChildren".equals(name)) {
-          System.out.println("Instrumenting enter for " + name);
           Type methodStatType = Type.getType(PaintChildrenMethodStat.class);
           myPaintChildrenMethodStatLocalIndex = newLocal(methodStatType);
           newInstance(methodStatType);
@@ -237,14 +232,12 @@ public class JComponentClassTransformer implements ClassFileTransformer {
         if (myPaintComponentMethodStatLocalIndex != -1 &&
             "paintBorder".equals(name) &&
             myClipStateMachine == CaptureClipStateMachine.INVOKEVIRTUAL) {
-          System.out.println("Instrumenting exit for " + name);
           // Load the PaintComponentMethodStat local variable onto the stack (it takes no parameters).
           loadLocal(myPaintComponentMethodStatLocalIndex);
           super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, PAINT_COMPONENT_METHOD_STAT_NAME, "endMethod", "()V", false);
           myPaintComponentMethodStatLocalIndex = -1;
         }
         else if (myPaintChildrenMethodStatLocalIndex != -1 && "paintChildren".equals(name)) {
-          System.out.println("Instrumenting exit for " + name);
           loadLocal(myPaintChildrenMethodStatLocalIndex); // Load the PaintChildrenMethodStat local variable onto the stack (it takes no parameters).
           super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, PAINT_CHILDREN_METHOD_STAT_NAME, "endMethod", "()V", false);
           myPaintChildrenMethodStatLocalIndex = -1;

@@ -81,16 +81,16 @@ public class AndroidTargetData {
   /**
    * Filters attributes through the public.xml file
    */
-  @Nullable
+  @NotNull
   public AttributeDefinitions getPublicAttrDefs(@NotNull Project project) {
     AttributeDefinitions attrDefs = getAllAttrDefs(project);
-    return attrDefs == null ? null : new PublicAttributeDefinitions(attrDefs);
+    return new PublicAttributeDefinitions(attrDefs);
   }
 
   /**
    * Returns all attributes
    */
-  @Nullable
+  @NotNull
   public AttributeDefinitions getAllAttrDefs(@NotNull Project project) {
     synchronized (myAttrDefsLock) {
       if (myAttrDefs == null) {

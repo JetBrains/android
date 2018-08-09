@@ -15,119 +15,63 @@
  */
 package com.android.tools.idea.res.aar;
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.res.ResolvableResourceItem;
-import com.google.common.base.MoreObjects;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.ResolveResult;
+import com.android.utils.HashCodes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 /**
  * Resource item representing a value resource, e.g. a string or a color.
  */
-class AarValueResourceItem implements AarResourceItem, ResolvableResourceItem {
-  @NotNull private final ResourceValue myValue;
-  @NotNull private final AarConfiguration myConfiguration;
-  @NotNull private final ResourceVisibility myVisibility;
+class AarValueResourceItem extends AbstractAarValueResourceItem implements ResolvableResourceItem {
+  @NotNull private final ResourceType myResourceType;
+  @Nullable private final String myValue;
 
-  public AarValueResourceItem(@NotNull ResourceValue resourceValue, @NotNull AarConfiguration configuration,
-                              @NotNull ResourceVisibility visibility) {
-    myValue = resourceValue;
-    myConfiguration = configuration;
-    myVisibility = visibility;
+  /**
+   * Initializes the resource.
+   *
+   * @param type the type of the resource
+   * @param name the name of the resource
+   * @param configuration the configuration the resource belongs to
+   * @param visibility the visibility of the resource
+   * @param value the value associated with the resource
+   */
+  public AarValueResourceItem(@NotNull ResourceType type,
+                              @NotNull String name,
+                              @NotNull AarConfiguration configuration,
+                              @NotNull ResourceVisibility visibility,
+                              @Nullable String value) {
+    super(name, configuration, visibility);
+    myResourceType = type;
+    myValue = value;
   }
 
   @Override
   @NotNull
-  public final String getName() {
-    return myValue.getName();
-  }
-
-  @Override
-  @NotNull
-  public final ResourceType getType() {
-    return myValue.getResourceType();
-  }
-
-  @Override
-  @NotNull
-  public final ResourceNamespace getNamespace() {
-    return myConfiguration.getRepository().getNamespace();
+  public final ResourceType getResourceType() {
+    return myResourceType;
   }
 
   @Override
   @Nullable
-  public final String getLibraryName() {
-    return myConfiguration.getRepository().getLibraryName();
-  }
-
-  @Override
-  @NotNull
-  public final FolderConfiguration getConfiguration() {
-    return myConfiguration.getFolderConfiguration();
-  }
-
-  @Override
-  @NotNull
-  public ResourceReference getReferenceToSelf() {
-    return myValue.asReference();
-  }
-
-  @Override
-  @NotNull
-  public ResourceValue getResourceValue() {
+  public String getValue() {
     return myValue;
   }
 
   @Override
-  public boolean isFileBased() {
-    return false;
+  public boolean equals(@Nullable Object obj) {
+    if (this == obj) return true;
+    if (!super.equals(obj)) return false;
+    AarValueResourceItem other = (AarValueResourceItem) obj;
+    return Objects.equals(myValue, other.myValue);
   }
 
   @Override
-  @Nullable
-  public PathString getSource() {
-    // TODO(sprigogin): Implement using a source attachment.
-    return null;
-  }
-
-  @Override
-  @NotNull
-  public ResourceVisibility getVisibility() {
-    return myVisibility;
-  }
-
-  @NotNull
-  @Override
-  public ResolveResult createResolveResult() {
-    return new ResolveResult() {
-      @Nullable
-      @Override
-      public PsiElement getElement() {
-        // TODO(sprigogin): Parse the attached source and return the corresponding element.
-        return null;
-      }
-
-      @Override
-      public boolean isValidResult() {
-        return false;
-      }
-    };
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-                      .add("name", getName())
-                      .add("namespace", getNamespace())
-                      .add("type", getType())
-                      .toString();
+  public int hashCode() {
+    return HashCodes.mix(super.hashCode(), Objects.hashCode(myValue));
   }
 }

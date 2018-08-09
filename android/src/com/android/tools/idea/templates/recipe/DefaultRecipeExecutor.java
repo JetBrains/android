@@ -676,7 +676,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
   }
 
   private void addFileAlreadyExistWarning(@NotNull File targetFile) {
-    addWarning(String.format("The following file could not be created since it already exists: %1$s", targetFile.getName()));
+    addWarning(String.format("The following file could not be created since it already exists: %1$s", targetFile.getPath()));
   }
 
 

@@ -1,5 +1,7 @@
 package com.android.tools.idea.naveditor.property
 
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
@@ -50,7 +52,8 @@ open class NewElementProperty(private val parent: NlComponent, private val tagNa
 
   override fun getTooltipText(): String = delegate?.tooltipText ?: ""
 
-  override fun getDefinition(): AttributeDefinition? = attrDefs.getAttrDefByName(attrName)
+  override fun getDefinition(): AttributeDefinition? = attrDefs.getAttrDefinition(
+    ResourceReference.attr(namespace?.let { ResourceNamespace.fromNamespaceUri(namespace)!! } ?: ResourceNamespace.RES_AUTO, attrName))
 
   override fun getComponents(): List<NlComponent> = delegate?.components ?: listOf()
 

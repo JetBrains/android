@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
@@ -42,6 +43,11 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import com.android.ide.common.rendering.api.AttributeFormat;
+import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import org.jetbrains.android.dom.attrs.StyleableDefinition;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -372,9 +378,17 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     myPropertiesManager.logPropertyChange(this);
   }
 
-  @NotNull
-  public List<ResourceReference> getParentStyleables() {
-    return myDefinition == null ? Collections.emptyList() : myDefinition.getParentStyleables();
+  boolean isThemeAttribute() {
+    AndroidFacet facet = myPropertiesManager.getFacet();
+    FrameworkResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
+    if (resourceManager != null) {
+      AttributeDefinitions definitions = resourceManager.getAttributeDefinitions();
+      StyleableDefinition theme = definitions.getStyleableDefinition(ResourceReference.styleable(ResourceNamespace.ANDROID, "Theme"));
+      if (theme != null) {
+        return theme.getAttributes().contains(myDefinition);
+      }
+    }
+    return false;
   }
 
   @Override

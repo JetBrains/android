@@ -19,12 +19,15 @@ import com.android.ddmlib.*;
 import com.android.instantapp.run.InstantAppRunException;
 import com.android.instantapp.run.InstantAppSideLoader;
 import com.android.instantapp.run.RunListener;
+import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeviceSelectionUtils;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStatsService;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.ArtifactDetail;
+import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -38,6 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static com.android.instantapp.run.InstantAppRunException.ErrorType.CANCELLED;
 import static com.android.instantapp.run.InstantAppRunException.ErrorType.NO_GOOGLE_ACCOUNT;
@@ -49,6 +53,8 @@ import static com.google.common.io.Files.createTempDir;
  * Uploads an Instant App for debugging / running
  */
 public class DeployInstantAppTask implements LaunchTask {
+  private static final String ID = "DEPLOY_INSTANT_APP";
+
   @NotNull private final Collection<ApkInfo> myPackages;
   private Project myProject;
 
@@ -75,9 +81,6 @@ public class DeployInstantAppTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    if (myProject != null) {
-      RunStatsService.get(myProject).notifyDeployInstantAppStarted(device, myPackages);
-    }
     if (launchStatus.isLaunchTerminated()) {
       return false;
     }
@@ -110,6 +113,18 @@ public class DeployInstantAppTask implements LaunchTask {
     }
 
     return install(onlineDevice, launchStatus, printer, appId, zipFile);
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
+  }
+
+  @NotNull
+  @Override
+  public Collection<ApkInfo> getApkInfos() {
+    return myPackages;
   }
 
   @VisibleForTesting
@@ -168,11 +183,7 @@ public class DeployInstantAppTask implements LaunchTask {
         });
       }
     }
-    boolean resultBoolean = result.get();
-    if (myProject != null) {
-      RunStatsService.get(myProject).notifyDeployFinished(resultBoolean);
-    }
-    return resultBoolean;
+    return result.get();
   }
 
   @NotNull

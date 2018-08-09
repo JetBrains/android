@@ -55,7 +55,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsCollectionBase<PsModule, Mod
       }
       moduleKey?.let { result.add(it) }
     }
-    return result
+    return result.sortedBy { it.gradlePath }.toSet()
   }
 
   override fun create(key: ModuleKey): PsModule = when (key.kind) {
@@ -76,7 +76,10 @@ class PsModuleCollection(parent: PsProjectImpl) : PsCollectionBase<PsModule, Mod
     val moduleResolvedModel =
       parent.getResolvedModuleModelsByGradlePath()[key.gradlePath]
 
-    val moduleParsedModel = projectParsedModel.getModuleByGradlePath(key.gradlePath)
+    val moduleParsedModel =
+      projectParsedModel
+        .takeIf { it.modules.contains(key.gradlePath) }
+        ?.getModuleByGradlePath(key.gradlePath)
 
     // Module type cannot be changed within the PSD.
     return when (key.kind) {

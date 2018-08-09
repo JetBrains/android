@@ -17,11 +17,15 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.TOOLS_URI
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
+import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.property2.api.FlagsPropertyItem
 import com.android.tools.idea.common.property2.api.NewPropertyItem
 import com.android.tools.idea.common.property2.api.PropertiesTable
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.psi.xml.XmlTag
 import icons.StudioIcons
 import javax.swing.Icon
 
@@ -34,7 +38,7 @@ import javax.swing.Icon
  */
 class NeleNewPropertyItem(model: NelePropertiesModel,
                           var properties: PropertiesTable<NelePropertyItem>)
-  : NelePropertyItem("", "", NelePropertyType.UNKNOWN, null, "", model, listOf()), NewPropertyItem {
+  : NelePropertyItem("", "", NelePropertyType.UNKNOWN, null, "", model, listOf()), NewPropertyItem, FlagsPropertyItem<NeleFlagPropertyItem> {
 
   override var namespace: String = ""
     private set
@@ -44,8 +48,16 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
       val (propertyNamespace, propertyName) = parseName(value)
       namespace = propertyNamespace
       field = propertyName
-      delegate = findDelegate()
+      delegate = findDelegate(propertyNamespace, propertyName)
+
+      // Give the model a change to hide expanded flag items
+      model.firePropertyValueChange()
     }
+
+  // There should only be one instance of NeleNewPropertyItem per Property panel.
+  override fun equals(other: Any?) = other is NeleNewPropertyItem
+  // The hashCode can be an arbitrary number since we only have 1 instance
+  override fun hashCode() = 517
 
   /**
    * When the property name is set to something valid, the [delegate] will be not null.
@@ -54,17 +66,15 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
   var delegate: NelePropertyItem? = null
     private set
 
+  override val nameEditingSupport = object : EditingSupport {
+    override val completion = { getPropertyNamesWithPrefix() }
+    override val validation = { text: String -> validate(text)}
+  }
+
   override var value: String?
     get() = delegate?.value
     set(value) {
       delegate?.value = value
-      if (value?.isNotEmpty() == true) {
-        // An attribute value was specified.
-        // The change was committed which eventually will cause the table to update
-        // with the new value in the main part of the table.
-        // Make this new property item ready for adding another attribute.
-        name = ""
-      }
     }
 
   override val resolvedValue: String?
@@ -94,46 +104,64 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
   override fun getAction(): AnAction? =
     delegate?.getAction()
 
+  override val children: List<NeleFlagPropertyItem>
+    get() = (delegate as? NeleFlagsPropertyItem)?.children ?: emptyList()
+
+  override fun flag(itemName: String): NeleFlagPropertyItem? {
+    return (delegate as? NeleFlagsPropertyItem)?.flag(itemName)
+  }
+
+  override val maskValue: Int
+    get() = (delegate as? NeleFlagsPropertyItem)?.maskValue ?: 0
+
+  override val firstComponent: NlComponent?
+    get() = properties.first?.components?.firstOrNull()
+
   private fun parseName(value: String): Pair<String, String> {
     val prefixIndex = value.indexOf(":")
     if (prefixIndex < 0) {
-      return Pair(ANDROID_URI, value)
+      return Pair("", value)
     }
     val prefix = value.substring(0, prefixIndex)
     val name = value.substring(prefixIndex + 1)
-
-    val namespace = findNamespaceDeclarations()[prefix] ?: ANDROID_URI
+    val namespace = namespaceResolver.prefixToUri(prefix) ?: ANDROID_URI
     return Pair(namespace, name)
   }
 
-  private fun findNamespaceDeclarations(): Map<String, String> {
-    val component = properties.first?.components?.firstOrNull() ?: return emptyMap()
-    return findRootTag(component).localNamespaceDeclarations
-  }
-
-  private fun findRootTag(component: NlComponent): XmlTag {
-    var tag = component.tag
-    var parent = tag.parent
-    while (parent is XmlTag) {
-      tag = parent
-      parent = tag.parent
-    }
-    return tag
-  }
-
-  private fun findDelegate(): NelePropertyItem? {
-    var property = properties.getOrNull(namespace, name)
+  private fun findDelegate(propertyNamespace: String, propertyName: String): NelePropertyItem? {
+    var property = properties.getOrNull(propertyNamespace, propertyName)
     if (property != null) {
       return property
     }
-    if (namespace == TOOLS_URI) {
+    if (propertyNamespace == TOOLS_URI) {
       for (ns in properties.namespaces) {
-        property = properties.getOrNull(ns, name)
+        property = properties.getOrNull(ns, propertyName)
         if (property != null) {
-          property.designProperty
+          return property.designProperty
         }
       }
     }
     return null
+  }
+
+  private fun getPropertyNamesWithPrefix(): List<String> {
+    val resolver = namespaceResolver
+    return properties.values.filter { it.rawValue == null }.map { getPropertyNameWithPrefix(it, resolver) }
+  }
+
+  private fun getPropertyNameWithPrefix(property: NelePropertyItem, resolver: ResourceNamespace.Resolver): String {
+    val name = property.name
+    val prefix = resolver.uriToPrefix(property.namespace)
+    return if (prefix.isNullOrEmpty()) name else "$prefix:$name"
+  }
+
+  private fun validate(text: String): Pair<EditingErrorCategory, String> {
+    val (propertyNamespace, propertyName) = parseName(text)
+    val property = findDelegate(propertyNamespace, propertyName)
+    return when {
+      property == null -> Pair(EditingErrorCategory.ERROR, "No property found by the name: $text")
+      property.rawValue != null -> Pair(EditingErrorCategory.ERROR, "A property by the name: $text is already specified")
+      else -> EDITOR_NO_ERROR
+    }
   }
 }

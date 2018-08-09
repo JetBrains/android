@@ -49,7 +49,7 @@ class PsJavaModule(
   val resolvedDependencies: PsResolvedJavaDependencyCollection
     get() = myResolvedDependencyCollection ?: PsResolvedJavaDependencyCollection(this).also { myResolvedDependencyCollection = it }
 
-  override fun getConfigurations(): List<String> = resolvedModel?.configurations.orEmpty()
+  override fun getConfigurations(onlyImportant: Boolean): List<String> = resolvedModel?.configurations.orEmpty()
 
   // Java libraries can depend on any type of modules, including Android apps (when a Java library is actually a 'test'
   // module for the Android app.)

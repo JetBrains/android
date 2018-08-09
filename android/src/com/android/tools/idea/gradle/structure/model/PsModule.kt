@@ -81,11 +81,11 @@ abstract class PsModule protected constructor(
 
   abstract val rootDir: File?
   abstract val projectType: PsModuleType
-  abstract fun getConfigurations(): List<String>
+  abstract fun getConfigurations(onlyImportant: Boolean = false): List<String>
   protected abstract fun resetDependencies()
   protected abstract fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency>
 
-  fun addLibraryDependency(library: ParsedValue.Set.Parsed<String>, scopesNames: List<String>) {
+  fun addLibraryDependency(library: ParsedValue.Set.Parsed<String>, scopeName: String) {
     // Update/reset the "parsed" model.
     val compactNotation =
       library.dslText.let {
@@ -97,7 +97,7 @@ abstract class PsModule protected constructor(
         }
       }
 
-    addLibraryDependencyToParsedModel(scopesNames, compactNotation)
+    addLibraryDependencyToParsedModel(scopeName, compactNotation)
 
     resetDependencies()
 
@@ -106,9 +106,9 @@ abstract class PsModule protected constructor(
     isModified = true
   }
 
-  fun addModuleDependency(modulePath: String, scopesNames: List<String>) {
+  fun addModuleDependency(modulePath: String, scopeName: String) {
     // Update/reset the "parsed" model.
-    addModuleDependencyToParsedModel(scopesNames, modulePath)
+    addModuleDependencyToParsedModel(scopeName, modulePath)
 
     resetDependencies()
 
@@ -192,18 +192,18 @@ abstract class PsModule protected constructor(
     }
   }
 
-  private fun addLibraryDependencyToParsedModel(configurationNames: List<String>, compactNotation: String) {
+  private fun addLibraryDependencyToParsedModel(configurationName: String, compactNotation: String) {
     parsedModel?.let { parsedModel ->
       val dependencies = parsedModel.dependencies()
-      configurationNames.forEach { configurationName -> dependencies.addArtifact(configurationName, compactNotation) }
+      dependencies.addArtifact(configurationName, compactNotation)
       parsedDependencies.reset(parsedModel)
     } ?: noParsedModel()
   }
 
-  private fun addModuleDependencyToParsedModel(configurationNames: List<String>, modulePath: String) {
+  private fun addModuleDependencyToParsedModel(configurationName: String, modulePath: String) {
     parsedModel?.let { parsedModel ->
       val dependencies = parsedModel.dependencies()
-      configurationNames.forEach { configurationName -> dependencies.addModule(configurationName, modulePath) }
+      dependencies.addModule(configurationName, modulePath)
       parsedDependencies.reset(parsedModel)
     } ?: noParsedModel()
   }
