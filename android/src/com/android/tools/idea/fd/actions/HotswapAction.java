@@ -21,6 +21,7 @@ import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.actions.AndroidStudioGradleAction;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.AndroidSessionInfo;
@@ -30,13 +31,11 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.keymap.Keymap;
-import com.intellij.openapi.keymap.KeymapManager;
-import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
@@ -61,6 +60,12 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
     Presentation presentation = e.getPresentation();
     presentation.setEnabled(false);
+
+    if (StudioFlags.JVMTI_REFRESH.get()) {
+      // TODO: b/112309245 There will be some restrictions, but currently just enable it always.
+      presentation.setEnabled(true);
+      return;
+    }
 
     if (!InstantRunSettings.isInstantRunEnabled()) {
       presentation.setText("Apply Changes: Instant Run has been disabled");
@@ -144,13 +149,18 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
       return;
     }
 
-    AndroidSessionInfo session = getAndroidSessionInfo(project, settings);
-    if (session == null) {
-      InstantRunManager.LOG.warn("Hotswap Action could not locate an existing session for selected run config.");
-      return;
+    Executor executor;
+    if (StudioFlags.JVMTI_REFRESH.get()) {
+      // TODO: Figure out the debugger flow. For now always use the Run executor.
+      executor = getExecutor(DefaultRunExecutor.EXECUTOR_ID);
+    } else {
+      AndroidSessionInfo session = getAndroidSessionInfo(project, settings);
+      if (session == null) {
+        InstantRunManager.LOG.warn("Hotswap Action could not locate an existing session for selected run config.");
+        return;
+      }
+      executor = getExecutor(session.getExecutorId());
     }
-
-    Executor executor = getExecutor(session.getExecutorId());
     if (executor == null) {
       InstantRunManager.LOG.warn("Hotswap Action could not identify executor");
       return;

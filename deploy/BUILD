@@ -13,5 +13,7 @@ iml_module(
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/idea/platform/util:intellij.platform.util[module]",
     ],
 )
