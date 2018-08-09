@@ -18,7 +18,10 @@ import com.intellij.openapi.wm.impl.AnchoredButton;
 import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.openapi.wm.impl.StripeButtonUI;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
-import com.intellij.ui.*;
+import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.SearchTextField;
+import com.intellij.ui.SideBorder;
+import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
@@ -572,8 +575,8 @@ class AttachedToolWindow<T> implements Disposable {
     }
 
     @Override
-    protected void presentationPropertyChanded(@NotNull PropertyChangeEvent event) {
-      super.presentationPropertyChanded(event);
+    protected void presentationPropertyChanged(@NotNull PropertyChangeEvent event) {
+      super.presentationPropertyChanged(event);
       update();
     }
   }
