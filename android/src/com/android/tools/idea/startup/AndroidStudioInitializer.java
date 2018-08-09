@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.startup;
 
-import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
@@ -37,7 +36,6 @@ import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -54,7 +52,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.ui.AppUIUtil;
 import com.intellij.util.PlatformUtils;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
@@ -110,13 +107,6 @@ public class AndroidStudioInitializer implements Runnable {
    */
   private static void setupAnalytics() {
     UsageStatisticsPersistenceComponent.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
-    if (!AnalyticsSettings.getOptedIn()) {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isUnitTestMode() &&  !application.isHeadlessEnvironment()) {
-        AppUIUtil.showConsentsAgreementIfNeed();
-      }
-    }
-
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
     ApplicationInfo application = ApplicationInfo.getInstance();
     UsageTracker.setVersion(application.getStrictVersion());
