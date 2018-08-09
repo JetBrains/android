@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.scene.draw
 
-import com.android.tools.idea.common.scene.LerpValue
+import com.android.tools.idea.common.scene.LerpInt
 import com.google.common.base.Joiner
 import java.awt.*
 
@@ -82,16 +82,16 @@ fun pointToString(p: Point): String {
   return Joiner.on('x').join(p.x, p.y)
 }
 
-fun stringToLerp(s: String): LerpValue {
+fun stringToLerp(s: String): LerpInt {
   val sp = splitString(s, ':')
   val start = sp[0].toInt()
   val end = sp[1].toInt()
   val duration = sp[2].toInt()
 
-  return LerpValue(start, end, duration)
+  return LerpInt(start, end, duration)
 }
 
-fun lerpToString(l: LerpValue): String {
+fun lerpToString(l: LerpInt): String {
   return Joiner.on(':').join(l.start, l.end, l.duration)
 }
 

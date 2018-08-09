@@ -16,7 +16,7 @@
 package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.scene.LerpValue
+import com.android.tools.idea.common.scene.LerpInt
 import com.android.tools.idea.common.scene.SceneContext
 import java.awt.BasicStroke
 import java.awt.Color
@@ -27,7 +27,7 @@ class DrawCircle(private val myLevel: Int,
                  @SwingCoordinate private val myCenter: Point,
                  private val myColor: Color,
                  private val myStroke: BasicStroke,
-                 @SwingCoordinate private val myRadius: LerpValue) : DrawCommand {
+                 @SwingCoordinate private val myRadius: LerpInt) : DrawCommand {
 
   private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToPoint(sp[1]),
       stringToColor(sp[2]), BasicStroke(sp[3].toFloat()), stringToLerp(sp[4]))
@@ -58,7 +58,7 @@ class DrawCircle(private val myLevel: Int,
 
     g2.dispose()
 
-    if (r != myRadius.end) {
+    if (!myRadius.isComplete(sceneContext.time)) {
       sceneContext.repaint()
     }
   }

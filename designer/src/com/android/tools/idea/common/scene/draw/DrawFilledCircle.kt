@@ -16,7 +16,7 @@
 package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.scene.LerpValue
+import com.android.tools.idea.common.scene.LerpInt
 import com.android.tools.idea.common.scene.SceneContext
 import java.awt.Color
 import java.awt.Graphics2D
@@ -25,12 +25,12 @@ import java.awt.Point
 class DrawFilledCircle(private val level: Int,
                        @SwingCoordinate private val center: Point,
                        private val color: Color,
-                       @SwingCoordinate private val radius: LerpValue) : DrawCommand {
+                       @SwingCoordinate private val radius: LerpInt) : DrawCommand {
 
   constructor(myLevel: Int,
               @SwingCoordinate myCenter: Point,
               myColor: Color,
-              @SwingCoordinate radius: Int) : this(myLevel, myCenter, myColor, LerpValue(radius))
+              @SwingCoordinate radius: Int) : this(myLevel, myCenter, myColor, LerpInt(radius))
 
   private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToPoint(sp[1]),
       stringToColor(sp[2]), stringToLerp(sp[3]))
@@ -59,7 +59,7 @@ class DrawFilledCircle(private val level: Int,
 
     g2.dispose()
 
-    if (r != radius.end) {
+    if (radius.isComplete(sceneContext.time)) {
       sceneContext.repaint()
     }
   }
