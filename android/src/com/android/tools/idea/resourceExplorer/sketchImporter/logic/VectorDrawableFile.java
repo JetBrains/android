@@ -17,7 +17,7 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.Log;
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.DrawableShape;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.DrawableModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchGradient;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchGradientStop;
@@ -48,7 +48,6 @@ public class VectorDrawableFile {
   private static final String ATTRIBUTE_WIDTH = "android:width";
   private static final String ATTRIBUTE_VIEWPORT_HEIGHT = "android:viewportHeight";
   private static final String ATTRIBUTE_VIEWPORT_WIDTH = "android:viewportWidth";
-  private static final String ATTRIBUTE_NAME = "android:name";
   private static final String ATTRIBUTE_PATH_DATA = "android:pathData";
   private static final String ATTRIBUTE_FILL_COLOR = "android:fillColor";
   private static final String ATTRIBUTE_GRADIENT_ENDX = "android:endX";
@@ -96,10 +95,9 @@ public class VectorDrawableFile {
     });
   }
 
-  public void addPath(@NotNull DrawableShape shape) {
+  public void addPath(@NotNull DrawableModel shape) {
     getApplication().runReadAction(() -> {
       XmlTag pathTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_PATH);
-      pathTag.setAttribute(ATTRIBUTE_NAME, shape.getName());
       pathTag.setAttribute(ATTRIBUTE_PATH_DATA, shape.getPathData());
       if (shape.getStrokeColor() != null) {
         pathTag.setAttribute(ATTRIBUTE_STROKE_COLOR, shape.getStrokeColor());
@@ -120,24 +118,27 @@ public class VectorDrawableFile {
   private XmlTag generateGradientSubTag(@NotNull SketchGradient gradient) {
     XmlTag aaptAttrTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_AAPT_ATTR);
     XmlTag gradientTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_GRADIENT);
-    switch (gradient.getDrawableGradientType()) {
-      case SketchGradient.GRADIENT_LINEAR:
-        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_ENDX, gradient.getGradientEndX());
-        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_ENDY, gradient.getGradientEndY());
-        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_STARTX, gradient.getGradientStartX());
-        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_STARTY, gradient.getGradientStartY());
-        break;
-      case SketchGradient.GRADIENT_RADIAL:
-        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERX, gradient.getGradientStartX());
-        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERY, gradient.getGradientStartY());
-        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_RADIUS, gradient.getGradientRadius());
-        break;
-      case SketchGradient.GRADIENT_SWEEP:
-        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERX, gradient.getGradientStartX());
-        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERY, gradient.getSweepCenterY());
-        break;
+    String gradientType = gradient.getDrawableGradientType();
+    if (gradientType != null) {
+      switch (gradient.getDrawableGradientType()) {
+        case SketchGradient.GRADIENT_LINEAR:
+          gradientTag.setAttribute(ATTRIBUTE_GRADIENT_ENDX, gradient.getGradientEndX());
+          gradientTag.setAttribute(ATTRIBUTE_GRADIENT_ENDY, gradient.getGradientEndY());
+          gradientTag.setAttribute(ATTRIBUTE_GRADIENT_STARTX, gradient.getGradientStartX());
+          gradientTag.setAttribute(ATTRIBUTE_GRADIENT_STARTY, gradient.getGradientStartY());
+          break;
+        case SketchGradient.GRADIENT_RADIAL:
+          gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERX, gradient.getGradientStartX());
+          gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERY, gradient.getGradientStartY());
+          gradientTag.setAttribute(ATTRIBUTE_GRADIENT_RADIUS, gradient.getGradientRadius());
+          break;
+        case SketchGradient.GRADIENT_SWEEP:
+          gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERX, gradient.getGradientStartX());
+          gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERY, gradient.getSweepCenterY());
+          break;
+      }
+      gradientTag.setAttribute(ATTRIBUTE_GRADIENT_TYPE, gradient.getDrawableGradientType());
     }
-    gradientTag.setAttribute(ATTRIBUTE_GRADIENT_TYPE, gradient.getDrawableGradientType());
 
     for (SketchGradientStop item : gradient.getStops()) {
       XmlTag itemTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_ITEM);
@@ -187,9 +188,9 @@ public class VectorDrawableFile {
       Rectangle2D.Double frame = artboard.getFrame();
       setVectorDimensions(frame.getHeight(), frame.getWidth());
       setViewportDimensions(frame.getHeight(), frame.getWidth());
-      List<DrawableShape> shapes = artboard.getShapes();
-      for (DrawableShape shape : shapes) {
-        addPath(shape);
+      List<DrawableModel> drawableModels = artboard.getAllDrawableShapes();
+      for (DrawableModel drawableModel : drawableModels) {
+        addPath(drawableModel);
       }
     }
     String content = getApplication().runReadAction((Computable<String>)() -> root.getText());
