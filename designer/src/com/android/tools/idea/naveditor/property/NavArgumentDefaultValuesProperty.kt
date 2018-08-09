@@ -21,25 +21,40 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.model.*
+import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.psi.xml.XmlFile
 import com.intellij.util.xml.XmlName
 import org.jetbrains.android.dom.attrs.AttributeDefinitions
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers
+import org.jetbrains.android.resourceManagers.ResourceManager
 
 /**
  * Property representing all the arguments (possibly zero) for an action.
  */
-class NavArgumentDefaultValuesProperty(components: List<NlComponent>, propertiesManager: NavPropertiesManager)
-  : NavArgumentsProperty(components, propertiesManager) {
+class NavArgumentDefaultValuesProperty(components: List<NlComponent>, val propertiesManager: NavPropertiesManager)
+  : SimpleProperty("Arguments", components) {
+
+  private val resourceManager: ResourceManager? = if (components.isEmpty()) {
+    null
+  }
+  else {
+    ModuleResourceManagers.getInstance(components[0].model.facet).localResourceManager
+  }
+
+  private val attrDefs: AttributeDefinitions? = resourceManager?.attributeDefinitions
+
+  val properties = mutableListOf<NavArgumentDefaultValueProperty>()
 
   init {
     refreshList()
   }
 
-  override fun refreshList() {
+  fun refreshList() {
     if (attrDefs == null) {
       return
     }
@@ -50,11 +65,19 @@ class NavArgumentDefaultValuesProperty(components: List<NlComponent>, properties
         .filter { it.tagName == NavigationSchema.TAG_ARGUMENT }
         .associateBy { it.getAttribute(ANDROID_URI, ATTR_NAME) ?: "" }
 
-    val destinationToLocal: Map<NlComponent, NlComponent?> =
+    val includes = mutableListOf<NlComponent>()
+    val destinationArgNameToType: MutableMap<String, String?> =
       components.mapNotNull { component ->
         if (component.isAction) {
           component.actionDestination?.let {
-            if (it.isNavigation) it.startDestination else it
+            when {
+              it.isInclude -> {
+                includes.add(it)
+                null
+              }
+              it.isNavigation -> it.startDestination
+              else -> it
+            }
           }
         }
         else {
@@ -63,45 +86,42 @@ class NavArgumentDefaultValuesProperty(components: List<NlComponent>, properties
       }
         .flatMap { it.children }
         .filter { it.tagName == TAG_ARGUMENT && !it.getAttribute(ANDROID_URI, ATTR_NAME).isNullOrEmpty() }
-        .associate { it to localArguments[it.getAttribute(ANDROID_URI, ATTR_NAME)] }
+        .associate { it.getAttribute(ANDROID_URI, ATTR_NAME)!! to it.getAttribute(AUTO_URI, ATTR_ARG_TYPE) }
+        .toMutableMap()
 
-    destinationToLocal.mapTo(properties) { (dest, local) -> NavArgumentDefaultValueProperty(dest, local, components, attrDefs, this) }
-  }
-}
+    includes.flatMap { findIncludeArgumentNameToType(it.includeFile, it.startDestinationId) }.associateTo(destinationArgNameToType) { it }
 
-class NavArgumentDefaultValueProperty(destinationArgument: NlComponent,
-                                      private val actionArgument: NlComponent?,
-                                      private val parents: List<NlComponent>,
-                                      attrDefs: AttributeDefinitions,
-                                      private val navArgumentsProperty: NavArgumentDefaultValuesProperty) :
-  NlPropertyItem(XmlName(ATTR_NAME, ANDROID_URI),
-                 attrDefs.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_NAME)),
-                 listOf(destinationArgument),
-                 navArgumentsProperty.propertiesManager), NavArgumentProperty {
-
-  override val defaultValueProperty: NlProperty =
-    actionArgument?.let { ArgumentDefaultValuePropertyItem(attrDefs) } ?:
-    object : NewElementProperty(parents[0], TAG_ARGUMENT, ATTR_DEFAULT_VALUE, ANDROID_URI, attrDefs,
-                                navArgumentsProperty.propertiesManager) {
-      override fun setValue(value: Any?) {
-        super.setValue(value)
-        WriteCommandAction.runWriteCommandAction(navArgumentsProperty.propertiesManager.project) {
-          tag?.setAttribute(ATTR_NAME, ANDROID_URI, this@NavArgumentDefaultValueProperty.value)
-        }
-      }
+    destinationArgNameToType.mapTo(properties) { (name, type) ->
+      val local = localArguments[name]
+      val propertyBase = local?.let { ArgumentDefaultValuePropertyItem(attrDefs, listOf(local)) }
+                         ?: object : NewElementProperty(components[0], TAG_ARGUMENT, ATTR_DEFAULT_VALUE, ANDROID_URI, attrDefs,
+                                                        propertiesManager) {
+                           override fun setValue(value: Any?) {
+                             super.setValue(value)
+                             WriteCommandAction.runWriteCommandAction(propertiesManager.project) {
+                               tag?.setAttribute(ATTR_NAME, ANDROID_URI, name)
+                             }
+                           }
+                         }
+      NavArgumentDefaultValueProperty(propertyBase, name, type)
     }
+  }
 
-  override val typeProperty: NlProperty = ArgumentTypePropertyItem(attrDefs, destinationArgument)
+  private fun findIncludeArgumentNameToType(file: XmlFile?, startDestination: String?): List<Pair<String, String?>> {
+    if (file == null || startDestination == null) {
+      return listOf()
+    }
+    val startDestinationTag =
+      file.rootTag?.subTags?.find { it.getAttributeValue(ATTR_ID, ANDROID_URI) == "$NEW_ID_PREFIX$startDestination" } ?: return listOf()
 
-  private inner class ArgumentTypePropertyItem(attrDefs: AttributeDefinitions, destinationArgument: NlComponent)
-    : NlPropertyItem(XmlName(ATTR_ARG_TYPE, AUTO_URI),
-                     attrDefs.getAttrDefinition(ResourceReference.attr(ResourceNamespace.RES_AUTO, ATTR_ARG_TYPE)),
-                     listOf(destinationArgument), myPropertiesManager)
+    return startDestinationTag.findSubTags(TAG_ARGUMENT)
+      .mapNotNull { it.getAttributeValue(ATTR_NAME, ANDROID_URI)?.let { name -> name to it.getAttributeValue(ATTR_ARG_TYPE, AUTO_URI) } }
+  }
 
-  private inner class ArgumentDefaultValuePropertyItem(attrDefs: AttributeDefinitions)
+  private inner class ArgumentDefaultValuePropertyItem(attrDefs: AttributeDefinitions, val argumentComponents: List<NlComponent>)
     : NlPropertyItem(XmlName(ATTR_DEFAULT_VALUE, ANDROID_URI),
                      attrDefs.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_DEFAULT_VALUE)),
-                     listOf(actionArgument), myPropertiesManager) {
+                     argumentComponents, propertiesManager) {
     override fun setValue(value: Any?) {
       super.setValue(value)
       deleteIfNeeded()
@@ -109,9 +129,11 @@ class NavArgumentDefaultValueProperty(destinationArgument: NlComponent,
 
     private fun deleteIfNeeded() {
       if (value.isNullOrEmpty()) {
-        navArgumentsProperty.model.delete(listOf(actionArgument))
-        navArgumentsProperty.refreshList()
+        model.delete(argumentComponents)
+        this@NavArgumentDefaultValuesProperty.refreshList()
       }
     }
   }
 }
+
+class NavArgumentDefaultValueProperty(base: NlProperty, val argName: String, val type: String?) : NlProperty by base

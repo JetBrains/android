@@ -13,21 +13,23 @@
 // limitations under the License.
 package com.android.tools.idea.naveditor.property.inspector
 
+import com.android.SdkConstants.ATTR_ARG_TYPE
+import com.android.SdkConstants.ATTR_NAME
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.property.NavArgumentsProperty
+import com.android.tools.idea.naveditor.property.NavArgumentDefaultValuesProperty
 import javax.swing.table.AbstractTableModel
 
-open class NavArgumentsTableModel(private val argumentsProperty: NavArgumentsProperty) : AbstractTableModel() {
+open class NavArgumentDefaultValuesTableModel(private val argumentsProperty: NavArgumentDefaultValuesProperty) : AbstractTableModel() {
   override fun getRowCount() = argumentsProperty.properties.size
 
   override fun getColumnCount() = 3
 
   override fun getValueAt(rowIndex: Int, columnIndex: Int): NlProperty {
-    val nameProperty = argumentsProperty.properties[rowIndex]
+    val defaultValueProperty = argumentsProperty.properties[rowIndex]
     return when (columnIndex) {
-      0 -> nameProperty
-      1 -> nameProperty.typeProperty
-      else -> nameProperty.defaultValueProperty
+      0 -> SimpleProperty(ATTR_NAME, listOf(), _value = defaultValueProperty.argName)
+      1 -> SimpleProperty(ATTR_ARG_TYPE, listOf(), _value = defaultValueProperty.type ?: "<inferred>")
+      else -> defaultValueProperty
     }
   }
 
@@ -36,5 +38,5 @@ open class NavArgumentsTableModel(private val argumentsProperty: NavArgumentsPro
     argumentsProperty.refreshList()
   }
 
-  override fun isCellEditable(rowIndex: Int, columnIndex: Int) = true
+  override fun isCellEditable(rowIndex: Int, columnIndex: Int) = columnIndex == 2
 }

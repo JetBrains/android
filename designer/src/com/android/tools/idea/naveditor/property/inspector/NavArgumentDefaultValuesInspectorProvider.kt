@@ -99,9 +99,7 @@ class NavArgumentDefaultValuesInspectorProvider : InspectorProvider<NavPropertie
 
     override fun attachToInspector(inspector: InspectorPanel<NavPropertiesManager>) {
       val panel = JPanel(BorderLayout())
-      val table = JBTable(object: NavArgumentsTableModel(argumentProperty) {
-        override fun isCellEditable(rowIndex: Int, columnIndex: Int) = columnIndex == 2
-      })
+      val table = JBTable(NavArgumentDefaultValuesTableModel(argumentProperty))
 
       table.name = NAV_ACTION_ARGUMENTS_COMPONENT_NAME
       table.rowHeight = NAV_ARGUMENTS_ROW_HEIGHT
