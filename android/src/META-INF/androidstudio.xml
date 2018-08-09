@@ -61,6 +61,11 @@
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
 
+    <action id="WelcomeScreen.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
+            icon="StudioIcons.Shell.Menu.AVD_MANAGER">
+      <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
+    </action>
+
     <!-- Disable this action to use IDEA's default "Project Structure" dialog (useful when debugging Android Studio project setup.) -->
     <action id="ShowProjectStructureSettings" class="com.android.tools.idea.gradle.actions.AndroidShowStructureSettingsAction"
             project-type="Android" icon="AllIcons.General.ProjectStructure"/>
