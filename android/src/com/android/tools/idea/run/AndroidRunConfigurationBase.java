@@ -25,6 +25,7 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.run.PostBuildModel;
@@ -288,7 +289,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     stats.setUserSelectedTarget(userSelectedDeployTarget);
 
     // Figure out deploy target, prompt user if needed (ignore completely if user chose to hotswap).
-    if (forceColdswap) {
+    if (forceColdswap || StudioFlags.JVMTI_REFRESH.get()) {
       DeployTarget deployTarget = getDeployTarget(executor, env, isDebugging, facet);
       if (deployTarget == null) { // if user doesn't select a deploy target from the dialog
         return null;

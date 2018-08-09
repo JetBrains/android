@@ -18,17 +18,21 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.AdbClient;
+import com.android.tools.deploy.swapper.DexArchiveDatabase;
+import com.android.tools.deploy.swapper.InMemoryDexArchiveDatabase;
 import com.android.tools.deployer.Apk;
 import com.android.tools.deployer.Deployer;
-import com.android.tools.deployer.DeployerRunner;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.diagnostic.Logger;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack {
@@ -37,8 +41,22 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
 
   private final Collection<ApkInfo> myApks;
 
-  public UnifiedDeployTask(@NotNull Collection<ApkInfo> apks) {
+  // TODO: Move this to an an application component.
+  private static DexArchiveDatabase myDb = new InMemoryDexArchiveDatabase();
+
+  public static final Logger LOG = Logger.getInstance(UnifiedDeployTask.class);
+
+  private final boolean mySwap;
+
+  /**
+   * Creates a task to deploy a list of apks.
+   *
+   * @param apks the apks to deploy.
+   * @param swap whether to perform swap on a running app or to just install and restart.
+   */
+  public UnifiedDeployTask(@NotNull Collection<ApkInfo> apks, boolean swap) {
     myApks = apks;
+    mySwap = swap;
   }
 
   @NotNull
@@ -61,9 +79,23 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
 
       List<String> paths = apk.getFiles().stream().map(
         apkunit -> apkunit.getApkFile().getPath()).collect(Collectors.toList());
-      Deployer deployer = new Deployer(apk.getApplicationId(), paths, this, new AdbClient(device));
-      Deployer.RunResponse response = deployer.run();
+      Deployer deployer = new Deployer(apk.getApplicationId(), paths, this, new AdbClient(device), myDb);
+      Deployer.RunResponse response = null;
+      try {
+        if (mySwap) {
+          // TODO: Separate code-swap and full-swap
+          response = deployer.fullSwap();
+        } else {
+          response = deployer.install();
+        }
+      }
+      catch (IOException e) {
+        LOG.error("Error deploying APK", e);
+        return false;
+      }
 
+
+      // TODO: shows the error somewhere other than System.err
       if (response.status == Deployer.RunResponse.Status.ERROR) {
         System.err.println(response.errorMessage);
         return error;
