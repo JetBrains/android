@@ -16,6 +16,8 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.presenter;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.model.SketchFile;
+import com.android.tools.idea.resourceExplorer.sketchImporter.logic.VectorDrawableFile;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPoint2D;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.ColorDeserializer;
@@ -34,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.io.*;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 

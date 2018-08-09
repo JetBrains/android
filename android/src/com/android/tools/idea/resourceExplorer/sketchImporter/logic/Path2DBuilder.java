@@ -21,7 +21,6 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchSh
 import com.android.tools.layoutlib.annotations.NotNull;
 
 import java.awt.geom.Path2D;
-import java.awt.geom.Rectangle2D;
 
 public class Path2DBuilder {
   @NotNull
@@ -41,29 +40,26 @@ public class Path2DBuilder {
 
   public void createBezierCurve(@NotNull SketchPoint2D curveFrom, @NotNull SketchPoint2D curveTo, @NotNull SketchPoint2D destination) {
     path.curveTo(curveFrom.getX(), curveFrom.getY(), curveTo.getX(), curveTo.getY(), destination.getX(), destination.getY());
-
-    //TODO: Can be optimized by also taking into consideration the S command for bezier curves
   }
-
+  
   public void createQuadCurve(@NotNull SketchPoint2D controlPoint, @NotNull SketchPoint2D endPoint) {
     path.quadTo(controlPoint.getX(), controlPoint.getY(), endPoint.getX(), endPoint.getY());
   }
 
   public void createClosedShape(@NotNull SketchShapePath shapePath,
-                                @NotNull SketchCurvePoint currentCurvePoint,
-                                @NotNull Rectangle2D.Double parentFrame) {
+                                @NotNull SketchCurvePoint currentCurvePoint) {
     SketchPoint2D currentPointCurveFrom;
     if (currentCurvePoint.hasCurveFrom()) {
-      currentPointCurveFrom = currentCurvePoint.getCurveFrom().makeAbsolutePosition(parentFrame, shapePath.getFrame());
+      currentPointCurveFrom = currentCurvePoint.getCurveFrom().makeAbsolutePosition(shapePath.getFrame());
     }
     else {
-      currentPointCurveFrom = currentCurvePoint.getPoint().makeAbsolutePosition(parentFrame, shapePath.getFrame());
+      currentPointCurveFrom = currentCurvePoint.getPoint().makeAbsolutePosition(shapePath.getFrame());
     }
     SketchCurvePoint firstCurvePoint = shapePath.getPoints()[0];
-    SketchPoint2D firstPoint = firstCurvePoint.getPoint().makeAbsolutePosition(parentFrame, shapePath.getFrame());
+    SketchPoint2D firstPoint = firstCurvePoint.getPoint().makeAbsolutePosition(shapePath.getFrame());
     SketchPoint2D firstPointCurveTo;
     if (firstCurvePoint.hasCurveTo()) {
-      firstPointCurveTo = firstCurvePoint.getCurveTo().makeAbsolutePosition(parentFrame, shapePath.getFrame());
+      firstPointCurveTo = firstCurvePoint.getCurveTo().makeAbsolutePosition(shapePath.getFrame());
     }
     else {
       firstPointCurveTo = firstPoint;

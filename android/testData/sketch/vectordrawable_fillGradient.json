@@ -107,7 +107,7 @@
           "nameIsFixed": false,
           "resizingConstraint": 63,
           "resizingType": 0,
-          "rotation": 0,
+          "rotation": 30,
           "shouldBreakMaskChain": false,
           "style": {
             "_class": "style",
@@ -287,7 +287,7 @@
             "y": 71
           },
           "isFixedToViewport": false,
-          "isFlippedHorizontal": false,
+          "isFlippedHorizontal": true,
           "isFlippedVertical": false,
           "isLocked": false,
           "isVisible": true,

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SketchStyle {
@@ -59,7 +60,7 @@ public class SketchStyle {
     return borderOptions;
   }
 
-  @Nullable
+  @NotNull
   public SketchBorder[] getBorders() {
     return borders;
   }
@@ -74,7 +75,7 @@ public class SketchStyle {
     return colorControls;
   }
 
-  @Nullable
+  @NotNull
   public SketchFill[] getFills() {
     return fills;
   }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.DrawableShape;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.ShapeModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchExportOptions;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
-import java.util.List;
 
 /**
  * Holds the fields that are shared between all types of layers in the Sketch JSON file.
@@ -127,7 +126,7 @@ public abstract class SketchLayer {
   }
 
   @NotNull
-  public List<DrawableShape> getTranslatedShapes(@NotNull Point2D.Double parentCoords) {
+  public ImmutableList<ShapeModel> createShapeModels(Point2D.Double parentCoords) {
     return ImmutableList.of();
   }
 }
