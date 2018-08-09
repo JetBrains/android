@@ -108,7 +108,7 @@ class NavArgumentDefaultValuesInspectorProviderTest : NavTestCase() {
     assertEquals("integer", (argumentsTable.getValueAt(0, 1) as NlProperty).value)
     assertEquals("actionvalue1", (argumentsTable.getValueAt(0, 2) as NlProperty).value)
     assertEquals("arg1", (argumentsTable.getValueAt(0, 0) as NlProperty).value)
-    assertEquals(null, (argumentsTable.getValueAt(1, 1) as NlProperty).value)
+    assertEquals("<inferred>", (argumentsTable.getValueAt(1, 1) as NlProperty).value)
     assertEquals(null, (argumentsTable.getValueAt(1, 2) as NlProperty).value)
 
     // edit the second default value
