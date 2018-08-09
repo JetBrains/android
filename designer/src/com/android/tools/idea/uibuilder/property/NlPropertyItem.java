@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -34,7 +35,6 @@ import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.property.renderer.NlAttributeRenderer;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
-import com.android.util.PropertiesMap;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
@@ -42,7 +42,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.StyleableDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -53,7 +52,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -76,7 +74,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Nullable
   private final String myNamespace;
   @Nullable
-  private PropertiesMap.Property myDefaultValue;
+  private String myDefaultValue;
   @NotNull
   private StarState myStarState;
 
@@ -177,7 +175,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     return myNamespace;
   }
 
-  public void setDefaultValue(@Nullable PropertiesMap.Property defaultValue) {
+  public void setDefaultValue(@Nullable String defaultValue) {
     myDefaultValue = defaultValue;
   }
 
@@ -215,17 +213,14 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     if (myDefaultValue == null) {
       return false;
     }
-    return value.equals(myDefaultValue.resource);
+    return value.equals(myDefaultValue);
   }
 
   @Override
   @Nullable
   public String resolveValue(@Nullable String value) {
     if (myDefaultValue != null && isDefaultValue(value)) {
-      if (myDefaultValue.value == null) {
-        myDefaultValue = new PropertiesMap.Property(myDefaultValue.resource, resolveValueUsingResolver(myDefaultValue.resource));
-      }
-      return myDefaultValue.value;
+      value = myDefaultValue;
     }
     return value != null ? resolveValueUsingResolver(value) : null;
   }

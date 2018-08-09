@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
@@ -43,7 +45,6 @@ import com.android.tools.idea.naveditor.scene.targets.NavigationTargetProvider;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
-import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.xml.XmlTag;
@@ -508,7 +509,12 @@ public class NavSceneManager extends SceneManager {
   }
 
   @Override
-  public Map<Object, PropertiesMap> getDefaultProperties() {
+  public Map<Object, Map<ResourceReference, ResourceValue>> getDefaultProperties() {
+    return ImmutableMap.of();
+  }
+
+  @Override
+  public Map<Object, String> getDefaultStyles() {
     return ImmutableMap.of();
   }
 

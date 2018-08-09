@@ -239,10 +239,10 @@ class NelePropertyItemTest : PropertyTestCase() {
     val components = createTextView()
     val property = createPropertyItem(ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
     val manager = getSceneManager(property)
-    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall", null)
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     waitUntilEventsProcessed(property.model)
 
-    assertThat(property.value).isEqualTo("@android:attr/textAppearanceSmall")
+    assertThat(property.value).isEqualTo("@android:style/TextAppearance.Material.Small")
     property.model.showResolvedValues = false
     assertThat(property.value).isNull()
   }
@@ -253,20 +253,21 @@ class NelePropertyItemTest : PropertyTestCase() {
     val emptyProperty = createPropertyItem(ATTR_CONTENT_DESCRIPTION, NelePropertyType.STRING, components, model)
     val hardcodedProperty = createPropertyItem(ATTR_LAYOUT_WIDTH, NelePropertyType.DIMENSION, components, model)
     val referenceProperty = createPropertyItem(ATTR_TEXT, NelePropertyType.STRING, components, model)
-    val hardcodedFromDefultProperty = createPropertyItem(ATTR_TEXT_SIZE, NelePropertyType.DIMENSION, components, model)
-    val referenceFromDefaultProperty = createPropertyItem(ATTR_LINE_SPACING_EXTRA, NelePropertyType.DIMENSION, components, model)
-    val manager = getSceneManager(hardcodedFromDefultProperty)
+    val hardcodedFromDefaultProperty = createPropertyItem(ATTR_LINE_SPACING_EXTRA, NelePropertyType.DIMENSION, components, model)
+    val referenceFromDefaultProperty = createPropertyItem(ATTR_TEXT_SIZE, NelePropertyType.DIMENSION, components, model)
+    val manager = getSceneManager(hardcodedFromDefaultProperty)
     val keyStroke = KeymapUtil.getShortcutText(ToggleShowResolvedValueAction.SHORTCUT)  // Platform dependent !!!
     referenceFromDefaultProperty.resolver
-    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_LINE_SPACING_EXTRA, "@dimen/lineSpacing", null)
-    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_SIZE, "14sp", null)
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_LINE_SPACING_EXTRA, "16sp")
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_SIZE, "@dimen/text_size_button_material")
     waitUntilEventsProcessed(model)
 
     assertThat(emptyProperty.tooltipForValue).isEmpty()
     assertThat(hardcodedProperty.tooltipForValue).isEmpty()
     assertThat(referenceProperty.tooltipForValue).isEqualTo("\"@string/demo\" = \"Demo String\" ($keyStroke)")
-    assertThat(hardcodedFromDefultProperty.tooltipForValue).isEqualTo("[default] \"14sp\"")
-    assertThat(referenceFromDefaultProperty.tooltipForValue).isEqualTo("[default] \"@dimen/lineSpacing\" = \"13sp\" ($keyStroke)")
+    assertThat(hardcodedFromDefaultProperty.tooltipForValue).isEqualTo("[default] \"16sp\"")
+    assertThat(referenceFromDefaultProperty.tooltipForValue)
+      .isEqualTo("[default] \"@android:dimen/text_size_button_material\" = \"14sp\" ($keyStroke)")
   }
 
   fun testCompletion() {
