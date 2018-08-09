@@ -30,6 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JButton
 
 class CpuCaptureViewTest {
   @JvmField
@@ -91,6 +92,22 @@ class CpuCaptureViewTest {
       startCapturing()
     }
     ReferenceWalker(captureView).assertReachable(CpuCaptureView.RecordingPane::class.java)
+  }
+
+  @Test
+  fun stopButtonDisabledWhenStopCapturing() {
+    cpuProfiler.apply {
+      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
+      startCapturing()
+    }
+    val recordingPane = TreeWalker(captureView.component).descendants().filterIsInstance<CpuCaptureView.RecordingPane>()[0]
+    val stopButton = TreeWalker(recordingPane).descendants().filterIsInstance<JButton>().first {
+      it.text == CpuProfilerStageView.STOP_TEXT
+    }
+    assertThat(stopButton.isEnabled).isTrue()
+    cpuProfiler.stopCapturing()
+
+    assertThat(stopButton.isEnabled).isFalse()
   }
 
   @Test
