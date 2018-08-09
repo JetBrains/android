@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng.variantonly;
 
+import com.android.tools.layoutlib.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -25,11 +26,17 @@ public class VariantOnlySyncOptions implements Serializable {
   @NotNull public final File myBuildId;
   @NotNull public final String myGradlePath;
   @NotNull public final String myVariantName;
+  @Nullable public final String myAbiName;
 
   public VariantOnlySyncOptions(@NotNull File buildId, @NotNull String gradlePath, @NotNull String variantName) {
+    this(buildId, gradlePath, variantName, null);
+  }
+
+  public VariantOnlySyncOptions(@NotNull File buildId, @NotNull String gradlePath, @NotNull String variantName, @Nullable String abiName) {
     myBuildId = buildId;
     myGradlePath = gradlePath;
     myVariantName = variantName;
+    myAbiName = abiName;
   }
 
   @Override
@@ -43,12 +50,13 @@ public class VariantOnlySyncOptions implements Serializable {
     VariantOnlySyncOptions options = (VariantOnlySyncOptions)o;
     return Objects.equals(myBuildId, options.myBuildId) &&
            Objects.equals(myGradlePath, options.myGradlePath) &&
-           Objects.equals(myVariantName, options.myVariantName);
+           Objects.equals(myVariantName, options.myVariantName) &&
+           Objects.equals(myAbiName, options.myAbiName);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myBuildId, myGradlePath, myVariantName);
+    return Objects.hash(myBuildId, myGradlePath, myVariantName, myAbiName);
   }
 
   @Override
@@ -57,6 +65,7 @@ public class VariantOnlySyncOptions implements Serializable {
            "myBuildId=" + myBuildId +
            ", myGradlePath='" + myGradlePath + '\'' +
            ", myVariantName='" + myVariantName + '\'' +
+           ", myAbiName='" + myAbiName + '\'' +
            '}';
   }
 }

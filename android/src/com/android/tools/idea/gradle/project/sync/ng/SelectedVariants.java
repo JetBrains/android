@@ -29,9 +29,14 @@ public class SelectedVariants implements Serializable {
    * @see com.android.tools.idea.gradle.project.sync.Modules#createUniqueModuleId(File, String)
    */
   @NotNull private Map<String, String> mySelectedVariantByModule = new HashMap<>();
+  // Map from module id to selected abi name, only available for native modules.
+  @NotNull private Map<String, String> mySelectedAbiByModule = new HashMap<>();
 
-  void addSelectedVariant(@NotNull String moduleId, @NotNull String selectedVariant) {
-    mySelectedVariantByModule.put(moduleId, selectedVariant);
+  void addSelectedVariant(@NotNull String moduleId, @NotNull String variantName, @Nullable String abiName) {
+    mySelectedVariantByModule.put(moduleId, variantName);
+    if (abiName != null) {
+      mySelectedAbiByModule.put(moduleId, abiName);
+    }
   }
 
   public int size() {
@@ -41,5 +46,10 @@ public class SelectedVariants implements Serializable {
   @Nullable
   public String getSelectedVariant(@NotNull String moduleId) {
     return mySelectedVariantByModule.get(moduleId);
+  }
+
+  @Nullable
+  public String getSelectedAbi(@NotNull String moduleId) {
+    return mySelectedAbiByModule.get(moduleId);
   }
 }

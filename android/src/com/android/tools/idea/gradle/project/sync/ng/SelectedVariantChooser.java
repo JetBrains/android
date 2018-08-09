@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.ModelBuilderParameter;
-import com.android.builder.model.Variant;
+import com.android.builder.model.*;
 import com.android.tools.idea.gradle.project.sync.ng.AndroidModule.ModuleDependency;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
@@ -57,7 +55,8 @@ class SelectedVariantChooser implements Serializable {
       GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
 
       if (gradleProject != null && androidProject != null && androidProject.getVariants().isEmpty()) {
-        AndroidModule module = new AndroidModule(androidProject, moduleModels);
+        NativeAndroidProject nativeAndroidProject = moduleModels.findModel(NativeAndroidProject.class);
+        AndroidModule module = new AndroidModule(androidProject, moduleModels, nativeAndroidProject);
         String id = createUniqueModuleId(gradleProject);
         modulesById.put(id, module);
         if (androidProject.getProjectType() == PROJECT_TYPE_APP) {
@@ -75,9 +74,10 @@ class SelectedVariantChooser implements Serializable {
         visitedModules.add(moduleId);
         AndroidModule module = modulesById.get(moduleId);
         requireNonNull(module);
-        Variant variant = selectVariantForAppOrLeaf(module, controller, selectedVariants);
+        Variant variant = selectVariantForAppOrLeaf(module, controller, selectedVariants, moduleId);
         if (variant != null) {
-          module.addSelectedVariant(variant);
+          String abi = syncAndAddNativeVariantAbi(module, controller, variant.getName(), selectedVariants.getSelectedAbi(moduleId));
+          module.addSelectedVariant(variant, abi);
           selectVariantForDependencyModules(module, controller, modulesById, visitedModules);
         }
       }
@@ -92,12 +92,17 @@ class SelectedVariantChooser implements Serializable {
       String dependencyModuleId = dependency.id;
       visitedModules.add(dependencyModuleId);
       String variantName = dependency.variant;
+      String abiName = null;
       if (variantName != null) {
         AndroidModule dependencyModule = libModulesById.get(dependencyModuleId);
         if (dependencyModule != null && !dependencyModule.containsVariant(variantName)) {
+          NativeAndroidProject nativeProject = androidModule.getNativeAndroidProject();
+          if (nativeProject != null) {
+            abiName = syncAndAddNativeVariantAbi(dependencyModule, controller, variantName, dependency.abi);
+          }
           Variant dependencyVariant = syncAndAddVariant(variantName, dependencyModule.getModuleModels(), controller);
           if (dependencyVariant != null) {
-            dependencyModule.addSelectedVariant(dependencyVariant);
+            dependencyModule.addSelectedVariant(dependencyVariant, abiName);
             selectVariantForDependencyModules(dependencyModule, controller, libModulesById, visitedModules);
           }
         }
@@ -108,38 +113,24 @@ class SelectedVariantChooser implements Serializable {
   @Nullable
   private static Variant selectVariantForAppOrLeaf(@NotNull AndroidModule androidModule,
                                                    @NotNull BuildController controller,
-                                                   @NotNull SelectedVariants selectedVariants) {
-    SyncModuleModels moduleModels = androidModule.getModuleModels();
-    GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
-    requireNonNull(gradleProject);
-    String moduleId = createUniqueModuleId(gradleProject);
+                                                   @NotNull SelectedVariants selectedVariants,
+                                                   @NotNull String moduleId) {
     String variant = selectedVariants.getSelectedVariant(moduleId);
-
     Collection<String> variantNames = androidModule.getAndroidProject().getVariantNames();
     // Selected variant is null means that this is the very first sync, choose debug or the first one.
     // Also, make sure the variant in SelectedVariants exists - this can be false if the variants in build files are modified from the last sync.
     if (variant == null || !variantNames.contains(variant)) {
-      variant = getDebugOrFirstVariant(variantNames);
+      variant = getDefaultOrFirstItem(variantNames, "debug");
     }
     return (variant != null) ? syncAndAddVariant(variant, androidModule.getModuleModels(), controller) : null;
   }
 
   @Nullable
-  private static String getDebugOrFirstVariant(@NotNull Collection<String> names) {
-    int nameCount = names.size();
-    if (nameCount == 0) {
+  private static String getDefaultOrFirstItem(@NotNull Collection<String> names, @NotNull String defaultValue) {
+    if (names.isEmpty()) {
       return null;
     }
-    String debugVariant = "debug";
-    if (names.contains(debugVariant)) {
-      return debugVariant;
-    }
-    if (nameCount > 1) {
-      List<String> sortedNames = new ArrayList<>(names);
-      sortedNames.sort(String::compareTo);
-      names = sortedNames;
-    }
-    return names instanceof List ? ((List<String>)names).get(0) : names.iterator().next();
+    return names.contains(defaultValue) ? defaultValue : Collections.min(names, String::compareTo);
   }
 
   @Nullable
@@ -155,5 +146,35 @@ class SelectedVariantChooser implements Serializable {
       moduleModels.addModel(Variant.class, variant);
     }
     return variant;
+  }
+
+  @Nullable
+  private static String syncAndAddNativeVariantAbi(@NotNull AndroidModule androidModule,
+                                                   @NotNull BuildController controller,
+                                                   @NotNull String variant,
+                                                   @Nullable String abi) {
+    NativeAndroidProject nativeAndroidProject = androidModule.getNativeAndroidProject();
+    if (nativeAndroidProject != null) {
+      Collection<String> abiNames = nativeAndroidProject.getVariantInfos().get(variant).getAbiNames();
+      if (abi == null || !abiNames.contains(abi)) {
+        abi = getDefaultOrFirstItem(abiNames, "x86");
+      }
+      if (abi != null) {
+        String abiToSelect = abi;
+        SyncModuleModels moduleModels = androidModule.getModuleModels();
+        GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
+        requireNonNull(gradleProject);
+        NativeVariantAbi variantAbi = controller.findModel(gradleProject, NativeVariantAbi.class, ModelBuilderParameter.class,
+                                                           parameter -> {
+                                                             parameter.setVariantName(variant);
+                                                             parameter.setAbiName(abiToSelect);
+                                                           });
+        if (variantAbi != null) {
+          moduleModels.addModel(NativeVariantAbi.class, variantAbi);
+        }
+        return abiToSelect;
+      }
+    }
+    return null;
   }
 }

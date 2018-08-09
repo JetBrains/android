@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -42,7 +44,7 @@ class SelectedVariantCollector {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       SelectedVariant variant = findSelectedVariant(module);
       if (variant != null) {
-        selectedVariants.addSelectedVariant(variant.moduleId, variant.variantName);
+        selectedVariants.addSelectedVariant(variant.moduleId, variant.variantName, variant.abiName);
       }
     }
     return selectedVariants;
@@ -55,23 +57,34 @@ class SelectedVariantCollector {
     if (gradleFacet != null) {
       GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
       if (gradleModel != null) {
+        File rootFolder = gradleModel.getRootFolderPath();
+        String projectPath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+
         AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+        NdkFacet ndkFacet = NdkFacet.getInstance(module);
+        if (ndkFacet != null && ndkModuleModel != null) {
+          String ndkVariantName = ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT;
+          return new SelectedVariant(rootFolder, projectPath, ndkModuleModel.getVariantName(ndkVariantName),
+                                     ndkModuleModel.getAbiName(ndkVariantName));
+        }
         if (androidFacet != null) {
-          return new SelectedVariant(androidFacet, gradleModel.getRootFolderPath(), gradleFacet.getConfiguration().GRADLE_PROJECT_PATH);
+          return new SelectedVariant(rootFolder, projectPath, androidFacet.getProperties().SELECTED_BUILD_VARIANT, null);
         }
       }
     }
     return null;
   }
 
-  @VisibleForTesting
   static class SelectedVariant {
     @NotNull final String moduleId;
     @NotNull final String variantName;
+    @Nullable final String abiName;
 
-    SelectedVariant(@NotNull AndroidFacet androidFacet, @NotNull File rootFolderPath, @NotNull String gradlePath) {
+    SelectedVariant(@NotNull File rootFolderPath, @NotNull String gradlePath, @NotNull String variantName, @Nullable String abiName) {
       this.moduleId = createUniqueModuleId(rootFolderPath, gradlePath);
-      this.variantName = androidFacet.getProperties().SELECTED_BUILD_VARIANT;
+      this.variantName = variantName;
+      this.abiName = abiName;
     }
   }
 }
