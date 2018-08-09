@@ -99,7 +99,7 @@ class PsAndroidModule(
   }
 
   // TODO(solodkyy): Return a collection of PsBuildConfiguration instead of strings.
-  override fun getConfigurations(): List<String> {
+  override fun getConfigurations(onlyImportant: Boolean): List<String> {
 
     fun applicableArtifacts() = listOf("", "test", "androidTest")
 
@@ -107,7 +107,7 @@ class PsAndroidModule(
       productFlavors.filter { it.dimension.maybeValue == dimension }.map { it.name }
 
     fun buildFlavorCombinations() = when {
-      flavorDimensions.size > 1 -> flavorDimensions
+      !onlyImportant && flavorDimensions.size > 1 -> flavorDimensions
         .fold(listOf(listOf(""))) { acc, dimension ->
           flavorsByDimension(dimension.name).flatMap { flavor ->
             acc.map { prefix -> prefix + flavor }

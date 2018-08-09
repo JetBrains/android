@@ -42,12 +42,13 @@ public final class RenderStatsManager {
 
   /**
    * Enables/disables swingp's collection of stats.
-   * This method is safe to call at any time, but note that recording may not stop immediately, as the system will allow incomplete stacks
-   * finish their recording.
+   * This method is safe to call at any time, but note that recording may not stop immediately,
+   * as the system will allow incomplete stacks finish their recording.
    */
   public static void setIsEnabled(boolean isEnabled) {
     ourIsEnabled = isEnabled;
     ourGlobalThreadStats.forEach(threadStat -> threadStat.setIsRecording(ourIsEnabled));
+    JComponentTreeManager.setEnabled(isEnabled);
   }
 
   @NotNull

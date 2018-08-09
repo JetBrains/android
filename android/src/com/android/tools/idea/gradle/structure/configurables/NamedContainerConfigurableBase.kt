@@ -25,7 +25,7 @@ import com.intellij.openapi.util.Disposer
  */
 interface ContainerConfigurable<ModelT> : Disposable {
   fun getChildrenModels(): Collection<ModelT>
-  fun createChildConfigurable(model: ModelT): NamedConfigurable<ModelT>
+  fun createChildConfigurable(model: ModelT): NamedConfigurable<out ModelT>
   fun onChange(disposable: Disposable, listener: () -> Unit)
 }
 
@@ -47,7 +47,7 @@ abstract class NamedContainerConfigurableBase<ModelT>(
 /**
  * Creates a tree representing the hierarchy of [ContainerConfigurable]s represented by its root [rootConfigurable].
  */
-fun createTreeModel(rootConfigurable: NamedContainerConfigurableBase<*>): ConfigurablesTreeModel =
+fun createTreeModel(rootConfigurable: NamedConfigurable<*>): ConfigurablesTreeModel =
   ConfigurablesTreeModel(MasterDetailsComponent.MyNode(rootConfigurable, false))
     .also { it.initializeNode(it.rootNode, fromConfigurable = rootConfigurable) }
 
@@ -71,7 +71,6 @@ private fun <T> ConfigurablesTreeModel.updateChildrenOf(
   parentNode: MasterDetailsComponent.MyNode,
   fromConfigurable: ContainerConfigurable<T>
 ) {
-
   val children = fromConfigurable.getChildrenModels().toSet()
   val existing =
     parentNode
@@ -91,7 +90,10 @@ private fun <T> ConfigurablesTreeModel.updateChildrenOf(
       when {
         existingNode != null ->
           // Move existing nodes to the right positions if require.
-          if (getIndexOfChild(parentNode, existingNode) != index) insertNodeInto(existingNode, parentNode, index)
+          if (getIndexOfChild(parentNode, existingNode) != index) {
+            removeNodeFromParent(existingNode)
+            insertNodeInto(existingNode, parentNode, index)
+          }
         else -> {
           // Create any new nodes and insert them at their positions.
           val configurable = fromConfigurable.createChildConfigurable(model)

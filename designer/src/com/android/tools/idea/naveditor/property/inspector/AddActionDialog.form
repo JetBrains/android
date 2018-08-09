@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.naveditor.property.inspector.AddActionDialogUI">
-  <grid id="27dc6" binding="myContentPanel" layout-manager="GridLayoutManager" row-count="18" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="myContentPanel" layout-manager="GridLayoutManager" row-count="16" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="20" width="500" height="915"/>
@@ -149,44 +149,12 @@
           <text value="Single Top"/>
         </properties>
       </component>
-      <component id="6de97" class="com.intellij.ui.components.JBLabel">
-        <constraints>
-          <grid row="16" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Document"/>
-        </properties>
-      </component>
       <component id="52389" class="javax.swing.JCheckBox" binding="mySingleTopCheckBox">
         <constraints>
           <grid row="15" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value=""/>
-        </properties>
-      </component>
-      <component id="4a6ff" class="javax.swing.JCheckBox" binding="myDocumentCheckBox">
-        <constraints>
-          <grid row="16" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value=""/>
-        </properties>
-      </component>
-      <component id="29209" class="javax.swing.JCheckBox" binding="myClearTaskCheckBox">
-        <constraints>
-          <grid row="17" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value=""/>
-        </properties>
-      </component>
-      <component id="d79da" class="com.intellij.ui.components.JBLabel">
-        <constraints>
-          <grid row="17" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Clear Task"/>
         </properties>
       </component>
       <hspacer id="6f3d2">

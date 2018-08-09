@@ -35,6 +35,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
 import javax.xml.transform.stream.StreamSource;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Locale;
 
@@ -388,7 +389,8 @@ public class DefaultTutorialBundle implements TutorialBundleData {
         return null;
       }
 
-      myIcon =  IconLoader.findIcon(myResourceRoot + "/" + myIconName, myResourceClass);
+      String iconPath = Paths.get(myResourceRoot, myIconName).toString();
+      myIcon =  IconLoader.findIcon(iconPath, myResourceClass);
       return myIcon;
     }
 

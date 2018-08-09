@@ -17,9 +17,13 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
+import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
@@ -27,17 +31,21 @@ import com.android.tools.idea.common.property2.api.ActionButtonSupport
 import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.res.getNamespaceResolver
 import com.android.tools.idea.uibuilder.property2.support.OpenResourceManagerAction
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.utils.HashCodes
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
+import com.intellij.util.text.nullize
 import icons.StudioIcons
 import org.jetbrains.android.dom.attrs.AttributeDefinition
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import javax.swing.Icon
 
 /**
@@ -96,11 +104,35 @@ open class NelePropertyItem(
   override val resolvedValue: String?
     get() = resolveValue(rawValue)
 
+  // TODO: Use the namespace resolver in ResourceHelper when it no longer returns [ResourceNamespace.Resolver.TOOLS_ONLY].
+  // We need to find the prefix even when namespacing is turned off.
   val namespaceResolver: ResourceNamespace.Resolver
     get() {
-      val tag = getTagOfFirstComponent()
-      return if (tag != null) getNamespaceResolver(tag) else ResourceNamespace.Resolver.EMPTY_RESOLVER
+      val element = firstTag ?: return ResourceNamespace.Resolver.EMPTY_RESOLVER
+
+      fun withTag(compute: (XmlTag) -> String?): String? {
+        return ReadAction.compute<String, RuntimeException> {
+          if (!element.isValid) {
+            null
+          }
+          else {
+            val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java, false)
+            tag?.let(compute).let(StringUtil::nullize)
+          }
+        }
+      }
+
+      return object : ResourceNamespace.Resolver {
+        override fun uriToPrefix(namespaceUri: String): String? = withTag { tag -> tag.getPrefixByNamespace(namespaceUri) }
+        override fun prefixToUri(namespacePrefix: String): String? = withTag { tag -> tag.getNamespaceByPrefix(namespacePrefix).nullize() }
+      }
     }
+
+  override val editingSupport = object : EditingSupport {
+    override val completion = { getCompletionValues() }
+    override val validation = { text: String -> validate(text) }
+    override val execution = { runnable: Runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) }
+  }
 
   override val designProperty: NelePropertyItem
     get() = if (namespace == TOOLS_URI) this else NelePropertyItem(TOOLS_URI, name, type, definition, libraryName, model, components)
@@ -120,7 +152,7 @@ open class NelePropertyItem(
   private fun resolveValueUsingResolver(value: String?): String? {
     if (value == null || !isReferenceValue(value)) return value
     val resolver = resolver ?: return value
-    // TODO: Should an error if the value cannot be parsed and resolved...
+    // TODO: Should an error be raised if the value cannot be parsed and resolved...
     val url = ResourceUrl.parse(value) ?: return value
     val defaultNamespace = ResourceRepositoryManager.getOrCreateInstance(model.facet).namespace
     val resRef = url.resolve(defaultNamespace, namespaceResolver) ?: return value
@@ -138,14 +170,11 @@ open class NelePropertyItem(
   }
 
   val resolver: ResourceResolver?
-    get() {
-      val configuration: Configuration = getNeleModel()?.configuration ?: return null
-      return configuration.resourceResolver
-    }
+    get() = nlModel?.configuration?.resourceResolver
 
   val tagName: String
     get() {
-      val tagName = getFirstComponent()?.tagName ?: return ""
+      val tagName = firstComponent?.tagName ?: return ""
       for (component in components) {
         if (component.tagName != tagName) {
           return ""
@@ -154,18 +183,14 @@ open class NelePropertyItem(
       return tagName
     }
 
+  protected open val firstComponent: NlComponent?
+    get() = components.firstOrNull()
 
-  private fun getFirstComponent(): NlComponent? {
-    return if (components.isNotEmpty()) components[0] else null
-  }
+  private val firstTag: XmlTag?
+    get() = firstComponent?.tag
 
-  private fun getTagOfFirstComponent(): XmlTag? {
-    return getFirstComponent()?.tag
-  }
-
-  private fun getNeleModel(): NlModel? {
-    return getFirstComponent()?.model
-  }
+  private val nlModel: NlModel?
+    get() = firstComponent?.model
 
   private fun isReferenceValue(value: String?): Boolean {
     return value != null && (value.startsWith("?") || value.startsWith("@") && !isId(value))
@@ -197,7 +222,7 @@ open class NelePropertyItem(
     TransactionGuard.submitTransaction(model, Runnable {
       NlWriteCommandAction.run(components, "Set $componentName.$name to $newValue") {
         components.forEach { it.setAttribute(namespace, name, newValue) }
-        model.propertyValueChanged(this)
+        model.logPropertyValueChanged(this)
       }
     })
   }
@@ -232,6 +257,37 @@ open class NelePropertyItem(
     val prefix = namespaceResolver.uriToPrefix(namespace) ?: return ""
     @Suppress("ConvertToStringTemplate")
     return prefix + ":"
+  }
+
+  private fun getCompletionValues(): List<String> {
+    val values = mutableListOf<String>()
+    if (definition != null && definition.values.isNotEmpty()) {
+      values.addAll(definition.values)
+    }
+    val resourceManagers = ModuleResourceManagers.getInstance(model.facet)
+    val localRepository = resourceManagers.localResourceManager.resourceRepository
+    val frameworkRepository = resourceManagers.frameworkResourceManager?.resourceRepository
+    val defaultNamespace = ResourceRepositoryManager.getOrCreateInstance(model.facet).namespace
+    val namespaceResolver = namespaceResolver
+    val types = type.resourceTypes
+    val toName = { item: ResourceItem -> item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString() }
+    if (types.isNotEmpty()) {
+      for (type in types) {
+        localRepository.getResourceItems(defaultNamespace, type).filter { it.libraryName == null }.mapTo(values, toName)
+      }
+      for (type in types) {
+        localRepository.getPublicResourcesOfType(type).filter { it.libraryName != null }.mapTo(values, toName)
+      }
+      for (type in types) {
+        frameworkRepository?.getPublicResourcesOfType(type)?.mapTo(values, toName)
+      }
+    }
+    return values
+  }
+
+  // TODO: implement validate
+  private fun validate(text: String): Pair<EditingErrorCategory, String> {
+    return EDITOR_NO_ERROR
   }
 
   // region Implementation of ActionButtonSupport

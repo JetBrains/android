@@ -52,7 +52,7 @@ public class LintCheckWithKotlinTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void lintCheckWithKotlin() throws Exception {
     String inspectionResults = guiTest.importProjectAndWaitForProjectSyncToFinish("KotlinInstrumentation")

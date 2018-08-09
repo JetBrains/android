@@ -22,8 +22,48 @@ import com.intellij.pom.java.LanguageLevel
 import junit.framework.Assert.*
 import org.junit.Test
 import java.io.File
+import java.math.BigDecimal
 
 class InputParsersTest {
+
+  @Test
+  fun any_empty() {
+    val parsed = parseAny(null, "")
+    assertTrue(parsed.value === ParsedValue.NotSet)
+    assertNull(parsed.annotation)
+  }
+
+  @Test
+  fun any_int() {
+    val parsed = parseAny(null, "123")
+    assertTrue(parsed.value is ParsedValue.Set.Parsed)
+    assertNull(parsed.annotation)
+    assertEquals(123, (parsed.value as ParsedValue.Set.Parsed).value)
+  }
+
+  @Test
+  fun any_decimal() {
+    val parsed = parseAny(null, "123.1")
+    assertTrue(parsed.value is ParsedValue.Set.Parsed)
+    assertNull(parsed.annotation)
+    assertEquals("123.1".toBigDecimal(), (parsed.value as ParsedValue.Set.Parsed).value)
+  }
+
+  @Test
+  fun any_boolean() {
+    val parsed = parseAny(null, "false")
+    assertTrue(parsed.value is ParsedValue.Set.Parsed)
+    assertNull(parsed.annotation)
+    assertEquals(false, (parsed.value as ParsedValue.Set.Parsed).value)
+  }
+
+  @Test
+  fun any_string() {
+    val parsed = parseAny(null, "NoNo")
+    assertTrue(parsed.value is ParsedValue.Set.Parsed)
+    assertNull(parsed.annotation)
+    assertEquals("NoNo", (parsed.value as ParsedValue.Set.Parsed).value)
+  }
 
   @Test
   fun string() {

@@ -69,11 +69,13 @@ public final class MultiTemplateRenderer {
   }
 
   @Nullable private Project myProject;
+  @NotNull private final ProjectSyncInvoker myProjectSyncInvoker;
   private final List<TemplateRenderer> myTemplateRenderers = new ArrayList<>();
   private int myRequestCount = 1;
 
-  public MultiTemplateRenderer(@Nullable Project project) {
+  public MultiTemplateRenderer(@Nullable Project project, @NotNull ProjectSyncInvoker projectSyncInvoker) {
     myProject = project;
+    myProjectSyncInvoker = projectSyncInvoker;
   }
 
   @NotNull
@@ -163,7 +165,8 @@ public final class MultiTemplateRenderer {
           renderer.render();
         }
 
-        ProjectSystemUtil.getProjectSystem(myProject).getSyncManager().syncProject(PROJECT_MODIFIED, true);
+        myProjectSyncInvoker.syncProject(myProject);
+
       }
       finally {
         multiRenderingFinished(myProject);

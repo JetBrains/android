@@ -30,9 +30,9 @@ import java.lang.reflect.Type;
 public class SketchLayerDeserializer implements JsonDeserializer<SketchLayer> {
   public static final String SHAPE_PATH_CLASS_TYPE = "shapePath";
   public static final String RECTANGLE_CLASS_TYPE = "rectangle";
+  public static final String TRIANGLE_CLASS_TYPE = "triangle";
   public static final String OVAL_CLASS_TYPE = "oval";
   public static final String STAR_CLASS_TYPE = "star";
-  public static final String TRIANGLE_CLASS_TYPE = "triangle";
   public static final String POLYGON_CLASS_TYPE = "polygon";
   public static final String SHAPE_GROUP_CLASS_TYPE = "shapeGroup";
   public static final String PAGE_CLASS_TYPE = "page";
@@ -63,9 +63,9 @@ public class SketchLayerDeserializer implements JsonDeserializer<SketchLayer> {
         return context.deserialize(json, SketchShapeGroup.class);
       case SHAPE_PATH_CLASS_TYPE:
       case RECTANGLE_CLASS_TYPE:
+      case TRIANGLE_CLASS_TYPE:
       case OVAL_CLASS_TYPE:
       case STAR_CLASS_TYPE:
-      case TRIANGLE_CLASS_TYPE:
       case POLYGON_CLASS_TYPE:
         return context.deserialize(json, SketchShapePath.class);
       case SLICE_CLASS_TYPE:

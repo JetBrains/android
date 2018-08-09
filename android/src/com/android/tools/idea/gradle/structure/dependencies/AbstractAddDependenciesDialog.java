@@ -55,7 +55,7 @@ public abstract class AbstractAddDependenciesDialog extends DialogWrapper {
 
   @NotNull
   private static AbstractDependencyScopesPanel createDependencyScopesPanel(@NotNull PsModule module) {
-    return new DependencyScopesPanel(module);
+    return new DependencyScopePanel(module);
   }
 
   @Override
@@ -65,17 +65,14 @@ public abstract class AbstractAddDependenciesDialog extends DialogWrapper {
       myMainPanel = new JPanel(new BorderLayout());
       myScopesPanel = createDependencyScopesPanel(myModule);
 
-      JBSplitter splitter = new JBSplitter(true, getSplitterProportionKey(), .55f);
-      splitter.setBorder(createEmptyBorder());
 
       JComponent view = getDependencySelectionView();
       view.setBorder(createMainPanelBorder());
-      splitter.setFirstComponent(view);
+      myMainPanel.add(view, BorderLayout.CENTER);
 
       myScopesPanel.setBorder(createMainPanelBorder());
-      splitter.setSecondComponent(myScopesPanel);
 
-      myMainPanel.add(splitter, BorderLayout.CENTER);
+      myMainPanel.add(myScopesPanel, BorderLayout.SOUTH);
       myMainPanel.add(new TitlePanel(myModule, getInstructions()), BorderLayout.NORTH);
     }
 

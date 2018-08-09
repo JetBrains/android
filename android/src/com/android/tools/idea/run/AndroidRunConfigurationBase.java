@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.InstantRunNotificationTask;
@@ -40,6 +39,7 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.MultiUserUtils;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.stats.RunStatsService;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
@@ -248,8 +248,23 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @Override
   public RunProfileState getState(@NotNull final Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
-    validateBeforeRun(executor);
+    RunStats stats = RunStatsService.get(getProject()).create();
+    try {
+      stats.start();
+      RunProfileState state = doGetState(executor, env, stats);
+      stats.markStateCreated();
+      return state;
+    } catch (Throwable t) {
+      stats.abort();
+      throw t;
+    }
+  }
 
+  @Nullable
+  public RunProfileState doGetState(@NotNull Executor executor,
+                                    @NotNull ExecutionEnvironment env,
+                                    @NotNull RunStats stats) throws ExecutionException {
+    validateBeforeRun(executor);
 
     final Module module = getConfigurationModule().getModule();
     assert module != null : "Enforced by fatal validation check in checkConfiguration.";
@@ -261,46 +276,38 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     final boolean instantRunEnabled = InstantRunSettings.isInstantRunEnabled();
     final AndroidSessionInfo existingSessionInfo = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
 
-    try {
-      Boolean debuggable = AndroidModuleInfo.getInstance(facet).isDebuggable();
-      // match logic in LaunchUtils.canDebugAppOnDevice, null means debuggable.
-      if (debuggable == null) {
-        debuggable = true;
-      }
-      RunStatsService.get(getProject())
-                     .notifyRunStarted(getApplicationIdProvider(facet).getPackageName(),
-                                       executor.getId(),
-                                       debuggable,
-                                       forceColdswap,
-                                       instantRunEnabled);
-    }
-    catch (ApkProvisionException e) {
-      getLogger().error(e);
-    }
+    stats.setDebuggable(LaunchUtils.canDebugApp(facet));
+    stats.setInstantRunEnabled(instantRunEnabled);
+    stats.setExecutor(executor.getId());
+    stats.setApplyChanges(!forceColdswap);
+
     boolean couldHaveHotswapped = false;
     DeviceFutures deviceFutures = null;
     final boolean isDebugging = executor instanceof DefaultDebugExecutor;
     boolean userSelectedDeployTarget = requiresUserSelection(executor, isDebugging, facet);
+    stats.setUserSelectedTarget(userSelectedDeployTarget);
 
     // Figure out deploy target, prompt user if needed (ignore completely if user chose to hotswap).
     if (forceColdswap) {
       DeployTarget deployTarget = getDeployTarget(executor, env, isDebugging, facet);
       if (deployTarget == null) { // if user doesn't select a deploy target from the dialog
-        RunStatsService.get(project).notifyStudioSectionFinished(false, false, userSelectedDeployTarget);
         return null;
       }
 
       DeployTargetState deployTargetState = getDeployTargetContext().getCurrentDeployTargetState();
       if (deployTarget.hasCustomRunProfileState(executor)) {
-        RunStatsService.get(project).notifyStudioSectionFinished(false, false, userSelectedDeployTarget);
         return deployTarget.getRunProfileState(executor, env, deployTargetState);
       }
 
       deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(isDebugging), isDebugging, getUniqueID());
       if (deviceFutures == null) {
         // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
-        RunStatsService.get(project).notifyStudioSectionFinished(false, false, userSelectedDeployTarget);
         return null;
+      }
+      for (AndroidDevice device : deviceFutures.getDevices()) {
+        if (device instanceof LaunchableAndroidDevice) {
+          stats.setLaunchedDevices(true);
+        }
       }
     }
 
@@ -309,7 +316,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       PrepareSessionResult result = prepareInstantRunSession(existingSessionInfo, executor, facet, project, deviceFutures, forceColdswap);
       // returns null if we prompt user and they choose to abort the Run
       if (result == null) {
-        RunStatsService.get(project).notifyStudioSectionFinished(false, false, userSelectedDeployTarget);
         return null;
       }
       if (deviceFutures == null && !forceColdswap) { // if user used apply changes, then set deviceFutures based on session
@@ -319,7 +325,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     if (deviceFutures == null || deviceFutures.get().isEmpty()) {
-      RunStatsService.get(project).notifyStudioSectionFinished(false, false, userSelectedDeployTarget);
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
@@ -334,7 +339,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (isDebugging) {
       String error = canDebug(deviceFutures, facet, module.getName());
       if (error != null) {
-        RunStatsService.get(project).notifyStudioSectionFinished(false, instantRunContext != null, userSelectedDeployTarget);
         throw new ExecutionException(error);
       }
     }
@@ -350,6 +354,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // Save the instant run context so that before-run task can access it
     env.putCopyableUserData(InstantRunContext.KEY, instantRunContext);
 
+    // Save the instant run context so that before-run task can access it
+    env.putUserData(RunStats.KEY, stats);
+
     ApplicationIdProvider applicationIdProvider = getApplicationIdProvider(facet);
 
     LaunchOptions.Builder launchOptions = getLaunchOptions()
@@ -364,7 +371,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                        applicationIdProvider, launchOptions.build(), instantRunContext, processHandler);
 
     InstantRunStatsService.get(project).notifyBuildStarted();
-    RunStatsService.get(project).notifyStudioSectionFinished(true, instantRunContext != null, userSelectedDeployTarget);
     return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, providerFactory,
                                processHandler);
   }

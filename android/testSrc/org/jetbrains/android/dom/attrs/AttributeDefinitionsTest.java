@@ -43,6 +43,13 @@ public class AttributeDefinitionsTest extends AndroidTestCase {
     return def;
   }
 
+  @Nullable
+  private StyleableDefinition styleableDef(@NotNull ResourceReference styleable) {
+    StyleableDefinition def = getDefs().getStyleableDefinition(styleable);
+    assertNotNull("Missing styleable definition for " + styleable.getQualifiedName(), def);
+    return def;
+  }
+
   @NotNull
   private AttributeDefinitions getDefs() {
     return myResourceManager.getAttributeDefinitions();
@@ -83,25 +90,28 @@ public class AttributeDefinitionsTest extends AndroidTestCase {
     assertEquals(expectedFormats, attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "textColorHighlight")).getFormats());
   }
 
-  public void testParentStyleables() {
-    checkParentStyleables();
+  public void testStyleableAttributes() {
+    checkStyleableAttributes();
   }
 
-  public void testParentStyleablesNamespaced() {
+  public void testStyleableAttributesNamespaced() {
     enableNamespacing("p1.p2");
-    checkParentStyleables();
+    checkStyleableAttributes();
   }
 
-  private void checkParentStyleables() {
+  private void checkStyleableAttributes() {
     ResourceNamespace appNamespace = ResourceRepositoryManager.getOrCreateInstance(myFacet).getNamespace();
-    assertThat(attrDef(ResourceReference.attr(appNamespace, "colorForeground")).getParentStyleables()).contains(
-        ResourceReference.styleable(appNamespace, "Theme"));
-    assertThat(attrDef(ResourceReference.attr(appNamespace, "textColor")).getParentStyleables()).isEmpty();
+    StyleableDefinition theme = styleableDef(ResourceReference.styleable(appNamespace, "Theme"));
+    assertThat(theme).isNotNull();
+    assertThat(theme.getAttributes()).contains(attrDef(ResourceReference.attr(appNamespace, "colorForeground")));
 
-    assertThat(attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "background")).getParentStyleables()).contains(
-        ResourceReference.styleable(ResourceNamespace.ANDROID, "View"));
-    assertThat(attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "bufferType")).getParentStyleables()).contains(
-        ResourceReference.styleable(ResourceNamespace.ANDROID, "TextView"));
+    StyleableDefinition view = styleableDef(ResourceReference.styleable(ResourceNamespace.ANDROID, "View"));
+    assertThat(view).isNotNull();
+    assertThat(view.getAttributes()).contains(attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "background")));
+
+    StyleableDefinition textView = styleableDef(ResourceReference.styleable(ResourceNamespace.ANDROID, "TextView"));
+    assertThat(textView).isNotNull();
+    assertThat(textView.getAttributes()).contains(attrDef(ResourceReference.attr(ResourceNamespace.ANDROID, "bufferType")));
   }
 
   // TODO: Remove this test when the AttributeDefinitions.getStyleableByName method is removed.

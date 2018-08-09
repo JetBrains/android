@@ -21,7 +21,6 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +42,6 @@ public final class AttributeDefinition implements Cloneable {
   /** Keys are flag/enum names, values are their descriptions. */
   @NotNull private Map<String, String> myValueDescriptions = Collections.emptyMap();
   @NotNull private Set<AttributeFormat> myFormats;
-  @Nullable private List<ResourceReference> myParentStyleables;
   // TODO: Consider moving style-specific descriptions to StyleableDefinitionImpl.
   /** Keys are styleables, values are descriptions for this attribute in the context of the styleable. */
   @Nullable private Map<ResourceReference, String> myDescriptionsInStyleableContexts;
@@ -70,7 +68,6 @@ public final class AttributeDefinition implements Cloneable {
     myValueMappings = other.myValueMappings;
     myValueDescriptions = other.myValueDescriptions;
     myFormats = EnumSet.copyOf(other.myFormats);
-    myParentStyleables = other.myParentStyleables == null ? null : new SmartList<>(other.myParentStyleables);
     myDescriptionsInStyleableContexts = other.myDescriptionsInStyleableContexts == null ?
         null : new HashMap<>(other.myDescriptionsInStyleableContexts);
   }
@@ -96,11 +93,6 @@ public final class AttributeDefinition implements Cloneable {
   @Nullable
   public String getLibraryName() {
     return myLibraryName;
-  }
-
-  @NotNull
-  public List<ResourceReference> getParentStyleables() {
-    return myParentStyleables == null ? Collections.emptyList() : myParentStyleables;
   }
 
   @NotNull
@@ -159,14 +151,6 @@ public final class AttributeDefinition implements Cloneable {
   public boolean isValueDeprecated(@NotNull String value) {
     String description = getValueDescription(value);
     return description != null && StringUtil.containsIgnoreCase(description, "deprecated");
-  }
-
-  void addParent(@NotNull ResourceReference styleable) {
-    if (myParentStyleables == null) {
-      myParentStyleables = new SmartList<>(styleable);
-    } else {
-      myParentStyleables.add(styleable);
-    }
   }
 
   void addFormats(@NotNull Collection<AttributeFormat> formats) {

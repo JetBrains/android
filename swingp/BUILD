@@ -24,10 +24,8 @@ iml_module(
 java_binary(
     name = "swing-instrumenter",
     srcs = glob(
-        ["src/main/java/com/android/tools/swingp/**"],
-        exclude = [
-            "src/main/java/com/android/tools/swingp/**/.*",
-        ],
+        include = ["src/main/java/com/android/tools/swingp/**"],
+        exclude = ["src/main/java/com/android/tools/swingp/**/.*"],
     ),
     create_executable = 0,
     deploy_manifest_lines = [
@@ -37,7 +35,6 @@ java_binary(
         "Can-Redefine-Classes: true",
         "Can-Retransform-Classes: true",
     ],
-    visibility = ["//visibility:public"],
     deps = [
         "//tools/base/third_party:com.google.code.gson_gson",
         "//tools/base/third_party:com.google.guava_guava",

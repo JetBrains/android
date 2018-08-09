@@ -704,7 +704,7 @@ public class AndroidJavaDocRenderer {
               found = true;
               ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.COLOR, myModule, myConfiguration);
               assert renderer != null;
-              ResourceValue resolved = new ResourceValueImpl(urlToReference(url), null);
+              ResourceValueImpl resolved = new ResourceValueImpl(urlToReference(url), null);
               resolved.setValue(value);
               renderer.renderToHtml(builder, item, url, false, resolved);
               builder.newline();
@@ -715,7 +715,7 @@ public class AndroidJavaDocRenderer {
               found = true;
               ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.DRAWABLE, myModule, myConfiguration);
               assert renderer != null;
-              ResourceValue resolved = new ResourceValueImpl(urlToReference(url), null);
+              ResourceValueImpl resolved = new ResourceValueImpl(urlToReference(url), null);
               resolved.setValue(value);
               renderer.renderToHtml(builder, item, url, false, resolved);
               builder.newline();

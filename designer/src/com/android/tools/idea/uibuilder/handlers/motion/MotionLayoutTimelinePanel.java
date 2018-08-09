@@ -60,6 +60,7 @@ import static com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutTimel
  * The Timeline Accessory Panel for MotionLayout editing
  */
 class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventListener, ModelListener, TimelineOwner {
+  public static final boolean DEBUG = false;
 
   private final ViewGroupHandler.AccessoryPanelVisibility myVisibilityCallback;
   private final DesignSurface mySurface;
@@ -77,6 +78,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   private boolean myInStateChange;
   private NlComponentDelegate myNlComponentDelegate = new MotionLayoutComponentDelegate(this);
   private NlModel myModel;
+  private MotionSceneModel myMotionSceneModel;
 
   public State getCurrentState() {
     return myCurrentState;
@@ -183,7 +185,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
         return; // not found
       }
     }
-
     // component is a motion layout
     if (myMotionLayout != component) {
       myMotionLayout = component;
@@ -227,7 +228,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     }
 
     String referencedFile =
-      myMotionLayout.getAttribute(SdkConstants.AUTO_URI, "transition"); // TODO SdkConstants.ATTR_MOTION_SCENE_REFERENCE);
+      myMotionLayout.getAttribute(SdkConstants.AUTO_URI, "layoutDescription"); // TODO SdkConstants.ATTR_MOTION_SCENE_REFERENCE);
     if (referencedFile != null) {
       parseMotionScene(myMotionLayout, referencedFile);
     }
@@ -263,6 +264,10 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   }
 
   private void parseMotionScene(@NotNull NlComponent component, @NotNull String file) {
+    if (DEBUG) {
+      System.out.println("====================================================================================");
+      System.out.println(" parseMotionScene  ");
+    }
     if (file == null) {
       return;
     }
@@ -287,6 +292,12 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
     MotionSceneModel motionSceneModel = MotionSceneModel.parse(component.getModel(), project, virtualFile, xmlFile);
     myPanel.setMotionScene(motionSceneModel);
+    myMotionSceneModel = motionSceneModel;
+
+  }
+
+  public MotionSceneModel getModel() {
+    return myMotionSceneModel;
   }
 
   @Override
@@ -563,7 +574,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
         XmlTag keyframe = keyframes[j];
         XmlAttribute attribute = keyframe.getAttribute("motion:target");
         if (attribute != null) {
-          System.out.println("attribute value: " + attribute.getValue());
           String keyframeTarget = attribute.getValue();
           int index = keyframeTarget.indexOf('/');
           if (index != -1) {

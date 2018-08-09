@@ -16,6 +16,7 @@
 package org.jetbrains.android.actions;
 
 import com.android.ddmlib.Client;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.run.AndroidProcessHandler;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.intellij.execution.ExecutionManager;
@@ -30,6 +31,8 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidConnectDebuggerAction extends AnAction {
+  private final boolean isAndroidStudio = IdeInfo.getInstance().isAndroidStudio();
+
   @Override
   public void actionPerformed(AnActionEvent e) {
     final Project project = e.getProject();
@@ -51,8 +54,9 @@ public class AndroidConnectDebuggerAction extends AnAction {
   public void update(AnActionEvent e) {
     super.update(e);
     final Project project = e.getProject();
-    e.getPresentation().setVisible(project != null &&
-                                   !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty());
+    boolean isVisible = isAndroidStudio ||
+                        (project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID));
+    e.getPresentation().setVisible(isVisible);
   }
 
   private static void closeOldSessionAndRun(@NotNull Project project, @NotNull AndroidDebugger androidDebugger, @NotNull Client client) {

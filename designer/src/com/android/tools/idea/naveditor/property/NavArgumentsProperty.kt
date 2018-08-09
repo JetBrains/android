@@ -27,7 +27,7 @@ abstract class NavArgumentsProperty(components: List<NlComponent>, val propertie
     null
   }
   else {
-    ModuleResourceManagers.getInstance(components[0].model.facet).frameworkResourceManager
+    ModuleResourceManagers.getInstance(components[0].model.facet).localResourceManager
   }
 
   protected val attrDefs: AttributeDefinitions? = resourceManager?.attributeDefinitions

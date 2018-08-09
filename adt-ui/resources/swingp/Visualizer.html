@@ -16,15 +16,19 @@ The basic architecture is based on a cooperative multithreading model, with the 
     * Primary (main window) is rendered in green, and secondary (popups and other heavy weight components on top) are rendered in red.
 -->
 <body>
+    <form>
+        Filter Root: <input type="text" id="root_filter_element" placeholder="e.g. SomeAwtOrSwingComponentType"><br>
+    </form>
     <canvas width="1280" height="1024" id="canvas" />
     <script>
 
         c = document.getElementById("canvas");
         var ctx = c.getContext("2d");
 
-        var PRIMARY_COLOR = '50, 255, 50, ';
-        var SECONDARY_COLOR = '255, 50, 50, ';
-        var BORDER_COLOR = '255, 255, 255, ';
+        var PRIMARY_COLOR = '33, 145, 251, ';
+        var SECONDARY_COLOR = '186, 39, 74, ';
+        var PRIMARY_BORDER_COLOR = '140, 222, 220, ';
+        var SECONDARY_BORDER_COLOR = '132, 28, 38, ';
         var FADE_TIME = 250;
         var OPACITY = 0.05;
 
@@ -33,14 +37,31 @@ The basic architecture is based on a cooperative multithreading model, with the 
 
         var textDecoder = new TextDecoder("utf-8");
 
-        var rectGroups = [];
         var windows = {};
-        var lastStartLoop = window.performance.now();
-        var mostRecentFrameBounds = [0, 0, 800, 600];
-        var frameScale = 0.25;
+        var buffers = {};
 
-        ctx.fillStyle = 'rgb(0,0,0,255)';
-        ctx.fillRect(mostRecentFrameBounds[0], mostRecentFrameBounds[1], mostRecentFrameBounds[2], mostRecentFrameBounds[3]);
+        var rectGroups = [];
+        var lastStartLoop = window.performance.now();
+        var mostRecentFrameBounds = [0, 0, 1600, 1200];
+        var frameScale = 0.25;
+        // An element which, if set, means only elements in that subtree should render.
+        var rootFilterElement = document.getElementById("root_filter_element");
+
+        ctx.fillStyle = 'rgb(0,0,0)';
+        fillRect(
+            ctx,
+            mostRecentFrameBounds[0],
+            mostRecentFrameBounds[1],
+            mostRecentFrameBounds[2],
+            mostRecentFrameBounds[3]);
+
+        function fillRect(context, x, y, w, h) {
+            context.fillRect(x * frameScale, y * frameScale, w * frameScale, h * frameScale);
+        }
+
+        function strokeRect(context, x, y, w, h) {
+            context.strokeRect(x * frameScale, y * frameScale, w * frameScale, h * frameScale);
+        }
 
         // Main render loop to process all rectangles and frame resizes.
         function render() {
@@ -61,8 +82,8 @@ The basic architecture is based on a cooperative multithreading model, with the 
                 clearSize = [
                     Math.min(clearSize[0], ideBounds[0]),
                     Math.min(clearSize[1], ideBounds[1]),
-                    Math.max(clearSize[2], ideBounds[0] + ideBounds[2]), // Record the right-most x-coordinate of the clear rectangle.
-                    Math.max(clearSize[3], ideBounds[1] + ideBounds[3])  // Record the bottom-most y-coordinate side of the clear rectangle.
+                    Math.max(clearSize[2] + clearSize[0], ideBounds[0] + ideBounds[2]), // Record the right-most x-coordinate of the clear rectangle.
+                    Math.max(clearSize[3] + clearSize[1], ideBounds[1] + ideBounds[3])  // Record the bottom-most y-coordinate side of the clear rectangle.
                 ];
             }
             clearSize[2] -= clearSize[0]; // Recover the width.
@@ -72,17 +93,18 @@ The basic architecture is based on a cooperative multithreading model, with the 
                     mostRecentFrameBounds[1] !== clearSize[1] ||
                     mostRecentFrameBounds[2] !== clearSize[2] ||
                     mostRecentFrameBounds[3] !== clearSize[3]) {
-                ctx.fillStyle = 'rgb(255,255,255,255)';
+                ctx.fillStyle = 'rgb(255,255,255)';
                 // The floor and ceil deal with partial clears due to subpixel coordinates.
-                ctx.fillRect(
+                fillRect(
+                    ctx,
                     Math.floor(clearSize[0]),
                     Math.floor(clearSize[1]),
-                    Math.ceil(clearSize[0] + clearSize[2]) - Math.floor(clearSize[0]),
-                    Math.ceil(clearSize[1] + clearSize[3]) - Math.floor(clearSize[1]));
+                    Math.ceil((clearSize[0] + clearSize[2]) - Math.floor(clearSize[0])),
+                    Math.ceil((clearSize[1] + clearSize[3]) - Math.floor(clearSize[1])));
             }
 
             ctx.fillStyle = 'rgb(0,0,0,255)';
-            ctx.fillRect(mostRecentFrameBounds[0], mostRecentFrameBounds[1], mostRecentFrameBounds[2], mostRecentFrameBounds[3]);
+            fillRect(ctx, mostRecentFrameBounds[0], mostRecentFrameBounds[1], mostRecentFrameBounds[2], mostRecentFrameBounds[3]);
             var alphaReduction = timeDiff / FADE_TIME * OPACITY;
 
             for (var i = 0; i < numGroups; i++) {
@@ -100,85 +122,126 @@ The basic architecture is based on a cooperative multithreading model, with the 
                 rectGroup.alpha -= alphaReduction;
                 rectGroups.push(rectGroup);
 
-                ctx.strokeStyle = 'rgb(' + BORDER_COLOR + rectGroup.alpha + ')';
-                ctx.fillStyle = 'rgb(' + PRIMARY_COLOR + rectGroup.alpha + ')';
+                ctx.strokeStyle = 'rgba(' + PRIMARY_BORDER_COLOR + rectGroup.alpha + ')';
+                ctx.fillStyle = 'rgba(' + PRIMARY_COLOR + rectGroup.alpha + ')';
                 for (var j in rectGroup.primary) {
                     var rect = rectGroup.primary[j];
                     // The OS window bounds are set via the OS while the content bounds are set via Swing.
                     // The difference causes rectangles to get drawn outside of the window bounds.
                     // One way to fix this is to clamp the fillRect to the window bounds here.
-                    ctx.fillRect(rect[0], rect[1], rect[2], rect[3]);
-                    ctx.strokeRect(rect[0], rect[1], rect[2], rect[3]);
+                    fillRect(ctx, rect[0], rect[1], rect[2], rect[3]);
+                    strokeRect(ctx, rect[0], rect[1], rect[2], rect[3]);
                 }
 
-                ctx.fillStyle = 'rgb(' + SECONDARY_COLOR + rectGroup.alpha + ')'
-                for (var j in rectGroup.secondary) {
-                    var rect = rectGroup.secondary[j];
-                    ctx.fillRect(rect[0], rect[1], rect[2], rect[3]);
-                    ctx.strokeRect(rect[0], rect[1], rect[2], rect[3]);
+                if (rectGroup.secondary) {
+                    ctx.strokeStyle = 'rgba(' + SECONDARY_BORDER_COLOR + rectGroup.alpha + ')';
+                    ctx.fillStyle = 'rgba(' + SECONDARY_COLOR + rectGroup.alpha + ')'
+                    for (var j in rectGroup.secondary) {
+                        var rect = rectGroup.secondary[j];
+                        fillRect(ctx, rect[0], rect[1], rect[2], rect[3]);
+                        strokeRect(ctx, rect[0], rect[1], rect[2], rect[3]);
+                    }
                 }
             }
 
             var startLoop = window.performance.now();
         }
 
-        // Recursively ingests the JSON tree rooted at the ThreadStat level.
-        function ingest(result, node, anchor, windowNode, isPrimary) {
-            var xform = node.__xform;
+        /**
+         * Recursively ingests the JSON tree rooted at the ThreadStat level.
+         *
+         * @param result Stateful output of the method.
+         * @param node The swingp node being processed at this step of the recursion.
+         * @param anchor Updated translate position for use by the current node.
+         * @param windowNode The heavy weight window in which the current node may fall under.
+         * @param isPrimary Whether or not the current node resides under the main heavy weight Window, or some secondary Window (e.g. popup).
+         * @param tiledOffset If the painting is done via tiled repaint manager strategy, we need to account for an extra offset.
+         * @param rootFilter A string representing a filter for nodes to be rendered (by Java class), or null for no filter.
+         */
+        function ingest(result, node, anchor, windowNode, isPrimary, tiledOffset, rootFilter) {
+            var xform = node.xform;
 
-            if (node.__type == "ThreadStat") {
-                for (event in node.__events) {
-                    ingest(result, node.__events[event], anchor, windowNode, isPrimary);
+            if (node.classType == "ThreadStat") {
+                for (event in node.events) {
+                    ingest(result, node.events[event], anchor, windowNode, isPrimary, tiledOffset, rootFilter);
                 }
                 return;
             }
 
-            var newAnchor = anchor.slice();
-            if (node.__type === "WindowPaintMethodStat") {
+            var newAnchor = anchor.slice(); // Anchor should always be in device space (e.g. in HiDPI space if HiDPI is available).
+            if (node.classType === "WindowPaintMethodStat") {
                 // We hit this node when there are more than one heavy weight component being rendered (e.g. main window + tooltip).
+                ownerWindowId = node.ownerWindowId;
+                var parentPosition = windows[ownerWindowId] ? windows[ownerWindowId].anchor : [0, 0];
                 newAnchor = [
-                    node.__location[0] * xform[0] + xform[4],
-                    node.__location[1] * xform[3] + xform[5],
+                    node.location[0] * xform[0] + xform[4] + parentPosition[0],
+                    node.location[1] * xform[3] + xform[5] + parentPosition[1],
                 ];
-                windowNode = {"__anchor": newAnchor.slice()};
+                windowNode = {"anchor": newAnchor.slice()};
+                windows[node.windowId] = windowNode;
             }
-            else if (node.__type === "PaintImmediatelyMethodStat") {
-                if (node.__bufferType === "IdeRootPane") {
+            else if (node.classType === "BufferStrategyPaintMethodStat") {
+                if (!node.isBufferStrategy) {
+                    newAnchor[0] += tiledOffset[0];
+                    newAnchor[1] += tiledOffset[1];
+                }
+            }
+            else if (node.classType === "PaintImmediatelyMethodStat") {
+                if (node.bufferType === "IdeRootPane") {
                     result.ideRootPaneBounds = [
-                        node.__bufferBounds[0] * xform[0] * frameScale,
-                        node.__bufferBounds[1] * xform[3] * frameScale,
-                        node.__bufferBounds[2] * xform[0] * frameScale,
-                        node.__bufferBounds[3] * xform[3] * frameScale
+                        node.bufferBounds[0] * xform[0],
+                        node.bufferBounds[1] * xform[3],
+                        node.bufferBounds[2] * xform[0],
+                        node.bufferBounds[3] * xform[3]
                     ];
                 }
                 else {
+                    var windowAnchor = [0, 0];
                     if (windowNode !== null) {
-                        windowNode.__bufferType = node.__bufferType;
-                        windows[node.__bufferId] = windowNode;
+                        buffers[node.bufferId] = {
+                            "window": windowNode,
+                            "bufferType": node.bufferType,
+                        }
+                        windowAnchor = windowNode.anchor;
                     }
-                    newAnchor[0] = windows[node.__bufferId].__anchor[0] + result.ideRootPaneBounds[0];
-                    newAnchor[1] = windows[node.__bufferId].__anchor[1] + result.ideRootPaneBounds[1];
+                    else if (buffers[node.bufferId]) {
+                        windowAnchor = buffers[node.bufferId].window.anchor;
+                    }
+                    newAnchor[0] = windowAnchor[0];
+                    newAnchor[1] = windowAnchor[1];
                     isPrimary = false;
                 }
-                // Add the (x, y) of the bounds, since the paintImmediatelyImpl method deliberately offsets to render to the top-left corner of the buffer.
-                newAnchor[0] += node.__bounds[0] * xform[0] + node.__constrain[0];
-                newAnchor[1] += node.__bounds[1] * xform[3] + node.__constrain[1];
+                newAnchor[0] += node.constrain[0];
+                newAnchor[1] += node.constrain[1];
+                // For tiled buffering, add the (x, y) of the bounds, since the paintImmediatelyImpl method deliberately offsets to render to the top-left corner of the buffer.
+                tiledOffset = [node.bounds[0] * xform[0], node.bounds[1] * xform[3]];
             }
-            else if (node.__type === "PaintComponentMethodStat" && !node.__isImage) {
-                bounds = node.__clip;
+            else if (node.classType === "PaintComponentMethodStat" && !node.isImage && isRootFilterDisabled(rootFilter)) {
+                bounds = node.clip;
 
                 var rect = [
-                    (xform[0] * bounds[0] + xform[1] * bounds[1] + xform[4] + newAnchor[0]) * frameScale,
-                    (xform[2] * bounds[0] + xform[3] * bounds[1] + xform[5] + newAnchor[1]) * frameScale,
-                    (xform[0] * bounds[2]) * frameScale,
-                    (xform[3] * bounds[3]) * frameScale
+                    bounds[0] * xform[0] + xform[4] + newAnchor[0],
+                    bounds[1] * xform[3] + xform[5] + newAnchor[1],
+                    bounds[2] * xform[0],
+                    bounds[3] * xform[3]
                 ];
                 isPrimary ? result.primary.push(rect) : result.secondary.push(rect);
             }
-
-            for (i in node.__callee) {
-                ingest(result, node.__callee[i], newAnchor, windowNode, isPrimary);
+            else if (node.classType === "PaintChildrenMethodStat" && isRootFilterEnabled(rootFilter)) {
+                rootFilter = node.pathToRoot.includes(rootFilter) ? null : rootFilter;
             }
+
+            for (i in node.callee) {
+                ingest(result, node.callee[i], newAnchor, windowNode, isPrimary, tiledOffset, rootFilter);
+            }
+        }
+
+        function isRootFilterEnabled(rootFilter) {
+            return !!rootFilter;
+        }
+
+        function isRootFilterDisabled(rootFilter) {
+            return !rootFilter;
         }
 
         // Process each complete JSON tree, and split up ThreadStats individually for processing.
@@ -189,8 +252,9 @@ The basic architecture is based on a cooperative multithreading model, with the 
                 "secondary": [],
                 "ideRootPaneBounds": mostRecentFrameBounds.slice()
             };
+            var rootFilter = rootFilterElement.value;
             for (var i = 0; i < rootNode.length; i++) {
-                ingest(result, rootNode[i], [0.0, 0.0], null, true);
+                ingest(result, rootNode[i], [0.0, 0.0], null, true, [0.0, 0.0], isRootFilterEnabled(rootFilter) ? rootFilter : null);
             }
             rectGroups.push(result);
         }

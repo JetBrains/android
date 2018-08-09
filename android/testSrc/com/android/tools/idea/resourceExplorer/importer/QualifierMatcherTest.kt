@@ -32,7 +32,7 @@ class QualifierMatcherTest {
   fun parsePathWithNoMapper() {
     val qualifierLexer = QualifierMatcher()
     val (resourceName, qualifiers) = qualifierLexer.parsePath("/test/Path/file.png")
-    assertEquals("_test_Path_file", resourceName)
+    assertEquals("file", resourceName)
     assertEquals(0, qualifiers.size)
   }
 
@@ -50,6 +50,8 @@ class QualifierMatcherTest {
     checkResult(qualifierLexer.parsePath("icon@2x.png"), "icon", DensityQualifier(Density.XHIGH))
     checkResult(qualifierLexer.parsePath("icon@3x.png"), "icon", DensityQualifier(Density.XXHIGH))
     checkResult(qualifierLexer.parsePath("icon.png"), "icon", DensityQualifier(Density.MEDIUM))
+    checkResult(qualifierLexer.parsePath("common/icon@2x.png"), "icon", DensityQualifier(Density.XHIGH))
+    checkResult(qualifierLexer.parsePath("common\\icon@2x.png"), "icon", DensityQualifier(Density.XHIGH))
   }
 
   @Test

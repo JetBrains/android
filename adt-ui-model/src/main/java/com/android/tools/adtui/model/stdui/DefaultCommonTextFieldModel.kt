@@ -37,7 +37,7 @@ open class DefaultCommonTextFieldModel(initialValue: String) : CommonTextFieldMo
       fireValueChanged()
     }
 
-  override var text: String = initialValue
+  override var text = initialValue
 
   override val editingSupport: EditingSupport
     get() = EditingSupport.INSTANCE

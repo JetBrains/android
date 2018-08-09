@@ -18,10 +18,17 @@ package com.android.tools.idea.templates;
 import com.android.tools.idea.templates.recipe.RecipeExecutor;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.openapi.command.WriteCommandAction;
+import com.google.common.truth.Truth;
+import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.OutputStream;
+
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 public class TemplateRecipeTest {
 
@@ -40,9 +47,42 @@ public class TemplateRecipeTest {
       .build()
       .getRecipeExecutor();
 
-    WriteCommandAction.runWriteCommandAction(projectRule.getProject(), () -> {
+    runWriteCommandAction(projectRule.getProject(), () -> {
       recipeExecutor.addDependency("testCompile", "junit:junit:4.12");
       recipeExecutor.updateAndSync();
+    });
+  }
+
+  @Test
+  public void fileAlreadyExistWarning() throws Exception {
+    RenderingContext renderingContext = RenderingContext.Builder
+      .newContext(tmpFolderRule.getRoot(), projectRule.getProject())
+      .withOutputRoot(tmpFolderRule.getRoot())
+      .withModuleRoot(tmpFolderRule.getRoot())
+      .build();
+
+    runWriteCommandAction(projectRule.getProject(), (ThrowableComputable<Void, Exception>)() -> {
+      VirtualFile vfFrom = projectRule.getProject().getBaseDir().findOrCreateChildData(this, "childFrom");
+      File from = new File(vfFrom.getPath());
+
+      VirtualFile vfTo = projectRule.getProject().getBaseDir().findOrCreateChildData(this, "childTo");
+      File to = new File(vfTo.getPath());
+
+      try (OutputStream os = vfFrom.getOutputStream(this)) {
+          os.write('a');
+        }
+
+        try (OutputStream os = vfTo.getOutputStream(this)) {
+          os.write('b');
+        }
+
+      renderingContext.getRecipeExecutor().instantiate(from, to);
+      String[] warnings = renderingContext.getWarnings().toArray(new String[0]);
+
+      Truth.assertThat(warnings).isNotEmpty();
+      Truth.assertThat(warnings[0]).contains(to.getPath());
+
+      return null;
     });
   }
 }

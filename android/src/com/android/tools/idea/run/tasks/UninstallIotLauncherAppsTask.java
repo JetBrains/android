@@ -38,6 +38,8 @@ import java.util.TreeMap;
  * uninstall them before installing a new embedded application.
  */
 public class UninstallIotLauncherAppsTask implements LaunchTask {
+  private static final String ID = "UNINSTALL_IOT";
+
   private final String myPackageName;
   private final RetryingInstaller.Prompter myPrompter;
   private final IotInstallChecker myChecker;
@@ -105,5 +107,11 @@ public class UninstallIotLauncherAppsTask implements LaunchTask {
       }
     }
     return true;
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 }

@@ -16,10 +16,9 @@
 package com.android.tools.idea.npw.importing;
 
 import com.android.tools.idea.gradle.project.ModuleImporter;
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.WizardContext;
@@ -40,13 +39,15 @@ import java.util.Map;
 public final class SourceToGradleModuleModel extends WizardModel {
   private final Project myProject;
   private final WizardContext myWizardContext;
+  private final ProjectSyncInvoker myProjectSyncInvoker;
   private final Map<String, VirtualFile> myModulesToImport = Maps.newHashMap();
 
   private final StringProperty mySourceLocation = new StringValueProperty();
 
-  public SourceToGradleModuleModel(@NotNull Project project) {
+  public SourceToGradleModuleModel(@NotNull Project project, @NotNull ProjectSyncInvoker projectSyncInvoker) {
     myProject = project;
     myWizardContext = new WizardContext(project, this);
+    myProjectSyncInvoker = projectSyncInvoker;
     mySourceLocation.addConstraint(String::trim);
   }
 
@@ -54,7 +55,7 @@ public final class SourceToGradleModuleModel extends WizardModel {
   protected void handleFinished() {
     ApplicationManager.getApplication().runWriteAction(() -> {
       ModuleImporter.getImporter(myWizardContext).importProjects(myModulesToImport);
-      ProjectSystemUtil.getProjectSystem(myProject).getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
+      myProjectSyncInvoker.syncProject(myProject);
     });
   }
 

@@ -63,12 +63,6 @@ public class SplitApkDeployTaskInstantRunTest {
     when(myContext.getInstantRunBuildInfo()).thenReturn(myBuildInfo);
     when(myContext.getApplicationId()).thenReturn(PACKAGE_NAME);
     when(myContext.getBuildSelection()).thenReturn(new BuildSelection(APP_NOT_INSTALLED, false));
-    RunStatsService.setTestOverride(Mockito.mock(RunStatsService.class, Answers.RETURNS_DEEP_STUBS));
-  }
-
-  @After
-  public void teardown() {
-    RunStatsService.setTestOverride(null);
   }
 
   @Test

@@ -489,6 +489,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @VisibleForTesting
   class MyApplicationLaunchTask implements LaunchTask {
+    private static final String ID = "INSTRUMENTATION_RUNNER";
+
     @Nullable private final String myInstrumentationTestRunner;
     @NotNull private final String myTestApplicationId;
     private final boolean myWaitForDebugger;
@@ -570,6 +572,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       });
 
       return true;
+    }
+
+    @NotNull
+    @Override
+    public String getId() {
+      return ID;
     }
   }
 }

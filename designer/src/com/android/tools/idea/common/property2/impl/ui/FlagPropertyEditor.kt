@@ -215,7 +215,7 @@ class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel,
       // Ideally we want focus to go back to the editor where the balloon was invoked from.
       // Recreate the editor and request focus on the newly created editor here.
       restoreTo.editCellAt(restoreTo.selectedRow, restoreTo.selectedColumn)
-      restoreTo.editorComponent.requestFocus()
+      restoreTo.editorComponent?.requestFocus()
     }
     else {
       restoreTo.requestFocus()

@@ -27,6 +27,7 @@ public class SketchBitmap extends SketchLayer {
   public SketchBitmap(@NotNull String classType,
                       @NotNull String objectId,
                       int booleanOperation,
+                      @NotNull SketchExportOptions exportOptions,
                       @NotNull Rectangle.Double frame,
                       boolean isFlippedHorizontal,
                       boolean isFlippedVertical,
@@ -36,7 +37,7 @@ public class SketchBitmap extends SketchLayer {
                       boolean shouldBreakMaskChain,
                       @NotNull SketchStyle style,
                       @NotNull SketchFileReference image) {
-    super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
+    super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
           shouldBreakMaskChain);
     this.style = style;
     this.image = image;

@@ -271,8 +271,8 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   private static String generateDocForXmlAttribute(@NotNull DomAttributeChildDescription description, @NotNull PsiElement originalElement) {
     XmlName xmlName = description.getXmlName();
 
-    Map<XmlName, CachedValue<String>> cachedDocsMap = SoftReference.dereference(
-      originalElement.getUserData(ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY));
+    Map<XmlName, CachedValue<String>> cachedDocsMap =
+        SoftReference.dereference(originalElement.getUserData(ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY));
 
     if (cachedDocsMap != null) {
       CachedValue<String> cachedDoc = cachedDocsMap.get(xmlName);

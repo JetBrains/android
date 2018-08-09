@@ -26,12 +26,9 @@ import java.awt.geom.AffineTransform;
 public class PaintImmediatelyMethodStat extends MethodStat {
   @NotNull private final JComponent myBufferComponent;
   @NotNull private final AffineTransform myTransform;
-  private final int myConstrainX;
-  private final int myConstrainY;
-  private final int myX;
-  private final int myY;
-  private final int myW;
-  private final int myH;
+  private final int[] myBufferBounds;
+  private final int[] myConstrain;
+  private final int[] myBounds;
 
   public PaintImmediatelyMethodStat(@NotNull Object owner,
                                     @NotNull JComponent bufferComponent,
@@ -43,35 +40,31 @@ public class PaintImmediatelyMethodStat extends MethodStat {
     super(owner);
     myTransform = ((Graphics2D)g).getTransform();
     myBufferComponent = bufferComponent;
+    myBufferBounds =
+      new int[]{myBufferComponent.getX(), myBufferComponent.getY(), myBufferComponent.getWidth(), myBufferComponent.getHeight()};
     if (g instanceof SunGraphics2D) {
       SunGraphics2D sg = (SunGraphics2D)g;
-      myConstrainX = sg.constrainX;
-      myConstrainY = sg.constrainY;
+      myConstrain = new int[]{sg.constrainX, sg.constrainY};
     }
     else {
-      myConstrainX = 0;
-      myConstrainY = 0;
+      myConstrain = new int[]{0, 0};
     }
-    myX = x;
-    myY = y;
-    myW = w;
-    myH = h;
+    myBounds = new int[]{x, y, w, h};
   }
 
   @Override
   protected void addAttributeDescriptions(@NotNull JsonObject description) {
     super.addAttributeDescriptions(description);
 
-    description.add("__constrain", SerializationHelpers.arrayToJsonArray(new int[]{myConstrainX, myConstrainY}));
-    description.add("__bounds", SerializationHelpers.arrayToJsonArray(new int[]{myX, myY, myW, myH}));
+    description.add("constrain", SerializationHelpers.arrayToJsonArray(myConstrain));
+    description.add("bounds", SerializationHelpers.arrayToJsonArray(myBounds));
 
     double[] matrix = new double[6];
     myTransform.getMatrix(matrix);
-    description.add("__xform", SerializationHelpers.arrayToJsonArray(matrix));
+    description.add("xform", SerializationHelpers.arrayToJsonArray(matrix));
 
-    description.add("__bufferBounds", SerializationHelpers
-      .arrayToJsonArray(new int[]{myBufferComponent.getX(), myBufferComponent.getY(), myBufferComponent.getWidth(), myBufferComponent.getHeight()}));
-    description.addProperty("__bufferType", myBufferComponent.getClass().getSimpleName());
-    description.addProperty("__bufferId", System.identityHashCode(myBufferComponent));
+    description.add("bufferBounds", SerializationHelpers.arrayToJsonArray(myBufferBounds));
+    description.addProperty("bufferType", myBufferComponent.getClass().getSimpleName());
+    description.addProperty("bufferId", System.identityHashCode(myBufferComponent));
   }
 }

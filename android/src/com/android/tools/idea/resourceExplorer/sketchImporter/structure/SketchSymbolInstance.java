@@ -28,6 +28,7 @@ public class SketchSymbolInstance extends SketchSymbol {
   public SketchSymbolInstance(@NotNull String classType,
                               @NotNull String objectId,
                               int booleanOperation,
+                              @NotNull SketchExportOptions exportOptions,
                               @NotNull Rectangle.Double frame,
                               boolean isFlippedHorizontal,
                               boolean isFlippedVertical,
@@ -38,7 +39,7 @@ public class SketchSymbolInstance extends SketchSymbol {
                               @NotNull SketchStyle style,
                               double scale,
                               @NotNull String symbolID) {
-    super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
+    super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
           shouldBreakMaskChain);
     this.style = style;
     this.scale = scale;

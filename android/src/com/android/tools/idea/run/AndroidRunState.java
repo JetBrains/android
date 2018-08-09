@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.stats.RunStats;
 import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
@@ -69,6 +70,7 @@ public class AndroidRunState implements RunProfileState {
   public ExecutionResult execute(Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
     ProcessHandler processHandler;
     ConsoleView console;
+    RunStats stats = RunStats.from(myEnv);
 
     String applicationId;
     try {
@@ -78,6 +80,7 @@ public class AndroidRunState implements RunProfileState {
       throw new ExecutionException("Unable to obtain application id", e);
     }
 
+    stats.setPackage(applicationId);
     // TODO: this class is independent of gradle, except for this hack
     AndroidModuleModel model = AndroidModuleModel.get(myModule);
     if (InstantRunSettings.isInstantRunEnabled() &&
@@ -113,15 +116,14 @@ public class AndroidRunState implements RunProfileState {
     }
 
     LaunchInfo launchInfo = new LaunchInfo(executor, runner, myEnv, myConsoleProvider);
-
     LaunchTaskRunner task = new LaunchTaskRunner(myModule.getProject(),
                                                  myLaunchConfigName,
                                                  launchInfo,
                                                  processHandler,
                                                  myDeviceFutures,
-                                                 launchTasksProvider);
+                                                 launchTasksProvider,
+                                                 stats);
     ProgressManager.getInstance().run(task);
-
     return console == null ? null : new DefaultExecutionResult(console, processHandler);
   }
 

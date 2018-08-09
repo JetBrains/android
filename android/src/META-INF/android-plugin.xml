@@ -122,7 +122,7 @@
       <add-to-group group-id="FileMenu" anchor="before" relative-to-action="FileMainSettingsGroup"/>
     </group>
 
-    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync">
+    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
       <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
     </action>
 
@@ -162,7 +162,7 @@
     <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidIcons.Android">
       <separator/>
       <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
-          icon="AndroidIcons.AvdManager"/>
+          icon="StudioIcons.Shell.Toolbar.DEVICE_MANAGER"/>
       <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction"/>
       <separator/>
       <action id="Android.ShowThemeEditor" class="com.android.tools.idea.actions.AndroidShowThemeEditor"/>
@@ -172,13 +172,9 @@
       <add-to-group group-id="ToolsMenu" anchor="first"/>
     </group>
 
-    <group id="Android.MainToolBarGradleGroup">
-      <reference id="Android.SyncProject" />
-      <add-to-group group-id="MainToolBar" anchor="after" relative-to-action="SaveAll"/>
-    </group>
-
     <group id="Android.MainToolBarActionGroup">
       <separator/>
+      <reference id="Android.SyncProject" />
       <reference id="Android.RunAndroidAvdManager"/>
       <separator/>
       <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="MainToolBarSettings" />
@@ -217,9 +213,9 @@
     </action>
     <action id="AndroidConnectDebuggerAction"
             class="org.jetbrains.android.actions.AndroidConnectDebuggerAction"
-            text="Attach debugger to Android process"
-            description="Attach debugger to Android process"
-            icon="AndroidIcons.Ddms.AttachDebugger">
+            text="Attach Debugger to Android Process"
+            description="Attach Debugger to Android Process"
+            icon="AllIcons.Debugger.AttachToProcess">
       <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="RunnerActions"/>
       <add-to-group group-id="RunMenu"/>
     </action>
@@ -985,8 +981,8 @@
     <facet.toolWindow id="Captures"
                       facetIdList="android"
                       anchor="left"
-                      secondary="false"
-                      icon="AndroidIcons.CapturesToolWindow"
+                      secondary="true"
+                      icon="StudioIcons.Shell.ToolWindows.CAPTURES"
                       factoryClass="com.android.tools.idea.profiling.view.CapturesToolWindowFactory"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings"/>
     <applicationConfigurable provider="com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettingsConfigurableProvider"
@@ -1023,7 +1019,7 @@
     <projectService serviceImplementation="com.android.tools.idea.run.DevicePickerStateService" />
     <projectService serviceImplementation="com.android.tools.idea.fd.InstantRunManager" />
     <projectService serviceImplementation="com.android.tools.idea.fd.InstantRunStatsService" />
-    <projectService serviceImplementation="com.android.tools.idea.stats.RunStatsServiceImpl" />
+    <projectService serviceImplementation="com.android.tools.idea.stats.RunStatsService" />
     <projectService serviceImplementation="com.android.tools.idea.fd.FlightRecorder" />
 
     <projectService serviceImplementation="com.android.tools.idea.run.profiler.CpuProfilerConfigsState" />

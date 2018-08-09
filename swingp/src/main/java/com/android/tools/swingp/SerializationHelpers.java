@@ -16,23 +16,39 @@
 package com.android.tools.swingp;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonNull;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 public class SerializationHelpers {
   @NotNull
-  protected static JsonArray arrayToJsonArray(int[] values) {
+  public static JsonArray arrayToJsonArray(@NotNull int[] values) {
     JsonArray jsonArray = new JsonArray();
     IntStream.of(values).forEach(value -> jsonArray.add(value));
     return jsonArray;
   }
 
   @NotNull
-  protected static JsonArray arrayToJsonArray(double[] values) {
+  public static JsonArray arrayToJsonArray(@NotNull double[] values) {
     JsonArray jsonArray = new JsonArray();
     DoubleStream.of(values).forEach(value -> jsonArray.add(value));
+    return jsonArray;
+  }
+
+  @NotNull
+  public static JsonArray listToJsonArray(@NotNull List<String> values) {
+    JsonArray jsonArray = new JsonArray();
+    values.forEach(value -> {
+      if (value == null) {
+        jsonArray.add(JsonNull.INSTANCE);
+      }
+      else {
+        jsonArray.add(value);
+      }
+    });
     return jsonArray;
   }
 }

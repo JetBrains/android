@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchExportOptions;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -24,6 +25,7 @@ public abstract class SketchSymbol extends SketchLayer {
   public SketchSymbol(@NotNull String classType,
                       @NotNull String objectId,
                       int booleanOperation,
+                      @NotNull SketchExportOptions exportOptions,
                       @NotNull Rectangle.Double frame,
                       boolean isFlippedHorizontal,
                       boolean isFlippedVertical,
@@ -31,7 +33,7 @@ public abstract class SketchSymbol extends SketchLayer {
                       @NotNull String name,
                       int rotation,
                       boolean shouldBreakMaskChain) {
-    super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
+    super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
           shouldBreakMaskChain);
   }
 

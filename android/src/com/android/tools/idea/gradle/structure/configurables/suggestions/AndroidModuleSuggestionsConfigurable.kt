@@ -33,7 +33,7 @@ class AndroidModuleSuggestionsConfigurable(
 ) : AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, module) {
   override fun getId() = "android.psd.suggestions." + displayName
 
-  override fun createPanel(module: PsModule): AbstractMainPanel = object : AbstractMainPanel(context, extraModules) {
+  override fun createPanel(): AbstractMainPanel = object : AbstractMainPanel(context, extraModules) {
     private val panel = createInnerPanel().also {
       add(it.panel, BorderLayout.CENTER)
     }

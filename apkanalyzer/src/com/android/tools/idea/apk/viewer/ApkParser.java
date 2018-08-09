@@ -21,9 +21,8 @@ import com.android.ide.common.process.ProcessException;
 import com.android.ide.common.xml.AndroidManifestParser;
 import com.android.ide.common.xml.ManifestData;
 import com.android.tools.apk.analyzer.*;
-import com.android.tools.apk.analyzer.internal.AppBundleArtifact;
+import com.android.tools.apk.analyzer.internal.AppBundleArchive;
 import com.android.tools.idea.log.LogWrapper;
-import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -44,8 +43,8 @@ import java.util.List;
 public class ApkParser {
   private static final ListeningExecutorService ourExecutorService = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
 
-  private final Archive myArchive;
-  private final ApkSizeCalculator myApkSizeCalculator;
+  @NotNull private final Archive myArchive;
+  @NotNull private final ApkSizeCalculator myApkSizeCalculator;
 
   @Nullable private ListenableFuture<ArchiveNode> myTreeStructure;
   @Nullable private ListenableFuture<ArchiveNode> myTreeStructureWithDownloadSizes;
@@ -57,20 +56,21 @@ public class ApkParser {
     myApkSizeCalculator = sizeCalculator;
   }
 
+  @NotNull
   public Archive getArchive() {
     return myArchive;
   }
 
   public synchronized void cancelAll(){
-    ListenableFuture[] futures = new ListenableFuture[]{
+    ListenableFuture[] futures = {
       myTreeStructureWithDownloadSizes,
       myTreeStructure,
       myRawFullApkSize,
       myCompressedFullApkSize
     };
-    for (int i = 0; i < futures.length; i++) {
-      if (futures[i] != null){
-        futures[i].cancel(true);
+    for (ListenableFuture future : futures) {
+      if (future != null) {
+        future.cancel(true);
       }
     }
   }
@@ -87,8 +87,7 @@ public class ApkParser {
   @NotNull
   public synchronized ListenableFuture<ArchiveNode> updateTreeWithDownloadSizes() {
     if (myTreeStructureWithDownloadSizes == null) {
-      myTreeStructureWithDownloadSizes = Futures.transform(constructTreeStructure(), (Function<ArchiveNode, ArchiveNode>)input -> {
-        assert input != null;
+      myTreeStructureWithDownloadSizes = Futures.transform(constructTreeStructure(), input -> {
         ArchiveTreeStructure.updateDownloadFileSizes(input, myApkSizeCalculator);
         return input;
       }, PooledThreadExecutor.INSTANCE);
@@ -97,7 +96,7 @@ public class ApkParser {
   }
 
   @NotNull
-  public synchronized ListenableFuture<AndroidApplicationInfo> getApplicationInfo(Path pathToAapt, @Nullable ArchiveEntry entry) {
+  public synchronized ListenableFuture<AndroidApplicationInfo> getApplicationInfo(@NotNull Path pathToAapt, @Nullable ArchiveEntry entry) {
     return ourExecutorService.submit(() -> getAppInfo(pathToAapt, entry));
   }
 
@@ -131,7 +130,7 @@ public class ApkParser {
       return AndroidApplicationInfo.UNKNOWN;
     }
     Path path = archive.getContentRoot().resolve(SdkConstants.FN_ANDROID_MANIFEST_XML);
-    return getAppInfo(pathToAapt, new ArchiveEntry(archive, path, path.toString()));
+    return getAppInfo(pathToAapt, new ArchiveEntry(archive, path, ""));
   }
 
   @NotNull
@@ -140,7 +139,7 @@ public class ApkParser {
       return AndroidApplicationInfo.UNKNOWN;
     }
     try {
-      if (archiveEntry.getArchive() instanceof AppBundleArtifact) {
+      if (archiveEntry.getArchive() instanceof AppBundleArchive) {
         return getAppInfoFromAppBundle(archiveEntry);
       }
       else {
@@ -153,7 +152,7 @@ public class ApkParser {
     }
   }
 
-  private static AndroidApplicationInfo getAppInfoFromAppBundle(ArchiveEntry entry) throws Exception {
+  private static AndroidApplicationInfo getAppInfoFromAppBundle(@NotNull ArchiveEntry entry) throws Exception {
     // Note: This code below is a little convoluted, it would be better to update AndroidManifestParser
     //       to support ProtoXmlPullParser, which can decode xml protobuf streams automatically.
 

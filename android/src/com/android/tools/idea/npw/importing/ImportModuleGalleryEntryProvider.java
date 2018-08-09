@@ -76,7 +76,7 @@ public class ImportModuleGalleryEntryProvider implements ModuleDescriptionProvid
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new SourceToGradleModuleStep(new SourceToGradleModuleModel(model.getProject().getValue()));
+      return new SourceToGradleModuleStep(new SourceToGradleModuleModel(model.getProject().getValue(), model.getProjectSyncInvoker()));
     }
   }
 
@@ -104,7 +104,7 @@ public class ImportModuleGalleryEntryProvider implements ModuleDescriptionProvid
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new ArchiveToGradleModuleStep(new ArchiveToGradleModuleModel(model.getProject().getValue()));
+      return new ArchiveToGradleModuleStep(new ArchiveToGradleModuleModel(model.getProject().getValue(), model.getProjectSyncInvoker()));
     }
   }
 }

@@ -18,18 +18,22 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 import org.jetbrains.annotations.NotNull;
 
 public class PathStringBuilder {
+
+  //TODO Take into consideration max string length: 32,767 characters
   private static final char MOVE_CURSOR_COMMAND_ABSOLUTE = 'M';
   private static final char LINE_COMMAND_ABSOLUTE = 'L';
   private static final char BEZIER_CURVE_COMMAND_ABSOLUTE = 'C';
   private static final char QUADRATIC_CURVE_COMMAND_ABSOLUTE = 'Q';
   private static final char CLOSE_PATH_COMMAND = 'z';
 
+  @NotNull
   private StringBuilder stringBuilder;
 
   public PathStringBuilder() {
     stringBuilder = new StringBuilder();
   }
 
+  @NotNull
   public String build() {
     return stringBuilder.toString();
   }
@@ -41,21 +45,21 @@ public class PathStringBuilder {
     appendPointCoordinates(coordinates[4], coordinates[5]);
   }
 
-  public void createQuadCurve(@NotNull Double controlPointX,
-                              @NotNull Double controlPointY,
-                              @NotNull Double endPointX,
-                              @NotNull Double endPointY) {
+  public void createQuadCurve(double controlPointX,
+                              double controlPointY,
+                              double endPointX,
+                              double endPointY) {
     appendCommand(QUADRATIC_CURVE_COMMAND_ABSOLUTE);
     appendPointCoordinates(controlPointX, controlPointY);
     appendPointCoordinates(endPointX, endPointY);
   }
 
-  public void createLine(@NotNull Double x, @NotNull Double y) {
+  public void createLine(double x, double y) {
     appendCommand(LINE_COMMAND_ABSOLUTE);
     appendPointCoordinates(x, y);
   }
 
-  public void startPath(@NotNull Double x, Double y) {
+  public void startPath(double x, double y) {
     appendCommand(MOVE_CURSOR_COMMAND_ABSOLUTE);
     appendPointCoordinates(x, y);
   }
@@ -68,7 +72,7 @@ public class PathStringBuilder {
     stringBuilder.append(command);
   }
 
-  private void appendPointCoordinates(Double x, Double y) {
+  private void appendPointCoordinates(double x, double y) {
     stringBuilder.append(String.valueOf(x)).append(",").append(String.valueOf(y)).append(" ");
   }
 }

@@ -370,7 +370,6 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
     for (AndroidDevice device : devices) {
       if (!device.isRunning()) {
         Project project = myFacet.getModule().getProject();
-        RunStatsService.get(project).notifyEmulatorStarting();
         device.launch(project);
       }
     }

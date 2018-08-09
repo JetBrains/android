@@ -67,11 +67,11 @@ public class RenderStatsManagerTest {
     assertThat(root.size()).isEqualTo(2);
 
     assertThat(root.get(0).isJsonObject()).isTrue();
-    JsonElement currentThreadElement = ((JsonObject)root.get(0)).get("__tName");
+    JsonElement currentThreadElement = ((JsonObject)root.get(0)).get("threadName");
     assertThat(currentThreadElement.isJsonPrimitive()).isTrue();
 
     assertThat(root.get(1).isJsonObject()).isTrue();
-    JsonElement separateThreadElement = ((JsonObject)root.get(1)).get("__tName");
+    JsonElement separateThreadElement = ((JsonObject)root.get(1)).get("threadName");
     assertThat(separateThreadElement.isJsonPrimitive()).isTrue();
 
     Set<String> threadNames = new HashSet<>();

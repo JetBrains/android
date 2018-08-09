@@ -30,6 +30,7 @@ iml_module(
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
         "//tools/base/common:studio.android.sdktools.common[module]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/apkparser:studio.android.sdktools.binary-resources[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",

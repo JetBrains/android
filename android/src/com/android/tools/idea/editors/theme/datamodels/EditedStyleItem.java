@@ -31,6 +31,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -94,9 +95,9 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
     return getSelectedValue().getAttr().getName();
   }
 
-  @NotNull
-  public ResourceNamespace getAttrNamespace() {
-    return getSelectedValue().getAttr().getNamespace();
+  @Nullable
+  public ResourceReference getAttrReference() {
+    return getSelectedValue().getAttr();
   }
 
   @NotNull

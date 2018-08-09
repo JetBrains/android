@@ -17,12 +17,13 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayerable;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.ARTBOARD_CLASS_TYPE;
 
@@ -42,6 +43,7 @@ public class SketchPage extends SketchLayer implements SketchLayerable {
   public SketchPage(@NotNull String classType,
                     @NotNull String objectId,
                     int booleanOperation,
+                    @NotNull SketchExportOptions exportOptions,
                     @NotNull Rectangle.Double frame,
                     boolean isFlippedHorizontal,
                     boolean isFlippedVertical,
@@ -51,7 +53,7 @@ public class SketchPage extends SketchLayer implements SketchLayerable {
                     boolean shouldBreakMaskChain,
                     @NotNull SketchStyle style,
                     @NotNull SketchLayer[] layers) {
-    super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
+    super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
           shouldBreakMaskChain);
 
     this.style = style;
@@ -70,8 +72,8 @@ public class SketchPage extends SketchLayer implements SketchLayerable {
     return layers;
   }
 
+  @NotNull
   public List<SketchArtboard> getArtboards() {
-
     ArrayList<SketchArtboard> artboards = new ArrayList<>();
 
     for (SketchLayer layer : getLayers()) {
@@ -83,12 +85,17 @@ public class SketchPage extends SketchLayer implements SketchLayerable {
     return artboards;
   }
 
+  @NotNull
   @Override
-  public void setAbsoluteLocation(ArrayList<String> paths, Point2D.Double parentCoords) {
-    parentCoords.setLocation(parentCoords.getX() + getFrame().getX(),
-                             parentCoords.getY() + getFrame().getY());
+  public List<DrawableShape> getTranslatedShapes(@NotNull Point2D.Double parentCoords) {
+    Point2D.Double currentCoord = new Point2D.Double(parentCoords.getX() + getFrame().getX(),
+                                                     parentCoords.getY() + getFrame().getY());
+    ImmutableList.Builder<DrawableShape> builder = new ImmutableList.Builder<>();
+
     for (SketchLayer groupLayer : this.getLayers()) {
-      groupLayer.setAbsoluteLocation(paths, parentCoords);
+      builder.addAll(groupLayer.getTranslatedShapes(currentCoord));
     }
+
+    return builder.build();
   }
 }

@@ -58,14 +58,8 @@ public class SplitApkDeployTaskTest {
     MockitoAnnotations.initMocks(this);
     when(myEmbeddedDevice.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(true);
     when(myContext.getApplicationId()).thenReturn(PACKAGE_NAME);
-    RunStatsService.setTestOverride(Mockito.mock(RunStatsService.class, Answers.RETURNS_DEEP_STUBS));
   }
 
-  @After
-  public void teardown() {
-    RunStatsService.setTestOverride(null);
-  }
-  
   @Test
   public void testPerformOnEmbedded() throws Throwable {
     SplitApkDeployTask task = new SplitApkDeployTask(myProject, myContext);

@@ -28,6 +28,7 @@ public class SketchSymbolMaster extends SketchSymbol implements SketchLayerable 
   private final SketchLayer[] layers;
   private final Color backgroundColor;
   private final boolean hasBackgroundColor;
+  private final boolean includeBackgroundColorInExport;
   private final boolean includeBackgroundColorInInstance;
   @SerializedName("symbolID")
   private final String symbolId;
@@ -36,6 +37,7 @@ public class SketchSymbolMaster extends SketchSymbol implements SketchLayerable 
   public SketchSymbolMaster(@NotNull String classType,
                             @NotNull String objectId,
                             int booleanOperation,
+                            @NotNull SketchExportOptions exportOptions,
                             @NotNull Rectangle.Double frame,
                             boolean isFlippedHorizontal,
                             boolean isFlippedVertical,
@@ -47,15 +49,17 @@ public class SketchSymbolMaster extends SketchSymbol implements SketchLayerable 
                             @NotNull SketchLayer[] layers,
                             @NotNull Color color,
                             boolean hasBackgroundColor,
+                            boolean includeBackgroundColorInExport,
                             boolean includeBackgroundColorInInstance,
                             @NotNull String symbolId,
                             int changeIdentifier) {
-    super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
+    super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
           shouldBreakMaskChain);
     this.style = style;
     this.layers = layers;
     backgroundColor = color;
     this.hasBackgroundColor = hasBackgroundColor;
+    this.includeBackgroundColorInExport = includeBackgroundColorInExport;
     this.includeBackgroundColorInInstance = includeBackgroundColorInInstance;
     this.symbolId = symbolId;
     this.changeIdentifier = changeIdentifier;
@@ -94,5 +98,9 @@ public class SketchSymbolMaster extends SketchSymbol implements SketchLayerable 
 
   public int getChangeIdentifier() {
     return changeIdentifier;
+  }
+
+  public boolean isIncludeBackgroundColorInExport() {
+    return includeBackgroundColorInExport;
   }
 }

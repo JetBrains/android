@@ -17,11 +17,11 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayerable;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
 import java.util.List;
 
 public class SketchArtboard extends SketchLayer implements SketchLayerable {
@@ -29,10 +29,12 @@ public class SketchArtboard extends SketchLayer implements SketchLayerable {
   private final SketchLayer[] layers;
   private final Color backgroundColor;
   private final boolean hasBackgroundColor;
+  private final boolean includeBackgroundColorInExport;
 
   public SketchArtboard(@NotNull String classType,
                         @NotNull String objectId,
                         int booleanOperation,
+                        @NotNull SketchExportOptions exportOptions,
                         @NotNull Rectangle.Double frame,
                         boolean isFlippedHorizontal,
                         boolean isFlippedVertical,
@@ -43,14 +45,16 @@ public class SketchArtboard extends SketchLayer implements SketchLayerable {
                         @NotNull SketchStyle style,
                         @NotNull SketchLayer[] layers,
                         @NotNull Color backgroundColor,
-                        boolean hasBackgroundColor) {
-    super(classType, objectId, booleanOperation, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
+                        boolean hasBackgroundColor,
+                        boolean includeBackgroundColorInExport) {
+    super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
           shouldBreakMaskChain);
 
     this.style = style;
     this.layers = layers;
     this.backgroundColor = backgroundColor;
     this.hasBackgroundColor = hasBackgroundColor;
+    this.includeBackgroundColorInExport = includeBackgroundColorInExport;
   }
 
   @Override
@@ -74,15 +78,19 @@ public class SketchArtboard extends SketchLayer implements SketchLayerable {
     return hasBackgroundColor;
   }
 
-  public List<String> getPaths() {
-
-    ArrayList<String> paths = new ArrayList<>();
+  @NotNull
+  public List<DrawableShape> getShapes() {
+    ImmutableList.Builder<DrawableShape> shapes = new ImmutableList.Builder<>();
     SketchLayer[] layers = getLayers();
 
     for (SketchLayer layer : layers) {
-      layer.setAbsoluteLocation(paths, new Point2D.Double(0, 0));
+      shapes.addAll(layer.getTranslatedShapes(new Point2D.Double()));
     }
 
-    return paths;
+    return shapes.build();
+  }
+
+  public boolean includeBackgroundColorInExport() {
+    return includeBackgroundColorInExport;
   }
 }

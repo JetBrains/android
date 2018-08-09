@@ -520,10 +520,29 @@ public class GradleSyncState {
              .setIdeTimeMs(getSyncIdeTimeMs())
              .setGradleTimeMs(getSyncGradleTimeMs())
              .setTrigger(myTrigger)
-             .setEmbeddedRepoEnabled(AndroidStudioGradleIdeSettings.getInstance().isEmbeddedMavenRepoEnabled());
+             .setEmbeddedRepoEnabled(AndroidStudioGradleIdeSettings.getInstance().isEmbeddedMavenRepoEnabled())
+             .setSyncType(getSyncType());
     // @formatter:on
     event.setCategory(GRADLE_SYNC).setKind(kind).setGradleSyncStats(syncStats);
     return event;
+  }
+
+  @NotNull
+  private GradleSyncStats.GradleSyncType getSyncType() {
+    if (NewGradleSync.isShippedSync(myProject)) {
+      return GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SHIPPED;
+    }
+    // Check in implied order (Compound requires SVS requires New Sync)
+    if (NewGradleSync.isCompoundSync(myProject)) {
+      return GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_COMPOUND;
+    }
+    if (NewGradleSync.isSingleVariantSync(myProject)) {
+      return GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT;
+    }
+    if (NewGradleSync.isEnabled(myProject)) {
+      return GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_NEW_SYNC;
+    }
+    return GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_IDEA;
   }
 
   @NotNull

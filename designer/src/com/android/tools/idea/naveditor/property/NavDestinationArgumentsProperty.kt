@@ -28,7 +28,7 @@ class NavDestinationArgumentsProperty(components: List<NlComponent>) : ListPrope
       .filter { it.tagName == NavigationSchema.TAG_ARGUMENT }
       .forEach {
         val name = it.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)
-        val type = it.resolveAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_TYPE) ?: "<inferred type>"
+        val type = it.resolveAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_ARG_TYPE) ?: "<inferred type>"
         val nullable = it.resolveAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_NULLABLE)?.toBoolean() ?: false
         val default = it.resolveAttribute(SdkConstants.ANDROID_URI, NavigationSchema.ATTR_DEFAULT_VALUE)?.let { "(${it})" }
         val title = "${name}: ${type}${if (nullable) "?" else ""} ${default ?: ""}"
