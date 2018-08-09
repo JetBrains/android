@@ -395,7 +395,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
 
     void setSelectedVariants(@NotNull String moduleName, @NotNull String selectedVariant) {
       String moduleId = createUniqueModuleId(myProjectFolderPath, ":" + moduleName);
-      mySelectedVariants.addSelectedVariant(moduleId, selectedVariant);
+      mySelectedVariants.addSelectedVariant(moduleId, selectedVariant, null);
     }
   }
 

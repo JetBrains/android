@@ -60,10 +60,10 @@ public class SyncModuleModels implements GradleModuleModels {
   void populate(@NotNull GradleProject gradleProject, @NotNull BuildController controller) {
     addModel(GradleProject.class, gradleProject);
     findAndAddModel(gradleProject, controller, GradlePluginModel.class);
-    AndroidProject androidProject = findAndAddAndroidProject(gradleProject, controller);
+    AndroidProject androidProject = findParameterizedAndroidModel(gradleProject, controller, AndroidProject.class);
     if (androidProject != null) {
       // "Native" projects also both AndroidProject and AndroidNativeProject
-      findAndAddModel(gradleProject, controller, NativeAndroidProject.class);
+      findParameterizedAndroidModel(gradleProject, controller, NativeAndroidProject.class);
       for (Class<?> type : myExtraAndroidModelTypes) {
         findAndAddModel(gradleProject, controller, type);
       }
@@ -82,21 +82,23 @@ public class SyncModuleModels implements GradleModuleModels {
   }
 
   @Nullable
-  private AndroidProject findAndAddAndroidProject(@NotNull GradleProject gradleProject, @NotNull BuildController controller) {
+  private <T> T findParameterizedAndroidModel(@NotNull GradleProject gradleProject,
+                                              @NotNull BuildController controller,
+                                              @NotNull Class<T> modelType) {
     if (myOptions.isSingleVariantSyncEnabled()) {
       try {
-        AndroidProject androidProject = controller.getModel(gradleProject, AndroidProject.class, ModelBuilderParameter.class,
-                                                            parameter -> parameter.setShouldBuildVariant(false));
-        if (androidProject != null) {
-          addModel(AndroidProject.class, androidProject);
-          return androidProject;
+        T androidModel = controller.getModel(gradleProject, modelType, ModelBuilderParameter.class,
+                                             parameter -> parameter.setShouldBuildVariant(false));
+        if (androidModel != null) {
+          addModel(modelType, androidModel);
+          return androidModel;
         }
       }
       catch (UnsupportedVersionException e) {
         // Using old version of Gradle. Fall back to full variants sync for this module.
       }
     }
-    return findAndAddModel(gradleProject, controller, AndroidProject.class);
+    return findAndAddModel(gradleProject, controller, modelType);
   }
 
   @Nullable

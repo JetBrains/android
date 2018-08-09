@@ -73,6 +73,8 @@ public class BuildVariantUpdater {
     return ServiceManager.getService(project, BuildVariantUpdater.class);
   }
 
+  // called by IDEA.
+  @SuppressWarnings("unused")
   BuildVariantUpdater() {
     this(new ModuleSetupContext.Factory(), new IdeModifiableModelsProviderFactory(), new VariantOnlySyncModuleSetup());
   }
@@ -326,11 +328,13 @@ public class BuildVariantUpdater {
         if (androidModel != null && gradleModel != null) {
           GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
           String variantName = buildVariantName;
+          String abiName = null;
           if (ndkModuleModel != null) {
             variantName = ndkModuleModel.getVariantName(buildVariantName);
+            abiName = ndkModuleModel.getAbiName(buildVariantName);
           }
           request.variantOnlySyncOptions =
-            new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName);
+            new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName);
           // TODO: It is not necessary to generate source for all modules, only the modules that have variant changes need to be re-generated.
           // Need to change generateSource functions to accept specified modules.
           request.generateSourcesOnSuccess = true;
