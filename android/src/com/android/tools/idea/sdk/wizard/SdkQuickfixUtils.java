@@ -158,7 +158,7 @@ public final class SdkQuickfixUtils {
         || requestedPaths != null && !requestedPaths.isEmpty()) {
       // This is an expensive call involving a number of manifest download operations,
       // so make it only when some installations are requested.
-      mgr.load(0, null, null, null,
+      mgr.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
                new StudioProgressRunner(true, false, "Finding Available SDK Components", project),
                new StudioDownloader(), StudioSettingsController.getInstance(), true);
       RepositoryPackages packages = mgr.getPackages();
