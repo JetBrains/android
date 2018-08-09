@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.android.tools.idea.common.scene.LerpValue
+import com.android.tools.idea.common.scene.LerpInt
 import com.android.tools.idea.common.scene.draw.*
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget
 import junit.framework.TestCase
@@ -93,18 +93,18 @@ class SerializationTest : TestCase() {
     val factory = { s: String -> DrawCircle(s) }
 
     testSerialization("DrawCircle,0,10x20,ffff0000,1,1:2:3",
-        DrawCircle(0, Point(10, 20), Color.RED, BasicStroke(1F), LerpValue(1, 2, 3)), factory)
+        DrawCircle(0, Point(10, 20), Color.RED, BasicStroke(1F), LerpInt(1, 2, 3)), factory)
     testSerialization("DrawCircle,1,30x40,ff0000ff,2,4:5:6",
-        DrawCircle(1, Point(30, 40), Color.BLUE, BasicStroke(2F), LerpValue(4, 5, 6)), factory)
+        DrawCircle(1, Point(30, 40), Color.BLUE, BasicStroke(2F), LerpInt(4, 5, 6)), factory)
   }
 
   fun testDrawFilledCircle() {
     val factory = { s: String -> DrawFilledCircle(s) }
 
     testSerialization("DrawFilledCircle,0,10x20,ffff0000,1:2:3",
-        DrawFilledCircle(0, Point(10, 20), Color.RED, LerpValue(1, 2, 3)), factory)
+                      DrawFilledCircle(0, Point(10, 20), Color.RED, LerpInt(1, 2, 3)), factory)
     testSerialization("DrawFilledCircle,1,30x40,ff0000ff,4:5:6",
-        DrawFilledCircle(1, Point(30, 40), Color.BLUE, LerpValue(4, 5, 6)), factory)
+        DrawFilledCircle(1, Point(30, 40), Color.BLUE, LerpInt(4, 5, 6)), factory)
   }
 
   fun testDrawArrow() {

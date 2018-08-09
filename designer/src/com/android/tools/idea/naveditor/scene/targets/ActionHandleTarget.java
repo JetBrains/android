@@ -169,7 +169,7 @@ public class ActionHandleTarget extends NavBaseTarget {
 
     ColorSet colorSet = sceneContext.getColorSet();
     list.add(new DrawFilledCircle(DRAW_ACTION_HANDLE_BACKGROUND_LEVEL, center, colorSet.getBackground(),
-                                  new LerpValue(initialRadius, finalRadius, duration)));
+                                  new LerpInt(initialRadius, finalRadius, duration)));
 
     initialRadius = sceneContext.getSwingDimension(myHandleState.myInnerRadius);
     finalRadius = sceneContext.getSwingDimension(newState.myInnerRadius);
@@ -180,7 +180,7 @@ public class ActionHandleTarget extends NavBaseTarget {
       list.add(new DrawActionHandleDrag(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext)));
     }
     else {
-      list.add(new DrawCircle(DRAW_ACTION_HANDLE_LEVEL, center, color, STROKE, new LerpValue(initialRadius, finalRadius, duration)));
+      list.add(new DrawCircle(DRAW_ACTION_HANDLE_LEVEL, center, color, STROKE, new LerpInt(initialRadius, finalRadius, duration)));
     }
 
     myHandleState = newState;

@@ -459,10 +459,11 @@ public class NavDesignSurface extends DesignSurface {
     @SwingCoordinate int swingStartCenterYInViewport =
       Coordinates.getSwingY(view, (int)selectionBounds.getCenterY()) - getScrollPosition().y;
 
-    @SwingCoordinate LerpValue xLerp = new LerpValue(swingStartCenterXInViewport, swingViewportSize.width / 2, getScrollDurationMs());
-    @SwingCoordinate LerpValue yLerp = new LerpValue(swingStartCenterYInViewport, swingViewportSize.height / 2, getScrollDurationMs());
-    LerpValue zoomLerp = new LerpValue((int)(view.getScale() * 100), (int)(getFitScale(selectionBounds.getSize(), true) * 100),
-                                       getScrollDurationMs());
+    @SwingCoordinate Point start = new Point(swingStartCenterXInViewport, swingStartCenterYInViewport);
+    @SwingCoordinate Point end = new Point(swingViewportSize.width / 2, swingViewportSize.height / 2);
+    @SwingCoordinate LerpPoint lerpPoint = new LerpPoint(start, end, getScrollDurationMs());
+    LerpValue zoomLerp = new LerpDouble(view.getScale(), getFitScale(selectionBounds.getSize(), true),
+                                        getScrollDurationMs());
 
     if (getScheduleRef().get() != null) {
       getScheduleRef().get().cancel(false);
@@ -470,14 +471,13 @@ public class NavDesignSurface extends DesignSurface {
 
     Runnable action = () -> UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
       long time = System.currentTimeMillis();
-      @SwingCoordinate int xSwingValue = xLerp.getValue(time);
-      @SwingCoordinate int ySwingValue = yLerp.getValue(time);
+      @SwingCoordinate Point pointSwingValue = lerpPoint.getValue(time);
       @SwingCoordinate int targetSwingX = Coordinates.getSwingX(view, (int)selectionBounds.getCenterX());
       @SwingCoordinate int targetSwingY = Coordinates.getSwingY(view, (int)selectionBounds.getCenterY());
 
-      setScrollPosition(targetSwingX - xSwingValue, targetSwingY - ySwingValue);
-      setScale(zoomLerp.getValue(time) / 100., targetSwingX, targetSwingY);
-      if (xSwingValue == xLerp.getEnd() && ySwingValue == yLerp.getEnd()) {
+      setScrollPosition(targetSwingX - pointSwingValue.x, targetSwingY - pointSwingValue.y);
+      setScale((double)zoomLerp.getValue(time), targetSwingX, targetSwingY);
+      if (lerpPoint.isComplete(time)) {
         getScheduleRef().get().cancel(false);
         getScheduleRef().set(null);
       }
