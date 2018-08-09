@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.api.RenderSession;
-import com.android.ide.common.rendering.api.Result;
-import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.rendering.api.*;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
-import com.android.util.PropertiesMap;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -40,7 +37,8 @@ public class RenderResult {
   @NotNull private final ImagePool.Image myImage;
   @Nullable private final RenderTask myRenderTask;
   @NotNull private final Result myRenderResult;
-  @NotNull private final ImmutableMap<Object, PropertiesMap> myDefaultProperties;
+  @NotNull private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
+  @NotNull private final Map<Object, String> myDefaultStyles;
   @NotNull private final Module myModule;
   private boolean isDisposed;
 
@@ -52,7 +50,8 @@ public class RenderResult {
                          @NotNull ImmutableList<ViewInfo> rootViews,
                          @NotNull ImmutableList<ViewInfo> systemRootViews,
                          @NotNull ImagePool.Image image,
-                         @NotNull ImmutableMap<Object, PropertiesMap> defaultProperties) {
+                         @NotNull Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties,
+                         @NotNull Map<Object, String> defaultStyles) {
     myRenderTask = renderTask;
     myModule = module;
     myFile = file;
@@ -62,6 +61,7 @@ public class RenderResult {
     mySystemRootViews = systemRootViews;
     myImage = image;
     myDefaultProperties = defaultProperties;
+    myDefaultStyles = defaultStyles;
   }
 
   public void dispose() {
@@ -80,7 +80,8 @@ public class RenderResult {
                                     @NotNull ImagePool.Image image) {
     List<ViewInfo> rootViews = session.getRootViews();
     List<ViewInfo> systemRootViews = session.getSystemRootViews();
-    Map<Object, PropertiesMap> defaultProperties = session.getDefaultProperties();
+    Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties = session.getDefaultNamespacedProperties();
+    Map<Object, String> defaultStyles = session.getDefaultStyles();
     return new RenderResult(
       file,
       renderTask.getContext().getModule(),
@@ -90,7 +91,8 @@ public class RenderResult {
       rootViews != null ? ImmutableList.copyOf(rootViews) : ImmutableList.of(),
       systemRootViews != null ? ImmutableList.copyOf(systemRootViews) : ImmutableList.of(),
       image, // image might be ImagePool.NULL_POOL_IMAGE if there is no rendered image (as in layout())
-      defaultProperties != null ? ImmutableMap.copyOf(defaultProperties) : ImmutableMap.of());
+      defaultProperties != null ? ImmutableMap.copyOf(defaultProperties) : ImmutableMap.of(),
+      defaultStyles != null ? ImmutableMap.copyOf(defaultStyles) : ImmutableMap.of());
   }
 
   /**
@@ -112,6 +114,7 @@ public class RenderResult {
       ImmutableList.of(),
       ImmutableList.of(),
       ImagePool.NULL_POOLED_IMAGE,
+      ImmutableMap.of(),
       ImmutableMap.of());
   }
 
@@ -134,6 +137,7 @@ public class RenderResult {
       ImmutableList.of(),
       ImmutableList.of(),
       ImagePool.NULL_POOLED_IMAGE,
+      ImmutableMap.of(),
       ImmutableMap.of());
   }
 
@@ -186,8 +190,17 @@ public class RenderResult {
    * The map is index by view cookie.
    */
   @NotNull
-  public ImmutableMap<Object, PropertiesMap> getDefaultProperties() {
+  public Map<Object, Map<ResourceReference, ResourceValue>> getDefaultProperties() {
     return myDefaultProperties;
+  }
+
+  /**
+   * Returns the default style map. This map contains the default style of the widgets as returned by layoutlib.
+   * The map is index by view cookie.
+   */
+  @NotNull
+  public Map<Object, String> getDefaultStyles() {
+    return myDefaultStyles;
   }
 
   @Override
