@@ -40,11 +40,9 @@ public class ImportOptions {
    * Mapping {@code objectId}s to corresponding options.
    */
   private HashMap<String, ObjectOptions> myObjectIdToOptions = new HashMap<>();
-  private SketchFile mySketchFile;
 
   public ImportOptions(@NotNull SketchFile file) {
-    mySketchFile = file;
-    initWithDefaultOptions();
+    initWithDefaultOptions(file);
   }
 
   public boolean isImportAll() {
@@ -82,8 +80,8 @@ public class ImportOptions {
   /**
    * Add options for each page/artboard in the {@code myObjectIdToOptions HashMap} based on the sketch data.
    */
-  private void initWithDefaultOptions() {
-    for (SketchPage page : mySketchFile.getPages()) {
+  private void initWithDefaultOptions(@NotNull SketchFile file) {
+    for (SketchPage page : file.getPages()) {
       PageOptions pageOptions = new PageOptions(page);
       myObjectIdToOptions.put(page.getObjectId(), pageOptions);
 

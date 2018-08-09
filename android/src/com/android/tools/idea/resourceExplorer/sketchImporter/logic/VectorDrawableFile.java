@@ -176,11 +176,15 @@ public class VectorDrawableFile {
     }
   }
 
+  /**
+   * @return virtual Vector Drawable file whose name corresponds to the artboard's {@code objectId}
+   */
   @NotNull
   public LightVirtualFile generateFile() {
     LightVirtualFile virtualFile = new LightVirtualFile();
     createVectorDrawable();
     if (artboard != null) {
+      virtualFile = new LightVirtualFile(artboard.getObjectId());
       Rectangle2D.Double frame = artboard.getFrame();
       setVectorDimensions(frame.getHeight(), frame.getWidth());
       setViewportDimensions(frame.getHeight(), frame.getWidth());
@@ -189,12 +193,7 @@ public class VectorDrawableFile {
         addPath(shape);
       }
     }
-    String content = getApplication().runReadAction(new Computable<String>() {
-      @Override
-      public String compute() {
-        return root.getText();
-      }
-    });
+    String content = getApplication().runReadAction((Computable<String>)() -> root.getText());
     virtualFile.setContent(null, content, false);
     return virtualFile;
   }
