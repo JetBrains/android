@@ -19,13 +19,13 @@ import com.android.tools.idea.gradle.structure.model.repositories.search.*
 import com.google.common.util.concurrent.ListenableFuture
 import javax.annotation.concurrent.GuardedBy
 
-class CachingRepositorySearchFactory {
+class CachingRepositorySearchFactory : RepositorySearchFactory {
   private val lock = Any()
 
   @GuardedBy("lock")
   private val artifactRepositorySearchServices = mutableMapOf<ArtifactRepositorySearchService, ArtifactRepositorySearchService>()
 
-  fun create(repositories: Collection<ArtifactRepositorySearchService>): ArtifactRepositorySearchService =
+  override fun create(repositories: Collection<ArtifactRepositorySearchService>): ArtifactRepositorySearchService =
     ArtifactRepositorySearch(
       synchronized(lock) {
         repositories

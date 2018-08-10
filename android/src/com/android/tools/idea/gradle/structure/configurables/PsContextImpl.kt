@@ -60,7 +60,7 @@ class PsContextImpl constructor(
     // The UI has not yet subscribed to notifications which is fine since we don't want to see "Loading..." at startup.
     requestGradleModels()
 
-    libraryUpdateCheckerDaemon = PsLibraryUpdateCheckerDaemon(this)
+    libraryUpdateCheckerDaemon = PsLibraryUpdateCheckerDaemon(this, cachingRepositorySearchFactory)
     if (!disableAnalysis) {
       libraryUpdateCheckerDaemon.reset()
       libraryUpdateCheckerDaemon.queueAutomaticUpdateCheck()
