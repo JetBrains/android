@@ -47,20 +47,4 @@ public class SearchResultTest {
     SearchResult searchResult = new SearchResult("test", new Exception("testException"));
     assertEquals("{repository='test', artifacts=[], error=java.lang.Exception: testException, totalFound=0}", searchResult.toString());
   }
-
-  @Test
-  public void testToString_withArtifacts() throws Exception {
-    FoundArtifact artifactA = new FoundArtifact("test", "group", "artifactA", GradleVersion.parse("1.0.2.+"));
-    FoundArtifact artifactB = new FoundArtifact("test", "group", "artifactB", GradleVersion.parse("2.0.2.+"));
-    FoundArtifact artifactC = new FoundArtifact("test", "group", "artifactB", GradleVersion.parse("3.0.2.+"));
-    SearchResult searchResult = new SearchResult("test", ImmutableList.of(artifactA, artifactB, artifactC), 100);
-    assertEquals("{repository='test', " +
-                 "artifacts=[" +
-                 "{repository='test', group='group', name='artifactA', versions=[1.0.2.+]}, " +
-                 "{repository='test', group='group', name='artifactB', versions=[2.0.2.+]}, " +
-                 "{repository='test', group='group', name='artifactB', versions=[3.0.2.+]}" +
-                 "], " +
-                 "error=null, " +
-                 "totalFound=100}", searchResult.toString());
-  }
 }
