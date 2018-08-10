@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,8 @@ import org.junit.runner.RunWith;
 import java.util.concurrent.TimeUnit;
 
 @RunWith(GuiTestRemoteRunner.class)
-public class AddModuleTest {
+public class AddFeatureModuleTest {
+
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   /**
@@ -40,7 +41,7 @@ public class AddModuleTest {
    *
    * <pre>
    *   Test steps:
-   *   1. Import simple instant application project
+   *   1. Import instant local application project (Created by Studio 3.3)
    *   2. Go to File -> New module to open the new module dialog wizard.
    *   3. Follow through the wizard to add a new Instant App Feature module, accepting defaults.
    *   4. Complete the wizard and wait for the build to complete.
@@ -49,9 +50,9 @@ public class AddModuleTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.FAST_BAZEL)
   public void addFeatureModule() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("TopekaInstantApp");
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("InstantLocalApplication");
 
     ideFrame.invokeMenuPath("File", "New", "New Module...");
 
@@ -66,6 +67,7 @@ public class AddModuleTest {
     ideFrame.waitForGradleProjectSyncToFinish();
 
     ProjectViewFixture.PaneFixture androidPane = ideFrame.getProjectView().selectAndroidPane();
-    androidPane.clickPath("feature");
+    // In InstantLocalApplication project, feature exists. Additional default name will be feature2.
+    androidPane.clickPath("feature2");
   }
 }
