@@ -197,7 +197,7 @@ class ArtifactRepositorySearchForm(
       columnInfos = arrayOf(
         column("Group ID", preferredWidthTextSample = "abcdefghijklmno") { it.groupId },
         column("Artifact Name", preferredWidthTextSample = "abcdefg") { it.name },
-        column("Repository") { it.repositoryName })
+        column("Repository") { it.repositoryNames.joinToString (separator = ", ") })
     }
   }
 }

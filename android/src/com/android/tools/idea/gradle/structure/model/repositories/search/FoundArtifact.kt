@@ -20,16 +20,16 @@ import com.android.tools.idea.gradle.structure.model.repositories.search.Android
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories.GOOGLE_REPOSITORY_NAME
 
 data class FoundArtifact(
-  val repositoryName: String,
+  val repositoryNames: Set<String>,
   val groupId: String,
   val name: String,
   val unsortedVersions: Set<GradleVersion>
 ) : Comparable<FoundArtifact> {
-  constructor(repositoryName: String, groupId: String, name: String, version: GradleVersion) :
-    this(repositoryName, groupId, name, setOf(version))
+  constructor(repositoryName: String, groupId: String, name: String, unsortedVersions: Collection<GradleVersion>) :
+    this(setOf(repositoryName), groupId, name, unsortedVersions.toSet())
 
-  constructor(repositoryName: String, groupId: String, name: String, versions: Collection<GradleVersion>) :
-    this(repositoryName, groupId, name, versions.toSet())
+  constructor(repositoryName: String, groupId: String, name: String, version: GradleVersion) :
+    this(setOf(repositoryName), groupId, name, setOf(version))
 
   val coordinates: List<String> get() = versions.map { "$groupId:$name:$it" }
   val versions: List<GradleVersion> = unsortedVersions.sortedByDescending { it }
@@ -46,9 +46,9 @@ data class FoundArtifact(
 }
 
 private fun FoundArtifact.getRepositoryPriority(): Int =
-  when (repositoryName) {
-    ANDROID_REPOSITORY_NAME -> 0
-    GOOGLE_REPOSITORY_NAME -> 1
+  when {
+    repositoryNames.contains(ANDROID_REPOSITORY_NAME) -> 0
+    repositoryNames.contains(GOOGLE_REPOSITORY_NAME) -> 1
     else -> 2
   }
 
