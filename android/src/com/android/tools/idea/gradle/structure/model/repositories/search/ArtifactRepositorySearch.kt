@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,17 @@
  */
 package com.android.tools.idea.gradle.structure.model.repositories.search
 
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import org.jetbrains.ide.PooledThreadExecutor
+import java.util.concurrent.Callable
 
-interface ArtifactRepositorySearchService {
-  fun search(request: SearchRequest): ListenableFuture<SearchResult>
+class ArtifactRepositorySearch(private val repositories: Collection<ArtifactRepository>) : ArtifactRepositorySearchService {
+
+  override fun search(request: SearchRequest): ListenableFuture<SearchResult> {
+    val futures = repositories.map { it.search(request) }
+    return Futures
+      .whenAllComplete(futures)
+      .call(Callable { futures.map { it.getResultSafely() }.combine() }, PooledThreadExecutor.INSTANCE)
+  }
 }

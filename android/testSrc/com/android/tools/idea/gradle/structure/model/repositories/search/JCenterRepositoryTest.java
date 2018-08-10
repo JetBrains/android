@@ -121,7 +121,6 @@ public class JCenterRepositoryTest {
                       "]";
     Reader responseReader = new StringReader(response);
     SearchResult result = new JCenterRepository().parse(responseReader);
-    assertEquals(5, result.getTotalFound());
     List<String> coordinates = result.getArtifactCoordinates();
     assertThat(coordinates).containsExactly(
       "com.atlassian.guava:guava:15.0",

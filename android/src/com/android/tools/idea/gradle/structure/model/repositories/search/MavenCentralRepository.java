@@ -145,7 +145,7 @@ public class MavenCentralRepository extends ArtifactRepository {
       }
     }
 
-    return new SearchResult(getName(), artifacts, totalFound);
+    return new SearchResult(artifacts);
   }
 
   @Override

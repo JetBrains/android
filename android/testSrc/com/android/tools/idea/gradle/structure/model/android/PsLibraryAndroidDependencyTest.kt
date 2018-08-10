@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchResults
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
+import com.android.tools.idea.gradle.structure.model.repositories.search.combine
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -28,17 +28,13 @@ class PsLibraryAndroidDependencyTest {
 
   @Test
   fun toVersionValueDescriptors() {
-    val searchResults = ArtifactRepositorySearchResults(
+    val searchResults =
       listOf(
-        SearchResult("rep1",
-                     listOf(FoundArtifact("rep1", "group", "name", listOf(GradleVersion.parse("1.0"), GradleVersion.parse("1.1")))),
-                     1),
-        SearchResult("rep2",
-                     listOf(FoundArtifact("rep2", "group", "name", listOf(GradleVersion.parse("1.0"), GradleVersion.parse("0.9")))),
-                     1),
-        SearchResult("rep3", Exception("A"))
-      ),
-      listOf(Exception("1"), Exception("2")))
+        SearchResult(listOf(FoundArtifact("rep1", "group", "name", listOf(GradleVersion.parse("1.0"), GradleVersion.parse("1.1"))))),
+        SearchResult(listOf(FoundArtifact("rep2", "group", "name", listOf(GradleVersion.parse("1.0"), GradleVersion.parse("0.9"))))),
+        SearchResult(listOf(), listOf(Exception("1"), Exception("2")))
+      ).combine()
+
     assertThat(
       searchResults.toVersionValueDescriptors(),
       equalTo(

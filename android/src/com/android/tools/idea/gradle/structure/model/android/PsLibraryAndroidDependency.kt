@@ -19,9 +19,9 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.meta.*
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchResults
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
+import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
 import com.google.common.util.concurrent.Futures
 import kotlin.reflect.KProperty
 
@@ -126,9 +126,8 @@ abstract class PsLibraryAndroidDependency internal constructor(
   override fun toString(): String = toText()
 }
 
-fun ArtifactRepositorySearchResults.toVersionValueDescriptors(): List<ValueDescriptor<String>> =
-  results
-    .flatMap { it.artifacts }
+fun SearchResult.toVersionValueDescriptors(): List<ValueDescriptor<String>> =
+  artifacts
     .flatMap { it.versions }
     .distinct()
     .sortedDescending()
