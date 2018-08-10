@@ -21,14 +21,12 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
+import com.intellij.openapi.fileEditor.ex.FileEditorWithProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -118,14 +116,10 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
     Project project = module.getProject();
     OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, -1);
     FileEditorManagerEx manager = FileEditorManagerEx.getInstanceEx(project);
-    Pair<FileEditor, FileEditorProvider> previousSelection = manager.getSelectedEditorWithProvider(old);
+    FileEditorWithProvider previousSelection = manager.getSelectedEditorWithProvider(old);
     manager.openEditor(descriptor, true);
-
     if (previousSelection != null) {
-      FileEditorProvider provider = previousSelection.getSecond();
-      if (provider != null) {
-        manager.setSelectedEditor(file, provider.getEditorTypeId());
-      }
+      manager.setSelectedEditor(file, previousSelection.getProvider().getEditorTypeId());
     }
   }
 
