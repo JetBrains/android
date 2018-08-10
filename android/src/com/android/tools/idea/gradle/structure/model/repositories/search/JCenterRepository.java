@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.intellij.util.io.HttpRequests;
@@ -176,25 +177,31 @@ public class JCenterRepository extends ArtifactRepository {
 
     int totalFound = array.size();
     List<FoundArtifact> artifacts = Lists.newArrayListWithExpectedSize(totalFound);
+    List<Exception> errors = Lists.newArrayList();
 
     for (int i = 0; i < totalFound; i++) {
       JsonObject root = array.get(i).getAsJsonObject();
-      String name = root.getAsJsonPrimitive("name").getAsString();
+      try {
+        List<GradleVersion> availableVersions = Lists.newArrayList();
+        JsonArray versions = root.getAsJsonArray("versions");
+        JsonArray systemIds = root.getAsJsonArray("system_ids");
+        versions.forEach(element -> {
+          String version = element.getAsString();
+          availableVersions.add(GradleVersion.parse(version));
+        });
 
-      List<GradleVersion> availableVersions = Lists.newArrayList();
-      JsonArray versions = root.getAsJsonArray("versions");
-      versions.forEach(element -> {
-        String version = element.getAsString();
-        availableVersions.add(GradleVersion.parse(version));
-      });
-
-      List<String> coordinate = Splitter.on(GRADLE_PATH_SEPARATOR).splitToList(name);
-      assert coordinate.size() == 2;
-
-      artifacts.add(new FoundArtifact(getName(), coordinate.get(0), coordinate.get(1), availableVersions));
+        for (JsonElement name : systemIds) {
+          List<String> coordinate = Splitter.on(GRADLE_PATH_SEPARATOR).splitToList(name.getAsString());
+          assert coordinate.size() == 2;
+          artifacts.add(new FoundArtifact(getName(), coordinate.get(0), coordinate.get(1), availableVersions));
+        }
+      }
+      catch (Exception ex) {
+        errors.add(ex);
+      }
     }
 
-    return new SearchResult(artifacts);
+    return new SearchResult(artifacts, errors);
   }
 
   @Override
