@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.daemon
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
 import com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage.AvailableLibraryUpdates
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
@@ -37,7 +38,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 
 private val LOG = Logger.getInstance(PsLibraryUpdateCheckerDaemon::class.java)
-class PsLibraryUpdateCheckerDaemon(context: PsContext) : PsDaemon(context) {
+
+class PsLibraryUpdateCheckerDaemon(
+  context: PsContext,
+  private val repositorySearchFactory: RepositorySearchFactory
+) : PsDaemon(context) {
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Update Checker", null)
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Available Update Results Updater", ANY_COMPONENT)
 
@@ -84,9 +89,8 @@ class PsLibraryUpdateCheckerDaemon(context: PsContext) : PsDaemon(context) {
         .map { id -> SearchRequest(id.name, id.groupId, 1, 0) }
         .toSet()
 
-    val resultFutures =
-      requests
-        .flatMap { request -> repositories.map { it.search(request) } }
+    val searcher = repositorySearchFactory.create(repositories)
+    val resultFutures = requests.map { searcher.search(it) }
 
     Disposer.register(this, Disposable {
       resultFutures.forEach { it.cancel(true) }
