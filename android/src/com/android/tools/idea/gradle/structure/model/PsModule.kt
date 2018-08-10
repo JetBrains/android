@@ -154,10 +154,10 @@ abstract class PsModule protected constructor(
     }
   }
 
-  fun getArtifactRepositories(): List<ArtifactRepository> {
+  fun getArtifactRepositories(): Collection<ArtifactRepository> {
     val repositories = mutableListOf<ArtifactRepository>()
     populateRepositories(repositories)
-    return repositories
+    return repositories.toSet()
   }
 
   fun add(listener: DependenciesChangeListener, parentDisposable: Disposable) {
