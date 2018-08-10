@@ -39,8 +39,4 @@ public class AndroidPlugin implements BaseComponent {
     moveAction("Android.MainToolBarGradleGroup", IdeActions.GROUP_MAIN_TOOLBAR, "Android.MainToolBarActionGroup",
                new Constraints(Anchor.LAST, null));
   }
-
-  @Override
-  public void disposeComponent() {
-  }
 }
