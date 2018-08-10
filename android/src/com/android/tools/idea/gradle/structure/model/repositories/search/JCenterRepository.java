@@ -194,7 +194,7 @@ public class JCenterRepository extends ArtifactRepository {
       artifacts.add(new FoundArtifact(getName(), coordinate.get(0), coordinate.get(1), availableVersions));
     }
 
-    return new SearchResult(getName(), artifacts, totalFound);
+    return new SearchResult(artifacts);
   }
 
   @Override

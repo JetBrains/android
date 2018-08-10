@@ -21,12 +21,10 @@ import com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStor
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
-import com.google.common.collect.Lists
-import com.google.common.collect.Sets
-import com.google.common.util.concurrent.Futures
+import com.android.tools.idea.gradle.structure.model.repositories.search.getResultSafely
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil.isNotEmpty
 import com.intellij.util.EventDispatcher
 import com.intellij.util.ui.UIUtil
@@ -34,11 +32,11 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
 import java.util.*
-import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 
+private val LOG = Logger.getInstance(PsLibraryUpdateCheckerDaemon::class.java)
 class PsLibraryUpdateCheckerDaemon(context: PsContext) : PsDaemon(context) {
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Update Checker", null)
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Available Update Results Updater", ANY_COMPONENT)
@@ -81,54 +79,29 @@ class PsLibraryUpdateCheckerDaemon(context: PsContext) : PsDaemon(context) {
     running.set(true)
     getAvailableUpdates().clear()
 
-    val resultCount = repositories.size * ids.size
-    val jobs = Lists.newArrayListWithExpectedSize<Future<SearchResult>>(resultCount)
+    val requests =
+      ids
+        .map { id -> SearchRequest(id.name, id.groupId, 1, 0) }
+        .toSet()
 
-    val requests = Sets.newHashSet<SearchRequest>()
-    ids.forEach { id ->
-      val request = SearchRequest(id.name, id.groupId, 1, 0)
-      requests.add(request)
-    }
+    val resultFutures =
+      requests
+        .flatMap { request -> repositories.map { it.search(request) } }
 
-    val results = Sets.newHashSet<SearchResult>()
-    val errors = Lists.newArrayList<Exception>()
+    Disposer.register(this, Disposable {
+      resultFutures.forEach { it.cancel(true) }
+    })
 
-    val application = ApplicationManager.getApplication()
-    application.executeOnPooledThread {
-      for (repository in repositories) {
-        for (request in requests) {
-          jobs.add(application.executeOnPooledThread<SearchResult> { repository.search(request) })
-        }
-      }
+    val foundArtifacts =
+      resultFutures
+        .map { it.getResultSafely() }
+        .flatMap { it.artifacts }
 
-      for (job in jobs) {
-        try {
-          val result = Futures.getChecked(job, Exception::class.java)
-          val artifacts = result.artifacts
-          if (artifacts.size == 1) {
-            val artifact = artifacts[0]
-            if (!artifact.versions.isEmpty()) {
-              results.add(result)
-            }
-          }
-        }
-        catch (e: Exception) {
-          errors.add(e)
-        }
+    val updates = getAvailableUpdates()
+    foundArtifacts.forEach { updates.add(it) }
+    updates.lastSearchTimeMillis = System.currentTimeMillis()
 
-      }
-
-      val updates = getAvailableUpdates()
-
-      for (result in results) {
-        val artifacts = result.artifacts
-        updates.add(artifacts[0])
-      }
-
-      updates.lastSearchTimeMillis = System.currentTimeMillis()
-
-      resultsUpdaterQueue.queue(UpdatesAvailable())
-    }
+    resultsUpdaterQueue.queue(UpdatesAvailable())
   }
 
   private inner class SearchForAvailableUpdates : Update(context.project) {

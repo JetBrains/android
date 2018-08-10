@@ -185,7 +185,6 @@ public class MavenCentralRepositoryTest {
                       "</response>";
     Reader responseReader = new StringReader(response);
     SearchResult result = new MavenCentralRepository().parse(responseReader);
-    assertEquals(409, result.getTotalFound());
     List<String> coordinates = result.getArtifactCoordinates();
     assertThat(coordinates).containsExactly(
       "org.sonatype.spice.inject:guice-bean:1.3.4",

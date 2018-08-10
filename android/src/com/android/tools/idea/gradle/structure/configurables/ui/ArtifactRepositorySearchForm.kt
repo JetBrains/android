@@ -147,7 +147,7 @@ class ArtifactRepositorySearchForm(
         return@continueOnEdt
       }
 
-      val foundArtifacts = results.results.flatMap { it.artifacts }.sorted()
+      val foundArtifacts = results.artifacts.sorted()
 
       resultsTable.listTableModel.items = foundArtifacts
       resultsTable.updateColumnSizes()

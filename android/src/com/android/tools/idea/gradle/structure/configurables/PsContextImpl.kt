@@ -25,9 +25,9 @@ import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaem
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearch
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchResults
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
+import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
@@ -135,9 +135,9 @@ class PsContextImpl constructor(
     private val lock = Any()
 
     @GuardedBy("lock")
-    private val requestCache = mutableMapOf<SearchRequest, ListenableFuture<ArtifactRepositorySearchResults>>()
+    private val requestCache = mutableMapOf<SearchRequest, ListenableFuture<SearchResult>>()
 
-    override fun search(request: SearchRequest): ListenableFuture<ArtifactRepositorySearchResults> =
+    override fun search(request: SearchRequest): ListenableFuture<SearchResult> =
       synchronized(lock) {
         requestCache[request]?.takeUnless { it.isCancelled }
         ?: artifactRepositorySearch.search(request).also { requestCache[request] = it }
