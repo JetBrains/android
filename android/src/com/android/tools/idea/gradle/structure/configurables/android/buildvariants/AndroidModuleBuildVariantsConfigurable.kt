@@ -22,19 +22,22 @@ import com.android.tools.idea.gradle.structure.configurables.android.modules.Abs
 import com.android.tools.idea.gradle.structure.configurables.createTreeModel
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.BuildVariantsPanel
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 
 class AndroidModuleBuildVariantsConfigurable(
     context: PsContext,
     module: PsAndroidModule
-) : AbstractModuleConfigurable<PsAndroidModule, BuildVariantsPanel>(context, module) {
+) : AbstractModuleConfigurable<PsAndroidModule, BuildVariantsPanel>(context, module), Disposable {
 
-  private val buildTypesModel = createTreeModel(BuildTypesConfigurable(module))
-  private val productFlavorsModel = createTreeModel(ProductFlavorsConfigurable(module))
+  private val buildTypesModel = createTreeModel(BuildTypesConfigurable(module).also { Disposer.register(this, it) })
+  private val productFlavorsModel = createTreeModel(ProductFlavorsConfigurable(module).also { Disposer.register(this, it) })
 
   override fun getId() = "android.psd.build_variants." + displayName
   override fun createPanel() =
       BuildVariantsPanel(context, module, buildTypesModel, productFlavorsModel)
 
+  override fun dispose() = Unit
 }
 
 
