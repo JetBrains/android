@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
@@ -133,7 +134,7 @@ public class ResourceResolverCache {
       Table<ResourceNamespace, ResourceType, ResourceValueMap> configuredAppRes = myAppResourceMap.get(qualifierString);
       if (configuredAppRes == null) {
         // Get the project resource values based on the current config.
-        configuredAppRes = ReadAction.compute(() -> resources.getConfiguredResources(fullConfiguration));
+        configuredAppRes = ReadAction.compute(() -> ResourceRepositoryUtil.getConfiguredResources(resources, fullConfiguration));
         myAppResourceMap.put(qualifierString, configuredAppRes);
       }
 
@@ -182,7 +183,7 @@ public class ResourceResolverCache {
     // Get the framework resource values based on the current config.
     Map<ResourceType, ResourceValueMap> frameworkResources = myFrameworkResourceMap.get(qualifierString);
     if (frameworkResources == null) {
-      frameworkResources = resourceRepository.getConfiguredResources(fullConfiguration).row(ResourceNamespace.ANDROID);
+      frameworkResources = ResourceRepositoryUtil.getConfiguredResources(resourceRepository, fullConfiguration).row(ResourceNamespace.ANDROID);
       myFrameworkResourceMap.put(qualifierString, frameworkResources);
     }
     return frameworkResources;

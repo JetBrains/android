@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
@@ -268,7 +269,7 @@ public class AndroidAnnotatorUtil {
       if (!appResources.hasResourceItem(type, name)) {
         return null;
       }
-      return appResources.getConfiguredValue(type, name, configuration.getFullConfig());
+      return ResourceRepositoryUtil.getConfiguredValue(appResources, type, name, configuration.getFullConfig());
     }
   }
 

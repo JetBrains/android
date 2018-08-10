@@ -24,12 +24,9 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.repository.ResourceVisibilityLookup
-import com.android.ide.common.resources.AbstractResourceRepository
+import com.android.ide.common.resources.*
 import com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION
-import com.android.ide.common.resources.ResourceFile
-import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceItem.*
-import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathString
@@ -1034,7 +1031,7 @@ fun buildResourceId(packageId: Byte, typeId: Byte, entryId: Short) =
  *
  * Intended for code completion.
  */
-fun AbstractResourceRepository.getResourceItems(
+fun ResourceRepository.getResourceItems(
   namespace: ResourceNamespace,
   type: ResourceType,
   visibilityLookup: ResourceVisibilityLookup,

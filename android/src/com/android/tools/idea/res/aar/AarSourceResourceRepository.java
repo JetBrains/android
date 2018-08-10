@@ -209,12 +209,6 @@ public class AarSourceResourceRepository extends LocalResourceRepository impleme
     return multimap;
   }
 
-  @Override
-  @NotNull
-  public Set<ResourceNamespace> getNamespaces() {
-    return myFullTable.rowKeySet();
-  }
-
   /**
    * Returns a collection of resource id names found in the R.txt file if the file referenced by this repository is an AAR.
    * The Ids obtained using {@link #getItemsOfType(ResourceType)} by passing in {@link ResourceType#ID} only contains

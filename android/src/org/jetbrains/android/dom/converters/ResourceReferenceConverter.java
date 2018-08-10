@@ -305,13 +305,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     LocalResourceRepository resourceRepository = ResourceRepositoryManager.getAppResources(facet);
     for (ResourceType type : ResourceType.values()) {
       if (resourceRepository.hasResourcesOfType(type)) {
-        if (type == ResourceType.STYLEABLE) {
-          // The ResourceRepository maps tend to hold DECLARE_STYLEABLE, but not STYLEABLE. However, these types are
-          // used for R inner classes, and declare-styleable isn't a valid inner class name, so convert to styleable.
-          result.add(ResourceType.STYLEABLE);
-        } else {
-          result.add(type);
-        }
+        result.add(type);
       }
     }
     return result;

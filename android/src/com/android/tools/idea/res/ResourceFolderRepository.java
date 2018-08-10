@@ -817,12 +817,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     return myNamespace;
   }
 
-  @Override
-  @NotNull
-  public Set<ResourceNamespace> getNamespaces() {
-    return Collections.singleton(myNamespace);
-  }
-
   private void addIds(Map<ResourceType, ListMultimap<String, ResourceItem>>result, List<PsiResourceItem> items, PsiFile file) {
     addIds(result, items, file, false);
   }

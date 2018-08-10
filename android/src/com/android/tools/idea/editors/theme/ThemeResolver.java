@@ -20,9 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.ResourceValueMap;
-import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.android.ide.common.resources.*;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
@@ -149,9 +147,10 @@ public class ThemeResolver {
       return Collections.emptyList();
     }
     LocalResourceRepository repository = repositoryManager.getAppResources(true);
-    return getNonFrameworkThemes(repository.getConfiguredResources(repositoryManager.getNamespace(),
-                                                                   ResourceType.STYLE,
-                                                                   myConfiguration.getFullConfig()));
+    ResourceValueMap configuredResources =
+        ResourceRepositoryUtil.getConfiguredResources(repository, repositoryManager.getNamespace(), ResourceType.STYLE,
+                                                      myConfiguration.getFullConfig());
+    return getNonFrameworkThemes(configuredResources);
   }
 
   /**
@@ -181,9 +180,8 @@ public class ThemeResolver {
     }
 
     ResourceNamespace namespace = ((SingleNamespaceResourceRepository) repository).getNamespace();
-    ResourceValueMap configuredResources = repository.getConfiguredResources(namespace,
-                                                                             ResourceType.STYLE,
-                                                                             myConfiguration.getFullConfig());
+    ResourceValueMap configuredResources =
+      ResourceRepositoryUtil.getConfiguredResources(repository, namespace, ResourceType.STYLE, myConfiguration.getFullConfig());
     for (StyleResourceValue value : getNonFrameworkThemes(configuredResources)) {
       sink.add(Pair.create(value, module));
     }

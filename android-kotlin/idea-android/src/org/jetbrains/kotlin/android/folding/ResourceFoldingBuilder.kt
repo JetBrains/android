@@ -18,8 +18,10 @@ package org.jetbrains.kotlin.android.folding
 
 import com.android.SdkConstants.ANDROID_PKG
 import com.android.SdkConstants.R_CLASS
+import com.android.ide.common.resources.ResourceRepository
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.resources.configuration.LocaleQualifier
+import com.android.ide.common.resources.getConfiguredValue
 import com.android.resources.ResourceType
 import com.android.tools.idea.folding.AndroidFoldingSettings
 import com.android.tools.idea.res.LocalResourceRepository
@@ -153,7 +155,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
         return StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH, 0)
     }
 
-    private tailrec fun LocalResourceRepository.getResourceValue(
+    private tailrec fun ResourceRepository.getResourceValue(
             type: ResourceType,
             name: String,
             referenceConfig: FolderConfiguration): String? {

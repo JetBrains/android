@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.lint.detector.api.Lint;
@@ -103,7 +104,8 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertSize(2, stringList);
     FolderConfiguration valueConfig = FolderConfiguration.getConfigForFolder("values-no");
     assertNotNull(valueConfig);
-    ResourceValue stringValue = resources.getConfiguredResources(RES_AUTO, ResourceType.STRING, valueConfig).get("another_unique_string");
+    ResourceValue stringValue = ResourceRepositoryUtil.getConfiguredResources(resources, RES_AUTO, ResourceType.STRING, valueConfig)
+                                                      .get("another_unique_string");
     assertNotNull(stringValue);
     assertEquals("En Annen", stringValue.getValue());
 

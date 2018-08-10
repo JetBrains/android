@@ -434,7 +434,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
   @Override
   @NotNull
-  public ImmutableSet<ResourceType> getAvailableResourceTypes(@NotNull ResourceNamespace namespace) {
+  public Set<ResourceType> getAvailableResourceTypes(@NotNull ResourceNamespace namespace) {
     return namespace == ANDROID_NAMESPACE ? Sets.immutableEnumSet(getMapByType().keySet()) : ImmutableSet.of();
   }
 
