@@ -74,7 +74,7 @@ public class JCenterRepositoryTest {
                       "    \"latest_version\": \"8.1\"\n" +
                       "  },\n" +
                       "  {\n" +
-                      "    \"name\": \"io.janusproject.guava:guava\",\n" +
+                      "    \"name\": \"just-some-test-not-necessarily-in-a-form-of-maven-id\",\n" +
                       "    \"repo\": \"jcenter\",\n" +
                       "    \"owner\": \"bintray\",\n" +
                       "    \"desc\": null,\n" +
