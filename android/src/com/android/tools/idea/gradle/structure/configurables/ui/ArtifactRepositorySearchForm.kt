@@ -51,7 +51,7 @@ private const val NOTHING_TO_SHOW_EMPTY_TEXT = "Nothing to show"
 
 class ArtifactRepositorySearchForm(
   val variables: PsVariablesScope,
-  repositories: List<ArtifactRepository>
+  repositories: Collection<ArtifactRepository>
 ) : ArtifactRepositorySearchFormUi() {
   private val repositorySearch: ArtifactRepositorySearch = ArtifactRepositorySearch(repositories)
   private val resultsTable: TableView<FoundArtifact>
