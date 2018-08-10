@@ -239,7 +239,6 @@
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="Android.TraceViewSearch" text="TraceView Search" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find"/>
-    <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
     <action class="com.intellij.ide.actions.HelpTopicsAction" id="IntelliJ.HelpTopics" text="IntelliJ IDEA Help">
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="HelpTopics" />
     </action>
