@@ -80,7 +80,6 @@
           </grid>
         </constraints>
         <properties>
-          <focusable value="true"/>
           <font style="0"/>
           <labelFor value="37c5e"/>
           <text value="Minimum API level"/>
