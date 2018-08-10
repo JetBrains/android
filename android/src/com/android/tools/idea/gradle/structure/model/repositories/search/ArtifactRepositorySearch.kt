@@ -20,7 +20,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import org.jetbrains.ide.PooledThreadExecutor
 import java.util.concurrent.Callable
 
-class ArtifactRepositorySearch(private val repositories: Collection<ArtifactRepository>) : ArtifactRepositorySearchService {
+class ArtifactRepositorySearch(private val repositories: Collection<ArtifactRepositorySearchService>) : ArtifactRepositorySearchService {
 
   override fun search(request: SearchRequest): ListenableFuture<SearchResult> {
     val futures = repositories.map { it.search(request) }
