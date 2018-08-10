@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.details
 
-import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
-import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyUiModel
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyUiModelImpl
+import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 
 object DeclaredLibraryDependencyUiProperties {
-  fun makeVersionUiProperty(context: PsContext, dependency: PsDeclaredLibraryDependency): PropertyUiModel<Unit, *> =
-    PropertyUiModelImpl(dependency.versionProperty, ::simplePropertyEditor,
-                        context.getArtifactRepositorySearchServiceFor(dependency.parent))
+  fun makeVersionUiProperty(dependency: PsDeclaredLibraryDependency): PropertyUiModel<Unit, *> =
+    PropertyUiModelImpl(dependency.versionProperty, ::simplePropertyEditor)
 }

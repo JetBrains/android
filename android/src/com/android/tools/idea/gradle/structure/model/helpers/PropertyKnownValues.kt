@@ -28,22 +28,22 @@ import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.search.FilenameIndex
 import java.io.File
 
-fun booleanValues(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<Boolean>>> =
+fun booleanValues(model: Any?): ListenableFuture<List<ValueDescriptor<Boolean>>> =
   immediateFuture(listOf(ValueDescriptor(value = false), ValueDescriptor(value = true)))
 
-fun installedSdksAsStrings(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
+fun installedSdksAsStrings(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(installedEnvironments().androidSdks.map { ValueDescriptor(it.value.getText { toString() }, it.description) })
 
-fun installedSdksAsInts(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<Int>>> =
+fun installedSdksAsInts(model: Any?): ListenableFuture<List<ValueDescriptor<Int>>> =
   immediateFuture(installedEnvironments().androidSdks)
 
-fun installedBuildTools(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
+fun installedBuildTools(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(installedEnvironments().buildTools)
 
-fun installedCompiledApis(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
+fun installedCompiledApis(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(installedEnvironments().compiledApis)
 
-fun languageLevels(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<LanguageLevel>>> = immediateFuture(listOf(
+fun languageLevels(model: Any?): ListenableFuture<List<ValueDescriptor<LanguageLevel>>> = immediateFuture(listOf(
   ValueDescriptor(value = LanguageLevel.JDK_1_6, description = "Java 6"),
   ValueDescriptor(value = LanguageLevel.JDK_1_7, description = "Java 7"),
   ValueDescriptor(value = LanguageLevel.JDK_1_8, description = "Java 8")

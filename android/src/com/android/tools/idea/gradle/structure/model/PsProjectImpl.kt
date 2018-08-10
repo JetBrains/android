@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.structure.configurables.CachingRepositorySearchFactory
+import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -25,7 +27,10 @@ import java.util.*
 import java.util.function.Consumer
 import javax.swing.Icon
 
-class PsProjectImpl(override val ideProject: Project) : PsChildModel(), PsProject {
+class PsProjectImpl(
+  override val ideProject: Project,
+  override val repositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory()
+) : PsChildModel(), PsProject {
   override var parsedModel: ProjectBuildModel = GradleModelProvider.get().getProjectModel(ideProject); private set
   @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
   final override var variables: PsVariables

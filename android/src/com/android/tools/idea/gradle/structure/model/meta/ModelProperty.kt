@@ -70,7 +70,7 @@ fun <PropertyT : Any> ModelPropertyCore<PropertyT>.getValue(): Annotated<Propert
 /**
  * A UI descriptor of a property of a model of type [ModelT].
  */
-interface ModelProperty<in ContextT, in ModelT, PropertyT : Any, ValueT : Any, out PropertyCoreT> :
+interface ModelProperty<in ModelT, PropertyT : Any, ValueT : Any, out PropertyCoreT> :
   ReadWriteProperty<ModelT, ParsedValue<PropertyT>> {
   /**
    * A property description as it should appear in the UI.
@@ -83,9 +83,9 @@ interface ModelProperty<in ContextT, in ModelT, PropertyT : Any, ValueT : Any, o
   fun bind(model: ModelT): PropertyCoreT
 
   /**
-   * Returns a property context bound to [context] and [model].
+   * Returns a property context bound to [model].
    */
-  fun bindContext(context: ContextT, model: ModelT): ModelPropertyContext<ValueT>
+  fun bindContext(model: ModelT): ModelPropertyContext<ValueT>
 }
 
 /**
@@ -128,9 +128,9 @@ interface ModelPropertyContext<ValueT : Any> {
  *
  * The simple-types property is a property whose value can be easily represented in the UI as text.
  */
-interface ModelSimpleProperty<in ContextT, in ModelT, PropertyT : Any> :
-  ModelProperty<ContextT, ModelT, PropertyT, PropertyT, ModelPropertyCore<PropertyT>> 
-typealias SimpleProperty<ModelT, PropertyT> = ModelSimpleProperty<Nothing?, ModelT, PropertyT>
+interface ModelSimpleProperty<in ModelT, PropertyT : Any> :
+  ModelProperty<ModelT, PropertyT, PropertyT, ModelPropertyCore<PropertyT>>
+typealias SimpleProperty<ModelT, PropertyT> = ModelSimpleProperty<ModelT, PropertyT>
 
 /**
  * A UI descriptor of a collection property core.
@@ -150,9 +150,9 @@ interface ModelListPropertyCore<ValueT : Any> :
 /**
  * A UI descriptor of a list property.
  */
-interface ModelListProperty<in ContextT, in ModelT, PropertyT : Any> :
-  ModelProperty<ContextT, ModelT, List<PropertyT>, PropertyT, ModelListPropertyCore<PropertyT>>
-typealias ListProperty<ModelT, PropertyT> = ModelListProperty<Nothing?, ModelT, PropertyT>
+interface ModelListProperty<in ModelT, PropertyT : Any> :
+  ModelProperty<ModelT, List<PropertyT>, PropertyT, ModelListPropertyCore<PropertyT>>
+typealias ListProperty<ModelT, PropertyT> = ModelListProperty<ModelT, PropertyT>
 
 /**
  * A UI descriptor of a map property core.
@@ -167,9 +167,9 @@ interface ModelMapPropertyCore<ValueT : Any> : ModelCollectionPropertyCore<Map<S
 /**
  * A UI descriptor of a map property.
  */
-interface ModelMapProperty<in ContextT, in ModelT, PropertyT : Any> :
-  ModelProperty<ContextT, ModelT, Map<String, PropertyT>, PropertyT, ModelMapPropertyCore<PropertyT>>
-typealias MapProperty<ModelT, PropertyT> = ModelMapProperty<Nothing?, ModelT, PropertyT>
+interface ModelMapProperty<in ModelT, PropertyT : Any> :
+  ModelProperty<ModelT, Map<String, PropertyT>, PropertyT, ModelMapPropertyCore<PropertyT>>
+typealias MapProperty<ModelT, PropertyT> = ModelMapProperty<ModelT, PropertyT>
 
 /**
  * Creates a value formatter function that can be passed to [ParsedValue] renderers.

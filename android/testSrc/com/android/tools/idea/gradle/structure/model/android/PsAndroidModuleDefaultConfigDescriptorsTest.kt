@@ -318,7 +318,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     val defaultConfig = appModule.defaultConfig
     assertThat(defaultConfig, notNullValue())
 
-    val context = PsAndroidModuleDefaultConfigDescriptors.proGuardFiles.bindContext(null, defaultConfig)
+    val context = PsAndroidModuleDefaultConfigDescriptors.proGuardFiles.bindContext(defaultConfig)
     val knownValues = context.getKnownValues().get()
     assertThat(knownValues.literals.map { it.value.getText { toString() } }.toSet(),
                equalTo(setOf("other.pro", "proguard-rules.txt", "\$getDefaultProguardFile('proguard-android.txt')")))
