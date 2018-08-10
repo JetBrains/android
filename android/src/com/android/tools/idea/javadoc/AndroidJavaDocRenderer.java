@@ -19,10 +19,7 @@ package com.android.tools.idea.javadoc;
 import com.android.SdkConstants;
 import com.android.builder.model.*;
 import com.android.ide.common.rendering.api.*;
-import com.android.ide.common.resources.AbstractResourceRepository;
-import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceItemResolver;
-import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.*;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.ResourceQualifier;
@@ -209,7 +206,7 @@ public class AndroidJavaDocRenderer {
     protected LocalResourceRepository myAppResources;
     protected ResourceResolver myResourceResolver;
     protected boolean mySmall;
-    protected AbstractResourceRepository myFrameworkResources;
+    protected ResourceRepository myFrameworkResources;
 
     protected ResourceValueRenderer(@NotNull Module module, @Nullable Configuration configuration) {
       myModule = module;
@@ -411,7 +408,7 @@ public class AndroidJavaDocRenderer {
                                        @NotNull ResourceType type,
                                        @NotNull String name,
                                        @NotNull List<ItemInfo> results) {
-      AbstractResourceRepository frameworkResources = getFrameworkResources();
+      ResourceRepository frameworkResources = getFrameworkResources();
       if (frameworkResources == null) {
         return;
       }
@@ -422,7 +419,7 @@ public class AndroidJavaDocRenderer {
     private static void addItemsFromRepository(@Nullable String flavor,
                                                int mask,
                                                int rank,
-                                               @NotNull AbstractResourceRepository resources,
+                                               @NotNull ResourceRepository resources,
                                                boolean isFramework,
                                                @NotNull ResourceType type,
                                                @NotNull String name,
@@ -557,7 +554,7 @@ public class AndroidJavaDocRenderer {
 
     @Override
     @Nullable
-    public AbstractResourceRepository getFrameworkResources() {
+    public ResourceRepository getFrameworkResources() {
       if (myFrameworkResources == null) {
         myFrameworkResources = getLatestPublicFrameworkResources(myModule);
       }

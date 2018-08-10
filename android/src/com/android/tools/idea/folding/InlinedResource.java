@@ -16,6 +16,7 @@
 package com.android.tools.idea.folding;
 
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceType;
@@ -91,7 +92,7 @@ class InlinedResource implements ModificationTracker {
         FolderConfiguration referenceConfig = new FolderConfiguration();
         // Nonexistent language qualifier: trick it to fall back to the default locale
         referenceConfig.setLocaleQualifier(new LocaleQualifier("xx"));
-        ResourceValue value = myResourceRepository.getConfiguredValue(myType, myKey, referenceConfig);
+        ResourceValue value = ResourceRepositoryUtil.getConfiguredValue(myResourceRepository, myType, myKey, referenceConfig);
         if (value != null) {
           String text = value.getValue();
           if (text != null) {
@@ -99,8 +100,8 @@ class InlinedResource implements ModificationTracker {
               text = insertArguments((PsiMethodCallExpression)myElement, text);
             }
             if (myType == ResourceType.PLURALS && text.startsWith(STRING_PREFIX)) {
-              value = myResourceRepository.getConfiguredValue(ResourceType.STRING, text.substring(STRING_PREFIX.length()),
-                                                              referenceConfig);
+              value = ResourceRepositoryUtil
+                .getConfiguredValue(myResourceRepository, ResourceType.STRING, text.substring(STRING_PREFIX.length()), referenceConfig);
               if (value != null && value.getValue() != null) {
                 text = value.getValue();
                 return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"';

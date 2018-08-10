@@ -18,6 +18,7 @@ package com.android.tools.idea.configurations;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.Bridge;
+import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.sdklib.IAndroidTarget;
@@ -432,7 +433,7 @@ public class ConfigurationManager implements Disposable {
     }
     if (myLocales == null) {
       List<Locale> locales = new ArrayList<>();
-      for (LocaleQualifier locale : projectResources.getLocales()) {
+      for (LocaleQualifier locale : ResourceRepositoryUtil.getLocales(projectResources)) {
         locales.add(Locale.create(locale));
       }
       myLocales = locales;

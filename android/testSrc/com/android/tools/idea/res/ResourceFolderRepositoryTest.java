@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
@@ -2947,7 +2948,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     UIUtil.dispatchAllInvocationEvents();
-    resources.getConfiguredResources(new FolderConfiguration());
+    ResourceRepositoryUtil.getConfiguredResources(resources, new FolderConfiguration());
 
     WriteCommandAction.runWriteCommandAction(null, () -> {
       document.replaceString(0,
@@ -2956,7 +2957,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     UIUtil.dispatchAllInvocationEvents();
-    resources.getConfiguredResources(new FolderConfiguration());
+    ResourceRepositoryUtil.getConfiguredResources(resources, new FolderConfiguration());
 
     // Now exercise childAdded, without a full rescan.
     WriteCommandAction.runWriteCommandAction(null, () -> {
@@ -2970,7 +2971,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     UIUtil.dispatchAllInvocationEvents();
-    resources.getConfiguredResources(new FolderConfiguration());
+    ResourceRepositoryUtil.getConfiguredResources(resources, new FolderConfiguration());
   }
 
   public void testEmptyNames_layouts() {
@@ -2996,7 +2997,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
 
     UIUtil.dispatchAllInvocationEvents();
-    resources.getConfiguredResources(new FolderConfiguration());
+    ResourceRepositoryUtil.getConfiguredResources(resources, new FolderConfiguration());
   }
 
   public void testIssue56799() {
@@ -3745,7 +3746,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     FolderConfiguration config = FolderConfiguration.getConfigForFolder("layout-xlarge-land");
     assertNotNull(config);
     // For layouts, the ResourceValue#getValue is the file path.
-    ResourceValue value = resources.getConfiguredValue(ResourceType.LAYOUT, "activity_foo", config);
+    ResourceValue value = ResourceRepositoryUtil.getConfiguredValue(resources, ResourceType.LAYOUT, "activity_foo", config);
     assertNotNull(value);
     String valueString = value.getValue();
     assertNotNull(valueString);
@@ -3760,7 +3761,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertNotSame(resources, fromBlob);
     assertTrue(fromBlob.equalFilesItems(resources));
-    value = fromBlob.getConfiguredValue(ResourceType.LAYOUT, "activity_foo", config);
+    value = ResourceRepositoryUtil.getConfiguredValue(fromBlob, ResourceType.LAYOUT, "activity_foo", config);
     assertNotNull(value);
     valueString = value.getValue();
     assertNotNull(valueString);
@@ -3778,7 +3779,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     FolderConfiguration config = FolderConfiguration.getConfigForFolder("drawable-xhdpi");
     assertNotNull(config);
     // For drawable xml, the ResourceValue#getValue is the file path.
-    ResourceValue value = resources.getConfiguredValue(ResourceType.DRAWABLE, "drawable_foo", config);
+    ResourceValue value = ResourceRepositoryUtil.getConfiguredValue(resources, ResourceType.DRAWABLE, "drawable_foo", config);
     assertNotNull(value);
     String valueString = value.getValue();
     assertNotNull(valueString);
@@ -3796,7 +3797,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertNotSame(resources, fromBlob);
     assertTrue(fromBlob.equalFilesItems(resources));
-    value = fromBlob.getConfiguredValue(ResourceType.DRAWABLE, "drawable_foo", config);
+    value = ResourceRepositoryUtil.getConfiguredValue(fromBlob, ResourceType.DRAWABLE, "drawable_foo", config);
     assertNotNull(value);
     valueString = value.getValue();
     assertNotNull(valueString);
