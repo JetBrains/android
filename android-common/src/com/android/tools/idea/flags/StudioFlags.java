@@ -112,11 +112,6 @@ public final class StudioFlags {
     "Support method tracing through APIs from android.os.Debug.",
     true);
 
-  public static final Flag<Boolean> PROFILER_SHOW_THREADS_VIEW = Flag.create(
-    PROFILER, "threads.view", "Show network threads view",
-    "Show a view in the network profiler that groups connections by their creation thread.",
-    true);
-
   public static final Flag<Boolean> PROFILER_CPU_CAPTURE_FILTER = Flag.create(
     PROFILER, "cpu.capture.filter", "Enable CPU Capture Filter",
     "Show a text input field in the CPU profiler that is used to filter methods in the method trace pane.",
@@ -135,11 +130,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_MEMORY_SNAPSHOT = Flag.create(
     PROFILER, "memory.livealloc.snapshot", "Enable Memory Class Histogram Display",
     "For Android O or newer, supports single-point selection which shows a snapshot of the heap at the specific time.",
-    true);
-
-  public static final Flag<Boolean> PROFILER_NETWORK_REQUEST_PAYLOAD = Flag.create(
-    PROFILER, "network.request.payload", "Enable tracking and displaying connection request payload",
-    "Add a new tab in the network profiler that shows the connection request payload",
     true);
 
   public static final Flag<Boolean> PROFILER_USE_ATRACE = Flag.create(

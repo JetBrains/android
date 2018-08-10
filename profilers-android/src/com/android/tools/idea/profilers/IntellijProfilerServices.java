@@ -234,11 +234,6 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isNetworkThreadViewEnabled() {
-        return StudioFlags.PROFILER_SHOW_THREADS_VIEW.get();
-      }
-
-      @Override
       public boolean isPerformanceMonitoringEnabled() {
         return StudioFlags.PROFILER_PERFORMANCE_MONITORING.get();
       }
