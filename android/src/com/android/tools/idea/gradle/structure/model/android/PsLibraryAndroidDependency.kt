@@ -45,12 +45,12 @@ open class PsDeclaredLibraryAndroidDependency(
   override val joinedConfigurationNames: String = configurationName
 
   var version by Descriptor.version
-  override val versionProperty: ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String>
-    get() = object : ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String> {
+  override val versionProperty: ModelSimpleProperty<Unit, String>
+    get() = object : ModelSimpleProperty<Unit, String> {
       override val description: String get() = Descriptor.version.description
       override fun bind(model: Unit): ModelPropertyCore<String> = Descriptor.version.bind(this@PsDeclaredLibraryAndroidDependency)
-      override fun bindContext(context: ArtifactRepositorySearchService, model: Unit): ModelPropertyContext<String> =
-        Descriptor.version.bindContext(context, this@PsDeclaredLibraryAndroidDependency)
+      override fun bindContext(model: Unit): ModelPropertyContext<String> =
+        Descriptor.version.bindContext(this@PsDeclaredLibraryAndroidDependency)
 
       override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<String> = throw UnsupportedOperationException()
       override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<String>) = throw UnsupportedOperationException()
@@ -71,19 +71,21 @@ open class PsDeclaredLibraryAndroidDependency(
     }
 
     private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
-    val version: ModelSimpleProperty<ArtifactRepositorySearchService, PsDeclaredLibraryAndroidDependency, String> = property(
+    val version: ModelSimpleProperty<PsDeclaredLibraryAndroidDependency, String> = property(
       "Version",
       resolvedValueGetter = { null },
       parsedPropertyGetter = { this.version() },
       getter = { asString() },
       setter = { setValue(it) },
       parser = ::parseString,
-      knownValuesGetter = { searchService: ArtifactRepositorySearchService, model ->
+      knownValuesGetter = { model ->
         Futures.transform(
-          searchService.search(SearchRequest(model.spec.name, model.spec.group, MAX_ARTIFACTS_TO_REQUEST, 0)),
-          {
-            it!!.toVersionValueDescriptors()
-          })
+          model.parent.parent.repositorySearchFactory
+            .create(model.parent.getArtifactRepositories())
+            .search(SearchRequest(model.spec.name, model.spec.group, MAX_ARTIFACTS_TO_REQUEST, 0))
+        ) {
+          it!!.toVersionValueDescriptors()
+        }
       },
       variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
     )

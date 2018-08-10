@@ -35,9 +35,9 @@ import java.util.function.Consumer
 class PsContextImpl constructor(
   override val project: PsProjectImpl,
   parentDisposable: Disposable,
-  disableAnalysis: Boolean = false
+  disableAnalysis: Boolean = false,
+  private val cachingRepositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory()
 ) : PsContext, Disposable {
-  private val cachingRepositorySearchFactory = CachingRepositorySearchFactory()
   override val analyzerDaemon: PsAnalyzerDaemon
   private val gradleSync: GradleResolver = GradleResolver()
   override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon

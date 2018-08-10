@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.helpers.parseBoolean
 import com.android.tools.idea.gradle.structure.model.helpers.parseInt
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
-import com.android.tools.lint.client.api.TYPE_OBJECT
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
@@ -38,10 +37,10 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
   }
 
   private fun <T : Any> GradlePropertyModel.wrap(
-    parse: (Nothing?, String) -> Annotated<ParsedValue<T>>,
+    parse: (String) -> Annotated<ParsedValue<T>>,
     caster: ResolvedPropertyModel.() -> T?,
     resolvedValue: T? = null
-  ): ModelSimpleProperty<Nothing?, Model, T> {
+  ): ModelSimpleProperty<Model, T> {
     val resolved = resolve()
     return Model.property(
       "description",
@@ -49,15 +48,15 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
       parsedPropertyGetter = { resolved },
       getter = { caster() },
       setter = { setValue(it) },
-      parser = { context, value -> parse(context, value) }
+      parser = { value -> parse(value) }
     )
   }
 
-  private fun <T : Any> ModelSimpleProperty<Nothing?, Model, T>.testValue() = bind(Model).testValue()
-  private fun <T : Any> ModelSimpleProperty<Nothing?, Model, T>.testIsModified() = bind(Model).isModified
-  private fun <T : Any> ModelSimpleProperty<Nothing?, Model, T>.testSetValue(value: T?) = bind(Model).testSetValue(value)
-  private fun <T : Any> ModelSimpleProperty<Nothing?, Model, T>.testSetReference(value: String) = bind(Model).testSetReference(value)
-  private fun <T : Any> ModelSimpleProperty<Nothing?, Model, T>.testSetInterpolatedString(value: String) =
+  private fun <T : Any> ModelSimpleProperty<Model, T>.testValue() = bind(Model).testValue()
+  private fun <T : Any> ModelSimpleProperty<Model, T>.testIsModified() = bind(Model).isModified
+  private fun <T : Any> ModelSimpleProperty<Model, T>.testSetValue(value: T?) = bind(Model).testSetValue(value)
+  private fun <T : Any> ModelSimpleProperty<Model, T>.testSetReference(value: String) = bind(Model).testSetReference(value)
+  private fun <T : Any> ModelSimpleProperty<Model, T>.testSetInterpolatedString(value: String) =
     bind(Model).testSetInterpolatedString(value)
 
   @Test

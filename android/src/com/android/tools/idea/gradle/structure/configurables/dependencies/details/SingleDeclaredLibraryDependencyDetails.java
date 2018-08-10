@@ -68,7 +68,7 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
       Disposer.dispose(myVersionPropertyEditor);
     }
     myVersionPropertyEditor =
-      DeclaredLibraryDependencyUiProperties.INSTANCE.makeVersionUiProperty(myContext, myDependency)
+      DeclaredLibraryDependencyUiProperties.INSTANCE.makeVersionUiProperty(myDependency)
                                                     .createEditor(myDependency.getParent().getParent(),
                                                                   myDependency.getParent(),
                                                                   Unit.INSTANCE);

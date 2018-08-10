@@ -95,7 +95,7 @@ open class PsProductFlavor(
       getter = { asString() },
       setter = { setValue(it) },
       parser = ::parseString,
-      knownValuesGetter = { _, model -> immediateFuture(model.parent.flavorDimensions.map { ValueDescriptor(it.name, it.name) }) }
+      knownValuesGetter = { model -> immediateFuture(model.parent.flavorDimensions.map { ValueDescriptor(it.name, it.name) }) }
     )
 
     val maxSdkVersion: SimpleProperty<PsProductFlavor, Int> = property(
@@ -136,7 +136,7 @@ open class PsProductFlavor(
       setter = {},
       parser = ::parseReferenceOnly,
       formatter = ::formatUnit,
-      knownValuesGetter = { _, model -> signingConfigs(model.parent) }
+      knownValuesGetter = { model -> signingConfigs(model.parent) }
     )
 
     val targetSdkVersion: SimpleProperty<PsProductFlavor, String> = property(
@@ -225,7 +225,7 @@ open class PsProductFlavor(
       setter = { setValue(it) },
       parser = ::parseString,
       variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
-      knownValuesGetter = { _, model -> productFlavorMatchingFallbackValues(model.parent.parent, model.dimension.maybeValue) }
+      knownValuesGetter = { model -> productFlavorMatchingFallbackValues(model.parent.parent, model.dimension.maybeValue) }
     )
 
     val consumerProGuardFiles: ListProperty<PsProductFlavor, File> = listProperty(
@@ -235,7 +235,7 @@ open class PsProductFlavor(
       getter = { asFile() },
       setter = { setValue(it.toString()) },
       parser = ::parseFile,
-      knownValuesGetter = { _, model -> proGuardFileValues(model.parent) }
+      knownValuesGetter = { model -> proGuardFileValues(model.parent) }
     )
 
     val proGuardFiles: ListProperty<PsProductFlavor, File> = listProperty(
@@ -245,7 +245,7 @@ open class PsProductFlavor(
       getter = { asFile() },
       setter = { setValue(it.toString()) },
       parser = ::parseFile,
-      knownValuesGetter = { _, model -> proGuardFileValues(model.parent) }
+      knownValuesGetter = { model -> proGuardFileValues(model.parent) }
     )
 
     val resConfigs: ListProperty<PsProductFlavor, String> = listProperty(

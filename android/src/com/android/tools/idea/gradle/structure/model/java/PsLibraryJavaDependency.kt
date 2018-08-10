@@ -51,12 +51,12 @@ class PsDeclaredLibraryJavaDependency(
 
   var version by PsDeclaredLibraryJavaDependency.Descriptor.version
 
-  override val versionProperty: ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String>
-    get() = object : ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String> {
+  override val versionProperty: ModelSimpleProperty<Unit, String>
+    get() = object : ModelSimpleProperty<Unit, String> {
       override val description: String get() = Descriptor.version.description
       override fun bind(model: Unit): ModelPropertyCore<String> = Descriptor.version.bind(this@PsDeclaredLibraryJavaDependency)
-      override fun bindContext(context: ArtifactRepositorySearchService, model: Unit): ModelPropertyContext<String> =
-        Descriptor.version.bindContext(context, this@PsDeclaredLibraryJavaDependency)
+      override fun bindContext(model: Unit): ModelPropertyContext<String> =
+        Descriptor.version.bindContext(this@PsDeclaredLibraryJavaDependency)
 
       override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<String> = throw UnsupportedOperationException()
       override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<String>) = throw UnsupportedOperationException()
@@ -72,7 +72,7 @@ class PsDeclaredLibraryJavaDependency(
       model.isModified = true
     }
 
-    val version: ModelSimpleProperty<ArtifactRepositorySearchService, PsDeclaredLibraryJavaDependency, String> = property(
+    val version: ModelSimpleProperty<PsDeclaredLibraryJavaDependency, String> = property(
       "Version",
       resolvedValueGetter = { null },
       parsedPropertyGetter = { this.version() },

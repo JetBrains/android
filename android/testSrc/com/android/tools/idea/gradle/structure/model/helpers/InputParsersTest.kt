@@ -28,14 +28,14 @@ class InputParsersTest {
 
   @Test
   fun any_empty() {
-    val parsed = parseAny(null, "")
+    val parsed = parseAny("")
     assertTrue(parsed.value === ParsedValue.NotSet)
     assertNull(parsed.annotation)
   }
 
   @Test
   fun any_int() {
-    val parsed = parseAny(null, "123")
+    val parsed = parseAny("123")
     assertTrue(parsed.value is ParsedValue.Set.Parsed)
     assertNull(parsed.annotation)
     assertEquals(123, (parsed.value as ParsedValue.Set.Parsed).value)
@@ -43,7 +43,7 @@ class InputParsersTest {
 
   @Test
   fun any_decimal() {
-    val parsed = parseAny(null, "123.1")
+    val parsed = parseAny("123.1")
     assertTrue(parsed.value is ParsedValue.Set.Parsed)
     assertNull(parsed.annotation)
     assertEquals("123.1".toBigDecimal(), (parsed.value as ParsedValue.Set.Parsed).value)
@@ -51,7 +51,7 @@ class InputParsersTest {
 
   @Test
   fun any_boolean() {
-    val parsed = parseAny(null, "false")
+    val parsed = parseAny("false")
     assertTrue(parsed.value is ParsedValue.Set.Parsed)
     assertNull(parsed.annotation)
     assertEquals(false, (parsed.value as ParsedValue.Set.Parsed).value)
@@ -59,7 +59,7 @@ class InputParsersTest {
 
   @Test
   fun any_string() {
-    val parsed = parseAny(null, "NoNo")
+    val parsed = parseAny("NoNo")
     assertTrue(parsed.value is ParsedValue.Set.Parsed)
     assertNull(parsed.annotation)
     assertEquals("NoNo", (parsed.value as ParsedValue.Set.Parsed).value)
@@ -67,7 +67,7 @@ class InputParsersTest {
 
   @Test
   fun string() {
-    val parsed = parseString(null, "abc")
+    val parsed = parseString("abc")
     assertTrue(parsed.value is ParsedValue.Set.Parsed)
     assertNull(parsed.annotation)
     assertEquals("abc", (parsed.value as ParsedValue.Set.Parsed).value)
@@ -75,14 +75,14 @@ class InputParsersTest {
 
   @Test
   fun string_empty() {
-    val parsed = parseString(null, "")
+    val parsed = parseString("")
     assertTrue(parsed.value === ParsedValue.NotSet)
     assertNull(parsed.annotation)
   }
 
   @Test
   fun file() {
-    val parsed = parseFile(null, "/tmp/abc")
+    val parsed = parseFile("/tmp/abc")
     assertTrue(parsed.value is ParsedValue.Set.Parsed)
     assertNull(parsed.annotation)
     assertEquals(File("/tmp/abc"), (parsed.value as ParsedValue.Set.Parsed).value)
@@ -90,7 +90,7 @@ class InputParsersTest {
 
   @Test
   fun file_empty() {
-    val parsed = parseFile(null, "")
+    val parsed = parseFile("")
     assertTrue(parsed.value === ParsedValue.NotSet)
     assertNull(parsed.annotation)
   }
@@ -120,14 +120,14 @@ class InputParsersTest {
 
   @Test
   fun boolean_empty() {
-    val parsed = parseBoolean(null, "")
+    val parsed = parseBoolean("")
     assertTrue(parsed.value === ParsedValue.NotSet)
     assertNull(parsed.annotation)
   }
 
   @Test
   fun boolean_true() {
-    val parsed = parseBoolean(null, "true")
+    val parsed = parseBoolean("true")
     assertTrue(parsed.value is ParsedValue.Set.Parsed)
     assertNull(parsed.annotation)
     assertEquals(true, (parsed.value as ParsedValue.Set.Parsed).value)
@@ -135,7 +135,7 @@ class InputParsersTest {
 
   @Test
   fun boolean_false() {
-    val parsed = parseBoolean(null, "FALSE")
+    val parsed = parseBoolean("FALSE")
     assertTrue(parsed.value is ParsedValue.Set.Parsed)
     assertNull(parsed.annotation)
     assertEquals(false, (parsed.value as ParsedValue.Set.Parsed).value)
@@ -143,7 +143,7 @@ class InputParsersTest {
 
   @Test
   fun boolean_invalid() {
-    val parsed = parseBoolean(null, "yes")
+    val parsed = parseBoolean("yes")
     assertTrue(parsed.value is ParsedValue.Set.Parsed)
     assertEquals(ValueAnnotation.Error("Unknown boolean value: 'yes'. Expected 'true' or 'false'"), parsed.annotation)
     assertEquals(DslText.OtherUnparsedDslText("yes"), (parsed.value as ParsedValue.Set.Parsed).dslText)
@@ -151,14 +151,14 @@ class InputParsersTest {
 
   @Test
   fun int_empty() {
-    val parsed = parseInt(null, "")
+    val parsed = parseInt("")
     assertTrue(parsed.value === ParsedValue.NotSet)
     assertNull(parsed.annotation)
   }
 
   @Test
   fun int() {
-    val parsed = parseInt(null, "123")
+    val parsed = parseInt("123")
     assertTrue(parsed.value is ParsedValue.Set.Parsed)
     assertNull(parsed.annotation)
     assertEquals(123, (parsed.value as ParsedValue.Set.Parsed).value)
@@ -166,7 +166,7 @@ class InputParsersTest {
 
   @Test
   fun int_invalid() {
-    val parsed = parseInt(null, "123.4")
+    val parsed = parseInt("123.4")
     assertTrue(parsed.value is ParsedValue.Set.Parsed)
     assertEquals(ValueAnnotation.Error("'123.4' is not a valid integer value"), parsed.annotation)
     assertEquals(DslText.OtherUnparsedDslText("123.4"), (parsed.value as ParsedValue.Set.Parsed).dslText)
@@ -174,45 +174,45 @@ class InputParsersTest {
 
   @Test
   fun languageLevel_empty() {
-    val parsed = parseLanguageLevel(null, "")
+    val parsed = parseLanguageLevel("")
     assertTrue(parsed.value === ParsedValue.NotSet)
     assertNull(parsed.annotation)
   }
 
   @Test
   fun languageLevel() {
-    assertEquals(parseLanguageLevel(null, "1.8"), ParsedValue.Set.Parsed(LanguageLevel.JDK_1_8, DslText.Literal).annotated())
-    assertEquals(parseLanguageLevel(null, "VERSION_1_7"), ParsedValue.Set.Parsed(LanguageLevel.JDK_1_7, DslText.Literal).annotated())
-    assertEquals(parseLanguageLevel(null, "JavaVersion.VERSION_1_6"),
+    assertEquals(parseLanguageLevel("1.8"), ParsedValue.Set.Parsed(LanguageLevel.JDK_1_8, DslText.Literal).annotated())
+    assertEquals(parseLanguageLevel("VERSION_1_7"), ParsedValue.Set.Parsed(LanguageLevel.JDK_1_7, DslText.Literal).annotated())
+    assertEquals(parseLanguageLevel("JavaVersion.VERSION_1_6"),
                  ParsedValue.Set.Parsed(LanguageLevel.JDK_1_6, DslText.Literal).annotated())
   }
 
   @Test
   fun hashString_empty() {
-    assertEquals(ParsedValue.NotSet.annotated(), parseHashString(null, ""))
+    assertEquals(ParsedValue.NotSet.annotated(), parseHashString(""))
   }
 
   @Test
   fun hashString() {
-    assertEquals("26".asParsed().annotated(), parseHashString(null, "26"))
-    assertEquals("android-26".asParsed().annotated(), parseHashString(null, "android-26"))
-    assertEquals("android-P".asParsed().annotated(), parseHashString(null, "android-P"))
-    assertEquals("P".asParsed().annotateWithError("Invalid hash string"), parseHashString(null, "P"))
+    assertEquals("26".asParsed().annotated(), parseHashString("26"))
+    assertEquals("android-26".asParsed().annotated(), parseHashString("android-26"))
+    assertEquals("android-P".asParsed().annotated(), parseHashString("android-P"))
+    assertEquals("P".asParsed().annotateWithError("Invalid hash string"), parseHashString("P"))
   }
 
   @Test
   fun gradleVersion_empty() {
-    assertEquals(ParsedValue.NotSet.annotated(), parseGradleVersion(null, ""))
+    assertEquals(ParsedValue.NotSet.annotated(), parseGradleVersion(""))
   }
 
   @Test
   fun gradleVersion() {
-    assertEquals(GradleVersion(1, 1, 1).asParsed().annotated(), parseGradleVersion(null, "1.1.1"))
+    assertEquals(GradleVersion(1, 1, 1).asParsed().annotated(), parseGradleVersion("1.1.1"))
   }
 
   @Test
   fun referenceOnly_empty() {
-    val parsed = parseReferenceOnly(null, "")
+    val parsed = parseReferenceOnly("")
     assertTrue(parsed.value === ParsedValue.NotSet)
     assertNull(parsed.annotation)
   }

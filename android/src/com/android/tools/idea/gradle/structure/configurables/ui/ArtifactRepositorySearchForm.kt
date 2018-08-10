@@ -208,7 +208,7 @@ fun prepareArtifactVersionChoices(
   variablesScope: PsVariablesScope
 ): List<ParsedValue.Set.Parsed<GradleVersion>> {
   val versionPropertyContext = object : ModelPropertyContext<GradleVersion> {
-    override fun parse(value: String): Annotated<ParsedValue<GradleVersion>> = parseGradleVersion(null, value)
+    override fun parse(value: String): Annotated<ParsedValue<GradleVersion>> = parseGradleVersion(value)
     override fun format(value: GradleVersion): String = value.toString()
 
     override fun getKnownValues(): ListenableFuture<KnownValues<GradleVersion>> =
