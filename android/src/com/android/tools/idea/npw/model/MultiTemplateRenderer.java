@@ -162,7 +162,9 @@ public final class MultiTemplateRenderer {
           renderer.render();
         }
 
-        myProjectSyncInvoker.syncProject(myProject);
+        if (myProject.isInitialized()) {
+          myProjectSyncInvoker.syncProject(myProject);
+        }
 
       }
       finally {
