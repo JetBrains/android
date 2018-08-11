@@ -17,6 +17,7 @@ package com.android.tools.idea.common.scene
 
 class LerpFloat : LerpValue<Float> {
   constructor(start: Float, end: Float, duration: Int) : super(start, end, duration)
+  constructor(value: Float) : super(value, value, 0)
 
   override fun interpolate(fraction: Float): Float {
     return start + (end - start) * fraction

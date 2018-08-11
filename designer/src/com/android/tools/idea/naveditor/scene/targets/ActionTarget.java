@@ -26,6 +26,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawArrow;
 import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.model.ActionType;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
@@ -39,6 +40,7 @@ import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import java.util.List;
 
 import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.*;
@@ -194,7 +196,10 @@ public class ActionTarget extends BaseTarget {
     Point arrowPoint = getArrowPoint(sceneContext, myDestRect, direction);
 
     ArrowDirection arrowDirection = getArrowDirection(direction);
-    Rectangle arrowRectangle = getArrowRectangle(sceneContext, arrowPoint, direction);
+
+    SceneView view = getComponent().getScene().getDesignSurface().getCurrentSceneView();
+
+    RoundRectangle2D.Float arrowRectangle = getArrowRectangle(view, arrowPoint, direction);
 
     list.add(new DrawArrow(NavDrawHelperKt.DRAW_ACTION_LEVEL, arrowDirection, arrowRectangle, color));
   }
@@ -211,8 +216,10 @@ public class ActionTarget extends BaseTarget {
                     + sceneContext.getSwingDimension(NavDrawHelperKt.SELF_ACTION_LENGTHS[0]
                                                      - NavDrawHelperKt.SELF_ACTION_LENGTHS[2]);
 
-    Rectangle arrowRectangle = getArrowRectangle(sceneContext, arrowPoint, BOTTOM);
-    Point end = new Point(arrowRectangle.x + arrowRectangle.width / 2, arrowRectangle.y + arrowRectangle.height - 1);
+    SceneView view = getComponent().getScene().getDesignSurface().getCurrentSceneView();
+
+    RoundRectangle2D.Float arrowRectangle = getArrowRectangle(view, arrowPoint, BOTTOM);
+    Point end = new Point((int)arrowRectangle.x + (int)arrowRectangle.width / 2, (int)arrowRectangle.y + (int)arrowRectangle.height - 1);
 
     list.add(new DrawArrow(NavDrawHelperKt.DRAW_ACTION_LEVEL, ArrowDirection.UP, arrowRectangle, color));
     list.add(new DrawSelfAction(start, end, color));
@@ -293,7 +300,7 @@ public class ActionTarget extends BaseTarget {
   private static Point getEndPoint(@NotNull SceneContext context, @NotNull Rectangle rectangle, @NotNull ConnectionDirection direction) {
     return shiftPoint(getConnectionPoint(rectangle, direction),
                       direction,
-                      context.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL + ACTION_PADDING) - 1);
+                      context.getSwingDimension((int)NavSceneManager.ACTION_ARROW_PARALLEL + ACTION_PADDING) - 1);
   }
 
   @NotNull
@@ -348,12 +355,12 @@ public class ActionTarget extends BaseTarget {
   }
 
   @NotNull
-  private static Rectangle getArrowRectangle(@NotNull SceneContext context, @NotNull Point p, @NotNull ConnectionDirection direction) {
-    Rectangle rectangle = new Rectangle();
-    int parallel = context.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL);
-    int perpendicular = context.getSwingDimension(NavSceneManager.ACTION_ARROW_PERPENDICULAR);
-    int deltaX = direction.getDeltaX();
-    int deltaY = direction.getDeltaY();
+  private static RoundRectangle2D.Float getArrowRectangle(@NotNull SceneView view, @NotNull Point p, @NotNull ConnectionDirection direction) {
+    RoundRectangle2D.Float rectangle = new RoundRectangle2D.Float();
+    float parallel = Coordinates.getSwingDimension(view, NavSceneManager.ACTION_ARROW_PARALLEL);
+    float perpendicular = Coordinates.getSwingDimension(view, NavSceneManager.ACTION_ARROW_PERPENDICULAR);
+    float deltaX = direction.getDeltaX();
+    float deltaY = direction.getDeltaY();
 
     rectangle.x = p.x + (deltaX == 0 ? -perpendicular : (parallel * (deltaX - 1))) / 2;
     rectangle.y = p.y + (deltaY == 0 ? -perpendicular : (parallel * (deltaY - 1))) / 2;

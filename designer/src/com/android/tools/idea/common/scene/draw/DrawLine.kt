@@ -20,17 +20,18 @@ import com.android.tools.idea.common.scene.SceneContext
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.Point
+import java.awt.geom.Line2D
+import java.awt.geom.Point2D
 
 /**
  * [DrawLine] draws a line between the specified endpoints.
  */
 // TODO: Integrate with DisplayList.addLine
-class DrawLine(private val myLevel: Int, @SwingCoordinate private val myFrom: Point, @SwingCoordinate private val myTo: Point,
+class DrawLine(private val myLevel: Int, @SwingCoordinate private val myFrom: Point2D.Float, @SwingCoordinate private val myTo: Point2D.Float,
                private val myColor: Color, private val myStroke: BasicStroke) : DrawCommandBase() {
 
-  private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToPoint(sp[1]), stringToPoint(sp[2]),
-      stringToColor(sp[3]), stringToStroke(sp[4]))
+  private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToPoint2D(sp[1]), stringToPoint2D(sp[2]),
+                                                stringToColor(sp[3]), stringToStroke(sp[4]))
 
   constructor(s: String) : this(parse(s, 5))
 
@@ -40,13 +41,14 @@ class DrawLine(private val myLevel: Int, @SwingCoordinate private val myFrom: Po
 
   override fun serialize(): String {
     return buildString(javaClass.simpleName, myLevel,
-        pointToString(myFrom), pointToString(myTo),
-        colorToString(myColor), strokeToString(myStroke))
+                       point2DToString(myFrom), point2DToString(myTo),
+                       colorToString(myColor), strokeToString(myStroke))
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.color = myColor
     g.stroke = myStroke
-    g.drawLine(myFrom.x, myFrom.y, myTo.x, myTo.y)
+    val line = Line2D.Float(myFrom, myTo)
+    g.draw(line)
   }
 }

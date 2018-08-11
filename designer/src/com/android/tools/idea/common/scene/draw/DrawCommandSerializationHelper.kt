@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.common.scene.draw
 
-import com.android.tools.idea.common.scene.LerpInt
+import com.android.tools.idea.common.scene.LerpFloat
 import com.google.common.base.Joiner
 import java.awt.*
+import java.awt.geom.Point2D
 import java.awt.geom.RoundRectangle2D
 
 fun parse(s: String, expected: Int): Array<String> {
@@ -99,16 +100,28 @@ fun pointToString(p: Point): String {
   return Joiner.on('x').join(p.x, p.y)
 }
 
-fun stringToLerp(s: String): LerpInt {
-  val sp = splitString(s, ':')
-  val start = sp[0].toInt()
-  val end = sp[1].toInt()
-  val duration = sp[2].toInt()
-
-  return LerpInt(start, end, duration)
+fun stringToPoint2D(s: String): Point2D.Float {
+  val sp = splitString(s, 'x')
+  val p = Point2D.Float()
+  p.x = sp[0].toFloat()
+  p.y = sp[1].toFloat()
+  return p
 }
 
-fun lerpToString(l: LerpInt): String {
+fun point2DToString(p: Point2D.Float): String {
+  return Joiner.on('x').join(p.x, p.y)
+}
+
+fun stringToLerp(s: String): LerpFloat {
+  val sp = splitString(s, ':')
+  val start = sp[0].toFloat()
+  val end = sp[1].toFloat()
+  val duration = sp[2].toInt()
+
+  return LerpFloat(start, end, duration)
+}
+
+fun lerpToString(l: LerpFloat): String {
   return Joiner.on(':').join(l.start, l.end, l.duration)
 }
 

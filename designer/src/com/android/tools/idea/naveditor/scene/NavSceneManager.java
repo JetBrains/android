@@ -69,18 +69,18 @@ public class NavSceneManager extends SceneManager {
   @SwingCoordinate private static final int PAN_LIMIT = JBUI.scale(150);
   @NavCoordinate private static final int BOUNDING_BOX_PADDING = JBUI.scale(100);
 
-  @NavCoordinate public static final int ACTION_ARROW_PARALLEL = JBUI.scale(10);
-  @NavCoordinate public static final int ACTION_ARROW_PERPENDICULAR = JBUI.scale(12);
+  @NavCoordinate public static final float ACTION_ARROW_PARALLEL = JBUI.scale(10f);
+  @NavCoordinate public static final float ACTION_ARROW_PERPENDICULAR = JBUI.scale(12f);
 
-  @NavCoordinate private static final int ACTION_HEIGHT = ACTION_ARROW_PERPENDICULAR;
+  @NavCoordinate private static final float ACTION_HEIGHT = ACTION_ARROW_PERPENDICULAR;
   @NavCoordinate private static final int ACTION_VERTICAL_PADDING = JBUI.scale(6);
 
   @NavCoordinate private static final int GLOBAL_ACTION_LINE_LENGTH = JBUI.scale(8);
-  @NavCoordinate private static final int GLOBAL_ACTION_WIDTH = ACTION_ARROW_PARALLEL + GLOBAL_ACTION_LINE_LENGTH;
+  @NavCoordinate private static final float GLOBAL_ACTION_WIDTH = ACTION_ARROW_PARALLEL + GLOBAL_ACTION_LINE_LENGTH;
   @NavCoordinate private static final int GLOBAL_ACTION_HORIZONTAL_PADDING = JBUI.scale(8);
 
   @NavCoordinate private static final int EXIT_ACTION_LINE_LENGTH = JBUI.scale(14);
-  @NavCoordinate private static final int EXIT_ACTION_WIDTH = ACTION_ARROW_PARALLEL + EXIT_ACTION_LINE_LENGTH;
+  @NavCoordinate private static final float EXIT_ACTION_WIDTH = ACTION_ARROW_PARALLEL + EXIT_ACTION_LINE_LENGTH;
   @NavCoordinate private static final int EXIT_ACTION_HORIZONTAL_PADDING = JBUI.scale(2);
 
   private final NavScreenTargetProvider myScreenTargetProvider;
@@ -133,10 +133,10 @@ public class NavSceneManager extends SceneManager {
 
     switch (NavComponentHelperKt.getActionType(nlComponent)) {
       case GLOBAL:
-        sceneComponent.setSize(GLOBAL_ACTION_WIDTH, ACTION_HEIGHT, false);
+        sceneComponent.setSize((int)GLOBAL_ACTION_WIDTH, (int)ACTION_HEIGHT, false);
         return;
       case EXIT:
-        sceneComponent.setSize(EXIT_ACTION_WIDTH, ACTION_HEIGHT, false);
+        sceneComponent.setSize((int)EXIT_ACTION_WIDTH, (int)ACTION_HEIGHT, false);
         return;
       default:
         break;
@@ -461,7 +461,7 @@ public class NavSceneManager extends SceneManager {
   private static void layoutGlobalActions(@NotNull SceneComponent destination,
                                           @NotNull ArrayList<SceneComponent> globalActions,
                                           Boolean skip) {
-    layoutActions(destination, globalActions, skip, destination.getDrawX() - GLOBAL_ACTION_WIDTH - GLOBAL_ACTION_HORIZONTAL_PADDING);
+    layoutActions(destination, globalActions, skip, (int)(destination.getDrawX() - GLOBAL_ACTION_WIDTH - GLOBAL_ACTION_HORIZONTAL_PADDING));
   }
 
   private static void layoutExitActions(@NotNull SceneComponent source, @NotNull ArrayList<SceneComponent> exitActions, Boolean skip) {
@@ -482,7 +482,7 @@ public class NavSceneManager extends SceneManager {
     }
 
     @NavCoordinate int y = component.getDrawY() + component.getDrawHeight() / 2
-                           - ACTION_HEIGHT / 2 - (count / 2) * (ACTION_HEIGHT + ACTION_VERTICAL_PADDING);
+                           - (int)ACTION_HEIGHT / 2 - (count / 2) * (int)(ACTION_HEIGHT + ACTION_VERTICAL_PADDING);
 
     for (SceneComponent action : actions) {
       if (action != null) {
