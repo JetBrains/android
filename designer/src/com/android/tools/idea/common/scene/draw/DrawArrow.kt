@@ -19,7 +19,8 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
 import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.Rectangle
+import java.awt.geom.Path2D
+import java.awt.geom.RoundRectangle2D
 
 /**
  * [DrawArrow] draws a triangular arrow in the specified rectangle.
@@ -34,21 +35,20 @@ enum class ArrowDirection {
 
 // TODO: Integrate with DrawConnectionUtils
 class DrawArrow(private val myLevel: Int, private val myDirection: ArrowDirection,
-                @SwingCoordinate private val myRectangle: Rectangle, private val myColor: Color) : DrawCommand {
-  private constructor(sp: Array<String>) : this(sp[0].toInt(), ArrowDirection.valueOf(sp[1]), stringToRect(sp[2]), stringToColor(sp[3]))
+                @SwingCoordinate private val myRectangle: RoundRectangle2D.Float, private val myColor: Color) : DrawCommandBase() {
+  private constructor(sp: Array<String>) : this(sp[0].toInt(), ArrowDirection.valueOf(sp[1]), stringToRoundRect2D(sp[2]),
+                                                stringToColor(sp[3]))
+
   constructor(s: String) : this(parse(s, 4))
 
   override fun getLevel() = myLevel
 
-  override fun serialize(): String = buildString(javaClass.simpleName, myLevel, myDirection, rectToString(myRectangle), colorToString(myColor))
+  override fun serialize(): String = buildString(javaClass.simpleName, myLevel, myDirection, roundRect2DToString(myRectangle),
+                                                 colorToString(myColor))
 
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
-    val g2 = g.create()
-
-    g2.color = myColor
-    g2.fillPolygon(xValues, yValues, 3)
-
-    g2.dispose()
+  override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
+    g.color = myColor
+    g.fill(path)
   }
 
   private val left
@@ -63,17 +63,31 @@ class DrawArrow(private val myLevel: Int, private val myDirection: ArrowDirectio
   private val bottom
     get() = myRectangle.y + myRectangle.height
 
-  private val xValues: IntArray
+  private val xValues: FloatArray
     get() = when (myDirection) {
-      ArrowDirection.LEFT -> intArrayOf(right, left, right)
-      ArrowDirection.RIGHT -> intArrayOf(left, right, left)
-      else -> intArrayOf(left, (left + right) / 2, right)
+      ArrowDirection.LEFT -> floatArrayOf(right, left, right)
+      ArrowDirection.RIGHT -> floatArrayOf(left, right, left)
+      else -> floatArrayOf(left, (left + right) / 2, right)
     }
 
-  private val yValues: IntArray
+  private val yValues: FloatArray
     get() = when (myDirection) {
-      ArrowDirection.UP -> intArrayOf(bottom, top, bottom)
-      ArrowDirection.DOWN -> intArrayOf(top, bottom, top)
-      else -> intArrayOf(top, (top + bottom) / 2, bottom)
+      ArrowDirection.UP -> floatArrayOf(bottom, top, bottom)
+      ArrowDirection.DOWN -> floatArrayOf(top, bottom, top)
+      else -> floatArrayOf(top, (top + bottom) / 2, bottom)
     }
+
+  private val path: Path2D.Float = buildPath()
+
+  private fun buildPath(): Path2D.Float {
+    val path = Path2D.Float()
+    path.moveTo(xValues[0], yValues[0])
+
+    for (i in 1 until xValues.count()) {
+      path.lineTo(xValues[i], yValues[i])
+    }
+    path.closePath()
+
+    return path
+  }
 }

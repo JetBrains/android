@@ -53,16 +53,16 @@ private val DASHED_STROKE_CYCLE = JBUI.scale(5f)
 
 @JvmField
 @NavCoordinate
-val INNER_RADIUS_SMALL = JBUI.scale(5)
+val INNER_RADIUS_SMALL = JBUI.scale(5f)
 @JvmField
 @NavCoordinate
-val INNER_RADIUS_LARGE = JBUI.scale(8)
+val INNER_RADIUS_LARGE = JBUI.scale(8f)
 @JvmField
 @NavCoordinate
-val OUTER_RADIUS_SMALL = JBUI.scale(7)
+val OUTER_RADIUS_SMALL = JBUI.scale(7f)
 @JvmField
 @NavCoordinate
-val OUTER_RADIUS_LARGE = JBUI.scale(11)
+val OUTER_RADIUS_LARGE = JBUI.scale(11f)
 
 @SwingCoordinate
 val REGULAR_FRAME_THICKNESS = JBUI.scale(1f)

@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.android.tools.idea.common.scene.LerpInt
+import com.android.tools.idea.common.scene.LerpFloat
 import com.android.tools.idea.common.scene.draw.*
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget
 import junit.framework.TestCase
 import java.awt.*
+import java.awt.geom.Point2D
 import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_RGB
@@ -93,38 +94,38 @@ class SerializationTest : TestCase() {
   fun testDrawCircle() {
     val factory = { s: String -> DrawCircle(s) }
 
-    testSerialization("DrawCircle,0,10x20,ffff0000,1,1:2:3",
-        DrawCircle(0, Point(10, 20), Color.RED, BasicStroke(1F), LerpInt(1, 2, 3)), factory)
-    testSerialization("DrawCircle,1,30x40,ff0000ff,2,4:5:6",
-        DrawCircle(1, Point(30, 40), Color.BLUE, BasicStroke(2F), LerpInt(4, 5, 6)), factory)
+    testSerialization("DrawCircle,0,10.0x20.0,ffff0000,1,1.0:2.0:3",
+                      DrawCircle(0, Point2D.Float(10f, 20f), Color.RED, BasicStroke(1F), LerpFloat(1f, 2f, 3)), factory)
+    testSerialization("DrawCircle,1,30.0x40.0,ff0000ff,2,4.0:5.0:6",
+        DrawCircle(1, Point2D.Float(30f, 40f), Color.BLUE, BasicStroke(2F), LerpFloat(4f, 5f, 6)), factory)
   }
 
   fun testDrawFilledCircle() {
     val factory = { s: String -> DrawFilledCircle(s) }
 
-    testSerialization("DrawFilledCircle,0,10x20,ffff0000,1:2:3",
-                      DrawFilledCircle(0, Point(10, 20), Color.RED, LerpInt(1, 2, 3)), factory)
-    testSerialization("DrawFilledCircle,1,30x40,ff0000ff,4:5:6",
-        DrawFilledCircle(1, Point(30, 40), Color.BLUE, LerpInt(4, 5, 6)), factory)
+    testSerialization("DrawFilledCircle,0,10.0x20.0,ffff0000,1.0:2.0:3",
+                      DrawFilledCircle(0, Point2D.Float(10f, 20f), Color.RED, LerpFloat(1f, 2f, 3)), factory)
+    testSerialization("DrawFilledCircle,1,30.0x40.0,ff0000ff,4.0:5.0:6",
+        DrawFilledCircle(1, Point2D.Float(30f, 40f), Color.BLUE, LerpFloat(4f, 5f, 6)), factory)
   }
 
   fun testDrawArrow() {
     val factory = { s: String -> DrawArrow(s) }
 
-    testSerialization("DrawArrow,0,RIGHT,10x20x30x40,ffff0000",
-        DrawArrow(0, ArrowDirection.RIGHT, Rectangle(10, 20, 30, 40), Color.RED), factory)
-    testSerialization("DrawArrow,1,UP,60x70x80x90,ff0000ff",
-        DrawArrow(1, ArrowDirection.UP, Rectangle(60, 70, 80, 90), Color.BLUE), factory)
+    testSerialization("DrawArrow,0,RIGHT,10.0x20.0x30.0x40.0x0.0x0.0,ffff0000",
+                      DrawArrow(0, ArrowDirection.RIGHT, RoundRectangle2D.Float(10f, 20f, 30f, 40f, 0f, 0f), Color.RED), factory)
+    testSerialization("DrawArrow,1,UP,60.0x70.0x80.0x90.0x0.0x0.0,ff0000ff",
+                      DrawArrow(1, ArrowDirection.UP, RoundRectangle2D.Float(60f, 70f, 80f, 90f, 0f, 0f), Color.BLUE), factory)
   }
 
   fun testDrawLine() {
     val factory = { s: String -> DrawLine(s) }
 
-    testSerialization("DrawLine,0,10x20,30x40,ffff0000,1:0:1",
-        DrawLine(0, Point(10, 20), Point(30, 40),
+    testSerialization("DrawLine,0,10.0x20.0,30.0x40.0,ffff0000,1:0:1",
+        DrawLine(0, Point2D.Float(10f, 20f), Point2D.Float(30f, 40f),
             Color.RED, BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)), factory)
-    testSerialization("DrawLine,1,60x70,80x90,ffff0000,2:1:2",
-        DrawLine(1, Point(60, 70), Point(80, 90),
+    testSerialization("DrawLine,1,60.0x70.0,80.0x90.0,ffff0000,2:1:2",
+        DrawLine(1, Point2D.Float(60f, 70f), Point2D.Float(80f, 90f),
             Color.RED, BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL)), factory)
   }
 

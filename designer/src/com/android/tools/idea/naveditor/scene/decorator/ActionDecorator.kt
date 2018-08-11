@@ -30,8 +30,8 @@ import com.android.tools.idea.naveditor.scene.ACTION_STROKE
 import com.android.tools.idea.naveditor.scene.DRAW_ACTION_LEVEL
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.actionColor
-import java.awt.Point
-import java.awt.Rectangle
+import java.awt.geom.Point2D
+import java.awt.geom.RoundRectangle2D
 
 /**
  * [ActionDecorator] responsible for creating draw commands for actions.
@@ -47,16 +47,18 @@ object ActionDecorator : SceneDecorator() {
       ActionType.GLOBAL, ActionType.EXIT -> {
         val color = actionColor(sceneContext, component)
 
-        @SwingCoordinate val drawRect = Coordinates.getSwingRectDip(sceneContext, component.fillRect(null))
-        @SwingCoordinate val x1 = drawRect.x
-        @SwingCoordinate val x2 = x1 + drawRect.width - sceneContext.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL)
-        @SwingCoordinate val y = drawRect.y + drawRect.height / 2
-        list.add(DrawLine(DRAW_ACTION_LEVEL, Point(x1, y), Point(x2, y), color, ACTION_STROKE))
+        val view = component.scene.designSurface.currentSceneView ?: return
 
-        val arrowRect = Rectangle()
+        @SwingCoordinate val drawRect = Coordinates.getSwingRectDip(view, component.fillDrawRect2D(0, null))
+        @SwingCoordinate val x1 = drawRect.x
+        @SwingCoordinate val x2 = x1 + drawRect.width - Coordinates.getSwingDimension(view, NavSceneManager.ACTION_ARROW_PARALLEL)
+        @SwingCoordinate val y = drawRect.y + drawRect.height / 2
+        list.add(DrawLine(DRAW_ACTION_LEVEL, Point2D.Float(x1, y), Point2D.Float(x2, y), color, ACTION_STROKE))
+
+        val arrowRect = RoundRectangle2D.Float()
         arrowRect.x = x2
         arrowRect.y = drawRect.y
-        arrowRect.width = sceneContext.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL)
+        arrowRect.width = Coordinates.getSwingDimension(view, NavSceneManager.ACTION_ARROW_PARALLEL)
         arrowRect.height = drawRect.height
         list.add(DrawArrow(DRAW_ACTION_LEVEL, ArrowDirection.RIGHT, arrowRect, color))
       }
