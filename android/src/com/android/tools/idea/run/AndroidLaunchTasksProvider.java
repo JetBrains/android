@@ -44,6 +44,7 @@ import java.util.function.Function;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
+import static com.android.tools.idea.run.ApplyChangesAction.APPLY_CHANGES;
 
 public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final AndroidRunConfigurationBase myRunConfig;
@@ -139,7 +140,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   @VisibleForTesting
   List<LaunchTask> getDeployTasks(@NotNull final IDevice device, @NotNull final String packageName) throws ApkProvisionException {
     if (StudioFlags.JVMTI_REFRESH.get()) {
-      boolean swap = InstantRunUtils.isInvokedViaHotswapAction(myEnv);
+      boolean swap = Boolean.TRUE.equals(myEnv.getCopyableUserData(APPLY_CHANGES));
       return ImmutableList.of(new UnifiedDeployTask(myApkProvider.getApks(device), swap));
     }
 
