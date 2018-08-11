@@ -23,8 +23,13 @@ import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModelsSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.*;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
+import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidVariantChangeModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkVariantChangeModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -97,7 +102,8 @@ public abstract class ModuleSetup<T> {
                                                new ModuleSetupContext.Factory(),
                                                new IdeDependenciesFactory(),
                                                new CachedProjectModels.Loader(),
-                                               new VariantOnlySyncModuleSetup());
+                                               new AndroidVariantChangeModuleSetup(),
+                                               new NdkVariantChangeModuleSetup());
     }
   }
 

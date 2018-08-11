@@ -28,9 +28,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
-import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.VariantOnlySyncModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidVariantChangeModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkVariantChangeModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
@@ -64,8 +63,8 @@ import static com.intellij.util.ThreeState.YES;
 public class BuildVariantUpdater {
   @NotNull private final ModuleSetupContext.Factory myModuleSetupContextFactory;
   @NotNull private final IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
-  @NotNull private final VariantOnlySyncModuleSetup myAndroidModuleSetupSteps;
-  @NotNull private final NdkModuleSetupStep[] myNdkModuleSetupSteps = {new ContentRootModuleSetupStep()};
+  @NotNull private final AndroidVariantChangeModuleSetup myAndroidModuleSetupSteps;
+  @NotNull private final NdkVariantChangeModuleSetup myNdkModuleSetupSteps;
   @NotNull private final List<BuildVariantView.BuildVariantSelectionChangeListener> mySelectionChangeListeners;
 
   @NotNull
@@ -76,16 +75,19 @@ public class BuildVariantUpdater {
   // called by IDEA.
   @SuppressWarnings("unused")
   BuildVariantUpdater() {
-    this(new ModuleSetupContext.Factory(), new IdeModifiableModelsProviderFactory(), new VariantOnlySyncModuleSetup());
+    this(new ModuleSetupContext.Factory(), new IdeModifiableModelsProviderFactory(), new AndroidVariantChangeModuleSetup(),
+         new NdkVariantChangeModuleSetup());
   }
 
   @VisibleForTesting
   BuildVariantUpdater(@NotNull ModuleSetupContext.Factory moduleSetupContextFactory,
                       @NotNull IdeModifiableModelsProviderFactory modifiableModelsProviderFactory,
-                      @NotNull VariantOnlySyncModuleSetup androidModuleSetup) {
+                      @NotNull AndroidVariantChangeModuleSetup androidModuleSetup,
+                      @NotNull NdkVariantChangeModuleSetup ndkModuleSetup) {
     myModuleSetupContextFactory = moduleSetupContextFactory;
     myModifiableModelsProviderFactory = modifiableModelsProviderFactory;
     myAndroidModuleSetupSteps = androidModuleSetup;
+    myNdkModuleSetupSteps = ndkModuleSetup;
     mySelectionChangeListeners = new ArrayList<>();
   }
 
@@ -393,15 +395,10 @@ public class BuildVariantUpdater {
   }
 
   private void setUpModule(@NotNull Module module, @NotNull NdkModuleModel ndkModuleModel) {
-    IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
+    IdeModifiableModelsProvider modelsProvider = myModifiableModelsProviderFactory.create(module.getProject());
     ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
     try {
-      for (NdkModuleSetupStep setupStep : myNdkModuleSetupSteps) {
-        if (setupStep.invokeOnBuildVariantChange()) {
-          // TODO get modules by gradle path
-          setupStep.setUpModule(context, ndkModuleModel);
-        }
-      }
+      myNdkModuleSetupSteps.setUpModule(context, ndkModuleModel);
       modelsProvider.commit();
     }
     catch (Throwable t) {
