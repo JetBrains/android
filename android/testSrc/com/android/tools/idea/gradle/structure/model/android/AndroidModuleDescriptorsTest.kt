@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.SdkConstants
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.helpers.matchHashStrings
 import com.android.tools.idea.gradle.structure.model.meta.getValue
@@ -54,5 +55,28 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
 
     assertThat(targetCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_7))
     assertThat(targetCompatibility.parsedValue.asTestValue(), nullValue())
+  }
+
+  fun testSetProperties() {
+    // Note: this test doesnot attempt to sync because it won't succeed without installing older SDKs.
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    appModule.compileSdkVersion = "25".asParsed()
+
+    fun verifyValues(appModule: PsAndroidModule) {
+      val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
+      assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo("25"))
+      assertThat(appModule.parsedModel?.android()?.compileSdkVersion()?.getValue(OBJECT_TYPE), equalTo<Any>(25))
+    }
+
+    verifyValues(appModule)
+    appModule.applyChanges()
+    verifyValues(appModule)
   }
 }
