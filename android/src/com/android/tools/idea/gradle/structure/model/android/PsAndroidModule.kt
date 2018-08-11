@@ -45,6 +45,11 @@ class PsAndroidModule(
   private var dependencyCollection: PsAndroidModuleDependencyCollection? = null
   private var signingConfigCollection: PsSigningConfigCollection? = null
 
+  var buildToolsVersion by AndroidModuleDescriptors.buildToolsVersion
+  var compileSdkVersion by AndroidModuleDescriptors.compileSdkVersion
+  var sourceCompatibility by AndroidModuleDescriptors.sourceCompatibility
+  var targetCompatibility by AndroidModuleDescriptors.targetCompatibility
+
   fun init(
     name: String,
     parentModule: PsModule?,

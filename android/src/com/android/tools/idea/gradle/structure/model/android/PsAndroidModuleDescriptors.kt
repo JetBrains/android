@@ -35,7 +35,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidProjec
     resolvedValueGetter = { compileTarget },
     parsedPropertyGetter = { compileSdkVersion() },
     getter = { asString() },
-    setter = { setValue(it) },
+    setter = { setValue(it.toIntOrNull() ?: it) },
     parser = ::parseHashString,
     matcher = ::matchHashStrings,
     knownValuesGetter = ::installedCompiledApis
