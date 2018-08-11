@@ -183,6 +183,17 @@ public class NdkModuleModel implements ModuleModel {
     mySelectedVariantName = sortedVariantNames.get(0);
   }
 
+  /**
+   * Inject the Variant-Only Sync model to existing NdkModuleModel.
+   * Since the build files were not changed from last sync, only add the new VariantAbi to existing list.
+   *
+   * @param variantAbi The NativeVariantAbi model obtained from Variant-Only sync.
+   */
+  public void addVariantOnlyModuleModel(@NotNull IdeNativeVariantAbi variantAbi) {
+    myVariantAbi.add(variantAbi);
+    populateForSingleVariantSync();
+  }
+
   private void parseAndSetModelVersion() {
     myModelVersion = GradleVersion.tryParse(myAndroidProject.getModelVersion());
   }

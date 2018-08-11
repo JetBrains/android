@@ -15,18 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.builder.model.NativeVariantAbi;
 import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.ProjectStructure;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkVariant;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedModuleModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels.VariantOnlyModuleModel;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels.VariantOnlyModuleModel.NativeVariantAbiModel;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModelsSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
-import com.android.tools.idea.gradle.project.sync.setup.module.VariantOnlySyncModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidVariantChangeModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkVariantChangeModuleSetup;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -53,10 +59,12 @@ public class VariantOnlyProjectModelsSetupTest extends IdeaTestCase {
   @Mock private VariantOnlyProjectModels myProjectModels;
   @Mock private VariantOnlyModuleModel myModuleModels;
   @Mock private CachedProjectModels.Loader myCacheLoader;
-  @Mock private VariantOnlySyncModuleSetup myModuleSetup;
+  @Mock private AndroidVariantChangeModuleSetup myAndroidModuleSetup;
+  @Mock private NdkVariantChangeModuleSetup myNdkModuleSetup;
   @Mock private ProjectStructure myProjectStructure;
   @Mock private ModuleFinder myFinder;
   @Mock private AndroidModuleModel myAndroidModuleModel;
+  @Mock private NdkModuleModel myNdkModuleModel;
   @Mock private IdeDependenciesFactory myDependenciesFactory;
 
   private VariantOnlyProjectModelsSetup myVariantOnlyModelsSetup;
@@ -69,7 +77,7 @@ public class VariantOnlyProjectModelsSetupTest extends IdeaTestCase {
 
     myVariantOnlyModelsSetup =
       new VariantOnlyProjectModelsSetup(getProject(), myModelsProvider, myContextFactory, myDependenciesFactory, myCacheLoader,
-                                        myModuleSetup);
+                                        myAndroidModuleSetup, myNdkModuleSetup);
   }
 
   public void testSetUpModules() {
@@ -101,9 +109,49 @@ public class VariantOnlyProjectModelsSetupTest extends IdeaTestCase {
     // Verify the selected variant is updated.
     verify(myAndroidModuleModel).setSelectedVariantName("release");
     // Verify that the module setup steps were invoked.
-    verify(myModuleSetup).setUpModule(appModuleContext, myAndroidModuleModel);
+    verify(myAndroidModuleSetup).setUpModule(appModuleContext, myAndroidModuleModel);
     // Verify cache is updated for app module, and unchanged for java module.
     verify(myCachedProjectModels.findCacheForModule("app")).addModel(myAndroidModuleModel);
+    verify(myCachedProjectModels).saveToDisk(myProject);
+    assertNotNull(myCachedProjectModels.findCacheForModule("java"));
+    verify(myCachedProjectModels.findCacheForModule("java"), never()).addModel(any());
+  }
+
+  public void testSetUpModulesWithNdkModule() {
+    // Create cached project model that contains two modules, app and java.
+    setupCachedProjectModels();
+    EmptyProgressIndicator indicator = new EmptyProgressIndicator();
+
+    // Create app module.
+    String moduleId = "project::app";
+    NdkVariant ndkVariant = mock(NdkVariant.class);
+    when(ndkVariant.getName()).thenReturn("debug-x86");
+    when(myNdkModuleModel.getSelectedVariant()).thenReturn(ndkVariant);
+    Module appModule = createAppModuleWithNdkFacet();
+    when(myProjectStructure.getModuleFinder()).thenReturn(myFinder);
+    when(myFinder.findModuleByModuleId(moduleId)).thenReturn(appModule);
+
+    // Setup VariantOnlySyncProjectModels.
+    NativeVariantAbi variantAbi = mock(NativeVariantAbi.class);
+    when(myProjectModels.getModuleModels()).thenReturn(singletonList(myModuleModels));
+    when(myModuleModels.getModuleId()).thenReturn(moduleId);
+    NativeVariantAbiModel abiModel = new NativeVariantAbiModel("release-x86", variantAbi);
+    when(myModuleModels.getNativeVariantAbi()).thenReturn(abiModel);
+
+    ModuleSetupContext appModuleContext = mock(ModuleSetupContext.class);
+    when(myContextFactory.create(appModule, myModelsProvider)).thenReturn(appModuleContext);
+
+    // Invoke the method to test.
+    myVariantOnlyModelsSetup.setUpModules(myProjectModels, indicator);
+
+    // Verify the variant-only model was added to androidModuleModel.
+    verify(myNdkModuleModel).addVariantOnlyModuleModel(any());
+    // Verify the selected variant is updated.
+    verify(myNdkModuleModel).setSelectedVariantName("release-x86");
+    // Verify that the module setup steps were invoked.
+    verify(myNdkModuleSetup).setUpModule(appModuleContext, myNdkModuleModel);
+    // Verify cache is updated for app module, and unchanged for java module.
+    verify(myCachedProjectModels.findCacheForModule("app")).addModel(myNdkModuleModel);
     verify(myCachedProjectModels).saveToDisk(myProject);
     assertNotNull(myCachedProjectModels.findCacheForModule("java"));
     verify(myCachedProjectModels.findCacheForModule("java"), never()).addModel(any());
@@ -115,6 +163,20 @@ public class VariantOnlyProjectModelsSetupTest extends IdeaTestCase {
     FacetManager facetManager = FacetManager.getInstance(module);
     AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
     facet.getConfiguration().setModel(myAndroidModuleModel);
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      ModifiableFacetModel model = facetManager.createModifiableModel();
+      model.addFacet(facet);
+      model.commit();
+    });
+    return module;
+  }
+
+  @NotNull
+  private Module createAppModuleWithNdkFacet() {
+    Module module = createModule("app");
+    FacetManager facetManager = FacetManager.getInstance(module);
+    NdkFacet facet = facetManager.createFacet(NdkFacet.getFacetType(), NdkFacet.getFacetName(), null);
+    facet.setNdkModuleModel(myNdkModuleModel);
     ApplicationManager.getApplication().runWriteAction(() -> {
       ModifiableFacetModel model = facetManager.createModifiableModel();
       model.addFacet(facet);

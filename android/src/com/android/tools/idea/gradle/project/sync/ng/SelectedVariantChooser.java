@@ -42,7 +42,7 @@ import static java.util.Objects.requireNonNull;
  * </ol>
  * </p>
  */
-class SelectedVariantChooser implements Serializable {
+public class SelectedVariantChooser implements Serializable {
   void chooseSelectedVariants(@NotNull List<SyncModuleModels> projectModels,
                               @NotNull BuildController controller,
                               @NotNull SelectedVariants selectedVariants) {
@@ -126,7 +126,7 @@ class SelectedVariantChooser implements Serializable {
   }
 
   @Nullable
-  private static String getDefaultOrFirstItem(@NotNull Collection<String> names, @NotNull String defaultValue) {
+  public static String getDefaultOrFirstItem(@NotNull Collection<String> names, @NotNull String defaultValue) {
     if (names.isEmpty()) {
       return null;
     }
