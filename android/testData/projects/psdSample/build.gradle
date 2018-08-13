@@ -17,4 +17,7 @@ allprojects {
 
 ext {
     someVar = "Present"
+    rootBool = true
+    rootBool3 = rootBool
+    rootBool2 = rootBool3
 }
