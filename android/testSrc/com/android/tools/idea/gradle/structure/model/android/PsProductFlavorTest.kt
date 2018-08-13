@@ -24,6 +24,22 @@ import org.hamcrest.MatcherAssert.assertThat
 
 class PsProductFlavorTest : AndroidGradleTestCase() {
 
+  fun testDescriptor() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val productFlavor = appModule.findProductFlavor("foo", "paid")
+    assertThat(productFlavor, notNullValue()); productFlavor!!
+
+    assertThat(productFlavor.descriptor.testEnumerateProperties(),
+               equalTo(PsProductFlavor.ProductFlavorDescriptors.testEnumerateProperties()))
+  }
+
   fun testProperties() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 

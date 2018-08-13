@@ -29,6 +29,7 @@ class PsDeclaredLibraryJavaDependency(
   override val parsedModel: ArtifactDependencyModel
 ) : PsJavaDependency(parent),
     PsLibraryDependency, PsDeclaredDependency, PsDeclaredLibraryDependency {
+  override val descriptor by Descriptor
   private val nameResolvedProperty = parsedModel.name()
   private val groupResolvedProperty = parsedModel.group()
   private val versionResolvedProperty = parsedModel.version()
@@ -72,6 +73,7 @@ class PsDeclaredLibraryJavaDependency(
       model.isModified = true
     }
 
+    private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
     val version: ModelSimpleProperty<PsDeclaredLibraryJavaDependency, String> = property(
       "Version",
       resolvedValueGetter = { null },
@@ -82,6 +84,8 @@ class PsDeclaredLibraryJavaDependency(
       knownValuesGetter = ::dependencyVersionValues,
       variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
     )
+
+    override val properties: Collection<ModelProperty<PsDeclaredLibraryJavaDependency, *, *, *>> = listOf(version)
   }
 }
 

@@ -215,4 +215,9 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     setter = { setValue(it) },
     parser = ::parseString
   )
+
+  override val properties: Collection<ModelProperty<PsAndroidModuleDefaultConfig, *, *, *>> =
+    listOf(applicationId, applicationIdSuffix, maxSdkVersion, minSdkVersion, multiDexEnabled, signingConfig, targetSdkVersion,
+           testApplicationId, testFunctionalTest, testHandleProfiling, testInstrumentationRunner, versionCode, versionName,
+           versionNameSuffix, consumerProGuardFiles, proGuardFiles, resConfigs, manifestPlaceholders, testInstrumentationRunnerArguments)
 }

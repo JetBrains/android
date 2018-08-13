@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
+import com.android.tools.idea.gradle.structure.model.PsModel
+import com.android.tools.idea.gradle.structure.model.PsModelDescriptor
+import kotlin.reflect.KProperty
+
 /**
  * A descriptor of an entity model in PSD for the purpose of property editing.
  *
@@ -39,4 +43,32 @@ interface ModelDescriptor<in ModelT, out ResolvedT, out ParsedT> {
    * Notifies the PSD that a [model] has been modified and that the changes need to be saved.
    */
   fun setModified(model: ModelT)
+
+
+  /**
+   * Enumerates the models directly contained by [model].
+   */
+  fun enumerateModels(model: ModelT): Collection<PsModel> = listOf()
+
+
+  /**
+   * Returns the properties described by this descriptor.
+   */
+  val properties: Collection<ModelProperty<ModelT, *, *, *>> get() = listOf()
 }
+
+
+/**
+ * A helper operator to implement models' descriptor property as: descriptor by Descriptor.
+ */
+operator fun <T : PsModel> ModelDescriptor<T, *, *>.getValue(model: T, property: KProperty<*>): PsModelDescriptor =
+  object : PsModelDescriptor {
+    override fun enumerateContainedModels(): Collection<PsModel> =
+      enumerateModels(model).let { it + it.flatMap { contained -> contained.descriptor.enumerateContainedModels() } }
+
+    override fun enumerateProperties(receiver: PsModelDescriptor.PropertyReceiver) {
+      this@getValue.properties.forEach {
+        receiver.receive(model, it)
+      }
+    }
+  }

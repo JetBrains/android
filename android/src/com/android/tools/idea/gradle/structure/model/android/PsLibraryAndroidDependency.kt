@@ -32,6 +32,7 @@ open class PsDeclaredLibraryAndroidDependency(
   final override val parsedModel: ArtifactDependencyModel
 ) : PsLibraryAndroidDependency(parent, containers),
     PsDeclaredDependency, PsDeclaredLibraryDependency {
+  override val descriptor by Descriptor
   private val nameResolvedProperty = parsedModel.name()
   private val groupResolvedProperty = parsedModel.group()
   private val versionResolvedProperty = parsedModel.version()
@@ -82,6 +83,8 @@ open class PsDeclaredLibraryAndroidDependency(
       knownValuesGetter = ::dependencyVersionValues,
       variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
     )
+
+    override val properties: Collection<ModelProperty<PsDeclaredLibraryAndroidDependency, *, *, *>> = listOf(version)
   }
 }
 

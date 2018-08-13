@@ -26,7 +26,7 @@ data class PsProductFlavorKey(val dimension: String, val name: String)
 open class PsProductFlavor(
   final override val parent: PsAndroidModule
 ) : PsChildModel() {
-
+  override val descriptor by ProductFlavorDescriptors
   var resolvedModel: ProductFlavor? = null
   private var parsedModel: ProductFlavorModel? = null
 
@@ -274,5 +274,11 @@ open class PsProductFlavor(
       setter = { setValue(it) },
       parser = ::parseString
     )
+
+    override val properties: Collection<ModelProperty<PsProductFlavor, *, *, *>> =
+      listOf(applicationId, applicationIdSuffix, dimension, maxSdkVersion, minSdkVersion, multiDexEnabled, signingConfig, targetSdkVersion,
+             testApplicationId, testFunctionalTest, testHandleProfiling, testInstrumentationRunner, versionCode, versionName,
+             versionNameSuffix, matchingFallbacks, consumerProGuardFiles, proGuardFiles, resConfigs, manifestPlaceholders,
+             testInstrumentationRunnerArguments)
   }
 }

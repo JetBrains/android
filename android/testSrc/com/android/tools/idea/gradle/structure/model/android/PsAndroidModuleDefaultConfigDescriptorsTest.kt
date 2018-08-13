@@ -24,6 +24,21 @@ import org.hamcrest.MatcherAssert.assertThat
 
 class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
+  fun testDescriptor() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+    val defaultConfig = appModule.defaultConfig
+
+    assertThat(defaultConfig.descriptor.testEnumerateProperties(),
+               equalTo(PsAndroidModuleDefaultConfigDescriptors.testEnumerateProperties()))
+  }
+
+
   fun testProperties() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 

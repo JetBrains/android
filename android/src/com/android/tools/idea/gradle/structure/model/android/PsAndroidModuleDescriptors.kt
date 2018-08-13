@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.AndroidProject
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
+import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
@@ -73,4 +74,10 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidProjec
     formatter = ::formatLanguageLevel,
     knownValuesGetter = ::languageLevels
   )
+
+  override fun enumerateModels(model: PsAndroidModule): Collection<PsModel> =
+    model.buildTypes + model.productFlavors + model.flavorDimensions + model.signingConfigs + model.dependencies.items + model.defaultConfig
+
+  override val properties: Collection<ModelProperty<PsAndroidModule, *, *, *>> =
+    listOf(compileSdkVersion, buildToolsVersion, sourceCompatibility, targetCompatibility)
 }
