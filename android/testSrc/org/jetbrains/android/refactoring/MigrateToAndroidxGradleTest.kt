@@ -107,7 +107,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
         fail("Prerequisites check should have failed for compileSdkVersion \"$it\"")
       }
       catch (e: RuntimeException) {
-        assertEquals("You need to have at least have compileSdk 28 set in your module build.gradle to migrate to AndroidX.",
+        assertEquals("You need to have compileSdk set to at least 28 in your module build.gradle to migrate to AndroidX.",
                      e.localizedMessage)
       }
     }

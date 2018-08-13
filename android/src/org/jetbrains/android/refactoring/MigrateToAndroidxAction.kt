@@ -142,7 +142,7 @@ class MigrateToAndroidxHandler(var showWarningDialog: Boolean = true,
     }
 
     val warningContent = if (!supportedCompileSdk) {
-      "You need to have at least have compileSdk 28 set in your module build.gradle to migrate to AndroidX."
+      "You need to have compileSdk set to at least 28 in your module build.gradle to migrate to AndroidX."
     }
                          else {
       ""
