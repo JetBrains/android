@@ -23,15 +23,26 @@ import org.jetbrains.annotations.NotNull;
  * Class meant to hold the options the user chooses for each individual icon that is imported,
  * i.e. whether they want to hide the background or other things that may come up in the future.
  */
-public class IconOptions extends ObjectOptions {
+public class IconOptions {
+  private String myName;
+  private boolean myExportable;
 
   public IconOptions(@NotNull String name, boolean isExportable) {
-    super(name, isExportable);
+    myName = name;
+    myExportable = isExportable;
   }
 
   public IconOptions(@NotNull SketchArtboard artboard) {
-    super(artboard);
     myName = getDefaultName(artboard);
+    myExportable = artboard.getExportOptions().getExportFormats().length != 0;
+  }
+
+  /**
+   * By default, an item is exportable if it has <b>at least one exportFormat</b> (regardless of
+   * the specifics of the format -> users can mark an item as exportable in Sketch with one click).
+   */
+  public boolean isExportable() {
+    return myExportable;
   }
 
   @NotNull
@@ -54,5 +65,10 @@ public class IconOptions extends ObjectOptions {
 
   public void setName(@NotNull String name) {
     myName = name;
+  }
+
+  @NotNull
+  public String getName() {
+    return myName;
   }
 }

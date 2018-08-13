@@ -177,14 +177,13 @@ public class VectorDrawableFile {
   }
 
   /**
-   * @return virtual Vector Drawable file whose name corresponds to the artboard's {@code objectId}
+   * @return virtual Vector Drawable file whose name corresponds to the {@code filename}
    */
   @NotNull
-  public LightVirtualFile generateFile() {
-    LightVirtualFile virtualFile = new LightVirtualFile();
+  public LightVirtualFile generateFile(String filename) {
+    LightVirtualFile virtualFile = new LightVirtualFile(filename + ".xml");
     createVectorDrawable();
     if (artboard != null) {
-      virtualFile = new LightVirtualFile(artboard.getObjectId());
       Rectangle2D.Double frame = artboard.getFrame();
       setVectorDimensions(frame.getHeight(), frame.getWidth());
       setViewportDimensions(frame.getHeight(), frame.getWidth());
