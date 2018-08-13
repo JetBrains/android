@@ -50,7 +50,7 @@ public class IntellijAutoCompleteTextField implements AutoCompleteTextField {
   public void addOnDocumentChange(@NotNull Runnable callback) {
     myComponent.addDocumentListener(new DocumentAdapter() {
       @Override
-      public void documentChanged(DocumentEvent e) {
+      public void documentChanged(@NotNull DocumentEvent e) {
         callback.run();
       }
     });
