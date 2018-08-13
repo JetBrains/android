@@ -16,63 +16,78 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.view
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchImporterPresenter
-import com.intellij.openapi.fileChooser.FileChooser
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
+import com.intellij.openapi.ui.DialogBuilder
+import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.VerticalFlowLayout
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.Gray
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
-import javax.swing.BorderFactory
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
+import javax.swing.*
+
 
 private val PAGE_HEADER_SECONDARY_COLOR = Gray.x66
 private val PAGE_HEADER_BORDER = BorderFactory.createCompoundBorder(
   BorderFactory.createEmptyBorder(0, 0, 8, 0),
   JBUI.Borders.customLine(PAGE_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
 )
+private val PANEL_SIZE = JBUI.size(600, 400)
 
-class SketchImporterView {
-  private fun getPreviewPanel(filePath: String, facet: AndroidFacet): JPanel {
+class SketchImporterView(private val presenter: SketchImporterPresenter) {
 
-    return JPanel(VerticalFlowLayout()).apply {
-      val presenter = SketchImporterPresenter(filePath)
-      val pageIdToFiles = presenter.generateFiles(facet.module.project)
+  private val previewPanel = JPanel(VerticalFlowLayout())
 
-      if (pageIdToFiles == null)
-        add(JLabel("Invalid Sketch file!"))
-      else
-        for (pageId in pageIdToFiles.keys) {
-          add(createPageHeader(presenter.importOptions.getOptions(pageId)!!.name))
-        }
-    }
+  private val configurationPanel: JPanel = JPanel(BorderLayout()).apply {
+    preferredSize = PANEL_SIZE
+    add(JScrollPane(previewPanel))
   }
 
-  fun getConfigurationPanel(facet: AndroidFacet, fileExtension: String): JPanel {
+  /**
+   * Adds a preview for the [vectorDrawableFiles] corresponding to the page named [pageName] of type [pageTypes] [[selectedTypeIndex]])
+   */
+  fun addIconPage(pageName: String,
+                  pageTypes: Array<String>,
+                  selectedTypeIndex: Int,
+                  vectorDrawableFiles: List<LightVirtualFile>) {
+    previewPanel.add(createPageHeader(pageName, pageTypes, selectedTypeIndex))
+    val listModel = DefaultListModel<VirtualFile>().apply {
+      vectorDrawableFiles.forEach { addElement(it) }
+    }
+    // Render icons
+  }
 
+  /**
+   * Creates page header containing the [pageName] and the [JComboBox] with the [pageTypes], where [selectedTypeIndex] is selected.
+   */
+  private fun createPageHeader(pageName: String, pageTypes: Array<String>, selectedTypeIndex: Int): JComponent {
     return JPanel(BorderLayout()).apply {
-      preferredSize = JBUI.size(600, 400)
-      val filePath = JLabel()
-      val fileDescriptor = FileChooserDescriptorFactory.createSingleFileDescriptor(fileExtension)
-      FileChooser.chooseFiles(fileDescriptor, facet.module.project, null) { files ->
-        filePath.text = FileUtil.toSystemDependentName(files[0].path)
-      }
+      val nameLabel = JBLabel(pageName)
+      nameLabel.font = nameLabel.font.deriveFont(24f)
+      add(nameLabel)
 
-      add(filePath, BorderLayout.NORTH)
+      val pageTypeList = JComboBox(pageTypes)
+      pageTypeList.selectedIndex = selectedTypeIndex
+      add(pageTypeList, BorderLayout.EAST)
 
-      add(getPreviewPanel(filePath.text, facet))
+      border = PAGE_HEADER_BORDER
     }
   }
 
-  private fun createPageHeader(name: String): JComponent = JPanel(BorderLayout()).apply {
-    val nameLabel = JBLabel(name)
-    nameLabel.font = nameLabel.font.deriveFont(24f)
-    add(nameLabel)
-
-    border = PAGE_HEADER_BORDER
+  /**
+   * Creates the dialog allowing the user to preview and choose which assets they would like to import from the sketch file.
+   */
+  fun createImportDialog(facet: AndroidFacet, view: SketchImporterView) {
+    with(DialogBuilder(facet.module.project)) {
+      setCenterPanel(view.configurationPanel)
+      setOkOperation {
+        presenter.importFilesIntoProject(facet)
+        dialogWrapper.close(DialogWrapper.OK_EXIT_CODE)
+      }
+      setTitle("Choose the assets you would like to import")
+      showModal(true)
+    }
   }
 }

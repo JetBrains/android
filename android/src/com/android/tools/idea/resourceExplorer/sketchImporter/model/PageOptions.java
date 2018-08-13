@@ -30,7 +30,7 @@ import java.util.Locale;
  * <li><b>“Other”</b> -> TODO</li>
  * </ul>
  */
-public class PageOptions extends ObjectOptions {
+public class PageOptions {
   public enum PageType {
     ICONS,
     SYMBOLS,
@@ -46,15 +46,15 @@ public class PageOptions extends ObjectOptions {
   private final static String KEYWORD_COLORS = "color";
   private final static String KEYWORD_TEXT = "text";
 
+  private String myName;
   private PageType myPageType;
 
-  public PageOptions(@NotNull String name, boolean isExportable, @NotNull PageType pageType) {
-    super(name, isExportable);
+  public PageOptions(@NotNull String name, @NotNull PageType pageType) {
+    myName = name;
     myPageType = pageType;
   }
 
   public PageOptions(@NotNull SketchPage page) {
-    super(page);
     myName = page.getName();
     myPageType = getDefaultPageType(page);
   }
@@ -85,5 +85,10 @@ public class PageOptions extends ObjectOptions {
 
   public void setPageType(@NotNull PageType pageType) {
     myPageType = pageType;
+  }
+
+  @NotNull
+  public String getName() {
+    return myName;
   }
 }

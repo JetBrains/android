@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resourceExplorer.sketchImporter.presenter;
+package com.android.tools.idea.resourceExplorer.sketchImporter.model;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.model.IconOptions;
-import com.android.tools.idea.resourceExplorer.sketchImporter.model.ObjectOptions;
-import com.android.tools.idea.resourceExplorer.sketchImporter.model.PageOptions;
-import com.android.tools.idea.resourceExplorer.sketchImporter.model.SketchFile;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
@@ -32,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
  * user-defined (variable) options for parsing that data.
  */
 public class ImportOptions {
+  private static final Logger LOGGER_INSTANCE = Logger.getInstance(ImportOptions.class);
   private static final boolean DEFAULT_IMPORT_ALL = false;
 
   private boolean myImportAll = DEFAULT_IMPORT_ALL;
@@ -39,7 +36,8 @@ public class ImportOptions {
   /**
    * Mapping {@code objectId}s to corresponding options.
    */
-  private HashMap<String, ObjectOptions> myObjectIdToOptions = new HashMap<>();
+  private HashMap<String, PageOptions> myPageIdToOptions = new HashMap<>();
+  private HashMap<String, IconOptions> myIconIdToOptions = new HashMap<>();
 
   public ImportOptions(@NotNull SketchFile file) {
     initWithDefaultOptions(file);
@@ -58,21 +56,41 @@ public class ImportOptions {
   }
 
   /**
-   * @param objectId ID of desired object
-   * @return options corresponding to object with {@code objectId}
+   * @param objectId ID of desired page
+   * @return options corresponding to page with {@code objectId}
    */
   @Nullable
-  public ObjectOptions getOptions(@NotNull String objectId) {
-    return myObjectIdToOptions.get(objectId);
+  public PageOptions getPageOptions(@NotNull String objectId) {
+    return myPageIdToOptions.get(objectId);
   }
 
-  public boolean putOptions(@NotNull String objectId, @NotNull ObjectOptions options) {
-    if (myObjectIdToOptions.get(objectId) != null) {
-      myObjectIdToOptions.put(objectId, options);
+  /**
+   * @param objectId ID of desired icon
+   * @return options corresponding to icon with {@code objectId}
+   */
+  @Nullable
+  public IconOptions getIconOptions(@NotNull String objectId) {
+    return myIconIdToOptions.get(objectId);
+  }
+
+  public boolean putPageOptions(@NotNull String objectId, @NotNull PageOptions options) {
+    if (myPageIdToOptions.get(objectId) != null) {
+      myPageIdToOptions.put(objectId, options);
       return true;
     }
     else {
-      Logger.getInstance(ImportOptions.class).warn("Layer with objectId = " + objectId + " not found!");
+      LOGGER_INSTANCE.warn("Page with objectId = " + objectId + " not found!");
+      return false;
+    }
+  }
+
+  public boolean putIconOptions(@NotNull String objectId, @NotNull IconOptions options) {
+    if (myIconIdToOptions.get(objectId) != null) {
+      myIconIdToOptions.put(objectId, options);
+      return true;
+    }
+    else {
+      Logger.getInstance(ImportOptions.class).warn("Artboard with objectId = " + objectId + " not found!");
       return false;
     }
   }
@@ -83,12 +101,12 @@ public class ImportOptions {
   private void initWithDefaultOptions(@NotNull SketchFile file) {
     for (SketchPage page : file.getPages()) {
       PageOptions pageOptions = new PageOptions(page);
-      myObjectIdToOptions.put(page.getObjectId(), pageOptions);
+      myPageIdToOptions.put(page.getObjectId(), pageOptions);
 
       for (SketchLayer layer : page.getLayers()) {
         if (layer instanceof SketchArtboard) {
           IconOptions options = new IconOptions((SketchArtboard)layer);
-          myObjectIdToOptions.put(layer.getObjectId(), options);
+          myIconIdToOptions.put(layer.getObjectId(), options);
         }
       }
     }

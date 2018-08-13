@@ -150,11 +150,6 @@ class ProjectResourcesBrowserViewModel(
 
         }
       })
-    with(DialogBuilder(facet.module.project)) {
-      setCenterPanel(configurationPanel)
-      showModal(true)
-      setTitle("Choose the assets you would like to import")  // FIXME
-    }
   }
 }
 

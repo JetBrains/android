@@ -15,9 +15,18 @@
  */
 package com.android.tools.idea.resourceExplorer.plugin
 
+import com.android.tools.idea.resourceExplorer.importer.DesignAssetImporter
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
+import com.android.tools.idea.resourceExplorer.sketchImporter.model.ImportOptions
+import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchImporterPresenter
+import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchParser
 import com.android.tools.idea.resourceExplorer.sketchImporter.view.SketchImporterView
+import com.intellij.openapi.fileChooser.FileChooser
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.android.facet.AndroidFacet
+import javax.swing.JOptionPane
 import javax.swing.JPanel
 
 private val supportedFileTypes = setOf("sketch")
@@ -30,10 +39,24 @@ class SketchImporter : ResourceImporter {
 
   override fun getConfigurationPanel(facet: AndroidFacet,
                                      callback: ConfigurationDoneCallback): JPanel? {
+    val sketchFilePath = getFilePath(facet.module.project)
+    if (sketchFilePath != null) {
+      val sketchFile = SketchParser.read(sketchFilePath)
+      if (sketchFile == null) {
+        invalidSketchFileDialog()
+      }
+      else {
+        val importOptions = ImportOptions(sketchFile)
+        val presenter = SketchImporterPresenter(sketchFile, importOptions, DesignAssetImporter())
+        importOptions.isImportAll = true  // this should be controlled by the user
+        val view = SketchImporterView(presenter)
+        presenter.populatePages(facet.module.project, view)
+        view.createImportDialog(facet, view)
+      }
+    }
 
-    val sketchImporterPanel = SketchImporterView().getConfigurationPanel(facet, supportedFileTypes.first())
     callback.configurationDone()
-    return sketchImporterPanel
+    return null
   }
 
   override fun userCanEditQualifiers() = true
@@ -44,4 +67,20 @@ class SketchImporter : ResourceImporter {
     DesignAssetRendererManager.getInstance().getViewer(SVGAssetRenderer::class.java)
 
   override fun getImportPreview(asset: DesignAsset): DesignAssetRenderer? = getSourcePreview(asset)
+
+  /**
+   * Prompts user to choose a file.
+   *
+   * @return filePath or null if user cancels the operation
+   */
+  private fun getFilePath(project: Project): String? {
+    val fileDescriptor = FileChooserDescriptorFactory.createSingleFileDescriptor(supportedFileTypes.first())
+    val files = FileChooser.chooseFiles(fileDescriptor, project, null)
+    if (files.isEmpty()) return null
+    return FileUtil.toSystemDependentName(files[0].path)
+  }
+
+  private fun invalidSketchFileDialog() {
+    JOptionPane.showMessageDialog(null, "Invalid Sketch file!")
+  }
 }

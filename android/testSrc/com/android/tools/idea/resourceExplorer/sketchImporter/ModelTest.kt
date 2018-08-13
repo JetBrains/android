@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.model.IconOptions
-import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.ImportOptions
+import com.android.tools.idea.resourceExplorer.sketchImporter.model.ImportOptions
 import com.android.tools.idea.resourceExplorer.sketchImporter.model.PageOptions
 import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchParser
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ModelTest {
@@ -32,26 +32,21 @@ class ModelTest {
     val options = ImportOptions(sketchFile)
 
     // Symbols page
-    var objectOptions = options.getOptions("CD4A49FD-0A18-4059-B493-5C2DC9F8F386")
-    assertTrue(objectOptions is PageOptions)
-    val pageOptions1 = objectOptions as PageOptions
+    val pageOptions1 = options.getPageOptions("CD4A49FD-0A18-4059-B493-5C2DC9F8F386")
     assertEquals("Symbols", sketchFile.findLayer("CD4A49FD-0A18-4059-B493-5C2DC9F8F386")?.name)
-    assertEquals(PageOptions.PageType.SYMBOLS, pageOptions1.pageType)
+    assertEquals(PageOptions.PageType.SYMBOLS, pageOptions1?.pageType)
 
     // Default-type page
-    objectOptions = options.getOptions("11B6C0F9-CE36-4365-8D66-AEF88B697CCD")
-    assertTrue(objectOptions is PageOptions)
-    val pageOptions2 = objectOptions as PageOptions
+    val pageOptions2 = options.getPageOptions("11B6C0F9-CE36-4365-8D66-AEF88B697CCD")
     assertEquals("New Palette", sketchFile.findLayer("11B6C0F9-CE36-4365-8D66-AEF88B697CCD")?.name)
-    assertEquals(PageOptions.DEFAULT_PAGE_TYPE, pageOptions2.pageType)
+    assertEquals(PageOptions.DEFAULT_PAGE_TYPE, pageOptions2?.pageType)
 
     // Artboard (Icon)
-    objectOptions = options.getOptions("E107408D-96BD-4B27-A124-6A84069917FB")
-    assertTrue(objectOptions is IconOptions)
-    val iconOptions = objectOptions as IconOptions
-    assertTrue(iconOptions.isExportable)
+    val iconOptions = options.getIconOptions("E107408D-96BD-4B27-A124-6A84069917FB")
+    assertTrue(iconOptions?.isExportable ?: false)
 
     // Layer that's in the file but is not a page/artboard
-    assertEquals(null, options.getOptions("7D779FEF-7EA8-45AF-AA97-04E803E773F7"))
+    assertNull(options.getIconOptions("7D779FEF-7EA8-45AF-AA97-04E803E773F7"))
+    assertNull(options.getPageOptions("7D779FEF-7EA8-45AF-AA97-04E803E773F7"))
   }
 }
