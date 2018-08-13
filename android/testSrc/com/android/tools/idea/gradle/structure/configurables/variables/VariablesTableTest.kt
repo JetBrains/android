@@ -348,7 +348,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.isCellEditable(variableNode, 1), equalTo(true))
 
     tableModel.setValueAt("\"3.0.1\"", variableNode, 1)
-    assertThat(variableNode.variable.model.isModified, equalTo(false))
+    assertThat(variableNode.variable.parent.isModified, equalTo(false))
 
     tableModel.setValueAt("new value", variableNode, 1)
     assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("\"new value\""))
@@ -382,7 +382,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.isCellEditable(firstElementNode, 1), equalTo(true))
 
     tableModel.setValueAt("\"proguard-rules.txt\"", firstElementNode, 1)
-    assertThat(firstElementNode.variable.model.isModified, equalTo(false))
+    assertThat(firstElementNode.variable.parent.isModified, equalTo(false))
 
     tableModel.setValueAt("new value", firstElementNode, 1)
     assertThat(tableModel.getValueAt(firstElementNode, 1) as String, equalTo("\"new value\""))
@@ -416,7 +416,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.isCellEditable(firstElementNode, 1), equalTo(true))
 
     tableModel.setValueAt("\"\"double\" quotes\"", firstElementNode, 1)
-    assertThat(firstElementNode.variable.model.isModified, equalTo(false))
+    assertThat(firstElementNode.variable.parent.isModified, equalTo(false))
 
     tableModel.setValueAt("new value", firstElementNode, 1)
     assertThat(tableModel.getValueAt(firstElementNode, 1) as String, equalTo("\"new value\""))

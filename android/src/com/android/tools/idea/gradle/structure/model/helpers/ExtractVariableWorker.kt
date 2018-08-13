@@ -30,7 +30,7 @@ class ExtractVariableWorker<PropertyT : Any, out ModelPropertyCoreT : ModelPrope
 
   fun changeScope(newScope: PsVariablesScope, currentName: String): Pair<String?, ModelPropertyCoreT> {
     val currentValue: ParsedValue<PropertyT>? = value?.value
-    val wasNotRenamed = (property == null) || currentName.isEmpty() || currentName == variable?.getName()
+    val wasNotRenamed = (property == null) || currentName.isEmpty() || currentName == variable?.name
 
     this.variable?.delete()
     this.property = null
@@ -44,7 +44,7 @@ class ExtractVariableWorker<PropertyT : Any, out ModelPropertyCoreT : ModelPrope
     this.variable = variable
     this.property = property
 
-    val resultName = if (wasNotRenamed) variable.getName() else currentName
+    val resultName = if (wasNotRenamed) variable.name else currentName
 
     return resultName to property
   }

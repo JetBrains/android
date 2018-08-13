@@ -33,7 +33,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val psProject = PsProjectImpl(project)
     val variables = psProject.variables.getModuleVariables()
     assertThat(
-      variables.map { it.getName() },
+      variables.map { it.name },
       equalTo(listOf(
         "someVar",
         "rootBool",
@@ -49,7 +49,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables.getModuleVariables()
     assertThat(
-      variables.map { it.getName() },
+      variables.map { it.name },
       equalTo(listOf(
         "myVariable",
         "variable1",
