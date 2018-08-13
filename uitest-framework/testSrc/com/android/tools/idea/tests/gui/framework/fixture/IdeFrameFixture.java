@@ -433,6 +433,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return this;
   }
 
+  public boolean isGradleSyncNotNeeded() {
+    return GradleSyncState.getInstance(getProject()).isSyncNeeded() == ThreeState.NO? true: false;
+  }
+
   @NotNull
   public IdeFrameFixture waitForGradleProjectSyncToFinish() {
     // Workaround: b/72654538: Gradle Project Sync takes longer time
