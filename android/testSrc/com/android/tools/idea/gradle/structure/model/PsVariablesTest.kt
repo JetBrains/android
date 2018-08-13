@@ -17,14 +17,13 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
-import com.android.tools.idea.gradle.dsl.api.util.TypeReference
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.util.concurrent.ListenableFuture
 import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
 
 class PsVariablesTest : AndroidGradleTestCase() {
@@ -33,12 +32,14 @@ class PsVariablesTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
     val psProject = PsProjectImpl(project)
     val variables = psProject.variables.getModuleVariables()
-    assertThat(variables.size, equalTo(1))
     assertThat(
       variables.map { it.getName() },
-      hasItems(
-        "someVar"
-      )
+      equalTo(listOf(
+        "someVar",
+        "rootBool",
+        "rootBool3",
+        "rootBool2"
+      ))
     )
   }
 
@@ -47,21 +48,41 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables.getModuleVariables()
-    assertThat(variables.size, equalTo(9))
     assertThat(
       variables.map { it.getName() },
-      hasItems(
+      equalTo(listOf(
         "myVariable",
         "variable1",
         "anotherVariable",
-        "mapVariable",
-        "moreVariable",
         "varInt",
         "varBool",
         "varRefString",
-        "varProGuardFiles"
-      )
+        "varProGuardFiles",
+        "moreVariable",
+        "mapVariable"))
     )
+  }
+
+  fun testVariableWellKnownValues() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val rootVariables = psProject.variables
+    val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
+    val variables = psAppModule.variables
+    // Variable's possible values are inferred from its usage in config files.
+    val rootVariableKnownValues =
+      PsVariable.Descriptors.variableValue.bindContext(rootVariables.getOrCreateVariable("rootBool")).getKnownValues().get()
+    val rootVariable2KnownValues =
+      PsVariable.Descriptors.variableValue.bindContext(rootVariables.getOrCreateVariable("rootBool2")).getKnownValues().get()
+    val rootVariable3KnownValues =
+      PsVariable.Descriptors.variableValue.bindContext(rootVariables.getOrCreateVariable("rootBool3")).getKnownValues().get()
+    val variableKnownValues =
+      PsVariable.Descriptors.variableValue.bindContext(variables.getOrCreateVariable("varBool")).getKnownValues().get()
+
+    assertThat(rootVariableKnownValues.literals, equalTo<List<ValueDescriptor<Any>>>(booleanValues(null).get()))
+    assertThat(rootVariable2KnownValues.literals, equalTo<List<ValueDescriptor<Any>>>(booleanValues(null).get()))
+    assertThat(rootVariable3KnownValues.literals, equalTo<List<ValueDescriptor<Any>>>(booleanValues(null).get()))
+    assertThat(variableKnownValues.literals, equalTo<List<ValueDescriptor<Any>>>(booleanValues(null).get()))
   }
 
   fun testGetAvailableVariablesForType() {

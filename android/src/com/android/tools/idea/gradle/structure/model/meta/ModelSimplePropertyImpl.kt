@@ -123,8 +123,8 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
   private fun ModelT.setModified() = modelDescriptor.setModified(this)
 }
 
-abstract class ModelPropertyCoreImpl<PropertyT : Any> : ModelPropertyCore<PropertyT>, GradleModelCoreProperty<PropertyT, ModelPropertyCore<PropertyT>> {
-  abstract fun getParsedProperty(): ResolvedPropertyModel?
+abstract class ModelPropertyCoreImpl<PropertyT : Any>
+  : ModelPropertyCore<PropertyT>, GradleModelCoreProperty<PropertyT, ModelPropertyCore<PropertyT>> {
   abstract val getter: ResolvedPropertyModel.() -> PropertyT?
   abstract val setter: ResolvedPropertyModel.(PropertyT) -> Unit
   abstract val nullifier: ResolvedPropertyModel.() -> Unit

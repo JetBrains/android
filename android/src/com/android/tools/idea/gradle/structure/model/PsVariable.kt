@@ -18,8 +18,11 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference
-import com.android.tools.idea.gradle.structure.model.meta.GradleModelCoreProperty
-import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
+import com.android.tools.idea.gradle.structure.model.helpers.parseAny
+import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.projectsystem.transform
+import com.google.common.util.concurrent.Futures
+import com.intellij.openapi.diagnostic.Logger
 import java.lang.IllegalStateException
 
 /**
@@ -29,9 +32,11 @@ class PsVariable(
   private val property: GradlePropertyModel,
   private val resolvedProperty: ResolvedPropertyModel,
   val model: PsModel,
-  val scopePsVariables: PsVariablesScope) {
+  val scopePsVariables: PsVariablesScope
+) {
   val valueType get() = property.valueType
   val resolvedValueType get() = resolvedProperty.valueType
+  var value by Descriptors.variableValue
 
   fun <T> getUnresolvedValue(type: TypeReference<T>): T? {
     return property.getRawValue(type)
@@ -92,7 +97,79 @@ class PsVariable(
    */
   @Suppress("UNCHECKED_CAST")
   fun <T : Any, PropertyCoreT : ModelPropertyCore<T>> bindNewPropertyAs(prototype: PropertyCoreT): PropertyCoreT? =
-    // Note: the as? test is only to test whether the interface is implemented.
-    // If it is, the generic type arguments will match.
+  // Note: the as? test is only to test whether the interface is implemented.
+  // If it is, the generic type arguments will match.
     (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty) { model.isModified = true }
+
+  object Descriptors : ModelDescriptor<PsVariable, Nothing, ResolvedPropertyModel> {
+    override fun getResolved(model: PsVariable): Nothing? = null
+
+    override fun getParsed(model: PsVariable): ResolvedPropertyModel? = model.resolvedProperty
+
+    override fun setModified(model: PsVariable) {
+      model.scopePsVariables.model.isModified = true
+    }
+
+    val variableValue: SimpleProperty<PsVariable, Any> = property(
+      "Value",
+      defaultValueGetter = null,
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { this },
+      getter = { asAny() },
+      setter = { setValue(it) },
+      parser = ::parseAny,
+      knownValuesGetter = { variable ->
+        val potentiallyReferringModels = variable.scopePsVariables.model.descriptor.enumerateContainedModels()
+        val collector = variable.ReferenceContextCollector()
+        potentiallyReferringModels.forEach { it.descriptor.enumerateProperties(collector) }
+        Futures
+          .successfulAsList(collector.collectedReferences.map { it.getKnownValues() })
+          .transform { it.combineKnownValues() }
+      },
+
+      variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
+    )
+  }
+
+  private inner class ReferenceContextCollector : PsModelDescriptor.PropertyReceiver {
+    val collectedReferences = mutableListOf<ModelPropertyContext<out Any>>()
+    override fun <T : PsModel> receive(model: T, property: ModelProperty<T, *, *, *>) {
+      try {
+        val value = property.getValue(model, ::FAKE_PROPERTY)
+        if (value !is ParsedValue.Set.Parsed || value.dslText !is DslText.Reference) return
+        val propertyCore = property.bind(model) as? GradleModelCoreProperty<*, *> ?: return
+        var propertyModel: GradlePropertyModel = propertyCore.getParsedProperty()?.unresolvedModel ?: return
+        val seen = mutableSetOf<GradlePropertyModel>()
+        while (propertyModel.valueType == GradlePropertyModel.ValueType.REFERENCE) {
+          if (!seen.add(propertyModel)) return
+          propertyModel = propertyModel.dependencies[0]!!
+          if (resolvedProperty.fullyQualifiedName == propertyModel.fullyQualifiedName &&
+              resolvedProperty.gradleFile.path == propertyModel.gradleFile.path) {
+            collectedReferences.add(property.bindContext(model))
+            return
+          }
+        }
+      }
+      catch (e: Exception) {
+        LOG.warn(e)
+      }
+    }
+  }
 }
+
+/**
+ * Combines multiple [KnownValues] instances by intersecting non-empty sets of known-values.
+ */
+private fun <T> Collection<KnownValues<out T>>.combineKnownValues() =
+  map { it.literals.toSet() }
+    .fold(setOf<ValueDescriptor<T>>()) { acc, v ->
+      when {
+        acc.isEmpty() -> v
+        v.isEmpty() -> acc
+        else -> acc intersect v
+      }
+    }
+    .toList()
+
+private val LOG = Logger.getInstance(PsVariable::class.java)
+private val FAKE_PROPERTY: Nothing? = null
