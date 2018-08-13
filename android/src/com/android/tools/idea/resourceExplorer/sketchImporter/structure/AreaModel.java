@@ -24,17 +24,18 @@ import java.awt.geom.Point2D;
 
 public class AreaModel extends ShapeModel {
 
+  @NotNull
   private final Area area;
 
-  public AreaModel(Area shape,
-                   SketchFill fill,
-                   SketchBorder border,
+  public AreaModel(@NotNull Area shape,
+                   @NotNull SketchFill fill,
+                   @NotNull SketchBorder border,
                    boolean flippedHorizontal,
                    boolean flippedVertical,
                    boolean closed,
                    int rotation,
                    int operation,
-                   Point2D.Double framePosition) {
+                   @NotNull Point2D.Double framePosition) {
     super(shape, fill, border, flippedHorizontal, flippedVertical, closed, rotation, operation, framePosition);
     area = shape;
   }
@@ -44,23 +45,23 @@ public class AreaModel extends ShapeModel {
     return area;
   }
 
-  private void addShape(AreaModel model) {
+  private void addShape(@NotNull AreaModel model) {
     area.add(model.getModelArea());
   }
 
-  private void subtractShape(AreaModel model) {
+  private void subtractShape(@NotNull AreaModel model) {
     area.subtract(model.getModelArea());
   }
 
-  private void differenceShape(AreaModel model) {
+  private void differenceShape(@NotNull AreaModel model) {
     area.exclusiveOr(model.getModelArea());
   }
 
-  private void intersectShape(AreaModel model) {
+  private void intersectShape(@NotNull AreaModel model) {
     area.intersect(model.getModelArea());
   }
 
-  public void applyOperation(AreaModel model) {
+  public void applyOperation(@NotNull AreaModel model) {
     int booleanOperation = model.getBooleanOperation();
     switch (booleanOperation) {
       case SketchLayer.BOOLEAN_OPERATION_UNION:

@@ -16,25 +16,25 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 
 import com.android.SdkConstants;
-import com.android.ddmlib.Log;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.DrawableModel;
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchGradient;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchGradientStop;
 import com.android.tools.layoutlib.annotations.NotNull;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.LightVirtualFile;
+import org.jetbrains.annotations.Nullable;
 
-import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.util.List;
 
 import static com.intellij.openapi.application.ApplicationManager.getApplication;
 
-public class VectorDrawableFile {
+public class DrawableGenerator {
+  public static final Logger LOG = Logger.getInstance(SketchGradient.class);
 
   private static final String TAG_VECTOR_HEAD = "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"";
   private static final String TAG_PATH = "<path";
@@ -63,17 +63,13 @@ public class VectorDrawableFile {
   private static final String ATTRIBUTE_STROKE_COLOR = "android:strokeColor";
   private static final String ATTRIBUTE_STROKE_WIDTH = "android:strokeWidth";
 
-  @NotNull private SketchArtboard artboard;
   @NotNull private Project project;
   @NotNull private XmlTag root;
+  @Nullable private VectorDrawable myVectorDrawable;
 
-  public VectorDrawableFile(@NotNull Project projectParam) {
+  public DrawableGenerator(@NotNull Project projectParam, @Nullable VectorDrawable object) {
     project = projectParam;
-  }
-
-  public VectorDrawableFile(@NotNull Project projectParam, @NotNull SketchArtboard artboardParam) {
-    project = projectParam;
-    artboard = artboardParam;
+    myVectorDrawable = object;
   }
 
   public void createVectorDrawable() {
@@ -81,21 +77,18 @@ public class VectorDrawableFile {
       .runReadAction((Computable<XmlTag>)() -> XmlElementFactory.getInstance(project).createTagFromText(TAG_VECTOR_HEAD));
   }
 
-  public void setVectorDimensions(double height, double width) {
+  private void updateDimensionsFromVectorDrawable() {
     getApplication().runReadAction(() -> {
-      root.setAttribute(ATTRIBUTE_HEIGHT, Double.toString(height) + "dp");
-      root.setAttribute(ATTRIBUTE_WIDTH, Double.toString(width) + "dp");
+      if (myVectorDrawable != null) {
+        root.setAttribute(ATTRIBUTE_HEIGHT, Double.toString(myVectorDrawable.getArtboardHeight()) + "dp");
+        root.setAttribute(ATTRIBUTE_WIDTH, Double.toString(myVectorDrawable.getArtboardWidth()) + "dp");
+        root.setAttribute(ATTRIBUTE_VIEWPORT_HEIGHT, Double.toString(myVectorDrawable.getViewportHeight()));
+        root.setAttribute(ATTRIBUTE_VIEWPORT_WIDTH, Double.toString(myVectorDrawable.getViewportWidth()));
+      }
     });
   }
 
-  public void setViewportDimensions(double height, double width) {
-    getApplication().runReadAction(() -> {
-      root.setAttribute(ATTRIBUTE_VIEWPORT_HEIGHT, Double.toString(height));
-      root.setAttribute(ATTRIBUTE_VIEWPORT_WIDTH, Double.toString(width));
-    });
-  }
-
-  public void addPath(@NotNull DrawableModel shape) {
+  private void addPath(@NotNull DrawableModel shape) {
     getApplication().runReadAction(() -> {
       XmlTag pathTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_PATH);
       pathTag.setAttribute(ATTRIBUTE_PATH_DATA, shape.getPathData());
@@ -160,7 +153,7 @@ public class VectorDrawableFile {
         drawableFile.createNewFile();
       }
       catch (IOException e) {
-        Log.e(VectorDrawableFile.class.getName(), "Could not save file to disk");
+        LOG.error(DrawableGenerator.class.getName(), "Could not save file to disk");
       }
     }
 
@@ -170,10 +163,10 @@ public class VectorDrawableFile {
       dataOutputStream.writeBytes(System.getProperty("line.separator"));
     }
     catch (FileNotFoundException e) {
-      Log.e(VectorDrawableFile.class.getName(), "Could not save file to disk");
+      LOG.error(DrawableGenerator.class.getName(), "Could not save file to disk");
     }
     catch (IOException e) {
-      Log.e(VectorDrawableFile.class.getName(), e);
+      LOG.error(DrawableGenerator.class.getName(), e);
     }
   }
 
@@ -184,11 +177,9 @@ public class VectorDrawableFile {
   public LightVirtualFile generateFile(@NotNull String filename) {
     LightVirtualFile virtualFile = new LightVirtualFile(filename + ".xml");
     createVectorDrawable();
-    if (artboard != null) {
-      Rectangle2D.Double frame = artboard.getFrame();
-      setVectorDimensions(frame.getHeight(), frame.getWidth());
-      setViewportDimensions(frame.getHeight(), frame.getWidth());
-      List<DrawableModel> drawableModels = artboard.getAllDrawableShapes();
+    if (myVectorDrawable != null) {
+      updateDimensionsFromVectorDrawable();
+      List<DrawableModel> drawableModels = myVectorDrawable.getDrawableModels();
       for (DrawableModel drawableModel : drawableModels) {
         addPath(drawableModel);
       }

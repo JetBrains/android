@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
-import com.android.ddmlib.Log;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,6 +24,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 public class SketchGradient {
+  public static final Logger LOG = Logger.getInstance(SketchGradient.class);
   private final int elipseLength;
   private SketchPoint2D from;
   private SketchPoint2D to;
@@ -70,10 +71,11 @@ public class SketchGradient {
 
   @Nullable
   public String getDrawableGradientType() {
-    if (getGradientType() >= 0 && gradientType < TYPES.length) {
+    if (gradientType >= 0 && gradientType < TYPES.length) {
       return TYPES[getGradientType()];
-    } else {
-      Log.e(SketchGradient.class.getName(), "Unknown gradient type");
+    }
+    else {
+      LOG.error("Unknown gradient type. Array index is " + Integer.toString(gradientType));
     }
 
     return null;

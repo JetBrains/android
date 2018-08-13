@@ -23,8 +23,8 @@ import com.android.tools.layoutlib.annotations.NotNull;
 import java.awt.geom.Path2D;
 
 public class Path2DBuilder {
-  @NotNull
-  private Path2D.Double path;
+
+  @NotNull private Path2D.Double path;
 
   public Path2DBuilder() {
     path = new Path2D.Double();
@@ -41,7 +41,7 @@ public class Path2DBuilder {
   public void createBezierCurve(@NotNull SketchPoint2D curveFrom, @NotNull SketchPoint2D curveTo, @NotNull SketchPoint2D destination) {
     path.curveTo(curveFrom.getX(), curveFrom.getY(), curveTo.getX(), curveTo.getY(), destination.getX(), destination.getY());
   }
-  
+
   public void createQuadCurve(@NotNull SketchPoint2D controlPoint, @NotNull SketchPoint2D endPoint) {
     path.quadTo(controlPoint.getX(), controlPoint.getY(), endPoint.getX(), endPoint.getY());
   }
