@@ -18,9 +18,9 @@ package com.android.tools.idea.ui.resourcechooser;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
@@ -213,7 +213,7 @@ public class StateListPicker extends JPanel {
      * @see AlphaActionListener#documentChanged(DocumentEvent)
      */
     @Override
-    public void documentChanged(DocumentEvent e) {
+    public void documentChanged(@NotNull DocumentEvent e) {
       myState.setValue(myComponent.getResourceValue());
       // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
       // To prevent a potential deadlock, we call updateIcon in another thread.
@@ -289,7 +289,7 @@ public class StateListPicker extends JPanel {
      * @see ValueActionListener#documentChanged(DocumentEvent)
      */
     @Override
-    public void documentChanged(DocumentEvent e) {
+    public void documentChanged(@NotNull DocumentEvent e) {
       myState.setAlpha(myComponent.getAlphaValue());
       // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
       // To prevent a potential deadlock, we call updateIcon in another thread.

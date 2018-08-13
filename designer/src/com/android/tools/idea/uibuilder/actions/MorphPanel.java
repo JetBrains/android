@@ -158,7 +158,7 @@ public class MorphPanel extends JPanel {
   private DocumentAdapter createDocumentListener() {
     return new DocumentAdapter() {
       @Override
-      public void documentChanged(DocumentEvent e) {
+      public void documentChanged(@NotNull DocumentEvent e) {
         if (myNameChangeConsumer != null) {
           myNameChangeConsumer.consume(e.getDocument().getText());
         }

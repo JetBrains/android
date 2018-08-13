@@ -426,7 +426,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
    */
   private class MyDocumentListener implements DocumentListener {
     @Override
-    public void documentChanged(DocumentEvent event) {
+    public void documentChanged(@NotNull DocumentEvent event) {
       updatePreview();
     }
   }
