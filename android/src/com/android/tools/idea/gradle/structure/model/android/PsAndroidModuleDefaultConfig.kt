@@ -15,7 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-class PsAndroidModuleDefaultConfig(val module: PsAndroidModule) {
+import com.android.tools.idea.gradle.structure.model.PsChildModel
+import com.android.tools.idea.gradle.structure.model.PsModel
+import com.android.tools.idea.gradle.structure.model.meta.getValue
+
+class PsAndroidModuleDefaultConfig(val module: PsAndroidModule) : PsChildModel(){
+  override val descriptor by PsAndroidModuleDefaultConfigDescriptors
+  override val parent: PsModel = module
+  override val name: String = "default"
+  override val isDeclared: Boolean = module.isDeclared
   var applicationId by PsAndroidModuleDefaultConfigDescriptors.applicationId
   var applicationIdSuffix by PsAndroidModuleDefaultConfigDescriptors.applicationIdSuffix
   var maxSdkVersion by PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion

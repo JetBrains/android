@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
+import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
@@ -32,6 +33,7 @@ class PsAndroidModule(
   parent: PsProject,
   override val gradlePath: String
 ) : PsModule(parent) {
+  override val descriptor by AndroidModuleDescriptors
   var resolvedModel: AndroidModuleModel? = null; private set
   override var projectType: PsModuleType = PsModuleType.UNKNOWN; private set
   var isLibrary: Boolean = false; private set

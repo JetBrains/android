@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.structure.configurables.CachingRepositorySearchFactory
 import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
+import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -31,6 +33,7 @@ class PsProjectImpl(
   override val ideProject: Project,
   override val repositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory()
 ) : PsChildModel(), PsProject {
+  override val descriptor by ProjectDescriptors
   override var parsedModel: ProjectBuildModel = GradleModelProvider.get().getProjectModel(ideProject); private set
   @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
   final override var variables: PsVariables
@@ -112,5 +115,12 @@ class PsProjectImpl(
       moduleCollection.refresh()
       isModified = true  // This is to trigger apply() which in turn will trigger the final sync.
     }
+  }
+
+  object ProjectDescriptors: ModelDescriptor<PsProject, Nothing, Nothing> {
+    override fun getResolved(model: PsProject): Nothing? = null
+    override fun getParsed(model: PsProject): Nothing? = null
+    override fun setModified(model: PsProject) { model.isModified = true }
+    override fun enumerateModels(model: PsProject): Collection<PsModel> = model.modules
   }
 }

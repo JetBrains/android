@@ -17,10 +17,9 @@ package com.android.tools.idea.gradle.structure.model.java
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
-import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
-import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.PsModuleType
-import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.intellij.icons.AllIcons
 import java.io.File
 import javax.swing.Icon
@@ -29,6 +28,7 @@ class PsJavaModule(
   parent: PsProject,
   override val gradlePath: String
   ) : PsModule(parent) {
+  override val descriptor by JavaModuleDescriptors
   var resolvedModel: JavaModuleModel? = null ; private set
   override var rootDir: File? = null ; private set
   override val projectType: PsModuleType = PsModuleType.JAVA
@@ -61,5 +61,12 @@ class PsJavaModule(
   override fun resetDependencies() {
     myDependencyCollection = null
     myResolvedDependencyCollection = null
+  }
+
+  object JavaModuleDescriptors: ModelDescriptor<PsJavaModule, Nothing, Nothing> {
+    override fun getResolved(model: PsJavaModule): Nothing? = null
+    override fun getParsed(model: PsJavaModule): Nothing? = null
+    override fun setModified(model: PsJavaModule) { model.isModified = true }
+    override fun enumerateModels(model: PsJavaModule): Collection<PsModel> = model.dependencies.items
   }
 }

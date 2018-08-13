@@ -27,7 +27,7 @@ import java.io.File
 class PsSigningConfig(
   override val parent: PsAndroidModule
 ) : PsChildModel() {
-
+  override val descriptor by SigningConfigDescriptors
   var resolvedModel: SigningConfig? = null ; private set
   private var parsedModel: SigningConfigModel? = null
 
@@ -113,5 +113,8 @@ class PsSigningConfig(
       setter = { setValue(it) },
       parser = ::parseString
     )
+
+    override val properties: Collection<ModelProperty<PsSigningConfig, *, *, *>> =
+      listOf(storeFile, storePassword, storeType, keyAlias, keyPassword)
   }
 }

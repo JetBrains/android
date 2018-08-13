@@ -29,6 +29,16 @@ import org.hamcrest.MatcherAssert.assertThat
 
 class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
 
+  fun testDescriptor() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule.descriptor.testEnumerateProperties(), equalTo(AndroidModuleDescriptors.testEnumerateProperties()))
+  }
+
   fun testProperties() {
     loadProject(PSD_SAMPLE)
 
@@ -58,7 +68,7 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
   }
 
   fun testSetProperties() {
-    // Note: this test doesnot attempt to sync because it won't succeed without installing older SDKs.
+    // Note: this test does not attempt to sync because it won't succeed without installing older SDKs.
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project

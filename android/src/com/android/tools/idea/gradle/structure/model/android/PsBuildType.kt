@@ -27,7 +27,7 @@ private const val DEBUG_BUILD_TYPE_NAME = "debug"
 open class PsBuildType(
   final override val parent: PsAndroidModule
 ) : PsChildModel() {
-
+  override val descriptor by BuildTypeDescriptors
   var resolvedModel: BuildType? = null
   private var parsedModel: BuildTypeModel? = null
 
@@ -254,5 +254,10 @@ open class PsBuildType(
       setter = { setValue(it) },
       parser = ::parseString
     )
+
+    override val properties: Collection<ModelProperty<PsBuildType, *, *, *>> =
+      listOf(applicationIdSuffix, debuggable, embedMicroApp, jniDebuggable, minifyEnabled, multiDexEnabled, pseudoLocalesEnabled,
+             renderscriptDebuggable, renderscriptOptimLevel, signingConfig, testCoverageEnabled, versionNameSuffix, zipAlignEnabled,
+             matchingFallbacks, consumerProGuardFiles, proGuardFiles, manifestPlaceholders)
   }
 }
