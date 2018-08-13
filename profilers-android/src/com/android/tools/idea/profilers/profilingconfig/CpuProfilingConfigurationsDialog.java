@@ -284,9 +284,6 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, 25));
         panel.setBackground(list.getBackground());
         String cellText = value.getName();
-        if (index >= getCustomConfigurationCount()) {
-          cellText += " - Default";
-        }
 
         // TODO(b/69367377): Update the design for features that are supported outside the current device level.
         if (!value.isDeviceLevelSupported(myDeviceLevel)) {
