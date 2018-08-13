@@ -170,11 +170,14 @@ class ResourceExplorerView(
   }
 
   private fun getRendererForType(type: ResourceType, list: JList<*>): ListCellRenderer<DesignAssetSet> {
+    val refreshCallBack = { index: Int ->
+      list.repaint(list.getCellBounds(index, index))
+    }
     return when (type) {
-      ResourceType.DRAWABLE -> DrawableResourceCellRenderer(resourcesBrowserViewModel) { _ -> list.repaint() }
+      ResourceType.DRAWABLE -> DrawableResourceCellRenderer(resourcesBrowserViewModel::getDrawablePreview, refreshCallBack)
       ResourceType.COLOR -> ColorResourceCellRenderer(resourcesBrowserViewModel.facet.module.project,
                                                       resourcesBrowserViewModel.resourceResolver)
-      ResourceType.SAMPLE_DATA -> DrawableResourceCellRenderer(resourcesBrowserViewModel) { _ -> list.repaint() }
+      ResourceType.SAMPLE_DATA -> DrawableResourceCellRenderer(resourcesBrowserViewModel::getDrawablePreview, refreshCallBack)
       else -> ListCellRenderer { _, value, _, _, _ ->
         JLabel(value.name)
       }

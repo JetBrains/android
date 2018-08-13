@@ -22,7 +22,6 @@ import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.projectsystem.transform
 import com.android.tools.idea.res.resolveMultipleColors
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
-import com.android.tools.idea.resourceExplorer.viewmodel.ProjectResourcesBrowserViewModel
 import com.google.common.cache.CacheBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
@@ -140,7 +139,7 @@ class ColorResourceCellRenderer(
  * called once it's finished.
  */
 class DrawableResourceCellRenderer(
-  private val browserViewModel: ProjectResourcesBrowserViewModel,
+  private val imageProvider: (size: Dimension, designAssetSet: DesignAssetSet) -> ListenableFuture<out Image?>,
   private val refreshListCallback: (index: Int) -> Unit
 ) : DesignAssetCellRenderer() {
 
@@ -223,7 +222,7 @@ class DrawableResourceCellRenderer(
   }
 
   /**
-   * Request a new image to the [browserViewModel] that should fit inside [targetSize].
+   * Request a new image to the [imageProvider] that should fit inside [targetSize].
    *
    * Once the image is fetched, we check if it needs to be rescaled in a background Future
    * then we cache the final result or [EMPTY_ICON] if the future was cancelled and refresh the list.
@@ -233,8 +232,7 @@ class DrawableResourceCellRenderer(
     designAssetSet: DesignAssetSet,
     index: Int
   ) {
-    val previewFuture = browserViewModel
-      .getDrawablePreview(JBUI.size(targetSize), designAssetSet)
+    val previewFuture = imageProvider(JBUI.size(targetSize), designAssetSet)
       .transform(PooledThreadExecutor.INSTANCE) { image ->
         if (image == null) return@transform EMPTY_ICON
         scaleToFitIfNeeded(image, targetSize)
