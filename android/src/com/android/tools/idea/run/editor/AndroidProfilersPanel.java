@@ -52,6 +52,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
 
   private final Project myProject;
   private JPanel myDescription;
+  // TODO(b/112536124): vertical gap between checkbox and text doesn't toggle the checkbox
   private JCheckBox myAdvancedProfilingCheckBox;
   private ClickableLabel myAdvancedProfilingLabel;
   private HyperlinkLabel myHyperlinkLabel;
