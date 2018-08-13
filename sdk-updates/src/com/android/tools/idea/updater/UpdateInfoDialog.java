@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  * and links to settings.
  */
 public class UpdateInfoDialog extends AbstractUpdateDialog {
-  private static final String RELEASE_NOTES_URL = "http://developer.android.com/tools/revisions/index.html";
+  private static final String RELEASE_NOTES_URL = "https://developer.android.com/tools/revisions/index.html";
 
   private final List<RemotePackage> myPackages;
   private final JComponent myComponent;
