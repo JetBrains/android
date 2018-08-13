@@ -21,7 +21,8 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.importer.DesignAssetImporter
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
-import com.android.tools.idea.resourceExplorer.sketchImporter.logic.VectorDrawableFile
+import com.android.tools.idea.resourceExplorer.sketchImporter.logic.DrawableGenerator
+import com.android.tools.idea.resourceExplorer.sketchImporter.logic.VectorDrawable
 import com.android.tools.idea.resourceExplorer.sketchImporter.model.ImportOptions
 import com.android.tools.idea.resourceExplorer.sketchImporter.model.PageOptions
 import com.android.tools.idea.resourceExplorer.sketchImporter.model.SketchFile
@@ -110,6 +111,6 @@ class SketchImporterPresenter(private val sketchFile: SketchFile,
   private fun createIconFiles(page: SketchPage, project: Project) = page.artboards
     .associate { it to importOptions.getIconOptions(it.objectId)?.name }
     .map { (artboard, name) ->
-      VectorDrawableFile(project, artboard).generateFile(name)
+      DrawableGenerator(project, VectorDrawable(artboard.createAllDrawableShapes(), artboard.frame)).generateFile(name)
     }
 }

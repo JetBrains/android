@@ -78,7 +78,7 @@ public class SketchArtboard extends SketchLayer implements SketchLayerable {
   }
 
   @NotNull
-  private ImmutableList<ShapeModel> getAllShapeModels() {
+  private ImmutableList<ShapeModel> createAllShapeModels() {
     ImmutableList.Builder<ShapeModel> shapes = new ImmutableList.Builder<>();
     SketchLayer[] layers = getLayers();
 
@@ -90,10 +90,10 @@ public class SketchArtboard extends SketchLayer implements SketchLayerable {
   }
 
   @NotNull
-  public ImmutableList<DrawableModel> getAllDrawableShapes() {
+  public ImmutableList<DrawableModel> createAllDrawableShapes() {
     ImmutableList.Builder<DrawableModel> drawableShapes = new ImmutableList.Builder<>();
 
-    for (ShapeModel shapeModel : getAllShapeModels()) {
+    for (ShapeModel shapeModel : createAllShapeModels()) {
       drawableShapes.add(shapeModel.toDrawableShape());
     }
 

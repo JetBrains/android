@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Path2D;
@@ -22,17 +25,18 @@ import java.awt.geom.Point2D;
 
 public class PathModel extends ShapeModel {
 
+  @NotNull
   private final Path2D.Double path;
 
-  public PathModel(Path2D.Double shape,
-                   SketchFill fill,
-                   SketchBorder border,
+  public PathModel(@NotNull Path2D.Double shape,
+                   @Nullable SketchFill fill,
+                   @Nullable SketchBorder border,
                    boolean flippedHorizontal,
                    boolean flippedVertical,
                    boolean closed,
                    int rotation,
                    int operation,
-                   Point2D.Double framePosition) {
+                   @NotNull Point2D.Double framePosition) {
     super(shape, fill, border, flippedHorizontal, flippedVertical, closed, rotation, operation, framePosition);
     path = shape;
   }

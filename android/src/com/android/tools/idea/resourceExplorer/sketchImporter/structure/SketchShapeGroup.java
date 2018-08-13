@@ -84,7 +84,7 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
    * Method that generates the shape model of the shape in the SketchShapeGroup object.
    * <p>
    * Shape operations can only be performed on Area objects, and to make sure that the conversion
-   * between Path2D.Double to Area is correct, the Path2D.Double object must be closed
+   * between {@link Path2D.Double} to {@link java.awt.geom.Area} is correct, the {@link Path2D.Double} object must be closed
    */
   @NotNull
   @Override
@@ -97,14 +97,14 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
 
     Path2D.Double baseShapePath = baseSketchShapePath.getPath2D();
     PathModel finalShape = new PathModel(baseShapePath,
-                                           getStyle().getFills()[0],
-                                           getStyle().getBorders()[0],
-                                           baseSketchShapePath.isFlippedHorizontal(),
-                                           baseSketchShapePath.isFlippedVertical(),
-                                           baseSketchShapePath.isClosed(),
-                                           baseSketchShapePath.getRotation(),
-                                           getBooleanOperation(),
-                                           baseSketchShapePath.getFramePosition());
+                                         getStyle().getFills()[0],
+                                         getStyle().getBorders()[0],
+                                         baseSketchShapePath.isFlippedHorizontal(),
+                                         baseSketchShapePath.isFlippedVertical(),
+                                         baseSketchShapePath.isClosed(),
+                                         baseSketchShapePath.getRotation(),
+                                         getBooleanOperation(),
+                                         baseSketchShapePath.getFramePosition());
 
     // If the shapegroup has just one layer, there will be no shape operation.
     // Therefore, no conversion to area needed.
