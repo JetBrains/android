@@ -64,7 +64,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
     when(myGradleVersions.getGradleVersion(getProject())).thenReturn(GradleVersion.parse("3.5"));
-    assertFalse(getGradleBuildModel().repositories().hasGoogleMavenRepository());
+    assertTrue(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
 
   @Test
