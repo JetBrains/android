@@ -24,44 +24,39 @@ public class VectorPathBuilderTest {
 
   @Test
   public void createBezierCurveTest() {
-
     PathStringBuilder pathStringBuilder = new PathStringBuilder();
-
     double[] coordinates = {1.0, 1.0, 2.0, 2.0, 3.0, 3.0};
 
     pathStringBuilder.createBezierCurve(coordinates);
 
-    assertEquals("C1.0,1.0 2.0,2.0 3.0,3.0 ", pathStringBuilder.build());
+    assertEquals("C1,1 2,2 3,3 ", pathStringBuilder.build());
   }
 
   @Test
   public void createQuadCurveTest() {
-
     PathStringBuilder pathStringBuilder = new PathStringBuilder();
 
     pathStringBuilder.createQuadCurve(1.0, 1.0,
                                       2.0, 2.0);
 
-    assertEquals("Q1.0,1.0 2.0,2.0 ", pathStringBuilder.build());
+    assertEquals("Q1,1 2,2 ", pathStringBuilder.build());
   }
 
   @Test
   public void createLineTest() {
-
     PathStringBuilder pathStringBuilder = new PathStringBuilder();
 
     pathStringBuilder.createLine(1.0, 2.0);
 
-    assertEquals("L1.0,2.0 ", pathStringBuilder.build());
+    assertEquals("L1,2 ", pathStringBuilder.build());
   }
 
   @Test
   public void startPathTest() {
-
     PathStringBuilder pathStringBuilder = new PathStringBuilder();
 
     pathStringBuilder.startPath(2.0, 2.0);
 
-    assertEquals("M2.0,2.0 ", pathStringBuilder.build());
+    assertEquals("M2,2 ", pathStringBuilder.build());
   }
 }
