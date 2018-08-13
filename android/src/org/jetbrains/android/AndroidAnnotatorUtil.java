@@ -66,6 +66,8 @@ import org.xmlpull.v1.XmlPullParser;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Objects;
 
@@ -379,6 +381,12 @@ public class AndroidAnnotatorUtil {
           .addCustomComponent(model -> new MaterialColorPalette(model))
           .addSeparator()
           .addOperationPanel(okCallback, cancelCallback)
+          .addKeyAction(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              dialog.close();
+            }
+          })
           .build();
 
       dialog.show(panel, null, MouseInfo.getPointerInfo().getLocation());
