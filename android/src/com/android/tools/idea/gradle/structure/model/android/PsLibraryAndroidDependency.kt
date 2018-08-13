@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.helpers.dependencyVersionValues
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
@@ -78,15 +79,7 @@ open class PsDeclaredLibraryAndroidDependency(
       getter = { asString() },
       setter = { setValue(it) },
       parser = ::parseString,
-      knownValuesGetter = { model ->
-        Futures.transform(
-          model.parent.parent.repositorySearchFactory
-            .create(model.parent.getArtifactRepositories())
-            .search(SearchRequest(model.spec.name, model.spec.group, MAX_ARTIFACTS_TO_REQUEST, 0))
-        ) {
-          it!!.toVersionValueDescriptors()
-        }
-      },
+      knownValuesGetter = ::dependencyVersionValues,
       variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
     )
   }
@@ -127,10 +120,3 @@ abstract class PsLibraryAndroidDependency internal constructor(
 
   override fun toString(): String = toText()
 }
-
-fun SearchResult.toVersionValueDescriptors(): List<ValueDescriptor<String>> =
-  artifacts
-    .flatMap { it.versions }
-    .distinct()
-    .sortedDescending()
-    .map { version -> ValueDescriptor(version.toString()) }

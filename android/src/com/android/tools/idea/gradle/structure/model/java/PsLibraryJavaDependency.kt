@@ -19,9 +19,9 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency
 import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.helpers.dependencyVersionValues
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.meta.*
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import kotlin.reflect.KProperty
 
 class PsDeclaredLibraryJavaDependency(
@@ -78,7 +78,9 @@ class PsDeclaredLibraryJavaDependency(
       parsedPropertyGetter = { this.version() },
       getter = { asString() },
       setter = { setValue(it) },
-      parser = ::parseString
+      parser = ::parseString,
+      knownValuesGetter = ::dependencyVersionValues,
+      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
     )
   }
 }

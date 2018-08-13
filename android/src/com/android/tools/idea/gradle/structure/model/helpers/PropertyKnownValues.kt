@@ -17,10 +17,15 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
+import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.gradle.structure.configurables.ui.readOnPooledThread
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
+import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.ModuleManager
@@ -109,3 +114,21 @@ fun buildTypeMatchingFallbackValues(project: PsProject): ListenableFuture<List<V
 
 fun productFlavorMatchingFallbackValues(project: PsProject, dimension: String?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(productFlavorMatchingFallbackValuesCore(project, dimension))
+
+private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
+fun dependencyVersionValues(model: PsDeclaredLibraryDependency): ListenableFuture<List<ValueDescriptor<String>>> =
+  Futures.transform(
+    model.parent.parent.repositorySearchFactory
+      .create(model.parent.getArtifactRepositories())
+      .search(SearchRequest(model.spec.name, model.spec.group, MAX_ARTIFACTS_TO_REQUEST, 0))
+  ) {
+    it!!.toVersionValueDescriptors()
+  }
+
+@VisibleForTesting
+fun SearchResult.toVersionValueDescriptors(): List<ValueDescriptor<String>> =
+  artifacts
+    .flatMap { it.versions }
+    .distinct()
+    .sortedDescending()
+    .map { version -> ValueDescriptor(version.toString()) }
