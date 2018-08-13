@@ -236,7 +236,7 @@ public class TutorialStep extends JPanel {
     }
 
     @Override
-    public void mouseClicked(EditorMouseEvent e) {
+    public void mouseClicked(@NotNull EditorMouseEvent e) {
       if (!myIsTextSelectedOnMousePressed && isNothingSelected()) {
         selectAllText();
         e.consume();
@@ -244,7 +244,7 @@ public class TutorialStep extends JPanel {
     }
 
     @Override
-    public void mousePressed(EditorMouseEvent e) {
+    public void mousePressed(@NotNull EditorMouseEvent e) {
       myIsTextSelectedOnMousePressed = isAnythingSelected();
       if (myIsTextSelectedOnMousePressed) {
         // This disables drag and drop, but ensures developers aren't required to click again to clear the selection before trying to select

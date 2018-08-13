@@ -30,8 +30,8 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.error.IssuePanelSplitter;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
+import com.android.tools.idea.uibuilder.error.IssuePanelSplitter;
 import com.android.tools.idea.uibuilder.handlers.transition.TransitionLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
@@ -505,7 +505,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   // ---- Implements CaretListener ----
 
   @Override
-  public void caretPositionChanged(CaretEvent e) {
+  public void caretPositionChanged(@NotNull CaretEvent e) {
     if (!myIgnoreListener) {
       updateCaret();
       // TODO: implement

@@ -59,8 +59,9 @@ public class ZoomLabelAction extends AnAction implements CustomComponentAction {
     presentation.setText(label);
   }
 
+  @NotNull
   @Override
-  public JComponent createCustomComponent(Presentation presentation) {
+  public JComponent createCustomComponent(@NotNull Presentation presentation) {
     JBLabel label = new JBLabel() {
       private PropertyChangeListener myPresentationSyncer;
       private Presentation myPresentation = presentation;
