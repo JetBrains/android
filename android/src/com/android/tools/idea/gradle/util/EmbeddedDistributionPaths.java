@@ -171,6 +171,9 @@ public class EmbeddedDistributionPaths {
     if (SystemInfo.isMac) {
       jdkRootPath = new File(jdkRootPath, MAC_JDK_CONTENT_PATH);
     }
+    if (!jdkRootPath.isDirectory()) {
+      throw new Error(String.format("Incomplete or corrupted installation - \"%s\" directory does not exist", jdkRootPath.toString()));
+    }
     return jdkRootPath;
   }
 
