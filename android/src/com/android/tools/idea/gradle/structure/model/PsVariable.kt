@@ -31,9 +31,12 @@ import java.lang.IllegalStateException
 class PsVariable(
   private val property: GradlePropertyModel,
   private val resolvedProperty: ResolvedPropertyModel,
-  val model: PsModel,
+  override val parent: PsModel,
   val scopePsVariables: PsVariablesScope
-) {
+) : PsChildModel() {
+
+  override val name: String get() = property.name
+  override val isDeclared: Boolean = true
   val valueType get() = property.valueType
   val resolvedValueType get() = resolvedProperty.valueType
   var value by Descriptors.variableValue
@@ -52,20 +55,18 @@ class PsVariable(
     } else {
       property.setValue(aValue)
     }
-    model.isModified = true
+    parent.isModified = true
   }
 
   fun delete() {
     property.delete()
-    model.isModified = true
+    parent.isModified = true
   }
 
   fun setName(newName: String) {
     property.rename(newName)
-    model.isModified = true
+    parent.isModified = true
   }
-
-  fun getName() = property.name
 
   fun addListValue(value: String): PsVariable {
     if (valueType != GradlePropertyModel.ValueType.LIST) {
@@ -74,8 +75,8 @@ class PsVariable(
 
     val listValue = property.addListValue()
     listValue.setValue(value)
-    model.isModified = true
-    return PsVariable(listValue, listValue.resolve(), model, scopePsVariables)
+    parent.isModified = true
+    return PsVariable(listValue, listValue.resolve(), this, scopePsVariables)
   }
 
   fun addMapValue(key: String): PsVariable? {
@@ -87,7 +88,7 @@ class PsVariable(
     if (mapValue.psiElement != null) {
       return null
     }
-    return PsVariable(mapValue, mapValue.resolve(), model, scopePsVariables)
+    return PsVariable(mapValue, mapValue.resolve(), this, scopePsVariables)
   }
 
   fun getDependencies(): List<GradlePropertyModel> = property.dependencies
@@ -99,7 +100,7 @@ class PsVariable(
   fun <T : Any, PropertyCoreT : ModelPropertyCore<T>> bindNewPropertyAs(prototype: PropertyCoreT): PropertyCoreT? =
   // Note: the as? test is only to test whether the interface is implemented.
   // If it is, the generic type arguments will match.
-    (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty) { model.isModified = true }
+    (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty) { parent.isModified = true }
 
   object Descriptors : ModelDescriptor<PsVariable, Nothing, ResolvedPropertyModel> {
     override fun getResolved(model: PsVariable): Nothing? = null

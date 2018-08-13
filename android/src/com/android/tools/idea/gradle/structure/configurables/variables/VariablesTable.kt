@@ -89,7 +89,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     fun createRoot(variablesScope: PsVariablesScope): ModuleNode {
       val moduleVariables = variablesScope.getModuleVariables()
       val moduleRoot = ModuleNode(variablesScope)
-      moduleVariables.map { VariableNode(it) }.sortedBy { it.variable.getName() }.forEach { moduleRoot.add(it) }
+      moduleVariables.map { VariableNode(it) }.sortedBy { it.variable.name }.forEach { moduleRoot.add(it) }
       return moduleRoot
     }
 
@@ -296,7 +296,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       }
       val nodeBeingEdited = (table as VariablesTable).tree.getPathForRow(row).lastPathComponent
       if (nodeBeingEdited is BaseVariableNode) {
-        textBox.setVariants(nodeBeingEdited.variable.scopePsVariables.getModuleVariables().map { it.getName() })
+        textBox.setVariants(nodeBeingEdited.variable.scopePsVariables.getModuleVariables().map { it.name })
       }
       textBox.text = value
       return textBox
@@ -446,23 +446,23 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       when (variable.valueType) {
         GradlePropertyModel.ValueType.MAP -> {
           variable.getUnresolvedValue(MAP_TYPE)?.forEach {
-            add(MapItemNode(it.key, PsVariable(it.value, it.value.resolve(), variable.model, variable.scopePsVariables)))
+            add(MapItemNode(it.key, PsVariable(it.value, it.value.resolve(), variable.parent, variable.scopePsVariables)))
           }
           add(EmptyMapItemNode(variable))
-          userObject = NodeDescription(variable.getName(), EmptyIcon.ICON_0)
+          userObject = NodeDescription(variable.name, EmptyIcon.ICON_0)
         }
         GradlePropertyModel.ValueType.LIST -> {
           val list = variable.getUnresolvedValue(LIST_TYPE)
           if (list != null) {
             list.forEachIndexed { index, propertyModel ->
-              add(ListItemNode(index, PsVariable(propertyModel, propertyModel.resolve(), variable.model, variable.scopePsVariables)))
+              add(ListItemNode(index, PsVariable(propertyModel, propertyModel.resolve(), variable.parent, variable.scopePsVariables)))
             }
             add(EmptyListItemNode(variable))
           }
-          userObject = NodeDescription(variable.getName(), EmptyIcon.ICON_0)
+          userObject = NodeDescription(variable.name, EmptyIcon.ICON_0)
         }
         else -> {
-          userObject = NodeDescription(variable.getName(), EmptyIcon.ICON_0)
+          userObject = NodeDescription(variable.name, EmptyIcon.ICON_0)
         }
       }
     }
