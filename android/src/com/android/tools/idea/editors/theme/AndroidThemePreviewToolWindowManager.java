@@ -398,7 +398,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
    */
   private class MyCaretListener implements CaretListener {
     @Override
-    public void caretPositionChanged(CaretEvent e) {
+    public void caretPositionChanged(@NotNull CaretEvent e) {
       if (e == null || e.getCaret() == null) {
         myToolWindow.setAvailable(false, null);
         return;
