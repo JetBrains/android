@@ -255,7 +255,13 @@ class DrawableResourceCellRenderer(
     designAssetSet: DesignAssetSet,
     index: Int
   ) {
-    val finalImage = if (previewFuture.isCancelled) EMPTY_ICON else previewFuture.get()
+    val finalImage = try {
+      if (previewFuture.isCancelled) EMPTY_ICON else previewFuture.get()
+    }
+    catch (e: Exception) {
+      LOG.error("${designAssetSet.name} couldn't be rendered", e)
+      EMPTY_ICON
+    }
     assetToImage.put(designAssetSet, finalImage)
     refreshListCallback(index)
   }

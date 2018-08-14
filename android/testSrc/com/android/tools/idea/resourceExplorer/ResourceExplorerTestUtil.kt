@@ -50,6 +50,7 @@ fun getExternalResourceDirectory(vararg files: String): VirtualFile {
 
 const val pluginTestFilesDirectoryName = "/plugins-resources"
 private const val pngFileName = "png.png"
+private const val statelist = "statelist.xml"
 
 fun getTestDataDirectory() = AndroidTestBase.getTestDataPath() + "/resourceExplorer"
 
@@ -75,6 +76,12 @@ fun getPNGFile() = File(getPluginsResourcesDirectory(), pngFileName)
 
 fun AndroidProjectRule.getPNGResourceItem(): ResourceItem {
   val fileName = pngFileName
+  return getResourceItemFromPath(getPluginsResourcesDirectory(), fileName)
+}
+
+fun AndroidProjectRule.getStateList(): ResourceItem {
+  getPNGResourceItem() // The state list references the png to call that to import it in the project
+  val fileName = statelist
   return getResourceItemFromPath(getPluginsResourcesDirectory(), fileName)
 }
 
