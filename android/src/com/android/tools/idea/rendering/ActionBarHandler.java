@@ -27,7 +27,6 @@ import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -59,7 +58,6 @@ public class ActionBarHandler extends ActionBarCallback {
   @Nullable private final Object myCredential;
   @NotNull private RenderTask myRenderTask;
   @Nullable private List<ResourceReference> myMenus;
-  @Nullable private List<String> myMenuNames;
 
   ActionBarHandler(@NotNull RenderTask renderTask, @Nullable Object credential) {
     myRenderTask = renderTask;
@@ -98,68 +96,6 @@ public class ActionBarHandler extends ActionBarCallback {
   @Override
   public boolean isOverflowPopupNeeded() {
     return ourShowMenu || myRenderTask.getContext().getFolderType() == ResourceFolderType.MENU;
-  }
-
-  @Override
-  @Deprecated
-  public List<String> getMenuIdNames() {
-    if (myMenuNames != null) {
-      return myMenuNames;
-    }
-
-    boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
-    try {
-      XmlFile xmlFile = myRenderTask.getXmlFile();
-      String commaSeparatedMenus = xmlFile == null ? null : AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
-      if (commaSeparatedMenus != null) {
-        myMenuNames = new ArrayList<>();
-        Iterables.addAll(myMenuNames, Splitter.on(',').trimResults().omitEmptyStrings().split(commaSeparatedMenus));
-      } else {
-        String fqn = xmlFile == null ? null : AndroidPsiUtils.getDeclaredContextFqcn(myRenderTask.getContext().getModule(), xmlFile);
-        if (fqn != null) {
-          Project project = xmlFile.getProject();
-          DumbService.getInstance(project).smartInvokeLater(() -> {
-            // Glance at the onCreateOptionsMenu of the associated context and use any menus found there.
-            // This is just a simple textual search; we need to replace this with a proper model lookup.
-            PsiClass clz = JavaPsiFacade.getInstance(project).findClass(fqn, GlobalSearchScope.allScope(project));
-            if (clz != null) {
-              for (PsiMethod method : clz.findMethodsByName(ON_CREATE_OPTIONS_MENU, true)) {
-                if (method instanceof PsiCompiledElement) {
-                  continue;
-                }
-                // TODO: This should instead try to use the GotoRelated implementation's notion
-                // of associated activities; see what is done in
-                // AndroidMissingOnClickHandlerInspection. However, the AndroidGotoRelatedProvider
-                // will first need to properly handle menus.
-                String matchText = method.getText();
-                Matcher matcher = MENU_FIELD_PATTERN.matcher(matchText);
-                Set<String> menus = new TreeSet<>();
-                int index = 0;
-                while (true) {
-                  if (matcher.find(index)) {
-                    menus.add(matcher.group(1));
-                    index = matcher.end();
-                  } else {
-                    break;
-                  }
-                }
-                if (!menus.isEmpty()) {
-                  myMenuNames = new ArrayList<>(menus);
-                }
-              }
-            }
-          });
-        }
-      }
-
-      if (myMenuNames == null) {
-        myMenuNames = Collections.emptyList();
-      }
-    } finally {
-      RenderSecurityManager.exitSafeRegion(token);
-    }
-
-    return myMenuNames;
   }
 
   @Override
@@ -263,14 +199,6 @@ public class ActionBarHandler extends ActionBarCallback {
    */
   public void setMenuIds(@Nullable List<ResourceReference> menus) {
     myMenus = menus;
-    if (menus == null) {
-      myMenuNames = null;
-    } else {
-      myMenuNames = new ArrayList<>(menus.size());
-      for (ResourceReference menu : menus) {
-        myMenuNames.add(menu.getName());
-      }
-    }
   }
 
   @Nullable
