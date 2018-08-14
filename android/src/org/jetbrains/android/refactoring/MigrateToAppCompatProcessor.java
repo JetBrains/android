@@ -144,7 +144,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   @VisibleForTesting
   protected MigrateToAppCompatProcessor(@NotNull Project project,
                                         @NotNull BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> appCompatStyleMigrationFactory) {
-    this(project, buildMigrationMap(), appCompatStyleMigrationFactory);
+    this(project, buildMigrationMap(project), appCompatStyleMigrationFactory);
   }
 
   @VisibleForTesting
@@ -163,97 +163,114 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     return PsiMigrationManager.getInstance(project).startMigration();
   }
 
+  /**
+   * Returns the correct name of the given {@link AndroidxName} based on whether AndroidX is on or not
+   */
+  @NotNull
+  private static String getName(boolean isAndroidx, @NotNull AndroidxName name) {
+    return isAndroidx ? name.newName() : name.oldName();
+  }
+
   @VisibleForTesting
   @NotNull
-  static List<AppCompatMigrationEntry> buildMigrationMap() {
+  static List<AppCompatMigrationEntry> buildMigrationMap(@NotNull Project project) {
+    boolean isAndroidx = MigrateToAndroidxUtil.isAndroidx(project);
+
     List<AppCompatMigrationEntry> mapEntries = Lists.newArrayListWithExpectedSize(MIGRATION_ENTRY_SIZE);
     // Change Activity => AppCompatActivity
-    mapEntries.add(new ClassMigrationEntry(CLASS_ACTIVITY, CLASS_APP_COMPAT_ACTIVITY.defaultName()));
+    mapEntries.add(new ClassMigrationEntry(CLASS_ACTIVITY, getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY)));
     // ActionBarActivity is deprecated
     mapEntries.add(new ClassMigrationEntry("android.support.v7.appActionBarActivity",
-                                           CLASS_APP_COMPAT_ACTIVITY.defaultName()));
-    mapEntries.add(new ClassMigrationEntry(CLASS_SUPPORT_FRAGMENT_ACTIVITY, CLASS_APP_COMPAT_ACTIVITY.defaultName()));
-    mapEntries.add(new ClassMigrationEntry("android.app.ActionBar", ANDROID_SUPPORT_V7_APP_ACTION_BAR.defaultName()));
+                                           getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY)));
+    mapEntries.add(new ClassMigrationEntry(CLASS_SUPPORT_FRAGMENT_ACTIVITY,
+                                           getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY)));
+    mapEntries.add(new ClassMigrationEntry("android.app.ActionBar",
+                                           getName(isAndroidx, ANDROID_SUPPORT_V7_APP_ACTION_BAR)));
     // Change method getActionBar => getSupportActionBar
-    mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "getActionBar", CLASS_APP_COMPAT_ACTIVITY.defaultName(),
+    mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "getActionBar",
+                                            getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY),
                                             "getSupportActionBar"));
 
     // Change method setActionBar => setSupportActionBar
-    mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "setActionBar", CLASS_APP_COMPAT_ACTIVITY.defaultName(),
+    mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "setActionBar",
+                                            getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY),
                                             "setSupportActionBar"));
 
-    mapEntries.add(new ClassMigrationEntry("android.widget.Toolbar", CLASS_TOOLBAR_V7.defaultName()));
+    mapEntries.add(new ClassMigrationEntry("android.widget.Toolbar",
+                                           getName(isAndroidx, CLASS_TOOLBAR_V7)));
 
     mapEntries.add(new XmlTagMigrationEntry("android.widget.Toolbar", "",
-                                            CLASS_TOOLBAR_V7.defaultName(), "",
+                                            getName(isAndroidx, CLASS_TOOLBAR_V7), "",
                                             XmlElementMigration.FLAG_LAYOUT));
 
     // Change usages of Fragment => v4.app.Fragment
-    mapEntries.add(new ClassMigrationEntry("android.app.Fragment", CLASS_V4_FRAGMENT.defaultName()));
+    mapEntries.add(new ClassMigrationEntry("android.app.Fragment",
+                                           getName(isAndroidx, CLASS_V4_FRAGMENT)));
     mapEntries.add(new ClassMigrationEntry("android.app.FragmentTransaction",
-                                           ANDROID_SUPPORT_V4_APP_FRAGMENT_TRANSACTION.defaultName()));
+                                           getName(isAndroidx, ANDROID_SUPPORT_V4_APP_FRAGMENT_TRANSACTION)));
     mapEntries.add(new ClassMigrationEntry("android.app.FragmentManager",
-                                           ANDROID_SUPPORT_V4_APP_FRAGMENT_MANAGER.defaultName()));
+                                           getName(isAndroidx, ANDROID_SUPPORT_V4_APP_FRAGMENT_MANAGER)));
 
     mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "getFragmentManager",
-                                            CLASS_APP_COMPAT_ACTIVITY.defaultName(), "getSupportFragmentManager"));
+                                            getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY),
+                                            "getSupportFragmentManager"));
 
     mapEntries.add(new ClassMigrationEntry(
       "android.app.AlertDialog",
-      ANDROID_SUPPORT_V7_APP_ALERT_DIALOG.defaultName()));
+      getName(isAndroidx, ANDROID_SUPPORT_V7_APP_ALERT_DIALOG)));
 
     mapEntries.add(new ClassMigrationEntry(
       "android.widget.SearchView",
-      ANDROID_SUPPORT_V7_WIDGET_SEARCH_VIEW.defaultName()));
+      getName(isAndroidx, ANDROID_SUPPORT_V7_WIDGET_SEARCH_VIEW)));
 
     mapEntries.add(new ClassMigrationEntry(
       "android.widget.ShareActionProvider",
-      ANDROID_SUPPORT_V7_WIDGET_SHARE_ACTION_PROVIDER.defaultName()));
+      getName(isAndroidx, ANDROID_SUPPORT_V7_WIDGET_SHARE_ACTION_PROVIDER)));
 
     mapEntries.add(new ClassMigrationEntry(
       "android.view.ActionProvider",
-      ANDROID_SUPPORT_V4_VIEW_ACTION_PROVIDER.defaultName()));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_ACTION_PROVIDER)));
 
     // The various MenuItem => MenuItemCompat migrations
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "getActionProvider",
-      ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT.defaultName(), "getActionProvider", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "getActionProvider", 0));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "getActionView",
-      ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT.defaultName(), "getActionView", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "getActionView", 0));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "collapseActionView",
-      ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT.defaultName(), "collapseActionView", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "collapseActionView", 0));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "expandActionView",
-      ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT.defaultName(), "expandActionView", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "expandActionView", 0));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "setActionProvider",
-      ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT.defaultName(), "setActionProvider", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "setActionProvider", 0));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "setActionView",
-      ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT.defaultName(), "setActionView", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "setActionView", 0));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "isActionViewExpanded",
-      ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT.defaultName(), "isActionViewExpanded", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "isActionViewExpanded", 0));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "setShowAsAction",
-      ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT.defaultName(), "setShowAsAction", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "setShowAsAction", 0));
 
     mapEntries.add(new ClassMigrationEntry(
       "android.view.MenuItem.OnActionExpandListener",
-      ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT.defaultName() + ".OnActionExpandListener"));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT) + ".OnActionExpandListener"));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "setOnActionExpandListener",
-      ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT.defaultName(), "setOnActionExpandListener", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "setOnActionExpandListener", 0));
 
     mapEntries.add(new AttributeMigrationEntry(ATTR_SHOW_AS_ACTION, ANDROID_URI,
                                                ATTR_SHOW_AS_ACTION, AUTO_URI,
@@ -271,7 +288,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
                                                XmlElementMigration.FLAG_MENU, TAG_ITEM));
 
     mapEntries.add(new AttributeValueMigrationEntry(ANDROID_WIDGET_SHARE_PROVIDER_CLASS,
-                                                    ANDROID_SUPPORT_V7_WIDGET_SHARE_ACTION_PROVIDER.defaultName(),
+                                                    getName(isAndroidx, ANDROID_SUPPORT_V7_WIDGET_SHARE_ACTION_PROVIDER),
                                                     ATTR_ACTION_PROVIDER_CLASS, ANDROID_URI,
                                                     XmlElementMigration.FLAG_MENU, TAG_ITEM));
 
@@ -284,7 +301,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
                                                "ImageView", "ImageButton"));
 
     mapEntries.add(new ClassMigrationEntry("android.widget.ListPopupWindow",
-                                           ANDROID_SUPPORT_V7_WIDGET_LIST_POPUP_WINDOW.defaultName()));
+                                           getName(isAndroidx, ANDROID_SUPPORT_V7_WIDGET_LIST_POPUP_WINDOW)));
 
     return ImmutableList.copyOf(mapEntries);
   }

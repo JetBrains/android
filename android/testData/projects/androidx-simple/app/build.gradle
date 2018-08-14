@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion "android-P"
+    compileSdkVersion 27
     defaultConfig {
         applicationId "com.example.google.androidx"
         minSdkVersion 15
