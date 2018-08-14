@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.model.helpers.parseAny
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.projectsystem.transform
 import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
 import java.lang.IllegalStateException
 
@@ -48,6 +49,9 @@ class PsVariable(
   fun <T> getResolvedValue(type: TypeReference<T>): T? {
     return resolvedProperty.getValue(type)
   }
+
+  fun convertToEmptyList() = resolvedProperty.convertToEmptyList()
+  fun convertToEmptyMap() = resolvedProperty.convertToEmptyMap()
 
   fun setValue(aValue: Any) {
     if (property.valueType == GradlePropertyModel.ValueType.BOOLEAN) {
@@ -119,17 +123,40 @@ class PsVariable(
       getter = { asAny() },
       setter = { setValue(it) },
       parser = ::parseAny,
-      knownValuesGetter = { variable ->
-        val potentiallyReferringModels = variable.scopePsVariables.model.descriptor.enumerateContainedModels()
-        val collector = variable.ReferenceContextCollector()
-        potentiallyReferringModels.forEach { it.descriptor.enumerateProperties(collector) }
-        Futures
-          .successfulAsList(collector.collectedReferences.map { it.getKnownValues() })
-          .transform { it.combineKnownValues() }
-      },
-
+      knownValuesGetter = ::variableKnownValues,
       variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
     )
+
+    val variableListValue: ListProperty<PsVariable, Any> = listProperty(
+      "Value",
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { this },
+      getter = { asAny() },
+      setter = { setValue(it) },
+      parser = ::parseAny,
+      knownValuesGetter = ::variableKnownValues,
+      variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
+    )
+
+    val variableMapValue: MapProperty<PsVariable, Any> = mapProperty(
+      "Value",
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { this },
+      getter = { asAny() },
+      setter = { setValue(it) },
+      parser = ::parseAny,
+      knownValuesGetter = ::variableKnownValues,
+      variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
+    )
+
+    fun variableKnownValues(variable: PsVariable): ListenableFuture<List<ValueDescriptor<Any>>> {
+      val potentiallyReferringModels = variable.scopePsVariables.model.descriptor.enumerateContainedModels()
+      val collector = variable.ReferenceContextCollector()
+      potentiallyReferringModels.forEach { it.descriptor.enumerateProperties(collector) }
+      return Futures
+        .successfulAsList(collector.collectedReferences.map { it.getKnownValues() })
+        .transform { it.combineKnownValues() }
+    }
   }
 
   private inner class ReferenceContextCollector : PsModelDescriptor.PropertyReceiver {
