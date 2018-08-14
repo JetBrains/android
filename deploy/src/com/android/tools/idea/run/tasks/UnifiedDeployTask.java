@@ -20,19 +20,21 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deploy.swapper.DexArchiveDatabase;
 import com.android.tools.deploy.swapper.InMemoryDexArchiveDatabase;
-import com.android.tools.deployer.Apk;
+import com.android.tools.deployer.ApkDiffer;
 import com.android.tools.deployer.Deployer;
+import com.android.tools.deployer.Installer;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.intellij.openapi.application.PathManager;
 import org.jetbrains.annotations.NotNull;
 import com.intellij.openapi.diagnostic.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack {
@@ -70,6 +72,15 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
     return 20;
   }
 
+  private String getLocalInstaller() {
+    File path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
+    if (!path.exists()) {
+      // Development mode
+      path = new File(PathManager.getHomePath(), "../../bazel-bin/tools/base/deploy/installer/android");
+    }
+    return path.getAbsolutePath();
+  }
+
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
 
@@ -79,7 +90,9 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
 
       List<String> paths = apk.getFiles().stream().map(
         apkunit -> apkunit.getApkFile().getPath()).collect(Collectors.toList());
-      Deployer deployer = new Deployer(apk.getApplicationId(), paths, this, new AdbClient(device), myDb);
+      AdbClient adb = new AdbClient(device);
+      Installer installer = new Installer(getLocalInstaller(), adb);
+      Deployer deployer = new Deployer(apk.getApplicationId(), paths, this, adb, myDb, installer);
       Deployer.RunResponse response = null;
       try {
         if (mySwap) {
@@ -121,7 +134,7 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
         System.err.println("    local apk id: " + analysis.localApkHash);
         System.err.println("    remot apk id: " + analysis.remoteApkHash);
 
-        for (Map.Entry<String, Apk.ApkEntryStatus> statusEntry : analysis.diffs.entrySet()) {
+        for (Map.Entry<String, ApkDiffer.ApkEntryStatus> statusEntry : analysis.diffs.entrySet()) {
           System.err.println("  " + statusEntry.getKey() +
                              " [" + statusEntry.getValue().toString().toLowerCase() + "]");
         }
