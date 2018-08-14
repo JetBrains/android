@@ -85,7 +85,7 @@ public class SketchLayerDeserializer implements JsonDeserializer<SketchLayer> {
       case TEXT_CLASS_TYPE:
         return context.deserialize(json, SketchText.class);
       default:
-        Logger.getInstance(SketchLayerDeserializer.class).warn("Class " + classType + " not found!");
+        Logger.getInstance(SketchLayerDeserializer.class).warn("Class " + classType + " not found.");
         return null;
     }
   }

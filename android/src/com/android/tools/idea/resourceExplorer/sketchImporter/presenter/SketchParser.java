@@ -38,6 +38,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class SketchParser {
+  private static final Logger LOG = Logger.getInstance(SketchParser.class);
+
   /**
    * Read data from the .sketch file (which is actually a zip archive) and turn it into an instance of {@code SketchFile}.
    *
@@ -78,7 +80,7 @@ public class SketchParser {
       return sketchFile;
     }
     catch (Exception e) {
-      Logger.getInstance(SketchParser.class).warn("Failed to read from sketch file: " + path);
+      LOG.warn("Failed to read from sketch file: " + path + ".", e);
     }
 
     return null;
@@ -95,7 +97,7 @@ public class SketchParser {
       return getPage(reader);
     }
     catch (Exception e) {
-      Logger.getInstance(SketchParser.class).warn("Could not read page from input stream.", e);
+      LOG.warn("Could not read page from input stream.", e);
     }
 
     return null;
@@ -112,7 +114,7 @@ public class SketchParser {
       return getPage(reader);
     }
     catch (Exception e) {
-      Logger.getInstance(SketchParser.class).warn("Could not read page from " + path + ".", e);
+      LOG.warn("Could not read page from " + path + ".", e);
     }
 
     return null;
