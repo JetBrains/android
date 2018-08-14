@@ -115,6 +115,7 @@ class AndroidDataSource extends LocalDataSource implements ModificationTracker {
     return 0;
   }
 
+  @Override
   @NotNull
   public AndroidDataSource copy() {
     AndroidDataSource newSource = new AndroidDataSource();
