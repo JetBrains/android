@@ -99,7 +99,7 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
     if (parentStyleReference == null) {
       return Collections.emptyList();
     }
-    List<ResourceItem> parentStyles = appResources.getResourceItems(parentStyleReference);
+    List<ResourceItem> parentStyles = appResources.getResources(parentStyleReference);
 
     ResourceNamespaceContext namespacesContext = ResourceHelper.getNamespacesContext(styleTag);
     if (namespacesContext == null) {
@@ -140,7 +140,7 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
 
       parentStyleReference = parentValue.getParentStyle();
       if (parentStyleReference != null) {
-        for (ResourceItem parentStyle : appResources.getResourceItems(parentStyleReference)) {
+        for (ResourceItem parentStyle : appResources.getResources(parentStyleReference)) {
           toExplore.add(pair(parentStyle, depth + 1));
         }
       }
@@ -220,7 +220,7 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
       return null;
     }
 
-    return repository.getResourceItems(attributeReference).isEmpty() ? null : s;
+    return repository.getResources(attributeReference).isEmpty() ? null : s;
   }
 
   @Override

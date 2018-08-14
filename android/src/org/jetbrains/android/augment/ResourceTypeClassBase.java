@@ -17,6 +17,7 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,12 +52,12 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
     Map<String, PsiType> fieldNames = new HashMap<>();
     PsiType basicType = ResourceType.STYLEABLE == resourceType ? INT_ARRAY : PsiType.INT;
 
-    for (String resName : repository.getItemsOfType(namespace, resourceType)) {
+    for (String resName : repository.getResources(namespace, resourceType).keySet()) {
       fieldNames.put(resName, basicType);
     }
 
     if (ResourceType.STYLEABLE == resourceType) {
-      List<ResourceItem> items = repository.getResourceItems(namespace, ResourceType.STYLEABLE);
+      Collection<ResourceItem> items = repository.getResources(namespace, ResourceType.STYLEABLE).values();
       for (ResourceItem item : items) {
         StyleableResourceValue value = (StyleableResourceValue)item.getResourceValue();
         if (value != null) {

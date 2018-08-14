@@ -60,7 +60,7 @@ public class SampleDataItemTest {
 
     ResourceItem predefinedItem = ResourceRepositoryManager
       .getAppResources(rule.module)
-      .getResourceItems(SampleDataResourceRepository.PREDEFINED_SAMPLES_NS, ResourceType.SAMPLE_DATA, "lorem")
+      .getResources(SampleDataResourceRepository.PREDEFINED_SAMPLES_NS, ResourceType.SAMPLE_DATA, "lorem")
       .get(0);
     ResourceChooserItem.SampleDataItem predifinedItem = new ResourceChooserItem.SampleDataItem((SampleDataResourceItem)predefinedItem);
     Truth.assertThat(predifinedItem.getResourceUrl()).isEqualTo("@tools:sample/lorem");

@@ -19,7 +19,6 @@ import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.URI_PREFIX
 import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.resources.AbstractResourceRepository
 import com.android.ide.common.resources.SingleNamespaceResourceRepository
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
@@ -200,7 +199,7 @@ class MigrateToResourceNamespacesProcessor(
     progressIndicator.text = "Inferring namespaces..."
     progressIndicator.text2 = null
 
-    val leafRepos = mutableListOf<AbstractResourceRepository>()
+    val leafRepos = mutableListOf<SingleNamespaceResourceRepository>()
     ResourceRepositoryManager.getAppResources(invokingFacet).getLeafResourceRepositories(leafRepos)
 
     val inferredNamespaces: Table<ResourceType, String, String> =
@@ -214,7 +213,7 @@ class MigrateToResourceNamespacesProcessor(
 
       resourceUsageInfo.inferredPackage = inferredNamespaces.row(resourceUsageInfo.resourceType).computeIfAbsent(resourceUsageInfo.name) {
         for (repo in leafRepos) {
-          if (repo.hasResourceItem(ResourceNamespace.RES_AUTO, resourceUsageInfo.resourceType, resourceUsageInfo.name)) {
+          if (repo.hasResources(ResourceNamespace.RES_AUTO, resourceUsageInfo.resourceType, resourceUsageInfo.name)) {
             // TODO(b/78765120): check other repos and build a list of unresolved or conflicting references, to display in a UI later.
             return@computeIfAbsent (repo as SingleNamespaceResourceRepository).packageName
           }
@@ -279,7 +278,7 @@ class MigrateToResourceNamespacesProcessor(
     val moduleRepo = ResourceRepositoryManager.getModuleResources(currentFacet)
 
     fun referenceNeedsRewriting(resourceType: ResourceType, name: String): Boolean {
-      return !moduleRepo.hasResourceItem(ResourceNamespace.RES_AUTO, resourceType, name)
+      return !moduleRepo.hasResources(ResourceNamespace.RES_AUTO, resourceType, name)
     }
 
     xmlFile.accept(object : XmlRecursiveElementVisitor() {
@@ -372,7 +371,7 @@ class MigrateToResourceNamespacesProcessor(
 
         val name = nameRef.referenceName ?: continue
         val resourceType = ResourceType.fromClassName(typeRef.referenceName ?: continue) ?: continue
-        if (!moduleRepo.hasResourceItem(ResourceNamespace.RES_AUTO, resourceType, name)) {
+        if (!moduleRepo.hasResources(ResourceNamespace.RES_AUTO, resourceType, name)) {
           result += CodeUsageInfo(
             fieldReferenceExpression = nameRef,
             classReference = psiReference,

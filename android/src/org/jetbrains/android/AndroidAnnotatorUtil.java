@@ -114,7 +114,7 @@ public class AndroidAnnotatorUtil {
           // Take a look and see if we have a bitmap we can fall back to.
           LocalResourceRepository resourceRepository = ResourceRepositoryManager.getAppResources(facet);
           List<ResourceItem> items =
-              resourceRepository.getResourceItems(resourceValue.getNamespace(), resourceValue.getResourceType(), resourceValue.getName());
+              resourceRepository.getResources(resourceValue.getNamespace(), resourceValue.getResourceType(), resourceValue.getName());
           for (ResourceItem item : items) {
             FolderConfiguration configuration = item.getConfiguration();
             DensityQualifier densityQualifier = configuration.getDensityQualifier();
@@ -258,7 +258,7 @@ public class AndroidAnnotatorUtil {
       if (frameworkResources == null) {
         return null;
       }
-      List<ResourceItem> items = frameworkResources.getResourceItems(ResourceNamespace.ANDROID, type, name);
+      List<ResourceItem> items = frameworkResources.getResources(ResourceNamespace.ANDROID, type, name);
       if (items.isEmpty()) {
         return null;
       }
@@ -268,7 +268,7 @@ public class AndroidAnnotatorUtil {
       if (appResources == null) {
         return null;
       }
-      if (!appResources.hasResourceItem(type, name)) {
+      if (!appResources.hasResources(ResourceNamespace.TODO(), type, name)) {
         return null;
       }
       return ResourceRepositoryUtil.getConfiguredValue(appResources, type, name, configuration.getFullConfig());

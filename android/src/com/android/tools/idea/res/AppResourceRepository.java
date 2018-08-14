@@ -17,12 +17,17 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.aar.AarSourceResourceRepository;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -31,13 +36,9 @@ import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-
-import static com.android.SdkConstants.FD_RES;
 
 /**
  * @see ResourceRepositoryManager#getAppResources(boolean)
@@ -49,7 +50,7 @@ class AppResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
   private Collection<AarSourceResourceRepository> myLibraries;
   private long myIdsModificationCount;
-  private Set<String> myIds;
+  private ListMultimap<String, ResourceItem> myIds;
 
   private final Object RESOURCE_MAP_LOCK = new Object();
 
@@ -106,7 +107,7 @@ class AppResourceRepository extends MultiResourceRepository {
    * TODO(namespaces): remove the dependency on R.txt
    */
   @NotNull
-  private Set<String> getAllIds() {
+  private ListMultimap<String, ResourceItem> getAllIds(@NotNull ResourceNamespace namespace) {
     long currentModCount = getModificationCount();
     if (myIdsModificationCount < currentModCount) {
       myIdsModificationCount = currentModCount;
@@ -117,28 +118,31 @@ class AppResourceRepository extends MultiResourceRepository {
             size += library.getAllDeclaredIds().size();
           }
         }
-        myIds = Sets.newHashSetWithExpectedSize(size);
+        myIds = ArrayListMultimap.create(size, 1);
       }
       else {
         myIds.clear();
       }
       for (AarSourceResourceRepository library : myLibraries) {
         if (library.getAllDeclaredIds() != null) {
-          myIds.addAll(library.getAllDeclaredIds().keySet());
+          for (String name : library.getAllDeclaredIds().keySet()) {
+            myIds.put(name, new IdResourceItem(name));
+          }
         }
       }
       // Also add all ids from resource types, just in case it contains things that are not in the libraries.
-      myIds.addAll(super.getItemsOfType(ResourceNamespace.TODO(), ResourceType.ID));
+      myIds.putAll(super.getResources(namespace, ResourceType.ID));
     }
     return myIds;
   }
 
   @Override
   @NotNull
-  public Collection<String> getItemsOfType(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
+  public ListMultimap<String, ResourceItem> getResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
     synchronized (ITEM_MAP_LOCK) {
       // TODO(namespaces): store all ID resources in the repositories and stop reading R.txt.
-      return type == ResourceType.ID && namespace == ResourceNamespace.RES_AUTO ? getAllIds() : super.getItemsOfType(namespace, type);
+      return type == ResourceType.ID && namespace == ResourceNamespace.RES_AUTO ?
+             getAllIds(namespace) : super.getResources(namespace, type);
     }
   }
 
@@ -175,5 +179,72 @@ class AppResourceRepository extends MultiResourceRepository {
     assert modules.containsAll(libraries);
     assert modules.size() == libraries.size() + 1; // Should only combine with the module set repository.
     return new AppResourceRepository(facet, modules, libraries);
+  }
+
+  private static class IdResourceItem implements ResourceItem {
+    private final String myName;
+
+    IdResourceItem(@NotNull String name) {
+      myName = name;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+      return myName;
+    }
+
+    @NotNull
+    @Override
+    public ResourceType getType() {
+      return ResourceType.ID;
+    }
+
+    @NotNull
+    @Override
+    public ResourceNamespace getNamespace() {
+      return ResourceNamespace.RES_AUTO;
+    }
+
+    @Nullable
+    @Override
+    public String getLibraryName() {
+      return null;
+    }
+
+    @NotNull
+    @Override
+    public ResourceReference getReferenceToSelf() {
+      return new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, myName);
+    }
+
+    @NotNull
+    @Override
+    public String getKey() {
+      return myName;
+    }
+
+    @Nullable
+    @Override
+    public ResourceValue getResourceValue() {
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public PathString getSource() {
+      return null;
+    }
+
+    @Override
+    public boolean isFileBased() {
+      return false;
+    }
+
+    @NotNull
+    @Override
+    public FolderConfiguration getConfiguration() {
+      return FolderConfiguration.createDefault();
+    }
   }
 }

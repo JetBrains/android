@@ -15,30 +15,26 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.resources.MergerResourceRepository;
-import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceRepositoryFixture;
-import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.*;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -65,7 +61,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   public void testResourceClassGenerator() throws Exception {
-    final MergerResourceRepository repository = resourceFixture.createTestResources(ResourceNamespace.TODO(), new Object[] {
+    MergerResourceRepository repository = resourceFixture.createTestResources(RES_AUTO, new Object[] {
       "layout/layout1.xml", "<!--contents doesn't matter-->",
 
       "layout-land/layout1.xml", "<!--contents doesn't matter-->",
@@ -203,7 +199,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   public void testStyleableMerge() throws Exception {
-    final MergerResourceRepository repositoryA = resourceFixture.createTestResources(ResourceNamespace.TODO(), new Object[] {
+    final MergerResourceRepository repositoryA = resourceFixture.createTestResources(RES_AUTO, new Object[] {
       "values/styles.xml", "" +
                            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<resources>\n" +
@@ -227,7 +223,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     AarSourceResourceRepository libraryRepository = AarSourceResourceRepository.create(new File(aarPath), LIBRARY_NAME);
     AppResourceRepository appResources = new AppResourceRepository(myFacet,
                                                                    ImmutableList.of(resourcesA, libraryRepository),
-                                                                   Lists.newArrayList(libraryRepository));
+                                                                   Collections.singletonList(libraryRepository));
 
     // 3 declared in the library, 3 declared in the "project", 2 of them are duplicated so:
     //
@@ -236,7 +232,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     //    2 styles declared in both
     //------------------------------------------
     //    4 total styles
-    assertEquals(4, appResources.getItemsOfType(RES_AUTO, ResourceType.STYLEABLE).size());
+    assertEquals(4, appResources.getResources(RES_AUTO, ResourceType.STYLEABLE).keySet().size());
 
     ResourceClassGenerator generator = buildGenerator(appResources);
     assertNotNull(generator);
@@ -288,7 +284,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
       attributes.append("    <attr name=\"overflow_").append(i).append("\" />\n");
     }
 
-    final MergerResourceRepository repository = resourceFixture.createTestResources(ResourceNamespace.TODO(), new Object[] {
+    final MergerResourceRepository repository = resourceFixture.createTestResources(RES_AUTO, new Object[] {
       "values/styles.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<resources>\n" +
                            "    <declare-styleable name=\"AppStyleable\">\n" +
@@ -298,7 +294,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     LocalResourceRepository resources = new LocalResourceRepositoryDelegate("resources", repository);
     AppResourceRepository appResources = new AppResourceRepository(myFacet, ImmutableList.of(resources), Collections.emptyList());
 
-    assertEquals(1, appResources.getItemsOfType(RES_AUTO, ResourceType.STYLEABLE).size());
+    assertEquals(1, appResources.getResources(RES_AUTO, ResourceType.STYLEABLE).size());
 
     ResourceClassGenerator generator = buildGenerator(appResources);
     assertNotNull(generator);
@@ -314,7 +310,6 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   private static class LocalResourceRepositoryDelegate extends LocalResourceRepository {
-
     private final MergerResourceRepository myDelegate;
 
     protected LocalResourceRepositoryDelegate(@NotNull String displayName, MergerResourceRepository delegate) {
@@ -322,26 +317,31 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
       myDelegate = delegate;
     }
 
-    @NonNull
     @Override
+    @NotNull
     protected ResourceTable getFullTable() {
-      return myDelegate.getItems();
+      return myDelegate.getFullTable();
     }
 
+    @Override
     @Nullable
-    @Override
-    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NonNull ResourceType type, boolean create) {
-      return myDelegate.getItems().get(namespace, type);
+    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
+      return getFullTable().get(namespace, type);
     }
 
-    @NonNull
     @Override
+    @NotNull
     public Set<ResourceNamespace> getNamespaces() {
       return myDelegate.getNamespaces();
     }
 
-    @NotNull
     @Override
+    public void getLeafResourceRepositories(@NotNull Collection<SingleNamespaceResourceRepository> result) {
+      myDelegate.getLeafResourceRepositories(result);
+    }
+
+    @Override
+    @NotNull
     protected Set<VirtualFile> computeResourceDirs() {
       return ImmutableSet.of();
     }

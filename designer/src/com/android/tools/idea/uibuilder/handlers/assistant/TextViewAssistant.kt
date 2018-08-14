@@ -52,7 +52,7 @@ class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
       isOpaque = false
       add(assistantLabel("Text"))
 
-      val elements = listOf(null) + myAppResources.items.get(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).values()
+      val elements = listOf(null) + myAppResources.getResources(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).values()
         .filterIsInstance<SampleDataResourceItem>()
         .filter {
           it.contentType == SampleDataResourceItem.ContentType.TEXT

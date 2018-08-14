@@ -18,6 +18,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.RenderResources
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.npw.assetstudio.IconGenerator
@@ -61,7 +62,7 @@ fun openResource(configuration: Configuration, reference: String, currentFile: V
 }
 
 fun moduleContainsResource(facet: AndroidFacet, type: ResourceType, name: String): Boolean {
-  return ResourceRepositoryManager.getModuleResources(facet).hasResourceItem(type, name)
+  return ResourceRepositoryManager.getModuleResources(facet).hasResources(ResourceNamespace.TODO(), type, name)
 }
 
 fun copyVectorAssetToMainModuleSourceSet(project: Project, facet: AndroidFacet, asset: String) {

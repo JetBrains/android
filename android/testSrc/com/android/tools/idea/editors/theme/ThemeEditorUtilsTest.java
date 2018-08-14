@@ -47,6 +47,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.google.common.truth.Truth.assertThat;
 
 public class ThemeEditorUtilsTest extends AndroidTestCase {
@@ -157,7 +158,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myModule);
     assertNotNull(repository);
-    List<ResourceItem> resources = repository.getResourceItem(ResourceType.STYLE, "AppTheme");
+    List<ResourceItem> resources = repository.getResources(RES_AUTO, ResourceType.STYLE, "AppTheme");
     assertNotNull(resources);
     assertFalse(resources.isEmpty());
     final XmlTag sourceXml = LocalResourceRepository.getItemTag(getProject(), resources.get(0));
@@ -184,7 +185,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myModule);
     assertNotNull(repository);
-    final List<ResourceItem> styleItems = repository.getResourceItem(ResourceType.STYLE, "AppTheme");
+    final List<ResourceItem> styleItems = repository.getResources(RES_AUTO, ResourceType.STYLE, "AppTheme");
     assertNotNull(styleItems);
     assertEquals(2, styleItems.size());
 

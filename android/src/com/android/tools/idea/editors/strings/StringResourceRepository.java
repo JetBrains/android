@@ -106,7 +106,7 @@ public class StringResourceRepository {
                                     .forEach(key -> map.put(key, new StringResource(key, this, project)));
 
     if (myDynamicResourceRepository != null) {
-      myDynamicResourceRepository.getItemsOfType(ResourceNamespace.TODO(), ResourceType.STRING).stream()
+      myDynamicResourceRepository.getResources(ResourceNamespace.TODO(), ResourceType.STRING).keySet().stream()
                                  .map(name -> new StringResourceKey(name, null))
                                  .forEach(key -> map.put(key, new StringResource(key, this, project)));
     }
@@ -118,7 +118,7 @@ public class StringResourceRepository {
   private static Stream<StringResourceKey> getKeys(@NotNull Entry<VirtualFile, LocalResourceRepository> entry) {
     VirtualFile directory = entry.getKey();
 
-    return entry.getValue().getItemsOfType(ResourceNamespace.TODO(), ResourceType.STRING).stream()
+    return entry.getValue().getResources(ResourceNamespace.TODO(), ResourceType.STRING).keySet().stream()
                 .map(name -> new StringResourceKey(name, directory));
   }
 
@@ -162,6 +162,6 @@ public class StringResourceRepository {
   @NotNull
   private static Collection<ResourceItem> getItems(@NotNull LocalResourceRepository repository, @NotNull StringResourceKey key) {
     repository.sync();
-    return repository.getResourceItems(ResourceNamespace.TODO(), ResourceType.STRING, key.getName());
+    return repository.getResources(ResourceNamespace.TODO(), ResourceType.STRING, key.getName());
   }
 }

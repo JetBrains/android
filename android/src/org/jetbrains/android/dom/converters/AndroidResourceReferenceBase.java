@@ -126,7 +126,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
           resourceName = SampleDataManager.getResourceNameFromSampleReference(resourceName);
         }
 
-        List<ResourceItem> items = resources.getResourceItems(resolvedNamespace, resourceType, resourceName);
+        List<ResourceItem> items = resources.getResources(resolvedNamespace, resourceType, resourceName);
         if (FolderTypeRelationship.getRelatedFolders(resourceType).contains(ResourceFolderType.VALUES)) {
           for (ResourceItem item : items) {
             if (item instanceof ResolvableResourceItem) {

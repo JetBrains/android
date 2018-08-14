@@ -201,7 +201,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   private static void prepareCustomViewRenaming(PsiClass cls, String newName, Map<PsiElement, String> allRenames, AndroidFacet facet) {
     LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
     String oldName = cls.getName();
-    if (appResources.hasResourceItem(STYLEABLE, oldName)) {
+    if (appResources.hasResources(ResourceNamespace.TODO(), STYLEABLE, oldName)) {
       LocalResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
       for (PsiElement element : manager.findResourcesByFieldName(ResourceNamespace.TODO(), STYLEABLE.getName(), oldName)) {
         if (element instanceof XmlAttributeValue) {
@@ -404,7 +404,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
 
       final String stylePrefix = name + ".";
       Collection<String> renameCandidates;
-      Collection<String> allStyles = repoManager.getAppResources(true).getItemsOfType(ResourceNamespace.TODO(), type);
+      Collection<String> allStyles = repoManager.getAppResources(true).getResources(ResourceNamespace.TODO(), type).keySet();
       renameCandidates = Collections2.filter(allStyles, styleName -> styleName.startsWith(stylePrefix));
 
       for (String resourceName : ORDER_BY_LENGTH.sortedCopy(renameCandidates)) {
@@ -567,7 +567,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       newName = AndroidCommonUtils.getResourceName(type.getName(), newName);
     }
     LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
-    if (appResources.hasResourceItem(type, newName)) {
+    if (appResources.hasResources(ResourceNamespace.TODO(), type, newName)) {
       boolean foundElements = false;
       PsiField[] resourceFields = AndroidResourceUtil.findResourceFields(facet, type.getName(), newName, true);
       String message = String.format("Resource @%1$s/%2$s already exists", type, newName);
@@ -606,14 +606,9 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     String name = getResourceName(originalElement);
     if (name != null) {
       Project project = facet.getModule().getProject();
-      List<ResourceItem> all = appResources.getResourceItem(type, name);
-      if (all == null) {
-        all = Collections.emptyList();
-      }
-      List<ResourceItem> local = ResourceRepositoryManager.getProjectResources(facet).getResourceItem(type, name);
-      if (local == null) {
-        local = Collections.emptyList();
-      }
+      List<ResourceItem> all = appResources.getResources(ResourceNamespace.TODO(), type, name);
+      List<ResourceItem> local =
+          ResourceRepositoryManager.getProjectResources(facet).getResources(ResourceNamespace.TODO(), type, name);
       HtmlBuilder builder = null;
       if (local.isEmpty() && !all.isEmpty()) {
         builder = new HtmlBuilder(new StringBuilder(300));

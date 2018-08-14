@@ -626,7 +626,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   @Nullable
   @Override
   public DataBindingInfo getDataBindingInfoForLayout(String layoutName) {
-    List<ResourceItem> resourceItems = getResourceItems(myNamespace, ResourceType.LAYOUT, layoutName);
+    List<ResourceItem> resourceItems = getResources(myNamespace, ResourceType.LAYOUT, layoutName);
     for (ResourceItem item : resourceItems) {
       if (item instanceof PsiResourceItem) {
         PsiResourceFile source = ((PsiResourceItem)item).getSourceFile();
@@ -2512,7 +2512,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
 
     synchronized (ITEM_MAP_LOCK) {
-      ResourceTable otherResourceTable = other.getItems();
+      ResourceTable otherResourceTable = other.getFullTable();
       if (myFullTable.size() != otherResourceTable.size()) {
         return false;
       }

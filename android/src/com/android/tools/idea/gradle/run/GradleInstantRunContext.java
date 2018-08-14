@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.builder.model.AndroidProject;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.repository.GradleVersion;
@@ -156,10 +157,7 @@ public class GradleInstantRunContext implements InstantRunContext {
                                     @NotNull LocalResourceRepository resources,
                                     @NotNull Hasher hasher) {
     for (ResourceUrl url : appResources) {
-      List<ResourceItem> items = resources.getResourceItem(url.type, url.name);
-      if (items == null) {
-        continue;
-      }
+      List<ResourceItem> items = resources.getResources(ResourceNamespace.TODO(), url.type, url.name);
 
       for (ResourceItem item : items) {
         ResourceValue resourceValue = item.getResourceValue();

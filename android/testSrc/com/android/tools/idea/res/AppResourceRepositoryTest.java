@@ -18,9 +18,9 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.aar.AarProtoResourceRepository;
@@ -73,7 +73,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     final AppResourceRepository appResources = AppResourceRepository.createForTest(
       myFacet, Collections.singletonList(projectResources), Collections.emptyList());
 
-    assertOrderedEquals(appResources.getItemsOfType(RES_AUTO, ResourceType.STRING),
+    assertOrderedEquals(appResources.getResources(RES_AUTO, ResourceType.STRING).keySet(),
                         Arrays.asList("app_name", "title_crossfade", "title_card_flip", "title_screen_slide", "title_zoom",
                                       "title_layout_changes", "title_template_step", "ellipsis"));
   }
@@ -101,29 +101,29 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     final AppResourceRepository appResources = AppResourceRepository.createForTest(
       myFacet, Collections.singletonList(projectResources), Collections.emptyList());
 
-    assertTrue(appResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "title_card_flip"));
-    assertFalse(appResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
+    assertTrue(appResources.hasResources(RES_AUTO, ResourceType.STRING, "title_card_flip"));
+    assertFalse(appResources.hasResources(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
 
-    assertTrue(projectResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "title_card_flip"));
-    assertFalse(projectResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
+    assertTrue(projectResources.hasResources(RES_AUTO, ResourceType.STRING, "title_card_flip"));
+    assertFalse(projectResources.hasResources(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
 
-    assertTrue(moduleRepository.hasResourceItem(RES_AUTO, ResourceType.STRING, "title_card_flip"));
-    assertFalse(moduleRepository.hasResourceItem(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
+    assertTrue(moduleRepository.hasResources(RES_AUTO, ResourceType.STRING, "title_card_flip"));
+    assertFalse(moduleRepository.hasResources(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
 
     AarSourceResourceRepository aar1 = AarSourceResourceRepository.create(VfsUtilCore.virtualToIoFile(res3), null);
     appResources.updateRoots(Arrays.asList(projectResources, aar1), Collections.singletonList(aar1));
 
-    assertTrue(appResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "another_unique_string"));
-    assertTrue(aar1.hasResourceItem(RES_AUTO, ResourceType.STRING, "another_unique_string"));
-    assertFalse(projectResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "another_unique_string"));
-    assertFalse(moduleRepository.hasResourceItem(RES_AUTO, ResourceType.STRING, "another_unique_string"));
-    assertTrue(appResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "title_card_flip"));
-    assertFalse(appResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
+    assertTrue(appResources.hasResources(RES_AUTO, ResourceType.STRING, "another_unique_string"));
+    assertTrue(aar1.hasResources(RES_AUTO, ResourceType.STRING, "another_unique_string"));
+    assertFalse(projectResources.hasResources(RES_AUTO, ResourceType.STRING, "another_unique_string"));
+    assertFalse(moduleRepository.hasResources(RES_AUTO, ResourceType.STRING, "another_unique_string"));
+    assertTrue(appResources.hasResources(RES_AUTO, ResourceType.STRING, "title_card_flip"));
+    assertFalse(appResources.hasResources(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
 
     // Update module resource repository and assert that changes make it all the way up
     PsiFile layoutPsiFile = PsiManager.getInstance(getProject()).findFile(layoutFile);
     assertNotNull(layoutPsiFile);
-    assertTrue(moduleRepository.hasResourceItem(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
+    assertTrue(moduleRepository.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
     final ResourceItem item = ModuleResourceRepositoryTest.getFirstItem(moduleRepository, ResourceType.ID, "btn_title_refresh");
 
     final long generation = moduleRepository.getModificationCount();
@@ -145,9 +145,9 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
       assertTrue(projectGeneration < projectResources.getModificationCount());
       assertTrue(appGeneration < appResources.getModificationCount());
       // Should still be defined:
-      assertTrue(moduleRepository.hasResourceItem(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
-      assertTrue(appResources.hasResourceItem(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
-      assertTrue(projectResources.hasResourceItem(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
+      assertTrue(moduleRepository.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
+      assertTrue(appResources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
+      assertTrue(projectResources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
       ResourceItem newItem = ModuleResourceRepositoryTest.getFirstItem(appResources, ResourceType.ID, "btn_title_refresh");
       assertNotNull(newItem.getSource());
       // However, should be a different item
@@ -192,7 +192,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     final AppResourceRepository appResources = AppResourceRepository.createForTest(
       myFacet, ImmutableList.of(projectResources, aar), ImmutableList.of(aar));
 
-    Collection<String> idResources = appResources.getItemsOfType(RES_AUTO, ResourceType.ID);
+    Collection<String> idResources = appResources.getResources(RES_AUTO, ResourceType.ID).keySet();
     Map<String, Integer> aarIds = aar.getAllDeclaredIds();
     assertNotNull(aarIds);
     assertFalse(aarIds.isEmpty());
@@ -247,9 +247,9 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertRepositorySelfConsistent(aarLib);
     assertRepositorySelfConsistent(projectResourceRepository);
 
-    ResourceTable resourceTable = appResourceRepository.getItems();
+    ResourceTable resourceTable = appResourceRepository.getFullTablePackageAccessible();
 
-    assertThat(appResourceRepository.getItemsOfType(appNamespace, ResourceType.ID)).containsExactly("action_flip", "action_next");
+    assertThat(appResourceRepository.getResources(appNamespace, ResourceType.ID).keySet()).containsExactly("action_flip", "action_next");
 
     assertThat(projectResourceRepository.getNamespaces()).containsExactly(appNamespace, localLibNamespace);
     assertThat(appResourceRepository.getNamespaces()).containsExactly(appNamespace, localLibNamespace, aarLibNamespace);
@@ -305,10 +305,10 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     enableNamespacing("p1.p2");
 
     LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
-    List<ResourceItem> items = appResources.getResourceItems(ResourceNamespace.fromPackageName("com.example.mylibrary"),
-                                                              ResourceType.STRING,
-                                                              "my_aar_string");
-    List<AbstractResourceRepository> repositories = new ArrayList<>();
+    List<ResourceItem> items = appResources.getResources(ResourceNamespace.fromPackageName("com.example.mylibrary"),
+                                                         ResourceType.STRING,
+                                                         "my_aar_string");
+    List<SingleNamespaceResourceRepository>repositories = new ArrayList<>();
     appResources.getLeafResourceRepositories(repositories);
     assertThat(repositories).hasSize(3);
     assertThat(repositories.stream().map(Object::getClass).collect(Collectors.toSet())).containsExactly(
@@ -328,18 +328,18 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertEquals(expected, reference);
 
     if (shouldExist) {
-      List<ResourceItem> matches = repo.getItems().get(reference);
+      List<ResourceItem> matches = repo.getFullTablePackageAccessible().get(reference);
       assertSize(1, matches);
       ResourceItem target = matches.get(0);
       assertNotNull(target);
     }
     else {
-      assertNull(repo.getItems().get(reference));
+      assertNull(repo.getFullTablePackageAccessible().get(reference));
     }
   }
 
-  private static void assertRepositorySelfConsistent(AbstractResourceRepository repository) {
-    ResourceTable resourceTable = repository.getItems();
+  private static void assertRepositorySelfConsistent(LocalResourceRepository repository) {
+    ResourceTable resourceTable = repository.getFullTablePackageAccessible();
 
     eachItemInRepo:
     for (ResourceItem item : repository.getAllResourceItems()) {
@@ -375,7 +375,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
                                             String name) {
     String fullName = String.format("@%s:%s/%s", namespace, resourceType, name);
 
-    ListMultimap<String, ResourceItem> multimap = repository.getItems().get(namespace, resourceType);
+    ListMultimap<String, ResourceItem> multimap = repository.getFullTablePackageAccessible().get(namespace, resourceType);
     assertThat(multimap).named(String.format("@%s:%s", namespace, resourceType)).isNotNull();
 
     List<ResourceItem> items = multimap.get(name);

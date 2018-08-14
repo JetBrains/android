@@ -346,11 +346,12 @@ public class ResolutionUtils {
       AbstractResourceRepository resourceRepository = configurationManager.getResolverCache().getFrameworkResources(configuration, target);
       assert resourceRepository != null;
       configurables =
-          resourceRepository.getResourceItems(ResourceNamespace.ANDROID, resolvedValue.getResourceType(), resolvedValue.getName());
+          resourceRepository.getResources(ResourceNamespace.ANDROID, resolvedValue.getResourceType(), resolvedValue.getName());
     }
     else {
       LocalResourceRepository LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet);
-      configurables = LocalResourceRepository.getResourceItem(resolvedValue.getResourceType(), resolvedValue.getName());
+      configurables =
+          LocalResourceRepository.getResources(ResourceNamespace.TODO(), resolvedValue.getResourceType(), resolvedValue.getName());
     }
     Configurable configurable = configuration.findMatchingConfigurable(configurables);
     assert configurable != null;

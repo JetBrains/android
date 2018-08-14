@@ -103,7 +103,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
       assert frameworkResources != null;
 
       List<ResourceItem> styleItems =
-          frameworkResources.getResourceItems(ResourceNamespace.ANDROID, ResourceType.STYLE, myStyleResourceValue.getName());
+          frameworkResources.getResources(ResourceNamespace.ANDROID, ResourceType.STYLE, myStyleResourceValue.getName());
       for (ResourceItem item : styleItems) {
         ResourceValue styleResourceValue = item.getResourceValue();
 

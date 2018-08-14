@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceItem;
@@ -109,8 +110,8 @@ public class ThemeHelper {
     if (theme == null) {
       return null;
     }
-    List<ResourceItem> items = myProjectRepository.getResourceItem(ResourceType.STYLE, theme);
-    if (items == null || items.isEmpty()) {
+    List<ResourceItem> items = myProjectRepository.getResources(ResourceNamespace.TODO(), ResourceType.STYLE, theme);
+    if (items.isEmpty()) {
       return null;
     }
     return (StyleResourceValue)items.get(0).getResourceValue();

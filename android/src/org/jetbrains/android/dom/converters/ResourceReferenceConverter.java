@@ -204,7 +204,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                                          ? '@' + frameworkPrefix + ':'
                                          : frameworkPrefix + ':'));
       }
-      final char prefix = myWithPrefix || startsWithRefChar ? '@' : 0;
+      char prefix = myWithPrefix || startsWithRefChar ? '@' : 0;
 
       if (value.startsWith(NEW_ID_PREFIX)) {
         addVariantsForIdDeclaration(context, facet, prefix, value, result);
@@ -212,8 +212,8 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
       if (myExpandedCompletionSuggestion) {
         // We will add the resource type (e.g. @style/) if the current value starts like a reference using @
-        final boolean explicitResourceType = startsWithRefChar || myWithExplicitResourceType;
-        for (final ResourceType type : recommendedTypes) {
+        boolean explicitResourceType = startsWithRefChar || myWithExplicitResourceType;
+        for (ResourceType type : recommendedTypes) {
           // If getResourceTypes decided SAMPLE_DATA belongs here, then this is one of the few exceptions where it can be referenced.
           if (type.getCanBeReferenced() || type == ResourceType.SAMPLE_DATA) {
             addResourceReferenceValues(facet, element, prefix, type, namespace, result, explicitResourceType);
@@ -221,9 +221,8 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         }
       }
       else {
-        EnumSet<ResourceType> filteringSet = namespace == ResourceNamespace.ANDROID
-                                                   ? EnumSet.allOf(ResourceType.class)
-                                                   : getResourceTypesInCurrentModule(facet);
+        Set<ResourceType> filteringSet =
+            namespace == ResourceNamespace.ANDROID ? EnumSet.allOf(ResourceType.class) : getResourceTypesInCurrentModule(facet);
 
         for (ResourceType resourceType : ResourceType.values()) {
           if (!resourceType.getCanBeReferenced()) {
@@ -243,7 +242,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     if (myAllowAttributeReferences) {
       completeAttributeReferences(value, facet, result);
     }
-    final ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
+    ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
 
     if (additionalConverter != null) {
       for (String variant : additionalConverter.getVariants(context)) {
@@ -274,7 +273,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     });
 
     // Find matching ID resource declarations.
-    Collection<String> ids = ResourceRepositoryManager.getAppResources(facet).getItemsOfType(namespace, ResourceType.ID);
+    Collection<String> ids = ResourceRepositoryManager.getAppResources(facet).getResources(namespace, ResourceType.ID).keySet();
     for (String name : ids) {
       ResourceValue ref = referenceTo(prefix, "+id", namespace.getPackageName(), name, true);
       if (!value.startsWith(doToString(ref))) {
@@ -300,15 +299,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   @NotNull
-  public static EnumSet<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
-    EnumSet<ResourceType> result = EnumSet.noneOf(ResourceType.class);
-    LocalResourceRepository resourceRepository = ResourceRepositoryManager.getAppResources(facet);
-    for (ResourceType type : ResourceType.values()) {
-      if (resourceRepository.hasResourcesOfType(type)) {
-        result.add(type);
-      }
-    }
-    return result;
+  public static Set<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+    LocalResourceRepository repository = repositoryManager.getAppResources(true);
+    return repository.getResourceTypes(repositoryManager.getNamespace());
   }
 
   @NotNull
@@ -437,10 +431,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       return "Missing value";
     }
 
-    final ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix, false);
+    ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix, false);
 
     if (parsed == null || !parsed.isReference()) {
-      final ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
+      ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
 
       if (myResourceTypes.contains(ResourceType.STRING)) {
         // Anything is allowed
@@ -491,7 +485,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   @Nullable
   @Override
   public LookupElement createLookupElement(ResourceValue resourceValue) {
-    final String value = resourceValue.toString();
+    String value = resourceValue.toString();
 
     boolean deprecated = false;
     String doc = null;
@@ -508,7 +502,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
 
     builder = builder.withCaseSensitivity(true).withStrikeoutness(deprecated);
-    final String resourceName = resourceValue.getResourceName();
+    String resourceName = resourceValue.getResourceName();
     if (resourceName != null) {
       builder = builder.withLookupString(resourceName);
     }
@@ -522,7 +516,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       }
     }
 
-    final int priority;
+    int priority;
     if (deprecated) {
       // Show deprecated values in the end of the autocompletion list
       priority = 0;
@@ -546,7 +540,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     if (s == null) return null;
     if (DataBindingUtil.isBindingExpression(s)) return ResourceValue.INVALID;
     ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix, true);
-    final ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
+    ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
 
     if (parsed == null || !parsed.isReference()) {
       if (additionalConverter != null) {
@@ -563,7 +557,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       }
     }
     if (parsed != null) {
-      final String resType = parsed.getResourceType();
+      String resType = parsed.getResourceType();
 
       if (parsed.getPrefix() == '?') {
         if (!myAllowAttributeReferences) {
@@ -608,13 +602,13 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       return myAdditionalConverter;
     }
 
-    final AdditionalConverter additionalConverterAnnotation =
+    AdditionalConverter additionalConverterAnnotation =
       context.getInvocationElement().getAnnotation(AdditionalConverter.class);
 
     if (additionalConverterAnnotation != null) {
-      final Class<? extends ResolvingConverter> converterClass = additionalConverterAnnotation.value();
+      Class<? extends ResolvingConverter> converterClass = additionalConverterAnnotation.value();
 
-      final ConverterManager converterManager = ServiceManager.getService(ConverterManager.class);
+      ConverterManager converterManager = ServiceManager.getService(ConverterManager.class);
       //noinspection unchecked
       return (ResolvingConverter<String>)converterManager.getConverterInstance(converterClass);
     }
@@ -641,10 +635,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   public LocalQuickFix[] getQuickFixes(ConvertContext context) {
     AndroidFacet facet = AndroidFacet.getInstance(context);
     if (facet != null) {
-      final DomElement domElement = context.getInvocationElement();
+      DomElement domElement = context.getInvocationElement();
 
       if (domElement instanceof GenericDomValue) {
-        final String value = ((GenericDomValue)domElement).getStringValue();
+        String value = ((GenericDomValue)domElement).getStringValue();
 
         if (value != null) {
           ResourceValue resourceValue = ResourceValue.parse(value, false, myWithPrefix, true);
@@ -654,12 +648,12 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
             if (resType == null && myResourceTypes.size() == 1) {
               resType = myResourceTypes.iterator().next();
             }
-            final String resourceName = resourceValue.getResourceName();
+            String resourceName = resourceValue.getResourceName();
             if (aPackage == null &&
                 resType != null &&
                 resourceName != null &&
                 AndroidResourceUtil.isCorrectAndroidResourceName(resourceName)) {
-              final List<LocalQuickFix> fixes = new ArrayList<>();
+              List<LocalQuickFix> fixes = new ArrayList<>();
 
               ResourceFolderType folderType = FolderTypeRelationship.getNonValuesRelatedFolder(resType);
               if (folderType != null) {

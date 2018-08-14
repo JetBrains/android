@@ -58,6 +58,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -221,22 +222,20 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
 
       // Find all the applicable resource items
       Multimap<String, ResourceType> destFolderResources = ArrayListMultimap.create(100, 2);
-      List<ResourceItem> srcItems = Lists.newArrayList();
-      for (ListMultimap<String, ResourceItem> multimap : repository.getItems().values()) {
-        for (ResourceItem item : multimap.values()) {
-          if (item instanceof ResourceMergerItem && ((ResourceMergerItem)item).getSourceType() == DataFile.FileType.GENERATED_FILES) {
-            continue;
+      List<ResourceItem> srcItems = new ArrayList<>();
+      for (ResourceItem item : repository.getAllResourceItems()) {
+        if (item instanceof ResourceMergerItem && ((ResourceMergerItem)item).getSourceType() == DataFile.FileType.GENERATED_FILES) {
+          continue;
+        }
+        FolderConfiguration configuration = item.getConfiguration();
+        if (oldConfig.equals(configuration)) {
+          VirtualFile sourceFile = ResourceHelper.getSourceAsVirtualFile(item);
+          if (sourceFile != null && dir.equals(sourceFile.getParent())) {
+            srcItems.add(item);
           }
-          FolderConfiguration configuration = item.getConfiguration();
-          if (oldConfig.equals(configuration)) {
-            VirtualFile sourceFile = ResourceHelper.getSourceAsVirtualFile(item);
-            if (sourceFile != null && dir.equals(sourceFile.getParent())) {
-              srcItems.add(item);
-            }
-          }
-          else if (newConfig.equals(configuration)) {
-            destFolderResources.put(item.getName(), item.getType());
-          }
+        }
+        else if (newConfig.equals(configuration)) {
+          destFolderResources.put(item.getName(), item.getType());
         }
       }
 

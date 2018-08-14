@@ -43,6 +43,7 @@ import com.android.tools.lint.detector.api.computeResourcePrefix
 import com.android.tools.lint.detector.api.getBaseName
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.google.common.base.Preconditions
+import com.google.common.collect.Iterables
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.openapi.application.ApplicationManager
@@ -870,7 +871,7 @@ private fun addFrameworkItems(
   includeFileResources: Boolean,
   frameworkResources: AbstractResourceRepository
 ) {
-  val items = frameworkResources.getPublicResourcesOfType(type)
+  val items = frameworkResources.getPublicResources(ResourceNamespace.ANDROID, type)
   for (item in items) {
     if (!includeFileResources) {
       val dirName = item.source?.parentFileName
@@ -891,16 +892,18 @@ private fun addProjectItems(
   repository: LocalResourceRepository,
   lookup: ResourceVisibilityLookup?
 ) {
-  for (resourceName in repository.getItemsOfType(type)) {
+  val namespace = ResourceNamespace.TODO()
+  for (entry in repository.getResources(namespace, type).asMap().entries) {
+    val resourceName = entry.key
     if (lookup != null && lookup.isPrivate(type, resourceName)) {
       continue
     }
-    val items = repository.getResourceItem(type, resourceName) ?: continue
-    if (!includeFileResources && items[0].isFileBased) {
+    val items = entry.value
+    if (!includeFileResources && Iterables.getFirst(items, null)?.isFileBased == true) {
       continue
     }
 
-    destination.add(PREFIX_RESOURCE_REF + type.getName() + '/'.toString() + resourceName)
+    destination.add(PREFIX_RESOURCE_REF + type.getName() + '/' + resourceName)
   }
 }
 
@@ -1043,21 +1046,21 @@ fun ResourceRepository.getResourceItems(
   return when {
     this is FrameworkResourceRepository -> when {
       namespace != ResourceNamespace.ANDROID -> emptySet()
-      minVisibility != ResourceVisibility.PUBLIC -> getItemsOfType(ResourceNamespace.ANDROID, type)
+      minVisibility != ResourceVisibility.PUBLIC -> getResources(ResourceNamespace.ANDROID, type).keySet()
       else -> {
-        val public = getPublicResourcesOfType(type)
+        val public = getPublicResources(ResourceNamespace.ANDROID, type)
         public.mapTo(HashSet(public.size), ResourceItem::getName)
       }
     }
     this is AarProtoResourceRepository -> {
       // Resources in AarProtoResourceRepository know their visibility.
-      val items = getResourceItems(namespace, type) { item ->
+      val items = getResources(namespace, type) { item ->
         (item as ResourceItemWithVisibility).visibility >= minVisibility
       }
       items.mapTo(HashSet(items.size), ResourceItem::getName)
     }
     else -> {
-      val items = getResourceItems(namespace, type) { item ->
+      val items = getResources(namespace, type) { item ->
         when {
           minVisibility == ResourceVisibility.values()[0] -> true
           item is ResourceItemWithVisibility -> item.visibility >= minVisibility
