@@ -54,7 +54,7 @@ class PsVariables(
         }
       }
 
-  override fun getModuleVariables(): List<PsVariable> = container.properties.map { PsVariable(it, it.resolve(), model, this) }
+  override fun getModuleVariables(): List<PsVariable> = container.properties.map { PsVariable(it, model, this) }
 
   override fun getVariableScopes(): List<PsVariablesScope> =
     parentScope?.getVariableScopes().orEmpty() + this
@@ -65,6 +65,6 @@ class PsVariables(
       .first { container.findProperty(it).valueType == GradlePropertyModel.ValueType.NONE }
 
   override fun getOrCreateVariable(name: String): PsVariable = container.findProperty(name).let {
-    PsVariable(it, it.resolve(), model, this)
+    PsVariable(it, model, this)
   }
 }

@@ -436,7 +436,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       else if (type == ValueType.MAP) {
         property.convertToEmptyMap()
       }
-      val variable = PsVariable(property, property.resolve(), variablesScope.model, variablesScope)
+      val variable = PsVariable(property, variablesScope.model, variablesScope)
       return VariableNode(variable)
     }
   }
@@ -446,7 +446,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       when (variable.valueType) {
         GradlePropertyModel.ValueType.MAP -> {
           variable.getUnresolvedValue(MAP_TYPE)?.forEach {
-            add(MapItemNode(it.key, PsVariable(it.value, it.value.resolve(), variable.parent, variable.scopePsVariables)))
+            add(MapItemNode(it.key, PsVariable(it.value, variable.parent, variable.scopePsVariables)))
           }
           add(EmptyMapItemNode(variable))
           userObject = NodeDescription(variable.name, EmptyIcon.ICON_0)
@@ -455,7 +455,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
           val list = variable.getUnresolvedValue(LIST_TYPE)
           if (list != null) {
             list.forEachIndexed { index, propertyModel ->
-              add(ListItemNode(index, PsVariable(propertyModel, propertyModel.resolve(), variable.parent, variable.scopePsVariables)))
+              add(ListItemNode(index, PsVariable(propertyModel, variable.parent, variable.scopePsVariables)))
             }
             add(EmptyListItemNode(variable))
           }
