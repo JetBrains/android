@@ -53,8 +53,8 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
                  equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
                                                                                 DslText.Reference("var"))
                                                            .annotated()))
-      assertThat(appModule.variables.getOrCreateVariable("var").getUnresolvedValue(STRING_TYPE),
-                 equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()))
+      assertThat(appModule.variables.getOrCreateVariable("var").value,
+                 equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.asParsed<Any>()))
     }
 
     run {
@@ -71,8 +71,8 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
                  equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
                                                                                 DslText.Reference("otherName"))
                                                            .annotated()))
-      assertThat(appModule.variables.getOrCreateVariable("otherName").getUnresolvedValue(STRING_TYPE),
-                 equalTo("var"))
+      assertThat(appModule.variables.getOrCreateVariable("otherName").value,
+                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed(27, DslText.Reference("var"))))
     }
   }
 
@@ -103,8 +103,8 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
       assertThat(appModule.variables.getOrCreateVariable("renamedName").valueType,
                  equalTo(GradlePropertyModel.ValueType.NONE))
 
-      assertThat(project.variables.getOrCreateVariable("renamedName").getUnresolvedValue(STRING_TYPE),
-                 equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()))
+      assertThat(project.variables.getOrCreateVariable("renamedName").value,
+                 equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.asParsed<Any>()))
     }
   }
 

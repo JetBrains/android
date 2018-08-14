@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -143,8 +143,8 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val secondTmp123 = variables.getOrCreateVariable("tmp123")
     assertThat(secondTmp123.valueType, equalTo(GradlePropertyModel.ValueType.NONE))
     val tmp321 = variables.getOrCreateVariable("tmp321")
-    assertThat(tmp321.getResolvedValue(STRING_TYPE), equalTo("123"))
+    assertThat(tmp321.value, equalTo("123".asParsed<Any>()))
   }
-}
 
-private fun <T : Any> Pair<String, T>.asParsed() = ParsedValue.Set.Parsed(dslText = DslText.Reference(first), value = second)
+  private fun <T : Any> Pair<String, T>.asParsed() = ParsedValue.Set.Parsed(dslText = DslText.Reference(first), value = second)
+}
