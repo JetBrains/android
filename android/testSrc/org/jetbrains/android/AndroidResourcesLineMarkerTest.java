@@ -1,5 +1,6 @@
 package org.jetbrains.android;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -137,6 +138,8 @@ public class  AndroidResourcesLineMarkerTest extends AndroidTestCase {
 
   private void copyRJavaAndManifestJava() throws IOException {
     copyRJavaToGeneratedSources();
-    myFixture.copyFileToProject("Manifest.java", "src/p1/p2/Manifest.java");
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.copyFileToProject("Manifest.java", "src/p1/p2/Manifest.java");
+    }
   }
 }
