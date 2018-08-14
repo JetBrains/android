@@ -19,6 +19,7 @@ public class AndroidDataSourceStorage implements PersistentStateComponent<Androi
     return ServiceManager.getService(project, AndroidDataSourceStorage.class);
   }
 
+  @Override
   public State getState() {
     State state = new State();
     for (AndroidDataSource dataSource : myDataSources) {
@@ -27,6 +28,7 @@ public class AndroidDataSourceStorage implements PersistentStateComponent<Androi
     return state;
   }
 
+  @Override
   public void loadState(@NotNull State state) {
     myDataSources.clear();
     for (AndroidDataSource.State dataSourceState : state.myDataSources) {
