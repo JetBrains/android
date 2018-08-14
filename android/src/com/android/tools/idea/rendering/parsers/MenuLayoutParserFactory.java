@@ -16,9 +16,12 @@
 package com.android.tools.idea.rendering.parsers;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ActionBarHandler;
 import com.android.tools.idea.rendering.LayoutlibCallbackImpl;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.XmlUtils;
 import com.intellij.psi.PsiFile;
 import org.intellij.lang.annotations.Language;
@@ -56,10 +59,14 @@ class MenuLayoutParserFactory {
     if (frameLayoutDocument == null) {
       return createEmptyParser();
     }
-    String resourceName = ResourceHelper.getResourceName(psiFile);
     ActionBarHandler actionBarHandler = layoutlibCallback.getActionBarHandler();
     if (actionBarHandler != null) {
-      actionBarHandler.setMenuIdNames(Collections.singletonList(resourceName));
+      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(psiFile);
+      if (repositoryManager != null) {
+        ResourceReference menuResource =
+            new ResourceReference(repositoryManager.getNamespace(), ResourceType.MENU, ResourceHelper.getResourceName(psiFile));
+        actionBarHandler.setMenuIds(Collections.singletonList(menuResource));
+      }
     }
     return DomPullParser.createFromDocument(frameLayoutDocument, Collections.emptyMap());
   }
