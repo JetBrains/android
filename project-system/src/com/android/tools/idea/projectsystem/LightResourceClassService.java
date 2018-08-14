@@ -26,12 +26,29 @@ import java.util.Collection;
 
 /** A service for storing and finding light R classes. */
 public interface LightResourceClassService {
+  /**
+   * Returns all R classes with the given name that are inside the scope.
+   */
   @NotNull
   Collection<? extends PsiClass> getLightRClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope);
 
+  /**
+   * Returns all R classes that should be visible from the given module.
+   */
   @NotNull
   Collection<? extends PsiClass> getLightRClassesAccessibleFromModule(@NotNull Module module);
 
+  /**
+   * Returns all R classes that may contain resources from the given module.
+   *
+   * <p>This is used for finding resource usages, by looking for fields with the matching resource type and name.
+   */
+  @NotNull
+  Collection<? extends PsiClass> getLightRClassesContainingModuleResources(@NotNull Module module);
+
+  /**
+   * Returns the light package with the given name.
+   */
   @Nullable
   PsiPackage findRClassPackage(@NotNull String qualifiedName);
 }
