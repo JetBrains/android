@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
  * user-defined (variable) options for parsing that data.
  */
 public class ImportOptions {
-  private static final Logger LOGGER_INSTANCE = Logger.getInstance(ImportOptions.class);
+  private static final Logger LOG = Logger.getInstance(ImportOptions.class);
   private static final boolean DEFAULT_IMPORT_ALL = false;
 
   private boolean myImportAll = DEFAULT_IMPORT_ALL;
@@ -79,7 +79,7 @@ public class ImportOptions {
       return true;
     }
     else {
-      LOGGER_INSTANCE.warn("Page with objectId = " + objectId + " not found!");
+      LOG.warn("Page with objectId = " + objectId + " not found.");
       return false;
     }
   }
@@ -90,7 +90,7 @@ public class ImportOptions {
       return true;
     }
     else {
-      Logger.getInstance(ImportOptions.class).warn("Artboard with objectId = " + objectId + " not found!");
+      LOG.warn("Artboard with objectId = " + objectId + " not found.");
       return false;
     }
   }

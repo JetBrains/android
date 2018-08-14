@@ -51,7 +51,7 @@ public class PointDeserializer implements JsonDeserializer<SketchPoint2D> {
       return new SketchPoint2D(x, y);
     }
     else {
-      Logger.getInstance(PointDeserializer.class).warn("Bad point format: " + positionString);
+      Logger.getInstance(PointDeserializer.class).warn("Bad point format: " + positionString + ".");
     }
 
     return null;

@@ -180,7 +180,7 @@ public class VectorDrawableFile {
    * @return virtual Vector Drawable file whose name corresponds to the {@code filename}
    */
   @NotNull
-  public LightVirtualFile generateFile(String filename) {
+  public LightVirtualFile generateFile(@NotNull String filename) {
     LightVirtualFile virtualFile = new LightVirtualFile(filename + ".xml");
     createVectorDrawable();
     if (artboard != null) {

@@ -92,7 +92,7 @@ class SketchImporterPresenter(private val sketchFile: SketchFile,
     importOptions.getPageOptions(sketchPage.objectId)
 
   /**
-   * @return a list of [LightVirtualFile] assets based on the content in the {@code SketchPage} and the {@code PageOptions}.
+   * @return a list of [LightVirtualFile] assets based on the content in the [SketchPage] and the [PageOptions].
    */
   private fun generateFilesFromPage(page: SketchPage,
                                     pageOptions: PageOptions,
