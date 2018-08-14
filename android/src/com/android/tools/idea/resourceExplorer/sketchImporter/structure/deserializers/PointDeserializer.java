@@ -27,6 +27,11 @@ import java.lang.reflect.Type;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * In the sketch JSON, points are represented as strings (e.g. "{0.5, 0.67135115527602085}").
+ * This is a {@link JsonDeserializer} that tells GSON how to parse that string into a {@link SketchPoint2D},
+ * which is actually a {@link java.awt.geom.Point2D.Double}, for easy manipulation.
+ */
 public class PointDeserializer implements JsonDeserializer<SketchPoint2D> {
   static final Pattern pattern = Pattern.compile("\\{([+-]?[0-9.]+e?[+-]?[0-9]*),\\s*([+-]?[0-9.]+e?[+-]?[0-9]*)}");
 
@@ -37,7 +42,6 @@ public class PointDeserializer implements JsonDeserializer<SketchPoint2D> {
                                    @NotNull JsonDeserializationContext context) {
     final String positionString = json.getAsString();
 
-    // Turn sketch coordinate string (e.g. "{0.5, 0.67135115527602085}") into a point
     Matcher matcher = pattern.matcher(positionString);
 
     if (matcher.matches()) {

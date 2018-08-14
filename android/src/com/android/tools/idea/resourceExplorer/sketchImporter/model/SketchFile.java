@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.model;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayerable;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchSymbol;
 import org.jetbrains.annotations.NotNull;

@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.presenter;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.logic.VectorDrawableFile;
-import com.android.tools.idea.resourceExplorer.sketchImporter.model.PageOptions;
 import com.android.tools.idea.resourceExplorer.sketchImporter.model.SketchFile;
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPoint2D;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.ColorDeserializer;
@@ -30,18 +27,13 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.LightVirtualFile;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.awt.geom.Point2D;
 import java.io.*;
-import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -50,7 +42,7 @@ public class SketchParser {
    * Read data from the .sketch file (which is actually a zip archive) and turn it into an instance of {@code SketchFile}.
    *
    * @param path filepath to the .sketch file
-   * @return {@code SketchFile} or {@code null} if the file could not be processed
+   * @return {@link SketchFile} or {@code null} if the file could not be processed
    */
   @Nullable
   public static SketchFile read(@NotNull String path) {
@@ -86,7 +78,7 @@ public class SketchParser {
       return sketchFile;
     }
     catch (Exception e) {
-      Logger.getInstance(SketchParser.class).warn("Failed to read from sketch file!");
+      Logger.getInstance(SketchParser.class).warn("Failed to read from sketch file: " + path);
     }
 
     return null;
@@ -95,7 +87,7 @@ public class SketchParser {
   /**
    * Read page data (represented as JSON) from an input stream.
    *
-   * @return a {@code SketchPage} or {@code null} if the parsing failed
+   * @return a {@link SketchPage} or {@code null} if the parsing failed
    */
   @Nullable
   private static SketchPage parsePage(@NotNull InputStream in) {
@@ -112,7 +104,7 @@ public class SketchParser {
   /**
    * Read page data (represented as JSON) from filepath.
    *
-   * @return a {@code SketchPage} or {@code null} if the parsing failed
+   * @return a {@link SketchPage} or {@code null} if the parsing failed
    */
   @Nullable
   public static SketchPage parsePage(@NotNull String path) {
@@ -129,16 +121,16 @@ public class SketchParser {
   /**
    * Parse page data (represented as JSON) from a reader
    *
-   * @return a {@code SketchPage} or {@code null} if the {@code json} is at EOF
+   * @return a {@link SketchPage} or {@code null} if the {@code json} is at EOF
    * @throws JsonSyntaxException if there was a problem reading from the Reader
    * @throws JsonIOException     if json is not a valid representation for an object of type
    */
   @Nullable
   private static SketchPage getPage(@NotNull Reader reader) throws JsonSyntaxException, JsonIOException {
+    // Tells GSON which deserializers to use for special classes and parses the file
     Gson gson = new GsonBuilder()
       .registerTypeAdapter(SketchLayer.class, new SketchLayerDeserializer())
       .registerTypeAdapter(Color.class, new ColorDeserializer())
-      .registerTypeAdapter(Point2D.Double.class, new PointDeserializer())
       .registerTypeAdapter(SketchPoint2D.class, new PointDeserializer())
       .create();
     return gson.fromJson(reader, SketchPage.class);

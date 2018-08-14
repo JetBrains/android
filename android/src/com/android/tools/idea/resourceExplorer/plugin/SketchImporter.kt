@@ -32,7 +32,7 @@ import javax.swing.JPanel
 private val supportedFileTypes = setOf("sketch")
 
 /**
- * Importer for Sketch files
+ * [ResourceImporter] for Sketch files
  */
 class SketchImporter : ResourceImporter {
   override fun getPresentableName() = "Sketch Importer"
