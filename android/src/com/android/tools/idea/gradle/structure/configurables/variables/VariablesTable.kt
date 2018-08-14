@@ -429,8 +429,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
 
   class EmptyNode(private val variablesScope: PsVariablesScope, val type: ValueType) : DefaultMutableTreeNode() {
     fun createVariableNode(name: String): BaseVariableNode {
-      val property = variablesScope.container.findProperty(name)
-      val variable = PsVariable(property, variablesScope.model, variablesScope)
+      val variable = variablesScope.addNewVariable(name)
       if (type == ValueType.LIST) {
         variable.convertToEmptyList()
       }

@@ -36,8 +36,7 @@ class PsProjectImpl(
   override val descriptor by ProjectDescriptors
   override var parsedModel: ProjectBuildModel = GradleModelProvider.get().getProjectModel(ideProject); private set
   @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
-  final override var variables: PsVariables
-    private set
+  final override val variables: PsVariables
   override val pomDependencyCache: PsPomDependencyCache = PsPomDependencies()
   private var internalResolvedModuleModels: Map<String, PsResolvedModuleModel>? = null
   private val moduleCollection: PsModuleCollection
@@ -53,8 +52,7 @@ class PsProjectImpl(
 
   init {
     // TODO(b/77695733): Ensure that getProjectBuildModel() is indeed not null.
-    variables = PsVariables(
-      this, "Project: $name", Objects.requireNonNull<GradleBuildModel>(this.parsedModel.projectBuildModel).ext(), null)
+    variables = PsVariables(this, "Project: $name", null)
     moduleCollection = PsModuleCollection(this)
   }
 
@@ -83,8 +81,7 @@ class PsProjectImpl(
         }
       }.execute()
       parsedModel = GradleModelProvider.get().getProjectModel(ideProject)
-      variables = PsVariables(
-        this, "Project: $name", Objects.requireNonNull<GradleBuildModel>(parsedModel.projectBuildModel).ext(), null)
+      variables.refresh()
       internalResolvedModuleModels = null
       moduleCollection.refresh()
     }
@@ -109,8 +106,7 @@ class PsProjectImpl(
     }
     if (runnable()) {
       parsedModel = GradleModelProvider.get().getProjectModel(ideProject)
-      variables = PsVariables(
-        this, "Project: $name", Objects.requireNonNull<GradleBuildModel>(parsedModel.projectBuildModel).ext(), null)
+      variables.refresh()
       internalResolvedModuleModels = null
       moduleCollection.refresh()
       isModified = true  // This is to trigger apply() which in turn will trigger the final sync.

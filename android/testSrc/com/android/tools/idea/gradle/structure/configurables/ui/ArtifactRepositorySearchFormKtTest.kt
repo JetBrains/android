@@ -16,17 +16,14 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
+import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.structure.model.PsModel
-import com.android.tools.idea.gradle.structure.model.PsParsedDependencies
 import com.android.tools.idea.gradle.structure.model.PsVariables
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
-import org.hamcrest.CoreMatchers
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -78,7 +75,9 @@ class ArtifactRepositorySearchFormKtTest : GradleFileModelTestCase() {
         }"""
     )
 
-    val variables = PsVariables(stubModel, "variables", gradleBuildModel.ext(), null)
+    val variables = object: PsVariables(stubModel, "variables", null) {
+      override fun getContainer(from: PsModel): ExtModel? = gradleBuildModel.ext()
+    }
     val choices = prepareArtifactVersionChoices(foundArtifact, variables)
     assertThat(choices, equalTo(listOf(
       GradleVersion(2, 0).asParsed(),
