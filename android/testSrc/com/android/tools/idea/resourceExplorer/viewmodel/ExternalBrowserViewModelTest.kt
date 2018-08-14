@@ -138,7 +138,8 @@ class ExternalBrowserViewModelTest {
       "png.png",
       "svg-sample.svg",
       "svg-sample-50.png",
-      "vector_drawable.xml"
+      "vector_drawable.xml",
+      "statelist.xml"
     )
   }
 

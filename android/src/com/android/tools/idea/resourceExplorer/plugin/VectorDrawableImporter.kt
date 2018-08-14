@@ -40,7 +40,7 @@ class VectorDrawableImporter : ResourceImporter {
   override fun getSupportedFileTypes() = supportedFileTypes // TODO reuse DesignAssetRenderer.isFileSupported
 
   override fun getSourcePreview(asset: DesignAsset): DesignAssetRenderer? =
-    DesignAssetRendererManager.getInstance().getViewer(VectorDrawableAssetRenderer::class.java)
+    DesignAssetRendererManager.getInstance().getViewer(DrawableAssetRenderer::class.java)
 
   override fun getImportPreview(asset: DesignAsset): DesignAssetRenderer? = getSourcePreview(asset)
 }
