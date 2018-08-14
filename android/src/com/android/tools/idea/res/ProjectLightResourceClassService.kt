@@ -33,6 +33,7 @@ import com.intellij.ProjectTopics
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
@@ -127,6 +128,23 @@ class ProjectLightResourceClassService(
         AaptOptions.Namespacing.DISABLED -> nonNamespaced
       }
     }
+  }
+
+  override fun getLightRClassesContainingModuleResources(module: Module): Collection<PsiClass> {
+    val facet = module.androidFacet ?: return emptySet()
+    val result = mutableSetOf<PsiClass>()
+
+    // The namespaced class of the module itself:
+    getModuleRClasses(facet).namespaced?.let(result::add)
+
+    // Non-namespaced classes of this module and all that depend on it:
+    val modules = HashSet<Module>().also { ModuleUtilCore.collectModulesDependsOn(module, it) }
+    modules.asSequence()
+      .mapNotNull { it.androidFacet }
+      .mapNotNull { getModuleRClasses(it).nonNamespaced }
+      .forEach { result += it }
+
+    return result
   }
 
   private fun getModuleRClasses(packageName: String): Sequence<ResourceClasses> {
