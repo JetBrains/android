@@ -87,8 +87,8 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
     when(mySyncSummary.hasSyncErrors()).thenReturn(true);
 
     Type type = myNotificationProvider.notificationPanelType();
-    assertEquals(Type.ERRORS, type);
-    assertInstanceOf(type.create(myProject), IndexingSensitiveNotificationPanel.class);
+    assertEquals(Type.NONE, type);
+    assertNull(type.create(myProject));
   }
 
   public void testNotificationPanelTypeWithSyncNeeded() {
