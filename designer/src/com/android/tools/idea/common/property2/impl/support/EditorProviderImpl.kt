@@ -46,13 +46,13 @@ class EditorProviderImpl<in P : PropertyItem>(
 
       ControlType.TEXT_EDITOR -> {
         val model = TextFieldPropertyEditorModel(property, true)
-        val editor = PropertyTextField(model, asTableCellEditor)
+        val editor = PropertyTextField(model)
         return Pair(model, addActionButtonBinding(model, editor))
       }
 
       ControlType.COLOR_EDITOR -> {
         val model = ColorFieldPropertyEditorModel(property)
-        val editor = PropertyColorField(model, asTableCellEditor)
+        val editor = PropertyColorField(model)
         return Pair(model, addActionButtonBinding(model, editor))
       }
 

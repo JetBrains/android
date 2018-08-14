@@ -49,7 +49,7 @@ private const val WINDOW_MARGIN = 40
  * can be changed.
  */
 class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel) : AdtSecondaryPanel(BorderLayout()) {
-  private val editor = PropertyTextField(editorModel, false)
+  private val editor = PropertyTextField(editorModel)
   private val flagImage = JBLabel()
 
   init {
