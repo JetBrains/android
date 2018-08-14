@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.variables
 
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariable
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
@@ -443,22 +444,27 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
 
   class VariableNode(variable: PsVariable) : BaseVariableNode(variable) {
     init {
-      when (variable.valueType) {
-        GradlePropertyModel.ValueType.MAP -> {
-          variable.getUnresolvedValue(MAP_TYPE)?.forEach {
-            add(MapItemNode(it.key, PsVariable(it.value, variable.parent, variable.scopePsVariables)))
+      val literalValue = variable.value.maybeLiteralValue
+      when (literalValue) {
+        is Map<*, *> -> {
+          val map = PsVariable.Descriptors.variableMapValue.bind(variable).getEditableValues()
+          map.forEach {
+            add(MapItemNode(
+              it.key,
+              PsVariable((it.value as? GradleModelCoreProperty<*, *>)?.getParsedProperty()!!, variable.parent, variable.scopePsVariables)))
           }
           add(EmptyMapItemNode(variable))
           userObject = NodeDescription(variable.name, EmptyIcon.ICON_0)
         }
-        GradlePropertyModel.ValueType.LIST -> {
-          val list = variable.getUnresolvedValue(LIST_TYPE)
-          if (list != null) {
-            list.forEachIndexed { index, propertyModel ->
-              add(ListItemNode(index, PsVariable(propertyModel, variable.parent, variable.scopePsVariables)))
-            }
-            add(EmptyListItemNode(variable))
+        is List<*> -> {
+          val list = PsVariable.Descriptors.variableListValue.bind(variable).getEditableValues()
+          list.forEachIndexed { index, propertyModel ->
+            add(ListItemNode(
+              index,
+              PsVariable((propertyModel as? GradleModelCoreProperty<*, *>)?.getParsedProperty()!!, variable.parent,
+                         variable.scopePsVariables)))
           }
+          add(EmptyListItemNode(variable))
           userObject = NodeDescription(variable.name, EmptyIcon.ICON_0)
         }
         else -> {
@@ -471,37 +477,28 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       if (expanded) {
         return ""
       }
-      val type = variable.valueType
-      return when (type) {
-        GradlePropertyModel.ValueType.MAP -> {
-          val unresolvedMapValue = variable.getUnresolvedValue(MAP_TYPE) ?: return ""
-          unresolvedMapValue.entries.joinToString(prefix = "[", postfix = "]")
+      val value = variable.value
+      return when (value) {
+        ParsedValue.NotSet -> ""
+        is ParsedValue.Set.Parsed -> when (value.dslText) {
+          DslText.Literal -> {
+            val literalValue = value.value
+            when (literalValue) {
+              is Map<*, *> -> literalValue.entries.joinToString(prefix = "[", postfix = "]")
+              is List<*> -> literalValue.joinToString(prefix = "[", postfix = "]")
+              is String -> StringUtil.wrapWithDoubleQuote(literalValue)
+              null -> ""
+              else -> literalValue.toString()
+            }
+          }
+          is DslText.InterpolatedString -> value.dslText.text
+          is DslText.OtherUnparsedDslText -> value.dslText.text
+          is DslText.Reference -> value.dslText.text
         }
-        GradlePropertyModel.ValueType.LIST -> {
-          val unresolvedListValue = variable.getUnresolvedValue(LIST_TYPE) ?: return ""
-          unresolvedListValue.joinToString(prefix = "[", postfix = "]")
-        }
-        GradlePropertyModel.ValueType.STRING -> {
-          val unresolvedValue = variable.getUnresolvedValue(STRING_TYPE) ?: return ""
-          StringUtil.wrapWithDoubleQuote(unresolvedValue)
-        }
-        else -> variable.getUnresolvedValue(STRING_TYPE) ?: ""
       }
     }
 
-    override fun getResolvedValue(expanded: Boolean): String {
-      if (expanded) {
-        return ""
-      }
-      val resolvedValue = variable.getResolvedValue(STRING_TYPE) ?: return ""
-      if (variable.getDependencies().isEmpty()) {
-        return ""
-      }
-      if (variable.resolvedValueType == ValueType.STRING) {
-        return StringUtil.wrapWithDoubleQuote(resolvedValue)
-      }
-      return resolvedValue
-    }
+    override fun getResolvedValue(expanded: Boolean): String = variable.value.getNonLiteralResolvedText()
 
     override fun setName(newName: String) {
       (userObject as NodeDescription).name = newName
@@ -514,24 +511,9 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       userObject = index
     }
 
-    override fun getUnresolvedValue(expanded: Boolean): String {
-      val value = variable.getUnresolvedValue(STRING_TYPE) ?: ""
-      if (variable.valueType == ValueType.STRING) {
-        return StringUtil.wrapWithDoubleQuote(value)
-      }
-      return value
-    }
+    override fun getUnresolvedValue(expanded: Boolean): String = variable.value.toVariableEditorText()
 
-    override fun getResolvedValue(expanded: Boolean): String {
-      val resolvedValue = variable.getResolvedValue(STRING_TYPE) ?: ""
-      if (variable.getDependencies().isEmpty()) {
-        return ""
-      }
-      if (variable.resolvedValueType == ValueType.STRING) {
-        return StringUtil.wrapWithDoubleQuote(resolvedValue)
-      }
-      return resolvedValue
-    }
+    override fun getResolvedValue(expanded: Boolean): String = variable.value.getNonLiteralResolvedText()
 
     override fun setName(newName: String) {
       throw UnsupportedOperationException("List item indices cannot be renamed")
@@ -556,24 +538,9 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       userObject = key
     }
 
-    override fun getUnresolvedValue(expanded: Boolean): String {
-      val value = variable.getUnresolvedValue(STRING_TYPE) ?: ""
-      if (variable.valueType == ValueType.STRING) {
-        return StringUtil.wrapWithDoubleQuote(value)
-      }
-      return value
-    }
+    override fun getUnresolvedValue(expanded: Boolean): String = variable.value.toVariableEditorText()
 
-    override fun getResolvedValue(expanded: Boolean): String {
-      val resolvedValue = variable.getResolvedValue(STRING_TYPE) ?: ""
-      if (variable.getDependencies().isEmpty()) {
-        return ""
-      }
-      if (variable.resolvedValueType == ValueType.STRING) {
-        return StringUtil.wrapWithDoubleQuote(resolvedValue)
-      }
-      return resolvedValue
-    }
+    override fun getResolvedValue(expanded: Boolean): String = variable.value.getNonLiteralResolvedText()
 
     override fun setName(newName: String) {
       userObject = newName
@@ -594,3 +561,24 @@ class NodeDescription(var name: String, val icon: Icon) {
 }
 
 class NewVariableEvent(source: Any) : EventObject(source)
+
+
+private fun <T> ParsedValue<T>.toVariableEditorText() =
+  when (this) {
+    ParsedValue.NotSet -> ""
+    is ParsedValue.Set.Parsed -> when (dslText) {
+      DslText.Literal -> when (value) {
+        is String -> StringUtil.wrapWithDoubleQuote(value)
+        else -> value.toString()
+      }
+      is DslText.Reference -> dslText.text
+      is DslText.InterpolatedString -> StringUtil.wrapWithDoubleQuote(dslText.text)
+      is DslText.OtherUnparsedDslText -> StringUtil.wrapWithDoubleQuote(dslText.text)
+    }
+  }
+
+private fun <T> ParsedValue<T>.getNonLiteralResolvedText(): String =
+  takeIf { it is ParsedValue.Set.Parsed && it.dslText !== DslText.Literal }
+    ?.maybeValue
+    ?.let { if (it is String) StringUtil.wrapWithDoubleQuote(it) else it.toString() }
+  ?: ""

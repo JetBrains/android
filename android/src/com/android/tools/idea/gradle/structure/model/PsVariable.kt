@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
-import com.android.tools.idea.gradle.dsl.api.util.TypeReference
 import com.android.tools.idea.gradle.structure.model.helpers.parseAny
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.projectsystem.transform
@@ -41,14 +40,6 @@ class PsVariable(
   val valueType get() = property.valueType
   val resolvedValueType get() = resolvedProperty.valueType
   var value by Descriptors.variableValue
-
-  fun <T> getUnresolvedValue(type: TypeReference<T>): T? {
-    return property.getRawValue(type)
-  }
-
-  fun <T> getResolvedValue(type: TypeReference<T>): T? {
-    return resolvedProperty.getValue(type)
-  }
 
   fun convertToEmptyList() = resolvedProperty.convertToEmptyList()
   fun convertToEmptyMap() = resolvedProperty.convertToEmptyMap()
