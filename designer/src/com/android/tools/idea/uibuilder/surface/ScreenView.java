@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.resources.ResourceType;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
@@ -51,7 +49,6 @@ public class ScreenView extends ScreenViewBase {
       builder.add(new BorderLayer(this));
     }
     builder.add(new ScreenViewLayer(this));
-    builder.add(new SelectionLayer(this));
 
     SceneLayer sceneLayer = new SceneLayer(getSurface(), this, false);
     sceneLayer.setAlwaysShowSelection(true);

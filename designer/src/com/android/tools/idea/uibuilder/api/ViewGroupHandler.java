@@ -135,23 +135,6 @@ public class ViewGroupHandler extends ViewHandler {
     return null;
   }
 
-  /**
-   * Creates a new resize handler for the given resizable component child of the given layout
-   *
-   * @param editor             the associated IDE editor
-   * @param component          the component being resized
-   * @param horizontalEdgeType the horizontal (top or bottom) edge being resized, if any
-   * @param verticalEdgeType   the vertical (left or right) edge being resized, if any
-   * @return a new resize handler, or null if the layout does not allow the child to be resized or if the child is not resizable
-   */
-  @Nullable
-  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
-                                           @NotNull NlComponent component,
-                                           @Nullable SegmentType horizontalEdgeType,
-                                           @Nullable SegmentType verticalEdgeType) {
-    return null;
-  }
-
   @Nullable
   public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
     return null;
