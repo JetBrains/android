@@ -17,6 +17,10 @@ package com.android.tools.idea.gradle.structure.model.android
 
 class PsSigningConfigCollection internal constructor(parent: PsAndroidModule)
   : PsMutableCollectionBase<PsSigningConfig, String, PsAndroidModule>(parent) {
+  init {
+    refresh()
+  }
+
   override fun getKeys(from: PsAndroidModule): Set<String> {
     val result = mutableSetOf<String>()
     result.addAll(from.parsedModel?.android()?.signingConfigs()?.map { it.name() }.orEmpty())

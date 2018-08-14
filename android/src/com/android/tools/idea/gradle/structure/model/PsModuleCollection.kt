@@ -29,6 +29,10 @@ enum class ModuleKind { ANDROID, JAVA }
 data class ModuleKey(val kind: ModuleKind, val gradlePath: String)
 
 class PsModuleCollection(parent: PsProjectImpl) : PsCollectionBase<PsModule, ModuleKey, PsProjectImpl>(parent) {
+  init {
+    refresh()
+  }
+
   override fun getKeys(from: PsProjectImpl): Set<ModuleKey> {
     val result = mutableSetOf<ModuleKey>()
     val projectParsedModel = from.parsedModel

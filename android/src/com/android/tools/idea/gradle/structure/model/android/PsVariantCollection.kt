@@ -18,6 +18,10 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.ide.common.gradle.model.IdeVariant
 
 internal class PsVariantCollection(parent: PsAndroidModule) : PsCollectionBase<PsVariant, PsVariantKey, PsAndroidModule>(parent) {
+  init {
+    refresh()
+  }
+
   override fun getKeys(from: PsAndroidModule): Set<PsVariantKey> =
     from.resolvedModel?.androidProject?.variants?.map { PsVariantKey(it.buildType, it.productFlavors) }.orEmpty().toSet()
 

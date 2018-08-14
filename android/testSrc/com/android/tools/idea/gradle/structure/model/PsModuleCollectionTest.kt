@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.testing.TestProjectPaths
-import com.google.common.base.CharMatcher.any
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
