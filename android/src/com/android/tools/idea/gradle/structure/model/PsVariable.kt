@@ -30,10 +30,10 @@ import java.lang.IllegalStateException
  */
 class PsVariable(
   private val property: GradlePropertyModel,
-  private val resolvedProperty: ResolvedPropertyModel,
   override val parent: PsModel,
   val scopePsVariables: PsVariablesScope
 ) : PsChildModel() {
+  private val resolvedProperty: ResolvedPropertyModel = property.resolve()
 
   override val name: String get() = property.name
   override val isDeclared: Boolean = true
@@ -76,7 +76,7 @@ class PsVariable(
     val listValue = property.addListValue()
     listValue.setValue(value)
     parent.isModified = true
-    return PsVariable(listValue, listValue.resolve(), this, scopePsVariables)
+    return PsVariable(listValue, this, scopePsVariables)
   }
 
   fun addMapValue(key: String): PsVariable? {
@@ -88,7 +88,7 @@ class PsVariable(
     if (mapValue.psiElement != null) {
       return null
     }
-    return PsVariable(mapValue, mapValue.resolve(), this, scopePsVariables)
+    return PsVariable(mapValue, this, scopePsVariables)
   }
 
   fun getDependencies(): List<GradlePropertyModel> = property.dependencies
