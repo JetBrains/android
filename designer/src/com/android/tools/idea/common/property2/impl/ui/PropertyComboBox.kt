@@ -18,7 +18,6 @@ package com.android.tools.idea.common.property2.impl.ui
 import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.CommonTextField
-import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
@@ -42,23 +41,14 @@ import javax.swing.plaf.basic.ComboPopup
  */
 class PropertyComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Boolean): CellPanel() {
   private val comboBox = WrappedComboBox(model, asTableCellEditor)
-  private val comboBorder: CellBorder? = CellBorder(0, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING, background)
 
   init {
     add(comboBox, BorderLayout.CENTER)
-    if (asTableCellEditor) {
-      border = comboBorder
-    }
   }
 
   var renderer: ListCellRenderer<in EnumValue>
     get() = comboBox.renderer
     set(value) { comboBox.renderer = value }
-
-  override fun setBackground(color: Color?) {
-    super.setBackground(color)
-    comboBorder?.background = color
-  }
 }
 
 private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Boolean)
@@ -77,8 +67,6 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     textField.registerKeyAction({ escape() }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape")
     textField.registerKeyAction({ model.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
     textField.registerKeyAction({ model.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
-    textField.foreground = foreground
-    textField.background = background
 
     val focusListener = EditorFocusListener(model)
     addFocusListener(focusListener)
@@ -122,9 +110,6 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
       model.escapeKeyPressed()
     }
   }
-
-  private val currentValue: String
-    get() = if (isEditable) editor.item.toString() else model.selectedItem?.toString() ?: ""
 
   override fun updateFromModel() {
     super.updateFromModel()
