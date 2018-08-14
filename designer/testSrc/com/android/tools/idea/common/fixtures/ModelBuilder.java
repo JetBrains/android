@@ -27,7 +27,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.model.NlSelectionModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.utils.XmlUtils;
@@ -207,7 +206,7 @@ public class ModelBuilder {
     DesignSurface surface = mock(surfaceClass);
     List<DesignSurfaceListener> listeners = new ArrayList<>();
     when(surface.getLayeredPane()).thenReturn(layeredPane);
-    SelectionModel selectionModel = surfaceClass.equals(NlDesignSurface.class) ? new NlSelectionModel() : new SelectionModel();
+    SelectionModel selectionModel = new SelectionModel();
     when(surface.getSelectionModel()).thenReturn(selectionModel);
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
     when(surface.getScale()).thenReturn(0.5);

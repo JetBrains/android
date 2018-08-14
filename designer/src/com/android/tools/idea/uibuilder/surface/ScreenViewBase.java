@@ -20,23 +20,16 @@ import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
-import com.android.tools.idea.uibuilder.mockup.editor.creators.ResourcesUtil;
-import com.android.tools.idea.uibuilder.model.NlSelectionModel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
 
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 
@@ -110,12 +103,6 @@ abstract class ScreenViewBase extends SceneView {
   @Nullable
   public RenderResult getResult() {
     return getSceneManager().getRenderResult();
-  }
-
-  @NotNull
-  @Override
-  public NlSelectionModel getSelectionModel() {
-    return (NlSelectionModel)super.getSelectionModel();
   }
 
   /**

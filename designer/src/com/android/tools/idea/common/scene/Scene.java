@@ -33,8 +33,6 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.uibuilder.model.NlSelectionModel;
-import com.android.tools.idea.uibuilder.model.SelectionHandle;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -53,8 +51,6 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
-import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
 
 /**
  * A Scene contains a hierarchy of SceneComponent representing the bounds
@@ -499,17 +495,6 @@ public class Scene implements SelectionListener, Disposable {
       return;
     }
 
-    SelectionModel selectionModel = myDesignSurface.getSelectionModel();
-
-    // TODO: remove selectionhandle reference
-    if (!selectionModel.isEmpty() && selectionModel instanceof NlSelectionModel) {
-      int max = Coordinates.getAndroidDimensionDip(myDesignSurface, PIXEL_RADIUS + PIXEL_MARGIN);
-      SelectionHandle handle = ((NlSelectionModel)selectionModel).findHandle(x, y, max, getDesignSurface());
-      if (handle != null) {
-        myMouseCursor = handle.getCursor();
-        return;
-      }
-    }
     SceneComponent component = findComponent(transform, x, y);
     if (component != null && component.getParent() != null) {
       myMouseCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);

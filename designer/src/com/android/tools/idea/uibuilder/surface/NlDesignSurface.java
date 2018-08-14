@@ -36,7 +36,6 @@ import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.model.NlSelectionModel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.google.common.collect.ImmutableList;
@@ -83,7 +82,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true);
 
   public NlDesignSurface(@NotNull Project project, boolean inPreview, @NotNull Disposable parentDisposable) {
-    super(project, new NlSelectionModel(), parentDisposable);
+    super(project, new SelectionModel(), parentDisposable);
     myInPreview = inPreview;
     myAccessoryPanel.setSurface(this);
   }
@@ -484,11 +483,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     return new Dimension(requiredWidth, requiredHeight);
-  }
-
-  @Override
-  public NlSelectionModel getSelectionModel() {
-    return (NlSelectionModel)super.getSelectionModel();
   }
 
   @Override

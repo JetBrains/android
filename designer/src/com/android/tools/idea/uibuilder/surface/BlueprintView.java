@@ -41,7 +41,6 @@ public class BlueprintView extends ScreenView {
     if (myShowBorder) {
       builder.add(new BorderLayer(this));
     }
-    builder.add(new SelectionLayer(this));
     builder.add(new MockupLayer(this));
     if (!myIsSecondary) {
       builder.add(new CanvasResizeLayer(getSurface(), this));
