@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -23,7 +24,6 @@ import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Lists;
@@ -225,10 +225,7 @@ public class StringsWriteUtils {
     LocalResourceRepository repository = ResourceRepositoryManager.getModuleResources(facet);
     // Ensure that items *just* created are processed by the resource repository
     repository.sync();
-    List<ResourceItem> items = repository.getResourceItem(ResourceType.STRING, key);
-    if (items == null) {
-      return null;
-    }
+    List<ResourceItem> items = repository.getResources(ResourceNamespace.TODO(), ResourceType.STRING, key);
 
     for (ResourceItem item : items) {
       FolderConfiguration config = item.getConfiguration();

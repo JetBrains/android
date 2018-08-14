@@ -42,7 +42,6 @@ import java.awt.Dimension
 import java.awt.Image
 import kotlin.properties.Delegates
 
-
 private val LOG = Logger.getInstance(ProjectResourcesBrowserViewModel::class.java)
 private val SUPPORTED_RESOURCES = arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR, ResourceType.SAMPLE_DATA)
 
@@ -55,8 +54,6 @@ class ProjectResourcesBrowserViewModel(
   synchronizationManager: SynchronizationManager, // TODO listen for update
   val importerProvider: ImportersProvider
 ) {
-
-
   /**
    * callback called when the resource model have change. This happen when the facet is changed.
    */
@@ -91,10 +88,7 @@ class ProjectResourcesBrowserViewModel(
 
   private fun getModuleResources(type: ResourceType): List<ResourceItem> {
     val moduleRepository = ResourceRepositoryManager.getModuleResources(facet)
-    return moduleRepository.namespaces.flatMap { namespace ->
-      moduleRepository.getItemsOfType(namespace, type)
-        .flatMap { resourceItem -> moduleRepository.getResourceItems(namespace, type, resourceItem) }
-    }
+    return moduleRepository.namespaces.flatMap { namespace -> moduleRepository.getResources(namespace, type).values() }
   }
 
   /**
@@ -104,10 +98,7 @@ class ProjectResourcesBrowserViewModel(
     val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
     return repoManager.libraryResources
       .map { lib ->
-        (userReadableLibraryName(lib)) to lib.namespaces.flatMap { namespace ->
-          lib.getItemsOfType(namespace, type)
-            .flatMap { resourceItem -> lib.getResourceItems(namespace, type, resourceItem) }
-        }
+        (userReadableLibraryName(lib)) to lib.namespaces.flatMap { namespace -> lib.getResources(namespace, type).values() }
       }
   }
 

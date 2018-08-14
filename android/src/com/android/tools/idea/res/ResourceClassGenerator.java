@@ -154,7 +154,7 @@ public class ResourceClassGenerator {
       }
     } else {
       // Default R class.
-      for (ResourceType t : myResources.getAvailableResourceTypes(myNamespace)) {
+      for (ResourceType t : myResources.getResourceTypes(myNamespace)) {
         if (t.getHasInnerClass()) {
           cw.visitInnerClass(className + "$" + t.getName(), className, t.getName(), ACC_PUBLIC + ACC_FINAL + ACC_STATIC);
         }
@@ -167,7 +167,7 @@ public class ResourceClassGenerator {
   }
 
   private void generateValuesForType(@NotNull ClassWriter cw, @NotNull ResourceType resType, @NotNull TObjectIntHashMap<String> cache) {
-    Collection<String> resourceNames = myResources.getItemsOfType(myNamespace, resType);
+    Collection<String> resourceNames = myResources.getResources(myNamespace, resType).keySet();
     for (String name : resourceNames) {
       int initialValue = myIdProvider.getOrGenerateId(new ResourceReference(myNamespace, resType, name));
       name = AndroidResourceUtil.getFieldNameByResourceName(name);
@@ -195,12 +195,12 @@ public class ResourceClassGenerator {
     boolean debug = LOG.isDebugEnabled() && isPublicClass(className);
 
     TObjectIntHashMap<String> indexFieldsCache = myCache.get(ResourceType.STYLEABLE);
-    Collection<String> styleableNames = myResources.getItemsOfType(myNamespace, ResourceType.STYLEABLE);
+    Collection<String> styleableNames = myResources.getResources(myNamespace, ResourceType.STYLEABLE).keySet();
     List<MergedStyleable> mergedStyleables = new ArrayList<>(styleableNames.size());
 
     // Generate all declarations - both int[] and int for the indices into the array.
     for (String styleableName : styleableNames) {
-      List<ResourceItem> items = myResources.getResourceItems(myNamespace, ResourceType.STYLEABLE, styleableName);
+      List<ResourceItem> items = myResources.getResources(myNamespace, ResourceType.STYLEABLE, styleableName);
       if (items.isEmpty()) {
         if (debug) {
           LOG.debug("  No items for " + styleableName);

@@ -185,7 +185,7 @@ public class AndroidTargetData {
     }
 
     Map<String, Map<String, Integer>> result = new HashMap<>();
-    List<ResourceItem> items = resources.getResourceItems(ResourceNamespace.ANDROID, ResourceType.ATTR);
+    Collection<ResourceItem> items = resources.getResources(ResourceNamespace.ANDROID, ResourceType.ATTR).values();
     for (ResourceItem item: items) {
       ResourceValue attr = item.getResourceValue();
       if (attr instanceof AttrResourceValue) {
@@ -196,7 +196,7 @@ public class AndroidTargetData {
       }
     }
 
-    items = resources.getResourceItems(ResourceNamespace.ANDROID, ResourceType.STYLEABLE);
+    items = resources.getResources(ResourceNamespace.ANDROID, ResourceType.STYLEABLE).values();
     for (ResourceItem item: items) {
       ResourceValue styleable = item.getResourceValue();
       if (styleable instanceof StyleableResourceValue) {

@@ -28,7 +28,6 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.property.assistant.AssistantPopupPanel;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory.Context;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
@@ -113,7 +112,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
    */
   private static int getIndexOfMatchingTemplate(@NotNull Template[] availableTemplates, @NotNull AndroidFacet facet,
                                          @NotNull ResourceReference reference) {
-    List<ResourceItem> items = ResourceRepositoryManager.getAppResources(facet).getResourceItems(reference);
+    List<ResourceItem> items = ResourceRepositoryManager.getAppResources(facet).getResources(reference);
     if (items.isEmpty()) {
       return -1;
     }
@@ -263,7 +262,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
       resourceName = resourceNameRoot + (index < 1 ? "" : "_" + index);
       index++;
     }
-    while (!LocalResourceRepository.getResourceItems(ResourceNamespace.TODO(), ResourceType.LAYOUT, resourceName).isEmpty());
+    while (!LocalResourceRepository.getResources(ResourceNamespace.TODO(), ResourceType.LAYOUT, resourceName).isEmpty());
     return resourceName;
   }
 

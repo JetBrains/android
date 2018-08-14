@@ -425,7 +425,7 @@ public class AndroidJavaDocRenderer {
                                                @NotNull String name,
                                                @NotNull List<ItemInfo> results) {
       ResourceNamespace namespace = isFramework ? ResourceNamespace.ANDROID : ResourceNamespace.TODO();
-      List<ResourceItem> items = resources.getResourceItems(namespace, type, name);
+      List<ResourceItem> items = resources.getResources(namespace, type, name);
       for (ResourceItem item : items) {
         String folderName = null;
         PathString source = item.getSource();

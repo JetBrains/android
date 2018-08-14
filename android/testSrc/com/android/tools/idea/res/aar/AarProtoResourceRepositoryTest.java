@@ -52,6 +52,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
 
   private static final String LIBRARY_NAME = "design-27.0.2";
   private static final String LIBRARY_PACKAGE = "android.support.design";
+  private static final ResourceNamespace LIBRARY_NAMESPACE = ResourceNamespace.fromPackageName(LIBRARY_PACKAGE);
 
   private static final String TAG_ATTR = "attr";
   private static final String TAG_ENUM = "enum";
@@ -150,8 +151,8 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     }
 
     for (ResourceType type : ResourceType.values()) {
-      List<ResourceItem> expectedPublic = new ArrayList<>(expected.getPublicResourcesOfType(type));
-      List<ResourceItem> actualPublic = new ArrayList<>(actual.getPublicResourcesOfType(type));
+      List<ResourceItem> expectedPublic = new ArrayList<>(expected.getPublicResources(LIBRARY_NAMESPACE, type));
+      List<ResourceItem> actualPublic = new ArrayList<>(actual.getPublicResources(LIBRARY_NAMESPACE, type));
       assertEquals("Number of public resources doesn't match for type " + type.getName(), expectedPublic.size(), actualPublic.size());
       expectedPublic.sort(ITEM_COMPARATOR);
       actualPublic.sort(ITEM_COMPARATOR);
@@ -530,7 +531,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
 
   private void updateEnumMap(@NotNull AarSourceResourceRepository repository) {
     ResourceNamespace namespace = repository.getNamespace();
-    List<ResourceItem> items = repository.getResourceItems(namespace, ResourceType.STYLEABLE);
+    Collection<ResourceItem> items = repository.getResources(namespace, ResourceType.STYLEABLE).values();
     for (ResourceItem item : items) {
       ResourceValue value = item.getResourceValue();
       if (value instanceof StyleableResourceValue) {
@@ -558,13 +559,13 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
   }
 
   private static void checkVisibility(@NotNull AarProtoResourceRepository repository) {
-    List<ResourceItem> items = repository.getResourceItems(repository.getNamespace(), ResourceType.STYLEABLE);
+    Collection<ResourceItem> items = repository.getResources(repository.getNamespace(), ResourceType.STYLEABLE).values();
     assertFalse(items.isEmpty());
     for (ResourceItem item : items) {
       assertEquals(ResourceVisibility.PUBLIC, ((ResourceItemWithVisibility)item).getVisibility());
     }
 
-    items = repository.getResourceItems(repository.getNamespace(), ResourceType.DRAWABLE);
+    items = repository.getResources(repository.getNamespace(), ResourceType.DRAWABLE).values();
     assertFalse(items.isEmpty());
     for (ResourceItem item : items) {
       assertEquals(ResourceVisibility.PRIVATE_XML_ONLY, ((ResourceItemWithVisibility)item).getVisibility());

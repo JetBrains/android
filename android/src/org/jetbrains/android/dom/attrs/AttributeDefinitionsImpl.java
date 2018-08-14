@@ -86,7 +86,7 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
 
   private void initializeFromResourceRepository(@NotNull AbstractResourceRepository resources) {
     for (ResourceNamespace namespace : resources.getNamespaces()) {
-      List<ResourceItem> items = resources.getResourceItems(namespace, ResourceType.ATTR);
+      Collection<ResourceItem> items = resources.getResources(namespace, ResourceType.ATTR).values();
       for (ResourceItem item : items) {
         ResourceValue resourceValue = item.getResourceValue();
         if (resourceValue instanceof AttrResourceValue) {
@@ -96,7 +96,7 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
     }
 
     for (ResourceNamespace namespace : resources.getNamespaces()) {
-      List<ResourceItem> items = resources.getResourceItems(namespace, ResourceType.STYLEABLE);
+      Collection<ResourceItem> items = resources.getResources(namespace, ResourceType.STYLEABLE).values();
       for (ResourceItem item : items) {
         ResourceValue resourceValue = item.getResourceValue();
         if (resourceValue instanceof StyleableResourceValue) {

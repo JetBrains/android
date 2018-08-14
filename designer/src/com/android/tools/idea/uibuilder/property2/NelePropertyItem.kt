@@ -285,13 +285,13 @@ open class NelePropertyItem(
     val toName = { item: ResourceItem -> item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString() }
     if (types.isNotEmpty()) {
       for (type in types) {
-        localRepository.getResourceItems(defaultNamespace, type).filter { it.libraryName == null }.mapTo(values, toName)
+        localRepository.getResources(defaultNamespace, type).values().filter { it.libraryName == null }.mapTo(values, toName)
       }
       for (type in types) {
-        localRepository.getPublicResourcesOfType(type).filter { it.libraryName != null }.mapTo(values, toName)
+        localRepository.getPublicResources(ResourceNamespace.TODO(), type).filter { it.libraryName != null }.mapTo(values, toName)
       }
       for (type in types) {
-        frameworkRepository?.getPublicResourcesOfType(type)?.mapTo(values, toName)
+        frameworkRepository?.getPublicResources(ResourceNamespace.ANDROID, type)?.mapTo(values, toName)
       }
     }
     return values

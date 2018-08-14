@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.res.aar;
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourcesTestsUtil;
-import com.google.common.collect.ListMultimap;
 import com.intellij.util.containers.ContainerUtil;
 import junit.framework.TestCase;
 import java.util.List;
+import java.util.Set;
+
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
@@ -44,19 +44,13 @@ public class AarSourceResourceRepositoryTest extends TestCase {
   public void testGetAllDeclaredIds_noRDotTxt() {
     AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository("my_aar_lib_noRDotTxt");
 
-    List<String> ids = ContainerUtil.map(
-      repository.getResourceItems(ResourceNamespace.TODO(), ResourceType.ID),
-      resourceItem -> {
-        String value = resourceItem.getName();
-        assertNotNull(value);
-        return value;
-      });
+    Set<String> ids = repository.getResources(RES_AUTO, ResourceType.ID).keySet();
     assertSameElements(ids, "id1", "id2");
   }
 
   public void testMultipleValues() {
     AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
-    List<ResourceItem> items = repository.getResourceItems(RES_AUTO, ResourceType.STRING, "hello");
+    List<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.STRING, "hello");
     assertNotNull(items);
     List<String> helloVariants = ContainerUtil.map(
       items,
@@ -71,10 +65,8 @@ public class AarSourceResourceRepositoryTest extends TestCase {
   public void testLibraryNameIsMaintained() {
     AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
     assertThat(repository.getLibraryName()).isEqualTo(ResourcesTestsUtil.AAR_LIBRARY_NAME);
-    for (ListMultimap<String, ResourceItem> multimap : repository.getItems().values()) {
-      for (ResourceItem item : multimap.values()) {
-        assertThat(item.getLibraryName()).isEqualTo(ResourcesTestsUtil.AAR_LIBRARY_NAME);
-      }
+    for (ResourceItem item : repository.getAllResourceItems()) {
+      assertThat(item.getLibraryName()).isEqualTo(ResourcesTestsUtil.AAR_LIBRARY_NAME);
     }
   }
 

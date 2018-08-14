@@ -234,7 +234,7 @@ public class ConfigurationMatcher {
       return Collections.emptyList();
     }
     List<ResourceItem> matchingItems =
-      repository.getResourceItems(reference.getNamespace(), reference.getResourceType(), reference.getName());
+      repository.getResources(reference.getNamespace(), reference.getResourceType(), reference.getName());
     if (matchingItems.isEmpty()) {
       return Collections.emptyList();
     }

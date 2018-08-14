@@ -72,7 +72,7 @@ public class ResourceChooserGroups {
                                                                       @NotNull AbstractResourceRepository frameworkResources,
                                                                       @NotNull ResourceType asType) {
     Map<String, List<ResourceItem>> itemsByName = new HashMap<>();
-    Collection<ResourceItem> publicItems = frameworkResources.getPublicResourcesOfType(type);
+    Collection<ResourceItem> publicItems = frameworkResources.getPublicResources(ResourceNamespace.ANDROID, type);
     for (ResourceItem item : publicItems) {
       String name = item.getName();
       List<ResourceItem> list = itemsByName.get(name);
@@ -101,12 +101,12 @@ public class ResourceChooserGroups {
                                                                     @NotNull LocalResourceRepository repository,
                                                                     @Nullable ResourceVisibilityLookup lookup) {
     ImmutableList.Builder<ResourceChooserItem> chooserItems = ImmutableList.builder();
-    for (String resourceName : repository.getItemsOfType(type)) {
+    for (String resourceName : repository.getResources(ResourceNamespace.TODO(), type).keySet()) {
       if (lookup != null && lookup.isPrivate(type, resourceName)) {
         continue;
       }
-      List<ResourceItem> items = repository.getResourceItem(type, resourceName);
-      if (items == null || items.isEmpty()) {
+      List<ResourceItem> items = repository.getResources(ResourceNamespace.TODO(), type, resourceName);
+      if (items.isEmpty()) {
         continue;
       }
       if (!includeFileResources && items.get(0).isFileBased()) {
@@ -196,7 +196,7 @@ public class ResourceChooserGroups {
     Predicate<SampleDataResourceItem> filter = IMAGE_RESOURCE_TYPES.contains(type) ? ONLY_IMAGES_FILTER : NOT_IMAGES_FILTER;
     ImmutableList<ResourceChooserItem> items =
       SAMPLE_DATA_NS.stream()
-                    .flatMap(namespace -> repository.getResourceItems(namespace, ResourceType.SAMPLE_DATA).stream())
+                    .flatMap(namespace -> repository.getResources(namespace, ResourceType.SAMPLE_DATA).values().stream())
                     .map(item -> (SampleDataResourceItem)item)
                     .filter(filter)
                     .map(item -> new ResourceChooserItem.SampleDataItem(item))

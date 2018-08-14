@@ -44,7 +44,7 @@ class NamespacedAarPackageRClass(
   override fun getQualifiedName(): String? = "$packageName.R"
 
   override fun doGetInnerClasses(): Array<PsiClass> {
-    return aarResources.getAvailableResourceTypes(resourceNamespace)
+    return aarResources.getResourceTypes(resourceNamespace)
       .mapNotNull { if (it.hasInnerClass) NamespacedAarResourceTypeClass(this, it, resourceNamespace, aarResources) else null }
       .toTypedArray()
   }

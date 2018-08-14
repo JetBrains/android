@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.folding;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -88,7 +89,7 @@ class InlinedResource implements ModificationTracker {
   @Nullable
   public String getResolvedString() {
     if (myResourceRepository != null) {
-      if (myResourceRepository.hasResourceItem(myType, myKey)) {
+      if (myResourceRepository.hasResources(ResourceNamespace.TODO(), myType, myKey)) {
         FolderConfiguration referenceConfig = new FolderConfiguration();
         // Nonexistent language qualifier: trick it to fall back to the default locale
         referenceConfig.setLocaleQualifier(new LocaleQualifier("xx"));

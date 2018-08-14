@@ -20,31 +20,32 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
 public class TestLocalResourceRepository extends LocalResourceRepository {
-
   private final ResourceTable myResourceTable = new ResourceTable();
 
   public TestLocalResourceRepository() {
     super("unit test");
   }
 
-  @NonNull
   @Override
-  protected ResourceTable getFullTable() {
+  @NonNull
+  public ResourceTable getFullTable() {
     return myResourceTable;
   }
 
-  @Nullable
   @Override
+  @Nullable
   protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NonNull ResourceType type, boolean create) {
     ListMultimap<String, ResourceItem> multimap = myResourceTable.get(namespace, type);
     if (multimap == null && create) {
@@ -55,14 +56,19 @@ public class TestLocalResourceRepository extends LocalResourceRepository {
     return multimap;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Set<ResourceNamespace> getNamespaces() {
     return myResourceTable.rowKeySet();
   }
 
-  @NotNull
   @Override
+  public void getLeafResourceRepositories(@NonNull Collection<SingleNamespaceResourceRepository> result) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
   protected Set<VirtualFile> computeResourceDirs() {
     return Collections.emptySet();
   }

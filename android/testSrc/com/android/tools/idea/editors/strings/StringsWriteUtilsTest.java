@@ -30,6 +30,8 @@ import org.jetbrains.android.AndroidTestCase;
 
 import java.util.Collections;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+
 public final class StringsWriteUtilsTest extends AndroidTestCase {
   private Project myProject;
   private VirtualFile myResourceDirectory;
@@ -82,7 +84,7 @@ public final class StringsWriteUtilsTest extends AndroidTestCase {
   }
 
   private ResourceItem getResourceItem(String name, Locale locale) {
-    Iterable<ResourceItem> items = myResourceRepository.getResourceItem(ResourceType.STRING, name);
+    Iterable<ResourceItem> items = myResourceRepository.getResources(RES_AUTO, ResourceType.STRING, name);
 
     if (items != null) {
       for (ResourceItem item : items) {

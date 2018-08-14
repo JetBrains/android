@@ -16,6 +16,7 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.lint.LintIdeClient;
@@ -217,10 +218,10 @@ class MigrateToAppCompatUtil {
                                         @NonNull AbstractResourceRepository repository,
                                         @NonNull ResourceType resourceType) {
 
-    Collection<String> itemsOfType = repository.getItemsOfType(resourceType);
+    Collection<String> itemsOfType = repository.getResources(ResourceNamespace.TODO(), resourceType).keySet();
 
     return itemsOfType.stream()
-      .map(name -> repository.getResourceItem(resourceType, name))
+      .map(name -> repository.getResources(ResourceNamespace.TODO(), resourceType, name))
       .flatMap(Collection::stream)
       .map(item -> LocalResourceRepository.getItemPsiFile(project, item))
       .filter(f -> f instanceof XmlFile)
