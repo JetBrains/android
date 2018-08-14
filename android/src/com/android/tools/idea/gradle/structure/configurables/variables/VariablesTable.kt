@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.variables
 
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariable
@@ -350,8 +349,8 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
         NAME -> node is VariableNode || node is MapItemNode || node is EmptyNode || node is EmptyMapItemNode
         UNRESOLVED_VALUE -> {
           if (node is VariableNode) {
-            val type = node.variable.valueType
-            type != ValueType.MAP && type != ValueType.LIST
+            val literalValue = node.variable.value.maybeLiteralValue
+            literalValue !is Map<*, *> && literalValue !is List<*>
           }
           else {
             node is BaseVariableNode || node is EmptyListItemNode

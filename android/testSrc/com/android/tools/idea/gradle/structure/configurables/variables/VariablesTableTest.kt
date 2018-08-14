@@ -18,6 +18,12 @@ package com.android.tools.idea.gradle.structure.configurables.variables
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
+import com.android.tools.idea.gradle.structure.model.PsVariable
+import com.android.tools.idea.gradle.structure.model.android.asParsed
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
+import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import org.hamcrest.CoreMatchers.*
@@ -112,7 +118,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
       appNode.children().asSequence().find { "anotherVariable" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
     variablesTable.tree.expandPath(TreePath(appNode.path))
 
-    assertThat(variableNode.variable.valueType, equalTo(GradlePropertyModel.ValueType.STRING))
+    assertThat(variableNode.variable.value, equalTo("3.0.1".asParsed<Any>()))
     assertThat(variableNode.childCount, equalTo(0))
     assertThat(tableModel.getValueAt(variableNode, 0) as String, equalTo("anotherVariable"))
     assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("\"3.0.1\""))
@@ -136,7 +142,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
       appNode.children().asSequence().find { "varBool" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
     variablesTable.tree.expandPath(TreePath(variableNode.path))
 
-    assertThat(variableNode.variable.valueType, equalTo(GradlePropertyModel.ValueType.BOOLEAN))
+    assertThat(variableNode.variable.value, equalTo(true.asParsed<Any>()))
     assertThat(variableNode.childCount, equalTo(0))
     assertThat(tableModel.getValueAt(variableNode, 0) as String, equalTo("varBool"))
     assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("true"))
@@ -153,8 +159,10 @@ class VariablesTableTest : AndroidGradleTestCase() {
       appNode.children().asSequence().find { "varRefString" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
     variablesTable.tree.expandPath(TreePath(variableNode.path))
 
-    assertThat(variableNode.variable.valueType, equalTo(GradlePropertyModel.ValueType.REFERENCE))
-    assertThat(variableNode.variable.resolvedValueType, equalTo(GradlePropertyModel.ValueType.STRING))
+    assertThat(
+      variableNode.variable.value,
+      equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed("1.3", DslText.Reference("variable1"))))
+    assertThat(variableNode.variable.value.maybeValue is String, equalTo(true))
     assertThat(variableNode.childCount, equalTo(0))
     assertThat(tableModel.getValueAt(variableNode, 0) as String, equalTo("varRefString"))
     assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("variable1"))
@@ -172,7 +180,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
     val listNode =
       appNode.children().asSequence().find { "varProGuardFiles" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
-    assertThat(listNode.variable.valueType, equalTo(GradlePropertyModel.ValueType.LIST))
+    assertThat(listNode.variable.isList(), equalTo(true))
     assertThat(listNode.childCount, equalTo(3))
     assertThat(tableModel.getValueAt(listNode, 0) as String, equalTo("varProGuardFiles"))
     assertThat(tableModel.getValueAt(listNode, 1) as String, equalTo("[proguard-rules.txt, proguard-rules2.txt]"))
@@ -212,7 +220,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
     val mapNode =
       appNode.children().asSequence().find { "mapVariable" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
-    assertThat(mapNode.variable.valueType, equalTo(GradlePropertyModel.ValueType.MAP))
+    assertThat(mapNode.variable.isMap(), equalTo(true))
     assertThat(mapNode.childCount, equalTo(3))
     assertThat(tableModel.getValueAt(mapNode, 0) as String, equalTo("mapVariable"))
     assertThat(tableModel.getValueAt(mapNode, 1) as String, equalTo("[a=\"double\" quotes, b='single' quotes]"))
@@ -286,7 +294,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
     val listNode =
       appNode.children().asSequence().find { "varProGuardFiles" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
-    assertThat(listNode.variable.valueType, equalTo(GradlePropertyModel.ValueType.LIST))
+    assertThat(listNode.variable.isList(), equalTo(true))
 
     variablesTable.tree.expandPath(TreePath(listNode.path))
     val firstElementNode = listNode.getChildAt(0)
@@ -304,7 +312,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
     val mapNode =
       appNode.children().asSequence().find { "mapVariable" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
-    assertThat(mapNode.variable.valueType, equalTo(GradlePropertyModel.ValueType.MAP))
+    assertThat(mapNode.variable.isMap(), equalTo(true))
 
     variablesTable.tree.expandPath(TreePath(mapNode.path))
     val firstElementNode = mapNode.getChildAt(0)
@@ -372,7 +380,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
     val listNode =
       appNode.children().asSequence().find { "varProGuardFiles" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
-    assertThat(listNode.variable.valueType, equalTo(GradlePropertyModel.ValueType.LIST))
+    assertThat(listNode.variable.isList(), equalTo(true))
     assertThat(tableModel.isCellEditable(listNode, 1), equalTo(false))
 
     variablesTable.tree.expandPath(TreePath(listNode.path))
@@ -406,7 +414,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
     val mapNode =
       appNode.children().asSequence().find { "mapVariable" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
-    assertThat(mapNode.variable.valueType, equalTo(GradlePropertyModel.ValueType.MAP))
+    assertThat(mapNode.variable.isMap(), equalTo(true))
     assertThat(tableModel.isCellEditable(mapNode, 1), equalTo(false))
 
     variablesTable.tree.expandPath(TreePath(mapNode.path))
@@ -594,7 +602,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
     val listNode =
       appNode.children().asSequence().find { "varProGuardFiles" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
-    assertThat(listNode.variable.valueType, equalTo(GradlePropertyModel.ValueType.LIST))
+    assertThat(listNode.variable.isList(), equalTo(true))
     val childCount = listNode.childCount
 
     variablesTable.tree.expandPath(TreePath(listNode.path))
@@ -633,7 +641,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
     val mapNode =
       appNode.children().asSequence().find { "mapVariable" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
-    assertThat(mapNode.variable.valueType, equalTo(GradlePropertyModel.ValueType.MAP))
+    assertThat(mapNode.variable.isMap(), equalTo(true))
     val childCount = mapNode.childCount
 
     variablesTable.tree.expandPath(TreePath(mapNode.path))
@@ -674,3 +682,6 @@ private fun PsProject.applyAllChanges() {
     }
   })
 }
+
+private fun PsVariable.isList() = value.maybeLiteralValue is List<*>
+private fun PsVariable.isMap() = value.maybeLiteralValue is Map<*, *>
