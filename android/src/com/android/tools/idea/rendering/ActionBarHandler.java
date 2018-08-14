@@ -202,7 +202,7 @@ public class ActionBarHandler extends ActionBarCallback {
                   // will first need to properly handle menus.
                   String matchText = method.getText();
                   Matcher matcher = MENU_FIELD_PATTERN.matcher(matchText);
-                  Set<ResourceReference> menus = new TreeSet<>();
+                  Set<ResourceReference> menus = new TreeSet<>(Comparator.comparing(ResourceReference::getName));
                   int index = 0;
                   while (true) {
                     if (matcher.find(index)) {
