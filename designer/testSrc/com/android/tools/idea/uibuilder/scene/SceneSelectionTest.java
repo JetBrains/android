@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.InputEvent;
@@ -160,5 +162,23 @@ public class SceneSelectionTest extends SceneTest {
                  myScene.findComponent(SceneContext.get(myScreen.getScreen()), 601, 601));
     assertEquals(myScene.getSceneComponent(myScreen.findById("@id/linear").getComponent()),
                  myScene.findComponent(SceneContext.get(myScreen.getScreen()), 801, 801));
+  }
+
+  public void testSelectionAfterDragging() {
+    List<NlComponent> componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(0, componentList.size());
+
+    SceneComponent button = myScene.getSceneComponent("button");
+    SceneComponent button2 = myScene.getSceneComponent("button2");
+    myScene.select(ImmutableList.of(button, button2));
+    myInteraction.repaint();
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(2, componentList.size());
+
+    myInteraction.mouseDown("button");
+    myInteraction.mouseRelease(210, 410);
+    myInteraction.repaint();
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(2, componentList.size());
   }
 }
