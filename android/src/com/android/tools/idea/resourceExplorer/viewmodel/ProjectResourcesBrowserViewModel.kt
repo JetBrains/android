@@ -36,7 +36,6 @@ import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.ui.DialogBuilder
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Image
@@ -88,7 +87,9 @@ class ProjectResourcesBrowserViewModel(
 
   private fun getModuleResources(type: ResourceType): List<ResourceItem> {
     val moduleRepository = ResourceRepositoryManager.getModuleResources(facet)
-    return moduleRepository.namespaces.flatMap { namespace -> moduleRepository.getResources(namespace, type).values() }
+    return moduleRepository.namespaces
+      .flatMap { namespace -> moduleRepository.getResources(namespace, type).values() }
+      .sortedBy { it.name }
   }
 
   /**
@@ -98,7 +99,9 @@ class ProjectResourcesBrowserViewModel(
     val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
     return repoManager.libraryResources
       .map { lib ->
-        (userReadableLibraryName(lib)) to lib.namespaces.flatMap { namespace -> lib.getResources(namespace, type).values() }
+        (userReadableLibraryName(lib)) to lib.namespaces
+          .flatMap { namespace -> lib.getResources(namespace, type).values() }
+          .sortedBy { it.name }
       }
   }
 
