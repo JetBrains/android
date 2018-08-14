@@ -141,7 +141,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     tmp123.setName("tmp321")
     tmp123.setValue("123")
     val secondTmp123 = variables.getOrCreateVariable("tmp123")
-    assertThat(secondTmp123.valueType, equalTo(GradlePropertyModel.ValueType.NONE))
+    assertThat(secondTmp123.value, equalTo<ParsedValue<Any>>(ParsedValue.NotSet))
     val tmp321 = variables.getOrCreateVariable("tmp321")
     assertThat(tmp321.value, equalTo("123".asParsed<Any>()))
   }

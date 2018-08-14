@@ -56,7 +56,7 @@ class ExtractVariableWorker<PropertyT : Any, out ModelPropertyCoreT : ModelPrope
   fun validate(currentName: String): String? {
     return when {
       currentName.isBlank() -> "Variable name is required."
-      variable?.valueType == GradlePropertyModel.ValueType.NONE -> "Cannot bind a variable to an empty value."
+      variable?.value  == ParsedValue.NotSet -> "Cannot bind a variable to an empty value."
       else -> null
     }
   }

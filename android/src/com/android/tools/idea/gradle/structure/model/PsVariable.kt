@@ -37,8 +37,6 @@ class PsVariable(
 
   override val name: String get() = property.name
   override val isDeclared: Boolean = true
-  val valueType get() = property.valueType
-  val resolvedValueType get() = resolvedProperty.valueType
   var value by Descriptors.variableValue
 
   fun convertToEmptyList() = resolvedProperty.convertToEmptyList()
@@ -64,7 +62,7 @@ class PsVariable(
   }
 
   fun addListValue(value: String): PsVariable {
-    if (valueType != GradlePropertyModel.ValueType.LIST) {
+    if (property.valueType != GradlePropertyModel.ValueType.LIST) {
       throw IllegalStateException("addListValue can only be called for list variables")
     }
 
@@ -75,7 +73,7 @@ class PsVariable(
   }
 
   fun addMapValue(key: String): PsVariable? {
-    if (valueType != GradlePropertyModel.ValueType.MAP) {
+    if (property.valueType != GradlePropertyModel.ValueType.MAP) {
       throw IllegalStateException("addMapValue can only be called for map variables")
     }
 
@@ -85,8 +83,6 @@ class PsVariable(
     }
     return PsVariable(mapValue, this, scopePsVariables)
   }
-
-  fun getDependencies(): List<GradlePropertyModel> = property.dependencies
 
   /**
    * Binds a new property to the underlying Gradle property using the binding configuration from the [prototype].

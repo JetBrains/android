@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptors
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
@@ -100,8 +98,8 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
                  equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
                                                                                 DslText.Reference("renamedName"))
                                                            .annotated()))
-      assertThat(appModule.variables.getOrCreateVariable("renamedName").valueType,
-                 equalTo(GradlePropertyModel.ValueType.NONE))
+      assertThat(appModule.variables.getOrCreateVariable("renamedName").value,
+                 equalTo<ParsedValue<Any>>(ParsedValue.NotSet))
 
       assertThat(project.variables.getOrCreateVariable("renamedName").value,
                  equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.asParsed<Any>()))
