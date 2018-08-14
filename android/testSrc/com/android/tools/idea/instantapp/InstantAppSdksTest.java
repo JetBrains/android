@@ -26,6 +26,7 @@ import com.android.utils.NullLogger;
 import com.google.android.instantapps.sdk.api.Sdk;
 import com.google.android.instantapps.sdk.api.TelemetryManager.OptInStatus;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.util.BuildNumber;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -50,6 +51,7 @@ public class InstantAppSdksTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
+    when(myApplicationInfo.getBuild()).thenReturn(BuildNumber.fromString("123.4567.89.0"));
     when(myApplicationInfo.getFullVersion()).thenReturn("testVersion");
     new IdeComponents(getProject()).replaceApplicationService(ApplicationInfo.class, myApplicationInfo);
     AnalyticsSettingsData analyticsSettings = new AnalyticsSettingsData();
