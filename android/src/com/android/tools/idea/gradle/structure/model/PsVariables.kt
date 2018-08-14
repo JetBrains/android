@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.google.common.annotations.VisibleForTesting
 
-class PsVariables(
+open class PsVariables(
   override val model: PsModel,
   override val title: String,
-  override val container: ExtModel,
   private val parentScope: PsVariablesScope?
 ) : PsVariablesScope {
   override val name: String = model.name
@@ -31,9 +30,10 @@ class PsVariables(
     property: ModelPropertyContext<ValueT>
   ): List<Annotated<ParsedValue.Set.Parsed<ValueT>>> =
   // TODO(solodkyy): Merge with variables available at the project level.
-    container.inScopeProperties
-      .map { it.key to it.value.resolve() }
-      .flatMap {
+    getContainer(model)
+      ?.inScopeProperties
+      ?.map { it.key to it.value.resolve() }
+      ?.flatMap {
         when (it.second.valueType) {
           GradlePropertyModel.ValueType.LIST -> listOf()
           GradlePropertyModel.ValueType.MAP ->
@@ -43,18 +43,19 @@ class PsVariables(
           else -> listOf(it)
         }
       }
-      .mapNotNull { (name, resolvedProperty) ->
+      ?.mapNotNull { (name, resolvedProperty) ->
         resolvedProperty.getValue(GradlePropertyModel.OBJECT_TYPE)?.let { name to property.parse(it.toString()) }
       }
-      .mapNotNull { (name, annotatedValue) ->
+      ?.mapNotNull { (name, annotatedValue) ->
         when {
           (annotatedValue.value is ParsedValue.Set.Parsed && annotatedValue.annotation !is ValueAnnotation.Error) ->
             ParsedValue.Set.Parsed(annotatedValue.value.value, DslText.Reference(name)).annotateWith(annotatedValue.annotation)
           else -> null
         }
-      }
+      } ?: listOf()
 
-  override fun getModuleVariables(): List<PsVariable> = container.properties.map { PsVariable(it, model, this) }
+  override fun getModuleVariables(): List<PsVariable> =
+    getContainer(model)?.properties?.map { PsVariable(it, model, this) } ?: listOf()
 
   override fun getVariableScopes(): List<PsVariablesScope> =
     parentScope?.getVariableScopes().orEmpty() + this
@@ -62,9 +63,23 @@ class PsVariables(
   override fun getNewVariableName(preferredName: String) =
     generateSequence(0, { it + 1 })
       .map { if (it == 0) preferredName else "$preferredName$it" }
-      .first { container.findProperty(it).valueType == GradlePropertyModel.ValueType.NONE }
+      .first { getContainer(model)!!.findProperty(it).valueType == GradlePropertyModel.ValueType.NONE }
 
-  override fun getOrCreateVariable(name: String): PsVariable = container.findProperty(name).let {
+  override fun getOrCreateVariable(name: String): PsVariable = getContainer(model)!!.findProperty(name).let {
     PsVariable(it, model, this)
+  }
+
+  override fun addNewVariable(name: String) = getOrCreateVariable(name)
+
+  @VisibleForTesting
+  protected open fun getContainer(from: PsModel) =
+    when (from) {
+      is PsProject -> from.parsedModel.projectBuildModel?.ext()
+      is PsModule -> from.parsedModel?.ext()
+      else -> throw IllegalStateException()
+    }
+
+  fun refresh() {
+    // Does nothing since this class is stateless (for now).
   }
 }

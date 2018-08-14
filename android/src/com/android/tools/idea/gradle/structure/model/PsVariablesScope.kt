@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -56,10 +55,9 @@ interface PsVariablesScope {
 
   fun getOrCreateVariable(name: String): PsVariable
 
-  val model: PsModel
+  fun addNewVariable(name: String): PsVariable
 
-  // TODO(solodkyy): Expose list/map manipulation methods instead.
-  val container: ExtModel
+  val model: PsModel
 
   object NONE : PsVariablesScope {
     override val name: String = ""
@@ -67,8 +65,6 @@ interface PsVariablesScope {
     override val title: String = ""
 
     override val model: PsModel get() = throw UnsupportedOperationException()
-
-    override val container: ExtModel get() = throw UnsupportedOperationException()
 
     override fun <ValueT : Any> getAvailableVariablesFor(
       property: ModelPropertyContext<ValueT>): List<Annotated<ParsedValue.Set.Parsed<ValueT>>> = listOf()
@@ -80,6 +76,8 @@ interface PsVariablesScope {
     override fun getNewVariableName(preferredName: String): String = throw UnsupportedOperationException()
 
     override fun getOrCreateVariable(name: String): PsVariable = throw UnsupportedOperationException()
+
+    override fun addNewVariable(name: String): PsVariable = throw UnsupportedOperationException()
   }
 }
 
