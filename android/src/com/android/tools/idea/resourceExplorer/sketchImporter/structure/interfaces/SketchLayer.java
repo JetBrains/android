@@ -25,6 +25,9 @@ import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.List;
 
+/**
+ * Holds the fields that are shared between all types of layers in the Sketch JSON file.
+ */
 public abstract class SketchLayer {
 
   public static final int BOOLEAN_OPERATION_UNION = 0;

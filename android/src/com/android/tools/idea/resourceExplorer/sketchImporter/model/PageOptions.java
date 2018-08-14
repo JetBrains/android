@@ -21,13 +21,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Locale;
 
 /**
- * Class meant to hold the options the user chooses for each individual page that is imported,
+ * {@link ObjectOptions} meant to hold the options the user chooses for each individual page that is imported,
  * i.e. how that page should be treated when parsing:
  * <ul>
  * <li><b>“Icons” page</b> -> for each artboard, attempt to convert to Vector Drawable</li>
  * <li><b>“Colors” page</b> -> TODO</li>
  * <li><b>“Symbols” page</b> -> TODO</li>
- * <li><b>“Other”</b> -> TODO</li>
+ * <li><b>“Text” page</b> -> TODO</li>
+ * <li><b>“Mixed”</b> -> tries to render all the different types of assets</li>
  * </ul>
  */
 public class PageOptions {
