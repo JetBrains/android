@@ -75,7 +75,7 @@ public class ArtifactRepositorySearchForm {
 
     myArtifactNameTextField.getDocument().addDocumentListener(new DocumentAdapter() {
       @Override
-      protected void textChanged(DocumentEvent e) {
+      protected void textChanged(@NotNull DocumentEvent e) {
         clearResults();
         showSearchStopped();
       }

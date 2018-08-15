@@ -651,7 +651,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     searchField.setMaximumSize(new Dimension(JBUI.scale(300), searchField.getMaximumSize().height));
     searchField.addDocumentListener(new DocumentAdapter() {
       @Override
-      protected void textChanged(DocumentEvent e) {
+      protected void textChanged(@NotNull DocumentEvent e) {
         updateFilter();
       }
     });

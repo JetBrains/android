@@ -73,7 +73,7 @@ public class StorageField extends JPanel {
 
     myValueField.getDocument().addDocumentListener(new DocumentAdapter() {
       @Override
-      protected void textChanged(DocumentEvent e) {
+      protected void textChanged(@NotNull DocumentEvent e) {
         // updateStorage might set myValueField as a side effect, which will cause this document
         // to throw an exception. Side-step that problem by invoking the call to happen later.
         ApplicationManager.getApplication().invokeLater(() -> updateStorage());

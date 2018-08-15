@@ -24,6 +24,7 @@ import com.intellij.projectImport.ProjectImportWizardStep;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.EditableModel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -68,7 +69,7 @@ class AdtWorkspaceForm extends ProjectImportWizardStep {
                                FileChooserDescriptorFactory.createSingleFolderDescriptor());
     myWorkspaceField.getTextField().getDocument().addDocumentListener(new DocumentAdapter() {
       @Override
-      protected void textChanged(DocumentEvent e) {
+      protected void textChanged(@NotNull DocumentEvent e) {
         File workspace = new File(myWorkspaceField.getText());
         boolean workspaceValid = GradleImport.isEclipseWorkspaceDir(workspace);
         //setBackground(myAndroidHomeLocation, workspaceValid);

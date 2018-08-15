@@ -128,7 +128,7 @@ public class AddExistingDestinationMenu extends DropDownAction {
     selectionPanel.add(mySearchField);
     mySearchField.addDocumentListener(new DocumentAdapter() {
       @Override
-      protected void textChanged(DocumentEvent e) {
+      protected void textChanged(@NotNull DocumentEvent e) {
         myListModel.refilter();
       }
     });

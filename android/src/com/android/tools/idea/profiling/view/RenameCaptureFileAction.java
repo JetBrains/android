@@ -86,7 +86,7 @@ public class RenameCaptureFileAction extends DumbAwareAction {
 
       myInput.getDocument().addDocumentListener(new DocumentAdapter() {
         @Override
-        public void textChanged(DocumentEvent documentEvent) {
+        public void textChanged(@NotNull DocumentEvent documentEvent) {
           boolean isValid = StandardFileSystems.local().isValidName(myInput.getText().trim());
           setErrorText(isValid ? null : String.format("'%1$s' is not valid", myInput.getText()));
           myOKAction.setEnabled(isValid);
