@@ -85,6 +85,7 @@ iml_module(
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/adt/idea/android-adb[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
     ],
 )
 
