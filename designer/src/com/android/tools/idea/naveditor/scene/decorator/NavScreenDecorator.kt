@@ -30,7 +30,7 @@ import com.android.tools.idea.res.resolve
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.xml.XmlFile
-import java.awt.Rectangle
+import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
 import java.io.File
 import java.util.concurrent.CompletableFuture
@@ -61,7 +61,7 @@ abstract class NavScreenDecorator : SceneDecorator() {
     }
   }
 
-  protected fun drawImage(list: DisplayList, sceneContext: SceneContext, component: SceneComponent, rectangle: Rectangle) {
+  protected fun drawImage(list: DisplayList, sceneContext: SceneContext, component: SceneComponent, rectangle: Rectangle2D.Float) {
     val (image, oldImage) = buildImage(sceneContext, component)
     list.add(DrawNavScreen(rectangle, image, oldImage))
   }

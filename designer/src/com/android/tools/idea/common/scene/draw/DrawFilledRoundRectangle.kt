@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,36 +17,28 @@ package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
-import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.geom.Rectangle2D
+import java.awt.geom.RoundRectangle2D
 
-class DrawRectangle(
+class DrawFilledRoundRectangle(
   private val level: Int,
-  @SwingCoordinate private val rectangle: Rectangle2D.Float,
-  @SwingCoordinate private val color: Color,
-  @SwingCoordinate private val brushThickness: Float
+  @SwingCoordinate private val rectangle: RoundRectangle2D.Float,
+  @SwingCoordinate private val color: Color
 ) : DrawCommandBase() {
 
-  private constructor(sp: Array<String>) : this(
-    sp[0].toInt(), stringToRect2D(sp[1]),
-    stringToColor(sp[2]), sp[3].toFloat()
-  )
+  private constructor(sp: Array<String>)
+    : this(sp[0].toInt(), stringToRoundRect2D(sp[1]), stringToColor(sp[2]))
 
-  constructor(s: String) : this(parse(s, 4))
+  constructor(s: String) : this(parse(s, 3))
 
   override fun getLevel(): Int = level
 
-  override fun serialize(): String = buildString(
-    javaClass.simpleName, level, rect2DToString(rectangle),
-    colorToString(color), brushThickness
-  )
+  override fun serialize(): String = buildString(javaClass.simpleName, level, roundRect2DToString(rectangle), colorToString(color))
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
-    g.setRenderingHints(HQ_RENDERING_HINTS)
     g.color = color
-    g.stroke = BasicStroke(brushThickness)
-    g.draw(rectangle)
+    g.setRenderingHints(HQ_RENDERING_HINTS)
+    g.fill(rectangle)
   }
 }

@@ -92,24 +92,24 @@ class ActionTargetTest : NavTestCase() {
     scene.layout(0, context)
     fragment1.buildDisplayList(0, list, context)
 
-    assertEquals("DrawRectangle,1,490.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-                 "DrawAction,NORMAL,490x400x76x128,400x389x78x139,NORMAL\n" +
-                 "DrawArrow,2,UP,436.0x531.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-                 "DrawTruncatedText,3,fragment1,498x390x68x5,ff656565,Default:0:9,false\n" +
-                 "DrawIcon,490x389x7x7,START_DESTINATION\n" +
-                 "DrawNavScreen,491x401x74x126\n" +
+    assertEquals("DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+                 "DrawAction,NORMAL,490.0x400.0x76.5x128.0,400.0x389.0x78.5x139.0,NORMAL\n" +
+                 "DrawArrow,2,UP,436.25x532.0x6.0x5.0,b2a7a7a7\n" +
+                 "DrawTruncatedText,3,fragment1,498.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
+                 "DrawIcon,490.0x389.0x7.0x7.0,START_DESTINATION\n" +
+                 "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
                  "\n", list.generateSortedDisplayList(context))
 
     (fragment1.targets[fragment1.findTarget(ActionTarget::class.java)] as ActionTarget).isHighlighted = true
     list.clear()
     fragment1.buildDisplayList(0, list, context)
 
-    assertEquals("DrawRectangle,1,490.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-                 "DrawAction,NORMAL,490x400x76x128,400x389x78x139,HOVER\n" +
-                 "DrawArrow,2,UP,436.0x531.0x6.0x5.0x0.0x0.0,ffa7a7a7\n" +
-                 "DrawTruncatedText,3,fragment1,498x390x68x5,ff656565,Default:0:9,false\n" +
-                 "DrawIcon,490x389x7x7,START_DESTINATION\n" +
-                 "DrawNavScreen,491x401x74x126\n" +
+    assertEquals("DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+                 "DrawAction,NORMAL,490.0x400.0x76.5x128.0,400.0x389.0x78.5x139.0,HOVER\n" +
+                 "DrawArrow,2,UP,436.25x532.0x6.0x5.0,ffa7a7a7\n" +
+                 "DrawTruncatedText,3,fragment1,498.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
+                 "DrawIcon,490.0x389.0x7.0x7.0,START_DESTINATION\n" +
+                 "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
                  "\n", list.generateSortedDisplayList(context))
   }
 
@@ -157,40 +157,40 @@ class ActionTargetTest : NavTestCase() {
     // Arrows should be down for 2 and 3, right for 4, up for 5 and 6
     assertEquals(
       "Clip,0,0,1376,1428\n" +
-      "DrawRectangle,1,650.0x650.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,651x651x74x126\n" +
-      "DrawIcon,650x639x7x7,START_DESTINATION\n" +
-      "DrawTruncatedText,3,fragment1,658x640x68x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,650.0x650.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,651.0x651.0x74.5x126.0\n" +
+      "DrawIcon,650.0x639.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawTruncatedText,3,fragment1,658.0x640.0x68.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,650.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,651x401x74x126\n" +
-      "DrawAction,NORMAL,650x400x76x128,650x639x78x139,NORMAL\n" +
-      "DrawArrow,2,DOWN,686.0x630.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment2,650x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,650.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,651.0x401.0x74.5x126.0\n" +
+      "DrawAction,NORMAL,650.0x400.0x76.5x128.0,650.0x639.0x78.5x139.0,NORMAL\n" +
+      "DrawArrow,2,DOWN,686.25x630.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment2,650.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,900.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,901x401x74x126\n" +
-      "DrawAction,NORMAL,900x400x76x128,650x639x78x139,NORMAL\n" +
-      "DrawArrow,2,DOWN,686.0x630.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment3,900x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,900.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,901.0x401.0x74.5x126.0\n" +
+      "DrawAction,NORMAL,900.0x400.0x76.5x128.0,650.0x639.0x78.5x139.0,NORMAL\n" +
+      "DrawArrow,2,DOWN,686.25x630.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment3,900.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,400.0x650.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x651x74x126\n" +
-      "DrawAction,NORMAL,400x650x76x128,650x639x78x139,NORMAL\n" +
-      "DrawArrow,2,RIGHT,641.0x705.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment4,400x640x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x650.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x651.0x74.5x126.0\n" +
+      "DrawAction,NORMAL,400.0x650.0x76.5x128.0,650.0x639.0x78.5x139.0,NORMAL\n" +
+      "DrawArrow,2,RIGHT,641.0x705.5x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment4,400.0x640.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,650.0x900.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,651x901x74x126\n" +
-      "DrawAction,NORMAL,650x900x76x128,650x639x78x139,NORMAL\n" +
-      "DrawArrow,2,UP,686.0x781.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment5,650x890x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,650.0x900.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,651.0x901.0x74.5x126.0\n" +
+      "DrawAction,NORMAL,650.0x900.0x76.5x128.0,650.0x639.0x78.5x139.0,NORMAL\n" +
+      "DrawArrow,2,UP,686.25x782.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment5,650.0x890.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,900.0x900.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,901x901x74x126\n" +
-      "DrawAction,NORMAL,900x900x76x128,650x639x78x139,NORMAL\n" +
-      "DrawArrow,2,UP,686.0x781.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment6,900x890x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,900.0x900.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,901.0x901.0x74.5x126.0\n" +
+      "DrawAction,NORMAL,900.0x900.0x76.5x128.0,650.0x639.0x78.5x139.0,NORMAL\n" +
+      "DrawArrow,2,UP,686.25x782.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment6,900.0x890.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )

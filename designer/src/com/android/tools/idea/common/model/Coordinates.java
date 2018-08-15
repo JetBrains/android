@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.RoundRectangle2D;
+import java.awt.geom.Rectangle2D;
 
 public class Coordinates {
 
@@ -220,12 +220,11 @@ public class Coordinates {
    * system) of the given dimension in the Android screen coordinate system in Dip
    */
   @SwingCoordinate
-  public static RoundRectangle2D.Float getSwingRectDip(@NotNull SceneView view, @NotNull @AndroidDpCoordinate RoundRectangle2D.Float rect) {
-    return new RoundRectangle2D.Float(getSwingXDip(view, rect.x),
+  public static Rectangle2D.Float getSwingRectDip(@NotNull SceneView view, @NotNull @AndroidDpCoordinate Rectangle2D.Float rect) {
+    return new Rectangle2D.Float(getSwingXDip(view, rect.x),
                                       getSwingYDip(view, rect.y),
                                       getSwingDimensionDip(view, rect.width),
-                                      getSwingDimensionDip(view, rect.height),
-                                      0, 0);
+                                      getSwingDimensionDip(view, rect.height));
   }
 
   /**

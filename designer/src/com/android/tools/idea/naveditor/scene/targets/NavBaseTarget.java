@@ -23,6 +23,7 @@ import com.android.tools.idea.naveditor.model.NavCoordinate;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 
 /**
  * {@linkplain NavBaseTarget} Contains helper functions common to navigation editor targets.
@@ -79,7 +80,7 @@ public abstract class NavBaseTarget extends BaseTarget {
   }
 
   @NavCoordinate
-  public Rectangle getBounds() {
-    return new Rectangle((int)myLeft, (int)myTop, (int)(myRight - myLeft), (int)(myBottom - myTop));
+  public Rectangle2D.Float getBounds() {
+    return new Rectangle2D.Float(myLeft, myTop, myRight - myLeft, myBottom - myTop);
   }
 }

@@ -37,7 +37,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -817,9 +816,9 @@ public class SceneComponent {
 
   @AndroidDpCoordinate
   @NotNull
-  public RoundRectangle2D.Float fillDrawRect2D(long time, @AndroidDpCoordinate RoundRectangle2D.Float rec) {
+  public Rectangle2D.Float fillDrawRect2D(long time, @AndroidDpCoordinate Rectangle2D.Float rec) {
     if (rec == null) {
-      rec = new RoundRectangle2D.Float();
+      rec = new Rectangle2D.Float();
     }
     rec.x = getDrawX(time);
     rec.y = getDrawY(time);

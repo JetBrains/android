@@ -31,7 +31,7 @@ import com.android.tools.idea.naveditor.scene.DRAW_ACTION_LEVEL
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.actionColor
 import java.awt.geom.Point2D
-import java.awt.geom.RoundRectangle2D
+import java.awt.geom.Rectangle2D
 
 /**
  * [ActionDecorator] responsible for creating draw commands for actions.
@@ -55,7 +55,7 @@ object ActionDecorator : SceneDecorator() {
         @SwingCoordinate val y = drawRect.y + drawRect.height / 2
         list.add(DrawLine(DRAW_ACTION_LEVEL, Point2D.Float(x1, y), Point2D.Float(x2, y), color, ACTION_STROKE))
 
-        val arrowRect = RoundRectangle2D.Float()
+        val arrowRect = Rectangle2D.Float()
         arrowRect.x = x2
         arrowRect.y = drawRect.y
         arrowRect.width = Coordinates.getSwingDimension(view, NavSceneManager.ACTION_ARROW_PARALLEL)
