@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProfilerToolWindowFixture;
 import com.android.tools.perflogger.Benchmark;
 import com.google.common.truth.Correspondence;
+import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -120,13 +121,18 @@ public class AndroidProfilerTest {
   @Test
   public void openToolWindow() {
     Benchmark benchmark = new Benchmark.Builder("Profiler GUI Test openToolWindow").setProject(PROFILER_PROJECT_NAME).build();
-    benchmarkMethod(benchmark, () -> myGuiTest.ideFrame().openFromMenu(AndroidProfilerToolWindowFixture::find, "View", "Tool Windows", "Profiler"));
+    benchmarkMethod(
+      benchmark, () -> myGuiTest.ideFrame().openFromMenu(AndroidProfilerToolWindowFixture::find, "View", "Tool Windows", "Profiler"));
   }
 
   private static void benchmarkMethod(@NotNull Benchmark benchmark, @NotNull Runnable method) {
     long benchmarkStart = System.currentTimeMillis();
     try {
       method.run();
+    }
+    catch (Exception e) {
+      System.out.println(ThreadDumper.dumpThreadsToString());
+      throw e;
     }
     finally {
       benchmark.log("total_time", System.currentTimeMillis() - benchmarkStart);
