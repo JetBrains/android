@@ -229,23 +229,6 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
     super.addParent(parent);
   }
 
-  /**
-   * Returns if the given {@link VirtualFile} is part of the sample data directory (or the directory itself)
-   */
-  private static boolean isSampleDataFile(@NotNull AndroidFacet facet, @NotNull VirtualFile file) {
-    VirtualFile sampleDataDir = null;
-    try {
-      sampleDataDir = getSampleDataDir(facet, false);
-    }
-    catch (IOException e) {
-      LOG.warn("Error getting 'sampledir'", e);
-    }
-
-    boolean relevant = sampleDataDir != null && VfsUtilCore.isAncestor(sampleDataDir, file, false);
-    // Also account for the case where the directory itself is being added or removed
-    return relevant || FD_SAMPLE_DATA.equals(file.getName());
-  }
-
   @NonNull
   @Override
   protected ResourceTable getFullTable() {
