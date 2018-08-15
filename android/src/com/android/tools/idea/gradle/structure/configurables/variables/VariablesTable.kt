@@ -87,9 +87,8 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
 
   private fun fillTable() {
     fun createRoot(variablesScope: PsVariablesScope): ModuleNode {
-      val moduleVariables = variablesScope.getModuleVariables()
       val moduleRoot = ModuleNode(variablesScope)
-      moduleVariables.map { VariableNode(it) }.sortedBy { it.variable.name }.forEach { moduleRoot.add(it) }
+      variablesScope.map { VariableNode(it) }.sortedBy { it.variable.name }.forEach { moduleRoot.add(it) }
       return moduleRoot
     }
 
@@ -296,7 +295,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       }
       val nodeBeingEdited = (table as VariablesTable).tree.getPathForRow(row).lastPathComponent
       if (nodeBeingEdited is BaseVariableNode) {
-        textBox.setVariants(nodeBeingEdited.variable.scopePsVariables.getModuleVariables().map { it.name })
+        textBox.setVariants(nodeBeingEdited.variable.scopePsVariables.map { it.name })
       }
       textBox.text = value
       return textBox
