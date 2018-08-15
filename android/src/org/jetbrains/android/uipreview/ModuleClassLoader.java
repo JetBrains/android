@@ -4,6 +4,7 @@ import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.android.ide.common.util.PathString;
 import com.android.projectmodel.AarLibrary;
 import com.android.projectmodel.Library;
 import com.android.sdklib.IAndroidTarget;
@@ -349,7 +350,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   @Nullable
   private static String getPackageName(@NotNull AarLibrary library) {
-    File manifestFile = library.getManifestFile().toFile();
+    PathString manifestFile = library.getManifestFile();
     if (manifestFile != null) {
       try {
         return AndroidManifestUtils.getPackageNameFromManifestFile(manifestFile);
