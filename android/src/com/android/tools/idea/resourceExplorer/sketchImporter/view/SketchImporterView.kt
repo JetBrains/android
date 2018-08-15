@@ -16,17 +16,17 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.view
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchImporterPresenter
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.VerticalFlowLayout
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.Gray
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import javax.swing.*
+import kotlin.properties.Delegates
 
 
 private val PAGE_HEADER_SECONDARY_COLOR = Gray.x66
@@ -36,7 +36,12 @@ private val PAGE_HEADER_BORDER = BorderFactory.createCompoundBorder(
 )
 private val PANEL_SIZE = JBUI.size(600, 400)
 
-class SketchImporterView(private val presenter: SketchImporterPresenter) {
+class SketchImporterView {
+
+  var presenter: SketchImporterPresenter? by
+  Delegates.observable(null as SketchImporterPresenter?) { _, _, presenter ->
+    presenter?.populatePages()
+  }
 
   private val previewPanel = JPanel(VerticalFlowLayout())
 
@@ -46,30 +51,52 @@ class SketchImporterView(private val presenter: SketchImporterPresenter) {
   }
 
   /**
+   * Maps page IDs to the panel associated to the page.
+   */
+  private val pagePanelMap = HashMap<String, JPanel>()
+
+  /**
    * Adds a preview for the [vectorDrawableFiles] corresponding to the page named [pageName] of type [pageTypes] [[selectedTypeIndex]])
    */
-  fun addIconPage(pageName: String,
+  fun addIconPage(pageId: String,
+                  pageName: String,
                   pageTypes: Array<String>,
                   selectedTypeIndex: Int,
                   vectorDrawableFiles: List<LightVirtualFile>) {
-    previewPanel.add(createPageHeader(pageName, pageTypes, selectedTypeIndex))
-    val listModel = DefaultListModel<VirtualFile>().apply {
-      vectorDrawableFiles.forEach { addElement(it) }
-    }
-    // Render icons
+    val pagePanel = JPanel(BorderLayout())
+    pagePanel.add(createPageHeader(pageId, pageName, pageTypes, selectedTypeIndex), BorderLayout.NORTH)
+    renderIcons(vectorDrawableFiles, pagePanel)
+
+    pagePanelMap[pageId] = pagePanel
+    previewPanel.add(pagePanel)
+  }
+
+  private fun renderIcons(vectorDrawableFiles: List<LightVirtualFile>,
+                          pagePanel: JPanel) {
+    // TODO change this
+    if (!vectorDrawableFiles.isEmpty())
+      pagePanel.add(JLabel("iconsGoHere"), BorderLayout.SOUTH)
   }
 
   /**
    * Creates page header containing the [pageName] and the [JComboBox] with the [pageTypes], where [selectedTypeIndex] is selected.
    */
-  private fun createPageHeader(pageName: String, pageTypes: Array<String>, selectedTypeIndex: Int): JComponent {
+  private fun createPageHeader(pageId: String,
+                               pageName: String,
+                               pageTypes: Array<String>,
+                               selectedTypeIndex: Int): JComponent {
     return JPanel(BorderLayout()).apply {
       val nameLabel = JBLabel(pageName)
       nameLabel.font = nameLabel.font.deriveFont(24f)
       add(nameLabel)
 
-      val pageTypeList = JComboBox(pageTypes)
-      pageTypeList.selectedIndex = selectedTypeIndex
+      val pageTypeList = JComboBox(pageTypes).apply {
+        selectedIndex = selectedTypeIndex
+        addActionListener { event ->
+          val cb = event.source as JComboBox<*>
+          presenter?.pageTypeChange(pageId, cb.selectedItem as String)
+        }
+      }
       add(pageTypeList, BorderLayout.EAST)
 
       border = PAGE_HEADER_BORDER
@@ -79,15 +106,27 @@ class SketchImporterView(private val presenter: SketchImporterPresenter) {
   /**
    * Creates the dialog allowing the user to preview and choose which assets they would like to import from the sketch file.
    */
-  fun createImportDialog(facet: AndroidFacet, view: SketchImporterView) {
-    with(DialogBuilder(facet.module.project)) {
-      setCenterPanel(view.configurationPanel)
+  fun createImportDialog(project: Project) {
+    with(DialogBuilder(project)) {
+      setCenterPanel(configurationPanel)
       setOkOperation {
-        presenter.importFilesIntoProject(facet)
+        presenter?.importFilesIntoProject()
         dialogWrapper.close(DialogWrapper.OK_EXIT_CODE)
       }
       setTitle("Choose the assets you would like to import")
       showModal(true)
     }
+  }
+
+  /**
+   * Refresh the preview associated with the file with [pageId].
+   */
+  fun refreshPreview(pageId: String, vectorDrawableFiles: List<LightVirtualFile>) {
+    val pagePanel = pagePanelMap[pageId] ?: return
+    if (pagePanel.components.size > 1) {
+      pagePanel.remove(1)
+    }
+    renderIcons(vectorDrawableFiles, pagePanel)
+    pagePanel.revalidate()
   }
 }
