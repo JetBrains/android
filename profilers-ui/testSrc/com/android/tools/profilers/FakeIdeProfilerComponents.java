@@ -19,7 +19,6 @@ import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.*;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.TextFieldWithHistory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,8 +26,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
@@ -172,32 +173,6 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   @Override
   public JComponent createResizableImageComponent(@NotNull BufferedImage image) {
     return new JPanel();
-  }
-
-  @NotNull
-  @Override
-  public AutoCompleteTextField createAutoCompleteTextField(@Nullable String placeHolder,
-                                                           @Nullable String value,
-                                                           @Nullable Collection<String> variants) {
-    return new AutoCompleteTextField() {
-      final JComponent DEFAULT_COMPONENT = new TextFieldWithHistory();
-
-      @NotNull
-      @Override
-      public JComponent getComponent() {
-        return DEFAULT_COMPONENT;
-      }
-
-      @Override
-      public void addOnDocumentChange(@NotNull Runnable callback) {
-      }
-
-      @NotNull
-      @Override
-      public String getText() {
-        return "";
-      }
-    };
   }
 
   @NotNull
