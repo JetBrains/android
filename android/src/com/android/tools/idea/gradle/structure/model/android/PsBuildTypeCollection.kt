@@ -38,10 +38,10 @@ class PsBuildTypeCollection internal constructor(parent: PsAndroidModule)
   }
 
   override fun instantiateNew(key: String) {
-    parent.parsedModel!!.android()!!.addBuildType(key)
+    parent.parsedModel!!.android().addBuildType(key)
   }
 
   override fun removeExisting(key: String) {
-    parent.parsedModel!!.android()!!.removeBuildType(key)
+    parent.parsedModel!!.android().removeBuildType(key)
   }
 }

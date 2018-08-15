@@ -38,10 +38,10 @@ class PsSigningConfigCollection internal constructor(parent: PsAndroidModule)
   }
 
   override fun instantiateNew(key: String) {
-    parent.parsedModel!!.android()!!.addSigningConfig(key)
+    parent.parsedModel!!.android().addSigningConfig(key)
   }
 
   override fun removeExisting(key: String) {
-    parent.parsedModel!!.android()!!.removeSigningConfig(key)
+    parent.parsedModel!!.android().removeSigningConfig(key)
   }
 }
