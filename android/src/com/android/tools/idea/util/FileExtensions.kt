@@ -17,8 +17,12 @@
 package com.android.tools.idea.util
 
 import com.android.ide.common.util.PathString
+import com.android.ide.common.util.inputStream
 import com.intellij.openapi.vfs.*
+import java.io.BufferedInputStream
+import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.InputStream
 
 fun VirtualFile.toIoFile(): File = VfsUtil.virtualToIoFile(this)
 
@@ -30,6 +34,24 @@ fun File.toLibraryRootVirtualFile(refresh: Boolean = false): VirtualFile? {
   val virtualFileManager = VirtualFileManager.getInstance()
   return if (refresh) virtualFileManager.refreshAndFindFileByUrl(url) else virtualFileManager.findFileByUrl(url)
 }
+
+/**
+ * Returns a new input stream for reading this file. Throws an [IOException] if unable to open the file
+ * or the file does not exist. The result will be a buffered stream.
+ */
+fun PathString.bufferedStream(): InputStream
+  = inputStream().buffered()
+
+/**
+ * Converts this stream to a buffered stream, if there is a possibility that it isn't already buffered.
+ * No additional buffering is added around streams that are known to already be buffered.
+ */
+fun InputStream.buffered(): InputStream
+  = when (this) {
+    is BufferedInputStream -> this
+    is ByteArrayInputStream -> this
+    else -> BufferedInputStream(this)
+  }
 
 /**
  * Returns the [VirtualFile] representing the file resource given its path, or null

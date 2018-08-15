@@ -15,8 +15,10 @@
  */
 package org.jetbrains.android.dom.manifest;
 
-import com.android.SdkConstants;
+import com.android.ide.common.util.PathStrings;
+import com.android.ide.common.util.PathString;
 import com.android.tools.idea.res.aar.ProtoXmlPullParser;
+import com.android.tools.idea.util.FileExtensions;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.util.CachedValueProvider;
@@ -30,14 +32,17 @@ import org.kxml2.io.KXmlParser;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.NS_RESOURCES;
 import static com.android.tools.idea.res.FileResourceReader.PROTO_XML_LEAD_BYTE;
 
 /**
@@ -48,15 +53,17 @@ public class AndroidManifestUtils {
    * Reads package name from the AndroidManifest.xml file in the given directory. The the AndroidManifest.xml
    * file can be in either text or proto format.
    *
+   * @param pathOpener path opener that can produce input streams for
    * @param manifestFile the AndroidManifest.xml file
    * @return the package name from the manifest
    */
   @Nullable
-  public static String getPackageNameFromManifestFile(@NotNull File manifestFile) throws IOException {
-    try (InputStream stream = new BufferedInputStream(new FileInputStream(manifestFile))) {
+  public static String getPackageNameFromManifestFile(@NotNull PathString manifestFile) throws IOException {
+    try (InputStream stream = FileExtensions.buffered(PathStrings.inputStream(manifestFile))) {
       return getPackageName(stream);
-    } catch (XmlPullParserException e) {
-      throw new IOException("File " + manifestFile.getPath() + " has invalid format");
+    }
+    catch (XmlPullParserException e) {
+      throw new IOException("File " + manifestFile + " has invalid format");
     }
   }
 
