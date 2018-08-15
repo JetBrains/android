@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.image.BufferedImage;
-import java.util.Collection;
 import java.util.function.Consumer;
 
 /**
@@ -69,11 +68,6 @@ public interface IdeProfilerComponents {
 
   @NotNull
   JComponent createResizableImageComponent(@NotNull BufferedImage image);
-
-  @NotNull
-  AutoCompleteTextField createAutoCompleteTextField(@NotNull String placeHolder,
-                                                    @NotNull String value,
-                                                    @NotNull Collection<String> variants);
 
   @NotNull
   UiMessageHandler createUiMessageHandler();

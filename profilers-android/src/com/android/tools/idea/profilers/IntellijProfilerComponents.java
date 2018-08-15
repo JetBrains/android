@@ -35,7 +35,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.function.Consumer;
 
 public class IntellijProfilerComponents implements IdeProfilerComponents {
@@ -134,14 +133,6 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
   @Override
   public JComponent createResizableImageComponent(@NotNull BufferedImage image) {
     return new ResizableImage(image);
-  }
-
-  @NotNull
-  @Override
-  public AutoCompleteTextField createAutoCompleteTextField(@NotNull String placeholder,
-                                                           @NotNull String value,
-                                                           @NotNull Collection<String> variants) {
-    return new IntellijAutoCompleteTextField(myProject, placeholder, value, variants);
   }
 
   @NotNull
