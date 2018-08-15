@@ -86,7 +86,7 @@ val NlComponent.visibleDestinations: Map<NlComponent, List<NlComponent>>
   }
 
 fun NlComponent.findVisibleDestination(id: String): NlComponent? {
-  val schema = NavigationSchema.get(model.facet)
+  val schema = NavigationSchema.get(model.module)
   var p = parent
   while (p != null) {
     p.children.firstOrNull { c -> !schema.getDestinationTypesForTag(c.tagName).isEmpty() && c.id == id }?.let { return it }

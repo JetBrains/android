@@ -57,11 +57,11 @@ public class NavigationSchemaTest extends AndroidTestCase {
       ZipUtil.extract(aar, tempDir, null);
       PsiTestUtil.addLibrary(myFixture.getModule(), new File(tempDir, "classes.jar").getPath());
     }
-    NavigationSchema.createIfNecessary(myFacet);
+    NavigationSchema.createIfNecessary(myModule);
   }
 
   public void testSubtags() {
-    NavigationSchema schema = NavigationSchema.get(myFacet);
+    NavigationSchema schema = NavigationSchema.get(myModule);
 
     // Destination types
     Multimap<Class<? extends AndroidDomElement>, String> subtags;
@@ -101,7 +101,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
   }
 
   public void testDestinationClassByTag() {
-    NavigationSchema schema = NavigationSchema.get(myFacet);
+    NavigationSchema schema = NavigationSchema.get(myModule);
     PsiClass activity = findClass(SdkConstants.CLASS_ACTIVITY);
     PsiClass fragment = findClass(SdkConstants.CLASS_V4_FRAGMENT.oldName());
     PsiClass navGraph = findClass("androidx.navigation.NavGraph");
@@ -126,7 +126,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
 
   public void testDestinationType() {
     // TODO: update custom navs so some have multiple types in the release after alpha4
-    NavigationSchema schema = NavigationSchema.get(myFacet);
+    NavigationSchema schema = NavigationSchema.get(myModule);
     assertSameElements(schema.getDestinationTypesForTag("activity"), NavigationSchema.DestinationType.ACTIVITY);
     assertSameElements(schema.getDestinationTypesForTag("activity_sub"), NavigationSchema.DestinationType.ACTIVITY);
     assertSameElements(schema.getDestinationTypesForTag("fragment"), NavigationSchema.DestinationType.FRAGMENT);
@@ -140,7 +140,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
 
   public void testTagByType() {
     // TODO: update custom navs so some have "OTHER" type in the release after alpha4
-    NavigationSchema schema = NavigationSchema.get(myFacet);
+    NavigationSchema schema = NavigationSchema.get(myModule);
     assertEquals("activity", schema.getDefaultTag(NavigationSchema.DestinationType.ACTIVITY));
     assertEquals("navigation", schema.getDefaultTag(NavigationSchema.DestinationType.NAVIGATION));
     assertEquals("fragment", schema.getDefaultTag(NavigationSchema.DestinationType.FRAGMENT));
@@ -148,7 +148,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
 
   public void testTagLabel() {
     // TODO: update custom navs so some have multiple types in the release after alpha4
-    NavigationSchema schema = NavigationSchema.get(myFacet);
+    NavigationSchema schema = NavigationSchema.get(myModule);
     assertEquals("Activity", schema.getTagLabel("activity"));
     assertEquals("Activity (activity_sub)", schema.getTagLabel("activity_sub"));
     assertEquals("Fragment", schema.getTagLabel("fragment"));

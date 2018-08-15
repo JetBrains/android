@@ -383,13 +383,13 @@ public class AttributeProcessingUtil {
                                           @NotNull Set<XmlName> skipAttrNames,
                                           @NotNull AttributeProcessor callback) {
     try {
-      NavigationSchema.createIfNecessary(facet);
+      NavigationSchema.createIfNecessary(facet.getModule());
     }
     catch (ClassNotFoundException e) {
       // The nav dependency wasn't added yet. Give up.
       return;
     }
-    NavigationSchema schema = NavigationSchema.get(facet);
+    NavigationSchema schema = NavigationSchema.get(facet.getModule());
     for (PsiClass psiClass : schema.getStyleablesForTag(tag.getName())) {
       registerAttributesForClassAndSuperclasses(facet, element, psiClass, callback, skipAttrNames);
     }
