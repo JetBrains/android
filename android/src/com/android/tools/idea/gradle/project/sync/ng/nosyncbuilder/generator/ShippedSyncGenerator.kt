@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.generator
 
 import com.android.SdkConstants.DOT_GRADLE
 import com.android.SdkConstants.FN_BUILD_GRADLE
+import com.android.annotations.VisibleForTesting
 import com.android.builder.model.level2.GlobalLibraryMap
 import com.android.ide.common.repository.DEFAULT_GMAVEN_URL
 import com.android.ide.common.repository.GMAVEN_BASE_URL
@@ -36,6 +37,7 @@ import java.io.Closeable
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.*
 
 const val ONLY_GIVEN_REPOS_FLAG = "--onlygivenrepos"
 
@@ -61,23 +63,25 @@ fun main(args: Array<String>) {
   }
 }
 
-class ShippedSyncGenerator(private val projectRoot: File, private val sdkRoot: File, private val outRoot: File,
-                           repoPaths: List<String>, private val useOnlyGivenRepos: Boolean) : Closeable {
-  private val myProjectModels: SyncProjectModels
+class ShippedSyncGenerator(private val projectRoot: File,
+                           private val sdkRoot: File,
+                           private val outRoot: File,
+                           repoPaths: List<String>,
+                           private val useOnlyGivenRepos: Boolean,
+                           private val properOfflineRepo: File? = null) : Closeable {
+  private lateinit var myProjectModels: SyncProjectModels
   private val glmBuilder = GlobalLibraryMapBuilder()
   private lateinit var myOfflineRepoInitScriptPath: Path
   private lateinit var myOriginalGradleBuildTempFile: File
   private val connection: ProjectConnection
+  private val offlineRepoInitScriptContent: String?
 
   init {
-    val syncAction = SyncAction(setOf(), setOf(), SyncActionOptions())
     val fullRepoPaths = repoPaths.toMutableList()
 
     connection = GradleConnector.newConnector()
       .forProjectDirectory(projectRoot)
       .connect()
-
-    val executor = connection.action(syncAction)
 
     if (useOnlyGivenRepos) {
       removeReposInGradleBuild()
@@ -85,28 +89,12 @@ class ShippedSyncGenerator(private val projectRoot: File, private val sdkRoot: F
       fullRepoPaths.add(GMAVEN_BASE_URL)
     }
 
-    val offlineRepoInitScriptContent = createLocalMavenRepoInitScriptContent(fullRepoPaths)
+    offlineRepoInitScriptContent = createLocalMavenRepoInitScriptContent(fullRepoPaths)
 
     if (offlineRepoInitScriptContent != null) {
       myOfflineRepoInitScriptPath = createTempFile(DOT_GRADLE).toPath()
       Files.write(myOfflineRepoInitScriptPath, offlineRepoInitScriptContent.toByteArray())
     }
-
-    val args = listOf(
-      "-Djava.awt.headless=true",
-      "-Pandroid.injected.build.model.only=true",
-      "-Pandroid.injected.build.model.only.advanced=true",
-      "-Pandroid.injected.invoked.from.ide=true",
-      "-Pandroid.injected.build.model.only.versioned=3",
-      "-Pandroid.injected.studio.version=3.3.0.3",
-      "-Pandroid.injected.invoked.from.ide=true"
-    ) + if (offlineRepoInitScriptContent != null) listOf("-I", "$myOfflineRepoInitScriptPath") else listOf()
-
-    AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot)
-
-    myProjectModels = executor
-      .withArguments(args)
-      .run()
   }
 
   override fun close() {
@@ -135,6 +123,24 @@ class ShippedSyncGenerator(private val projectRoot: File, private val sdkRoot: F
   }
 
   fun run() {
+    val args = listOf(
+      "-Djava.awt.headless=true",
+      "-Pandroid.injected.build.model.only=true",
+      "-Pandroid.injected.build.model.only.advanced=true",
+      "-Pandroid.injected.invoked.from.ide=true",
+      "-Pandroid.injected.build.model.only.versioned=3",
+      "-Pandroid.injected.studio.version=3.3.0.3",
+      "-Pandroid.injected.invoked.from.ide=true"
+    ) + if (offlineRepoInitScriptContent != null) listOf("-I", "$myOfflineRepoInitScriptPath") else listOf()
+
+    AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot)
+
+    val syncAction = SyncAction(setOf(), setOf(), SyncActionOptions())
+    val executor = connection.action(syncAction)
+    myProjectModels = executor
+      .withArguments(args)
+      .run()
+
     val projectModel = getProjectModel()
 
     val projectSyncPath = outRoot.toPath().resolve(projectModel.moduleName)
@@ -149,7 +155,7 @@ class ShippedSyncGenerator(private val projectRoot: File, private val sdkRoot: F
       cacheModuleModel(moduleModel, converter, projectSyncPath)
     }
     // Contents of the global library map was filled while running [cacheModuleModel]
-    cacheGlobalLibraryMap(rootConverter, projectSyncPath)
+    cacheGlobalLibraryMap(rootConverter, projectSyncPath, properOfflineRepo?.toPath())
   }
 
   private fun cacheProjectModel(model: SyncModuleModels, converter: PathConverter, syncPath: Path) {
@@ -190,10 +196,14 @@ class ShippedSyncGenerator(private val projectRoot: File, private val sdkRoot: F
     Files.write(gradleModuleProjectPath, gradleModuleProjectJSON.toByteArray())
   }
 
-  private fun cacheGlobalLibraryMap(converter: PathConverter, syncPath: Path) {
+  private fun cacheGlobalLibraryMap(converter: PathConverter, syncPath: Path, properOfflineRepo: Path?) {
     val globalLibraryMapPath = syncPath.resolve(GLOBAL_LIBRARY_MAP_CACHE_PATH)
-    val offlineRepoPath = outRoot.toPath().resolve(OFFLINE_REPO_PATH)
-    val libraryConverter = LibraryConverter(offlineRepoPath)
+    val libraryConverter = if (properOfflineRepo != null) {
+      LibraryConverter(properOfflineRepo, false)
+    } else {
+      val offlineRepoPath = outRoot.toPath().resolve(OFFLINE_REPO_PATH)
+      LibraryConverter(offlineRepoPath, true)
+    }
 
     val newGlobalLibraryMap = NewGlobalLibraryMap(GlobalLibraryMap { glmBuilder.build() }, libraryConverter)
     val globalLibraryMapJSON = newGlobalLibraryMap.toJson(converter)
@@ -239,7 +249,53 @@ fun createLocalMavenRepoInitScriptContent(repoPaths: List<String>): String? {
 // We can't use GradleImport.escapeGroovyStringLiteral because GradleImport uses ServiceManager in static initialization
 private fun escapeGroovyStringLiteral(s: String) = s.map { if (it == '\\' || it == '\'') "\\$it" else "$it"}.joinToString("")
 
-private fun clearRepositories(gradleBuildContent: String): String {
-  val regex = Regex("""repositories\s*\{(.*?)\}""", RegexOption.DOT_MATCHES_ALL)
-  return regex.replace(gradleBuildContent, "")
+@VisibleForTesting
+@Throws(java.lang.IllegalArgumentException::class)
+fun clearRepositories(gradleBuildContent: String): String {
+  // Returns matching bracket position for the first opening bracket, beginning at the specified [startIndex].
+  // Returns -1 if there is no such bracket or the bracket sequence is invalid (e.g "repository }{ ...").
+  fun findMatchingClosingBracket(content: String, startIndex: Int): Int {
+    val stack = Stack<Int>()
+    for (i in startIndex until content.length) {
+      val c = content[i]
+      if (c == '{') {
+        stack.push(i)
+      } else if (c == '}') {
+        if (stack.empty()) {
+          break
+        } else if (stack.size > 1){
+          stack.pop()
+        } else {
+          return i
+        }
+      }
+    }
+    return -1
+  }
+
+  fun IntRange.length() = endInclusive - start + 1
+
+  // [ranges] must be sorted
+  fun removeSubstringInEachRange(content: String, ranges: Sequence<IntRange>): String {
+    var newContent: String = content
+    var removedSymbols = 0
+    for (range in ranges) {
+      newContent = newContent.replaceRange(range.start-removedSymbols, range.endInclusive-removedSymbols+1, "")
+      removedSymbols += range.length()
+    }
+    return newContent
+  }
+
+  val regex = Regex("""repositories\s*\{""")
+
+  val occurrences = regex.findAll(gradleBuildContent)
+  val repositoriesContentRanges = occurrences.map {
+    val matchingClosingBracket = findMatchingClosingBracket(gradleBuildContent, it.range.endInclusive)
+    if (matchingClosingBracket == -1) {
+      throw IllegalArgumentException("build.gradle is invalid (check brackets)")
+    }
+    IntRange(it.range.endInclusive+1, matchingClosingBracket-1)
+  }
+
+  return removeSubstringInEachRange(gradleBuildContent, repositoriesContentRanges)
 }
