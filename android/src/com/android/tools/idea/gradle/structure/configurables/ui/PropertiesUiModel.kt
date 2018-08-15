@@ -41,7 +41,7 @@ interface PropertyUiModel<in ModelT, out PropertyT : Any> {
   /**
    * Creates a property editor bound to a property of [model] which described by this model.
    */
-  fun createEditor(project: PsProject, module: PsModule, model: ModelT): ModelPropertyEditor<PropertyT>
+  fun createEditor(project: PsProject, module: PsModule?, model: ModelT): ModelPropertyEditor<PropertyT>
 }
 
 typealias
@@ -75,9 +75,9 @@ class PropertyUiModelImpl<
   private val editorFactory: PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT>
 ) : PropertyUiModel<ModelT, PropertyT> {
   override val propertyDescription: String = property.description
-  override fun createEditor(project: PsProject, module: PsModule, model: ModelT)
+  override fun createEditor(project: PsProject, module: PsModule?, model: ModelT)
     : ModelPropertyEditor<PropertyT> {
-    return editorFactory(project, module, model, property, module.variables)
+    return editorFactory(project, module, model, property, module?.variables ?: project.variables)
   }
 }
 
