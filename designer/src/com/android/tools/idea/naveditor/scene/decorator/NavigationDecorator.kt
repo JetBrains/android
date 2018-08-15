@@ -21,8 +21,8 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.DrawFilledRectangle
-import com.android.tools.idea.common.scene.draw.DrawRectangle
+import com.android.tools.idea.common.scene.draw.DrawFilledRoundRectangle
+import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.model.includeFileName
@@ -53,14 +53,14 @@ object NavigationDecorator : SceneDecorator() {
     val sceneView = sceneContext.surface?.currentSceneView ?: return
 
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
-    setArcSize(sceneView, drawRectangle, NAVIGATION_ARC_SIZE)
-    list.add(DrawFilledRectangle(DRAW_FRAME_LEVEL, drawRectangle, sceneContext.colorSet.componentBackground))
-    list.add(DrawRectangle(DRAW_FRAME_LEVEL, drawRectangle, frameColor(sceneContext, component), frameThickness(component)))
+    @SwingCoordinate val borderRectangle = convertToRoundRect(sceneView, drawRectangle, NAVIGATION_ARC_SIZE)
+    list.add(DrawFilledRoundRectangle(DRAW_FRAME_LEVEL, borderRectangle, sceneContext.colorSet.componentBackground))
+    list.add(DrawRoundRectangle(DRAW_FRAME_LEVEL, borderRectangle, frameColor(sceneContext, component), frameThickness(component)))
 
     val text = component.nlComponent.includeFileName ?: "Nested Graph"
 
     val font = scaledFont(sceneContext, Font.BOLD)
-    list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, text, roundRect2DToRect(drawRectangle),
+    list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, text, drawRectangle,
                                textColor(sceneContext, component), font, true))
   }
 

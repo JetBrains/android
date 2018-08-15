@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Rectangle2D;
 
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_LEVEL;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.setRenderingHints;
@@ -41,8 +42,8 @@ import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SE
 public class DrawAction extends DrawCommandBase {
   private static final GeneralPath PATH = new GeneralPath();
   private final ActionTarget.ConnectionType myConnectionType;
-  @SwingCoordinate private final Rectangle mySource = new Rectangle();
-  @SwingCoordinate private final Rectangle myDest = new Rectangle();
+  @SwingCoordinate private final Rectangle2D.Float mySource = new Rectangle2D.Float();
+  @SwingCoordinate private final Rectangle2D.Float myDest = new Rectangle2D.Float();
   private static final int ARCH_LEN = JBUI.scale(10);
 
   private final DrawMode myMode;
@@ -61,8 +62,8 @@ public class DrawAction extends DrawCommandBase {
   @Override
   public String serialize() {
     return DrawCommandSerializationHelperKt
-      .buildString(getClass().getSimpleName(), myConnectionType, DrawCommandSerializationHelperKt.rectToString(mySource),
-                   DrawCommandSerializationHelperKt.rectToString(myDest), myMode);
+      .buildString(getClass().getSimpleName(), myConnectionType, DrawCommandSerializationHelperKt.rect2DToString(mySource),
+                   DrawCommandSerializationHelperKt.rect2DToString(myDest), myMode);
   }
 
   @Override
@@ -73,24 +74,24 @@ public class DrawAction extends DrawCommandBase {
   }
 
   public DrawAction(@NotNull ActionTarget.ConnectionType connectionType,
-                    @SwingCoordinate Rectangle source,
-                    @SwingCoordinate Rectangle dest,
+                    @SwingCoordinate Rectangle2D.Float source,
+                    @SwingCoordinate Rectangle2D.Float dest,
                     @NotNull DrawMode mode) {
-    mySource.setBounds(source);
-    myDest.setBounds(dest);
+    mySource.setRect(source);
+    myDest.setRect(dest);
     myConnectionType = connectionType;
     myMode = mode;
   }
 
   private DrawAction(@NotNull String[] s) {
-    this(ActionTarget.ConnectionType.valueOf(s[0]), DrawCommandSerializationHelperKt.stringToRect(s[1]),
-         DrawCommandSerializationHelperKt.stringToRect(s[2]), DrawMode.valueOf(s[3]));
+    this(ActionTarget.ConnectionType.valueOf(s[0]), DrawCommandSerializationHelperKt.stringToRect2D(s[1]),
+         DrawCommandSerializationHelperKt.stringToRect2D(s[2]), DrawMode.valueOf(s[3]));
   }
 
   public static void buildDisplayList(@NotNull DisplayList list,
                                       @NotNull ActionTarget.ConnectionType connectionType,
-                                      @SwingCoordinate Rectangle source,
-                                      @SwingCoordinate Rectangle dest,
+                                      @SwingCoordinate Rectangle2D.Float source,
+                                      @SwingCoordinate Rectangle2D.Float dest,
                                       @NotNull DrawMode mode) {
     list.add(new DrawAction(connectionType, source, dest, mode));
   }
@@ -98,8 +99,8 @@ public class DrawAction extends DrawCommandBase {
   private static void draw(@NotNull Graphics2D g,
                            @NotNull NavColorSet color,
                            @NotNull ActionTarget.ConnectionType connectionType,
-                           @SwingCoordinate Rectangle source,
-                           @SwingCoordinate Rectangle dest,
+                           @SwingCoordinate Rectangle2D.Float source,
+                           @SwingCoordinate Rectangle2D.Float dest,
                            @NotNull DrawMode mode,
                            @NotNull SceneContext sceneContext) {
     Color actionColor = (mode == SELECTED) ? color.getSelectedActions()

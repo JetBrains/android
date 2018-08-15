@@ -25,11 +25,15 @@ import com.android.tools.idea.common.scene.draw.HQ_RENDERING_HINTS
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget
-import com.google.common.collect.ImmutableMap
 import com.intellij.util.ui.JBUI
-import java.awt.*
+import java.awt.BasicStroke
 import java.awt.BasicStroke.CAP_BUTT
 import java.awt.BasicStroke.JOIN_ROUND
+import java.awt.Color
+import java.awt.Font
+import java.awt.Graphics2D
+import java.awt.geom.Point2D
+import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
 
 private const val DEFAULT_FONT_NAME = "Default"
@@ -72,7 +76,7 @@ val HIGHLIGHTED_FRAME_THICKNESS = JBUI.scale(2f)
 @JvmField
 @NavCoordinate
 val SELF_ACTION_LENGTHS = intArrayOf(JBUI.scale(28), JBUI.scale(26), JBUI.scale(60), JBUI.scale(8))
-val SELF_ACTION_RADII = intArrayOf(JBUI.scale(10), JBUI.scale(10), JBUI.scale(5))
+val SELF_ACTION_RADII = floatArrayOf(JBUI.scale(10f), JBUI.scale(10f), JBUI.scale(5f))
 
 @JvmField
 val ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, CAP_BUTT, JOIN_ROUND)
@@ -164,18 +168,30 @@ fun isHighlighted(component: SceneComponent): Boolean {
  * 3: previous point shifted 60 to the right
  * end: previous point shifted up 8
  */
-fun selfActionPoints(@SwingCoordinate start: Point, @SwingCoordinate end: Point, context: SceneContext): Array<Point> {
-  val p1 = Point(start.x + context.getSwingDimension(SELF_ACTION_LENGTHS[0]), start.y)
-  val p2 = Point(p1.x, end.y + context.getSwingDimension(SELF_ACTION_LENGTHS[3]))
-  val p3 = Point(end.x, p2.y)
+fun selfActionPoints(@SwingCoordinate start: Point2D.Float, @SwingCoordinate end: Point2D.Float, context: SceneContext): Array<Point2D.Float> {
+  val p1 = Point2D.Float(start.x + context.getSwingDimension(SELF_ACTION_LENGTHS[0]), start.y)
+  val p2 = Point2D.Float(p1.x, end.y + context.getSwingDimension(SELF_ACTION_LENGTHS[3]))
+  val p3 = Point2D.Float(end.x, p2.y)
   return arrayOf(start, p1, p2, p3, end)
 }
 
-fun setArcSize(view: SceneView, @SwingCoordinate rectangle: RoundRectangle2D.Float, @NavCoordinate arcSize: Float) {
+fun convertToRoundRect(view: SceneView, @SwingCoordinate rectangle: Rectangle2D.Float, @NavCoordinate arcSize: Float)
+  : RoundRectangle2D.Float {
+  var roundRect = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, 0f, 0f)
+
   Coordinates.getSwingDimension(view, arcSize).let {
-    rectangle.arcwidth = it
-    rectangle.archeight = it
+    roundRect.arcwidth = it
+    roundRect.archeight = it
   }
+
+  return roundRect
+}
+
+fun growRectangle(rectangle: Rectangle2D.Float, growX: Float, growY: Float) {
+  rectangle.x -= growX
+  rectangle.y -= growY
+  rectangle.width += 2 * growX
+  rectangle.height += 2 * growY
 }
 
 fun growRectangle(rectangle: RoundRectangle2D.Float, growX: Float, growY: Float) {
@@ -185,6 +201,3 @@ fun growRectangle(rectangle: RoundRectangle2D.Float, growX: Float, growY: Float)
   rectangle.height += 2 * growY
 }
 
-fun roundRect2DToRect(rectangle: RoundRectangle2D.Float): Rectangle {
-  return Rectangle(rectangle.x.toInt(), rectangle.y.toInt(), rectangle.width.toInt(), rectangle.height.toInt())
-}

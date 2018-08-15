@@ -19,22 +19,22 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
 import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.geom.RoundRectangle2D
+import java.awt.geom.Rectangle2D
 
 class DrawFilledRectangle(
   private val level: Int,
-  @SwingCoordinate private val rectangle: RoundRectangle2D.Float,
+  @SwingCoordinate private val rectangle: Rectangle2D.Float,
   @SwingCoordinate private val color: Color
 ) : DrawCommandBase() {
 
   private constructor(sp: Array<String>)
-    : this(sp[0].toInt(), stringToRoundRect2D(sp[1]), stringToColor(sp[2]))
+    : this(sp[0].toInt(), stringToRect2D(sp[1]), stringToColor(sp[2]))
 
   constructor(s: String) : this(parse(s, 3))
 
   override fun getLevel(): Int = level
 
-  override fun serialize(): String = buildString(javaClass.simpleName, level, roundRect2DToString(rectangle), colorToString(color))
+  override fun serialize(): String = buildString(javaClass.simpleName, level, rect2DToString(rectangle), colorToString(color))
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.color = color

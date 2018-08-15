@@ -20,7 +20,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.geom.Path2D
-import java.awt.geom.RoundRectangle2D
+import java.awt.geom.Rectangle2D
 
 /**
  * [DrawArrow] draws a triangular arrow in the specified rectangle.
@@ -35,15 +35,15 @@ enum class ArrowDirection {
 
 // TODO: Integrate with DrawConnectionUtils
 class DrawArrow(private val myLevel: Int, private val myDirection: ArrowDirection,
-                @SwingCoordinate private val myRectangle: RoundRectangle2D.Float, private val myColor: Color) : DrawCommandBase() {
-  private constructor(sp: Array<String>) : this(sp[0].toInt(), ArrowDirection.valueOf(sp[1]), stringToRoundRect2D(sp[2]),
+                @SwingCoordinate private val myRectangle: Rectangle2D.Float, private val myColor: Color) : DrawCommandBase() {
+  private constructor(sp: Array<String>) : this(sp[0].toInt(), ArrowDirection.valueOf(sp[1]), stringToRect2D(sp[2]),
                                                 stringToColor(sp[3]))
 
   constructor(s: String) : this(parse(s, 4))
 
   override fun getLevel() = myLevel
 
-  override fun serialize(): String = buildString(javaClass.simpleName, myLevel, myDirection, roundRect2DToString(myRectangle),
+  override fun serialize(): String = buildString(javaClass.simpleName, myLevel, myDirection, rect2DToString(myRectangle),
                                                  colorToString(myColor))
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
