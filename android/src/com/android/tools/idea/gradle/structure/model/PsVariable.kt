@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.android.tools.idea.gradle.structure.model.android.PsCollectionBase
 import com.android.tools.idea.gradle.structure.model.helpers.parseAny
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.projectsystem.transform
@@ -37,11 +38,18 @@ class PsVariable(
   fun init(property: GradlePropertyModel) {
     this.property = property
     this.resolvedProperty = property.resolve()
+    myListItems?.refresh()
+    myMapEntries?.refresh()
   }
 
   private var property: GradlePropertyModel? = null
   private var resolvedProperty: ResolvedPropertyModel? = null
-
+  private var myListItems: ListVariableEntries? = null
+  val listItems: PsKeyedModelCollection<Int, PsVariable> = myListItems ?: ListVariableEntries(this).also { myListItems = it }
+  val isList: Boolean get() = property?.valueType == GradlePropertyModel.ValueType.LIST
+  private var myMapEntries: MapVariableEntries? = null
+  val mapEntries: PsKeyedModelCollection<String, PsVariable> = myMapEntries ?: MapVariableEntries(this).also {myMapEntries = it }
+  val isMap: Boolean get() = property?.valueType == GradlePropertyModel.ValueType.MAP
   override val name: String get() = property?.name ?: ""
   override val isDeclared: Boolean = true
   var value by Descriptors.variableValue
@@ -181,6 +189,30 @@ class PsVariable(
         LOG.warn(e)
       }
     }
+  }
+
+  class MapVariableEntries(variable: PsVariable) : PsCollectionBase<PsVariable, String, PsVariable>(variable) {
+    init {
+      refresh()
+    }
+
+    override fun getKeys(from: PsVariable): Set<String> =
+      parent.property?.takeIf { it.valueType == GradlePropertyModel.ValueType.MAP }?.toMap()?.keys ?: setOf()
+
+    override fun create(key: String): PsVariable = PsVariable(parent, parent.scopePsVariables, ::refresh)
+    override fun update(key: String, model: PsVariable) = model.init(parent.property!!.getMapValue(key))
+  }
+
+  class ListVariableEntries(variable: PsVariable) : PsCollectionBase<PsVariable, Int, PsVariable>(variable) {
+    init {
+      refresh()
+    }
+
+    override fun getKeys(from: PsVariable): Set<Int> =
+      parent.property?.takeIf { it.valueType == GradlePropertyModel.ValueType.LIST }?.toList()?.let { 0 until it.size }?.toSet() ?: setOf()
+
+    override fun create(key: Int): PsVariable = PsVariable(parent, parent.scopePsVariables, ::refresh)
+    override fun update(key: Int, model: PsVariable) = model.init(parent.property!!.getValue(GradlePropertyModel.LIST_TYPE)!![key])
   }
 }
 
