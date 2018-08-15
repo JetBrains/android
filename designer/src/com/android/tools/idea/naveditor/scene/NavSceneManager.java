@@ -620,7 +620,7 @@ public class NavSceneManager extends SceneManager {
   @NotNull
   public NavigationSchema getSchema() {
     if (mySchema == null) {
-      mySchema = NavigationSchema.get(getModel().getFacet());
+      mySchema = NavigationSchema.get(getModel().getModule());
     }
     return mySchema;
   }

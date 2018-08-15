@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.naveditor;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -84,8 +85,8 @@ public class NavNlEditorTest {
 
     DestinationListFixture destinationListFixture = DestinationListFixture.Companion.create(guiTest.robot());
     List<NlComponent> selectedComponents = destinationListFixture.getSelectedComponents();
-    assertEquals(selectedComponents.size(), 1);
-    assertEquals(selectedComponents.get(0).getId(), "first_screen");
+    assertEquals(1, selectedComponents.size());
+    assertEquals("first_screen", selectedComponents.get(0).getId());
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/72238573
@@ -123,7 +124,58 @@ public class NavNlEditorTest {
     ApplicationManager.getApplication().invokeAndWait(() -> UIUtil.dispatchAllInvocationEvents());
 
     List<NlComponent> selectedComponents = fixture.getSelectedComponents();
-    assertEquals(selectedComponents.size(), 0);
+    assertEquals(0, selectedComponents.size());
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void testCreateAndDeleteWithSingleVariantSync() throws Exception {
+    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+    StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
+    try {
+      IdeFrameFixture frame = guiTest.importProject("Navigation");
+      // Open file as XML and switch to design tab, wait for successful render
+      NlEditorFixture layout = guiTest
+        .ideFrame()
+        .getEditor()
+        .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
+        .frame()
+        // This is separate to catch the case where we have a problem opening the file before sync is complete.
+        .waitForGradleProjectSyncToFinish()
+        .getEditor()
+        .getLayoutEditor(true);
+
+      layout
+        .waitForRenderToFinish()
+        .getNavSurface()
+        .openAddDestinationMenu()
+        .waitForContents()
+        .clickCreateBlank()
+        .getConfigureTemplateParametersStep()
+        .enterTextFieldValue("Fragment Name:", "TestSingleVariantSync")
+        .selectComboBoxItem("Source Language:", "Java")
+        .wizard()
+        .clickFinish();
+
+      ApplicationManager.getApplication().invokeAndWait(() -> UIUtil.dispatchAllInvocationEvents());
+
+      // The below verifies that there isn't an exception when interacting with the nav editor after a sync.
+      // See b/112451835
+      frame
+        .waitForGradleProjectSyncToFinish()
+        .getEditor()
+        .getLayoutEditor(true)
+        .waitForRenderToFinish()
+        .getNavSurface()
+        .findDestination("testSingleVariantSync")
+        .click();
+
+      guiTest.robot().pressAndReleaseKey(KeyEvent.VK_DELETE);
+    }
+    finally {
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
+    }
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/112570135

@@ -33,7 +33,6 @@ import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.TypeConversionUtil;
 import org.jetbrains.android.dom.AndroidDomElement;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -226,9 +225,8 @@ public class NavigationSchema implements Disposable {
       }
     }
 
-    Module module = myFacet.getModule();
-    JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(module.getProject());
-    PsiClass result = javaPsiFacade.findClass(className, GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, true));
+    JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(myModule.getProject());
+    PsiClass result = javaPsiFacade.findClass(className, GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(myModule, true));
     if (result != null) {
       myTypeCache.put(className, new TypeRef(result));
     }
@@ -243,7 +241,7 @@ public class NavigationSchema implements Disposable {
   //region Instance Data
   /////////////////////////////////////////////////////////////////////////////
 
-  private final AndroidFacet myFacet;
+  private final Module myModule;
 
   /**
    * Map from DestinationType (Fragment, activity, navigation, other) to destination class (android.app.Activity etc.).
@@ -270,40 +268,40 @@ public class NavigationSchema implements Disposable {
   /**
    * Cache of NavigationSchemas that have been created, per Facet.
    */
-  private static final Map<AndroidFacet, NavigationSchema> ourSchemas = new HashMap<>();
+  private static final Map<Module, NavigationSchema> ourSchemas = new HashMap<>();
 
   /**
-   * Gets the {@code NavigationSchema} for the given {@code facet}. {@link #createIfNecessary(AndroidFacet)} <b>must</b> be called before
+   * Gets the {@code NavigationSchema} for the given {@code module}. {@link #createIfNecessary(Module)} <b>must</b> be called before
    * this method is called.
    */
   @NotNull
-  public static synchronized NavigationSchema get(@NotNull AndroidFacet facet) {
-    NavigationSchema result = ourSchemas.get(facet);
+  public static synchronized NavigationSchema get(@NotNull Module module) {
+    NavigationSchema result = ourSchemas.get(module);
     Preconditions.checkNotNull(result, "NavigationSchema must be created first!");
     return result;
   }
 
   /**
-   * Creates a {@code NavigationSchema} for the given facet. The navigation library must already be included in the project, or this will
+   * Creates a {@code NavigationSchema} for the given module. The navigation library must already be included in the project, or this will
    * throw {@code ClassNotFoundException}.
    */
-  public static synchronized void createIfNecessary(@NotNull AndroidFacet facet) throws ClassNotFoundException {
-    NavigationSchema result = ourSchemas.get(facet);
+  public static synchronized void createIfNecessary(@NotNull Module module) throws ClassNotFoundException {
+    NavigationSchema result = ourSchemas.get(module);
     if (result == null) {
-      result = new NavigationSchema(facet);
+      result = new NavigationSchema(module);
       result.init();
-      Disposer.register(facet, result);
-      ourSchemas.put(facet, result);
+      Disposer.register(module, result);
+      ourSchemas.put(module, result);
     }
   }
 
-  private NavigationSchema(@NotNull AndroidFacet facet) {
-    myFacet = facet;
+  private NavigationSchema(@NotNull Module module) {
+    myModule = module;
   }
 
   @Override
   public void dispose() {
-    ApplicationManager.getApplication().invokeLater(() -> ourSchemas.remove(myFacet));
+    ApplicationManager.getApplication().invokeLater(() -> ourSchemas.remove(myModule));
   }
 
   /**
@@ -315,9 +313,9 @@ public class NavigationSchema implements Disposable {
    */
   private void init() throws ClassNotFoundException {
     // Get the root Navigator class
-    Project project = myFacet.getModule().getProject();
+    Project project = myModule.getProject();
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
-    GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(myFacet.getModule());
+    GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(myModule);
     PsiClass navigatorRoot = javaPsiFacade.findClass(NAVIGATOR_CLASS_NAME, scope);
     if (navigatorRoot == null) {
       Logger.getInstance(getClass()).warn("Navigator class not found.");
@@ -601,14 +599,14 @@ public class NavigationSchema implements Disposable {
    * a sensible default if the schema isn't available.
    */
   @NotNull
-  public static List<String> getPossibleRootsMaybeWithoutSchema(@NotNull AndroidFacet facet) {
+  public static List<String> getPossibleRootsMaybeWithoutSchema(@NotNull Module module) {
     Application application = ApplicationManager.getApplication();
     AtomicReference<List<String>> result = new AtomicReference<>();
 
     application.invokeAndWait(() -> application.runReadAction(() -> {
       try {
-        createIfNecessary(facet);
-        result.set(get(facet).getPossibleRoots());
+        createIfNecessary(module);
+        result.set(get(module).getPossibleRoots());
       }
       catch (ClassNotFoundException e) {
         // Navigation wasn't initialized yet, fall back to default
