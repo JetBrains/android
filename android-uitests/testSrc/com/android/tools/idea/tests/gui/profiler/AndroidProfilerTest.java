@@ -22,6 +22,7 @@ import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProfilerToolWindowFixture;
+import com.android.tools.perflogger.Benchmark;
 import com.google.common.truth.Correspondence;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -44,16 +45,16 @@ import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class AndroidProfilerTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
-
+  // Project name for studio profilers' dashboards
+  private static final String PROFILER_PROJECT_NAME = "Android Studio Profilers";
   private static final String PROJECT_NAME = "MinimalMinSdk26Apk";
-
   private static final String SERIAL = "test_device_001";
   private static final String MANUFACTURER = "Google";
   private static final String MODEL = "Alphabet Google Android Pixel Silver Really Red Edition";
   private static final String RELEASE = "9.0";
   private static final String SDK = "28";
 
+  @Rule public final GuiTestRule myGuiTest = new GuiTestRule();
   private FakeAdbServer myAdbServer;
   private AndroidDebugBridge myBridge;
 
@@ -96,15 +97,15 @@ public class AndroidProfilerTest {
 
   @NotNull
   private Project openProject(@NotNull String projectDirName) throws Exception {
-    File projectDir = guiTest.copyProjectBeforeOpening(projectDirName);
+    File projectDir = myGuiTest.copyProjectBeforeOpening(projectDirName);
     VirtualFile fileToSelect = VfsUtil.findFileByIoFile(projectDir, true);
-
     ProjectManager.getInstance().loadAndOpenProject(fileToSelect.getPath());
 
-    Wait.seconds(10).expecting("project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
+    Wait.seconds(10).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
 
     Project project = ProjectManager.getInstance().getOpenProjects()[0];
     GuiTests.waitForProjectIndexingToFinish(project);
+
     return project;
   }
 
@@ -118,6 +119,17 @@ public class AndroidProfilerTest {
 
   @Test
   public void openToolWindow() {
-    guiTest.ideFrame().openFromMenu(AndroidProfilerToolWindowFixture::find, "View", "Tool Windows", "Profiler");
+    Benchmark benchmark = new Benchmark.Builder("Profiler GUI Test openToolWindow").setProject(PROFILER_PROJECT_NAME).build();
+    benchmarkMethod(benchmark, () -> myGuiTest.ideFrame().openFromMenu(AndroidProfilerToolWindowFixture::find, "View", "Tool Windows", "Profiler"));
+  }
+
+  private static void benchmarkMethod(@NotNull Benchmark benchmark, @NotNull Runnable method) {
+    long benchmarkStart = System.currentTimeMillis();
+    try {
+      method.run();
+    }
+    finally {
+      benchmark.log("total_time", System.currentTimeMillis() - benchmarkStart);
+    }
   }
 }
