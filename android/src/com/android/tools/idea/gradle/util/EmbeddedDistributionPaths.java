@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -74,6 +75,15 @@ public class EmbeddedDistributionPaths {
     File localOfflineRepoPath = new File(PathManager.getHomePath() + toSystemDependentName("/../../out/studio/repo"));
     if (localOfflineRepoPath.isDirectory()) {
       repoPaths.add(localOfflineRepoPath);
+    }
+
+    if (StudioFlags.SHIPPED_SYNC_ENABLED.get()) {
+      // Add a repo generated from/for New Project Wizard projects
+      File npwRepoPath = new File(PathManager.getHomePath() +
+                                  toSystemDependentName("/../adt/idea/android/testData/nosyncbuilder/offline_repo"));
+      if (npwRepoPath.isDirectory()) {
+        repoPaths.add(npwRepoPath);
+      }
     }
 
     return repoPaths;
