@@ -232,7 +232,7 @@ class CpuCaptureViewTest {
     // be preserved
     run {
       val prevCapture = stage.capture
-      stage.capture = CpuProfilerUITestUtils.validCapture()
+      cpuProfiler.captureTrace(id = 101)
       assertThat(stage.capture).isNotEqualTo(prevCapture)
     }
 
