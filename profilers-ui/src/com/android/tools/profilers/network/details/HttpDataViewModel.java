@@ -95,7 +95,7 @@ final class HttpDataViewModel {
     if (contentType.isEmpty()) {
       return "Body";
     }
-    return String.format("Body ( %s )", contentType.getTypeDisplayName());
+    return String.format("Body ( %s )", getDisplayName(contentType));
   }
 
   /**
@@ -209,6 +209,29 @@ final class HttpDataViewModel {
     }
     return null;
   }
+
+  /**
+   * Returns a user visible display name that represents the target {@code contentType}, with the
+   * first letter capitalized.
+   */
+  @VisibleForTesting
+  static String getDisplayName(@NotNull HttpData.ContentType contentType) {
+    String mimeType = contentType.getMimeType().trim();
+    if (mimeType.isEmpty()) {
+      return mimeType;
+    }
+    if (contentType.isFormData()) {
+      return "Form Data";
+    }
+    String[] typeAndSubType = mimeType.split("/", 2);
+    boolean showSubType = typeAndSubType.length > 1 && (typeAndSubType[0].equals("text") || typeAndSubType[0].equals("application"));
+    String name = showSubType ? typeAndSubType[1] : typeAndSubType[0];
+    if (name.isEmpty() || showSubType) {
+      return name.toUpperCase();
+    }
+    return name.substring(0, 1).toUpperCase() + name.substring(1);
+  }
+
 
   public enum ConnectionType {
     REQUEST,

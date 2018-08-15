@@ -32,7 +32,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class HttpDataTest {
   @Test
-  public void responseFieldsStringIsCorrectlySplitAndTrimmed() throws Exception {
+  public void responseFieldsStringIsCorrectlySplitAndTrimmed() {
     HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setResponseFields("status line =  HTTP/1.1 302 Found \n" +
                               "first=1 \n  second  = 2\n equation=x+y=10");
@@ -231,16 +231,6 @@ public class HttpDataTest {
     assertThat(new HttpData.ContentType("").isFormData()).isFalse();
     assertThat(new HttpData.ContentType("test/x-www-form-urlencoded;").isFormData()).isFalse();
     assertThat(new HttpData.ContentType("application/json; charset=utf-8").isFormData()).isFalse();
-  }
-  @Test
-  public void getTypeDisplayNameFromContentType() {
-    assertThat(new HttpData.ContentType("").getTypeDisplayName()).isEqualTo("");
-    assertThat(new HttpData.ContentType(" ").getTypeDisplayName()).isEqualTo("");
-    assertThat(new HttpData.ContentType("application/x-www-form-urlencoded; charset=utf-8").getTypeDisplayName()).isEqualTo("Form Data");
-    assertThat(new HttpData.ContentType("text/html").getTypeDisplayName()).isEqualTo("HTML");
-    assertThat(new HttpData.ContentType("application/json").getTypeDisplayName()).isEqualTo("JSON");
-    assertThat(new HttpData.ContentType("image/jpeg").getTypeDisplayName()).isEqualTo("Image");
-    assertThat(new HttpData.ContentType("audio/webm").getTypeDisplayName()).isEqualTo("Audio");
   }
 
   @Test

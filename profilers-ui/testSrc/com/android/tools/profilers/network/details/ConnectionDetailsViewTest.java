@@ -268,6 +268,19 @@ public class ConnectionDetailsViewTest {
   }
 
   @Test
+  public void expectedDisplayNameForContentTypes() {
+    assertThat(HttpDataViewModel.getDisplayName(new HttpData.ContentType(""))).isEqualTo("");
+    assertThat(HttpDataViewModel.getDisplayName(new HttpData.ContentType(" "))).isEqualTo("");
+    assertThat(HttpDataViewModel.getDisplayName(new HttpData.ContentType("application/x-www-form-urlencoded; charset=utf-8")))
+      .isEqualTo("Form Data");
+    assertThat(HttpDataViewModel.getDisplayName(new HttpData.ContentType("text/html"))).isEqualTo("HTML");
+    assertThat(HttpDataViewModel.getDisplayName(new HttpData.ContentType("application/json"))).isEqualTo("JSON");
+    assertThat(HttpDataViewModel.getDisplayName(new HttpData.ContentType("image/jpeg"))).isEqualTo("Image");
+    assertThat(HttpDataViewModel.getDisplayName(new HttpData.ContentType("audio/webm"))).isEqualTo("Audio");
+  }
+
+
+  @Test
   public void callStackViewHasProperValueFromData() {
     AspectObserver observer = new AspectObserver();
     final int[] stackFramesChangedCount = {0};

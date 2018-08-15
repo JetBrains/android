@@ -241,31 +241,6 @@ public class HttpData {
     public boolean isFormData() {
       return getMimeType().equalsIgnoreCase(APPLICATION_FORM_MIME_TYPE);
     }
-
-    /**
-     * Returns display name with the first letter in upper case.
-     * <ul>
-     *   <li>If type is form data, returns "Form Data".</li>
-     *   <li>If type is "text" or "application", returns the sub type, for example, "application/json" => "JSON".</li>
-     *   <li>Otherwise, return the type, for example, "image/png" => "Image".</li>
-     * </ul>
-     */
-    public String getTypeDisplayName() {
-      String mimeType = getMimeType().trim();
-      if (mimeType.isEmpty()) {
-        return mimeType;
-      }
-      if (isFormData()) {
-        return "Form Data";
-      }
-      String[] typeAndSubType = mimeType.split("/", 2);
-      boolean showSubType = typeAndSubType.length > 1 && (typeAndSubType[0].equals("text") || typeAndSubType[0].equals("application"));
-      String name = showSubType ? typeAndSubType[1] : typeAndSubType[0];
-      if (name.isEmpty() || showSubType) {
-        return name.toUpperCase();
-      }
-      return name.substring(0, 1).toUpperCase() + name.substring(1);
-    }
   }
 
   public static abstract class Header {
