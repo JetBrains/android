@@ -36,11 +36,14 @@ import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.*
 import java.awt.image.BufferedImage
 import javax.swing.*
-import kotlin.properties.Delegates
 
 private val LOG = Logger.getInstance(DesignAssetCellRenderer::class.java)
 
 private val EMPTY_ICON = createIcon(Color.GREEN)
+
+private const val VERSION = "version"
+
+private fun String.pluralize(size: Int) = this + (if (size > 1) "s" else "")
 
 fun createIcon(color: Color?) = UIUtil.createImage(
   80, 80, BufferedImage.TYPE_INT_ARGB
@@ -61,8 +64,6 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
     withChessboard = true
   }
 
-  var useSmallMargins by Delegates.observable(false) { _, _, smallMargin -> cardView.useSmallMargins = smallMargin }
-
   override fun getListCellRendererComponent(
     list: JList<out DesignAssetSet>,
     value: DesignAssetSet,
@@ -71,10 +72,15 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
     cellHasFocus: Boolean
   ): Component {
     cardView.title = value.name
-    cardView.preferredSize = JBUI.size(list.fixedCellWidth, list.fixedCellHeight)
+    cardView.subtitle = value.getHighestDensityAsset().type.displayName
+    val size = value.designAssets.size
+    cardView.metadata = "$size $VERSION".pluralize(size)
+    val width = cardView.viewWidth
+    if (width != list.fixedCellWidth) {
+      cardView.viewWidth = list.fixedCellWidth
+    }
     cardView.thumbnail = getContent(value, cardView.thumbnailWidth, cardView.thumbnailHeight, isSelected, index)
-    cardView.background = UIUtil.getListBackground(isSelected)
-
+    cardView.selected = isSelected
     return cardView
   }
 
