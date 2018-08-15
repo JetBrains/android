@@ -449,7 +449,10 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
           map.forEach {
             add(MapItemNode(
               it.key,
-              PsVariable((it.value as? GradleModelCoreProperty<*, *>)?.getParsedProperty()!!, variable.parent, variable.scopePsVariables)))
+              PsVariable(variable.parent, variable.scopePsVariables, {})
+                .apply {
+                  init((it.value as? GradleModelCoreProperty<*, *>)?.getParsedProperty()!!)
+                }))
           }
           add(EmptyMapItemNode(variable))
           userObject = NodeDescription(variable.name, EmptyIcon.ICON_0)
@@ -459,8 +462,9 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
           list.forEachIndexed { index, propertyModel ->
             add(ListItemNode(
               index,
-              PsVariable((propertyModel as? GradleModelCoreProperty<*, *>)?.getParsedProperty()!!, variable.parent,
-                         variable.scopePsVariables)))
+              PsVariable(variable.parent, variable.scopePsVariables, {}).apply {
+                init((propertyModel as? GradleModelCoreProperty<*, *>)?.getParsedProperty()!!)
+              }))
           }
           add(EmptyListItemNode(variable))
           userObject = NodeDescription(variable.name, EmptyIcon.ICON_0)

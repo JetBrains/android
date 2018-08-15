@@ -16,15 +16,40 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.structure.model.android.PsMutableCollectionBase
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.annotations.VisibleForTesting
 
-open class PsVariables(
+open class PsVariables constructor(
   override val model: PsModel,
   override val title: String,
   private val parentScope: PsVariablesScope?
-) : PsVariablesScope {
-  override val name: String = model.name
+) : PsMutableCollectionBase<PsVariable, String, PsModel>(model), PsVariablesScope {
+  init {
+    refresh()
+  }
+
+  override fun getKeys(from: PsModel): Set<String> =
+    getContainer(from)
+      ?.properties
+      ?.map { it.name }
+      ?.toSet()
+    ?: setOf()
+
+  override fun create(key: String): PsVariable = PsVariable(model, this, ::refresh)
+  override fun update(key: String, model: PsVariable) = model.init(getContainer(parent)!!.properties.first { it.name == key })
+
+  override fun instantiateNew(key: String) {
+    // TODO(solodkyy): Consider not initializing the variable and letting it hang around int the collection until the next refresh
+    // or explicit initialization.
+    getContainer(parent)!!.findProperty(key).setValue("")
+  }
+
+  override fun removeExisting(key: String) {
+    getContainer(parent)!!.findProperty(key).delete()
+  }
+
+  override val name: String get() = model.name
 
   override fun <ValueT : Any> getAvailableVariablesFor(
     property: ModelPropertyContext<ValueT>
@@ -54,22 +79,21 @@ open class PsVariables(
         }
       } ?: listOf()
 
-  override fun getModuleVariables(): List<PsVariable> =
-    getContainer(model)?.properties?.map { PsVariable(it, model, this) } ?: listOf()
+  override fun getModuleVariables(): List<PsVariable> = items.toList()
 
   override fun getVariableScopes(): List<PsVariablesScope> =
-    parentScope?.getVariableScopes().orEmpty() + this
+    parentScope?.getVariableScopes().orEmpty() + listOf<PsVariablesScope>(this as PsVariablesScope)
 
   override fun getNewVariableName(preferredName: String) =
     generateSequence(0, { it + 1 })
       .map { if (it == 0) preferredName else "$preferredName$it" }
-      .first { getContainer(model)!!.findProperty(it).valueType == GradlePropertyModel.ValueType.NONE }
+      .first { getContainer(parent)!!.findProperty(it).valueType == GradlePropertyModel.ValueType.NONE }
 
-  override fun getOrCreateVariable(name: String): PsVariable = getContainer(model)!!.findProperty(name).let {
-    PsVariable(it, model, this)
-  }
+  override fun getVariable(name: String): PsVariable? = findElement(name)
 
-  override fun addNewVariable(name: String) = getOrCreateVariable(name)
+  override fun getOrCreateVariable(name: String): PsVariable = findElement(name) ?: addNewVariable(name)
+
+  override fun addNewVariable(name: String): PsVariable = addNew(name)
 
   @VisibleForTesting
   protected open fun getContainer(from: PsModel) =
@@ -78,8 +102,4 @@ open class PsVariables(
       is PsModule -> from.parsedModel?.ext()
       else -> throw IllegalStateException()
     }
-
-  fun refresh() {
-    // Does nothing since this class is stateless (for now).
-  }
 }

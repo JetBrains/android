@@ -29,20 +29,28 @@ import java.lang.IllegalStateException
  * Model for handling Gradle properties in the Project Structure Dialog
  */
 class PsVariable(
-  private val property: GradlePropertyModel,
   override val parent: PsModel,
-  val scopePsVariables: PsVariablesScope
+  val scopePsVariables: PsVariablesScope,
+  val refreshCollection: () -> Unit
 ) : PsChildModel() {
-  private val resolvedProperty: ResolvedPropertyModel = property.resolve()
 
-  override val name: String get() = property.name
+  fun init(property: GradlePropertyModel) {
+    this.property = property
+    this.resolvedProperty = property.resolve()
+  }
+
+  private var property: GradlePropertyModel? = null
+  private var resolvedProperty: ResolvedPropertyModel? = null
+
+  override val name: String get() = property?.name ?: ""
   override val isDeclared: Boolean = true
   var value by Descriptors.variableValue
 
-  fun convertToEmptyList() = resolvedProperty.convertToEmptyList()
-  fun convertToEmptyMap() = resolvedProperty.convertToEmptyMap()
+  fun convertToEmptyList() = resolvedProperty!!.convertToEmptyList()
+  fun convertToEmptyMap() = resolvedProperty!!.convertToEmptyMap()
 
   fun setValue(aValue: Any) {
+    val property = property!!
     if (property.valueType == GradlePropertyModel.ValueType.BOOLEAN) {
       property.setValue((aValue as String).toBoolean())
     } else {
@@ -52,16 +60,19 @@ class PsVariable(
   }
 
   fun delete() {
-    property.delete()
+    property!!.delete()
+    refreshCollection()
     parent.isModified = true
   }
 
   fun setName(newName: String) {
-    property.rename(newName)
+    property!!.rename(newName)
+    refreshCollection()
     parent.isModified = true
   }
 
   fun addListValue(value: String): PsVariable {
+    val property = property!!
     if (property.valueType != GradlePropertyModel.ValueType.LIST) {
       throw IllegalStateException("addListValue can only be called for list variables")
     }
@@ -69,10 +80,11 @@ class PsVariable(
     val listValue = property.addListValue()
     listValue.setValue(value)
     parent.isModified = true
-    return PsVariable(listValue, this, scopePsVariables)
+    return PsVariable(this, scopePsVariables, {}).also { it.init(listValue) }
   }
 
   fun addMapValue(key: String): PsVariable? {
+    val property = property!!
     if (property.valueType != GradlePropertyModel.ValueType.MAP) {
       throw IllegalStateException("addMapValue can only be called for map variables")
     }
@@ -81,7 +93,7 @@ class PsVariable(
     if (mapValue.psiElement != null) {
       return null
     }
-    return PsVariable(mapValue, this, scopePsVariables)
+    return PsVariable(this, scopePsVariables, {}).also { it.init(mapValue) }
   }
 
   /**
@@ -91,7 +103,7 @@ class PsVariable(
   fun <T : Any, PropertyCoreT : ModelPropertyCore<T>> bindNewPropertyAs(prototype: PropertyCoreT): PropertyCoreT? =
   // Note: the as? test is only to test whether the interface is implemented.
   // If it is, the generic type arguments will match.
-    (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty) { parent.isModified = true }
+    (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty!!) { parent.isModified = true }
 
   object Descriptors : ModelDescriptor<PsVariable, Nothing, ResolvedPropertyModel> {
     override fun getResolved(model: PsVariable): Nothing? = null
@@ -158,8 +170,8 @@ class PsVariable(
         while (propertyModel.valueType == GradlePropertyModel.ValueType.REFERENCE) {
           if (!seen.add(propertyModel)) return
           propertyModel = propertyModel.dependencies[0]!!
-          if (resolvedProperty.fullyQualifiedName == propertyModel.fullyQualifiedName &&
-              resolvedProperty.gradleFile.path == propertyModel.gradleFile.path) {
+          if (resolvedProperty?.fullyQualifiedName == propertyModel.fullyQualifiedName &&
+              resolvedProperty?.gradleFile?.path == propertyModel.gradleFile.path) {
             collectedReferences.add(property.bindContext(model))
             return
           }

@@ -28,6 +28,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.pom.java.LanguageLevel
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 
 class ExtractVariableWorkerTest : AndroidGradleTestCase() {
@@ -98,8 +99,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
                  equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
                                                                                 DslText.Reference("renamedName"))
                                                            .annotated()))
-      assertThat(appModule.variables.getOrCreateVariable("renamedName").value,
-                 equalTo<ParsedValue<Any>>(ParsedValue.NotSet))
+      assertThat(appModule.variables.getVariable("renamedName"), nullValue())
 
       assertThat(project.variables.getOrCreateVariable("renamedName").value,
                  equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.asParsed<Any>()))
