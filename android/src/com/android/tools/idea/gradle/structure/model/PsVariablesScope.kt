@@ -56,6 +56,10 @@ interface PsVariablesScope : PsKeyedModelCollection<String, PsVariable> {
 
   fun addNewVariable(name: String): PsVariable
 
+  fun addNewListVariable(name: String): PsVariable
+
+  fun addNewMapVariable(name: String): PsVariable
+
   fun removeVariable(name: String)
 
   val model: PsModel
@@ -75,6 +79,8 @@ interface PsVariablesScope : PsKeyedModelCollection<String, PsVariable> {
     override fun getNewVariableName(preferredName: String): String = throw UnsupportedOperationException()
     override fun getOrCreateVariable(name: String): PsVariable = throw UnsupportedOperationException()
     override fun addNewVariable(name: String): PsVariable = throw UnsupportedOperationException()
+    override fun addNewListVariable(name: String): PsVariable = throw UnsupportedOperationException()
+    override fun addNewMapVariable(name: String): PsVariable = throw UnsupportedOperationException()
     override fun removeVariable(name: String) = throw UnsupportedOperationException()
     override fun onChange(disposable: Disposable, listener: () -> Unit) = Unit
   }

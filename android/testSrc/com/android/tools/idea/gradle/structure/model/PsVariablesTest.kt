@@ -80,6 +80,35 @@ class PsVariablesTest : AndroidGradleTestCase() {
                equalTo(listOf("proguard-rules2.txt".asParsed<Any>())))
   }
 
+  fun testAddingListVariables() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
+    val variables = psAppModule.variables
+    var refreshed = 0
+    variables.onChange(testRootDisposable, {refreshed++})
+    val listVar = variables.addNewListVariable("newList1")
+    assertThat(refreshed, equalTo(1))
+    listVar.addListValue("v1")
+    listVar.addListValue("v2")
+    assertThat(listVar.listItems.map { it.value }, equalTo(listOf("v1".asParsed<Any>(), "v2".asParsed<Any>())))
+  }
+
+  fun testAddingMapVariables() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
+    val variables = psAppModule.variables
+    var refreshed = 0
+    variables.onChange(testRootDisposable, { refreshed++ })
+    val mapVar = variables.addNewMapVariable("newMap1")
+    assertThat(refreshed, equalTo(1))
+    mapVar.addMapValue("a")?.setValue(1)
+    mapVar.addMapValue("b")?.setValue(2)
+    assertThat(mapVar.mapEntries.entries.map { it.key to it.value.value },
+               equalTo(listOf("a" to 1.asParsed<Any>(), "b" to 2.asParsed<Any>())))
+  }
+
   fun testMapVariables() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
     val psProject = PsProjectImpl(project)

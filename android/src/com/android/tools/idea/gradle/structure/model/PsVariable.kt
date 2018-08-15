@@ -88,7 +88,8 @@ class PsVariable(
     val listValue = property.addListValue()
     listValue.setValue(value)
     parent.isModified = true
-    return PsVariable(this, scopePsVariables, {}).also { it.init(listValue) }
+    myListItems?.refresh()
+    return listItems.findElement(listItems.size - 1)!!
   }
 
   fun addMapValue(key: String): PsVariable? {
@@ -101,7 +102,9 @@ class PsVariable(
     if (mapValue.psiElement != null) {
       return null
     }
-    return PsVariable(this, scopePsVariables, {}).also { it.init(mapValue) }
+    mapValue.setValue("")
+    myMapEntries?.refresh()
+    return mapEntries.findElement(key)!!
   }
 
   /**
