@@ -18,9 +18,9 @@ package com.android.tools.idea.configurations;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.resources.AbstractResourceRepository;
-import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
@@ -174,7 +174,7 @@ public class ResourceResolverCache {
 
   public Map<ResourceType, ResourceValueMap> getConfiguredFrameworkResources(@NotNull IAndroidTarget target,
                                                                              @NotNull FolderConfiguration fullConfiguration) {
-    AbstractResourceRepository resourceRepository = getFrameworkResources(fullConfiguration, target);
+    ResourceRepository resourceRepository = getFrameworkResources(fullConfiguration, target);
     if (resourceRepository == null) {
       return Collections.emptyMap();
     }
@@ -200,7 +200,7 @@ public class ResourceResolverCache {
    * @return the framework resources or {@code null} if not found.
    */
   @Nullable
-  public AbstractResourceRepository getFrameworkResources(@NotNull FolderConfiguration configuration, @NotNull IAndroidTarget target) {
+  public ResourceRepository getFrameworkResources(@NotNull FolderConfiguration configuration, @NotNull IAndroidTarget target) {
     int apiLevel = target.getVersion().getFeatureLevel();
 
     AndroidTargetData targetData = myFrameworkResources.get(apiLevel);

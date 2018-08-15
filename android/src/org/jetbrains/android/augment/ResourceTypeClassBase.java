@@ -1,10 +1,10 @@
 package org.jetbrains.android.augment;
 
 import com.android.ide.common.rendering.api.AttrResourceValue;
-import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
@@ -44,7 +44,7 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
 
   @NotNull
   protected static PsiField[] buildResourceFields(@Nullable ResourceManager manager,
-                                                  @NotNull AbstractResourceRepository repository,
+                                                  @NotNull ResourceRepository repository,
                                                   @NotNull ResourceNamespace namespace,
                                                   @NotNull AndroidLightField.FieldModifier fieldModifier,
                                                   @NotNull ResourceType resourceType,

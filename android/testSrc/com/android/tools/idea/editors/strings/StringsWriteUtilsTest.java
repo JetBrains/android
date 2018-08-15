@@ -16,8 +16,8 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ResourcesTestsUtil;
@@ -35,7 +35,7 @@ import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 public final class StringsWriteUtilsTest extends AndroidTestCase {
   private Project myProject;
   private VirtualFile myResourceDirectory;
-  private AbstractResourceRepository myResourceRepository;
+  private ResourceRepository myResourceRepository;
 
   @Override
   protected void setUp() throws Exception {

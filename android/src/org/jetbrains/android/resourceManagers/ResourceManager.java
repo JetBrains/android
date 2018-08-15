@@ -16,7 +16,6 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
@@ -62,7 +61,7 @@ public abstract class ResourceManager {
    * Returns the resource repository associated with this resource manager.
    */
   @NotNull
-  public abstract AbstractResourceRepository getResourceRepository();
+  public abstract ResourceRepository getResourceRepository();
 
   /**
    * Returns all the resource directories for this module <b>and all of its module dependencies</b>

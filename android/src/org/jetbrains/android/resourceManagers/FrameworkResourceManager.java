@@ -16,7 +16,7 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.google.common.collect.HashMultimap;
@@ -48,9 +48,9 @@ public class FrameworkResourceManager extends ResourceManager {
 
   @Override
   @NotNull
-  public AbstractResourceRepository getResourceRepository() {
+  public ResourceRepository getResourceRepository() {
     AndroidTargetData targetData = myPlatform.getSdkData().getTargetData(myPlatform.getTarget());
-    AbstractResourceRepository frameworkResources = targetData.getFrameworkResources(false);
+    ResourceRepository frameworkResources = targetData.getFrameworkResources(false);
     return frameworkResources == null ? new EmptyRepository(ResourceNamespace.ANDROID) : frameworkResources;
   }
 

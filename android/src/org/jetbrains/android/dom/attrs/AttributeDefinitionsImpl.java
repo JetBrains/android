@@ -16,8 +16,8 @@
 package org.jetbrains.android.dom.attrs;
 
 import com.android.ide.common.rendering.api.*;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
@@ -78,13 +78,13 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
    */
   @NotNull
   public static AttributeDefinitions create(@Nullable AttributeDefinitions frameworkAttributeDefinitions,
-                                            @NotNull AbstractResourceRepository resources) {
+                                            @NotNull ResourceRepository resources) {
     AttributeDefinitionsImpl attributeDefinitions = new AttributeDefinitionsImpl(frameworkAttributeDefinitions);
     attributeDefinitions.initializeFromResourceRepository(resources);
     return attributeDefinitions;
   }
 
-  private void initializeFromResourceRepository(@NotNull AbstractResourceRepository resources) {
+  private void initializeFromResourceRepository(@NotNull ResourceRepository resources) {
     for (ResourceNamespace namespace : resources.getNamespaces()) {
       Collection<ResourceItem> items = resources.getResources(namespace, ResourceType.ATTR).values();
       for (ResourceItem item : items) {

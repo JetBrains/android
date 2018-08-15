@@ -24,9 +24,12 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.repository.ResourceVisibilityLookup
-import com.android.ide.common.resources.*
-import com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION
+import com.android.ide.common.resources.ResourceFile
+import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceItem.*
+import com.android.ide.common.resources.ResourceItemWithVisibility
+import com.android.ide.common.resources.ResourceRepository
+import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathString
@@ -810,7 +813,7 @@ fun getCompletionFromTypes(
   val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
   val appResources = repoManager.getAppResources(true)!!
   val androidPlatform = AndroidPlatform.getInstance(facet.module)
-  var frameworkResources: AbstractResourceRepository? = null
+  var frameworkResources: ResourceRepository? = null
   if (androidPlatform != null) {
     val targetData = androidPlatform.sdkData.getTargetData(androidPlatform.target)
     frameworkResources = targetData.getFrameworkResources(false)
@@ -869,7 +872,7 @@ private fun addFrameworkItems(
   destination: MutableList<String>,
   type: ResourceType,
   includeFileResources: Boolean,
-  frameworkResources: AbstractResourceRepository
+  frameworkResources: ResourceRepository
 ) {
   val items = frameworkResources.getPublicResources(ResourceNamespace.ANDROID, type)
   for (item in items) {

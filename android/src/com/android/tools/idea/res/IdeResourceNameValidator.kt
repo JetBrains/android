@@ -16,8 +16,8 @@
 package com.android.tools.idea.res
 
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.resources.AbstractResourceRepository
 import com.android.ide.common.resources.FileResourceNameValidator
+import com.android.ide.common.resources.ResourceRepository
 import com.android.ide.common.resources.ValueResourceNameValidator
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
@@ -53,7 +53,7 @@ class IdeResourceNameValidator private constructor(
      */
     @JvmStatic
     @JvmOverloads
-    fun forResourceName(type: ResourceType, existing: AbstractResourceRepository? = null): IdeResourceNameValidator {
+    fun forResourceName(type: ResourceType, existing: ResourceRepository? = null): IdeResourceNameValidator {
       val resourceNames = existing?.getResources(ResourceNamespace.TODO(), type)?.keySet()
       return IdeResourceNameValidator(
         InputType.ValueName(type),

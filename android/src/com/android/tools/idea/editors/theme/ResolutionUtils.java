@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.ide.common.rendering.api.*;
-import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.Configurable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -37,7 +37,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -343,7 +342,7 @@ public class ResolutionUtils {
       ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet.getModule());
       IAndroidTarget target = configurationManager.getDefaultTarget(); // same as getHighestApiTarget();
       assert target != null;
-      AbstractResourceRepository resourceRepository = configurationManager.getResolverCache().getFrameworkResources(configuration, target);
+      ResourceRepository resourceRepository = configurationManager.getResolverCache().getFrameworkResources(configuration, target);
       assert resourceRepository != null;
       configurables =
           resourceRepository.getResources(ResourceNamespace.ANDROID, resolvedValue.getResourceType(), resolvedValue.getName());
