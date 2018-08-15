@@ -20,7 +20,7 @@ import org.jetbrains.android.AndroidTestCase
 class NavigationSchemaTest2 : AndroidTestCase() {
   fun testNoLibrary() {
     try {
-      NavigationSchema.createIfNecessary(myFacet)
+      NavigationSchema.createIfNecessary(myModule)
       fail("Expected ClassNotFoundException")
     }
     catch (expected: ClassNotFoundException) {
