@@ -35,8 +35,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
 
@@ -46,10 +46,10 @@ import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar
 public class LauncherIconGeneratorTest extends AndroidTestCase {
   private static final double MAX_PERCENT_DIFFERENT = 0.005;
 
-  private List<String> myWarnings = new ArrayList<>();
+  private final List<String> myWarnings = new ArrayList<>();
   private LauncherIconGenerator myIconGenerator;
 
-  private AndroidModuleTemplate myProjectPaths = new AndroidModuleTemplate() {
+  private final AndroidModuleTemplate myProjectPaths = new AndroidModuleTemplate() {
     @Override
     @Nullable
     public File getModuleRoot() {
@@ -107,7 +107,8 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
       // The RenderTask dispose thread may still be running.
       ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "RenderTask dispose");
       assertTrue(String.join("\n", myWarnings), myWarnings.isEmpty());
-    } finally {
+    }
+    finally {
       super.tearDown();
     }
   }
