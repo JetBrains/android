@@ -23,7 +23,7 @@ import com.intellij.openapi.Disposable
 /**
  * An interface providing access to variables available in the specific scope.
  */
-interface PsVariablesScope : PsModelCollection<PsVariable> {
+interface PsVariablesScope : PsKeyedModelCollection<String, PsVariable> {
   /**
    * The name of the variables scope.
    */
@@ -65,6 +65,8 @@ interface PsVariablesScope : PsModelCollection<PsVariable> {
     override val title: String = ""
     override val model: PsModel get() = throw UnsupportedOperationException()
     override val items: Collection<PsVariable> = listOf()
+    override val entries: Map<String, PsVariable> = mapOf()
+    override fun findElement(key: String): PsVariable? = null
     override fun <ValueT : Any> getAvailableVariablesFor(
       property: ModelPropertyContext<ValueT>): List<Annotated<ParsedValue.Set.Parsed<ValueT>>> = listOf()
 
