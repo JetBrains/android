@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.profilers.ContentType;
+import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.stacktrace.DataViewer;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.ex.EditorEx;
-import com.intellij.openapi.editor.highlighter.EditorHighlighterFactory;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.TextEditor;
@@ -33,14 +33,19 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.LightVirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Random;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IntellijDataViewer implements DataViewer {
   @NotNull
@@ -57,49 +62,16 @@ public class IntellijDataViewer implements DataViewer {
 
   /**
    * Create a data viewer that renders its content as is, without any attempt to clean it up.
-   *
-   * @param fileType An optional file type that can be associated with this content, which, if
-   *                 provided, hints to the editor how it should color it.
    */
-  @NotNull
-  public static IntellijDataViewer createEditorViewer(@NotNull Project project, @NotNull byte[] content, @Nullable FileType fileType) {
-    try {
-      EditorFactory editorFactory = EditorFactory.getInstance();
-
-      // We need to support documents with \r newlines in them (since network payloads can contain
-      // data from any OS); however, Document will assert if it finds a \r as a line ending in its
-      // content and the user will see a mysterious "NO PREVIEW" message without any information
-      // on why. The Document class allows you to change a setting to allow \r, but this breaks
-      // soft wrapping in the editor.
-      String contentStr = new String(content).replace("\r\n", "\n");
-
-      Document document = editorFactory.createDocument(contentStr.toCharArray());
-      document.setReadOnly(true);
-
-      EditorEx editor = (EditorEx)editorFactory.createViewer(document);
-      editor.setCaretVisible(false);
-      editor.getSettings().setLineNumbersShown(false);
-      editor.getSettings().setLineMarkerAreaShown(false);
-      editor.getSettings().setFoldingOutlineShown(false);
-      editor.getSettings().setUseSoftWraps(true);
-
-      if (fileType != null) {
-        editor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(project, fileType));
-      }
-
-      Disposer.register(project, new Disposable() {
-        @Override
-        public void dispose() {
-          editorFactory.releaseEditor(editor);
-        }
-      });
-      return new IntellijDataViewer(editor.getComponent(), null, Style.RAW);
-    }
-    catch (Exception | AssertionError e) {
-      // Exceptions and AssertionErrors can be thrown by editorFactory.createDocument and editorFactory.createViewer
-      return createInvalidViewer();
-    }
+  public static IntellijDataViewer createRawTextViewer(@NotNull byte[] content) {
+    JTextArea textArea = new JTextArea(new String(content));
+    textArea.setLineWrap(true);
+    textArea.setFont(ProfilerFonts.H4_FONT);
+    textArea.setEditable(false);
+    textArea.setBackground(null);
+    return new IntellijDataViewer(textArea, null, Style.RAW);
   }
+
 
   /**
    * Create a data viewer that automatically formats the content it receives.
@@ -118,6 +90,7 @@ public class IntellijDataViewer implements DataViewer {
     if (!(fileEditor instanceof TextEditor)) {
       return createInvalidViewer();
     }
+
     EditorEx editorEx = (EditorEx) ((TextEditor)fileEditor).getEditor();
     editorEx.setViewer(true);
     editorEx.setCaretVisible(false);

@@ -15,32 +15,33 @@
  */
 package com.android.tools.profilers.network.details;
 
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.profilers.ContentType;
 import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
 import com.android.tools.profilers.stacktrace.DataViewer;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
 import com.intellij.util.ui.JBEmptyBorder;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import java.awt.*;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-
-import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A view model which wraps a target {@link HttpData} and can create useful, shared UI components
@@ -49,8 +50,6 @@ import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 final class HttpDataViewModel {
   private static final String ID_PAYLOAD_VIEWER = "PAYLOAD_VIEWER";
   private static final Border PAYLOAD_BORDER = new JBEmptyBorder(6, 0, 0, 0);
-  private static final ImmutableSet<ContentType> REFORMAT_CODE_SUPPORTED_TYPES =
-    ImmutableSet.of(ContentType.JSON, ContentType.HTML, ContentType.XML);
 
   private final NetworkConnectionsModel myModel;
   private final HttpData myHttpData;
@@ -156,21 +155,13 @@ final class HttpDataViewModel {
   }
 
   /**
-   * Creates the raw data view of given {@link Payload}, assumed the payload is not empty.
+   * Creates the raw data view of given {@link Payload}.
+   *
+   * Assumes the payload is not empty.
    */
   @NotNull
   private static JComponent createRawDataComponent(@NotNull Payload payload, @NotNull IdeProfilerComponents components) {
     ContentType contentType = ContentType.fromMimeType(payload.getContentType().getMimeType());
-    // TODO(b/111835527): Investigate the raw payload viewer for different content types.
-    if (REFORMAT_CODE_SUPPORTED_TYPES.contains(contentType) || payload.getContentType().isFormData()) {
-      JTextArea textArea = new JTextArea(payload.getBytes().toStringUtf8());
-      textArea.setLineWrap(true);
-      textArea.setFont(ProfilerFonts.H4_FONT);
-      textArea.setEditable(false);
-      textArea.setBackground(null);
-      return textArea;
-    }
-
     DataViewer viewer = components.createDataViewer(payload.getBytes().toByteArray(), contentType, DataViewer.Style.RAW);
     JComponent viewerComponent = viewer.getComponent();
     viewerComponent.setName(ID_PAYLOAD_VIEWER);
@@ -187,7 +178,8 @@ final class HttpDataViewModel {
 
   /**
    * Creates the parsed data view of given {@link Payload}, or returns null if the payload is not applicable for parsing.
-   * Assumed the payload is not empty.
+   *
+   * Assumes the payload is not empty.
    */
   @Nullable
   private static JComponent createParsedDataComponent(@NotNull Payload payload, @NotNull IdeProfilerComponents components) {
@@ -198,14 +190,16 @@ final class HttpDataViewModel {
       parsedContentStream.forEach(a -> parsedContent.put(a[0], a.length > 1 ? a[1] : ""));
       return TabUiUtils.createStyledMapComponent(parsedContent);
     }
+
     ContentType contentType = ContentType.fromMimeType(payload.getContentType().getMimeType());
-    if (REFORMAT_CODE_SUPPORTED_TYPES.contains(contentType)) {
-      DataViewer viewer = components.createDataViewer(payload.getBytes().toByteArray(), contentType, DataViewer.Style.PRETTY);
-      // Returns the successfully formatted view, if failed, ignores the returned component.
-      if (viewer.getStyle() == DataViewer.Style.PRETTY) {
-        viewer.getComponent().setBorder(PAYLOAD_BORDER);
-        return viewer.getComponent();
-      }
+    DataViewer viewer = components.createDataViewer(payload.getBytes().toByteArray(), contentType, DataViewer.Style.PRETTY);
+
+    // Just because we request a "pretty" viewer doesn't mean we'll actually get one. If we didn't,
+    // that means formatting support is not provided, so return null as a way to indicate this
+    // failure to the code that called us.
+    if (viewer.getStyle() == DataViewer.Style.PRETTY) {
+      viewer.getComponent().setBorder(PAYLOAD_BORDER);
+      return viewer.getComponent();
     }
     return null;
   }
