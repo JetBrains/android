@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
@@ -24,7 +23,9 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.util.concurrent.ListenableFuture
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume.assumeThat
 
 class PsVariablesTest : AndroidGradleTestCase() {
 
@@ -140,10 +141,31 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val tmp123 = variables.getOrCreateVariable("tmp123")
     tmp123.setName("tmp321")
     tmp123.setValue("123")
-    val secondTmp123 = variables.getOrCreateVariable("tmp123")
-    assertThat(secondTmp123.value, equalTo<ParsedValue<Any>>(ParsedValue.NotSet))
+    val secondTmp123 = variables.getVariable("tmp123")
+    assertThat(secondTmp123, nullValue())
     val tmp321 = variables.getOrCreateVariable("tmp321")
     assertThat(tmp321.value, equalTo("123".asParsed<Any>()))
+  }
+
+  fun testRefresh() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val variables = psProject.variables
+    val otherVariables = PsVariables(psProject, "other", null)
+
+    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3")))
+
+    val someVar = variables.getVariable("someVar")
+    someVar?.setName("tmp321")
+    val rootBool2 = variables.getVariable("rootBool2")
+    rootBool2?.delete()
+    val tmp999 = variables.getOrCreateVariable("tmp999")
+    tmp999.setValue(999)
+    assertThat(variables.getModuleVariables().map{ it.name }.toSet(), equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999")))
+
+    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3")))
+    otherVariables.refresh()
+    assertThat(otherVariables.entries.keys, equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999")))
   }
 
   private fun <T : Any> Pair<String, T>.asParsed() = ParsedValue.Set.Parsed(dslText = DslText.Reference(first), value = second)

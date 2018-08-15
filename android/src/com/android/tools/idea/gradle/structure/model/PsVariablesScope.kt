@@ -53,6 +53,8 @@ interface PsVariablesScope {
    */
   fun getNewVariableName(preferredName: String) : String
 
+  fun getVariable(name: String): PsVariable?
+
   fun getOrCreateVariable(name: String): PsVariable
 
   fun addNewVariable(name: String): PsVariable
@@ -61,22 +63,16 @@ interface PsVariablesScope {
 
   object NONE : PsVariablesScope {
     override val name: String = ""
-
     override val title: String = ""
-
     override val model: PsModel get() = throw UnsupportedOperationException()
-
     override fun <ValueT : Any> getAvailableVariablesFor(
       property: ModelPropertyContext<ValueT>): List<Annotated<ParsedValue.Set.Parsed<ValueT>>> = listOf()
 
     override fun getModuleVariables(): List<PsVariable> = listOf()
-
     override fun getVariableScopes(): List<PsVariablesScope> = listOf()
-
+    override fun getVariable(name: String): PsVariable? = null
     override fun getNewVariableName(preferredName: String): String = throw UnsupportedOperationException()
-
     override fun getOrCreateVariable(name: String): PsVariable = throw UnsupportedOperationException()
-
     override fun addNewVariable(name: String): PsVariable = throw UnsupportedOperationException()
   }
 }
