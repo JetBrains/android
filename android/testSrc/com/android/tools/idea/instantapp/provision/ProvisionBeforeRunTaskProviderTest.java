@@ -16,7 +16,8 @@
 package com.android.tools.idea.instantapp.provision;
 
 import com.android.annotations.NonNull;
-import com.android.ddmlib.*;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
 import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -24,30 +25,25 @@ import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.JavaRunConfigurationModule;
-import com.intellij.openapi.project.Project;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import java.io.StringReader;
 import java.nio.charset.Charset;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.notNull;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link ProvisionBeforeRunTaskProvider}.
  */
 public class ProvisionBeforeRunTaskProviderTest extends AndroidTestCase {
-  private AndroidRunConfigurationBase myActualRunConfiguration;
   private AndroidRunConfigurationBase myRunConfiguration;
   private IdeComponents myIdeComponents;
   private InstantAppSdks myInstantAppSdks;
@@ -56,8 +52,8 @@ public class ProvisionBeforeRunTaskProviderTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
-    myActualRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
-    myRunConfiguration = Mockito.spy(myActualRunConfiguration);
+    AndroidRunConfigurationBase actualRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
+    myRunConfiguration = spy(actualRunConfiguration);
     myIdeComponents = new IdeComponents(getProject());
     myInstantAppSdks = myIdeComponents.mockService(InstantAppSdks.class);
     initMocks(this);
@@ -79,7 +75,6 @@ public class ProvisionBeforeRunTaskProviderTest extends AndroidTestCase {
   }
 
   public void testTaskCreatedIfModuleNull() {
-    Project project = getProject();
     when(myInstantAppSdks.isInstantAppSdkEnabled()).thenReturn(true);
     JavaRunConfigurationModule runConfigurationModule = mock(JavaRunConfigurationModule.class);
     when(runConfigurationModule.getModule()).thenReturn(null);
@@ -90,10 +85,10 @@ public class ProvisionBeforeRunTaskProviderTest extends AndroidTestCase {
   public void testProvisionSkippedWhenNotInstantApp() {
     assertTrue(new ProvisionBeforeRunTaskProvider() {
       @Override
-      boolean isInstantAppContext(AndroidRunConfigurationBase runConfiguration) {
+      boolean isInstantAppContext(@NotNull AndroidRunConfigurationBase runConfiguration) {
         return false;
       }
-    }.executeTask(null, myRunConfiguration, null, null));
+    }.executeTask(null, myRunConfiguration, new ExecutionEnvironment(), new ProvisionBeforeRunTaskProvider.ProvisionBeforeRunTask(getProject())));
   }
 
   public void testTaskReadExternalXmlWithNoTimestamp() throws Exception {
