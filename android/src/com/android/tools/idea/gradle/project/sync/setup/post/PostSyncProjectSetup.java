@@ -18,12 +18,8 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
-import com.android.tools.idea.gradle.project.ProjectStructure;
+import com.android.tools.idea.gradle.project.*;
 import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersionsInProject;
-import com.android.tools.idea.gradle.project.RunConfigurationChecker;
-import com.android.tools.idea.gradle.project.SupportedModuleChecker;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent;
@@ -65,7 +61,6 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -339,14 +334,13 @@ public class PostSyncProjectSetup {
 
   private void modifyJUnitRunConfigurations() {
     ConfigurationType junitConfigurationType = AndroidJUnitConfigurationType.getInstance();
-    BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = Extensions.getExtensions(BeforeRunTaskProvider.EXTENSION_POINT_NAME, myProject);
 
     // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
     // For IDEA, use regular "Make".
     String makeTaskName = myIdeInfo.isAndroidStudio() ? MakeBeforeRunTaskProvider.TASK_NAME
                                                       : ExecutionBundle.message("before.launch.compile.step");
     BeforeRunTaskProvider targetProvider = null;
-    for (BeforeRunTaskProvider<? extends BeforeRunTask> provider : taskProviders) {
+    for (BeforeRunTaskProvider<? extends BeforeRunTask> provider : BeforeRunTaskProvider.EXTENSION_POINT_NAME.getExtensionList(myProject)) {
       if (makeTaskName.equals(provider.getName())) {
         targetProvider = provider;
         break;
