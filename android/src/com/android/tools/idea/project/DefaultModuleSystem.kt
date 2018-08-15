@@ -18,20 +18,20 @@ package com.android.tools.idea.project
 import com.android.SdkConstants
 import com.android.SdkConstants.*
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.util.PathString
 import com.android.projectmodel.AarLibrary
 import com.android.projectmodel.JavaLibrary
 import com.android.projectmodel.Library
 import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.util.toPathString
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.roots.*
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile
+import com.intellij.openapi.roots.LibraryOrderEntry
+import com.intellij.openapi.roots.ModuleOrderEntry
+import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
-import java.io.File
 
 class DefaultModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFinder by ModuleBasedClassFileFinder(module) {
 
@@ -92,36 +92,35 @@ class DefaultModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFi
         val roots = library.getFiles(OrderRootType.CLASSES)
 
         // all libraries are assumed to have a classes.jar & a non-empty name
-        val classesJar = roots.firstOrNull { it.name == SdkConstants.FN_CLASSES_JAR }?.let(VfsUtil::virtualToIoFile)
+        val classesJar = roots.firstOrNull { it.name == SdkConstants.FN_CLASSES_JAR }?.toPathString()
                          ?: return@forEachLibrary true
         val libraryName = library.name ?: return@forEachLibrary true
-        val classJarLocation = PathString(classesJar)
 
         // For testing purposes we create libraries with a res.apk root (legacy projects don't have those). Recognize them here and
         // create AarLibrary as necessary.
-        val resFolderRoot = roots.firstOrNull { it.name == FD_RES }
-        val resApkRoot = roots.firstOrNull { it.name == FN_RESOURCE_STATIC_LIBRARY }
+        val resFolderRoot = roots.firstOrNull { it.name == FD_RES }?.toPathString()
+        val resApkRoot = roots.firstOrNull { it.name == FN_RESOURCE_STATIC_LIBRARY }?.toPathString()
         if (resFolderRoot != null || resApkRoot != null) { // aar
           val (resFolder, resApk) = when {
-            resApkRoot != null -> virtualToIoFile(resApkRoot).let { Pair(it.resolveSibling(FD_RES), it) }
-            resFolderRoot != null -> virtualToIoFile(resFolderRoot).let { Pair(it, it.resolveSibling(FN_RESOURCE_STATIC_LIBRARY)) }
+            resApkRoot != null -> Pair(resApkRoot.parentOrRoot.resolve(FD_RES), resApkRoot)
+            resFolderRoot != null -> Pair(resFolderRoot, resFolderRoot.parentOrRoot.resolve(FN_RESOURCE_STATIC_LIBRARY))
             else -> return@forEachLibrary true
           }
 
           libraries.add(AarLibrary(
             address = libraryName,
             location = null,
-            manifestFile = PathString(File(resFolder.parentFile, FN_ANDROID_MANIFEST_XML)),
-            classesJar = classJarLocation,
+            manifestFile = resFolder.parentOrRoot.resolve(FN_ANDROID_MANIFEST_XML),
+            classesJar = classesJar,
             dependencyJars = emptyList(),
-            resFolder = PathString(resFolder),
-            symbolFile = PathString(File(resFolder.parentFile, FN_RESOURCE_TEXT)),
-            resApkFile = PathString(resApk)
+            resFolder = resFolder,
+            symbolFile = resFolder.parentOrRoot.resolve(FN_RESOURCE_TEXT),
+            resApkFile = resApk
           ))
         } else { // jar
           libraries.add(JavaLibrary(
             address = libraryName,
-            classesJar = classJarLocation
+            classesJar = classesJar
           ))
         }
 
