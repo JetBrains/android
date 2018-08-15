@@ -22,7 +22,6 @@ import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProfilerToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.google.common.truth.Correspondence;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -39,7 +38,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.IOException;
 
 import static com.android.fakeadbserver.DeviceState.HostConnectionType.USB;
 import static com.google.common.truth.Truth.assertThat;
@@ -97,13 +95,13 @@ public class AndroidProfilerTest {
   }
 
   @NotNull
-  private Project openProject(@NotNull String projectDirName) throws IOException {
+  private Project openProject(@NotNull String projectDirName) throws Exception {
     File projectDir = guiTest.copyProjectBeforeOpening(projectDirName);
     VirtualFile fileToSelect = VfsUtil.findFileByIoFile(projectDir, true);
 
-    WelcomeFrameFixture.find(guiTest.robot()).openProject().select(fileToSelect).clickOk();
+    ProjectManager.getInstance().loadAndOpenProject(fileToSelect.getPath());
 
-    Wait.seconds(5).expecting("project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
+    Wait.seconds(10).expecting("project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
 
     Project project = ProjectManager.getInstance().getOpenProjects()[0];
     GuiTests.waitForProjectIndexingToFinish(project);
