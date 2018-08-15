@@ -17,15 +17,17 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc
 
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewAndroidLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewJavaLibrary
+import com.intellij.util.io.exists
 import org.apache.commons.io.FileUtils
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 
 const val BUNDLE_DIR = "bundles"
 
 // properOfflineRepo have to exist
-class LibraryConverter(private val properOfflineRepo: Path) {
+class LibraryConverter(private val properOfflineRepo: Path, private val generateOfflineRepo: Boolean = true) {
   fun convertCachedLibraryToProper(library: NewAndroidLibrary): NewAndroidLibrary {
     val relativePath = artifactAddressToRelativePath(library.artifactAddress)
 
@@ -34,11 +36,20 @@ class LibraryConverter(private val properOfflineRepo: Path) {
     val newLocalJarNames = library.localJars.map {library.bundleFolder.toPath().relativize(it.toPath())}
     val newLocalJars = newLocalJarNames.map { newBundleFolder.resolve(it)}
 
-    Files.createDirectories(newArtifactFolder)
-    Files.createDirectories(newBundleFolder)
+    if (generateOfflineRepo) {
+      Files.createDirectories(newArtifactFolder)
+      Files.createDirectories(newBundleFolder)
 
-    FileUtils.copyDirectory(library.artifact.parentFile, newArtifactFolder.toFile())
-    FileUtils.copyDirectory(library.bundleFolder, newBundleFolder.toFile())
+      FileUtils.copyDirectory(library.artifact.parentFile, newArtifactFolder.toFile())
+      FileUtils.copyDirectory(library.bundleFolder, newBundleFolder.toFile())
+    } else {
+      if (!newArtifactFolder.exists()) {
+        throw IOException("Artifact folder $newArtifactFolder does not exist in $properOfflineRepo")
+      }
+      if (!newBundleFolder.exists()) {
+        throw IOException("Bundle folder $newBundleFolder does not exist in $properOfflineRepo")
+      }
+    }
 
     return NewAndroidLibrary(
       newArtifactFolder.resolve(library.artifact.name).toFile(),
