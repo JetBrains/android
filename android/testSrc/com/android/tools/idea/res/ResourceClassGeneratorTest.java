@@ -61,7 +61,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   public void testResourceClassGenerator() throws Exception {
-    MergerResourceRepository repository = resourceFixture.createTestResources(RES_AUTO, new Object[] {
+    TestResourceRepository repository = resourceFixture.createTestResources(RES_AUTO, new Object[] {
       "layout/layout1.xml", "<!--contents doesn't matter-->",
 
       "layout-land/layout1.xml", "<!--contents doesn't matter-->",
@@ -199,7 +199,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   public void testStyleableMerge() throws Exception {
-    final MergerResourceRepository repositoryA = resourceFixture.createTestResources(RES_AUTO, new Object[] {
+    TestResourceRepository repositoryA = resourceFixture.createTestResources(RES_AUTO, new Object[] {
       "values/styles.xml", "" +
                            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<resources>\n" +
@@ -284,7 +284,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
       attributes.append("    <attr name=\"overflow_").append(i).append("\" />\n");
     }
 
-    final MergerResourceRepository repository = resourceFixture.createTestResources(RES_AUTO, new Object[] {
+    TestResourceRepository repository = resourceFixture.createTestResources(RES_AUTO, new Object[] {
       "values/styles.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<resources>\n" +
                            "    <declare-styleable name=\"AppStyleable\">\n" +
@@ -310,9 +310,9 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   private static class LocalResourceRepositoryDelegate extends LocalResourceRepository {
-    private final MergerResourceRepository myDelegate;
+    private final TestResourceRepository myDelegate;
 
-    protected LocalResourceRepositoryDelegate(@NotNull String displayName, MergerResourceRepository delegate) {
+    protected LocalResourceRepositoryDelegate(@NotNull String displayName, TestResourceRepository delegate) {
       super(displayName);
       myDelegate = delegate;
     }
