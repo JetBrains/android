@@ -32,7 +32,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
   fun testGetModuleVariables_project() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
     val psProject = PsProjectImpl(project)
-    val variables = psProject.variables.getModuleVariables()
+    val variables = psProject.variables
     assertThat(
       variables.map { it.name },
       equalTo(listOf(
@@ -48,7 +48,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
     val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
-    val variables = psAppModule.variables.getModuleVariables()
+    val variables = psAppModule.variables
     assertThat(
       variables.map { it.name },
       equalTo(listOf(
@@ -161,7 +161,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     rootBool2?.delete()
     val tmp999 = variables.getOrCreateVariable("tmp999")
     tmp999.setValue(999)
-    assertThat(variables.getModuleVariables().map{ it.name }.toSet(), equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999")))
+    assertThat(variables.map{ it.name }.toSet(), equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999")))
 
     assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3")))
     otherVariables.refresh()

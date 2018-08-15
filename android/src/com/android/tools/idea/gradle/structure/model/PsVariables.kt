@@ -79,8 +79,6 @@ open class PsVariables constructor(
         }
       } ?: listOf()
 
-  override fun getModuleVariables(): List<PsVariable> = items.toList()
-
   override fun getVariableScopes(): List<PsVariablesScope> =
     parentScope?.getVariableScopes().orEmpty() + listOf<PsVariablesScope>(this as PsVariablesScope)
 
@@ -94,6 +92,8 @@ open class PsVariables constructor(
   override fun getOrCreateVariable(name: String): PsVariable = findElement(name) ?: addNewVariable(name)
 
   override fun addNewVariable(name: String): PsVariable = addNew(name)
+
+  override fun removeVariable(name: String) = remove(name)
 
   @VisibleForTesting
   protected open fun getContainer(from: PsModel) =
