@@ -406,7 +406,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     if (myHost instanceof AndroidProjectStructureConfigurable) {
       textField.getDocument().addDocumentListener(new DocumentAdapter() {
         @Override
-        protected void textChanged(DocumentEvent e) {
+        protected void textChanged(@NotNull DocumentEvent e) {
           ((AndroidProjectStructureConfigurable)myHost).requestValidation();
         }
       });

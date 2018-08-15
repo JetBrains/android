@@ -252,7 +252,7 @@ public class CpuProfilingConfigPanel {
     myConfigName = new JTextField();
     myConfigName.getDocument().addDocumentListener(new DocumentAdapter() {
       @Override
-      protected void textChanged(DocumentEvent e) {
+      protected void textChanged(@NotNull DocumentEvent e) {
         if (myConfiguration != null) {
           myConfiguration.setName(myConfigName.getText());
         }

@@ -17,8 +17,8 @@ package com.android.tools.idea.editors.allocations;
 
 import com.android.ddmlib.AllocationInfo;
 import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.chart.SunburstChart;
 import com.android.tools.adtui.ValuedTreeNode;
+import com.android.tools.adtui.chart.SunburstChart;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
@@ -55,8 +55,8 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
@@ -104,7 +104,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
     myPackageFilter = new SearchTextFieldWithStoredHistory("alloc.package.filter");
     myPackageFilter.addDocumentListener(new DocumentAdapter() {
       @Override
-      protected void textChanged(DocumentEvent e) {
+      protected void textChanged(@NotNull DocumentEvent e) {
         myAlarm.cancelAllRequests();
         myAlarm.addRequest(() -> setGroupByName(GroupByAllocator.NAME), 1000);
       }

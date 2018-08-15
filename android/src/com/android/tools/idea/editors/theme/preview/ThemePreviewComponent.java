@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.editors.theme.preview;
 
+import com.android.tools.adtui.SearchField;
 import com.android.tools.idea.actions.BrowserHelpAction;
-import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.configurations.DeviceMenuAction;
+import com.android.tools.idea.configurations.LocaleMenuAction;
+import com.android.tools.idea.configurations.OrientationMenuAction;
+import com.android.tools.idea.configurations.TargetMenuAction;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
-import com.android.tools.adtui.SearchField;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -88,7 +91,7 @@ public class ThemePreviewComponent extends JPanel implements Disposable {
     mySearchUpdateScheduler = Executors.newSingleThreadScheduledExecutor(ConcurrencyUtil.newNamedThreadFactory("Theme Editor Searcher"));
     myTextField.addDocumentListener(new DocumentAdapter() {
       @Override
-      protected void textChanged(DocumentEvent e) {
+      protected void textChanged(@NotNull DocumentEvent e) {
         if (myScheduledSearch != null) {
           myScheduledSearch.cancel(false);
         }
