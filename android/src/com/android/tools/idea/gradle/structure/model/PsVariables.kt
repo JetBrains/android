@@ -92,6 +92,15 @@ open class PsVariables constructor(
   override fun getOrCreateVariable(name: String): PsVariable = findElement(name) ?: addNewVariable(name)
 
   override fun addNewVariable(name: String): PsVariable = addNew(name)
+  override fun addNewListVariable(name: String): PsVariable =
+    batchChange {
+      addNew(name).also { it.convertToEmptyList() }
+    }
+
+  override fun addNewMapVariable(name: String): PsVariable =
+    batchChange {
+      addNew(name).also { it.convertToEmptyMap() }
+    }
 
   override fun removeVariable(name: String) = remove(name)
 
