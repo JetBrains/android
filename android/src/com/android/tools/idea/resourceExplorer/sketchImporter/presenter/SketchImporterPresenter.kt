@@ -28,32 +28,41 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.model.PageOptions
 import com.android.tools.idea.resourceExplorer.sketchImporter.model.SketchFile
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage
 import com.android.tools.idea.resourceExplorer.sketchImporter.view.SketchImporterView
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 
-val PAGE_TYPES = arrayOf("Icons", "Symbols", "Colors", "Text", "Mixed")
-
-class SketchImporterPresenter(private val sketchFile: SketchFile,
+class SketchImporterPresenter(private val view: SketchImporterView,
+                              private val sketchFile: SketchFile,
                               private val importOptions: ImportOptions,
-                              private val designAssetImporter: DesignAssetImporter) {
+                              private val designAssetImporter: DesignAssetImporter,
+                              private val facet: AndroidFacet) {
 
-  private val filesToExport = mutableSetOf<VirtualFile>()
+  private val filesToExport = HashMap<String, List<VirtualFile>>()
 
   /**
    * Create assets and add a preview for each page in the view.
    */
-  fun populatePages(project: Project, view: SketchImporterView) {
+  fun populatePages() {
     filesToExport.clear()
-    val pageIdToFiles = generateFiles(project)
+    val pageIdToFiles = generateFiles()
     pageIdToFiles.forEach { pageId, files ->
       val pageOptions = importOptions.getPageOptions(pageId) ?: return@forEach
 
-      val exportableFiles = if (!importOptions.isImportAll) getExportableFiles(files) else files
-      filesToExport.addAll(exportableFiles)
-      view.addIconPage(pageOptions.name, PAGE_TYPES, pageOptions.pageType.ordinal, exportableFiles)
+      view.addIconPage(pageId, pageOptions.name, PageOptions.PAGE_TYPE_LABELS, pageOptions.pageType.ordinal,
+                       updateFilesToExport(pageId, files))
     }
+  }
+
+  /**
+   * Updates the files associated with the page with [pageId] to be the exportable files in [files].
+   *
+   * @return exportable files that were obtained and updated
+   */
+  private fun updateFilesToExport(pageId: String, files: List<LightVirtualFile>): List<LightVirtualFile> {
+    val exportableFiles = if (!importOptions.isImportAll) getExportableFiles(files) else files
+    filesToExport[pageId] = exportableFiles
+    return exportableFiles
   }
 
   /**
@@ -68,8 +77,9 @@ class SketchImporterPresenter(private val sketchFile: SketchFile,
   /**
    * After populating pages, the files that were created can be added to the project.
    */
-  fun importFilesIntoProject(facet: AndroidFacet) {
-    val assets = filesToExport
+  fun importFilesIntoProject() {
+    val assets = filesToExport.values
+      .flatten()
       .associate { it to it.nameWithoutExtension }  // to be replaced with the name from options
       .map { (file, name) ->
         DesignAssetSet(name, listOf(DesignAsset(file, listOf(DensityQualifier(Density.ANYDPI)), ResourceType.DRAWABLE, name)))
@@ -80,27 +90,24 @@ class SketchImporterPresenter(private val sketchFile: SketchFile,
   /**
    * @return mapping of [SketchPage.objectId] to lists of [LightVirtualFile] assets parsed from the page.
    */
-  private fun generateFiles(project: Project): Map<String, List<LightVirtualFile>> {
+  private fun generateFiles(): Map<String, List<LightVirtualFile>> {
     return sketchFile.pages
-      .mapNotNull { sketchPage -> getPageOptions(importOptions, sketchPage)?.let { sketchPage to it } }
-      .associate { (page, option) -> page.objectId to generateFilesFromPage(page, option, project) }
+      .mapNotNull { sketchPage -> getPageOptions(sketchPage)?.let { sketchPage to it } }
+      .associate { (page, option) -> page.objectId to generateFilesFromPage(page, option) }
   }
 
   /**
    * Fetch options corresponding to [sketchPage] from the [importOptions].
    */
-  private fun getPageOptions(importOptions: ImportOptions, sketchPage: SketchPage) =
+  private fun getPageOptions(sketchPage: SketchPage) =
     importOptions.getPageOptions(sketchPage.objectId)
 
   /**
    * @return a list of [LightVirtualFile] assets based on the content in the [SketchPage] and the [PageOptions].
    */
-  private fun generateFilesFromPage(page: SketchPage,
-                                    pageOptions: PageOptions,
-                                    project: Project): List<LightVirtualFile> {
-
+  private fun generateFilesFromPage(page: SketchPage, pageOptions: PageOptions): List<LightVirtualFile> {
     return when (pageOptions.pageType) {
-      PageOptions.PageType.ICONS -> createIconFiles(page, project)
+      PageOptions.PageType.ICONS -> createIconFiles(page)
       else -> emptyList()
     }
   }
@@ -108,9 +115,27 @@ class SketchImporterPresenter(private val sketchFile: SketchFile,
   /**
    * @return a list of [LightVirtualFile] Vector Drawables corresponding to each artboard in [page].
    */
-  private fun createIconFiles(page: SketchPage, project: Project) = page.artboards
+  private fun createIconFiles(page: SketchPage) = page.artboards
     .associate { it to importOptions.getIconOptions(it.objectId)?.name }
     .map { (artboard, name) ->
-      DrawableGenerator(project, VectorDrawable(artboard.createAllDrawableShapes(), artboard.frame)).generateFile(name)
+      DrawableGenerator(facet.module.project, VectorDrawable(artboard.createAllDrawableShapes(), artboard.frame)).generateFile(name)
     }
+
+  /**
+   * Change the type of the page with [pageId] according to the [selection] and refresh the files associated with that page (including
+   * the previews in the [view]).
+   */
+  fun pageTypeChange(pageId: String, selection: String) {
+    val pageOptions = importOptions.getPageOptions(pageId)
+
+    if (pageOptions != null) {
+      pageOptions.pageType = PageOptions.getPageTypeFromLabel(selection)
+    }
+
+    val page = sketchFile.findLayer(pageId) as SketchPage? ?: return
+    val options = getPageOptions(page) ?: return
+    val assets = generateFilesFromPage(page, options)
+    val exportableFiles = updateFilesToExport(pageId, assets)
+    view.refreshPreview(pageId, exportableFiles)
+  }
 }

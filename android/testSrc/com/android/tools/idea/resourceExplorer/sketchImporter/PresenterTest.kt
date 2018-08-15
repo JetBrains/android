@@ -47,11 +47,11 @@ class PresenterTest {
   fun importFiles() {
     val sketchFile = SketchParser.read(AndroidTestBase.getTestDataPath() + "/sketch/presenter.sketch")!!
     val importOptions = ImportOptions(sketchFile)
-    val presenter = SketchImporterPresenter(sketchFile, importOptions, DesignAssetImporter())
     importOptions.isImportAll = true
-    val view = SketchImporterView(presenter)
-    presenter.populatePages(projectRule.project, view)
-    presenter.importFilesIntoProject(projectRule.module.androidFacet!!)
+    val view = SketchImporterView()
+    val presenter = SketchImporterPresenter(view, sketchFile, importOptions, DesignAssetImporter(), projectRule.module.androidFacet!!)
+    presenter.populatePages()
+    presenter.importFilesIntoProject()
 
     val resourceFolder = projectRule.fixture.tempDirFixture.findOrCreateDir("res").findChild("drawable-anydpi")
     val items = resourceFolder!!.children
@@ -76,10 +76,10 @@ class PresenterTest {
   fun noExportableFiles() {
     val sketchFile = SketchParser.read(AndroidTestBase.getTestDataPath() + "/sketch/presenter.sketch")!!
     val importOptions = ImportOptions(sketchFile)
-    val presenter = SketchImporterPresenter(sketchFile, importOptions, DesignAssetImporter())
-    val view = SketchImporterView(presenter)
-    presenter.populatePages(projectRule.project, view)
-    presenter.importFilesIntoProject(projectRule.module.androidFacet!!)
+    val view = SketchImporterView()
+    val presenter = SketchImporterPresenter(view, sketchFile, importOptions, DesignAssetImporter(), projectRule.module.androidFacet!!)
+    presenter.populatePages()
+    presenter.importFilesIntoProject()
 
     val resourceFolder = projectRule.fixture.tempDirFixture.findOrCreateDir("res").findChild("drawable-anydpi")
     val items = resourceFolder?.children
