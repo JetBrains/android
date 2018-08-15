@@ -64,6 +64,38 @@ class PsVariablesTest : AndroidGradleTestCase() {
     )
   }
 
+  fun testListVariables() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
+    val variables = psAppModule.variables
+    val listVariable = variables.findElement("varProGuardFiles")!!
+
+    assertThat(listVariable.listItems.map { it.value },
+               equalTo(listOf("proguard-rules.txt".asParsed<Any>(), "proguard-rules2.txt".asParsed<Any>())))
+
+    listVariable.listItems.findElement(0)!!.delete()
+
+    assertThat(listVariable.listItems.map { it.value },
+               equalTo(listOf("proguard-rules2.txt".asParsed<Any>())))
+  }
+
+  fun testMapVariables() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
+    val variables = psAppModule.variables
+    val mapVariable = variables.findElement("mapVariable")!!
+
+    assertThat(mapVariable.mapEntries.entries.mapValues { it.value.value },
+               equalTo(mapOf("a" to "\"double\" quotes".asParsed<Any>(), "b" to "'single' quotes".asParsed<Any>())))
+
+    mapVariable.mapEntries.findElement("b")!!.setName("Z")
+
+    assertThat(mapVariable.mapEntries.entries.mapValues { it.value.value },
+               equalTo(mapOf("a" to "\"double\" quotes".asParsed<Any>(), "Z" to "'single' quotes".asParsed<Any>())))
+  }
+
   fun testVariableWellKnownValues() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
     val psProject = PsProjectImpl(project)

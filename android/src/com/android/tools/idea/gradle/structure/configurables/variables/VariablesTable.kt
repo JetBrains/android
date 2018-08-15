@@ -19,7 +19,10 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariable
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
+import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
@@ -441,37 +444,21 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
 
   class VariableNode(variable: PsVariable) : BaseVariableNode(variable) {
     init {
-      val literalValue = variable.value.maybeLiteralValue
-      when (literalValue) {
-        is Map<*, *> -> {
-          val map = PsVariable.Descriptors.variableMapValue.bind(variable).getEditableValues()
-          map.forEach {
-            add(MapItemNode(
-              it.key,
-              PsVariable(variable.parent, variable.scopePsVariables, {})
-                .apply {
-                  init((it.value as? GradleModelCoreProperty<*, *>)?.getParsedProperty()!!)
-                }))
+      when {
+        variable.isMap -> {
+          variable.mapEntries.entries.forEach {
+            add(MapItemNode(it.key, it.value))
           }
           add(EmptyMapItemNode(variable))
-          userObject = NodeDescription(variable.name, EmptyIcon.ICON_0)
         }
-        is List<*> -> {
-          val list = PsVariable.Descriptors.variableListValue.bind(variable).getEditableValues()
-          list.forEachIndexed { index, propertyModel ->
-            add(ListItemNode(
-              index,
-              PsVariable(variable.parent, variable.scopePsVariables, {}).apply {
-                init((propertyModel as? GradleModelCoreProperty<*, *>)?.getParsedProperty()!!)
-              }))
+        variable.isList -> {
+          variable.listItems.entries.forEach {
+            add(ListItemNode(it.key, it.value))
           }
           add(EmptyListItemNode(variable))
-          userObject = NodeDescription(variable.name, EmptyIcon.ICON_0)
-        }
-        else -> {
-          userObject = NodeDescription(variable.name, EmptyIcon.ICON_0)
         }
       }
+      userObject = NodeDescription(variable.name, EmptyIcon.ICON_0)
     }
 
     override fun getUnresolvedValue(expanded: Boolean): String {
