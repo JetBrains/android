@@ -115,7 +115,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
 
   @Nullable
   @Override
-  public ProvisionBeforeRunTask createTask(RunConfiguration runConfiguration) {
+  public ProvisionBeforeRunTask createTask(@NotNull RunConfiguration runConfiguration) {
     // This method is called when a new run configuration is created, and in that moment we don't know if it will be an Instant App or not,
     // so we create the task anyway and later, when running it, we check if it's an instant app context to provision the device or not.
     // This method is also called when reading from persistent data (first an empty task is created and after it's configured).
@@ -128,7 +128,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
   }
 
   @Override
-  public boolean configureTask(RunConfiguration runConfiguration, ProvisionBeforeRunTask task) {
+  public boolean configureTask(@NotNull RunConfiguration runConfiguration, @NotNull ProvisionBeforeRunTask task) {
     ProvisionEditTaskDialog dialog = new ProvisionEditTaskDialog(runConfiguration.getProject(), task.isClearCache(), task.isClearProvisionedDevices());
     if (!dialog.showAndGet()) {
       return false;
@@ -139,12 +139,12 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
   }
 
   @Override
-  public boolean canExecuteTask(RunConfiguration configuration, ProvisionBeforeRunTask task) {
+  public boolean canExecuteTask(@NotNull RunConfiguration configuration, @NotNull ProvisionBeforeRunTask task) {
     return isInstantAppContext((AndroidRunConfigurationBase)configuration);
   }
 
   @Override
-  public boolean executeTask(DataContext context, RunConfiguration configuration, ExecutionEnvironment env, ProvisionBeforeRunTask task) {
+  public boolean executeTask(DataContext context, @NotNull RunConfiguration configuration, @NotNull ExecutionEnvironment env, @NotNull ProvisionBeforeRunTask task) {
     if (!isInstantAppContext((AndroidRunConfigurationBase)configuration)) {
       // If the run configuration is not running an Instant App, there's no need to provision the device. Return early.
       return true;
@@ -401,7 +401,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
     }
 
     @Override
-    public void writeExternal(Element element) {
+    public void writeExternal(@NotNull Element element) {
       super.writeExternal(element);
       element.setAttribute("clearCache", String.valueOf(myClearCache));
       element.setAttribute("clearProvisionedDevices", String.valueOf(myClearProvisionedDevices));
@@ -412,7 +412,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
     }
 
     @Override
-    public void readExternal(Element element) {
+    public void readExternal(@NotNull Element element) {
       super.readExternal(element);
       myClearCache = Boolean.valueOf(element.getAttributeValue("clearCache")).booleanValue();
       myClearProvisionedDevices = Boolean.valueOf(element.getAttributeValue("clearProvisionedDevices")).booleanValue();
