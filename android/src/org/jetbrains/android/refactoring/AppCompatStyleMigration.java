@@ -17,7 +17,6 @@ package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
@@ -89,7 +88,7 @@ class AppCompatStyleMigration {
       return Collections.emptyList();
     }
 
-    AbstractResourceRepository frameworkResources = configManager.getResolverCache()
+    ResourceRepository frameworkResources = configManager.getResolverCache()
       .getFrameworkResources(new FolderConfiguration(), configManager.getTarget());
 
     List<ChangeStyleUsageInfo> result = new ArrayList<>();
@@ -186,7 +185,7 @@ class AppCompatStyleMigration {
   }
 
   private void addUsagesFromStyles(@NotNull Project project,
-                                   AbstractResourceRepository frameworkResources,
+                                   ResourceRepository frameworkResources,
                                    List<ChangeStyleUsageInfo> result,
                                    LocalResourceRepository projectResources) {
     Set<XmlFile> xmlFiles = MigrateToAppCompatUtil.getPsiFilesOfType(project, projectResources, ResourceType.STYLE);
@@ -263,7 +262,7 @@ class AppCompatStyleMigration {
   }
 
   private void addStyleUsagesFromManifest(@NotNull AndroidFacet facet,
-                                          AbstractResourceRepository frameworkResources,
+                                          ResourceRepository frameworkResources,
                                           List<ChangeStyleUsageInfo> result) {
     // Find all the themes used by activities or the application attribute
     // from AndroidManifest.xml
@@ -308,7 +307,7 @@ class AppCompatStyleMigration {
   }
 
   private void convertThemeAttr2UsageInfo(XmlAttribute theme,
-                                          AbstractResourceRepository frameworkResources,
+                                          ResourceRepository frameworkResources,
                                           List<ChangeStyleUsageInfo> result) {
     if (theme != null && theme.getValueElement() != null && theme.getValue() != null
         && hasResourceItem(frameworkResources, theme.getValue())) {

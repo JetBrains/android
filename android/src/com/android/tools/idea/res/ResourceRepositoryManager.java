@@ -22,7 +22,7 @@ import com.android.builder.model.Variant;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
-import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.projectmodel.AarLibrary;
 import com.android.tools.idea.AndroidProjectModelUtils;
@@ -313,7 +313,7 @@ public class ResourceRepositoryManager implements Disposable {
    * @return the framework repository or null if the SDK resources directory cannot be determined for the module.
    */
   @Nullable
-  public AbstractResourceRepository getFrameworkResources(boolean needLocales) {
+  public ResourceRepository getFrameworkResources(boolean needLocales) {
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myFacet.getModule());
     if (androidPlatform == null) {
       return null;

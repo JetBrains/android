@@ -17,8 +17,8 @@ package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.*;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
@@ -99,7 +99,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
     final ImmutableList.Builder<ConfiguredElement<StyleItemResourceValue>> itemResourceValues = ImmutableList.builder();
 
     if (isFramework()) {
-      AbstractResourceRepository frameworkResources = myConfiguration.getFrameworkResources();
+      ResourceRepository frameworkResources = myConfiguration.getFrameworkResources();
       assert frameworkResources != null;
 
       List<ResourceItem> styleItems =

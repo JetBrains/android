@@ -17,10 +17,10 @@ package org.jetbrains.android;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
@@ -254,7 +254,7 @@ public class AndroidAnnotatorUtil {
                                                 @NotNull Module module,
                                                 @NotNull Configuration configuration) {
     if (isFramework) {
-      AbstractResourceRepository frameworkResources = configuration.getFrameworkResources();
+      ResourceRepository frameworkResources = configuration.getFrameworkResources();
       if (frameworkResources == null) {
         return null;
       }

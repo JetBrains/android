@@ -20,8 +20,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceType;
@@ -192,7 +192,7 @@ public class ThemeEditorStyle {
       IAndroidTarget target = myManager.getHighestApiTarget();
       assert target != null;
 
-      AbstractResourceRepository frameworkResources =
+      ResourceRepository frameworkResources =
           myManager.getResolverCache().getFrameworkResources(new FolderConfiguration(), target);
       if (frameworkResources != null) {
         List<ResourceItem> styleItems = frameworkResources.getResources(ResourceNamespace.ANDROID, ResourceType.STYLE, getName());
@@ -232,7 +232,7 @@ public class ThemeEditorStyle {
       IAndroidTarget target = myManager.getHighestApiTarget();
       assert target != null;
 
-      AbstractResourceRepository frameworkResources =
+      ResourceRepository frameworkResources =
           myManager.getResolverCache().getFrameworkResources(new FolderConfiguration(), target);
       if (frameworkResources != null) {
         List<ResourceItem> styleItems = frameworkResources.getResources(ResourceNamespace.ANDROID, ResourceType.STYLE, getName());

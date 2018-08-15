@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -79,12 +79,12 @@ public class ResourceClassGenerator {
   private Map<ResourceType, TObjectIntHashMap<String>> myCache;
   /** For int[] in styleables. The ints in styleables are stored in {@link #myCache}. */
   private Map<String, TIntArrayList> myStyleableCache;
-  @NotNull private final AbstractResourceRepository myResources;
+  @NotNull private final ResourceRepository myResources;
   @NotNull private final NumericIdProvider myIdProvider;
   @NotNull private final ResourceNamespace myNamespace;
 
   private ResourceClassGenerator(@NotNull NumericIdProvider idProvider,
-                                 @NotNull AbstractResourceRepository resources,
+                                 @NotNull ResourceRepository resources,
                                  @NotNull ResourceNamespace namespace) {
     myIdProvider = idProvider;
     myResources = resources;
@@ -96,7 +96,7 @@ public class ResourceClassGenerator {
    */
   @NotNull
   public static ResourceClassGenerator create(@NotNull NumericIdProvider manager,
-                                              @NotNull AbstractResourceRepository resources,
+                                              @NotNull ResourceRepository resources,
                                               @NotNull ResourceNamespace namespace) {
     return new ResourceClassGenerator(manager, resources, namespace);
   }

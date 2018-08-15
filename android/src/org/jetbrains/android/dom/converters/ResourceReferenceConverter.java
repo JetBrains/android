@@ -18,14 +18,17 @@ package org.jetbrains.android.dom.converters;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
-import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceNamespaceContext;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CodeCompletionHandlerBase;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -368,7 +371,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       ResourceVisibilityLookup visibilityLookup = repoManager.getResourceVisibility();
 
       if (onlyNamespace == ResourceNamespace.ANDROID || (onlyNamespace == null && !StudioFlags.COLLAPSE_ANDROID_NAMESPACE.get())) {
-        AbstractResourceRepository frameworkResources = repoManager.getFrameworkResources(false);
+        ResourceRepository frameworkResources = repoManager.getFrameworkResources(false);
         if (frameworkResources != null) {
           addResourceReferenceValuesFromRepo(frameworkResources, repoManager, visibilityLookup, element, prefix, type,
                                              ResourceNamespace.ANDROID, result, explicitResourceType);
@@ -388,7 +391,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
   }
 
-  private static void addResourceReferenceValuesFromRepo(AbstractResourceRepository repo,
+  private static void addResourceReferenceValuesFromRepo(ResourceRepository repo,
                                                          ResourceRepositoryManager repoManager,
                                                          ResourceVisibilityLookup visibilityLookup,
                                                          @Nullable XmlElement element,

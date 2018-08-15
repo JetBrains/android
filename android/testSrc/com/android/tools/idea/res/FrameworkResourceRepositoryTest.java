@@ -18,8 +18,8 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -112,7 +112,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     }
   }
 
-  private static void compareContents(@NotNull AbstractResourceRepository expected, @NotNull AbstractResourceRepository actual) {
+  private static void compareContents(@NotNull ResourceRepository expected, @NotNull ResourceRepository actual) {
     List<ResourceItem> expectedItems = new ArrayList<>(expected.getAllResourceItems());
     List<ResourceItem> actualItems = new ArrayList<>(actual.getAllResourceItems());
 

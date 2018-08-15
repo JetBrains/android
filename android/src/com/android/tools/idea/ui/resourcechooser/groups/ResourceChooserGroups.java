@@ -18,8 +18,8 @@ package com.android.tools.idea.ui.resourcechooser.groups;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -69,7 +69,7 @@ public class ResourceChooserGroups {
   @NotNull
   private static ImmutableList<ResourceChooserItem> getFrameworkItems(@NotNull ResourceType type,
                                                                       boolean includeFileResources,
-                                                                      @NotNull AbstractResourceRepository frameworkResources,
+                                                                      @NotNull ResourceRepository frameworkResources,
                                                                       @NotNull ResourceType asType) {
     Map<String, List<ResourceItem>> itemsByName = new HashMap<>();
     Collection<ResourceItem> publicItems = frameworkResources.getPublicResources(ResourceNamespace.ANDROID, type);
@@ -119,7 +119,7 @@ public class ResourceChooserGroups {
   }
 
   @Nullable
-  private static AbstractResourceRepository getFrameworkResources(@NotNull AndroidFacet facet, boolean withLocale) {
+  private static ResourceRepository getFrameworkResources(@NotNull AndroidFacet facet, boolean withLocale) {
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
     if (androidPlatform == null) {
       return null;
@@ -139,7 +139,7 @@ public class ResourceChooserGroups {
 
     ImmutableList.Builder<ResourceChooserItem> items = ImmutableList.builder();
     if (framework) {
-      AbstractResourceRepository frameworkResources = getFrameworkResources(facet, type == ResourceType.STRING);
+      ResourceRepository frameworkResources = getFrameworkResources(facet, type == ResourceType.STRING);
       if (frameworkResources != null) {
         items.addAll(getFrameworkItems(type, includeFileResources, frameworkResources, type));
         if (type == ResourceType.DRAWABLE) {

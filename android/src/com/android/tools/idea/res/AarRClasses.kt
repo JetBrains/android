@@ -16,7 +16,7 @@
 package com.android.tools.idea.res
 
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.resources.AbstractResourceRepository
+import com.android.ide.common.resources.ResourceRepository
 import com.android.ide.common.symbols.SymbolIo
 import com.android.ide.common.symbols.SymbolJavaType
 import com.android.ide.common.symbols.SymbolTable
@@ -30,14 +30,14 @@ import org.jetbrains.android.augment.ResourceTypeClassBase
 import java.io.File
 
 /**
- * Top-level R class for an AARv2 used in namespaced mode, backed by the AAR's [AbstractResourceRepository] that's assumed not to change.
+ * Top-level R class for an AARv2 used in namespaced mode, backed by the AAR's [ResourceRepository] that's assumed not to change.
  *
  * It only contains entries for resources included in the library itself, not any of its dependencies.
  */
 class NamespacedAarPackageRClass(
   psiManager: PsiManager,
   private val packageName: String,
-  private val aarResources: AbstractResourceRepository,
+  private val aarResources: ResourceRepository,
   private val resourceNamespace: ResourceNamespace
 ) : AndroidPackageRClassBase(psiManager, packageName) {
 
@@ -57,7 +57,7 @@ private class NamespacedAarResourceTypeClass(
   parent: PsiClass,
   resourceType: ResourceType,
   private val resourceNamespace: ResourceNamespace,
-  private val aarResources: AbstractResourceRepository
+  private val aarResources: ResourceRepository
 ) : ResourceTypeClassBase(parent, resourceType) {
 
   override fun doGetFields(): Array<PsiField> {

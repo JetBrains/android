@@ -15,18 +15,18 @@
  */
 package org.jetbrains.android.uipreview;
 
-import com.android.builder.model.AaptOptions;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.model.TestAndroidModel;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceClassRegistry;
+import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
@@ -40,17 +40,14 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.util.TimeoutUtil;
-import org.gradle.internal.impldep.aQute.bnd.service.repository.ResourceRepository;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.google.common.truth.Truth.assertThat;

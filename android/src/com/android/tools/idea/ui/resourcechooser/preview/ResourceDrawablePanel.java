@@ -16,8 +16,8 @@
 package com.android.tools.idea.ui.resourcechooser.preview;
 
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItemResolver;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
@@ -196,7 +196,7 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
   private static Stream<String> getResolutionChain(@NotNull Configuration configuration,
                                                    @NotNull AndroidFacet facet,
                                                    @NotNull ResourceValue value) {
-    AbstractResourceRepository frameworkResources = configuration.getFrameworkResources();
+    ResourceRepository frameworkResources = configuration.getFrameworkResources();
     if (frameworkResources == null) {
       return Stream.empty();
     }

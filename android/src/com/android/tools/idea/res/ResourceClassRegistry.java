@@ -17,7 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceRepository;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -30,7 +30,7 @@ import java.util.*;
  * A project-wide registry for class lookup of resource classes (R classes).
  */
 public class ResourceClassRegistry implements ProjectComponent {
-  private final Map<AbstractResourceRepository, ResourceClassGenerator> myGeneratorMap = new HashMap<>();
+  private final Map<ResourceRepository, ResourceClassGenerator> myGeneratorMap = new HashMap<>();
   private Set<String> myPackages;
 
   /**
@@ -42,7 +42,7 @@ public class ResourceClassRegistry implements ProjectComponent {
    * depending on the repository used. In non-namespaced project, the repository is the full {@link AppResourceRepository} of the module
    * in question. In namespaced projects the repository is a {@link AarSourceResourceRepository} of just the AAR contents.
    */
-  public void addLibrary(@NotNull AbstractResourceRepository repo,
+  public void addLibrary(@NotNull ResourceRepository repo,
                          @NotNull ResourceIdManager idManager,
                          @Nullable String aarPackageName,
                          @NotNull ResourceNamespace namespace) {
@@ -128,7 +128,7 @@ public class ResourceClassRegistry implements ProjectComponent {
 
   @VisibleForTesting
   @NotNull
-  Map<AbstractResourceRepository, ResourceClassGenerator> getGeneratorMap() {
+  Map<ResourceRepository, ResourceClassGenerator> getGeneratorMap() {
     return myGeneratorMap;
   }
 }

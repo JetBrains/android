@@ -17,9 +17,9 @@ package com.android.tools.idea.res.aar;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.*;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceItemWithVisibility;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
 import com.android.ide.common.util.PathString;
@@ -108,7 +108,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     myAarFolder = new File(myFixture.getTestDataPath(), "design_aar");
   }
 
-  private void compareContents(@NotNull AbstractResourceRepository expected, @NotNull AbstractResourceRepository actual) {
+  private void compareContents(@NotNull ResourceRepository expected, @NotNull ResourceRepository actual) {
     List<ResourceItem> expectedItems = new ArrayList<>(expected.getAllResourceItems());
     List<ResourceItem> actualItems = new ArrayList<>(actual.getAllResourceItems());
 

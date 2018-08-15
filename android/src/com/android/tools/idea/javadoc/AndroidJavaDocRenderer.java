@@ -19,7 +19,10 @@ package com.android.tools.idea.javadoc;
 import com.android.SdkConstants;
 import com.android.builder.model.*;
 import com.android.ide.common.rendering.api.*;
-import com.android.ide.common.resources.*;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceItemResolver;
+import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.ResourceQualifier;
@@ -71,7 +74,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
+import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 import static com.android.utils.SdkUtils.hasImageExtension;
 import static com.intellij.codeInsight.documentation.DocumentationComponent.COLOR_KEY;
 
@@ -248,11 +251,11 @@ public class AndroidJavaDocRenderer {
     }
 
     /**
-     * Returns a {@link AbstractResourceRepository} instance that allows accessing the framework public resources of the highest available
+     * Returns a {@link ResourceRepository} instance that allows accessing the framework public resources of the highest available
      * SDK.
      */
     @Nullable
-    private static AbstractResourceRepository getLatestPublicFrameworkResources(Module module) {
+    private static ResourceRepository getLatestPublicFrameworkResources(Module module) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet == null) {
         return null;
