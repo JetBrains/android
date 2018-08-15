@@ -34,3 +34,8 @@ interface PsModelCollection<T> : Collection<T> {
   override fun spliterator(): Spliterator<T> = items.spliterator()
   override fun stream(): Stream<T> = items.stream()
 }
+
+interface PsKeyedModelCollection<KeyT, T> : PsModelCollection<T> {
+  val entries: Map<KeyT, T>
+  fun findElement(key: KeyT): T?
+}
