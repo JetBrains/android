@@ -23,9 +23,11 @@ import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRectangle
 import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
-import com.android.tools.idea.naveditor.scene.*
+import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
+import com.android.tools.idea.naveditor.scene.FRAGMENT_BORDER_SPACING
+import com.android.tools.idea.naveditor.scene.convertToRoundRect
+import com.android.tools.idea.naveditor.scene.growRectangle
 import java.awt.geom.Rectangle2D
-import java.awt.geom.RoundRectangle2D
 
 /**
  * [SceneDecorator] responsible for creating draw commands for one fragment in the navigation editor.

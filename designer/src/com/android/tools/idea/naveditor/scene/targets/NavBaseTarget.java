@@ -20,10 +20,8 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@linkplain NavBaseTarget} Contains helper functions common to navigation editor targets.

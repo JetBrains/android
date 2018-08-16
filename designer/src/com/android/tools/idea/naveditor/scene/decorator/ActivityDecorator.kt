@@ -21,13 +21,22 @@ import com.android.tools.idea.common.model.Coordinates.getSwingDimension
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
-import com.android.tools.idea.common.scene.draw.*
+import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.draw.DrawFilledRoundRectangle
+import com.android.tools.idea.common.scene.draw.DrawRectangle
+import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
+import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.model.NavCoordinate
-import com.android.tools.idea.naveditor.scene.*
+import com.android.tools.idea.naveditor.scene.DRAW_ACTIVITY_BORDER_LEVEL
+import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
+import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
+import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.convertToRoundRect
+import com.android.tools.idea.naveditor.scene.growRectangle
+import com.android.tools.idea.naveditor.scene.scaledFont
 import com.intellij.util.ui.JBUI
 import java.awt.Font
 import java.awt.geom.Rectangle2D
-import java.awt.geom.RoundRectangle2D
 
 /**
  * [SceneDecorator] responsible for creating draw commands for one activity in the navigation editor.

@@ -130,10 +130,11 @@ class SceneHitListener implements ScenePicker.HitElementListener {
 
     for (int i = count - 2; i >= 0; i--) {
       Target target = myHitTargets.get(i);
-      if (!selection.contains(target.getComponent().getNlComponent())) {
+      if (inSelection && !parentInSelection(target.getComponent(), selection)) {
         continue;
       }
-      if (!inSelection || target.getPreferenceLevel() > candidate.getPreferenceLevel()) {
+      if ((!inSelection && parentInSelection(target.getComponent(), selection))
+           || target.getPreferenceLevel() > candidate.getPreferenceLevel()) {
         candidate = target;
         inSelection = true;
       }

@@ -19,11 +19,9 @@ import com.android.resources.Density;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.naveditor.scene.targets.ActionTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -200,16 +198,6 @@ public class Coordinates {
    * system) of the given dimension in the Android screen coordinate system in Dip
    */
   @SwingCoordinate
-  public static Rectangle getSwingRectDip(@NotNull SceneContext context, @NotNull @AndroidDpCoordinate Rectangle rect) {
-    return new Rectangle(context.getSwingXDip(rect.x), context.getSwingYDip(rect.y),
-                         context.getSwingDimensionDip(rect.width), context.getSwingDimensionDip(rect.height));
-  }
-
-  /**
-   * Returns the Swing dimension (in the {@link DesignSurface} coordinate
-   * system) of the given dimension in the Android screen coordinate system in Dip
-   */
-  @SwingCoordinate
   public static Rectangle getSwingRectDip(@NotNull SceneView view, @NotNull @AndroidDpCoordinate Rectangle rect) {
     return new Rectangle(getSwingXDip(view, rect.x), getSwingYDip(view, rect.y),
                          getSwingDimensionDip(view, rect.width), getSwingDimensionDip(view, rect.height));
@@ -225,6 +213,18 @@ public class Coordinates {
                                       getSwingYDip(view, rect.y),
                                       getSwingDimensionDip(view, rect.width),
                                       getSwingDimensionDip(view, rect.height));
+  }
+
+  /**
+   * Returns the Swing dimension (in the {@link DesignSurface} coordinate
+   * system) of the given dimension in the Android screen coordinate system in Dip
+   */
+  @SwingCoordinate
+  public static Rectangle2D.Float getSwingRectDip(@NotNull SceneContext context, @NotNull @AndroidDpCoordinate Rectangle2D.Float rect) {
+    return new Rectangle2D.Float(context.getSwingXDip(rect.x),
+                                 context.getSwingYDip(rect.y),
+                                 context.getSwingDimensionDip(rect.width),
+                                 context.getSwingDimensionDip(rect.height));
   }
 
   /**
@@ -342,14 +342,6 @@ public class Coordinates {
     SceneContext sceneContext = SceneContext.get(view);
     @AndroidDpCoordinate int x = getAndroidXDip(view, swingX);
     @AndroidDpCoordinate int y = getAndroidYDip(view, swingY);
-
-    // TODO: Remove this code once we use a SceneComponent for the navigation
-    // action rather than a Target
-    Target target = view.getScene().findTarget(sceneContext, x, y);
-    if (target instanceof ActionTarget) {
-      ActionTarget selectableTarget = (ActionTarget)target;
-      return selectableTarget.getActionComponent();
-    }
 
     SceneComponent sceneComponent = view.getScene().findComponent(sceneContext, x, y);
     return sceneComponent != null ? sceneComponent.getNlComponent() : null;

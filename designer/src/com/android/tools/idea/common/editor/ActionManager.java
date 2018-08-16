@@ -16,10 +16,8 @@
 package com.android.tools.idea.common.editor;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.SceneView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -99,20 +97,6 @@ public abstract class ActionManager<S extends DesignSurface> {
   @NotNull
   protected ActionsToolbar createActionsToolbar() {
     return new ActionsToolbar(mySurface, mySurface);
-  }
-
-  public void showPopup(@NotNull MouseEvent event) {
-    NlComponent component = null;
-    int x = event.getX();
-    int y = event.getY();
-    SceneView sceneView = mySurface.getSceneView(x, y);
-    if (sceneView == null) {
-      sceneView = mySurface.getCurrentSceneView();
-    }
-    if (sceneView != null) {
-      component = Coordinates.findComponent(sceneView, x, y);
-    }
-    showPopup(event, component);
   }
 
   public void showPopup(@NotNull MouseEvent event, @Nullable NlComponent leafComponent) {
