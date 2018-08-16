@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit
 class EventActivityTooltipViewTest {
 
   private lateinit var myActivityTooltipView: FakeEventActivityTooltipView
+  private lateinit var myIdeProfilerServices: FakeIdeProfilerServices
   private var myTimer: FakeTimer = FakeTimer()
   private lateinit var myMonitor: EventMonitor
   private var myEventService = FakeEventService()
@@ -36,7 +37,8 @@ class EventActivityTooltipViewTest {
 
   @Before
   fun setup() {
-    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), myTimer)
+    myIdeProfilerServices = FakeIdeProfilerServices()
+    val profilers = StudioProfilers(myGrpcChannel.client, myIdeProfilerServices, myTimer)
     myTimer.tick(TimeUnit.SECONDS.toNanos(1))
     myMonitor = EventMonitor(profilers)
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
@@ -48,17 +50,49 @@ class EventActivityTooltipViewTest {
   }
 
   @Test
-  fun testGetActivityTitleText() {
+  fun tooltipActivityAndFragmentLabelsHaveExpectedText() {
+    myIdeProfilerServices.enableFragments(true)
     myEventService.addActivityEvent(
-        buildActivityEvent(ACTIVITY_NAME,
-            arrayOf(ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
-                TEST_START_TIME_NS), ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
-                TEST_START_TIME_NS)),
-            0
-        ))
+      buildActivityEvent(ACTIVITY_NAME, arrayOf(ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
+                                                                  TEST_START_TIME_NS),
+                                                ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                                                                  TEST_START_TIME_NS),
+                                                ActivityStateData(EventProfiler.ActivityStateData.ActivityState.ADDED, TEST_START_TIME_NS)),
+                         0))
+    for (fragmentName in FRAGMENT_NAMES) {
+      myEventService.addActivityEvent(
+        buildActivityEvent(fragmentName,
+                           arrayOf(ActivityStateData(EventProfiler.ActivityStateData.ActivityState.ADDED, TEST_START_TIME_NS)),
+                           fragmentName.hashCode().toLong()))
+    }
     myTimer.tick(TimeUnit.SECONDS.toNanos(2))
     assertThat(myActivityTooltipView.headingText).matches("00:01.001")
-    assertThat(myActivityTooltipView.contentText).matches(ACTIVITY_NAME)
+    assertThat(myActivityTooltipView.activityNameText).matches(ACTIVITY_NAME)
+    assertThat(myActivityTooltipView.fragmentsText).matches("<html>TestFragment1<br>TestFragment2</html>")
+    assertThat(myActivityTooltipView.durationText).matches("00:01.000 - 00:03.000")
+    myIdeProfilerServices.enableFragments(false)
+  }
+
+  @Test
+  fun tooltipFragmentLabelShouldBeEmptyWhenDisabled() {
+    myIdeProfilerServices.enableFragments(false)
+    myEventService.addActivityEvent(
+      buildActivityEvent(ACTIVITY_NAME, arrayOf(ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
+                                                                  TEST_START_TIME_NS),
+                                                ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                                                                  TEST_START_TIME_NS),
+                                                ActivityStateData(EventProfiler.ActivityStateData.ActivityState.ADDED, TEST_START_TIME_NS)),
+                         0))
+    for (fragmentName in FRAGMENT_NAMES) {
+      myEventService.addActivityEvent(
+        buildActivityEvent(fragmentName,
+                           arrayOf(ActivityStateData(EventProfiler.ActivityStateData.ActivityState.ADDED, TEST_START_TIME_NS)),
+                           fragmentName.hashCode().toLong()))
+    }
+    myTimer.tick(TimeUnit.SECONDS.toNanos(2))
+    assertThat(myActivityTooltipView.headingText).matches("00:01.001")
+    assertThat(myActivityTooltipView.activityNameText).matches(ACTIVITY_NAME)
+    assertThat(myActivityTooltipView.fragmentsText).matches("")
     assertThat(myActivityTooltipView.durationText).matches("00:01.000 - 00:03.000")
   }
 
@@ -79,14 +113,14 @@ class EventActivityTooltipViewTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     assertThat(myActivityTooltipView.headingText).matches("00:01.001")
-    assertThat(myActivityTooltipView.contentText).matches(ACTIVITY_NAME)
+    assertThat(myActivityTooltipView.activityNameText).matches(ACTIVITY_NAME)
     assertThat(myActivityTooltipView.durationText).matches("00:01.000 - 00:05.000")
 
     val tooltipTime = TimeUnit.SECONDS.toMicros(6).toDouble()
     myMonitor.timeline.tooltipRange.set(tooltipTime, tooltipTime)
 
     assertThat(myActivityTooltipView.headingText).matches("00:06.000")
-    assertThat(myActivityTooltipView.contentText).matches(OTHER_ACTIVITY_NAME)
+    assertThat(myActivityTooltipView.activityNameText).matches(OTHER_ACTIVITY_NAME)
     assertThat(myActivityTooltipView.durationText).matches("00:06.000 - 00:07.000")
   }
 
@@ -104,7 +138,7 @@ class EventActivityTooltipViewTest {
         ))
     myTimer.tick(TimeUnit.SECONDS.toNanos(2))
     assertThat(myActivityTooltipView.headingText).matches("00:01.001")
-    assertThat(myActivityTooltipView.contentText).matches(String.format("%s - destroyed", ACTIVITY_NAME))
+    assertThat(myActivityTooltipView.activityNameText).matches(String.format("%s - destroyed", ACTIVITY_NAME))
     assertThat(myActivityTooltipView.durationText).matches("00:01.000 - 00:02.000")
   }
 
@@ -139,11 +173,14 @@ class EventActivityTooltipViewTest {
       createComponent()
     }
 
-    val contentText: String
-      get() = myContentLabel.text
+    val activityNameText: String
+      get() = activityNameLabel.text
 
     val durationText: String
-      get() = myDurationLabel.text
+      get() = durationLabel.text
+
+    val fragmentsText: String
+      get() = fragmentsLabel.text
   }
 
   private class ActivityStateData constructor(var activityState: EventProfiler.ActivityStateData.ActivityState, var activityStateTime: Long)
@@ -151,6 +188,7 @@ class EventActivityTooltipViewTest {
   companion object {
     private val TEST_START_TIME_NS = TimeUnit.SECONDS.toNanos(1)
     private val ACTIVITY_NAME = "TestActivity"
+    private val FRAGMENT_NAMES = arrayOf("TestFragment1", "TestFragment2")
     private val OTHER_ACTIVITY_NAME = "OtherTestActivity"
   }
 }
