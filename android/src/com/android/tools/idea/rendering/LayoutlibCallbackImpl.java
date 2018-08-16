@@ -516,7 +516,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     Multimap<String, String> includeMap = ArrayListMultimap.create();
     for (PathString path : myParserFiles) {
       File file = path.toFile();
-      if (file == null) {
+      if (file == null || !file.exists()) {
         continue;
       }
       String layoutName = Lint.getLayoutName(file);
