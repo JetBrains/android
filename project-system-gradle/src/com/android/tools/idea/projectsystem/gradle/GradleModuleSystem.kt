@@ -30,13 +30,18 @@ import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.IdeGoogleMavenRepository
+import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.TestOnly
 import java.util.Collections
 import java.util.function.Predicate
 
-class GradleModuleSystem(val module: Module, @TestOnly private val mavenRepository: GoogleMavenRepository = IdeGoogleMavenRepository) : AndroidModuleSystem, ClassFileFinder by GradleClassFileFinder(module) {
+class GradleModuleSystem(val module: Module, @TestOnly private val mavenRepository: GoogleMavenRepository = IdeGoogleMavenRepository) :
+  AndroidModuleSystem,
+  ClassFileFinder by GradleClassFileFinder(module),
+  SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
 
   override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
     return getResolvedDependentLibraries()

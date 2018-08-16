@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.util.PathString
 import com.android.projectmodel.Library
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -108,6 +109,10 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
       }
 
       override fun findClassFile(fqcn: String): VirtualFile? = null
+
+      override fun getOrCreateSampleDataDirectory(): PathString? = null
+
+      override fun getSampleDataDirectory(): PathString? = null
     }
   }
 

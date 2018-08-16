@@ -21,22 +21,22 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sampledata.datasource.*;
+import com.android.tools.idea.util.FileExtensions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.*;
 import com.intellij.psi.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -46,9 +46,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static com.android.SdkConstants.FD_SAMPLE_DATA;
 import static com.android.tools.idea.res.SampleDataResourceItem.ContentType.IMAGE;
 import static com.android.tools.idea.res.SampleDataResourceItem.ContentType.TEXT;
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 
 /**
  * A {@link LocalResourceRepository} that provides sample data to be used within "tools" attributes. This provider
@@ -131,26 +131,6 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
   private final ResourceTable myFullTable;
   private AndroidFacet myAndroidFacet;
 
-  /**
-   * Returns the "sampledata" directory from the project (if it exists) or null otherwise.
-   * @param create when true, if the directory does not exist, it will be created
-   */
-  @Nullable
-  public static VirtualFile getSampleDataDir(@NotNull AndroidFacet androidFacet, boolean create) throws IOException {
-    VirtualFile contentRoot = AndroidRootUtil.getMainContentRoot(androidFacet);
-    if (contentRoot == null) {
-      return null;
-    }
-
-    VirtualFile sampleDataDir = contentRoot.findFileByRelativePath("/" + FD_SAMPLE_DATA);
-    if (sampleDataDir == null && create) {
-        sampleDataDir = WriteCommandAction.runWriteCommandAction(androidFacet.getModule().getProject(),
-                                                                 (ThrowableComputable<VirtualFile, IOException>)() -> contentRoot.createChildDirectory(androidFacet, FD_SAMPLE_DATA));
-    }
-
-    return sampleDataDir;
-  }
-
   @NotNull
   public static SampleDataResourceRepository getInstance(@NotNull AndroidFacet facet) {
     return SampleDataRepositoryManager.getInstance(facet).getRepository();
@@ -197,13 +177,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
       return;
     }
 
-    VirtualFile sampleDataDir = null;
-    try {
-      sampleDataDir = getSampleDataDir(facet, false);
-    }
-    catch (IOException e) {
-      LOG.warn("Error getting 'sampledir'", e);
-    }
+    VirtualFile sampleDataDir = toVirtualFile(ProjectSystemUtil.getModuleSystem(facet.getModule()).getSampleDataDirectory());
     myFullTable.clear();
 
     if (sampleDataDir != null) {
