@@ -44,6 +44,10 @@ import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.L
 // com.intellij.codeInspection.CleanupLocalInspectionTool . However, that also requires
 // it to provide a LocalInspectionTool via getSharedLocalInspectionToolWrapper.
 
+// Note that if the test fails with class loading issues, make sure the run config includes
+// this VM option:
+// -Dplugin.path=<some prefix>/prebuilts/tools/common/kotlin-plugin/Kotlin
+
 /** Ensures that all relevant lint checks are available and registered */
 public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   private static final boolean LIST_ISSUES_WITH_QUICK_FIXES = false;
