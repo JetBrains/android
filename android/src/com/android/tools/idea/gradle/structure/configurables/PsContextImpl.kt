@@ -24,25 +24,20 @@ import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon
 import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaemon
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearch
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchResults
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
+import com.android.tools.idea.gradle.structure.model.repositories.search.*
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.EventDispatcher
 import com.intellij.util.ExceptionUtil
 import java.util.function.Consumer
-import javax.annotation.concurrent.GuardedBy
 
 class PsContextImpl constructor(
   override val project: PsProjectImpl,
   parentDisposable: Disposable,
-  disableAnalysis: Boolean = false
+  disableAnalysis: Boolean = false,
+  private val cachingRepositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory()
 ) : PsContext, Disposable {
-  private val lock = Any()
   override val analyzerDaemon: PsAnalyzerDaemon
   private val gradleSync: GradleResolver = GradleResolver()
   override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon
@@ -52,9 +47,6 @@ class PsContextImpl constructor(
   private var disableSync: Boolean = false
 
   override var selectedModule: String? = null ; private set
-
-  @GuardedBy("lock")
-  private val artifactRepositorySearchServices = mutableMapOf<PsModule, ArtifactRepositorySearchService>()
 
   override val uiSettings: PsUISettings
     get() = PsUISettings.getInstance(project.ideProject)
@@ -68,7 +60,7 @@ class PsContextImpl constructor(
     // The UI has not yet subscribed to notifications which is fine since we don't want to see "Loading..." at startup.
     requestGradleModels()
 
-    libraryUpdateCheckerDaemon = PsLibraryUpdateCheckerDaemon(this)
+    libraryUpdateCheckerDaemon = PsLibraryUpdateCheckerDaemon(this, cachingRepositorySearchFactory)
     if (!disableAnalysis) {
       libraryUpdateCheckerDaemon.reset()
       libraryUpdateCheckerDaemon.queueAutomaticUpdateCheck()
@@ -112,11 +104,7 @@ class PsContextImpl constructor(
    * in the case of an exactly matching request reused.
    */
   override fun getArtifactRepositorySearchServiceFor(module: PsModule): ArtifactRepositorySearchService =
-    synchronized(lock) {
-      artifactRepositorySearchServices
-        .getOrPut(module, { CachingArtifactRepositorySearch(
-          ArtifactRepositorySearch(module.getArtifactRepositories())) })
-    }
+    cachingRepositorySearchFactory.create(module.getArtifactRepositories())
 
   override fun applyRunAndReparse(runnable: () -> Boolean) {
     disableSync = true
@@ -127,21 +115,5 @@ class PsContextImpl constructor(
       disableSync = false
     }
     requestGradleModels()
-  }
-
-  private class CachingArtifactRepositorySearch(
-    private val artifactRepositorySearch: ArtifactRepositorySearchService
-  ) : ArtifactRepositorySearchService {
-    private val lock = Any()
-
-    @GuardedBy("lock")
-    private val requestCache = mutableMapOf<SearchRequest, ListenableFuture<ArtifactRepositorySearchResults>>()
-
-    override fun search(request: SearchRequest): ListenableFuture<ArtifactRepositorySearchResults> =
-      synchronized(lock) {
-        requestCache[request]?.takeUnless { it.isCancelled }
-        ?: artifactRepositorySearch.search(request).also { requestCache[request] = it }
-      }
-
   }
 }

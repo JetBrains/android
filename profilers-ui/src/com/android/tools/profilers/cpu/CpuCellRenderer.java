@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.StateChartModel;
-import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.adtui.util.SwingUtil;
 import com.android.tools.profilers.ProfilerColors;
 import com.intellij.util.ui.JBUI;
@@ -57,19 +56,13 @@ public abstract class CpuCellRenderer<T, K> implements ListCellRenderer<T> {
    */
   protected final Map<Integer, StateChartData<K>> myStateCharts;
 
-  /**
-   * {@link UpdatableManager} responsible for managing the threads state charts.
-   */
-  protected final UpdatableManager myUpdatableManager;
-
-  public CpuCellRenderer(JList<T> list, UpdatableManager updatableManager) {
+  public CpuCellRenderer(JList<T> list) {
     myLabel = new JLabel();
     myLabel.setFont(SMALL_FONT);
     Border rightSeparator = BorderFactory.createMatteBorder(0, 0, 0, 1, ProfilerColors.THREAD_LABEL_BORDER);
     Border marginLeft = JBUI.Borders.emptyLeft(10);
     myLabel.setBorder(new CompoundBorder(rightSeparator, marginLeft));
     myLabel.setOpaque(true);
-    myUpdatableManager = updatableManager;
     myStateCharts = new HashMap<>();
     list.addMouseMotionListener(new MouseAdapter() {
       @Override

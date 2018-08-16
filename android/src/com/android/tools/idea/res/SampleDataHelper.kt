@@ -28,7 +28,7 @@ fun LocalResourceRepository.getSampleDataOfType(type: SampleDataResourceItem.Con
   val namespaces = this.namespaces.asSequence()
 
   return namespaces
-    .flatMap { this.getResourceItems(it, ResourceType.SAMPLE_DATA).asSequence() }
+    .flatMap { this.getResources(it, ResourceType.SAMPLE_DATA).values().asSequence() }
     .filterIsInstance<SampleDataResourceItem>()
     .filter { it.contentType == type }
 }

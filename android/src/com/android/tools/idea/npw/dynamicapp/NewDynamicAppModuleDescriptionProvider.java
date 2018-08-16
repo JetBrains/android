@@ -41,7 +41,7 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
   public static final String DYNAMIC_FEATURE_TEMPLATE = "Dynamic Feature";
 
   @Override
-  public Collection<ModuleGalleryEntry> getDescriptions() {
+  public Collection<ModuleGalleryEntry> getDescriptions(Project project) {
     return Collections.singletonList(new FeatureTemplateGalleryEntry());
   }
 

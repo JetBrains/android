@@ -26,6 +26,22 @@ import java.io.File
 
 class PsSigningConfigTest : AndroidGradleTestCase() {
 
+  fun testDescriptor() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val signingConfig = appModule.findSigningConfig("myConfig")
+    assertThat(appModule, notNullValue()); signingConfig!!
+
+    assertThat(signingConfig.descriptor.testEnumerateProperties(),
+               equalTo(PsSigningConfig.SigningConfigDescriptors.testEnumerateProperties()))
+  }
+
   fun testProperties() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 

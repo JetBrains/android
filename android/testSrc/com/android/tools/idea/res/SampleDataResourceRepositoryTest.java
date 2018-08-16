@@ -23,6 +23,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -151,7 +152,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
     // Check that we wrap around
     assertEquals("string1", resolver.findResValue("@sample/strings", false).getValue());
-    ResourceReference reference = new ResourceReference(ResourceNamespace.TODO(), ResourceType.SAMPLE_DATA, "strings");
+    ResourceReference reference = new ResourceReference(RES_AUTO, ResourceType.SAMPLE_DATA, "strings");
     assertEquals("string2", resolver.getResolvedResource(reference).getValue());
     assertEquals("1", resolver.findResValue("@sample/ints", false).getValue());
     assertTrue(imagePaths.contains(resolver.findResValue("@sample/images", false).getValue()));
@@ -170,7 +171,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
     assertNull(resolver.findResValue("@sample/invalid", false));
 
-    ResourceReference elementRef = new ResourceReference(ResourceNamespace.TODO(), ResourceType.SAMPLE_DATA, "strings[1]");
+    ResourceReference elementRef = new ResourceReference(RES_AUTO, ResourceType.SAMPLE_DATA, "strings[1]");
     assertNotNull(resolver.getResolvedResource(elementRef));
   }
 
@@ -298,10 +299,10 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     myFixture.addFileToProject("sampledata/images/image3.png", "\n");
 
     LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myFacet);
-    List<ResourceItem> items = repository.getResourceItems(ResourceNamespace.TODO(), ResourceType.SAMPLE_DATA);
+    Collection<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.SAMPLE_DATA).values();
     assertSize(1, items);
-    assertEquals("images", items.get(0).getName());
-    SampleDataResourceItem item = (SampleDataResourceItem)items.get(0);
+    SampleDataResourceItem item = (SampleDataResourceItem)Iterables.getOnlyElement(items);
+    assertEquals("images", item.getName());
     assertEquals(SampleDataResourceItem.ContentType.IMAGE, item.getContentType());
     SampleDataResourceValue value = (SampleDataResourceValue)item.getResourceValue();
     List<String> fileNames = value.getValueAsLines().stream()

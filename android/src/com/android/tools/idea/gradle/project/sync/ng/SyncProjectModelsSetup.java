@@ -19,7 +19,9 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
+import com.android.builder.model.NativeVariantAbi;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
+import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaProject;
@@ -46,6 +48,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.project.sync.ng.AndroidModuleProcessor.MODULE_GRADLE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
@@ -205,7 +208,12 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
         NativeAndroidProject nativeAndroidProject = moduleModels.findModel(NativeAndroidProject.class);
         if (nativeAndroidProject != null) {
           IdeNativeAndroidProject copy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
-          NdkModuleModel ndkModel = new NdkModuleModel(module.getName(), moduleRootFolderPath, copy);
+          List<NativeVariantAbi> nativeVariantAbi = moduleModels.findModels(NativeVariantAbi.class);
+          List<IdeNativeVariantAbi> ideNativeVariantAbi = new ArrayList<>();
+          if (nativeVariantAbi != null) {
+            ideNativeVariantAbi.addAll(nativeVariantAbi.stream().map(IdeNativeVariantAbi::new).collect(Collectors.toList()));
+          }
+          NdkModuleModel ndkModel = new NdkModuleModel(module.getName(), moduleRootFolderPath, copy, ideNativeVariantAbi);
           myNdkModuleSetup.setUpModule(context, ndkModel, false /* sync not skipped */);
           cachedModels.addModel(ndkModel);
         }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -23,6 +24,8 @@ import com.intellij.psi.PsiManager;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.util.Collection;
+
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 
 public class LocalResourceRepositoryTest extends AndroidTestCase {
   private static final String TEST_FILE = "xmlpull/layout.xml";
@@ -35,11 +38,11 @@ public class LocalResourceRepositoryTest extends AndroidTestCase {
     LocalResourceRepository resources = ResourceRepositoryManager.getModuleResources(myModule);
     assertNotNull(resources);
 
-    Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    Collection<String> layouts = resources.getResources(ResourceNamespace.TODO(), ResourceType.LAYOUT).keySet();
     assertEquals(2, layouts.size());
 
-    assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout1"));
-    assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout2"));
+    assertNotNull(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
+    assertNotNull(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
 
     long generation = resources.getModificationCount();
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout2.xml");
@@ -49,23 +52,23 @@ public class LocalResourceRepositoryTest extends AndroidTestCase {
     PsiFile psiFile3 = PsiManager.getInstance(getProject()).findFile(file3);
     assertNotNull(psiFile3);
 
-    layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    layouts = resources.getResources(ResourceNamespace.TODO(), ResourceType.LAYOUT).keySet();
     assertEquals(3, layouts.size());
 
-    Collection<String> drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
+    Collection<String> drawables = resources.getResources(ResourceNamespace.TODO(), ResourceType.DRAWABLE).keySet();
     assertEquals(drawables.toString(), 0, drawables.size());
     VirtualFile file4 = myFixture.copyFileToProject(TEST_FILE, "res/drawable-mdpi/foo.png");
     final PsiFile psiFile4 = PsiManager.getInstance(getProject()).findFile(file4);
     assertNotNull(psiFile4);
-    drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
+    drawables = resources.getResources(ResourceNamespace.TODO(), ResourceType.DRAWABLE).keySet();
     assertEquals(1, drawables.size());
     assertEquals("foo", drawables.iterator().next());
 
     WriteCommandAction.runWriteCommandAction(null, psiFile4::delete);
-    drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
+    drawables = resources.getResources(ResourceNamespace.TODO(), ResourceType.DRAWABLE).keySet();
     assertEquals(0, drawables.size());
 
-    Collection<String> fonts = resources.getItemsOfType(ResourceType.FONT);
+    Collection<String> fonts = resources.getResources(ResourceNamespace.TODO(), ResourceType.FONT).keySet();
     assertEquals(1, fonts.size());
     assertEquals("customfont", fonts.iterator().next());
 

@@ -16,18 +16,14 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AbstractResourceRepository;
-import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.tools.idea.res.aar.AarSourceResourceRepository;
+import com.android.ide.common.resources.ResourceRepository;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import org.jetbrains.android.AndroidFacetProjectDescriptor;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-
-import static com.android.SdkConstants.DOT_AAR;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 public class ResourceClassRegistryTest extends LightCodeInsightFixtureTestCase {
   ResourceClassRegistry myRegistry;
@@ -59,7 +55,7 @@ public class ResourceClassRegistryTest extends LightCodeInsightFixtureTestCase {
   public void testAddLibrary() {
     String pkg1 = "com.google.example1";
     String pkg2 = "com.google.example2";
-    AbstractResourceRepository repository = mock(AbstractResourceRepository.class);
+    ResourceRepository repository = mock(ResourceRepository.class);
     myRegistry.addLibrary(repository, myIdManager, pkg1, ResourceNamespace.fromPackageName(pkg1));
     assertSameElements(myRegistry.getGeneratorMap().keySet(), repository);
     assertSameElements(myRegistry.getPackages(), pkg1);

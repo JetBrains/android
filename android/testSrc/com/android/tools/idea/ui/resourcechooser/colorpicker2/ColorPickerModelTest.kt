@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
+import com.intellij.ui.picker.ColorListener
 import org.junit.Assert.*
 import org.junit.Test
+import org.mockito.Mockito
 import java.awt.Color
 
 class ColorPickerModelTest {
@@ -79,5 +81,15 @@ class ColorPickerModelTest {
     assertEquals(0.9111111f, model.hue)
     assertEquals(1.0f, model.saturation)
     assertEquals(1.0f, model.brightness)
+  }
+
+  @Test
+  fun testAddingColorListener() {
+    val model = ColorPickerModel(Color(0xFF, 0x00, 0x88))
+    val listener = Mockito.mock(ColorListener::class.java)
+    model.addListener(listener)
+    val newColor = Color(0x00, 0x88, 0xFF)
+    model.setColor(newColor)
+    Mockito.verify(listener, Mockito.times(1)).colorChanged(newColor, null)
   }
 }

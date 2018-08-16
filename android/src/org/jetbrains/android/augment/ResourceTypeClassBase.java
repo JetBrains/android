@@ -1,10 +1,10 @@
 package org.jetbrains.android.augment;
 
 import com.android.ide.common.rendering.api.AttrResourceValue;
-import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
@@ -17,6 +17,7 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,7 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
 
   @NotNull
   protected static PsiField[] buildResourceFields(@Nullable ResourceManager manager,
-                                                  @NotNull AbstractResourceRepository repository,
+                                                  @NotNull ResourceRepository repository,
                                                   @NotNull ResourceNamespace namespace,
                                                   @NotNull AndroidLightField.FieldModifier fieldModifier,
                                                   @NotNull ResourceType resourceType,
@@ -51,12 +52,12 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
     Map<String, PsiType> fieldNames = new HashMap<>();
     PsiType basicType = ResourceType.STYLEABLE == resourceType ? INT_ARRAY : PsiType.INT;
 
-    for (String resName : repository.getItemsOfType(namespace, resourceType)) {
+    for (String resName : repository.getResources(namespace, resourceType).keySet()) {
       fieldNames.put(resName, basicType);
     }
 
     if (ResourceType.STYLEABLE == resourceType) {
-      List<ResourceItem> items = repository.getResourceItems(namespace, ResourceType.STYLEABLE);
+      Collection<ResourceItem> items = repository.getResources(namespace, ResourceType.STYLEABLE).values();
       for (ResourceItem item : items) {
         StyleableResourceValue value = (StyleableResourceValue)item.getResourceValue();
         if (value != null) {

@@ -16,12 +16,14 @@
 package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.*;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCircle;
 import com.android.tools.idea.common.scene.draw.DrawFilledCircle;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
@@ -30,11 +32,11 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.util.List;
 
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.*;
@@ -55,13 +57,13 @@ public class ActionHandleTarget extends NavBaseTarget {
     SMALL(INNER_RADIUS_SMALL, OUTER_RADIUS_SMALL),
     LARGE(INNER_RADIUS_LARGE, OUTER_RADIUS_LARGE);
 
-    HandleState(@NavCoordinate int innerRadius, @NavCoordinate int outerRadius) {
+    HandleState(@NavCoordinate float innerRadius, @NavCoordinate float outerRadius) {
       myInnerRadius = innerRadius;
       myOuterRadius = outerRadius;
     }
 
-    @NavCoordinate private final int myInnerRadius;
-    @NavCoordinate private final int myOuterRadius;
+    @NavCoordinate private final float myInnerRadius;
+    @NavCoordinate private final float myOuterRadius;
   }
 
   private HandleState myHandleState;
@@ -87,7 +89,7 @@ public class ActionHandleTarget extends NavBaseTarget {
     if (NavComponentHelperKt.isFragment(getComponent().getNlComponent())) {
       x += ACTION_HANDLE_OFFSET;
     }
-    layoutCircle(x, t + (b - t) / 2, myHandleState.myOuterRadius);
+    layoutCircle(x, t + (b - t) / 2, (int)myHandleState.myOuterRadius);
     return false;
   }
 
@@ -142,9 +144,8 @@ public class ActionHandleTarget extends NavBaseTarget {
     }
 
     NlComponent destinationNlComponent = destination.getNlComponent();
-    NavigationSchema schema = NavigationSchema.get(destinationNlComponent.getModel().getFacet());
 
-    if (schema.getDestinationType(destinationNlComponent.getTagName()) == null) {
+    if (!NavComponentHelperKt.isDestination(destinationNlComponent)) {
       return null;
     }
 
@@ -162,17 +163,22 @@ public class ActionHandleTarget extends NavBaseTarget {
       return;
     }
 
-    @SwingCoordinate Point center = new Point(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext));
-    @SwingCoordinate int initialRadius = sceneContext.getSwingDimension(myHandleState.myOuterRadius);
-    @SwingCoordinate int finalRadius = sceneContext.getSwingDimension(newState.myOuterRadius);
-    int duration = Math.abs(DURATION * (finalRadius - initialRadius) / OUTER_RADIUS_LARGE);
+    SceneView view = myComponent.getScene().getDesignSurface().getCurrentSceneView();
+
+    @SwingCoordinate float centerX = Coordinates.getSwingXDip(view, getCenterX());
+    @SwingCoordinate float centerY = Coordinates.getSwingYDip(view, getCenterY());
+    @SwingCoordinate Point2D.Float center = new Point2D.Float(centerX, centerY);
+
+    @SwingCoordinate float initialRadius = Coordinates.getSwingDimension(view, myHandleState.myOuterRadius);
+    @SwingCoordinate float finalRadius = Coordinates.getSwingDimension(view, newState.myOuterRadius);
+    int duration = (int)Math.abs(DURATION * (finalRadius - initialRadius) / OUTER_RADIUS_LARGE);
 
     ColorSet colorSet = sceneContext.getColorSet();
     list.add(new DrawFilledCircle(DRAW_ACTION_HANDLE_BACKGROUND_LEVEL, center, colorSet.getBackground(),
-                                  new LerpValue(initialRadius, finalRadius, duration)));
+                                  new LerpFloat(initialRadius, finalRadius, duration)));
 
-    initialRadius = sceneContext.getSwingDimension(myHandleState.myInnerRadius);
-    finalRadius = sceneContext.getSwingDimension(newState.myInnerRadius);
+    initialRadius = Coordinates.getSwingDimension(view, myHandleState.myInnerRadius);
+    finalRadius = Coordinates.getSwingDimension(view, newState.myInnerRadius);
     Color color = getComponent().isSelected() ? colorSet.getSelectedFrames() : colorSet.getSubduedFrames();
 
     if (myIsDragging) {
@@ -180,7 +186,7 @@ public class ActionHandleTarget extends NavBaseTarget {
       list.add(new DrawActionHandleDrag(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext)));
     }
     else {
-      list.add(new DrawCircle(DRAW_ACTION_HANDLE_LEVEL, center, color, STROKE, new LerpValue(initialRadius, finalRadius, duration)));
+      list.add(new DrawCircle(DRAW_ACTION_HANDLE_LEVEL, center, color, STROKE, new LerpFloat(initialRadius, finalRadius, duration)));
     }
 
     myHandleState = newState;
@@ -189,7 +195,7 @@ public class ActionHandleTarget extends NavBaseTarget {
   @Override
   public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
     picker.addCircle(this, 0, getSwingCenterX(transform), getSwingCenterY(transform),
-                     transform.getSwingDimension(OUTER_RADIUS_LARGE));
+                     transform.getSwingDimension((int)OUTER_RADIUS_LARGE));
   }
 
   @Override

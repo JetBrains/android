@@ -55,6 +55,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.assertHasExactResourceTypes;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.getFirstItem;
 
@@ -96,7 +97,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
 
     PsiFile layoutPsiFile = PsiManager.getInstance(getProject()).findFile(layoutFile);
     assertNotNull(layoutPsiFile);
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
     final ResourceItem item = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
 
     final long generation = resources.getModificationCount();
@@ -114,7 +115,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     ApplicationManager.getApplication().invokeLater(() -> {
       assertTrue(generation < resources.getModificationCount());
       // Should still be defined:
-      assertTrue(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
       ResourceItem newItem = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
       assertNotNull(newItem.getSource());
       // However, should be a different item
@@ -134,7 +135,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
 
     ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
     assertEquals(3, repository.getChildren().size());
-    Collection<String> items = repository.getItemsOfType(ResourceType.STRING);
+    Collection<String> items = repository.getResources(RES_AUTO, ResourceType.STRING).keySet();
     assertTrue(items.isEmpty());
 
     for (AndroidFacet facet : libraries) {
@@ -360,28 +361,28 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertFalse(lib2Resources.isScanPending(sharedLibValues));
     assertFalse(lib2Resources.isScanPending(lib2Values));
 
-    assertTrue(lib1Resources.hasResourceItem(ResourceType.PLURALS, "my_plural"));
-    assertTrue(lib1Resources.hasResourceItem(ResourceType.STRING, "ellipsis"));
-    assertTrue(lib1Resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
-    List<ResourceItem> items = lib1Resources.getResourceItem(ResourceType.STRING, "ellipsis");
+    assertTrue(lib1Resources.hasResources(RES_AUTO, ResourceType.PLURALS, "my_plural"));
+    assertTrue(lib1Resources.hasResources(RES_AUTO, ResourceType.STRING, "ellipsis"));
+    assertTrue(lib1Resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
+    List<ResourceItem> items = lib1Resources.getResources(RES_AUTO, ResourceType.STRING, "ellipsis");
     assertNotNull(items);
     ResourceValue firstValue = items.get(0).getResourceValue();
     assertNotNull(firstValue);
     assertEquals("Here it is: \u2026!", firstValue.getValue());
 
-    assertTrue(lib2Resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
-    assertTrue(lib2Resources.hasResourceItem(ResourceType.PLURALS, "my_plural"));
-    assertTrue(lib2Resources.hasResourceItem(ResourceType.STRING, "ellipsis"));
+    assertTrue(lib2Resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
+    assertTrue(lib2Resources.hasResources(RES_AUTO, ResourceType.PLURALS, "my_plural"));
+    assertTrue(lib2Resources.hasResources(RES_AUTO, ResourceType.STRING, "ellipsis"));
 
     // ONLY defined in lib2: should not be visible from lib1
-    assertTrue(lib2Resources.hasResourceItem(ResourceType.STRING, "unique_string"));
-    items = lib2Resources.getResourceItem(ResourceType.STRING, "unique_string");
+    assertTrue(lib2Resources.hasResources(RES_AUTO, ResourceType.STRING, "unique_string"));
+    items = lib2Resources.getResources(RES_AUTO, ResourceType.STRING, "unique_string");
     assertNotNull(items);
     firstValue = items.get(0).getResourceValue();
     assertNotNull(firstValue);
     assertEquals("Unique", firstValue.getValue());
 
-    assertFalse(lib1Resources.hasResourceItem(ResourceType.STRING, "unique_string"));
+    assertFalse(lib1Resources.hasResources(RES_AUTO, ResourceType.STRING, "unique_string"));
   }
 
   // Regression test for https://issuetracker.google.com/issues/68799367
@@ -420,7 +421,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     myFixture.addFileToProject("additionalModules/level2/res/values/strings.xml", level2Strings).getVirtualFile();
 
     LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(appFacet);
-    List<ResourceItem> resolved = appResources.getResourceItem(ResourceType.STRING, "test_string");
+    List<ResourceItem> resolved = appResources.getResources(RES_AUTO, ResourceType.STRING, "test_string");
     assertEquals(1, resolved.size());
     assertEquals("LEVEL 1", resolved.get(0).getResourceValue().getValue());
 
@@ -439,7 +440,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertFalse(ModuleRootManager.getInstance(lib1).isDependsOn(lib2));
 
     appResources = ResourceRepositoryManager.getAppResources(appFacet);
-    resolved = appResources.getResourceItem(ResourceType.STRING, "test_string");
+    resolved = appResources.getResources(RES_AUTO, ResourceType.STRING, "test_string");
     assertEquals(1, resolved.size());
     assertEquals("LEVEL 2", resolved.get(0).getResourceValue().getValue());
   }

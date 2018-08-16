@@ -22,8 +22,8 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.manifmerger.Actions;
 import com.android.repository.Revision;
@@ -34,7 +34,9 @@ import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.FileResourceReader;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.IdeDeprecatedSdkRegistry;
@@ -971,7 +973,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Nullable
   @Override
-  public AbstractResourceRepository getResourceRepository(@NotNull com.android.tools.lint.detector.api.Project project,
+  public ResourceRepository getResourceRepository(@NotNull com.android.tools.lint.detector.api.Project project,
                                                           boolean includeModuleDependencies,
                                                           boolean includeLibraries) {
     final Module module = findModuleForLintProject(myProject, project);

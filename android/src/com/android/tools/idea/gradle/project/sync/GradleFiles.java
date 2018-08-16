@@ -34,6 +34,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.ui.EditorNotifications;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
@@ -274,7 +275,7 @@ public class GradleFiles {
 
     List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(myProject).getModules());
     JobLauncher jobLauncher = JobLauncher.getInstance();
-    jobLauncher.invokeConcurrentlyUnderProgress(modules, null, true /* fail fast */, (module) -> {
+    jobLauncher.invokeConcurrentlyUnderProgress(modules, null, (module) -> {
       VirtualFile buildFile = getGradleBuildFile(module);
       if (buildFile != null) {
         File path = VfsUtilCore.virtualToIoFile(buildFile);
@@ -479,6 +480,7 @@ public class GradleFiles {
 
       if (foundChange) {
         myGradleFiles.addChangedFile(psiFile.getVirtualFile(), isExternalBuildFile);
+        EditorNotifications.getInstance(psiFile.getProject()).updateNotifications(psiFile.getVirtualFile());
       }
     }
   }

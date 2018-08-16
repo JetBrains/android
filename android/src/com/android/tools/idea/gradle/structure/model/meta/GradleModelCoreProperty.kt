@@ -26,4 +26,6 @@ interface GradleModelCoreProperty<PropertyT : Any, out ModelPropertyCoreT : Mode
    * configuration.
    */
   fun rebind(resolvedProperty: ResolvedPropertyModel, modifiedSetter: () -> Unit): ModelPropertyCoreT
+
+  fun getParsedProperty(): ResolvedPropertyModel?
 }

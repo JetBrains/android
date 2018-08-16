@@ -16,10 +16,13 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.scene.draw.HQ_RENDERING_HINTS
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget
 import com.google.common.collect.ImmutableMap
@@ -27,6 +30,7 @@ import com.intellij.util.ui.JBUI
 import java.awt.*
 import java.awt.BasicStroke.CAP_BUTT
 import java.awt.BasicStroke.JOIN_ROUND
+import java.awt.geom.RoundRectangle2D
 
 private const val DEFAULT_FONT_NAME = "Default"
 private val DEFAULT_FONT_SIZE = JBUI.scale(12)
@@ -42,30 +46,28 @@ const val DRAW_ACTION_HANDLE_BACKGROUND_LEVEL = DRAW_ACTIVITY_BORDER_LEVEL + 1
 const val DRAW_ACTION_HANDLE_LEVEL = DRAW_ACTION_HANDLE_BACKGROUND_LEVEL + 1
 const val DRAW_ACTION_HANDLE_DRAG_LEVEL = DRAW_ACTION_HANDLE_LEVEL + 1
 
-private val HQ_RENDERING_HITS = ImmutableMap.of(
-    RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
-    RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
-    RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
-)
-
-@SwingCoordinate private val ACTION_STROKE_WIDTH = JBUI.scale(3f)
-@SwingCoordinate private val DASHED_STROKE_CYCLE = JBUI.scale(5f)
+@SwingCoordinate
+private val ACTION_STROKE_WIDTH = JBUI.scale(3f)
+@SwingCoordinate
+private val DASHED_STROKE_CYCLE = JBUI.scale(5f)
 
 @JvmField
 @NavCoordinate
-val INNER_RADIUS_SMALL = JBUI.scale(5)
+val INNER_RADIUS_SMALL = JBUI.scale(5f)
 @JvmField
 @NavCoordinate
-val INNER_RADIUS_LARGE = JBUI.scale(8)
+val INNER_RADIUS_LARGE = JBUI.scale(8f)
 @JvmField
 @NavCoordinate
-val OUTER_RADIUS_SMALL = JBUI.scale(7)
+val OUTER_RADIUS_SMALL = JBUI.scale(7f)
 @JvmField
 @NavCoordinate
-val OUTER_RADIUS_LARGE = JBUI.scale(11)
+val OUTER_RADIUS_LARGE = JBUI.scale(11f)
 
-@SwingCoordinate val REGULAR_FRAME_THICKNESS = JBUI.scale(1)
-@SwingCoordinate val HIGHLIGHTED_FRAME_THICKNESS = JBUI.scale(2)
+@SwingCoordinate
+val REGULAR_FRAME_THICKNESS = JBUI.scale(1f)
+@SwingCoordinate
+val HIGHLIGHTED_FRAME_THICKNESS = JBUI.scale(2f)
 
 @JvmField
 @NavCoordinate
@@ -76,12 +78,14 @@ val SELF_ACTION_RADII = intArrayOf(JBUI.scale(10), JBUI.scale(10), JBUI.scale(5)
 val ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, CAP_BUTT, JOIN_ROUND)
 @JvmField
 val DASHED_ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, CAP_BUTT, JOIN_ROUND, DASHED_STROKE_CYCLE,
-    floatArrayOf(DASHED_STROKE_CYCLE), DASHED_STROKE_CYCLE)
+                                       floatArrayOf(DASHED_STROKE_CYCLE), DASHED_STROKE_CYCLE)
 
 @JvmField
-@NavCoordinate val FRAGMENT_BORDER_SPACING = JBUI.scale(2)
+@NavCoordinate
+val FRAGMENT_BORDER_SPACING = JBUI.scale(2f)
 @JvmField
-@NavCoordinate val ACTION_HANDLE_OFFSET = FRAGMENT_BORDER_SPACING + JBUI.scale(2)
+@NavCoordinate
+val ACTION_HANDLE_OFFSET = FRAGMENT_BORDER_SPACING.toInt() + JBUI.scale(2)
 
 fun frameColor(context: SceneContext, component: SceneComponent): Color {
   val colorSet = context.colorSet
@@ -138,10 +142,10 @@ fun createDrawCommand(list: DisplayList, component: SceneComponent): DrawCommand
 }
 
 fun setRenderingHints(g: Graphics2D) {
-  g.setRenderingHints(HQ_RENDERING_HITS)
+  g.setRenderingHints(HQ_RENDERING_HINTS)
 }
 
-fun frameThickness(component: SceneComponent): Int {
+fun frameThickness(component: SceneComponent): Float {
   return if (isHighlighted(component)) HIGHLIGHTED_FRAME_THICKNESS else REGULAR_FRAME_THICKNESS
 }
 
@@ -165,4 +169,22 @@ fun selfActionPoints(@SwingCoordinate start: Point, @SwingCoordinate end: Point,
   val p2 = Point(p1.x, end.y + context.getSwingDimension(SELF_ACTION_LENGTHS[3]))
   val p3 = Point(end.x, p2.y)
   return arrayOf(start, p1, p2, p3, end)
+}
+
+fun setArcSize(view: SceneView, @SwingCoordinate rectangle: RoundRectangle2D.Float, @NavCoordinate arcSize: Float) {
+  Coordinates.getSwingDimension(view, arcSize).let {
+    rectangle.arcwidth = it
+    rectangle.archeight = it
+  }
+}
+
+fun growRectangle(rectangle: RoundRectangle2D.Float, growX: Float, growY: Float) {
+  rectangle.x -= growX
+  rectangle.y -= growY
+  rectangle.width += 2 * growX
+  rectangle.height += 2 * growY
+}
+
+fun roundRect2DToRect(rectangle: RoundRectangle2D.Float): Rectangle {
+  return Rectangle(rectangle.x.toInt(), rectangle.y.toInt(), rectangle.width.toInt(), rectangle.height.toInt())
 }

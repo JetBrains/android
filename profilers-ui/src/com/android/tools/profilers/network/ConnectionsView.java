@@ -15,25 +15,19 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.axis.AxisComponentModel;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -44,7 +38,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.profilers.ProfilerLayout.*;
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TOOLTIP_BORDER;
 
 /**
  * This class responsible for displaying table of connections information (e.g url, duration, timeline)
@@ -124,7 +119,7 @@ final class ConnectionsView {
   private final ConnectionsTableModel myTableModel;
 
   @NotNull
-  private final HoverRowTable myConnectionsTable;
+  private final JTable myConnectionsTable;
 
   @NotNull
   private final AspectObserver myAspectObserver;
@@ -134,7 +129,7 @@ final class ConnectionsView {
 
     myTableModel = new ConnectionsTableModel(myStage.getHttpDataFetcher());
 
-    myConnectionsTable = new HoverRowTable(myTableModel);
+    myConnectionsTable = TimelineTable.create(myTableModel, myStage.getStudioProfilers().getTimeline(), Column.TIMELINE.ordinal());
     customizeConnectionsTable();
     createTooltip(stageView);
 
@@ -155,8 +150,7 @@ final class ConnectionsView {
     myConnectionsTable.getColumnModel().getColumn(Column.STATUS.ordinal()).setCellRenderer(new StatusRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.TIME.ordinal()).setCellRenderer(new TimeRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
-      new TimelineRenderer(myConnectionsTable, myStage.getStudioProfilers().getTimeline().getSelectionRange()));
-    TableUtils.setTableHeaderBorder(myConnectionsTable, TABLE_COLUMN_HEADER_BORDER);
+      new TimelineRenderer(myConnectionsTable, myStage.getStudioProfilers().getTimeline()));
 
     myConnectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myConnectionsTable.getSelectionModel().addListSelectionListener(e -> {
@@ -320,42 +314,27 @@ final class ConnectionsView {
     }
   }
 
-  private final class TimelineRenderer implements TableCellRenderer, TableModelListener {
+  private static final class TimelineRenderer extends TimelineTable.CellRenderer implements TableModelListener {
     /**
      * Keep in sync 1:1 with {@link ConnectionsTableModel#myDataList}. When the table asks for the
      * chart to render, it will be converted from model index to view index.
      */
     @NotNull private final List<ConnectionsStateChart> myConnectionsCharts = new ArrayList<>();
     @NotNull private final JTable myTable;
-    @NotNull private final Range myRange;
 
-    TimelineRenderer(@NotNull JTable table, @NotNull Range range) {
+    TimelineRenderer(@NotNull JTable table, @NotNull ProfilerTimeline timeline) {
+      super(timeline);
       myTable = table;
-      myRange = range;
       myTable.getModel().addTableModelListener(this);
       tableChanged(new TableModelEvent(myTable.getModel()));
     }
 
+    @NotNull
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+    protected Component getTableCellRendererComponent(boolean isSelected, int row) {
       ConnectionsStateChart chart = myConnectionsCharts.get(myTable.convertRowIndexToModel(row));
       chart.getColors().setColorIndex(isSelected ? 1 : 0);
-      JPanel panel = new JBPanel(new TabularLayout("*", "*"));
-
-      if (row == 0) {
-        // Show timeline labels in front of the chart components
-        AxisComponent axisLabels = createAxis();
-        axisLabels.setMarkerLengths(0, 0);
-        panel.add(axisLabels, new TabularLayout.Constraint(0, 0));
-      }
-      panel.add(chart.getComponent(), new TabularLayout.Constraint(0, 0));
-      // Show timeline lines behind chart components
-      AxisComponent axisTicks = createAxis();
-      axisTicks.setMarkerLengths(myTable.getRowHeight(), 0);
-      axisTicks.setShowLabels(false);
-      panel.add(axisTicks, new TabularLayout.Constraint(0, 0));
-
-      return panel;
+      return chart.getComponent();
     }
 
     @Override
@@ -363,20 +342,10 @@ final class ConnectionsView {
       myConnectionsCharts.clear();
       ConnectionsTableModel model = (ConnectionsTableModel)myTable.getModel();
       for (int i = 0; i < model.getRowCount(); ++i) {
-        ConnectionsStateChart chart = new ConnectionsStateChart(model.getHttpData(i), myRange);
+        ConnectionsStateChart chart = new ConnectionsStateChart(model.getHttpData(i), getTimeline().getSelectionRange());
         chart.setHeightGap(0.3f);
         myConnectionsCharts.add(chart);
       }
-    }
-
-    @NotNull
-    private AxisComponent createAxis() {
-      AxisComponentModel model = new ResizingAxisComponentModel.Builder(myRange, new TimeAxisFormatter(1, 4, 1))
-        .setGlobalRange(myStage.getStudioProfilers().getTimeline().getDataRange()).build();
-      AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
-      axis.setShowAxisLine(false);
-      axis.setMarkerColor(ProfilerColors.NETWORK_TABLE_AXIS);
-      return axis;
     }
   }
 }

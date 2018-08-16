@@ -1149,7 +1149,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private class CaptureElapsedTimeUpdatable implements Updatable {
     @Override
     public void update(long elapsedNs) {
-      if (myCaptureState == CaptureState.CAPTURING) {
+      if (myCaptureState == CaptureState.CAPTURING || myCaptureParser.isParsing()) {
         myAspect.changed(CpuProfilerAspect.CAPTURE_ELAPSED_TIME);
       }
     }

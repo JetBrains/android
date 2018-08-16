@@ -165,4 +165,23 @@ class InspectorPanelModelTest {
     assertThat(inspector.textEditor.value).isEqualTo("hello")
     assertThat(inspector.someEditor.value).isEqualTo("world")
   }
+
+  @Test
+  fun testListenersAreConcurrentModificationSafe() {
+    // Make sure that ConcurrentModificationException is NOT generated from the code below:
+    val model = Inspector().model
+    val listener = RecursiveValueChangedListener(model)
+    model.addValueChangedListener(listener)
+    model.filter = "More"
+    assertThat(listener.called).isTrue()
+  }
+
+  private class RecursiveValueChangedListener(private val model: InspectorPanelModel) : ValueChangedListener {
+    var called = false
+
+    override fun valueChanged() {
+      model.addValueChangedListener(RecursiveValueChangedListener(model))
+      called = true
+    }
+  }
 }

@@ -16,10 +16,7 @@
 package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants.*
-import com.android.tools.adtui.ptable2.DefaultPTableCellEditorProvider
-import com.android.tools.adtui.ptable2.DefaultPTableCellRendererProvider
-import com.android.tools.adtui.ptable2.PTableColumn
-import com.android.tools.adtui.ptable2.PTableModelUpdateListener
+import com.android.tools.adtui.ptable2.*
 import com.android.tools.idea.common.property2.api.TableUIProvider
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
@@ -213,6 +210,30 @@ class AdvancedInspectorBuilderTest {
     // Check that there are only the 3 declared attributes left (the place holder is gone)
     assertThat(util.inspector.lines[1].tableModel?.items?.map { it.name })
       .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT).inOrder()
+  }
+
+  @Test
+  fun testListenersAreConcurrentModificationSafe() {
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    addProperties(util)
+    val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+    builder.attachToInspector(util.inspector, util.properties)
+
+    val declared = util.inspector.lines[1].tableModel!!
+    val listener = RecursiveUpdateListener(declared)
+    declared.addListener(listener)
+
+    performAddNewRowAction(util)
+    assertThat(listener.called).isTrue()
+  }
+
+  private class RecursiveUpdateListener(private val model: PTableModel) : PTableModelUpdateListener {
+    var called = false
+
+    override fun itemsUpdated() {
+      model.addListener(RecursiveUpdateListener(model))
+      called = true
+    }
   }
 
   private class TestTableUIProvider : TableUIProvider {

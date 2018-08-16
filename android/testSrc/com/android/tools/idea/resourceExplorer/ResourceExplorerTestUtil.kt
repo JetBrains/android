@@ -85,5 +85,5 @@ fun AndroidProjectRule.getResourceItemFromPath(testFolderPath: String, fileName:
   return ResourceRepositoryManager
     .getOrCreateInstance(module)
     ?.getModuleResources(true)
-    ?.getResourceItems(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, fileName.substringBefore("."))!![0]
+    ?.getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, fileName.substringBefore("."))!![0]
 }

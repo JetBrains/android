@@ -26,7 +26,6 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
-import java.util.Objects;
 
 import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathUtils.*;
 
@@ -95,24 +94,40 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
     String shapeBorderColor = null;
     String shapeFillColor = null;
     SketchStyle style = getStyle();
-    SketchBorder border = Objects.requireNonNull(style.getBorders())[0];
-    if (border.isEnabled()) {
-      shapeBorderWidth = Integer.toString(border.getThickness());
-      shapeBorderColor = "#" + Integer.toHexString(border.getColor().getRGB());
+    SketchBorder[] borders = style.getBorders();
+    if (borders != null && borders.length != 0) {
+      SketchBorder border = borders[0];
+      if (border.isEnabled()) {
+        shapeBorderWidth = Integer.toString(border.getThickness());
+        shapeBorderColor = "#" + Integer.toHexString(border.getColor().getRGB());
+      }
     }
 
-    if (Objects.requireNonNull(style.getFills())[0].isEnabled()) {
-      shapeFillColor = "#" + Integer.toHexString(style.getFills()[0].getColor().getRGB());
+    SketchFill[] fills = style.getFills();
+
+    SketchGradient shapeGradient = null;
+    if (fills != null && fills.length != 0) {
+      SketchFill fill = fills[0];
+      if (fill.isEnabled()) {
+        if (fill.getGradient() == null) {
+          shapeFillColor = "#" + Integer.toHexString(fill.getColor().getRGB());
+        }
+        else {
+          shapeGradient = fill.getGradient();
+          shapeGradient = shapeGradient.toAbsoluteGradient(parentCoords, getFrame());
+        }
+      }
     }
-    return ImmutableList.of(new DrawableShape(shapeName, shapePathData, shapeFillColor, shapeBorderColor, shapeBorderWidth));
+    return ImmutableList.of(new DrawableShape(shapeName, shapePathData, shapeFillColor, shapeGradient, shapeBorderColor, shapeBorderWidth));
   }
 
+
   /*
-  * Method that computes the pathData string of the shape in the SketchShapeGroup object.
-  *
-  * Shape operations can only be performed on Area objects, and to make sure that the conversion
-  * between Path2D.Double to Area is correct, the Path2D.Double object MUST be closed
-  * */
+   * Method that computes the pathData string of the shape in the SketchShapeGroup object.
+   *
+   * Shape operations can only be performed on Area objects, and to make sure that the conversion
+   * between Path2D.Double to Area is correct, the Path2D.Double object MUST be closed
+   * */
   @NotNull
   private String buildShapeString(@NotNull Point2D.Double parentCoordinates) {
     SketchLayer[] shapeGroupLayers = getLayers();
@@ -129,7 +144,7 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
 
 
     // However, if the path is not closed
-    if(shapeGroupLayers.length == 1) {
+    if (shapeGroupLayers.length == 1) {
       if (getRotation() != 0) {
         baseShapePath = rotatePath(baseShapePath, baseSketchShapePath.getRotation());
       }
@@ -137,7 +152,8 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
         baseShapePath = flipPath(baseShapePath, baseSketchShapePath.isFlippedHorizontal(), baseSketchShapePath.isFlippedVertical());
       }
       return toStringPath(baseShapePath);
-    } else {
+    }
+    else {
       // If the path is already closed, the conversion to Area is completely safe
       if (baseSketchShapePath.isClosed()) {
         baseShapeArea = new Area(baseShapePath);

@@ -390,7 +390,7 @@ public class AttributeProcessingUtil {
       return;
     }
     NavigationSchema schema = NavigationSchema.get(facet);
-    for (PsiClass psiClass : schema.getDestinationClassesByTag(tag.getName())) {
+    for (PsiClass psiClass : schema.getStyleablesForTag(tag.getName())) {
       registerAttributesForClassAndSuperclasses(facet, element, psiClass, callback, skipAttrNames);
     }
   }

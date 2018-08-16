@@ -20,13 +20,11 @@ import com.android.SdkConstants.AUTO_URI
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.MockNlComponent
-import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.idea.uibuilder.property2.NelePropertyType
+import com.android.tools.idea.uibuilder.property2.*
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -34,11 +32,13 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.facet.AndroidFacet
 import org.mockito.Mockito
 
-open class SupportTestUtil(private val facet: AndroidFacet, private val fixture: CodeInsightTestFixture,
-                           tag: String, parentTag: String = "", activityName: String = "") {
+open class SupportTestUtil(facet: AndroidFacet, fixture: CodeInsightTestFixture, val components: List<NlComponent>) {
   val model = NelePropertiesModel(fixture.testRootDisposable, facet)
-  val components = listOf(createComponent(tag, parentTag, activityName))
   val nlModel = components[0].model
+
+  constructor(facet: AndroidFacet, fixture: CodeInsightTestFixture,
+              tag: String, parentTag: String = "", activityName: String = ""):
+    this(facet, fixture, listOf(createComponent(facet, fixture, tag, parentTag, activityName)))
 
   constructor(projectRule: AndroidProjectRule, tag: String, parentTag: String = ""):
     this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, tag, parentTag)
@@ -63,35 +63,76 @@ open class SupportTestUtil(private val facet: AndroidFacet, private val fixture:
     return makeFlagsProperty(namespace, definition)
   }
 
-  private fun createComponent(tag: String, parentTag: String, activityName: String): NlComponent {
-    val (file, component) =
-        if (parentTag.isEmpty()) createSingleComponent(tag, activityName) else createParentedComponent(tag, parentTag, activityName)
-    val manager = ConfigurationManager.getOrCreateInstance(facet)
-    val configuration = manager.getConfiguration(file.virtualFile)
-    Mockito.`when`(component.model.configuration).thenReturn(configuration)
-    Mockito.`when`(component.model.project).thenReturn(facet.module.project)
-    return component
+  fun makeIdProperty(): NeleIdPropertyItem {
+    return NeleIdPropertyItem(model, null, components)
   }
 
-  private fun createSingleComponent(tag: String, activityName: String): Pair<PsiFile, NlComponent> {
-    val activityAttrs = formatActivityAttributes(activityName)
-    val text = "<$tag xmlns:android=\"$ANDROID_URI\" xmlns:app=\"$AUTO_URI\" $activityAttrs/>"
-    val file = fixture.addFileToProject("res/layout/${tag.toLowerCase()}.xml", text) as XmlFile
-    return Pair(file, MockNlComponent.create(file.rootTag!!))
+  fun findSiblingById(id: String): NlComponent? {
+    return findChildById(components[0].parent!!, id)
   }
 
-  private fun createParentedComponent(tag: String, parentTag: String, activityName: String): Pair<PsiFile, NlComponent> {
-    val activityAttrs = formatActivityAttributes(activityName)
-    val text = "<$parentTag xmlns:android=\"$ANDROID_URI\" xmlns:app=\"$AUTO_URI\" $activityAttrs><$tag/></$parentTag>"
-    val file = fixture.addFileToProject("res/layout/${tag.toLowerCase()}.xml", text) as XmlFile
-    val parent = MockNlComponent.create(file.rootTag!!)
-    val child = MockNlComponent.create(file.rootTag!!.findFirstSubTag(tag)!!)
-    parent.addChild(child)
-    return Pair(file, child)
-  }
+  companion object {
 
-  private fun formatActivityAttributes(activityName: String): String {
-    if (activityName.isEmpty()) return ""
-    return "xmlns:tools=\"http://schemas.android.com/tools\" tools:context=\"$activityName\""
+    fun fromId(projectRule: AndroidProjectRule, text: String, id: String): SupportTestUtil {
+      val facet = AndroidFacet.getInstance(projectRule.module)!!
+      val fixture = projectRule.fixture
+      val file = fixture.addFileToProject("res/layout/a_layout.xml", text) as XmlFile
+      val root = MockNlComponent.create(file.rootTag!!)
+      for (tag in file.rootTag!!.subTags) {
+        val child = MockNlComponent.create(tag)
+        root.addChild(child)
+      }
+      val component = findChildById(root, id)!!
+      completeModel(facet, file, component.model)
+      return SupportTestUtil(facet, fixture, listOf(component))
+    }
+
+    private fun findChildById(component: NlComponent, id: String): NlComponent? {
+      return component.children.find { it.id == id }
+    }
+
+    private fun createComponent(facet: AndroidFacet,
+                                fixture: CodeInsightTestFixture,
+                                tag: String,
+                                parentTag: String,
+                                activityName: String): NlComponent {
+      val (file, component) = when {
+        parentTag.isEmpty() -> createSingleComponent(fixture, tag, activityName)
+        else -> createParentedComponent(fixture, tag, parentTag, activityName)
+      }
+      completeModel(facet, file, component.model)
+      return component
+    }
+
+    private fun completeModel(facet: AndroidFacet, file: PsiFile, model: NlModel) {
+      val manager = ConfigurationManager.getOrCreateInstance(facet)
+      val configuration = manager.getConfiguration(file.virtualFile)
+      Mockito.`when`(model.configuration).thenReturn(configuration)
+      Mockito.`when`(model.project).thenReturn(facet.module.project)
+    }
+
+    private fun createSingleComponent(fixture: CodeInsightTestFixture, tag: String, activityName: String): Pair<PsiFile, NlComponent> {
+      val activityAttrs = formatActivityAttributes(activityName)
+      val text = "<$tag xmlns:android=\"$ANDROID_URI\" xmlns:app=\"$AUTO_URI\" $activityAttrs/>"
+      val file = fixture.addFileToProject("res/layout/${tag.toLowerCase()}.xml", text) as XmlFile
+      return Pair(file, MockNlComponent.create(file.rootTag!!))
+    }
+
+    private fun createParentedComponent(fixture: CodeInsightTestFixture, tag: String, parentTag: String, activityName: String):
+      Pair<PsiFile, NlComponent> {
+
+      val activityAttrs = formatActivityAttributes(activityName)
+      val text = "<$parentTag xmlns:android=\"$ANDROID_URI\" xmlns:app=\"$AUTO_URI\" $activityAttrs><$tag/></$parentTag>"
+      val file = fixture.addFileToProject("res/layout/${tag.toLowerCase()}.xml", text) as XmlFile
+      val parent = MockNlComponent.create(file.rootTag!!)
+      val child = MockNlComponent.create(file.rootTag!!.findFirstSubTag(tag)!!)
+      parent.addChild(child)
+      return Pair(file, child)
+    }
+
+    private fun formatActivityAttributes(activityName: String): String {
+      if (activityName.isEmpty()) return ""
+      return "xmlns:tools=\"http://schemas.android.com/tools\" tools:context=\"$activityName\""
+    }
   }
 }

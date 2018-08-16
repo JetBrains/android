@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -250,13 +251,6 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
   }
 
-  protected boolean computeHasResourcesOfType(@NotNull ResourceType type, @NotNull Set<LocalResourceRepository> visited) {
-    if (!visited.add(this)) {
-      return false;
-    }
-    return hasResourcesOfType(type);
-  }
-
   // ---- Implements ModificationCount ----
 
   /**
@@ -439,6 +433,12 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
         }
       }
     }
+  }
+
+  /** Package accessible version of {@link #getFullTable()}. */
+  @NonNull
+  ResourceTable getFullTablePackageAccessible() {
+    return getFullTable();
   }
 
   public static final class EmptyRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {

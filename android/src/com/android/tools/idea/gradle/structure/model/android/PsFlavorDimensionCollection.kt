@@ -17,6 +17,10 @@ package com.android.tools.idea.gradle.structure.model.android
 
 class PsFlavorDimensionCollection internal constructor(parent: PsAndroidModule)
   : PsMutableCollectionBase<PsFlavorDimension, String, PsAndroidModule>(parent) {
+  init {
+    refresh()
+  }
+
   override fun getKeys(from: PsAndroidModule): Set<String> =
     from.parsedModel?.android()?.flavorDimensions()?.toList()?.map { it.toString() }.orEmpty().toSet()
 

@@ -279,7 +279,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     }
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
     LocalResourceRepository repository = repositoryManager.getAppResources(true);
-    List<ResourceItem> styles = repository.getResourceItems(ResourceNamespace.TODO(), ResourceType.STYLE, styleName);
+    List<ResourceItem> styles = repository.getResources(ResourceNamespace.TODO(), ResourceType.STYLE, styleName);
     if (styles.size() == 1) {
       Multimap<String, VirtualFile> resourceDirs = repositoryManager.getAllResourceDirs();
       resDirs.addAll(new HashSet<>(resourceDirs.values()));

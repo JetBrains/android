@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.util.AssetUtil;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -187,7 +188,7 @@ public final class AssetStudioUtils {
    */
   public static boolean resourceExists(@NotNull AndroidFacet facet, @NotNull ResourceType resourceType, @NotNull String name) {
     LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(facet);
-    return repository.hasResourceItem(resourceType, name);
+    return repository.hasResources(ResourceNamespace.TODO(), resourceType, name);
   }
 
   /**

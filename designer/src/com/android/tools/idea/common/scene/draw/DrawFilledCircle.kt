@@ -16,24 +16,25 @@
 package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.scene.LerpValue
+import com.android.tools.idea.common.scene.LerpFloat
 import com.android.tools.idea.common.scene.SceneContext
 import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.Point
+import java.awt.geom.Ellipse2D
+import java.awt.geom.Point2D
 
 class DrawFilledCircle(private val level: Int,
-                       @SwingCoordinate private val center: Point,
+                       @SwingCoordinate private val center: Point2D.Float,
                        private val color: Color,
-                       @SwingCoordinate private val radius: LerpValue) : DrawCommand {
+                       @SwingCoordinate private val radius: LerpFloat) : DrawCommandBase() {
 
   constructor(myLevel: Int,
-              @SwingCoordinate myCenter: Point,
+              @SwingCoordinate myCenter: Point2D.Float,
               myColor: Color,
-              @SwingCoordinate radius: Int) : this(myLevel, myCenter, myColor, LerpValue(radius))
+              @SwingCoordinate radius: Float) : this(myLevel, myCenter, myColor, LerpFloat(radius))
 
-  private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToPoint(sp[1]),
-      stringToColor(sp[2]), stringToLerp(sp[3]))
+  private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToPoint2D(sp[1]),
+                                                stringToColor(sp[2]), stringToLerp(sp[3]))
 
   constructor(s: String) : this(parse(s, 4))
 
@@ -43,23 +44,20 @@ class DrawFilledCircle(private val level: Int,
 
   override fun serialize(): String {
     return buildString(javaClass.simpleName,
-        level,
-        pointToString(center),
-        colorToString(color),
-        lerpToString(radius))
+                       level,
+                       point2DToString(center),
+                       colorToString(color),
+                       lerpToString(radius))
   }
 
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
+  override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     val r = radius.getValue(sceneContext.time)
 
-    val g2 = g.create()
+    g.color = color
+    var circle = Ellipse2D.Float(center.x - r, center.y - r, 2 * r, 2 * r)
+    g.fill(circle)
 
-    g2.color = color
-    g2.fillOval(center.x - r, center.y - r, 2 * r, 2 * r)
-
-    g2.dispose()
-
-    if (r != radius.end) {
+    if (!radius.isComplete(sceneContext.time)) {
       sceneContext.repaint()
     }
   }

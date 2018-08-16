@@ -16,8 +16,9 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -60,7 +61,7 @@ public abstract class ResourceManager {
    * Returns the resource repository associated with this resource manager.
    */
   @NotNull
-  public abstract AbstractResourceRepository getResourceRepository();
+  public abstract ResourceRepository getResourceRepository();
 
   /**
    * Returns all the resource directories for this module <b>and all of its module dependencies</b>
@@ -184,8 +185,8 @@ public abstract class ResourceManager {
   }
 
   @NotNull
-  private Collection<AbstractResourceRepository> getLeafResourceRepositories() {
-    List<AbstractResourceRepository> result = new ArrayList<>();
+  private Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories() {
+    List<SingleNamespaceResourceRepository> result = new ArrayList<>();
     getResourceRepository().getLeafResourceRepositories(result);
     return result;
   }
@@ -235,8 +236,8 @@ public abstract class ResourceManager {
   @NotNull
   private Set<VirtualFile> getFilesDeclaringId(@NotNull ResourceNamespace namespace, @NotNull String id) {
     Set<VirtualFile> files = new HashSet<>();
-    for (AbstractResourceRepository repository : getLeafResourceRepositories()) {
-      List<ResourceItem> items = repository.getResourceItems(namespace, ResourceType.ID, id);
+    for (ResourceRepository repository : getLeafResourceRepositories()) {
+      List<ResourceItem> items = repository.getResources(namespace, ResourceType.ID, id);
       for (ResourceItem item : items) {
         VirtualFile file = ResourceHelper.getSourceAsVirtualFile(item);
         if (file != null) {
@@ -356,12 +357,12 @@ public abstract class ResourceManager {
     }
 
     List<ValueResourceInfoImpl> result = new ArrayList<>();
-    for (AbstractResourceRepository repository : getLeafResourceRepositories()) {
+    for (ResourceRepository repository : getLeafResourceRepositories()) {
       List<ResourceItem> items;
       if (distinguishDelimitersInName) {
-        items = repository.getResourceItems(namespace, resourceType, resourceName);
+        items = repository.getResources(namespace, resourceType, resourceName);
       } else {
-        items = repository.getResourceItems(namespace, resourceType, item -> AndroidUtils.equal(resourceName, item.getName(), false));
+        items = repository.getResources(namespace, resourceType, item -> AndroidUtils.equal(resourceName, item.getName(), false));
       }
       for (ResourceItem item : items) {
         VirtualFile file = ResourceHelper.getSourceAsVirtualFile(item);

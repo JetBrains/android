@@ -15,25 +15,50 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.structure.model.android.PsMutableCollectionBase
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.google.common.annotations.VisibleForTesting
 
-class PsVariables(
+open class PsVariables constructor(
   override val model: PsModel,
   override val title: String,
-  override val container: ExtModel,
   private val parentScope: PsVariablesScope?
-) : PsVariablesScope {
-  override val name: String = model.name
+) : PsMutableCollectionBase<PsVariable, String, PsModel>(model), PsVariablesScope {
+  init {
+    refresh()
+  }
+
+  override fun getKeys(from: PsModel): Set<String> =
+    getContainer(from)
+      ?.properties
+      ?.map { it.name }
+      ?.toSet()
+    ?: setOf()
+
+  override fun create(key: String): PsVariable = PsVariable(model, this, ::refresh)
+  override fun update(key: String, model: PsVariable) = model.init(getContainer(parent)!!.properties.first { it.name == key })
+
+  override fun instantiateNew(key: String) {
+    // TODO(solodkyy): Consider not initializing the variable and letting it hang around int the collection until the next refresh
+    // or explicit initialization.
+    getContainer(parent)!!.findProperty(key).setValue("")
+  }
+
+  override fun removeExisting(key: String) {
+    getContainer(parent)!!.findProperty(key).delete()
+  }
+
+  override val name: String get() = model.name
 
   override fun <ValueT : Any> getAvailableVariablesFor(
     property: ModelPropertyContext<ValueT>
   ): List<Annotated<ParsedValue.Set.Parsed<ValueT>>> =
   // TODO(solodkyy): Merge with variables available at the project level.
-    container.inScopeProperties
-      .map { it.key to it.value.resolve() }
-      .flatMap {
+    getContainer(model)
+      ?.inScopeProperties
+      ?.map { it.key to it.value.resolve() }
+      ?.flatMap {
         when (it.second.valueType) {
           GradlePropertyModel.ValueType.LIST -> listOf()
           GradlePropertyModel.ValueType.MAP ->
@@ -43,28 +68,38 @@ class PsVariables(
           else -> listOf(it)
         }
       }
-      .mapNotNull { (name, resolvedProperty) ->
+      ?.mapNotNull { (name, resolvedProperty) ->
         resolvedProperty.getValue(GradlePropertyModel.OBJECT_TYPE)?.let { name to property.parse(it.toString()) }
       }
-      .mapNotNull { (name, annotatedValue) ->
+      ?.mapNotNull { (name, annotatedValue) ->
         when {
           (annotatedValue.value is ParsedValue.Set.Parsed && annotatedValue.annotation !is ValueAnnotation.Error) ->
             ParsedValue.Set.Parsed(annotatedValue.value.value, DslText.Reference(name)).annotateWith(annotatedValue.annotation)
           else -> null
         }
-      }
-
-  override fun getModuleVariables(): List<PsVariable> = container.properties.map { PsVariable(it, it.resolve(), model, this) }
+      } ?: listOf()
 
   override fun getVariableScopes(): List<PsVariablesScope> =
-    parentScope?.getVariableScopes().orEmpty() + this
+    parentScope?.getVariableScopes().orEmpty() + listOf<PsVariablesScope>(this as PsVariablesScope)
 
   override fun getNewVariableName(preferredName: String) =
     generateSequence(0, { it + 1 })
       .map { if (it == 0) preferredName else "$preferredName$it" }
-      .first { container.findProperty(it).valueType == GradlePropertyModel.ValueType.NONE }
+      .first { getContainer(parent)!!.findProperty(it).valueType == GradlePropertyModel.ValueType.NONE }
 
-  override fun getOrCreateVariable(name: String): PsVariable = container.findProperty(name).let {
-    PsVariable(it, it.resolve(), model, this)
-  }
+  override fun getVariable(name: String): PsVariable? = findElement(name)
+
+  override fun getOrCreateVariable(name: String): PsVariable = findElement(name) ?: addNewVariable(name)
+
+  override fun addNewVariable(name: String): PsVariable = addNew(name)
+
+  override fun removeVariable(name: String) = remove(name)
+
+  @VisibleForTesting
+  protected open fun getContainer(from: PsModel) =
+    when (from) {
+      is PsProject -> from.parsedModel.projectBuildModel?.ext()
+      is PsModule -> from.parsedModel?.ext()
+      else -> throw IllegalStateException()
+    }
 }

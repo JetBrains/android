@@ -268,7 +268,7 @@ class InstallTask extends Task.Backgroundable {
       protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
         if ("install".equals(event.getDescription())) {
           ModelWizardDialog dialogForPaths =
-            SdkQuickfixUtils.createDialogForPackages(null, myInstallRequests, myUninstallRequests, false);
+            SdkQuickfixUtils.createDialogForPackages(null, myInstallRequests, myUninstallRequests, true);
           if (dialogForPaths != null) {
             dialogForPaths.show();
           }

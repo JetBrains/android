@@ -77,16 +77,13 @@ public final class NlWriteCommandAction implements Runnable {
 
   @Override
   public void run() {
-    new WriteCommandActionImpl().execute();
+    WriteCommandAction.runWriteCommandAction(myModel.getProject(), myName, null, new NlWriteAttributeRunnable(), myModel.getFile());
   }
 
-  private final class WriteCommandActionImpl extends WriteCommandAction.Simple<Void> {
-    private WriteCommandActionImpl() {
-      super(myModel.getProject(), myName, myModel.getFile());
-    }
+  private final class NlWriteAttributeRunnable implements Runnable {
 
     @Override
-    protected void run() throws Throwable {
+    public void run() {
       myRunnable.run();
 
       myComponents.forEach(component -> {
@@ -96,7 +93,7 @@ public final class NlWriteCommandAction implements Runnable {
     }
 
     private void cleanUpAttributes(@NotNull NlComponent component) {
-      ViewGroupHandler handler = ViewHandlerManager.get(getProject()).findLayoutHandler(component, true);
+      ViewGroupHandler handler = ViewHandlerManager.get(myModel.getProject()).findLayoutHandler(component, true);
 
       if (handler == null) {
         return;
@@ -121,7 +118,7 @@ public final class NlWriteCommandAction implements Runnable {
         return;
       }
 
-      TemplateUtils.reformatAndRearrange(getProject(), tag);
+      TemplateUtils.reformatAndRearrange(myModel.getProject(), tag);
     }
   }
 }

@@ -27,7 +27,7 @@ private const val DEBUG_BUILD_TYPE_NAME = "debug"
 open class PsBuildType(
   final override val parent: PsAndroidModule
 ) : PsChildModel() {
-
+  override val descriptor by BuildTypeDescriptors
   var resolvedModel: BuildType? = null
   private var parsedModel: BuildTypeModel? = null
 
@@ -61,7 +61,7 @@ open class PsBuildType(
 
   fun ensureDeclared() {
     if (parsedModel == null) {
-      parsedModel = parent.parsedModel!!.android()!!.addBuildType(name)
+      parsedModel = parent.parsedModel!!.android().addBuildType(name)
       parent.isModified = true
     }
   }
@@ -181,7 +181,7 @@ open class PsBuildType(
       setter = {},
       parser = ::parseReferenceOnly,
       formatter = ::formatUnit,
-      knownValuesGetter = { _, model -> signingConfigs(model.parent) }
+      knownValuesGetter = { model -> signingConfigs(model.parent) }
     )
 
     val testCoverageEnabled: SimpleProperty<PsBuildType, Boolean> = property(
@@ -223,7 +223,7 @@ open class PsBuildType(
       setter = { setValue(it) },
       parser = ::parseString,
       variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
-      knownValuesGetter = { _, model -> buildTypeMatchingFallbackValues(model.parent.parent) }
+      knownValuesGetter = { model -> buildTypeMatchingFallbackValues(model.parent.parent) }
     )
 
     val consumerProGuardFiles: ListProperty<PsBuildType, File> = listProperty(
@@ -233,7 +233,7 @@ open class PsBuildType(
       getter = { asFile() },
       setter = { setValue(it.toString()) },
       parser = ::parseFile,
-      knownValuesGetter = { _, model -> proGuardFileValues(model.parent) }
+      knownValuesGetter = { model -> proGuardFileValues(model.parent) }
     )
 
     val proGuardFiles: ListProperty<PsBuildType, File> = listProperty(
@@ -243,7 +243,7 @@ open class PsBuildType(
       getter = { asFile() },
       setter = { setValue(it.toString()) },
       parser = ::parseFile,
-      knownValuesGetter = { _, model -> proGuardFileValues(model.parent) }
+      knownValuesGetter = { model -> proGuardFileValues(model.parent) }
     )
 
     val manifestPlaceholders: MapProperty<PsBuildType, String> = mapProperty(
@@ -254,5 +254,10 @@ open class PsBuildType(
       setter = { setValue(it) },
       parser = ::parseString
     )
+
+    override val properties: Collection<ModelProperty<PsBuildType, *, *, *>> =
+      listOf(applicationIdSuffix, debuggable, embedMicroApp, jniDebuggable, minifyEnabled, multiDexEnabled, pseudoLocalesEnabled,
+             renderscriptDebuggable, renderscriptOptimLevel, signingConfig, testCoverageEnabled, versionNameSuffix, zipAlignEnabled,
+             matchingFallbacks, consumerProGuardFiles, proGuardFiles, manifestPlaceholders)
   }
 }

@@ -65,8 +65,9 @@ class NavActionManagerTest : NavTestCase() {
     val layout = LocalResourceManager.getInstance(myFacet.module)!!.findResourceFiles(
       ResourceFolderType.LAYOUT).stream().filter { file -> file.name == "activity_main.xml" }.findFirst().get() as XmlFile
     WriteCommandAction.runWriteCommandAction(project) {
-      Destination.RegularDestination(surface.currentNavigation, "activity", null, "MainActivity", "mytest.navtest.MainActivity", "myId",
-                                     layout)
+      val destinationClass = JavaPsiFacade.getInstance(project).findClass("mytest.navtest.MainActivity",
+                                                                          GlobalSearchScope.allScope(project))!!
+      Destination.RegularDestination(surface.currentNavigation, "activity", null, destinationClass, "myId", layout)
         .addToGraph()
     }
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
@@ -97,7 +98,7 @@ class NavActionManagerTest : NavTestCase() {
 
     val psiClass = JavaPsiFacade.getInstance(project).findClass("mytest.navtest.MainActivity", GlobalSearchScope.allScope(project))
     WriteCommandAction.runWriteCommandAction(project) {
-      Destination.RegularDestination(surface.currentNavigation, "activity", null, psiClass!!.name, psiClass.qualifiedName).addToGraph()
+      Destination.RegularDestination(surface.currentNavigation, "activity", null, psiClass!!).addToGraph()
     }
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
                  "    NlComponent{tag=<navigation>, instance=1}\n" +

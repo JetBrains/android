@@ -114,6 +114,7 @@ fun <PropertyT> ParsedValue<PropertyT>.getText(formatValue: PropertyT.() -> Stri
 }
 
 val <T> ParsedValue<T>.maybeValue: T? get() = (this as? ParsedValue.Set.Parsed)?.value
+val <T> ParsedValue<T>.maybeLiteralValue: T? get() = (this as? ParsedValue.Set.Parsed)?.takeIf { it.dslText === DslText.Literal }?.value
 
 fun <T : Any> makeAnnotatedParsedValue(parsed: T?, annotatedDslText: Annotated<DslText>?): Annotated<ParsedValue<T>> =
   makeAnnotatedParsedValue(parsed, annotatedDslText?.value, annotatedDslText?.annotation)

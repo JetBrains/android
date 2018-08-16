@@ -39,17 +39,23 @@ import java.util.regex.Matcher;
 
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.project.sync.ng.AndroidModule.MODULE_ARTIFACT_ADDRESS_PATTERN;
+import static com.android.tools.idea.gradle.project.sync.ng.SelectedVariantChooser.getDefaultOrFirstItem;
 import static java.nio.file.Files.isSameFile;
 
 public class VariantOnlyProjectModels implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 3L;
 
   @NotNull private final Map<String, VariantOnlyModuleModel> myModuleModelsById = new HashMap<>();
   @NotNull private final Map<File, GlobalLibraryMap> myLibraryMapsByBuildId = new HashMap<>();
+  @NotNull private final VariantOnlySyncOptions mySyncOptions;
 
-  public void populate(@NotNull BuildController controller, @NotNull VariantOnlySyncOptions syncOptions) {
-    populateModelsForModule(controller, syncOptions.myBuildId, syncOptions.myGradlePath, syncOptions.myVariantName);
+  public VariantOnlyProjectModels(@NotNull VariantOnlySyncOptions syncOptions) {
+    mySyncOptions = syncOptions;
+  }
+
+  public void populate(@NotNull BuildController controller) {
+    populateModelsForModule(controller, mySyncOptions.myBuildId, mySyncOptions.myGradlePath, mySyncOptions.myVariantName);
     // Request for GlobalLibraryMap model at last, when all of other models have been built.
     populateGlobalLibraryMap(controller);
   }
@@ -78,6 +84,7 @@ public class VariantOnlyProjectModels implements Serializable {
       if (androidProject != null) {
         moduleModel = new VariantOnlyModuleModel(androidProject, gradleProject, moduleId, buildId);
         myModuleModelsById.put(moduleId, moduleModel);
+        syncAndAddNativeVariant(moduleModel, variantName, controller);
         Variant variant = syncAndAddVariant(moduleModel, variantName, controller);
         if (variant != null) {
           // Populate models for dependency modules.
@@ -164,6 +171,38 @@ public class VariantOnlyProjectModels implements Serializable {
     return variant;
   }
 
+  private void syncAndAddNativeVariant(@NotNull VariantOnlyModuleModel moduleModel,
+                                       @NotNull String variantName,
+                                       @NotNull BuildController controller) {
+    // Requested before.
+    if (moduleModel.getNativeVariantAbi() != null) {
+      return;
+    }
+    GradleProject gradleProject = moduleModel.getGradleProject();
+    NativeAndroidProject nativeProject = controller.findModel(gradleProject, NativeAndroidProject.class, ModelBuilderParameter.class,
+                                                              parameter -> parameter.setShouldBuildVariant(false));
+    if (nativeProject == null) {
+      return;
+    }
+    String abiToSelect = mySyncOptions.myAbiName;
+    Collection<String> abiNames = nativeProject.getVariantInfos().get(variantName).getAbiNames();
+    if (abiToSelect == null || !abiNames.contains(abiToSelect)) {
+      abiToSelect = getDefaultOrFirstItem(abiNames, "x86");
+    }
+    if (abiToSelect != null) {
+      String finalAbiToSelect = abiToSelect;
+      NativeVariantAbi nativeVariantAbi = controller.findModel(gradleProject, NativeVariantAbi.class, ModelBuilderParameter.class,
+                                                               parameter -> {
+                                                                 parameter.setVariantName(variantName);
+                                                                 parameter.setAbiName(finalAbiToSelect);
+                                                               });
+      if (nativeVariantAbi != null) {
+        String variantAbiName = variantName + "-" + finalAbiToSelect;
+        moduleModel.setNativeVariantAbi(variantAbiName, nativeVariantAbi);
+      }
+    }
+  }
+
   @Nullable
   private static GradleProject findGradleProject(@NotNull BuildController controller, @NotNull File buildId, @NotNull String gradlePath) {
     GradleBuild rootBuild = controller.getBuildModel();
@@ -229,6 +268,7 @@ public class VariantOnlyProjectModels implements Serializable {
     @NotNull private final String myModuleId;
     @NotNull private final File myBuildId;
     @NotNull private final Map<String, Variant> myVariantsByName = new HashMap<>();
+    @Nullable private NativeVariantAbiModel myNativeVariantAbiModel;
 
     public VariantOnlyModuleModel(@NotNull AndroidProject androidProject,
                                   @NotNull GradleProject gradleProject,
@@ -272,6 +312,25 @@ public class VariantOnlyProjectModels implements Serializable {
     @VisibleForTesting
     public boolean containsVariant(@NotNull String variantName) {
       return myVariantsByName.containsKey(variantName);
+    }
+
+    public void setNativeVariantAbi(@NotNull String name, @NotNull NativeVariantAbi nativeVariantAbi) {
+      myNativeVariantAbiModel = new NativeVariantAbiModel(name, nativeVariantAbi);
+    }
+
+    @Nullable
+    public NativeVariantAbiModel getNativeVariantAbi() {
+      return myNativeVariantAbiModel;
+    }
+
+    public static class NativeVariantAbiModel implements Serializable {
+      @NotNull final String name;
+      @NotNull final NativeVariantAbi model;
+
+      public NativeVariantAbiModel(@NotNull String name, @NotNull NativeVariantAbi nativeVariantAbi) {
+        this.name = name;
+        this.model = nativeVariantAbi;
+      }
     }
   }
 }

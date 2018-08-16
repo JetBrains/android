@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.configuration.FolderConfiguration
@@ -24,21 +25,25 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ResourceResolverCache
 import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.aar.AarSourceResourceRepository
 import com.android.tools.idea.res.resolveDrawable
+import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.plugin.ConfigurationDoneCallback
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.ui.DialogBuilder
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Image
 import kotlin.properties.Delegates
 
-
 private val LOG = Logger.getInstance(ProjectResourcesBrowserViewModel::class.java)
+private val SUPPORTED_RESOURCES = arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR, ResourceType.SAMPLE_DATA)
 
 /**
  * ViewModel for [com.android.tools.idea.resourceExplorer.view.ResourceExplorerView]
@@ -46,10 +51,9 @@ private val LOG = Logger.getInstance(ProjectResourcesBrowserViewModel::class.jav
  */
 class ProjectResourcesBrowserViewModel(
   facet: AndroidFacet,
-  synchronizationManager: SynchronizationManager // TODO listen for update
+  synchronizationManager: SynchronizationManager, // TODO listen for update
+  val importerProvider: ImportersProvider
 ) {
-
-
   /**
    * callback called when the resource model have change. This happen when the facet is changed.
    */
@@ -57,6 +61,19 @@ class ProjectResourcesBrowserViewModel(
 
   var facet by Delegates.observable(facet) { _, _, _ -> updateCallback?.invoke() }
   val resourceResolver = createResourceResolver(facet)
+
+  /**
+   * The index in [resourceTypes] of the resource type being used.
+   */
+  var resourceTypeIndex = 0
+    set(value) {
+      if (value in 0 until resourceTypes.size) {
+        field = value
+        updateCallback?.invoke()
+      }
+    }
+
+  val resourceTypes: Array<ResourceType> get() = SUPPORTED_RESOURCES
 
   /**
    * Returns a preview of the [DesignAsset].
@@ -71,10 +88,7 @@ class ProjectResourcesBrowserViewModel(
 
   private fun getModuleResources(type: ResourceType): List<ResourceItem> {
     val moduleRepository = ResourceRepositoryManager.getModuleResources(facet)
-    return moduleRepository.namespaces.flatMap { namespace ->
-      moduleRepository.getItemsOfType(namespace, type)
-        .flatMap { resourceItem -> moduleRepository.getResourceItems(namespace, type, resourceItem) }
-    }
+    return moduleRepository.namespaces.flatMap { namespace -> moduleRepository.getResources(namespace, type).values() }
   }
 
   /**
@@ -84,10 +98,7 @@ class ProjectResourcesBrowserViewModel(
     val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
     return repoManager.libraryResources
       .map { lib ->
-        (lib.libraryName ?: "") to lib.namespaces.flatMap { namespace ->
-          lib.getItemsOfType(namespace, type)
-            .flatMap { resourceItem -> lib.getResourceItems(namespace, type, resourceItem) }
-        }
+        (userReadableLibraryName(lib)) to lib.namespaces.flatMap { namespace -> lib.getResources(namespace, type).values() }
       }
   }
 
@@ -111,15 +122,25 @@ class ProjectResourcesBrowserViewModel(
     return resolvedValue
   }
 
-  fun getResourcesLists(resourceTypes: List<ResourceType>): List<ResourceSection> {
-    return resourceTypes.flatMap { resourceType ->
+  fun getResourcesLists(): List<ResourceSection> {
+    val resourceType = resourceTypes[resourceTypeIndex]
       val moduleResources = createResourceSection(resourceType, facet.module.name, getModuleResources(resourceType))
       val librariesResources = getLibraryResources(resourceType)
         .map { (libName, resourceItems) ->
           createResourceSection(resourceType, libName, resourceItems)
         }
-      listOf(moduleResources) + librariesResources
-    }
+    return listOf(moduleResources) + librariesResources
+  }
+
+  fun importSketchFile() {
+    val configurationPanel = importerProvider
+      .getImportersForExtension("sketch")
+      .first()
+      .getConfigurationPanel(facet, object : ConfigurationDoneCallback {
+        override fun configurationDone() {
+
+        }
+      })
   }
 }
 
@@ -135,3 +156,7 @@ private fun createResourceSection(type: ResourceType,
 data class ResourceSection(val type: ResourceType,
                            val libraryName: String = "",
                            val assets: List<DesignAssetSet>)
+
+private fun userReadableLibraryName(lib: AarSourceResourceRepository) = lib.libraryName?.let {
+  GradleCoordinate.parseCoordinateString(it)?.artifactId
+} ?: ""

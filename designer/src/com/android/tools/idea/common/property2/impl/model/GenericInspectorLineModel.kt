@@ -63,7 +63,7 @@ open class GenericInspectorLineModel : InspectorLineModel {
   }
 
   protected fun fireValueChanged() {
-    listeners.forEach { it.valueChanged() }
+    listeners.toTypedArray().forEach { it.valueChanged() }
   }
 }
 

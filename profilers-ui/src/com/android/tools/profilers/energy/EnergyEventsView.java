@@ -15,23 +15,22 @@
  */
 package com.android.tools.profilers.energy;
 
-import com.android.tools.adtui.*;
-import com.android.tools.adtui.model.*;
-import com.android.tools.adtui.model.axis.AxisComponentModel;
-import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
+import com.android.tools.adtui.TooltipComponent;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.android.tools.profilers.*;
-import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
@@ -107,7 +106,7 @@ public final class EnergyEventsView {
 
   @NotNull private final EnergyProfilerStage myStage;
   @NotNull private final EventsTableModel myTableModel;
-  @NotNull private final HoverRowTable myEventsTable;
+  @NotNull private final JBTable myEventsTable;
 
   // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
   @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
@@ -118,7 +117,7 @@ public final class EnergyEventsView {
     // Add a listener on model to update selection before construct table because otherwise it flickers. The table also adds a listener
     // on model that if the selection is set later then there is a clear and re-selection time gap on the view.
     myTableModel.addTableModelListener(e -> updateTableSelection());
-    myEventsTable = new HoverRowTable(myTableModel);
+    myEventsTable = TimelineTable.create(myTableModel, myStage.getStudioProfilers().getTimeline(), Column.TIMELINE.ordinal());
     buildEventsTable(stageView);
     myStage.getAspect().addDependency(myAspectObserver).onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateTableSelection)
            .onChange(EnergyProfilerAspect.SELECTED_ORIGIN_FILTER, myTableModel::updateTableByOrigin);
@@ -130,8 +129,7 @@ public final class EnergyEventsView {
     myEventsTable.getColumnModel().getColumn(Column.DESCRIPTION.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
     myEventsTable.getColumnModel().getColumn(Column.CALLED_BY.ordinal()).setCellRenderer(new CalledByRenderer(myStage));
     myEventsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
-      new TimelineRenderer(myEventsTable, myStage.getStudioProfilers().getTimeline().getSelectionRange()));
-    TableUtils.setTableHeaderBorder(myEventsTable, ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
+      new TimelineRenderer(myEventsTable, myStage.getStudioProfilers().getTimeline()));
 
     myEventsTable.getEmptyText().setText("No system events for the selected range or filter.");
     myEventsTable.getEmptyText().setShowAboveCenter(false).setFont(H2_FONT);
@@ -316,42 +314,25 @@ public final class EnergyEventsView {
     }
   }
 
-  private final class TimelineRenderer implements TableCellRenderer, TableModelListener {
+  private static final class TimelineRenderer extends TimelineTable.CellRenderer implements TableModelListener {
     /**
      * Keep in sync 1:1 with {@link EventsTableModel#myList}. When the table asks for the
      * chart to render, it will be converted from model index to view index.
      */
     @NotNull private final List<EnergyEventComponent> myEventComponents = new ArrayList<>();
     @NotNull private final JTable myTable;
-    @NotNull private final Range myRange;
 
-    TimelineRenderer(@NotNull JTable table, @NotNull Range range) {
+    TimelineRenderer(@NotNull JTable table, @NotNull ProfilerTimeline timeline) {
+      super(timeline);
       myTable = table;
-      myRange = range;
       myTable.getModel().addTableModelListener(this);
       tableChanged(new TableModelEvent(myTable.getModel()));
     }
 
+    @NotNull
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      JPanel panel = new JBPanel(new TabularLayout("*", "*"));
-
-      if (row == 0) {
-        // Show timeline labels in front of the chart components
-        AxisComponent axisLabels = createAxis();
-        axisLabels.setMarkerLengths(0, 0);
-        panel.add(axisLabels, new TabularLayout.Constraint(0, 0));
-      }
-
-      EnergyEventComponent eventComponent = myEventComponents.get(myTable.convertRowIndexToModel(row));
-      panel.add(eventComponent, new TabularLayout.Constraint(0, 0));
-      // Show timeline lines behind chart components
-      AxisComponent axisTicks = createAxis();
-      axisTicks.setMarkerLengths(myTable.getRowHeight(), 0);
-      axisTicks.setShowLabels(false);
-      panel.add(axisTicks, new TabularLayout.Constraint(0, 0));
-
-      return panel;
+    protected Component getTableCellRendererComponent(boolean isSelected, int row) {
+      return myEventComponents.get(myTable.convertRowIndexToModel(row));
     }
 
     @Override
@@ -374,21 +355,11 @@ public final class EnergyEventsView {
           event = nextEvent;
         }
 
-        EventModel<EnergyEvent> eventModel = new EventModel<>(new RangedSeries<>(myRange, series));
+        EventModel<EnergyEvent> eventModel = new EventModel<>(new RangedSeries<>(getTimeline().getSelectionRange(), series));
         Color highlightColor = EnergyEventStateChart.DURATION_STATE_ENUM_COLORS.getColor(duration.getKind());
         EnergyEventComponent component = new EnergyEventComponent(eventModel, highlightColor);
         myEventComponents.add(component);
       }
-    }
-
-    @NotNull
-    private AxisComponent createAxis() {
-      AxisComponentModel model = new ResizingAxisComponentModel.Builder(myRange, new TimeAxisFormatter(1, 4, 1))
-        .setGlobalRange(myStage.getStudioProfilers().getTimeline().getDataRange()).build();
-      AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
-      axis.setShowAxisLine(false);
-      axis.setMarkerColor(ProfilerColors.NETWORK_TABLE_AXIS);
-      return axis;
     }
   }
 }

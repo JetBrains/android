@@ -35,7 +35,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
   }
 
   private fun <T : Any> GradlePropertyModel.wrap(
-    parse: (Nothing?, String) -> Annotated<ParsedValue<T>>,
+    parse: (String) -> Annotated<ParsedValue<T>>,
     caster: ResolvedPropertyModel.() -> T?
   ): ModelListPropertyCore<T> {
     val resolved = resolve()
@@ -45,7 +45,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
       parsedPropertyGetter = { resolved },
       getter = { caster() },
       setter = { setValue(it) },
-      parser = { context: Nothing?, value -> parse(context, value) }
+      parser = { value -> parse(value) }
     ).bind(Model)
   }
 

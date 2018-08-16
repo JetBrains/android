@@ -19,9 +19,7 @@ import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -74,7 +72,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -95,7 +92,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
+import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 
 /**
  * Utility class for static methods which are used in different classes of theme editor
@@ -649,10 +646,9 @@ public class ThemeEditorUtils {
       if (!isSelected) {
         return;
       }
-      for (String simpleThemeName : resources.getItemsOfType(ResourceType.STYLE)) {
+      for (String simpleThemeName : resources.getResources(ResourceNamespace.TODO(), ResourceType.STYLE).keySet()) {
         String themeStyleResourceUrl = SdkConstants.STYLE_RESOURCE_PREFIX + simpleThemeName;
-        List<ResourceItem> themeItems = resources.getResourceItem(ResourceType.STYLE, simpleThemeName);
-        assert themeItems != null;
+        List<ResourceItem> themeItems = resources.getResources(ResourceNamespace.TODO(), ResourceType.STYLE, simpleThemeName);
         for (ResourceItem themeItem : themeItems) {
           ResourceResolver resolver = resolverCache.getResourceResolver(target, themeStyleResourceUrl, themeItem.getConfiguration());
           ResourceValue themeItemResourceValue = themeItem.getResourceValue();

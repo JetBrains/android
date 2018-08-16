@@ -21,9 +21,9 @@ import java.awt.*;
 
 public class SketchGradientStop {
   private final Color color;
-  private final int position;
+  private final double position;
 
-  public SketchGradientStop(@NotNull Color color, int position) {
+  public SketchGradientStop(@NotNull Color color, double position) {
     this.color = color;
     this.position = position;
   }
@@ -33,7 +33,7 @@ public class SketchGradientStop {
     return color;
   }
 
-  public int getPosition() {
+  public double getPosition() {
     return position;
   }
 }

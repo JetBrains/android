@@ -16,9 +16,16 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.structure.GradleResolver
+import com.android.tools.idea.gradle.structure.model.PsModel
+import com.android.tools.idea.gradle.structure.model.PsModelDescriptor
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.*
 import java.util.concurrent.TimeUnit
+import kotlin.reflect.KParameter
+import kotlin.reflect.KProperty
+import kotlin.reflect.KTypeProjection
+import kotlin.reflect.full.createType
+import kotlin.reflect.full.isSubtypeOf
 
 internal fun <T> ResolvedValue<T>.asTestValue(): T? = (this as? ResolvedValue.Set<T>)?.resolved
 internal fun <T> Annotated<ParsedValue<T>>.asTestValue(): T? = value.maybeValue
@@ -31,3 +38,24 @@ internal val <T> Annotated<PropertyValue<T>>.parsedValue get() = value.parsedVal
 fun PsProjectImpl.testResolve() {
   refreshFrom(GradleResolver().requestProjectResolved(ideProject, ideProject).get(30, TimeUnit.SECONDS))
 }
+
+fun PsModelDescriptor.testEnumerateProperties(): Set<ModelProperty<*, *, *, *>> {
+  val result = mutableSetOf<ModelProperty<*, *, *, *>>()
+  enumerateProperties(receiver = object : PsModelDescriptor.PropertyReceiver {
+    override fun <T : PsModel> receive(model: T, property: ModelProperty<T, *, *, *>) {
+      result.add(property)
+    }
+  })
+  return result
+}
+
+inline fun <reified T : ModelDescriptor<*, *, *>> T.testEnumerateProperties() =
+  T::class
+    .members
+    .mapNotNull { it as? KProperty<*> }
+    .filter {
+      it.parameters.size == 1 && it.parameters[0].kind == KParameter.Kind.INSTANCE &&
+      it.returnType.isSubtypeOf(ModelProperty::class.createType(
+        listOf(KTypeProjection.STAR, KTypeProjection.STAR, KTypeProjection.STAR, KTypeProjection.STAR)))
+    }
+    .map { it.getter.call(this) }.toSet()

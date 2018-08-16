@@ -38,7 +38,7 @@ public class MigrateToAppCompatHandler implements RefactoringActionHandler {
     MigrateToAppCompatProcessor processor;
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       //noinspection TestOnlyProblems
-      processor = new MigrateToAppCompatProcessor(project, MigrateToAppCompatProcessor.buildMigrationMap(),
+      processor = new MigrateToAppCompatProcessor(project, MigrateToAppCompatProcessor.buildMigrationMap(project),
                                                   (artifact, version) -> new AppCompatStyleMigration(emptySet(), emptySet()));
     }
     else {

@@ -175,12 +175,14 @@ class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet)
     }
   }
 
-  private fun firePropertiesGenerated() {
-    listeners.forEach { it.propertiesGenerated(this) }
+  @VisibleForTesting
+  fun firePropertiesGenerated() {
+    listeners.toTypedArray().forEach { it.propertiesGenerated(this) }
   }
 
+  @VisibleForTesting
   fun firePropertyValueChange() {
-    listeners.forEach { it.propertyValuesChanged(this) }
+    listeners.toTypedArray().forEach { it.propertyValuesChanged(this) }
   }
 
   private fun createNeleDefaultPropertyProvider(): NeleDefaultPropertyProvider? {

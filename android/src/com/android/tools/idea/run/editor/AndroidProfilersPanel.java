@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.adtui.ui.ClickableLabel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
@@ -51,11 +52,14 @@ public class AndroidProfilersPanel implements HyperlinkListener {
 
   private final Project myProject;
   private JPanel myDescription;
+  // TODO(b/112536124): vertical gap between checkbox and text doesn't toggle the checkbox
   private JCheckBox myAdvancedProfilingCheckBox;
+  private ClickableLabel myAdvancedProfilingLabel;
   private HyperlinkLabel myHyperlinkLabel;
   private JTextPane myAdvancedProfilingDescription;
   private JLabel mySyncStatusMessage;
   private JCheckBox myStartupCpuProfileCheckBox;
+  private ClickableLabel myStartupCpuProfileLabel;
   private ComboBox<CpuProfilerConfig> myStartupCpuConfigsComboBox;
   private JTextPane myStartupCpuProfilerDescription;
 
@@ -66,8 +70,20 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   AndroidProfilersPanel(Project project, ProfilerState state) {
     myProject = project;
     updateHyperlink("");
+    addActionListenersToLabels();
     setUpStartupCpuProfiling();
     resetFrom(state);
+  }
+
+  void addActionListenersToLabels() {
+    myAdvancedProfilingLabel.addActionListener(e -> {
+      myAdvancedProfilingCheckBox.requestFocus();
+      myAdvancedProfilingCheckBox.setSelected(!myAdvancedProfilingCheckBox.isSelected());
+    });
+    myStartupCpuProfileLabel.addActionListener(e -> {
+      myStartupCpuProfileCheckBox.requestFocus();
+      myStartupCpuProfileCheckBox.setSelected(!myStartupCpuProfileCheckBox.isSelected());
+    });
   }
 
   /**
@@ -97,6 +113,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
 
     if (!StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get()) {
       myStartupCpuProfileCheckBox.setVisible(false);
+      myStartupCpuProfileLabel.setVisible(false);
       myStartupCpuConfigsComboBox.setVisible(false);
       myStartupCpuProfilerDescription.setVisible(false);
     }
@@ -155,6 +172,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     myHyperlinkLabel.setVisible(!supported);
     myDescription.setEnabled(supported);
     myAdvancedProfilingCheckBox.setEnabled(supported);
+    myAdvancedProfilingLabel.setEnabled(supported);
   }
 
   @Override

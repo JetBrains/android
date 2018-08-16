@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceItem;
@@ -148,10 +149,8 @@ public class NlXmlPropertyBuilder {
     if (resource.isFramework() || resource.getLibraryName() != null) {
       return null;
     }
-    List<ResourceItem> items = resourceRepository.getResourceItem(resource.getResourceType(), resource.getName());
-    if (items == null) {
-      return null;
-    }
+    List<ResourceItem> items =
+        resourceRepository.getResources(ResourceNamespace.TODO(), resource.getResourceType(), resource.getName());
     for (ResourceItem item : items) {
       if (item.getResourceValue() == resource) {
         return item;

@@ -19,9 +19,9 @@ package com.android.tools.idea.javadoc;
 import com.android.SdkConstants;
 import com.android.builder.model.*;
 import com.android.ide.common.rendering.api.*;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceItemResolver;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -74,7 +74,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
+import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 import static com.android.utils.SdkUtils.hasImageExtension;
 import static com.intellij.codeInsight.documentation.DocumentationComponent.COLOR_KEY;
 
@@ -209,7 +209,7 @@ public class AndroidJavaDocRenderer {
     protected LocalResourceRepository myAppResources;
     protected ResourceResolver myResourceResolver;
     protected boolean mySmall;
-    protected AbstractResourceRepository myFrameworkResources;
+    protected ResourceRepository myFrameworkResources;
 
     protected ResourceValueRenderer(@NotNull Module module, @Nullable Configuration configuration) {
       myModule = module;
@@ -251,11 +251,11 @@ public class AndroidJavaDocRenderer {
     }
 
     /**
-     * Returns a {@link AbstractResourceRepository} instance that allows accessing the framework public resources of the highest available
+     * Returns a {@link ResourceRepository} instance that allows accessing the framework public resources of the highest available
      * SDK.
      */
     @Nullable
-    private static AbstractResourceRepository getLatestPublicFrameworkResources(Module module) {
+    private static ResourceRepository getLatestPublicFrameworkResources(Module module) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet == null) {
         return null;
@@ -411,7 +411,7 @@ public class AndroidJavaDocRenderer {
                                        @NotNull ResourceType type,
                                        @NotNull String name,
                                        @NotNull List<ItemInfo> results) {
-      AbstractResourceRepository frameworkResources = getFrameworkResources();
+      ResourceRepository frameworkResources = getFrameworkResources();
       if (frameworkResources == null) {
         return;
       }
@@ -422,13 +422,13 @@ public class AndroidJavaDocRenderer {
     private static void addItemsFromRepository(@Nullable String flavor,
                                                int mask,
                                                int rank,
-                                               @NotNull AbstractResourceRepository resources,
+                                               @NotNull ResourceRepository resources,
                                                boolean isFramework,
                                                @NotNull ResourceType type,
                                                @NotNull String name,
                                                @NotNull List<ItemInfo> results) {
       ResourceNamespace namespace = isFramework ? ResourceNamespace.ANDROID : ResourceNamespace.TODO();
-      List<ResourceItem> items = resources.getResourceItems(namespace, type, name);
+      List<ResourceItem> items = resources.getResources(namespace, type, name);
       for (ResourceItem item : items) {
         String folderName = null;
         PathString source = item.getSource();
@@ -557,7 +557,7 @@ public class AndroidJavaDocRenderer {
 
     @Override
     @Nullable
-    public AbstractResourceRepository getFrameworkResources() {
+    public ResourceRepository getFrameworkResources() {
       if (myFrameworkResources == null) {
         myFrameworkResources = getLatestPublicFrameworkResources(myModule);
       }

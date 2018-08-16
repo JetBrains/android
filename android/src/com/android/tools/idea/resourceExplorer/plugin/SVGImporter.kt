@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.plugin
 
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
+import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.JPanel
 
 private val supportedFileTypes = setOf("svg")
@@ -26,7 +27,9 @@ private val supportedFileTypes = setOf("svg")
 class SVGImporter : ResourceImporter {
   override fun getPresentableName() = "SVG Importer"
 
-  override fun getConfigurationPanel(callback: ConfigurationDoneCallback): JPanel? {
+  override fun getConfigurationPanel(facet: AndroidFacet,
+                                     callback: ConfigurationDoneCallback)
+    : JPanel? {
     callback.configurationDone()
     return null
   }

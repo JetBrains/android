@@ -17,64 +17,83 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
-import com.android.tools.idea.gradle.dsl.api.util.TypeReference
-import com.android.tools.idea.gradle.structure.model.meta.GradleModelCoreProperty
-import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
+import com.android.tools.idea.gradle.structure.model.android.PsCollectionBase
+import com.android.tools.idea.gradle.structure.model.helpers.parseAny
+import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.projectsystem.transform
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.diagnostic.Logger
 import java.lang.IllegalStateException
 
 /**
  * Model for handling Gradle properties in the Project Structure Dialog
  */
 class PsVariable(
-  private val property: GradlePropertyModel,
-  private val resolvedProperty: ResolvedPropertyModel,
-  val model: PsModel,
-  val scopePsVariables: PsVariablesScope) {
-  val valueType get() = property.valueType
-  val resolvedValueType get() = resolvedProperty.valueType
+  override val parent: PsModel,
+  val scopePsVariables: PsVariablesScope,
+  val refreshCollection: () -> Unit
+) : PsChildModel() {
 
-  fun <T> getUnresolvedValue(type: TypeReference<T>): T? {
-    return property.getRawValue(type)
+  fun init(property: GradlePropertyModel) {
+    this.property = property
+    this.resolvedProperty = property.resolve()
+    myListItems?.refresh()
+    myMapEntries?.refresh()
   }
 
-  fun <T> getResolvedValue(type: TypeReference<T>): T? {
-    return resolvedProperty.getValue(type)
-  }
+  private var property: GradlePropertyModel? = null
+  private var resolvedProperty: ResolvedPropertyModel? = null
+  private var myListItems: ListVariableEntries? = null
+  val listItems: PsKeyedModelCollection<Int, PsVariable> = myListItems ?: ListVariableEntries(this).also { myListItems = it }
+  val isList: Boolean get() = property?.valueType == GradlePropertyModel.ValueType.LIST
+  private var myMapEntries: MapVariableEntries? = null
+  val mapEntries: PsKeyedModelCollection<String, PsVariable> = myMapEntries ?: MapVariableEntries(this).also {myMapEntries = it }
+  val isMap: Boolean get() = property?.valueType == GradlePropertyModel.ValueType.MAP
+  override val name: String get() = property?.name ?: ""
+  override val isDeclared: Boolean = true
+  var value by Descriptors.variableValue
+
+  fun convertToEmptyList() = resolvedProperty!!.convertToEmptyList()
+  fun convertToEmptyMap() = resolvedProperty!!.convertToEmptyMap()
 
   fun setValue(aValue: Any) {
+    val property = property!!
     if (property.valueType == GradlePropertyModel.ValueType.BOOLEAN) {
       property.setValue((aValue as String).toBoolean())
     } else {
       property.setValue(aValue)
     }
-    model.isModified = true
+    parent.isModified = true
   }
 
   fun delete() {
-    property.delete()
-    model.isModified = true
+    property!!.delete()
+    refreshCollection()
+    parent.isModified = true
   }
 
   fun setName(newName: String) {
-    property.rename(newName)
-    model.isModified = true
+    property!!.rename(newName)
+    refreshCollection()
+    parent.isModified = true
   }
 
-  fun getName() = property.name
-
   fun addListValue(value: String): PsVariable {
-    if (valueType != GradlePropertyModel.ValueType.LIST) {
+    val property = property!!
+    if (property.valueType != GradlePropertyModel.ValueType.LIST) {
       throw IllegalStateException("addListValue can only be called for list variables")
     }
 
     val listValue = property.addListValue()
     listValue.setValue(value)
-    model.isModified = true
-    return PsVariable(listValue, listValue.resolve(), model, scopePsVariables)
+    parent.isModified = true
+    return PsVariable(this, scopePsVariables, {}).also { it.init(listValue) }
   }
 
   fun addMapValue(key: String): PsVariable? {
-    if (valueType != GradlePropertyModel.ValueType.MAP) {
+    val property = property!!
+    if (property.valueType != GradlePropertyModel.ValueType.MAP) {
       throw IllegalStateException("addMapValue can only be called for map variables")
     }
 
@@ -82,17 +101,134 @@ class PsVariable(
     if (mapValue.psiElement != null) {
       return null
     }
-    return PsVariable(mapValue, mapValue.resolve(), model, scopePsVariables)
+    return PsVariable(this, scopePsVariables, {}).also { it.init(mapValue) }
   }
-
-  fun getDependencies(): List<GradlePropertyModel> = property.dependencies
 
   /**
    * Binds a new property to the underlying Gradle property using the binding configuration from the [prototype].
    */
   @Suppress("UNCHECKED_CAST")
   fun <T : Any, PropertyCoreT : ModelPropertyCore<T>> bindNewPropertyAs(prototype: PropertyCoreT): PropertyCoreT? =
-    // Note: the as? test is only to test whether the interface is implemented.
-    // If it is, the generic type arguments will match.
-    (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty) { model.isModified = true }
+  // Note: the as? test is only to test whether the interface is implemented.
+  // If it is, the generic type arguments will match.
+    (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty!!) { parent.isModified = true }
+
+  object Descriptors : ModelDescriptor<PsVariable, Nothing, ResolvedPropertyModel> {
+    override fun getResolved(model: PsVariable): Nothing? = null
+
+    override fun getParsed(model: PsVariable): ResolvedPropertyModel? = model.resolvedProperty
+
+    override fun setModified(model: PsVariable) {
+      model.scopePsVariables.model.isModified = true
+    }
+
+    val variableValue: SimpleProperty<PsVariable, Any> = property(
+      "Value",
+      defaultValueGetter = null,
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { this },
+      getter = { asAny() },
+      setter = { setValue(it) },
+      parser = ::parseAny,
+      knownValuesGetter = ::variableKnownValues,
+      variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
+    )
+
+    val variableListValue: ListProperty<PsVariable, Any> = listProperty(
+      "Value",
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { this },
+      getter = { asAny() },
+      setter = { setValue(it) },
+      parser = ::parseAny,
+      knownValuesGetter = ::variableKnownValues,
+      variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
+    )
+
+    val variableMapValue: MapProperty<PsVariable, Any> = mapProperty(
+      "Value",
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { this },
+      getter = { asAny() },
+      setter = { setValue(it) },
+      parser = ::parseAny,
+      knownValuesGetter = ::variableKnownValues,
+      variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
+    )
+
+    fun variableKnownValues(variable: PsVariable): ListenableFuture<List<ValueDescriptor<Any>>> {
+      val potentiallyReferringModels = variable.scopePsVariables.model.descriptor.enumerateContainedModels()
+      val collector = variable.ReferenceContextCollector()
+      potentiallyReferringModels.forEach { it.descriptor.enumerateProperties(collector) }
+      return Futures
+        .successfulAsList(collector.collectedReferences.map { it.getKnownValues() })
+        .transform { it.combineKnownValues() }
+    }
+  }
+
+  private inner class ReferenceContextCollector : PsModelDescriptor.PropertyReceiver {
+    val collectedReferences = mutableListOf<ModelPropertyContext<out Any>>()
+    override fun <T : PsModel> receive(model: T, property: ModelProperty<T, *, *, *>) {
+      try {
+        val value = property.getValue(model, ::FAKE_PROPERTY)
+        if (value !is ParsedValue.Set.Parsed || value.dslText !is DslText.Reference) return
+        val propertyCore = property.bind(model) as? GradleModelCoreProperty<*, *> ?: return
+        var propertyModel: GradlePropertyModel = propertyCore.getParsedProperty()?.unresolvedModel ?: return
+        val seen = mutableSetOf<GradlePropertyModel>()
+        while (propertyModel.valueType == GradlePropertyModel.ValueType.REFERENCE) {
+          if (!seen.add(propertyModel)) return
+          propertyModel = propertyModel.dependencies[0]!!
+          if (resolvedProperty?.fullyQualifiedName == propertyModel.fullyQualifiedName &&
+              resolvedProperty?.gradleFile?.path == propertyModel.gradleFile.path) {
+            collectedReferences.add(property.bindContext(model))
+            return
+          }
+        }
+      }
+      catch (e: Exception) {
+        LOG.warn(e)
+      }
+    }
+  }
+
+  class MapVariableEntries(variable: PsVariable) : PsCollectionBase<PsVariable, String, PsVariable>(variable) {
+    init {
+      refresh()
+    }
+
+    override fun getKeys(from: PsVariable): Set<String> =
+      parent.property?.takeIf { it.valueType == GradlePropertyModel.ValueType.MAP }?.toMap()?.keys ?: setOf()
+
+    override fun create(key: String): PsVariable = PsVariable(parent, parent.scopePsVariables, ::refresh)
+    override fun update(key: String, model: PsVariable) = model.init(parent.property!!.getMapValue(key))
+  }
+
+  class ListVariableEntries(variable: PsVariable) : PsCollectionBase<PsVariable, Int, PsVariable>(variable) {
+    init {
+      refresh()
+    }
+
+    override fun getKeys(from: PsVariable): Set<Int> =
+      parent.property?.takeIf { it.valueType == GradlePropertyModel.ValueType.LIST }?.toList()?.let { 0 until it.size }?.toSet() ?: setOf()
+
+    override fun create(key: Int): PsVariable = PsVariable(parent, parent.scopePsVariables, ::refresh)
+    override fun update(key: Int, model: PsVariable) = model.init(parent.property!!.getValue(GradlePropertyModel.LIST_TYPE)!![key])
+  }
 }
+
+/**
+ * Combines multiple [KnownValues] instances by intersecting non-empty sets of known-values.
+ */
+private fun <T> Collection<KnownValues<out T>>.combineKnownValues() =
+  map { it.literals.toSet() }
+    .fold(setOf<ValueDescriptor<T>>()) { acc, v ->
+      when {
+        acc.isEmpty() -> v
+        v.isEmpty() -> acc
+        else -> acc intersect v
+      }
+    }
+    .toList()
+
+private val LOG = Logger.getInstance(PsVariable::class.java)
+private val FAKE_PROPERTY: Nothing? = null

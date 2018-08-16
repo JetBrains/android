@@ -19,8 +19,8 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.*;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -179,13 +179,13 @@ public class AndroidTargetData {
    */
   @NotNull
   private Map<String, Map<String, Integer>> getFrameworkEnumValues() {
-    AbstractResourceRepository resources = getFrameworkResources(false);
+    ResourceRepository resources = getFrameworkResources(false);
     if (resources == null) {
       return Collections.emptyMap();
     }
 
     Map<String, Map<String, Integer>> result = new HashMap<>();
-    List<ResourceItem> items = resources.getResourceItems(ResourceNamespace.ANDROID, ResourceType.ATTR);
+    Collection<ResourceItem> items = resources.getResources(ResourceNamespace.ANDROID, ResourceType.ATTR).values();
     for (ResourceItem item: items) {
       ResourceValue attr = item.getResourceValue();
       if (attr instanceof AttrResourceValue) {
@@ -196,7 +196,7 @@ public class AndroidTargetData {
       }
     }
 
-    items = resources.getResourceItems(ResourceNamespace.ANDROID, ResourceType.STYLEABLE);
+    items = resources.getResources(ResourceNamespace.ANDROID, ResourceType.STYLEABLE).values();
     for (ResourceItem item: items) {
       ResourceValue styleable = item.getResourceValue();
       if (styleable instanceof StyleableResourceValue) {
@@ -232,7 +232,7 @@ public class AndroidTargetData {
   }
 
   @Nullable
-  public synchronized AbstractResourceRepository getFrameworkResources(boolean withLocale) {
+  public synchronized ResourceRepository getFrameworkResources(boolean withLocale) {
     // If the framework resources that we got was created by someone else who didn't need locale data.
     if (myFrameworkResources != null && withLocale && !myFrameworkResources.isWithLocaleResources()) {
       myFrameworkResources = null;

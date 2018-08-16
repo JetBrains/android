@@ -102,7 +102,7 @@ public class AarSourceResourceRepository extends LocalResourceRepository impleme
     AarSourceResourceRepository repository = new AarSourceResourceRepository(resourceDirectory, namespace, libraryName);
     try {
       ResourceMerger resourceMerger = createResourceMerger(resourceDirectory, namespace, libraryName);
-      ResourceRepositories.updateTableFromMerger(resourceMerger, repository.getItems());
+      ResourceRepositories.updateTableFromMerger(resourceMerger, repository.getFullTable());
     }
     catch (Exception e) {
       LOG.error("Failed to initialize resources", e);
@@ -209,19 +209,13 @@ public class AarSourceResourceRepository extends LocalResourceRepository impleme
     return multimap;
   }
 
-  @Override
-  @NotNull
-  public Set<ResourceNamespace> getNamespaces() {
-    return myFullTable.rowKeySet();
-  }
-
   /**
    * Returns a collection of resource id names found in the R.txt file if the file referenced by this repository is an AAR.
-   * The Ids obtained using {@link #getItemsOfType(ResourceType)} by passing in {@link ResourceType#ID} only contains
-   * a subset of IDs (top level ones like layout file names, and id resources in values xml file). Ids declared inside
-   * layouts and menus (using "@+id/") are not included. This is done for efficiency. However, such IDs can be obtained
-   * from the R.txt file, if present. And hence, this collection includes all id names from the R.txt file, but doesn't
-   * have the associated {@link ResourceItem} with it.
+   * The Ids obtained using {@link #getResources(ResourceNamespace, ResourceType)} by passing in {@link ResourceType#ID}
+   * only contains a subset of IDs (top level ones like layout file names, and id resources in values xml file). Ids declared
+   * inside layouts and menus (using "@+id/") are not included. This is done for efficiency. However, such IDs can be obtained
+   * from the R.txt file, if present. And hence, this collection includes all id names from the R.txt file, but doesn't have
+   * the associated {@link ResourceItem} with it.
    */
   @Nullable
   public Map<String, Integer> getAllDeclaredIds() {

@@ -17,6 +17,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.vfs.VfsUtil
+import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import javax.swing.JPanel
 
@@ -48,7 +49,8 @@ interface ResourceImporter {
   /**
    * Return a [JPanel] displaying a interface to configure the importation settings.
    */
-  fun getConfigurationPanel(callback: ConfigurationDoneCallback): JPanel?
+  fun getConfigurationPanel(facet: AndroidFacet,
+                            callback: ConfigurationDoneCallback): JPanel?
 
   /**
    * Returns true if we should let the user configure the qualifiers or if the plugin handles it itself.

@@ -23,37 +23,40 @@ import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRectangle
 import com.android.tools.idea.naveditor.scene.*
-import java.awt.Rectangle
+import java.awt.geom.RoundRectangle2D
 
 /**
  * [SceneDecorator] responsible for creating draw commands for one fragment in the navigation editor.
  */
 
-class FragmentDecorator : NavScreenDecorator() {
+object FragmentDecorator : NavScreenDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     super.addContent(list, time, sceneContext, component)
 
-    @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneContext, component.fillDrawRect(0, null))
+    val sceneView = sceneContext.surface?.currentSceneView ?: return
+
+    @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
     list.add(DrawRectangle(DRAW_FRAME_LEVEL, drawRectangle, sceneContext.colorSet.frames, REGULAR_FRAME_THICKNESS))
 
-    @SwingCoordinate val imageRectangle = Rectangle(drawRectangle)
+    @SwingCoordinate val imageRectangle = roundRect2DToRect(drawRectangle)
     imageRectangle.grow(-1, -1)
     drawImage(list, sceneContext, component, imageRectangle)
 
     if (isHighlighted(component)) {
-      @SwingCoordinate val borderSpacing = Coordinates.getSwingDimension(sceneContext, FRAGMENT_BORDER_SPACING)
+      @SwingCoordinate val borderSpacing = Coordinates.getSwingDimension(sceneView, FRAGMENT_BORDER_SPACING)
 
-      @SwingCoordinate val outerRectangle = Rectangle(drawRectangle)
-      outerRectangle.grow(2 * borderSpacing, 2 * borderSpacing)
+      @SwingCoordinate val outerRectangle = RoundRectangle2D.Float()
+      outerRectangle.setRoundRect(drawRectangle)
+      setArcSize(sceneView, outerRectangle, 2 * FRAGMENT_BORDER_SPACING)
+      growRectangle(outerRectangle, 2 * borderSpacing, 2 * borderSpacing)
 
       list.add(
-          DrawRectangle(
-              DRAW_FRAME_LEVEL,
-              outerRectangle,
-              frameColor(sceneContext, component),
-              HIGHLIGHTED_FRAME_THICKNESS,
-              2 * borderSpacing
-          )
+        DrawRectangle(
+          DRAW_FRAME_LEVEL,
+          outerRectangle,
+          frameColor(sceneContext, component),
+          HIGHLIGHTED_FRAME_THICKNESS
+        )
       )
     }
   }

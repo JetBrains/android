@@ -15,9 +15,9 @@
  */
 package org.jetbrains.android.dom.navigation;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.NavTestUtil;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.io.FileUtil;
@@ -102,28 +102,20 @@ public class NavigationSchemaTest extends AndroidTestCase {
 
   public void testDestinationClassByTag() {
     NavigationSchema schema = NavigationSchema.get(myFacet);
-    PsiClass activityNavigator = findClass("androidx.navigation.ActivityNavigator");
-    PsiClass fragmentNavigator = findClass("androidx.navigation.fragment.FragmentNavigator");
-    PsiClass navGraphNavigator = findClass("androidx.navigation.NavGraphNavigator");
-    PsiClass activityNavigatorSub = findClass("ActivityNavigatorSub");
-    PsiClass activityNavigatorSub2 = findClass("ActivityNavigatorSub2");
-    PsiClass fragmentNavigatorSub = findClass("FragmentNavigatorSub");
-    PsiClass fragmentNavigatorSubSub = findClass("FragmentNavigatorSubSub");
-    PsiClass navGraphNavigatorSub = findClass("NavGraphNavigatorSub");
-    PsiClass otherNavigator1 = findClass("OtherNavigator1");
-    PsiClass otherNavigator2 = findClass("OtherNavigator2");
+    PsiClass activity = findClass(SdkConstants.CLASS_ACTIVITY);
+    PsiClass fragment = findClass(SdkConstants.CLASS_V4_FRAGMENT.oldName());
+    PsiClass navGraph = findClass("androidx.navigation.NavGraph");
+    // TODO: update custom navs so some have custom destination classes in the release after alpha4
 
-
-    assertSameElements(schema.getDestinationClassesByTag("activity"), ImmutableList.of(activityNavigator));
-    assertSameElements(schema.getDestinationClassesByTag("activity_sub"),
-                       ImmutableList.of(activityNavigatorSub, activityNavigatorSub2));
-    assertSameElements(schema.getDestinationClassesByTag("fragment"), ImmutableList.of(fragmentNavigator));
-    assertSameElements(schema.getDestinationClassesByTag("fragment_sub"), ImmutableList.of(fragmentNavigatorSub));
-    assertSameElements(schema.getDestinationClassesByTag("fragment_sub_sub"), ImmutableList.of(fragmentNavigatorSubSub));
-    assertSameElements(schema.getDestinationClassesByTag("navigation"), ImmutableList.of(navGraphNavigator));
-    assertSameElements(schema.getDestinationClassesByTag("navigation_sub"), ImmutableList.of(navGraphNavigatorSub));
-    assertSameElements(schema.getDestinationClassesByTag("other_1"), ImmutableList.of(otherNavigator1));
-    assertSameElements(schema.getDestinationClassesByTag("other_2"), ImmutableList.of(otherNavigator2));
+    assertSameElements(schema.getDestinationClassesForTag("activity"), activity);
+    assertSameElements(schema.getDestinationClassesForTag("activity_sub"), activity);
+    assertSameElements(schema.getDestinationClassesForTag("fragment"), fragment);
+    assertSameElements(schema.getDestinationClassesForTag("fragment_sub"), fragment);
+    assertSameElements(schema.getDestinationClassesForTag("fragment_sub_sub"), fragment);
+    assertSameElements(schema.getDestinationClassesForTag("navigation"), navGraph);
+    assertSameElements(schema.getDestinationClassesForTag("navigation_sub"), navGraph);
+    assertEmpty(schema.getDestinationClassesForTag("other_1"));
+    assertEmpty(schema.getDestinationClassesForTag("other_2"));
   }
 
   @NotNull
@@ -133,19 +125,21 @@ public class NavigationSchemaTest extends AndroidTestCase {
   }
 
   public void testDestinationType() {
+    // TODO: update custom navs so some have multiple types in the release after alpha4
     NavigationSchema schema = NavigationSchema.get(myFacet);
-    assertEquals(NavigationSchema.DestinationType.ACTIVITY, schema.getDestinationType("activity"));
-    assertEquals(NavigationSchema.DestinationType.ACTIVITY, schema.getDestinationType("activity_sub"));
-    assertEquals(NavigationSchema.DestinationType.FRAGMENT, schema.getDestinationType("fragment"));
-    assertEquals(NavigationSchema.DestinationType.FRAGMENT, schema.getDestinationType("fragment_sub"));
-    assertEquals(NavigationSchema.DestinationType.FRAGMENT, schema.getDestinationType("fragment_sub_sub"));
-    assertEquals(NavigationSchema.DestinationType.NAVIGATION, schema.getDestinationType("navigation"));
-    assertEquals(NavigationSchema.DestinationType.NAVIGATION, schema.getDestinationType("navigation_sub"));
-    assertEquals(NavigationSchema.DestinationType.OTHER, schema.getDestinationType("other_1"));
-    assertEquals(NavigationSchema.DestinationType.OTHER, schema.getDestinationType("other_2"));
+    assertSameElements(schema.getDestinationTypesForTag("activity"), NavigationSchema.DestinationType.ACTIVITY);
+    assertSameElements(schema.getDestinationTypesForTag("activity_sub"), NavigationSchema.DestinationType.ACTIVITY);
+    assertSameElements(schema.getDestinationTypesForTag("fragment"), NavigationSchema.DestinationType.FRAGMENT);
+    assertSameElements(schema.getDestinationTypesForTag("fragment_sub"), NavigationSchema.DestinationType.FRAGMENT);
+    assertSameElements(schema.getDestinationTypesForTag("fragment_sub_sub"), NavigationSchema.DestinationType.FRAGMENT);
+    assertSameElements(schema.getDestinationTypesForTag("navigation"), NavigationSchema.DestinationType.NAVIGATION);
+    assertSameElements(schema.getDestinationTypesForTag("navigation_sub"), NavigationSchema.DestinationType.NAVIGATION);
+    assertSameElements(schema.getDestinationTypesForTag("other_1"), NavigationSchema.DestinationType.OTHER);
+    assertSameElements(schema.getDestinationTypesForTag("other_2"), NavigationSchema.DestinationType.OTHER);
   }
 
   public void testTagByType() {
+    // TODO: update custom navs so some have "OTHER" type in the release after alpha4
     NavigationSchema schema = NavigationSchema.get(myFacet);
     assertEquals("activity", schema.getDefaultTag(NavigationSchema.DestinationType.ACTIVITY));
     assertEquals("navigation", schema.getDefaultTag(NavigationSchema.DestinationType.NAVIGATION));
@@ -153,6 +147,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
   }
 
   public void testTagLabel() {
+    // TODO: update custom navs so some have multiple types in the release after alpha4
     NavigationSchema schema = NavigationSchema.get(myFacet);
     assertEquals("Activity", schema.getTagLabel("activity"));
     assertEquals("Activity (activity_sub)", schema.getTagLabel("activity_sub"));

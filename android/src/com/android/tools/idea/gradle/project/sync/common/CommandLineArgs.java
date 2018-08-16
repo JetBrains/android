@@ -121,7 +121,7 @@ public class CommandLineArgs {
       application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
     }
 
-    if (myIdeSettings.isEmbeddedMavenRepoEnabled() || isTestingMode) {
+    if (!StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get() && (myIdeSettings.isEmbeddedMavenRepoEnabled() || isTestingMode)) {
       myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
     }
     return args;

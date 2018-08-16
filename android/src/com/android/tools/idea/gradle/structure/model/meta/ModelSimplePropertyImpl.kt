@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import kotlin.reflect.KProperty
@@ -39,21 +40,20 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   ModelT,
   ResolvedT,
   ParsedT,
-  PropertyT : Any,
-  ContextT> T.property(
+  PropertyT : Any> T.property(
   description: String,
   defaultValueGetter: ((ModelT) -> PropertyT?)? = null,
   resolvedValueGetter: ResolvedT.() -> PropertyT?,
   parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
   getter: ResolvedPropertyModel.() -> PropertyT?,
   setter: ResolvedPropertyModel.(PropertyT) -> Unit,
-  parser: (ContextT, String) -> Annotated<ParsedValue<PropertyT>>,
-  formatter: (ContextT, PropertyT) -> String = { _, value -> value.toString() },
-  knownValuesGetter: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>) = { _, _ -> immediateFuture(listOf()) },
+  parser: (String) -> Annotated<ParsedValue<PropertyT>>,
+  formatter: (PropertyT) -> String = { it.toString() },
+  knownValuesGetter: ((ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>) = { immediateFuture(listOf()) },
   variableMatchingStrategy: VariableMatchingStrategy = VariableMatchingStrategy.BY_TYPE,
   matcher: (model: ModelT, parsedValue: PropertyT?, resolvedValue: PropertyT) -> Boolean =
     { _, parsedValue, resolvedValue -> parsedValue == resolvedValue }
-): ModelSimpleProperty<ContextT, ModelT, PropertyT> = ModelSimplePropertyImpl(
+): ModelSimpleProperty<ModelT, PropertyT> = ModelSimplePropertyImpl(
   this,
   description,
   defaultValueGetter,
@@ -68,7 +68,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   matcher
 )
 
-class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
+class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
   private val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   override val description: String,
   val defaultValueGetter: ((ModelT) -> PropertyT?)?,
@@ -76,13 +76,13 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
   private val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
   private val getter: ResolvedPropertyModel.() -> PropertyT?,
   private val setter: ResolvedPropertyModel.(PropertyT) -> Unit,
-  override val parser: (ContextT, String) -> Annotated<ParsedValue<PropertyT>>,
-  override val formatter: (ContextT, PropertyT) -> String,
-  override val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>,
+  override val parser: (String) -> Annotated<ParsedValue<PropertyT>>,
+  override val formatter: (PropertyT) -> String,
+  override val knownValuesGetter: (ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>,
   override val variableMatchingStrategy: VariableMatchingStrategy,
   private val matcher: (model: ModelT, parsed: PropertyT?, resolved: PropertyT) -> Boolean
-) : ModelPropertyBase<ContextT, ModelT, PropertyT>(),
-    ModelSimpleProperty<ContextT, ModelT, PropertyT> {
+) : ModelPropertyBase<ModelT, PropertyT>(),
+    ModelSimpleProperty<ModelT, PropertyT> {
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<PropertyT> =
     getParsedValue(modelDescriptor.getParsed(thisRef)?.parsedPropertyGetter(), getter).value
 
@@ -123,8 +123,8 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
   private fun ModelT.setModified() = modelDescriptor.setModified(this)
 }
 
-abstract class ModelPropertyCoreImpl<PropertyT : Any> : ModelPropertyCore<PropertyT>, GradleModelCoreProperty<PropertyT, ModelPropertyCore<PropertyT>> {
-  abstract fun getParsedProperty(): ResolvedPropertyModel?
+abstract class ModelPropertyCoreImpl<PropertyT : Any>
+  : ModelPropertyCore<PropertyT>, GradleModelCoreProperty<PropertyT, ModelPropertyCore<PropertyT>> {
   abstract val getter: ResolvedPropertyModel.() -> PropertyT?
   abstract val setter: ResolvedPropertyModel.(PropertyT) -> Unit
   abstract val nullifier: ResolvedPropertyModel.() -> Unit

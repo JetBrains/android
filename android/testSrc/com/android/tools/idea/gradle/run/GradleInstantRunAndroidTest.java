@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -46,13 +47,13 @@ public class GradleInstantRunAndroidTest extends AndroidTestCase {
 
     // change a resource not referenced from manifest
     LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myFacet);
-    ResourceValue resValue = repository.getConfiguredValue(ResourceType.STRING, "title_section1", new FolderConfiguration());
+    ResourceValue resValue = ResourceRepositoryUtil.getConfiguredValue(repository, ResourceType.STRING, "title_section1", new FolderConfiguration());
     resValue.setValue("foo");
     assertEquals("Hash should not change if a resource not referenced from the manifest is changed",
                  hash, GradleInstantRunContext.getManifestResourcesHash(myFacet));
 
     // change the app_name referenced from manifest
-    resValue = repository.getConfiguredValue(ResourceType.STRING, "app_name", new FolderConfiguration());
+    resValue = ResourceRepositoryUtil.getConfiguredValue(repository, ResourceType.STRING, "app_name", new FolderConfiguration());
     resValue.setValue("testapp");
     assertNotEquals("Hash should change if a resource referenced from the manifest is changed",
                     hash, GradleInstantRunContext.getManifestResourcesHash(myFacet));
@@ -65,7 +66,7 @@ public class GradleInstantRunAndroidTest extends AndroidTestCase {
 
     // change the contents of the theme referenced from manifest
     hash = GradleInstantRunContext.getManifestResourcesHash(myFacet);
-    resValue = repository.getConfiguredValue(ResourceType.STYLE, "AppTheme", new FolderConfiguration());
+    resValue = ResourceRepositoryUtil.getConfiguredValue(repository, ResourceType.STYLE, "AppTheme", new FolderConfiguration());
     ((StyleResourceValue)resValue).getItem(ResourceNamespace.RES_AUTO, "colorPrimary").setValue("colorPrimaryDark");
     assertNotEquals("Hash should change if a resource referenced from the manifest is changed",
                     hash, GradleInstantRunContext.getManifestResourcesHash(myFacet));

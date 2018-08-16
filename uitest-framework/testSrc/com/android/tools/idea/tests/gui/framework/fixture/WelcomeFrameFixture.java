@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.BrowseSamplesWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.sdk.SdkProblemDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
+import com.intellij.openapi.wm.impl.welcomeScreen.RecentProjectPanel;
+import com.intellij.ui.components.JBList;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
 
 public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, FlatWelcomeFrame> {
@@ -73,6 +77,19 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
   public BrowseSamplesWizardFixture importCodeSample() {
     findActionLinkByActionId("WelcomeScreen.GoogleCloudTools.SampleImport").click();
     return BrowseSamplesWizardFixture.find(robot());
+  }
+
+  @NotNull
+  public IdeFrameFixture openTheMostRecentProject(@NotNull GuiTestRule guiTestRule) {
+    RecentProjectPanel recentProjectPanel = robot().finder().findByType(RecentProjectPanel.class);
+    JBList jbList = robot().finder().findByType(recentProjectPanel, JBList.class, true);
+
+    if (!jbList.isEmpty()) {
+      JListFixture listFixture= new JListFixture(robot(), jbList);
+      listFixture.clickItem(0);
+    }
+
+    return guiTestRule.ideFrame();
   }
 
   @NotNull

@@ -16,7 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -180,7 +180,7 @@ public class StateListPicker extends JPanel {
     assert target != null;
     final AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, myModule);
     assert androidTargetData != null;
-    AbstractResourceRepository frameworkResources = myConfiguration.getFrameworkResources();
+    ResourceRepository frameworkResources = myConfiguration.getFrameworkResources();
     assert frameworkResources != null;
 
     for (StateComponent component : myStateComponents) {

@@ -74,7 +74,7 @@ public class JCenterRepositoryTest {
                       "    \"latest_version\": \"8.1\"\n" +
                       "  },\n" +
                       "  {\n" +
-                      "    \"name\": \"io.janusproject.guava:guava\",\n" +
+                      "    \"name\": \"just-some-test-not-necessarily-in-a-form-of-maven-id\",\n" +
                       "    \"repo\": \"jcenter\",\n" +
                       "    \"owner\": \"bintray\",\n" +
                       "    \"desc\": null,\n" +
@@ -121,7 +121,6 @@ public class JCenterRepositoryTest {
                       "]";
     Reader responseReader = new StringReader(response);
     SearchResult result = new JCenterRepository().parse(responseReader);
-    assertEquals(5, result.getTotalFound());
     List<String> coordinates = result.getArtifactCoordinates();
     assertThat(coordinates).containsExactly(
       "com.atlassian.guava:guava:15.0",

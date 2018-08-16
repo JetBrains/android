@@ -33,12 +33,21 @@ object PropertyModelTestUtil {
     override var resolvedValue: String?
   }
 
+  interface TestAsyncPropertyItem : TestPropertyItem {
+    val lastValueUpdate: String?
+    val updateCount: Int
+  }
+
   interface TestPropertyEditorModel : PropertyEditorModel {
     val focusWasRequested: Boolean
     val toggleCount: Int
   }
 
-  fun makeProperty(namespace: String, name: String, initialValue: String?): TestPropertyItem {
+  fun makeProperty(namespace: String,
+                   name: String,
+                   initialValue: String?,
+                   browseButton: ActionIconButton? = null,
+                   colorButton: ActionIconButton? = null): TestPropertyItem {
     return object : TestPropertyItem {
 
       override val namespace: String
@@ -59,18 +68,58 @@ object PropertyModelTestUtil {
 
       override val isReference: Boolean
         get() = false
+
+      override val browseButton: ActionIconButton?
+        get() = browseButton
+
+      override val colorButton: ActionIconButton?
+        get() = colorButton
     }
   }
 
-  fun makeFlagsProperty(propertyName: String, flagNames: List<String>, values: List<Int>): FlagsPropertyItem<FlagPropertyItem> {
+  fun makeAsyncProperty(namespace: String, name: String, initialValue: String?): TestAsyncPropertyItem {
+    return object : TestAsyncPropertyItem {
+
+      override val namespace: String
+        get() = namespace
+
+      override val namespaceIcon: Icon?
+        get() = if (namespace == TOOLS_URI) StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY else null
+
+      override var name: String = name
+
+      override var value: String? = initialValue
+        set(value) {
+          lastValueUpdate = value
+          updateCount++
+        }
+
+      override var resolvedValue: String? = initialValue
+
+      override val isReference: Boolean
+        get() = false
+
+      override var lastValueUpdate: String? = initialValue
+        private set
+
+      override var updateCount = 0
+        private set
+    }
+  }
+
+  fun makeFlagsProperty(propertyName: String,
+                        flagNames: List<String>,
+                        values: List<Int>,
+                        initialValue: String? = null): FlagsPropertyItem<FlagPropertyItem> {
     require(flagNames.size == values.size)
     val property = object : FlagsPropertyItem<FlagPropertyItem> {
       override val namespace = ANDROID_URI
       override val name = propertyName
       override val children = mutableListOf<FlagPropertyItem>()
       override fun flag(itemName: String): FlagPropertyItem? = children.firstOrNull { it.name == itemName }
-      override var value: String? = null
+      override var value: String? = initialValue
       override var resolvedValue: String? = null
+        get() = field ?: value
       override var isReference = false
       override val maskValue: Int
         get() {

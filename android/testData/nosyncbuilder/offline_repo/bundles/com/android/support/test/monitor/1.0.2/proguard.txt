@@ -1,0 +1,10 @@
+# Proguard flags for the AndroidJUnitRunner library.
+
+# avoid obfuscation of the instrumentation runners and orchestrator
+-keepnames class android.support.test.**
+
+# Annotation classes accessed via reflection
+-keep class android.support.test.annotation.** { *; }
+
+# for 'can't find referenced method 'android.app.Instrumentation$ActivityResult execStartActivity' etc
+-dontwarn android.support.test.runner.MonitoringInstrumentation

@@ -67,7 +67,7 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
 
   public void testMigrationMapSize() throws Exception {
     // Inspired by Lint registry tests!
-    assertEquals(MIGRATION_ENTRY_SIZE, buildMigrationMap().size());
+    assertEquals(MIGRATION_ENTRY_SIZE, buildMigrationMap(getProject()).size());
   }
 
   public void testMigrateActivity2AppCompatActivity() throws Exception {
@@ -393,7 +393,7 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
                                                      List<AppCompatMigrationEntry> migrationMap) {
       AppCompatStyleMigration styleMigration = new AppCompatStyleMigration(myAppCompatAttrs, myAppCompatStyles);
       return new MigrateToAppCompatProcessor(project,
-                                             allEntries ? buildMigrationMap() : migrationMap,
+                                             allEntries ? buildMigrationMap(project) : migrationMap,
                                              (artifact, version) -> styleMigration);
     }
   }

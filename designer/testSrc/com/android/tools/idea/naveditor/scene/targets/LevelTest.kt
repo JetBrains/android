@@ -50,7 +50,7 @@ class LevelTest : NavTestCase() {
     `when`<SceneView>(surface.getSceneView(anyInt(), anyInt())).thenReturn(sceneView)
 
     val scene = model.surface.scene!!
-    scene.layout(0, SceneContext.get())
+    scene.layout(0, SceneContext.get(sceneView))
 
     val interactionManager = InteractionManager(surface)
     interactionManager.startListening()
@@ -81,15 +81,17 @@ class LevelTest : NavTestCase() {
                               component2: SceneComponent,
                               interactionManager: InteractionManager,
                               sceneView: SceneView) {
+    val context = SceneContext.get(sceneView)
+
     mouseDown(x1, y1, interactionManager, sceneView)
-    checkLevel(component2, component1)
+    checkLevel(component2, component1, context)
     mouseUp(x1, y1, interactionManager, sceneView)
-    checkLevel(component2, component1)
+    checkLevel(component2, component1, context)
 
     mouseDown(x2, y2, interactionManager, sceneView)
-    checkLevel(component1, component2)
+    checkLevel(component1, component2, context)
     mouseUp(x2, y2, interactionManager, sceneView)
-    checkLevel(component1, component2)
+    checkLevel(component1, component2, context)
   }
 
   private fun mouseDown(@NavCoordinate x: Int, @NavCoordinate y: Int, interactionManager: InteractionManager, sceneView: SceneView) {
@@ -110,16 +112,16 @@ class LevelTest : NavTestCase() {
         Coordinates.getSwingY(sceneView, y), 0)
   }
 
-  private fun checkLevel(lower: SceneComponent, higher: SceneComponent) {
-    val level1 = getLevel(lower)
-    val level2 = getLevel(higher)
+  private fun checkLevel(lower: SceneComponent, higher: SceneComponent, context: SceneContext) {
+    val level1 = getLevel(lower, context)
+    val level2 = getLevel(higher, context)
     assertTrue(level2 > level1)
   }
 
-  private fun getLevel(component: SceneComponent): Int {
+  private fun getLevel(component: SceneComponent, context: SceneContext): Int {
     val decorator = component.decorator
     val displayList = DisplayList()
-    decorator.buildList(displayList, 0, SceneContext.get(), component)
+    decorator.buildList(displayList, 0, context, component)
 
     val commands = displayList.commands
     assertEquals(1, commands.size)

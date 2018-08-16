@@ -20,10 +20,12 @@ import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.fd.actions.HotswapAction;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
+import com.android.tools.idea.run.ApplyChangesAction;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -162,7 +164,13 @@ public class GradleSpecificInitializer implements Runnable {
     ActionManager actionManager = ActionManager.getInstance();
     AnAction runnerActions = actionManager.getAction(IdeActions.GROUP_RUNNER_ACTIONS);
     if (runnerActions instanceof DefaultActionGroup) {
-      ((DefaultActionGroup)runnerActions).add(new HotswapAction(), new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
+      AnAction action;
+      if (StudioFlags.JVMTI_REFRESH.get()) {
+        action = new ApplyChangesAction();
+      } else {
+        action = new HotswapAction();
+      }
+      ((DefaultActionGroup)runnerActions).add(action, new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
     }
   }
 

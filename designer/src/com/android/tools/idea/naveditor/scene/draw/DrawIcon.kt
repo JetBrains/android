@@ -17,10 +17,7 @@ package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.scene.draw.buildString
-import com.android.tools.idea.common.scene.draw.parse
-import com.android.tools.idea.common.scene.draw.rectToString
-import com.android.tools.idea.common.scene.draw.stringToRect
+import com.android.tools.idea.common.scene.draw.*
 import com.android.tools.idea.naveditor.scene.DRAW_ICON_LEVEL
 import com.android.tools.idea.naveditor.scene.setRenderingHints
 import icons.StudioIcons.NavEditor.Surface
@@ -32,7 +29,7 @@ import javax.swing.Icon
  * [DrawIcon] is a DrawCommand that draws an icon
  * in the specified rectangle.
  */
-class DrawIcon(@SwingCoordinate private val rectangle: Rectangle, private val iconType: IconType) : NavBaseDrawCommand() {
+class DrawIcon(@SwingCoordinate private val rectangle: Rectangle, private val iconType: IconType) : DrawCommandBase() {
   enum class IconType {
     START_DESTINATION,
     DEEPLINK

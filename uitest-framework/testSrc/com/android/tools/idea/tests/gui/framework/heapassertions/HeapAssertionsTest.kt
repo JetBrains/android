@@ -28,7 +28,8 @@ class HeapAssertionsTest : PlatformTestCase() {
     extraRoots.add(this) // add object to GC roots explicitly so that companion object is reachable
   }
 
-  fun test_reachableDisposed() {
+  // b/112311209
+  fun ignore_test_reachableDisposed() {
     instance = MyDisposable("one")
     try {
       checkReachableDisposed(true)

@@ -54,6 +54,8 @@ import java.nio.file.Paths
 // New project is created only in first iteration of first test. Later only modules/activities are created
 private var firstRun = true
 
+// TODO(qumeric): add "no activity" and "watch face" support
+
 private val mobileActivities = listOf(
   "BasicActivity",
   "EmptyActivity",
@@ -61,6 +63,11 @@ private val mobileActivities = listOf(
   "FullscreenActivity",
   "MasterDetailFlow",
   "NavigationDrawerActivity"
+)
+
+private val wearActivities = listOf(
+  "BlankWearActivity",
+  "GoogleMapsWearActivity"
 )
 
 /**
@@ -102,10 +109,7 @@ class GenerateShippedSyncTest : AndroidTestBase() {
     StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride()
   }
 
-  @Throws(Exception::class)
-  fun ignore_testCachePhoneAndTabletActivities() {
-    val projectName = "phone_and_tablet_activities"
-
+  private fun generateProjects(projectName: String, activities: List<String>) {
     val templateRootFolder = TemplateManager.getTemplateRootFolder()
 
     val factory = IdeaTestFixtureFactory.getFixtureFactory()
@@ -117,7 +121,7 @@ class GenerateShippedSyncTest : AndroidTestBase() {
 
     val projectDir: File = Projects.getBaseDirPath(myFixture!!.project)
 
-    for (activity in mobileActivities) {
+    for (activity in activities) {
       val templateFile = File(templateRootFolder, "activities" + File.separator + activity)
       executeActivityTemplate(templateFile, projectDir.path)
     }
@@ -125,6 +129,12 @@ class GenerateShippedSyncTest : AndroidTestBase() {
     createGradleWrapper(projectDir)
     Files.move(projectDir.toPath(), Paths.get(NPW_GENERATED_PROJECTS_DIR))
   }
+
+  @Throws(Exception::class)
+  fun ignore_testCachePhoneAndTabletActivities() = generateProjects("phone_and_tablet_activities", mobileActivities)
+
+  @Throws(Exception::class)
+  fun ignore_testCacheWearActivities() = generateProjects("wear_activities", wearActivities)
 
   private fun executeActivityTemplate(templateFile: File, projectLocation: String) {
     val projectState = TestNewProjectWizardState(getModuleTemplateForFormFactor(templateFile)).apply {

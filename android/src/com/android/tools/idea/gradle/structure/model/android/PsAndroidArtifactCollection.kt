@@ -19,6 +19,10 @@ import com.android.ide.common.gradle.model.IdeBaseArtifact
 
 
 class PsAndroidArtifactCollection internal constructor(parent: PsVariant) : PsCollectionBase<PsAndroidArtifact, String, PsVariant>(parent) {
+  init {
+    refresh()
+  }
+
   override fun getKeys(from: PsVariant): Set<String> {
     val result = mutableSetOf<String>()
     val variant = from.resolvedModel

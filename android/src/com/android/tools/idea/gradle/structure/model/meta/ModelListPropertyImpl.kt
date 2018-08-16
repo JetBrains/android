@@ -22,16 +22,16 @@ import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import kotlin.reflect.KProperty
 
-fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT, ValueT : Any, ContextT> T.listProperty(
+fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT, ValueT : Any> T.listProperty(
   description: String,
   resolvedValueGetter: ResolvedT.() -> List<ValueT>?,
   getter: ResolvedPropertyModel.() -> ValueT?,
   setter: ResolvedPropertyModel.(ValueT) -> Unit,
   parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
-  parser: (ContextT, String) -> Annotated<ParsedValue<ValueT>>,
-  formatter: (ContextT, ValueT) -> String = { _, value -> value.toString() },
+  parser: (String) -> Annotated<ParsedValue<ValueT>>,
+  formatter: (ValueT) -> String = { it.toString() },
   variableMatchingStrategy: VariableMatchingStrategy = VariableMatchingStrategy.BY_TYPE,
-  knownValuesGetter: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>)? = null,
+  knownValuesGetter: ((ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>)? = null,
   matcher: (model: ModelT, parsedValue: ValueT?, resolvedValue: ValueT) -> Boolean =
     { _, parsedValue, resolvedValue -> parsedValue == resolvedValue }
 ) =
@@ -42,26 +42,26 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     parsedPropertyGetter,
     getter,
     setter,
-    { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet.annotated() else parser(context, value.trim()) },
+    { value -> if (value.isBlank()) ParsedValue.NotSet.annotated() else parser(value.trim()) },
     formatter,
     variableMatchingStrategy,
-    { context: ContextT, model -> if (knownValuesGetter != null) knownValuesGetter(context, model) else immediateFuture(listOf()) },
+    { model -> if (knownValuesGetter != null) knownValuesGetter(model) else immediateFuture(listOf()) },
     matcher
   )
 
-class ModelListPropertyImpl<in ContextT, in ModelT, out ResolvedT, ParsedT, ValueT : Any>(
+class ModelListPropertyImpl<in ModelT, out ResolvedT, ParsedT, ValueT : Any>(
   override val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   override val description: String,
   private val getResolvedValue: ResolvedT.() -> List<ValueT>?,
   override val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
   override val getter: ResolvedPropertyModel.() -> ValueT?,
   override val setter: ResolvedPropertyModel.(ValueT) -> Unit,
-  override val parser: (ContextT, String) -> Annotated<ParsedValue<ValueT>>,
-  override val formatter: (ContextT, ValueT) -> String,
+  override val parser: (String) -> Annotated<ParsedValue<ValueT>>,
+  override val formatter: (ValueT) -> String,
   override val variableMatchingStrategy: VariableMatchingStrategy,
-  override val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>,
+  override val knownValuesGetter: (ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>,
   private val matcher: (model: ModelT, parsed: ValueT?, resolved: ValueT) -> Boolean
-) : ModelCollectionPropertyBase<ContextT, ModelT, ResolvedT, ParsedT, List<ValueT>, ValueT>(), ModelListProperty<ContextT, ModelT, ValueT> {
+) : ModelCollectionPropertyBase<ModelT, ResolvedT, ParsedT, List<ValueT>, ValueT>(), ModelListProperty<ModelT, ValueT> {
 
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<List<ValueT>> = getParsedValue(thisRef).value
 

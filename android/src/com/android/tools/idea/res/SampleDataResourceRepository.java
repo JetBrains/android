@@ -263,12 +263,6 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
     return multimap;
   }
 
-  @NonNull
-  @Override
-  public Set<ResourceNamespace> getNamespaces() {
-    return myFullTable.rowKeySet();
-  }
-
   @Override
   @NotNull
   public ResourceNamespace getNamespace() {

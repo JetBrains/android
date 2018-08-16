@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.logic.VectorDrawableFile;
+import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchParser;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -38,7 +39,7 @@ public class VectorDrawableFileTest {
   public void createFileTest() {
     VectorDrawableFile vectorDrawableFile = new VectorDrawableFile(projectRule.getProject());
     vectorDrawableFile.createVectorDrawable();
-    LightVirtualFile file = vectorDrawableFile.generateFile();
+    LightVirtualFile file = vectorDrawableFile.generateFile("file");
 
     assertEquals("<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"",
                  file.getContent());
@@ -46,28 +47,27 @@ public class VectorDrawableFileTest {
 
   @Test
   public void addShapeTest() {
-
     SketchPage sketchPage = SketchParser.parsePage(getTestFilePath("/sketch/vectordrawable_addShape.json"));
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
 
     VectorDrawableFile vectorDrawableFile = new VectorDrawableFile(projectRule.getProject(), artboard);
-    LightVirtualFile file = vectorDrawableFile.generateFile();
+    LightVirtualFile file = vectorDrawableFile.generateFile("file");
 
     assertEquals(
-      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"401.0dp\" android:width=\"401.0dp\" android:viewportHeight=\"401.0\" android:viewportWidth=\"401.0\"><path android:name=\"Combined Shape\" android:pathData=\"M268.5,34.0 C227.22681106905614,34.0 194.76227556749063,66.29839590772073 194.50158121846573,107.5 L50.0,107.5 L50.0,325.5 L226.5027875876822,325.5 C226.5009307973233,325.66640960999274 226.5,325.83307787808866 226.5,326.0 C226.5,348.68 244.98000000000002,368.0 268.5,368.0 C291.18,368.0 310.5,348.68 310.5,326.0 C310.5,302.48 291.18,284.0 268.5,284.0 C268.3329080451577,284.0 268.1660704609547,284.00093269234424 267.99949206635785,284.0027932580658 L268.0,284.0027932580658 L268.0,181.9983471275387 L268.00000002679803,181.9983471275387 C268.166521767314,181.99944843113553 268.33318893989207,182.0 268.5,182.0 C308.46000000000004,182.0 342.5,147.96 342.5,108.0 C342.5,66.56 308.46000000000004,34.0 268.5,34.0 z\" android:fillColor=\"#ffd8d8d8\" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\"/></vector>",
+      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"401.0dp\" android:width=\"401.0dp\" android:viewportHeight=\"401.0\" android:viewportWidth=\"401.0\"><path android:name=\"Combined Shape\" android:pathData=\"M268.5,34 C227.23,34 194.76,66.3 194.5,107.5 L50,107.5 L50,325.5 L226.5,325.5 C226.5,325.67 226.5,325.83 226.5,326 C226.5,348.68 244.98,368 268.5,368 C291.18,368 310.5,348.68 310.5,326 C310.5,302.48 291.18,284 268.5,284 C268.33,284 268.17,284 268,284 L268,284 L268,182 L268,182 C268.17,182 268.33,182 268.5,182 C308.46,182 342.5,147.96 342.5,108 C342.5,66.56 308.46,34 268.5,34 z\" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\" android:fillColor=\"#ffd8d8d8\"/></vector>",
       file.getContent());
   }
 
   @Test
   public void shapeFillAndBorderTest() {
     SketchPage sketchPage = SketchParser.parsePage(getTestFilePath("/sketch/vectordrawable_shapeFillAndBorder.json"));
-    SketchArtboard artboard = sketchPage.getArtboards().get(0);
+    SketchArtboard sketchArtboard = sketchPage.getArtboards().get(0);
 
-    VectorDrawableFile vectorDrawableFile = new VectorDrawableFile(projectRule.getProject(), artboard);
-    LightVirtualFile file = vectorDrawableFile.generateFile();
+    VectorDrawableFile vectorDrawableFile = new VectorDrawableFile(projectRule.getProject(), sketchArtboard);
+    LightVirtualFile file = vectorDrawableFile.generateFile("file");
 
     assertEquals(
-      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"401.0dp\" android:width=\"401.0dp\" android:viewportHeight=\"401.0\" android:viewportWidth=\"401.0\"><path android:name=\"Combined Shape\" android:pathData=\"M214.65074923291172,169.0 Q206.65074923291172,169.0 206.65074923291172,177.0 L206.65074923291172,189.0 Q206.65074923291172,197.0 214.65074923291172,197.0 L233.87111472473228,197.0 C243.08697031716272,188.50201287793575 249.32537461645592,182.74954867470245 249.32537461645592,182.74954867470245 L264.7796345081796,197.0 L284.6507492329117,197.0 Q292.6507492329117,197.0 292.6507492329117,189.0 L292.6507492329117,177.0 Q292.6507492329117,169.0 284.6507492329117,169.0 zM233.87111472473228,197.0 C207.82596959685134,221.01636024666215 158.0,266.9611391911356 158.0,266.9611391911356 L159.74714815776215,266.9611391911356 C159.67186270613888,267.01583727348003 159.63342870341367,267.04376121098136 159.63342870341367,267.04376121098136 L194.26837986487962,373.639180211494 L306.3494362207688,373.639180211494 L340.879924278726,267.3652655848922 L340.879924244638,267.3652655848922 C320.48822228455214,295.0431056988451 287.66651445119106,313.0 250.65074923291172,313.0 C213.4551337714681,313.0 180.4944304344295,294.8681857653931 160.12522111675239,266.9611391911356 L340.6507492329117,266.9611391911356 L264.7796345081796,197.0 z\" android:fillColor=\"#ff50e3c2\" android:strokeColor=\"#ff4a90e2\" android:strokeWidth=\"3\"/><path android:name=\"Oval 2\" android:pathData=\"M180.5,100.0 C201.76296286730002,100.0 219.0,82.7629628673 219.0,61.5 C219.0,40.237037132699996 201.76296286730002,23.0 180.5,23.0 C159.2370371327,23.0 142.0,40.237037132699996 142.0,61.5 C142.0,82.7629628673 159.2370371327,100.0 180.5,100.0 \" android:fillColor=\"\" android:strokeColor=\"#ffd0021b\" android:strokeWidth=\"1\"/><path android:name=\"Oval 3\" android:pathData=\"M147.00000000000003,184.99999999999991 C160.80711874500003,184.99999999999991 172.00000000000006,173.80711874499994 172.00000000000006,159.99999999999994 C172.00000000000006,146.19288125499997 160.80711874500003,135.0 147.00000000000003,135.0 C133.192881255,135.0 122.0,146.19288125499997 122.0,159.99999999999994 C122.0,173.80711874499994 133.192881255,184.99999999999991 147.00000000000003,184.99999999999991 \" android:fillColor=\"#ffd8d8d8\" android:strokeColor=\"#ff9013fe\" android:strokeWidth=\"1\"/><path android:name=\"Oval 4\" android:pathData=\"M83.49999999999999,115.00000000000003 C92.06041362189998,115.00000000000003 98.99999999999997,108.06041362190001 98.99999999999997,99.50000000000001 C98.99999999999997,90.9395863781 92.06041362189998,84.0 83.49999999999999,84.0 C74.93958637809999,84.0 68.0,90.9395863781 68.0,99.50000000000001 C68.0,108.06041362190001 74.93958637809999,115.00000000000003 83.49999999999999,115.00000000000003 \" android:fillColor=\"#fff8e71c\" android:strokeColor=\"\" android:strokeWidth=\"\"/><path android:name=\"Oval 5\" android:pathData=\"M60.5,195.99999999999994 C78.4492543685,195.99999999999994 93.0,181.44925436849996 93.0,163.49999999999997 C93.0,145.55074563149998 78.4492543685,131.0 60.5,131.0 C42.5507456315,131.0 28.0,145.55074563149998 28.0,163.49999999999997 C28.0,181.44925436849996 42.5507456315,195.99999999999994 60.5,195.99999999999994 \" android:fillColor=\"#ff7ed321\" android:strokeColor=\"#ff4a4a4a\" android:strokeWidth=\"1\"/><path android:name=\"Path 2\" android:pathData=\"M323.71349962496504,62.89255732215321 C323.71349962496504,62.89255732215321 308.2507957663141,39.035814225948975 282.6268865148355,46.98806192468371 C257.0029772633569,54.94030962341844 252.5850618751709,88.51646657363182 267.6059741950032,96.02692273354796 C282.6268865148355,103.53737889346412 327.2478319355137,100.44483812173397 317.5284180815046,131.37024583903573 C307.80900422749545,162.29565355633756 346.68665964353204,179.52552357026283 363.91652965745726,162.73744509515618 C381.1463996713826,145.94936662004943 406.7703089228611,119.00008275211499 377.1702758220151,86.30750887953882 C347.5702427211692,53.61493500696264 323.71349962496504,62.89255732215321 323.71349962496504,62.89255732215321 \" android:fillColor=\"#ff000000\" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\"/></vector>",
+      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"401.0dp\" android:width=\"401.0dp\" android:viewportHeight=\"401.0\" android:viewportWidth=\"401.0\"><path android:name=\"Combined Shape\" android:pathData=\"M214.65,169 Q206.65,169 206.65,177 L206.65,189 Q206.65,197 214.65,197 L233.87,197 C243.09,188.5 249.33,182.75 249.33,182.75 L264.78,197 L284.65,197 Q292.65,197 292.65,189 L292.65,177 Q292.65,169 284.65,169 zM233.87,197 C207.83,221.02 158,266.96 158,266.96 L159.75,266.96 C159.67,267.02 159.63,267.04 159.63,267.04 L194.27,373.64 L306.35,373.64 L340.88,267.37 L340.88,267.37 C320.49,295.04 287.67,313 250.65,313 C213.46,313 180.49,294.87 160.13,266.96 L340.65,266.96 L264.78,197 z\" android:strokeColor=\"#ff4a90e2\" android:strokeWidth=\"3\" android:fillColor=\"#ff50e3c2\"/><path android:name=\"Oval 2\" android:pathData=\"M180.5,100 C201.76,100 219,82.76 219,61.5 C219,40.24 201.76,23 180.5,23 C159.24,23 142,40.24 142,61.5 C142,82.76 159.24,100 180.5,100 \" android:strokeColor=\"#ffd0021b\" android:strokeWidth=\"1\"/><path android:name=\"Oval 3\" android:pathData=\"M147,185 C160.81,185 172,173.81 172,160 C172,146.19 160.81,135 147,135 C133.19,135 122,146.19 122,160 C122,173.81 133.19,185 147,185 \" android:strokeColor=\"#ff9013fe\" android:strokeWidth=\"1\" android:fillColor=\"#ffd8d8d8\"/><path android:name=\"Oval 4\" android:pathData=\"M83.5,115 C92.06,115 99,108.06 99,99.5 C99,90.94 92.06,84 83.5,84 C74.94,84 68,90.94 68,99.5 C68,108.06 74.94,115 83.5,115 \" android:fillColor=\"#fff8e71c\"/><path android:name=\"Oval 5\" android:pathData=\"M60.5,196 C78.45,196 93,181.45 93,163.5 C93,145.55 78.45,131 60.5,131 C42.55,131 28,145.55 28,163.5 C28,181.45 42.55,196 60.5,196 \" android:strokeColor=\"#ff4a4a4a\" android:strokeWidth=\"1\" android:fillColor=\"#ff7ed321\"/><path android:name=\"Path 2\" android:pathData=\"M323.71,62.89 C323.71,62.89 308.25,39.04 282.63,46.99 C257,54.94 252.59,88.52 267.61,96.03 C282.63,103.54 327.25,100.44 317.53,131.37 C307.81,162.3 346.69,179.53 363.92,162.74 C381.15,145.95 406.77,119 377.17,86.31 C377.17,86.31 323.71,112.61 323.71,62.89 \" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\" android:fillColor=\"#ff000000\"/></vector>",
       file.getContent());
   }
 
@@ -77,10 +77,23 @@ public class VectorDrawableFileTest {
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
 
     VectorDrawableFile vectorDrawableFile = new VectorDrawableFile(projectRule.getProject(), artboard);
-    LightVirtualFile file = vectorDrawableFile.generateFile();
+    LightVirtualFile file = vectorDrawableFile.generateFile("file");
 
     assertEquals(
-      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"401.0dp\" android:width=\"401.0dp\" android:viewportHeight=\"401.0\" android:viewportWidth=\"401.0\"><path android:name=\"Combined Shape\" android:pathData=\"M197.4422909105832,94.27144913376834 L197.44229750845244,94.2714502971507 L197.44228726688192,94.27145402477751 C197.4422884741688,94.27145239709105 197.44228968145586,94.27145076940438 197.44229088874306,94.27144914171751 L197.4422909105832,94.27144913376834 zM89.26577889107907,109.45109265586046 L89.26577887927905,109.45109266015531 C89.26603244596673,109.45167763896502 103.28568202833199,141.79503472484245 107.6520201114035,151.86818462411557 L107.65202011050884,151.86818462411557 L114.08585902932035,115.3800709335112 L89.26577889107907,109.45109265586046 zM233.39379610774418,143.80768638596655 C235.8136370966711,143.80768638596655 237.8502116274566,144.42848561585654 239.4023476761837,145.73088240188042 C248.2869156118602,153.1859200798761 237.93434623640974,180.15057875573305 216.27923679080328,205.9581332355554 C201.95143371645207,223.03334402339578 186.26560825659038,235.32385569785998 174.71764597436868,239.52697023501747 C171.8611191070395,240.56666098810697 169.25777961067084,241.1115004783096 166.99081086286535,241.1115004783096 C164.57096987393845,241.1115004783096 162.53439534315297,240.4907012484196 160.98225929442586,239.1883044623957 C152.09769135874933,231.73326678440006 162.45026073419973,204.7686081085431 184.1053701798062,178.96105362872075 C198.43317325415734,161.88584284088037 214.11899871401909,149.5953311664162 225.66696099624085,145.3922166292587 C228.52348786357,144.35252587616918 231.1268273599387,143.80768638596655 233.39379610774418,143.80768638596655 zM218.1443775130561,66.36051414726914 L218.14437748849087,66.36051415621014 C218.14379209703847,66.36130339176329 204.91710627949408,84.1937651655301 197.44229089648312,94.27144913128222 L197.44229089648366,94.27144913128222 L120.20914992969651,80.65316257397738 L114.08585902932035,115.3800709335112 L137.36716787074994,120.94147015653138 L108.9343102693366,154.82643035073528 C108.9343102693366,154.82643035073528 108.45736714085075,153.72612168583981 107.65202105612278,151.86818680358468 C107.65202074355518,151.8681860824907 107.65202043098755,151.8681853613966 107.65202011841987,151.86818464030236 L107.65202010765468,151.86818464030236 L107.6520196350055,151.86818732082907 L85.65316257397734,276.62990542340674 L85.65316257397734,276.6299054234068 L281.62990542340674,311.18589277912594 L316.18589277912594,115.2091499296965 L228.05187354207555,99.66874441992563 L218.1443775130561,66.36051414726914 z\" android:fillColor=\"#ffd8d8d8\" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\"/></vector>",
+      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"401.0dp\" android:width=\"401.0dp\" android:viewportHeight=\"401.0\" android:viewportWidth=\"401.0\"><path android:name=\"Combined Shape\" android:pathData=\"M197.44,94.27 L197.44,94.27 L197.44,94.27 C197.44,94.27 197.44,94.27 197.44,94.27 L197.44,94.27 zM89.27,109.45 L89.27,109.45 C89.27,109.45 103.29,141.8 107.65,151.87 L107.65,151.87 L114.09,115.38 L89.27,109.45 zM233.39,143.81 C235.81,143.81 237.85,144.43 239.4,145.73 C248.29,153.19 237.93,180.15 216.28,205.96 C201.95,223.03 186.27,235.32 174.72,239.53 C171.86,240.57 169.26,241.11 166.99,241.11 C164.57,241.11 162.53,240.49 160.98,239.19 C152.1,231.73 162.45,204.77 184.11,178.96 C198.43,161.89 214.12,149.6 225.67,145.39 C228.52,144.35 231.13,143.81 233.39,143.81 zM218.14,66.36 L218.14,66.36 C218.14,66.36 204.92,84.19 197.44,94.27 L197.44,94.27 L120.21,80.65 L114.09,115.38 L137.37,120.94 L108.93,154.83 C108.93,154.83 108.46,153.73 107.65,151.87 C107.65,151.87 107.65,151.87 107.65,151.87 L107.65,151.87 L107.65,151.87 L85.65,276.63 L85.65,276.63 L281.63,311.19 L316.19,115.21 L228.05,99.67 L218.14,66.36 z\" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\" android:fillColor=\"#ffd8d8d8\"/></vector>",
+      file.getContent());
+  }
+
+  @Test
+  public void fillGradientTest() {
+    SketchPage sketchPage = SketchParser.parsePage(getTestFilePath("/sketch/vectordrawable_fillGradient.json"));
+    SketchArtboard sketchArtboard = sketchPage.getArtboards().get(0);
+
+    VectorDrawableFile vectorDrawableFile = new VectorDrawableFile(projectRule.getProject(), sketchArtboard);
+    LightVirtualFile file = vectorDrawableFile.generateFile("file");
+
+    assertEquals(
+      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"401.0dp\" android:width=\"401.0dp\" android:viewportHeight=\"401.0\" android:viewportWidth=\"401.0\" xmlns:aapt=\"http://schemas.android.com/aapt\"><path android:name=\"Rectangle\" android:pathData=\"M24,64 L174,64 L174,214 L24,214 z\"><aapt:attr name = \"android:fillColor\"><gradient android:endX=\"99.0\" android:endY=\"214.0\" android:startX=\"99.0\" android:startY=\"64.0\" android:type=\"linear\"><item android:color=\"#ffb4ec51\" android:offset=\"0.0\"/><item android:color=\"#ff429321\" android:offset=\"1.0\"/></gradient></aapt:attr></path><path android:name=\"Oval\" android:pathData=\"M307,197 C341.79,197 370,168.79 370,134 C370,99.21 341.79,71 307,71 C272.21,71 244,99.21 244,134 C244,168.79 272.21,197 307,197 \" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\"><aapt:attr name = \"android:fillColor\"><gradient android:centerX=\"289.9834177102786\" android:centerY=\"158.24032699766252\" android:gradientRadius=\"85.4989153541967\" android:type=\"radial\"><item android:color=\"#ff3023ae\" android:offset=\"0.0\"/><item android:color=\"#ff53a0fd\" android:offset=\"0.6997698737109772\"/><item android:color=\"#ffb4ec51\" android:offset=\"1.0\"/></gradient></aapt:attr></path><path android:name=\"Rectangle 2\" android:pathData=\"M147,267 Q147,259 155,259 L279,259 Q287,259 287,267 L287,373 Q287,381 279,381 L155,381 Q147,381 147,373 z\" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\"><aapt:attr name = \"android:fillColor\"><gradient android:centerX=\"217.0\" android:centerY=\"320.0\" android:type=\"sweep\"><item android:color=\"#fff5515f\" android:offset=\"0.0\"/><item android:color=\"#ff9f041b\" android:offset=\"1.0\"/></gradient></aapt:attr></path><path android:name=\"Triangle\" android:pathData=\"M79,276 L112,344 L46,344 C46,344 79,276 79,276 \" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\" android:fillColor=\"#ff50e3c2\"/></vector>",
       file.getContent());
   }
 
@@ -90,10 +103,10 @@ public class VectorDrawableFileTest {
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
 
     VectorDrawableFile vectorDrawableFile = new VectorDrawableFile(projectRule.getProject(), artboard);
-    LightVirtualFile file = vectorDrawableFile.generateFile();
+    LightVirtualFile file = vectorDrawableFile.generateFile("file");
 
     assertEquals(
-      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"401.0dp\" android:width=\"401.0dp\" android:viewportHeight=\"401.0\" android:viewportWidth=\"401.0\"><path android:name=\"Combined Shape\" android:pathData=\"M246.99999998098792,180.00000001760017 L137.42979500396802,281.43380363494043 L82.6446925059521,246.17606440354405 C82.6446925059521,246.17606440354405 246.99690500193742,180.00124617083705 246.99999995628798,180.00000001760017 zM75.0,123.0 C75.0,123.0 75.0,289.8233618233618 75.0,289.8233618233618 L313.9999999999999,289.8233618233618 L222.75783475783467,123.0 z\" android:fillColor=\"#ffd8d8d8\" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\"/></vector>",
+      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"401.0dp\" android:width=\"401.0dp\" android:viewportHeight=\"401.0\" android:viewportWidth=\"401.0\"><path android:name=\"Combined Shape\" android:pathData=\"M247,180 L137.43,281.43 L82.64,246.18 C82.64,246.18 247,180 247,180 zM75,123 C75,123 75,289.82 75,289.82 L314,289.82 L222.76,123 z\" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\" android:fillColor=\"#ffd8d8d8\"/></vector>",
       file.getContent());
   }
 
@@ -107,5 +120,5 @@ public class VectorDrawableFileTest {
 //virtualFile.setContent();
 //new VectorDrawableAssetRenderer().getImage(virtualFile, rule.module, new Dimension(10,10));
 //ImageDiffUtil.assertImageSimilar();
-//String resultingFilePath = getTestFilePath("/sketch/test.xml");
+//String resultingFilePath = getTestFilePath("/sketch/generated/test.xml");
 //vectorDrawableFile.saveDrawableToDisk(resultingFilePath);

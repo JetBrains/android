@@ -17,8 +17,9 @@ package org.jetbrains.android;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -65,6 +66,8 @@ import org.xmlpull.v1.XmlPullParser;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Objects;
 
@@ -111,7 +114,7 @@ public class AndroidAnnotatorUtil {
           // Take a look and see if we have a bitmap we can fall back to.
           LocalResourceRepository resourceRepository = ResourceRepositoryManager.getAppResources(facet);
           List<ResourceItem> items =
-              resourceRepository.getResourceItems(resourceValue.getNamespace(), resourceValue.getResourceType(), resourceValue.getName());
+              resourceRepository.getResources(resourceValue.getNamespace(), resourceValue.getResourceType(), resourceValue.getName());
           for (ResourceItem item : items) {
             FolderConfiguration configuration = item.getConfiguration();
             DensityQualifier densityQualifier = configuration.getDensityQualifier();
@@ -251,11 +254,11 @@ public class AndroidAnnotatorUtil {
                                                 @NotNull Module module,
                                                 @NotNull Configuration configuration) {
     if (isFramework) {
-      AbstractResourceRepository frameworkResources = configuration.getFrameworkResources();
+      ResourceRepository frameworkResources = configuration.getFrameworkResources();
       if (frameworkResources == null) {
         return null;
       }
-      List<ResourceItem> items = frameworkResources.getResourceItems(ResourceNamespace.ANDROID, type, name);
+      List<ResourceItem> items = frameworkResources.getResources(ResourceNamespace.ANDROID, type, name);
       if (items.isEmpty()) {
         return null;
       }
@@ -265,10 +268,10 @@ public class AndroidAnnotatorUtil {
       if (appResources == null) {
         return null;
       }
-      if (!appResources.hasResourceItem(type, name)) {
+      if (!appResources.hasResources(ResourceNamespace.TODO(), type, name)) {
         return null;
       }
-      return appResources.getConfiguredValue(type, name, configuration.getFullConfig());
+      return ResourceRepositoryUtil.getConfiguredValue(appResources, type, name, configuration.getFullConfig());
     }
   }
 
@@ -378,6 +381,12 @@ public class AndroidAnnotatorUtil {
           .addCustomComponent(model -> new MaterialColorPalette(model))
           .addSeparator()
           .addOperationPanel(okCallback, cancelCallback)
+          .addKeyAction(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              dialog.close();
+            }
+          })
           .build();
 
       dialog.show(panel, null, MouseInfo.getPointerInfo().getLocation());

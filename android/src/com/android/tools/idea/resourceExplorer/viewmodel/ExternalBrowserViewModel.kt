@@ -32,7 +32,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Image
 
-private val LOGGER = Logger.getInstance(ExternalBrowserViewModel::class.java)
+private val LOG = Logger.getInstance(ExternalBrowserViewModel::class.java)
 
 /**
  * ViewModel for [com.android.tools.idea.resourceExplorer.view.ExternalResourceBrowser]
@@ -77,7 +77,7 @@ class ExternalBrowserViewModel(
         getAssetSets(directory, importersProvider.supportedFileTypes, _matcher)
           .sortedBy { (name, _) -> name })
     } else {
-      LOGGER.error("${directory.path} is not a valid directory")
+      LOG.error("${directory.path} is not a valid directory")
       return
     }
   }

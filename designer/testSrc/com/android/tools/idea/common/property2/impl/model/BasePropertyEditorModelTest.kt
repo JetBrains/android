@@ -75,16 +75,15 @@ class BasePropertyEditorModelTest {
   }
 
   @Test
-  fun testFocusLossWillUpdateValue() {
+  fun testFocusLossIsRecodedButNotPropagatedToListener() {
     // setup
     val (model, listener) = createModelWithListener()
     model.focusGained()
 
     // test
-    model.focusLost("#333333")
+    model.focusLost()
     assertThat(model.hasFocus).isFalse()
-    assertThat(model.property.value).isEqualTo("#333333")
-    verify(listener).valueChanged()
+    verify(listener, never()).valueChanged()
   }
 
   @Test
@@ -98,9 +97,21 @@ class BasePropertyEditorModelTest {
   }
 
   @Test
-  fun testFocusLossWithUnchangedValueWillNotUpdateValue() {
+  fun testListenersAreConcurrentModificationSafe() {
+    // Make sure that ConcurrentModificationException is NOT generated from the code below:
     val model = createModel()
-    model.focusLost("#00FF00")
-    assertThat(model.property.value).isEqualTo("#00FF00")
+    val listener = RecursiveValueChangedListener(model)
+    model.addListener(listener)
+    model.visible = true
+    assertThat(listener.called).isTrue()
+  }
+
+  private class RecursiveValueChangedListener(private val model: BasePropertyEditorModel) : ValueChangedListener {
+    var called = false
+
+    override fun valueChanged() {
+      model.addListener(RecursiveValueChangedListener(model))
+      called = true
+    }
   }
 }

@@ -20,7 +20,6 @@ import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.StateChartModel;
-import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
@@ -56,16 +55,14 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
    * All items with a process id matching the process id passed in are highlighted one color, while everything else is a different color.
    *
    * @param processId        Id of the process to stand out as the user process.
-   * @param updatableManager updatable manager to trigger model updates.
    * @param cpuStateList     list to be passed to the base cell renderer.
    * @param threadsList      list containing thread elements to keep selection in sync between the two list.
    */
   public CpuKernelCellRenderer(@NotNull FeatureConfig featureConfig,
                                int processId,
-                               @NotNull UpdatableManager updatableManager,
                                @NotNull JList<CpuKernelModel.CpuState> cpuStateList,
                                @NotNull JList<CpuThreadsModel.RangedCpuThread> threadsList) {
-    super(cpuStateList, updatableManager);
+    super(cpuStateList);
     myProcessId = processId;
     myThreadsList = threadsList;
     myDebugRenderingEnabled = featureConfig.isPerformanceMonitoringEnabled();

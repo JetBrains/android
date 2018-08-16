@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.folding;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -236,7 +237,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
                                                         @NotNull PsiElement foldElement) {
     // Not part of a call: just fold the R.string reference itself
     LocalResourceRepository appResources = getAppResources(foldElement);
-    if (appResources != null && appResources.hasResourceItem(type, name)) {
+    if (appResources != null && appResources.hasResources(ResourceNamespace.TODO(), type, name)) {
       ASTNode node = foldElement.getNode();
       if (node != null) {
         TextRange textRange = foldElement.getTextRange();

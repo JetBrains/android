@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
-import com.intellij.facet.Facet;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.StdModuleTypes;
@@ -62,12 +60,6 @@ class ModuleFactory {
     DependencyRemover dependencyRemover = new DependencyRemover(rootModel);
     for (OrderEntry orderEntry : rootModel.getOrderEntries()) {
       orderEntry.accept(dependencyRemover, null);
-    }
-
-    // Remove all facets.
-    ModifiableFacetModel facetModel = myModelsProvider.getModifiableFacetModel(newModule);
-    for (Facet facet : facetModel.getAllFacets()) {
-      facetModel.removeFacet(facet);
     }
 
     return newModule;

@@ -16,21 +16,22 @@
 package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.scene.LerpValue
+import com.android.tools.idea.common.scene.LerpFloat
 import com.android.tools.idea.common.scene.SceneContext
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.Point
+import java.awt.geom.Ellipse2D
+import java.awt.geom.Point2D
 
 class DrawCircle(private val myLevel: Int,
-                 @SwingCoordinate private val myCenter: Point,
+                 @SwingCoordinate private val myCenter: Point2D.Float,
                  private val myColor: Color,
                  private val myStroke: BasicStroke,
-                 @SwingCoordinate private val myRadius: LerpValue) : DrawCommand {
+                 @SwingCoordinate private val myRadius: LerpFloat) : DrawCommandBase() {
 
-  private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToPoint(sp[1]),
-      stringToColor(sp[2]), BasicStroke(sp[3].toFloat()), stringToLerp(sp[4]))
+  private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToPoint2D(sp[1]),
+                                                stringToColor(sp[2]), BasicStroke(sp[3].toFloat()), stringToLerp(sp[4]))
 
   constructor(s: String) : this(parse(s, 5))
 
@@ -40,25 +41,24 @@ class DrawCircle(private val myLevel: Int,
 
   override fun serialize(): String {
     return buildString(javaClass.simpleName,
-        myLevel,
-        pointToString(myCenter),
-        colorToString(myColor),
-        myStroke.lineWidth.toInt(),
-        lerpToString(myRadius))
+                       myLevel,
+                       point2DToString(myCenter),
+                       colorToString(myColor),
+                       myStroke.lineWidth.toInt(),
+                       lerpToString(myRadius))
   }
 
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
+  override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     val r = myRadius.getValue(sceneContext.time)
 
-    val g2 = g.create() as Graphics2D
+    g.color = myColor
+    g.stroke = myStroke
+    val circle = Ellipse2D.Float(myCenter.x - r, myCenter.y - r, 2 * r, 2 * r)
+    g.draw(circle)
 
-    g2.color = myColor
-    g2.stroke = myStroke
-    g2.drawOval(myCenter.x - r, myCenter.y - r, 2 * r, 2 * r)
+    g.dispose()
 
-    g2.dispose()
-
-    if (r != myRadius.end) {
+    if (!myRadius.isComplete(sceneContext.time)) {
       sceneContext.repaint()
     }
   }

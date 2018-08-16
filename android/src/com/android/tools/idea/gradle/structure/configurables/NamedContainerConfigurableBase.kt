@@ -97,6 +97,9 @@ private fun <T> ConfigurablesTreeModel.updateChildrenOf(
         else -> {
           // Create any new nodes and insert them at their positions.
           val configurable = fromConfigurable.createChildConfigurable(model)
+          if (configurable is Disposable) {
+            Disposer.register(fromConfigurable, configurable)
+          }
           insertNodeInto(
             MasterDetailsComponent.MyNode(configurable, false)
               .also { initializeNode(it, fromConfigurable = configurable) },

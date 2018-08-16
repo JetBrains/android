@@ -51,7 +51,7 @@ private const val NOTHING_TO_SHOW_EMPTY_TEXT = "Nothing to show"
 
 class ArtifactRepositorySearchForm(
   val variables: PsVariablesScope,
-  repositories: List<ArtifactRepository>
+  repositories: Collection<ArtifactRepository>
 ) : ArtifactRepositorySearchFormUi() {
   private val repositorySearch: ArtifactRepositorySearch = ArtifactRepositorySearch(repositories)
   private val resultsTable: TableView<FoundArtifact>
@@ -147,7 +147,7 @@ class ArtifactRepositorySearchForm(
         return@continueOnEdt
       }
 
-      val foundArtifacts = results.results.flatMap { it.artifacts }.sorted()
+      val foundArtifacts = results.artifacts.sorted()
 
       resultsTable.listTableModel.items = foundArtifacts
       resultsTable.updateColumnSizes()
@@ -197,7 +197,7 @@ class ArtifactRepositorySearchForm(
       columnInfos = arrayOf(
         column("Group ID", preferredWidthTextSample = "abcdefghijklmno") { it.groupId },
         column("Artifact Name", preferredWidthTextSample = "abcdefg") { it.name },
-        column("Repository") { it.repositoryName })
+        column("Repository") { it.repositoryNames.joinToString (separator = ", ") })
     }
   }
 }
@@ -208,7 +208,7 @@ fun prepareArtifactVersionChoices(
   variablesScope: PsVariablesScope
 ): List<ParsedValue.Set.Parsed<GradleVersion>> {
   val versionPropertyContext = object : ModelPropertyContext<GradleVersion> {
-    override fun parse(value: String): Annotated<ParsedValue<GradleVersion>> = parseGradleVersion(null, value)
+    override fun parse(value: String): Annotated<ParsedValue<GradleVersion>> = parseGradleVersion(value)
     override fun format(value: GradleVersion): String = value.toString()
 
     override fun getKnownValues(): ListenableFuture<KnownValues<GradleVersion>> =

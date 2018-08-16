@@ -190,6 +190,9 @@ class FakeEditorProviderImpl: EditorProvider<NelePropertyItem> {
 
       ControlType.BOOLEAN ->
         return Pair(BooleanPropertyEditorModel(property), JPanel())
+
+      ControlType.COLOR_EDITOR ->
+        return Pair(ColorFieldPropertyEditorModel(property), JPanel())
     }
   }
 }

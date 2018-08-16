@@ -15,27 +15,21 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
-import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
-import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.cpu.*;
-import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.components.JBPanel;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
-import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.awt.event.*;
+import java.util.concurrent.TimeUnit;
 
 public class CpuCaptureView {
   @NotNull
@@ -63,7 +57,7 @@ public class CpuCaptureView {
 
     myStage.getAspect().addDependency(myObserver)
            .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails)
-           .onChange(CpuProfilerAspect.CAPTURE_STATE, this::updateCapturePane)
+           .onChange(CpuProfilerAspect.CAPTURE_STATE, this::onCaptureStateChanged)
            .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCapturePane)
            .onChange(CpuProfilerAspect.CAPTURE_ELAPSED_TIME, this::updateStatusElapsedTime);
     myStage.getCaptureParser().getAspect().addDependency(myObserver).onChange(CpuProfilerAspect.CAPTURE_PARSING, this::updateCapturePane);
@@ -74,13 +68,16 @@ public class CpuCaptureView {
     myCapturePane.updateView();
   }
 
-  private void updateCapturePane() {
+  private void onCaptureStateChanged() {
     if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.STARTING
         || myStage.getCaptureState() == CpuProfilerStage.CaptureState.STOPPING) {
       // STARTING and STOPPING shouldn't change the panel displayed, so we return early.
       return;
     }
+    updateCapturePane();
+  }
 
+  private void updateCapturePane() {
     myPanel.removeAll();
     myCapturePane = createCapturePane();
     myPanel.add(myCapturePane, BorderLayout.CENTER);
@@ -100,8 +97,7 @@ public class CpuCaptureView {
   @NotNull
   private CapturePane createCapturePane() {
     if (myStage.getCaptureParser().isParsing()) {
-      // TODO(b/112175842): make the parsing pane a subclass of StatusPane
-      return new LoadingPane(myStageView);
+      return new ParsingPane(myStageView);
     }
 
     if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
@@ -119,37 +115,6 @@ public class CpuCaptureView {
   @NotNull
   public JComponent getComponent() {
     return myPanel;
-  }
-
-  static class LoadingPane extends CapturePane {
-    private static final String LOADING_TEXT = "Parsing capture...";
-
-    @NotNull private final LoadingPanel myCaptureViewLoading;
-
-    LoadingPane(@NotNull CpuProfilerStageView stageView) {
-      super(stageView);
-      myCaptureViewLoading = stageView.getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
-      myCaptureViewLoading.setLoadingText(LOADING_TEXT);
-
-      addHierarchyListener(new HierarchyListener() {
-        @Override
-        public void hierarchyChanged(HierarchyEvent e) {
-          if ((e.getChangeFlags() & HierarchyEvent.DISPLAYABILITY_CHANGED) != 0 && !isDisplayable()) {
-            // LoadingPane was removed from the hierarchy, so stop the animations.
-            myCaptureViewLoading.stopLoading();
-          }
-        }
-      });
-
-      disableInteraction();
-      updateView();
-    }
-
-    @Override
-    void populateContent(@NotNull JPanel panel) {
-      myCaptureViewLoading.startLoading();
-      panel.add(myCaptureViewLoading.getComponent(), BorderLayout.CENTER);
-    }
   }
 
   /**
@@ -183,23 +148,64 @@ public class CpuCaptureView {
    * A {@link StatusPane} representing the {@link CpuProfilerStage.CaptureState#CAPTURING} state.
    */
   @VisibleForTesting
-  class RecordingPane extends StatusPane {
+  static class RecordingPane extends StatusPane {
+
+    /**
+     * {@link JButton} used to stop recording.
+     */
+    private JButton myStopRecordingButton;
+
+    private final AspectObserver myObserver = new AspectObserver();
 
     public RecordingPane(@NotNull CpuProfilerStageView stageView) {
       super(stageView, "Recording");
+      // Disable the stop recording button on state transition.
+      myStage.getAspect().addDependency(myObserver)
+             .onChange(CpuProfilerAspect.CAPTURE_STATE, () -> myStopRecordingButton.setEnabled(false));
     }
 
     @Override
     protected JButton createAbortButton() {
-      JButton stopButton = new JButton("Stop");
-      stopButton.addActionListener((event) -> myStage.toggleCapturing());
-      return stopButton;
+      myStopRecordingButton = new JButton(CpuProfilerStageView.STOP_TEXT);
+      myStopRecordingButton.addActionListener((event) -> myStage.toggleCapturing());
+      myStopRecordingButton.setEnabled(true);
+      return myStopRecordingButton;
     }
 
     @NotNull
     @Override
     protected String getDurationText() {
       return TimeFormatter.getMultiUnitDurationString(myStage.getCaptureElapsedTimeUs());
+    }
+  }
+
+  /**
+   * A {@link StatusPane} representing the {@link CpuCaptureParser#isParsing()} state.
+   */
+  @VisibleForTesting
+  static class ParsingPane extends StatusPane {
+
+    static final String ABORT_BUTTON_TEXT = "Abort";
+
+    public ParsingPane(@NotNull CpuProfilerStageView stageView) {
+      super(stageView, "Parsing");
+    }
+
+    @NotNull
+    @Override
+    protected String getDurationText() {
+      return TimeFormatter.getMultiUnitDurationString(TimeUnit.MILLISECONDS.toMicros(myStage.getCaptureParser().getParsingElapsedTimeMs()));
+    }
+
+    @Override
+    protected JButton createAbortButton() {
+      JButton abortButton = new JButton(ABORT_BUTTON_TEXT);
+      abortButton.addActionListener((event) -> {
+        myStage.getCaptureParser().abortParsing();
+        myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
+        abortButton.setEnabled(false);
+      });
+      return abortButton;
     }
   }
 }

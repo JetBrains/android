@@ -59,7 +59,7 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
     setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
     setCellRenderer(new CpuKernelCellRenderer(myStage.getStudioProfilers().getIdeServices().getFeatureConfig(),
                                               myStage.getStudioProfilers().getSession().getPid(),
-                                              myStage.getUpdatableManager(), this, threadsView));
+                                              this, threadsView));
   }
 
   @NotNull

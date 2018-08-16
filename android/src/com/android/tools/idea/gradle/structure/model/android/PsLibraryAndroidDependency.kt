@@ -17,11 +17,12 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.helpers.dependencyVersionValues
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.meta.*
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchResults
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
+import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
 import com.google.common.util.concurrent.Futures
 import kotlin.reflect.KProperty
 
@@ -31,6 +32,7 @@ open class PsDeclaredLibraryAndroidDependency(
   final override val parsedModel: ArtifactDependencyModel
 ) : PsLibraryAndroidDependency(parent, containers),
     PsDeclaredDependency, PsDeclaredLibraryDependency {
+  override val descriptor by Descriptor
   private val nameResolvedProperty = parsedModel.name()
   private val groupResolvedProperty = parsedModel.group()
   private val versionResolvedProperty = parsedModel.version()
@@ -45,12 +47,12 @@ open class PsDeclaredLibraryAndroidDependency(
   override val joinedConfigurationNames: String = configurationName
 
   var version by Descriptor.version
-  override val versionProperty: ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String>
-    get() = object : ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String> {
+  override val versionProperty: ModelSimpleProperty<Unit, String>
+    get() = object : ModelSimpleProperty<Unit, String> {
       override val description: String get() = Descriptor.version.description
       override fun bind(model: Unit): ModelPropertyCore<String> = Descriptor.version.bind(this@PsDeclaredLibraryAndroidDependency)
-      override fun bindContext(context: ArtifactRepositorySearchService, model: Unit): ModelPropertyContext<String> =
-        Descriptor.version.bindContext(context, this@PsDeclaredLibraryAndroidDependency)
+      override fun bindContext(model: Unit): ModelPropertyContext<String> =
+        Descriptor.version.bindContext(this@PsDeclaredLibraryAndroidDependency)
 
       override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<String> = throw UnsupportedOperationException()
       override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<String>) = throw UnsupportedOperationException()
@@ -71,22 +73,18 @@ open class PsDeclaredLibraryAndroidDependency(
     }
 
     private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
-    val version: ModelSimpleProperty<ArtifactRepositorySearchService, PsDeclaredLibraryAndroidDependency, String> = property(
+    val version: ModelSimpleProperty<PsDeclaredLibraryAndroidDependency, String> = property(
       "Version",
       resolvedValueGetter = { null },
       parsedPropertyGetter = { this.version() },
       getter = { asString() },
       setter = { setValue(it) },
       parser = ::parseString,
-      knownValuesGetter = { searchService: ArtifactRepositorySearchService, model ->
-        Futures.transform(
-          searchService.search(SearchRequest(model.spec.name, model.spec.group, MAX_ARTIFACTS_TO_REQUEST, 0)),
-          {
-            it!!.toVersionValueDescriptors()
-          })
-      },
+      knownValuesGetter = ::dependencyVersionValues,
       variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
     )
+
+    override val properties: Collection<ModelProperty<PsDeclaredLibraryAndroidDependency, *, *, *>> = listOf(version)
   }
 }
 
@@ -125,11 +123,3 @@ abstract class PsLibraryAndroidDependency internal constructor(
 
   override fun toString(): String = toText()
 }
-
-fun ArtifactRepositorySearchResults.toVersionValueDescriptors(): List<ValueDescriptor<String>> =
-  results
-    .flatMap { it.artifacts }
-    .flatMap { it.versions }
-    .distinct()
-    .sortedDescending()
-    .map { version -> ValueDescriptor(version.toString()) }

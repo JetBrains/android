@@ -2,7 +2,7 @@ package org.jetbrains.android.uipreview;
 
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.projectmodel.AarLibrary;
 import com.android.projectmodel.Library;
@@ -321,7 +321,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     ResourceClassRegistry registry = ResourceClassRegistry.get(module.getProject());
 
     // Choose which resources should be in the generated R class. This is described in the JavaDoc of ResourceClassGenerator.
-    AbstractResourceRepository rClassContents;
+    ResourceRepository rClassContents;
     ResourceNamespace resourcesNamespace;
     String packageName;
     if (repositoryManager.getNamespacing() == AaptOptions.Namespacing.DISABLED) {
@@ -333,7 +333,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
       resourcesNamespace = ResourceNamespace.RES_AUTO;
     }
     else {
-      AbstractResourceRepository aarResources = repositoryManager.findLibraryResources(library);
+      ResourceRepository aarResources = repositoryManager.findLibraryResources(library);
       if (!(aarResources instanceof SingleNamespaceResourceRepository)) {
         return;
       }

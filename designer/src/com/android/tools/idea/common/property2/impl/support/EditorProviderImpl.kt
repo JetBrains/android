@@ -50,6 +50,12 @@ class EditorProviderImpl<in P : PropertyItem>(
         return Pair(model, addActionButtonBinding(model, editor))
       }
 
+      ControlType.COLOR_EDITOR -> {
+        val model = ColorFieldPropertyEditorModel(property)
+        val editor = PropertyColorField(model, asTableCellEditor)
+        return Pair(model, addActionButtonBinding(model, editor))
+      }
+
       ControlType.THREE_STATE_BOOLEAN -> {
         val model = ThreeStateBooleanPropertyEditorModel(property)
         val editor = PropertyThreeStateCheckBox(model)
@@ -81,9 +87,6 @@ class EditorProviderImpl<in P : PropertyItem>(
   }
 
   private fun addActionButtonBinding(model: PropertyEditorModel, editor: JComponent): JComponent {
-    if ((model.property as? ActionButtonSupport)?.showActionButton == true) {
-      return ActionButtonBinding(model, editor)
-    }
-    return editor
+    return if (model.property.browseButton == null) editor else ActionButtonBinding(model, editor)
   }
 }

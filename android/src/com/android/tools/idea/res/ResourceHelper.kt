@@ -24,19 +24,21 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.repository.ResourceVisibilityLookup
-import com.android.ide.common.resources.AbstractResourceRepository
-import com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION
 import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceItem.*
 import com.android.ide.common.resources.ResourceItemWithVisibility
+import com.android.ide.common.resources.ResourceRepository
+import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathString
 import com.android.resources.*
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.editors.theme.MaterialColorUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.rendering.GutterIconCache
 import com.android.tools.idea.res.aar.AarProtoResourceRepository
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
@@ -44,6 +46,7 @@ import com.android.tools.lint.detector.api.computeResourcePrefix
 import com.android.tools.lint.detector.api.getBaseName
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.google.common.base.Preconditions
+import com.google.common.collect.Iterables
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.openapi.application.ApplicationManager
@@ -64,8 +67,11 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.*
 import com.intellij.ui.ColorUtil
-import com.intellij.util.io.URLUtil.JAR_SEPARATOR
 import com.intellij.util.text.nullize
+import com.intellij.util.ui.ColorIcon
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.TwoColorsIcon
+import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.sdk.AndroidPlatform
@@ -73,8 +79,10 @@ import org.jetbrains.annotations.Contract
 import java.awt.Color
 import java.io.File
 import java.util.*
+import javax.swing.Icon
 import kotlin.collections.HashSet
 
+const val RESOURCE_ICON_SIZE = 16
 const val ALPHA_FLOATING_ERROR_FORMAT = "The alpha attribute in %1\$s/%2\$s does not resolve to a floating point number"
 private val LOG = Logger.getInstance("#com.android.tools.idea.res.ResourceHelper")
 
@@ -368,6 +376,37 @@ private fun RenderResources.resolveColor(colorValue: ResourceValue?, project: Pr
  */
 fun RenderResources.resolveMultipleColors(value: ResourceValue?, project: Project): List<Color> {
   return resolveMultipleColors(value, project, 0)
+}
+
+/**
+ * Tries to resolve a given resource value as a square Icon of max 16x16 (scaled size).
+ * <ul>
+ *   <li> A single color is represented as a [ColorIcon] </li>
+ *   <li> A color state list is represented as a [TwoColorsIcon] with 2 of the possible colors in the list </li>
+ *   <li> A drawable is shown as a scaled image if reasonable small version of the drawable exists </li>
+ *   <li> Otherwise a null is returned. </li>
+ * </ul>
+ */
+fun RenderResources.resolveAsIcon(value: ResourceValue?, project: Project): Icon? {
+  return resolveAsColorIcon(value, RESOURCE_ICON_SIZE, project) ?: resolveAsDrawable(value, project)
+}
+
+private fun RenderResources.resolveAsColorIcon(value: ResourceValue?, size: Int, project: Project): Icon? {
+  val colors = resolveMultipleColors(value, project)
+  return when (colors.size) {
+    0 -> null
+    1 -> JBUI.scale(ColorIcon(size, colors.first(), false))
+    else -> JBUI.scale(TwoColorsIcon(size, colors.last(), findContrastingOtherColor(colors, colors.last())))
+  }
+}
+
+private fun findContrastingOtherColor(colors: List<Color>, color: Color): Color {
+  return colors.maxBy { MaterialColorUtils.colorDistance(it, color) } ?: colors.first()
+}
+
+private fun RenderResources.resolveAsDrawable(value: ResourceValue?, project: Project): Icon? {
+  val bitmap = AndroidAnnotatorUtil.pickBestBitmap(resolveDrawable(value, project)) ?: return null
+  return GutterIconCache.getInstance().getIcon(bitmap.path, this)
 }
 
 /**
@@ -774,7 +813,7 @@ fun getCompletionFromTypes(
   val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
   val appResources = repoManager.getAppResources(true)!!
   val androidPlatform = AndroidPlatform.getInstance(facet.module)
-  var frameworkResources: AbstractResourceRepository? = null
+  var frameworkResources: ResourceRepository? = null
   if (androidPlatform != null) {
     val targetData = androidPlatform.sdkData.getTargetData(androidPlatform.target)
     frameworkResources = targetData.getFrameworkResources(false)
@@ -833,9 +872,9 @@ private fun addFrameworkItems(
   destination: MutableList<String>,
   type: ResourceType,
   includeFileResources: Boolean,
-  frameworkResources: AbstractResourceRepository
+  frameworkResources: ResourceRepository
 ) {
-  val items = frameworkResources.getPublicResourcesOfType(type)
+  val items = frameworkResources.getPublicResources(ResourceNamespace.ANDROID, type)
   for (item in items) {
     if (!includeFileResources) {
       val dirName = item.source?.parentFileName
@@ -856,16 +895,18 @@ private fun addProjectItems(
   repository: LocalResourceRepository,
   lookup: ResourceVisibilityLookup?
 ) {
-  for (resourceName in repository.getItemsOfType(type)) {
+  val namespace = ResourceNamespace.TODO()
+  for (entry in repository.getResources(namespace, type).asMap().entries) {
+    val resourceName = entry.key
     if (lookup != null && lookup.isPrivate(type, resourceName)) {
       continue
     }
-    val items = repository.getResourceItem(type, resourceName) ?: continue
-    if (!includeFileResources && items[0].isFileBased) {
+    val items = entry.value
+    if (!includeFileResources && Iterables.getFirst(items, null)?.isFileBased == true) {
       continue
     }
 
-    destination.add(PREFIX_RESOURCE_REF + type.getName() + '/'.toString() + resourceName)
+    destination.add(PREFIX_RESOURCE_REF + type.getName() + '/' + resourceName)
   }
 }
 
@@ -996,7 +1037,7 @@ fun buildResourceId(packageId: Byte, typeId: Byte, entryId: Short) =
  *
  * Intended for code completion.
  */
-fun AbstractResourceRepository.getResourceItems(
+fun ResourceRepository.getResourceItems(
   namespace: ResourceNamespace,
   type: ResourceType,
   visibilityLookup: ResourceVisibilityLookup,
@@ -1008,21 +1049,21 @@ fun AbstractResourceRepository.getResourceItems(
   return when {
     this is FrameworkResourceRepository -> when {
       namespace != ResourceNamespace.ANDROID -> emptySet()
-      minVisibility != ResourceVisibility.PUBLIC -> getItemsOfType(ResourceNamespace.ANDROID, type)
+      minVisibility != ResourceVisibility.PUBLIC -> getResources(ResourceNamespace.ANDROID, type).keySet()
       else -> {
-        val public = getPublicResourcesOfType(type)
+        val public = getPublicResources(ResourceNamespace.ANDROID, type)
         public.mapTo(HashSet(public.size), ResourceItem::getName)
       }
     }
     this is AarProtoResourceRepository -> {
       // Resources in AarProtoResourceRepository know their visibility.
-      val items = getResourceItems(namespace, type) { item ->
+      val items = getResources(namespace, type) { item ->
         (item as ResourceItemWithVisibility).visibility >= minVisibility
       }
       items.mapTo(HashSet(items.size), ResourceItem::getName)
     }
     else -> {
-      val items = getResourceItems(namespace, type) { item ->
+      val items = getResources(namespace, type) { item ->
         when {
           minVisibility == ResourceVisibility.values()[0] -> true
           item is ResourceItemWithVisibility -> item.visibility >= minVisibility

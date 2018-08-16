@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.tools.idea.res.FrameworkResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Iterables;
@@ -95,7 +94,7 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     ResourceResolverCache cache = configuration1.getConfigurationManager().getResolverCache();
     assertSame(cache, configuration2.getConfigurationManager().getResolverCache());
 
-    AbstractResourceRepository frameworkResources =
+    ResourceRepository frameworkResources =
         cache.getFrameworkResources(configuration1.getFullConfig(), configuration1.getTarget());
     assertFalse(((FrameworkResourceRepository)frameworkResources).isWithLocaleResources());
   }

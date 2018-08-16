@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
 import com.android.tools.adtui.model.stdui.EditingSupport;
 import com.android.tools.adtui.ptable2.PTableItem;
+import com.android.tools.idea.common.property2.api.ActionIconButton;
 import com.android.tools.idea.common.property2.api.PropertyItem;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.intellij.openapi.util.text.StringUtil;
@@ -86,6 +87,18 @@ public class MotionPropertyItem implements PropertyItem, PTableItem {
   @Override
   public boolean isReference() {
     return false;
+  }
+
+  @Nullable
+  @Override
+  public ActionIconButton getBrowseButton() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public ActionIconButton getColorButton() {
+    return null;
   }
 
   @Nullable
