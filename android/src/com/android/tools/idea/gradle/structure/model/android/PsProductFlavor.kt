@@ -257,13 +257,13 @@ open class PsProductFlavor(
       parser = ::parseString
     )
 
-    val manifestPlaceholders: MapProperty<PsProductFlavor, String> = mapProperty(
+    val manifestPlaceholders: MapProperty<PsProductFlavor, Any> = mapProperty(
       "Manifest Placeholders",
-      resolvedValueGetter = { manifestPlaceholders.mapValues { it.value.toString() } },
+      resolvedValueGetter = { manifestPlaceholders },
       parsedPropertyGetter = { manifestPlaceholders() },
-      getter = { asString() },
+      getter = { asAny() },
       setter = { setValue(it) },
-      parser = ::parseString
+      parser = ::parseAny
     )
 
     val testInstrumentationRunnerArguments: MapProperty<PsProductFlavor, String> = mapProperty(
