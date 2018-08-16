@@ -26,7 +26,6 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.*
-import kotlin.properties.Delegates
 
 
 private val PAGE_HEADER_SECONDARY_COLOR = Gray.x66
@@ -36,24 +35,39 @@ private val PAGE_HEADER_BORDER = BorderFactory.createCompoundBorder(
 )
 private val PANEL_SIZE = JBUI.size(600, 400)
 
+const val FILTER_EXPORTABLE_CHECKBOX_TEXT = "Only show exportable assets"
+const val FILTER_EXPORTABLE_TOOLTIP_TEXT = "Any item that has at least one export format in Sketch is considered exportable"
+
 class SketchImporterView {
 
-  var presenter: SketchImporterPresenter? by
-  Delegates.observable(null as SketchImporterPresenter?) { _, _, presenter ->
-    presenter?.populatePages()
-  }
+  var presenter: SketchImporterPresenter? = null
 
   private val previewPanel = JPanel(VerticalFlowLayout())
 
   private val configurationPanel: JPanel = JPanel(BorderLayout()).apply {
     preferredSize = PANEL_SIZE
-    add(JScrollPane(previewPanel))
+    add(JScrollPane(previewPanel).apply {
+      border = null
+    }, BorderLayout.CENTER)
   }
 
   /**
-   * Maps page IDs to the panel associated to the page.
+   * Maps page IDs to the panel associated with the page.
    */
   private val pagePanelMap = HashMap<String, JPanel>()
+
+  fun addFilterExportableButton(defaultState: Boolean) {
+    val filterExportableButton = JCheckBox(FILTER_EXPORTABLE_CHECKBOX_TEXT).apply {
+      toolTipText = FILTER_EXPORTABLE_TOOLTIP_TEXT
+      isSelected = defaultState
+      horizontalTextPosition = JCheckBox.LEFT
+      horizontalAlignment = JCheckBox.RIGHT
+      addItemListener { event ->
+        presenter?.filterExportable(event.stateChange)
+      }
+    }
+    configurationPanel.add(filterExportableButton, BorderLayout.NORTH)
+  }
 
   /**
    * Adds a preview for the [vectorDrawableFiles] corresponding to the page named [pageName] of type [pageTypes] [[selectedTypeIndex]])
@@ -128,5 +142,26 @@ class SketchImporterView {
     }
     renderIcons(vectorDrawableFiles, pagePanel)
     pagePanel.revalidate()
+  }
+
+  /**
+   * Clear everything in the preview panel.
+   */
+  fun clearPreview() {
+    previewPanel.removeAll()
+  }
+
+  /**
+   * Repaint the preview panel.
+   */
+  fun repaintPreview() {
+    previewPanel.repaint()
+  }
+
+  /**
+   * Revalidate the preview panel.
+   */
+  fun revalidatePreview() {
+    previewPanel.revalidate()
   }
 }
