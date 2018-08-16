@@ -521,9 +521,8 @@ public class DisplayList {
   }
 
   @VisibleForTesting
-  public String generateSortedDisplayList(SceneContext sceneContext) {
-    DrawCommand[] array = myCommands.toArray(new DrawCommand[myCommands.size()]);
-    CommandSet set = new CommandSet(array, 0, array.length - 1);
+  public String generateSortedDisplayList() {
+    CommandSet set = (CommandSet)getCommand(0);
     set.sort();
     return set.serialize();
   }
@@ -531,6 +530,8 @@ public class DisplayList {
   /**
    * This serialized the current display list
    * it can be deserialize using the command getDisplayList(String)
+   *
+   * NOTE THIS DOES NOT SORT OR PRESERVE ORDERING INFORMATION
    *
    * @return
    */
@@ -546,7 +547,7 @@ public class DisplayList {
   }
 
   public DrawCommand getCommand(int level) {
-    DrawCommand[] array = myCommands.toArray(new DrawCommand[myCommands.size()]);
+    DrawCommand[] array = myCommands.toArray(new DrawCommand[0]);
     return new CommandSet(array, 0, array.length - 1, level);
   }
 

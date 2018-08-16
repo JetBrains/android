@@ -22,17 +22,14 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawFilledRectangle
 import com.android.tools.idea.common.scene.draw.DrawLine
 import com.android.tools.idea.naveditor.scene.DRAW_BACKGROUND_LEVEL
 import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
 import com.android.tools.idea.naveditor.scene.NavColorSet
-import com.android.tools.idea.naveditor.scene.REGULAR_FRAME_THICKNESS
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
-import com.android.tools.idea.naveditor.scene.createDrawCommand
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
 import com.android.tools.idea.res.resolve
 import com.intellij.openapi.application.ApplicationManager
@@ -47,18 +44,7 @@ import java.io.File
 /**
  * [NavScreenDecorator] Base class for navigation decorators.
  */
-abstract class NavScreenDecorator : SceneDecorator() {
-  override fun addFrame(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
-  }
-
-  override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
-  }
-
-  override fun buildList(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
-    val displayList = DisplayList()
-    super.buildList(displayList, time, sceneContext, component)
-    list.add(createDrawCommand(displayList, component))
-  }
+abstract class NavScreenDecorator : NavBaseDecorator() {
 
   // TODO: Either set an appropriate clip here, or make this the default behavior in the base class
   override fun buildListChildren(list: DisplayList,

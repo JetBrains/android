@@ -121,7 +121,8 @@ abstract public class SceneManager implements Disposable {
       scene.setRoot(null);
     }
 
-    SceneComponent root = createHierarchy(rootComponent);
+    List<SceneComponent> hierarchy = createHierarchy(rootComponent);
+    SceneComponent root = hierarchy.isEmpty() ? null : hierarchy.get(0);
     scene.setRoot(root);
     if (root != null) {
       updateFromComponent(root, usedComponents);
@@ -160,8 +161,8 @@ abstract public class SceneManager implements Disposable {
   /**
    * Create SceneComponents corresponding to an NlComponent hierarchy
    */
-  @Nullable
-  protected SceneComponent createHierarchy(@NotNull NlComponent component) {
+  @NotNull
+  protected List<SceneComponent> createHierarchy(@NotNull NlComponent component) {
     SceneComponent sceneComponent = getScene().getSceneComponent(component);
     if (sceneComponent == null) {
       sceneComponent = new SceneComponent(getScene(), component, getHitProvider(component));
@@ -169,10 +170,12 @@ abstract public class SceneManager implements Disposable {
     sceneComponent.setToolLocked(isComponentLocked(component));
     Set<SceneComponent> oldChildren = new HashSet<>(sceneComponent.getChildren());
     for (NlComponent nlChild : component.getChildren()) {
-      SceneComponent child = createHierarchy(nlChild);
-      oldChildren.remove(child);
-      if (child != null && child.getParent() != sceneComponent) {
-        sceneComponent.addChild(child);
+      List<SceneComponent> children = createHierarchy(nlChild);
+      oldChildren.removeAll(children);
+      for (SceneComponent child : children) {
+        if (child.getParent() != sceneComponent) {
+          sceneComponent.addChild(child);
+        }
       }
     }
     for (SceneComponent child : oldChildren) {
@@ -184,7 +187,7 @@ abstract public class SceneManager implements Disposable {
         child.removeFromParent();
       }
     }
-    return sceneComponent;
+    return ImmutableList.of(sceneComponent);
   }
 
   /**
