@@ -120,6 +120,14 @@ public class InstantRunPositionManagerTest extends AndroidTestCase {
     assertTrue(sourceFile.getVirtualFile().getPath().endsWith(String.format("sources/android-%1$d/android/view/View.java", version)));
   }
 
+  /** Create a SourcePosition from a one-based line number. */
+  private SourcePosition createSourcePositionForOneBasedLineNumber(PsiFile psiFile, int line) {
+    assert line > 0;
+    // SourcePositions are zero-based. Therefore, we need to adjust the line number accordingly.
+    return SourcePosition.createFromLine(psiFile, line - 1);
+  }
+
+
   public void testDesugaringSupport_SimpleClass() throws NoDataException {
     @Language("JAVA")
     String text = "package p1.p2;\n" +
@@ -137,12 +145,11 @@ public class InstantRunPositionManagerTest extends AndroidTestCase {
 
     PsiFile file = myFixture.addFileToProject("src/p1/p2/Foo.java", text);
     assertNotNull(file);
-    SourcePosition position = SourcePosition.createFromLine(file, 5);
+    SourcePosition position = createSourcePositionForOneBasedLineNumber(file, 5);
     runTestDesugaringSupportWhenDesugaringIsRequired(position, false);
   }
 
-  // fails after IDEA 182.2371.4 merge
-  public void ignore_testDesugaringSupport_InterfaceWithStaticInitializer() throws NoDataException {
+  public void testDesugaringSupport_InterfaceWithStaticInitializer() throws NoDataException {
     @Language("JAVA")
     String text = "package p1.p2;\n" +
                   "\n" +
@@ -158,7 +165,7 @@ public class InstantRunPositionManagerTest extends AndroidTestCase {
 
     PsiFile file = myFixture.addFileToProject("src/p1/p2/Foo.java", text);
     assertNotNull(file);
-    SourcePosition position = SourcePosition.createFromLine(file, 5);
+    SourcePosition position = createSourcePositionForOneBasedLineNumber(file, 5);
     runTestDesugaringSupportWhenDesugaringIsRequired(position, false);
   }
 
@@ -179,7 +186,7 @@ public class InstantRunPositionManagerTest extends AndroidTestCase {
 
     PsiFile file = myFixture.addFileToProject("src/p1/p2/Foo.java", text);
     assertNotNull(file);
-    SourcePosition position = SourcePosition.createFromLine(file, 5);
+    SourcePosition position = createSourcePositionForOneBasedLineNumber(file, 5);
     runTestDesugaringSupportWhenDesugaringIsRequired(position, true);
   }
 
@@ -200,7 +207,7 @@ public class InstantRunPositionManagerTest extends AndroidTestCase {
 
     PsiFile file = myFixture.addFileToProject("src/p1/p2/Foo.java", text);
     assertNotNull(file);
-    SourcePosition position = SourcePosition.createFromLine(file, 5);
+    SourcePosition position = createSourcePositionForOneBasedLineNumber(file, 5);
     runTestDesugaringSupportWhenDesugaringIsRequired(position, true);
   }
 
