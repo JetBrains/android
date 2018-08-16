@@ -27,6 +27,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ColorUtil
+import com.intellij.util.Alarm
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -156,10 +157,11 @@ class DrawableResourceCellRenderer(
     .maximumSize(200)
     .build<DesignAssetSet, Image>()
 
-  private val updateQueue = MergingUpdateQueue("DrawableResourceCellRenderer", 1000, true, null)
+  private val updateQueue = MergingUpdateQueue("DrawableResourceCellRenderer", 1000, true, null,
+                                               null, null, false)
 
   private val drawablePreview = JLabel(imageIcon).apply {
-      border = JBUI.Borders.empty(18)
+    border = JBUI.Borders.empty(18)
   }
 
   override fun getContent(

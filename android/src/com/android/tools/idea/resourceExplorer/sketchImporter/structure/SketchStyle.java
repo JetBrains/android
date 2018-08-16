@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SketchStyle {

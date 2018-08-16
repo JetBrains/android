@@ -21,6 +21,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.importer.DesignAssetImporter
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
 import com.android.tools.idea.resourceExplorer.sketchImporter.logic.DrawableGenerator
 import com.android.tools.idea.resourceExplorer.sketchImporter.logic.VectorDrawable
 import com.android.tools.idea.resourceExplorer.sketchImporter.model.ImportOptions
@@ -28,16 +29,23 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.model.PageOptions
 import com.android.tools.idea.resourceExplorer.sketchImporter.model.SketchFile
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage
 import com.android.tools.idea.resourceExplorer.sketchImporter.view.SketchImporterView
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import java.awt.Dimension
+import java.awt.Image
 import java.awt.event.ItemEvent
+
+private fun List<LightVirtualFile>.toAssets() = this.map {
+  DesignAssetSet(it.name, listOf(DesignAsset(it, emptyList(), ResourceType.DRAWABLE)))
+}
 
 class SketchImporterPresenter(private val view: SketchImporterView,
                               private val sketchFile: SketchFile,
                               private val importOptions: ImportOptions,
                               private val designAssetImporter: DesignAssetImporter,
-                              private val facet: AndroidFacet) {
+                              val facet: AndroidFacet) {
 
   private val filesToDisplay = HashMap<String, List<VirtualFile>>()
   private val pageIdToFiles = generateFiles()
@@ -55,9 +63,17 @@ class SketchImporterPresenter(private val view: SketchImporterView,
     pageIdToFiles.forEach { pageId, files ->
       val pageOptions = importOptions.getPageOptions(pageId) ?: return@forEach
 
-      view.addIconPage(pageId, pageOptions.name, PageOptions.PAGE_TYPE_LABELS, pageOptions.pageType.ordinal,
-                       updateFilesToDisplay(pageId, files))
+      updateFilesToDisplay(pageId, files)
+      view.addAssetPage(pageId, pageOptions.name, PageOptions.PAGE_TYPE_LABELS, pageOptions.pageType.ordinal,
+                        files.toAssets())
     }
+  }
+
+  private val rendererManager = DesignAssetRendererManager.getInstance()
+
+  fun fetchImage(dimension: Dimension, designAssetSet: DesignAssetSet): ListenableFuture<out Image?> {
+    val file = designAssetSet.designAssets.first().file
+    return rendererManager.getViewer(file).getImage(file, facet.module, dimension)
   }
 
   /**
@@ -143,7 +159,7 @@ class SketchImporterPresenter(private val view: SketchImporterView,
     val options = getPageOptions(page) ?: return
     val assets = generateFilesFromPage(page, options)
     val displayableFiles = updateFilesToDisplay(pageId, assets)
-    view.refreshPreview(pageId, displayableFiles)
+    view.refreshPreview(pageId, displayableFiles.toAssets())
   }
 
   /**
