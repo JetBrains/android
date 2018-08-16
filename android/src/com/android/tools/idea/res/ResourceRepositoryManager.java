@@ -527,6 +527,9 @@ public class ResourceRepositoryManager implements Disposable {
     for (AarLibrary library: libraries) {
       AarSourceResourceRepository aarRepository;
       if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
+        if (library.getResFolder() == null) {
+          continue;
+        }
         File resFolder = library.getResFolder().toFile();
         if (resFolder == null) {
           LOG.warn("Cannot find res folder for " + library.getAddress());
