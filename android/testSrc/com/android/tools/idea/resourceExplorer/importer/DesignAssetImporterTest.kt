@@ -60,7 +60,7 @@ class DesignAssetImporterTest {
     val designAssetImporter = DesignAssetImporter()
     designAssetImporter.importDesignAssets(listOf(designAssetSet), facet)
     val moduleResources = ResourceRepositoryManager.getOrCreateInstance(facet).getModuleResources(true)!!
-    val item = moduleResources.allResourceItems.first()!!
+    val item = moduleResources.allResources.first()!!
     Truth.assertThat(item.name).isEqualTo("file1")
     Truth.assertThat(item.resourceValue?.value).endsWith("drawable-xhdpi/file1.png")
   }
@@ -82,7 +82,7 @@ class DesignAssetImporterTest {
     val designAssetImporter = DesignAssetImporter()
     designAssetImporter.importDesignAssets(listOf(designAssetSet), facet)
     val moduleResources = ResourceRepositoryManager.getOrCreateInstance(facet).getModuleResources(true)!!
-    val items = moduleResources.allResourceItems.sortedBy { it.resourceValue?.value }
+    val items = moduleResources.allResources.sortedBy { it.resourceValue?.value }
 
     var i = 0
     Truth.assertThat(items[i].name).isEqualTo("resource")
@@ -109,7 +109,7 @@ class DesignAssetImporterTest {
     val designAssetImporter = DesignAssetImporter()
     designAssetImporter.importDesignAssets(listOf(designAssetSet), facet)
     val moduleResources = ResourceRepositoryManager.getOrCreateInstance(facet).getModuleResources(true)!!
-    val item = moduleResources.allResourceItems.first()
+    val item = moduleResources.allResources.first()
 
     Truth.assertThat(item.name).isEqualTo("resource")
     Truth.assertThat(item.resourceValue?.value).endsWith("drawable/resource.xml")

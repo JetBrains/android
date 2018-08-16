@@ -18,6 +18,8 @@ package com.android.tools.idea.rendering;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
@@ -69,7 +71,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.*;
@@ -175,12 +176,28 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     }
 
     myFontCacheService = DownloadableFontCacheService.getInstance();
-    myFontFamilies = projectRes.getAllResourceItems().stream()
-      .filter(r -> r.getType() == ResourceType.FONT)
-      .map(r -> r.getResourceValue())
-      .filter(Objects::nonNull)
-      .filter(value -> value.getRawXmlValue().endsWith(DOT_XML))
-      .collect(Collectors.toMap(ResourceValue::getRawXmlValue, (ResourceValue value) -> value));
+    ImmutableMap.Builder<String, ResourceValue> fontBuilder = ImmutableMap.builder();
+    projectRes.accept(
+        new ResourceVisitor() {
+          @Override
+          @NotNull
+          public VisitResult visit(@NotNull ResourceItem resourceItem) {
+            ResourceValue resourceValue = resourceItem.getResourceValue();
+            if (resourceValue != null) {
+              String rawXml = resourceValue.getRawXmlValue();
+              if (rawXml != null && rawXml.endsWith(DOT_XML)) {
+                fontBuilder.put(rawXml, resourceValue);
+              }
+            }
+            return VisitResult.CONTINUE;
+          }
+
+          @Override
+          public boolean shouldVisitResourceType(@NotNull ResourceType resourceType) {
+            return resourceType == ResourceType.FONT;
+          }
+        });
+    myFontFamilies = fontBuilder.build();
   }
 
   /** Resets the callback state for another render */
