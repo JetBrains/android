@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.res
 
-import com.android.SdkConstants.FD_SAMPLE_DATA
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager
+import com.android.tools.idea.util.toPathString
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.*
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
-import org.jetbrains.android.facet.AndroidRootUtil
-import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -69,34 +69,13 @@ internal class SampleDataListener(val project: Project) : PsiTreeChangeAdapter()
    *      to just having FD_SAMPLE_DATA in its path somewhere).
    */
   private fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean {
-    return !facet.isDisposed && SampleDataRepositoryManager.getInstance(facet).hasRepository() && isSampleDataFile(facet, file)
+    return !facet.isDisposed && SampleDataRepositoryManager.getInstance(facet).hasRepository() && facet.module.isSampleDataFile(file)
   }
 
   /**
    * Used to fail fast when we can quickly tell that a file has nothing to do with sample data.
    */
   private fun isPossiblyRelevant(file: VirtualFile) = file.extension.let { it != "java" && it != "xml" }
-
-  /**
-   * Returns true if the given [VirtualFile] is part of the sample data directory associated with the given
-   * [AndroidFacet] (or if the file is the sample data directory itself).
-   */
-  private fun isSampleDataFile(facet: AndroidFacet, file: VirtualFile): Boolean {
-    if (isSampleDataDirectory(facet, file)) return true
-
-    return try {
-      val sampleDataDir = SampleDataResourceRepository.getSampleDataDir(facet, false)
-      sampleDataDir != null && VfsUtilCore.isAncestor(sampleDataDir, file, false)
-    }
-    catch (e: IOException) {
-      LOG.warn("Error getting sample data directory", e)
-      false
-    }
-  }
-
-  private fun isSampleDataDirectory(facet: AndroidFacet, file: VirtualFile): Boolean {
-    return file.name == FD_SAMPLE_DATA && file.parent == AndroidRootUtil.getMainContentRoot(facet)
-  }
 
   private fun virtualFileChanged(file: VirtualFile) {
     if (!isPossiblyRelevant(file)) return
@@ -126,4 +105,13 @@ internal class SampleDataListener(val project: Project) : PsiTreeChangeAdapter()
   override fun childReplaced(event: PsiTreeChangeEvent) = psiFileChanged(event)
   override fun childMoved(event: PsiTreeChangeEvent) = psiFileChanged(event)
   override fun childrenChanged(event: PsiTreeChangeEvent) = psiFileChanged(event)
+}
+
+/**
+ * Returns true if the given [VirtualFile] is part of the sample data directory associated with this
+ * [Module] (or if the file is the sample data directory itself).
+ */
+private fun Module.isSampleDataFile(file: VirtualFile): Boolean {
+  val sampleDataDir = getModuleSystem().getSampleDataDirectory() ?: return false
+  return file.toPathString().startsWith(sampleDataDir)
 }

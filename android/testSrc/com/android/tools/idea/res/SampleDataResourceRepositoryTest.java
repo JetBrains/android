@@ -21,6 +21,8 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -42,12 +44,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.google.common.truth.Truth.assertThat;
 
 public class SampleDataResourceRepositoryTest extends AndroidTestCase {
+  AndroidModuleSystem myModuleSystem;
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    myModuleSystem = ProjectSystemUtil.getModuleSystem(myModule);
   }
 
   @Override
@@ -188,7 +194,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(resolver.getResolvedResource(elementRef));
   }
 
-  public void testSampleDataFileInvalidation() throws IOException {
+  public void testSampleDataFileInvalidation() {
     SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
 
     assertTrue(onlyProjectSources(repo).isEmpty());
@@ -214,7 +220,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     });
     assertEquals(1, onlyProjectSources(repo).size());
 
-    VirtualFile sampleDir = SampleDataResourceRepository.getSampleDataDir(myFacet, false);
+    VirtualFile sampleDir = toVirtualFile(myModuleSystem.getSampleDataDirectory());
     ApplicationManager.getApplication().runWriteAction(() -> {
       try {
         sampleDir.delete(null);

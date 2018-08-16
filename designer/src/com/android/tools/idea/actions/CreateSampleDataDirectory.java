@@ -15,19 +15,21 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.res.SampleDataResourceRepository;
+import com.android.ide.common.util.PathString;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.util.FileExtensions;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PlatformIcons;
-import org.jetbrains.android.facet.AndroidFacet;
+import java.io.IOException;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
 
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
@@ -55,35 +57,32 @@ public class CreateSampleDataDirectory extends AnAction {
     }
   }
 
-  @Nullable
-  private static AndroidFacet getFacet(@NotNull AnActionEvent e){
-    Module selected = getModuleFromSelection(e.getDataContext());
-    return (selected != null)? AndroidFacet.getInstance(selected): null;
+  private static boolean isActionVisibleForModule(@Nullable Module module) {
+    if (module == null) return false;
+
+    PathString sampleDataDirPath = ProjectSystemUtil.getModuleSystem(module).getSampleDataDirectory();
+    if (sampleDataDirPath == null) return false;
+
+    // Only display if the directory doesn't exist already
+    VirtualFile sampleDataDir = FileExtensions.toVirtualFile(sampleDataDirPath);
+    return sampleDataDir == null || !sampleDataDir.exists();
   }
 
   @Override
   public void update(AnActionEvent e) {
-    AndroidFacet facet = getFacet(e);
-    boolean visible;
-    try {
-      // Only display if the directory doesn't exist already
-      visible = facet != null && SampleDataResourceRepository.getSampleDataDir(facet, false) == null;
-    }
-    catch (IOException ex) {
-      visible = false;
-    }
-    e.getPresentation().setEnabledAndVisible(visible);
+    Module module = getModuleFromSelection(e.getDataContext());
+    e.getPresentation().setEnabledAndVisible(isActionVisibleForModule(module));
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    AndroidFacet facet = getFacet(e);
-    assert facet != null; // Needs to exist or the action wouldn't be visible
+    Module module = getModuleFromSelection(e.getDataContext());
+    assert module != null; // Needs to exist or the action wouldn't be visible
+
     try {
-      SampleDataResourceRepository.getSampleDataDir(facet, true);
-    }
-    catch (IOException ex) {
-      LOG.warn("Unable to create Sample Data directory", ex);
+      WriteAction.run(() -> ProjectSystemUtil.getModuleSystem(module).getOrCreateSampleDataDirectory());
+    } catch (IOException ex) {
+      LOG.warn("Unable to create sample data directory for module " + module.getName(), ex);
     }
   }
 }
