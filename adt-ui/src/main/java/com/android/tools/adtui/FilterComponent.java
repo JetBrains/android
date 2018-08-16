@@ -195,6 +195,12 @@ public final class FilterComponent extends JPanel {
     return myModel;
   }
 
+  @NotNull
+  public FilterComponent setMatchCountVisibility(boolean value) {
+    myCountLabel.setVisible(value);
+    return this;
+  }
+
   @Override
   public boolean requestFocusInWindow() {
     return mySearchField.requestFocusInWindow();
