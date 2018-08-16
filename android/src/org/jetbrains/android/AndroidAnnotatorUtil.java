@@ -66,8 +66,6 @@ import org.xmlpull.v1.XmlPullParser;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Objects;
 
@@ -376,17 +374,13 @@ public class AndroidAnnotatorUtil {
           .setOriginalColor(currentColor)
           .addSaturationBrightnessComponent()
           .addColorAdjustPanel(new MaterialGraphicalColorPipetteProvider())
-          .addColorValuePanel()
+          .addColorValuePanel().withFocus()
           .addSeparator()
           .addCustomComponent(model -> new MaterialColorPalette(model))
           .addSeparator()
           .addOperationPanel(okCallback, cancelCallback)
-          .addKeyAction(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-              dialog.close();
-            }
-          })
+          .focusWhenDisplay(true)
+          .setFocusCycleRoot(true)
           .build();
 
       dialog.show(panel, null, MouseInfo.getPointerInfo().getLocation());
