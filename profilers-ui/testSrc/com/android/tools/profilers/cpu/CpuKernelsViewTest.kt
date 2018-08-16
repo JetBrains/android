@@ -55,7 +55,7 @@ class CpuKernelsViewTest {
     stage.studioProfilers.stage = stage
     stage.enter()
 
-    threadsView = CpuThreadsView(stage, JPanel())
+    threadsView = CpuThreadsView(stage)
   }
 
   @Test

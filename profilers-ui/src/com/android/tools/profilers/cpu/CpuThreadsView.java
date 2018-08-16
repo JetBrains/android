@@ -45,11 +45,10 @@ public class CpuThreadsView {
   @NotNull
   private final DragAndDropList<CpuThreadsModel.RangedCpuThread> myThreads;
 
-  // TODO(b/110524334): Do not expose the parent only to capture mouse events.
-  public CpuThreadsView(@NotNull CpuProfilerStage stage, @NotNull JPanel parent) {
+  public CpuThreadsView(@NotNull CpuProfilerStage stage) {
     myStage = stage;
     myThreads = new DragAndDropList<>(stage.getThreadStates());
-    myPanel = createHideablePanel(parent);
+    myPanel = createHideablePanel();
     setupListeners();
     myThreads.setBorder(null);
     myThreads.setCellRenderer(new ThreadCellRenderer(myThreads, myStage.getUpdatableManager()));
@@ -71,14 +70,21 @@ public class CpuThreadsView {
     return myThreads;
   }
 
-  private HideablePanel createHideablePanel(@NotNull JPanel parent) {
+  private HideablePanel createHideablePanel() {
     // Add AxisComponent only to scrollable section of threads list.
     final AxisComponent timeAxisGuide = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM);
     timeAxisGuide.setShowAxisLine(false);
     timeAxisGuide.setShowLabels(false);
     timeAxisGuide.setHideTickAtMin(true);
     timeAxisGuide.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR);
-    CpuListScrollPane scrollingThreads = new CpuListScrollPane(myThreads, parent);
+    final JPanel threads = new JPanel(new TabularLayout("*", "*"));
+
+    final HideablePanel threadsPanel = new HideablePanel.Builder("THREADS", threads)
+      .setShowSeparator(false)
+      .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
+      .build();
+
+    CpuListScrollPane scrollingThreads = new CpuListScrollPane(myThreads, threadsPanel);
     scrollingThreads.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
@@ -86,14 +92,9 @@ public class CpuThreadsView {
       }
     });
 
-    final JPanel threads = new JPanel(new TabularLayout("*", "*"));
     threads.add(timeAxisGuide, new TabularLayout.Constraint(0, 0));
     threads.add(scrollingThreads, new TabularLayout.Constraint(0, 0));
 
-    final HideablePanel threadsPanel = new HideablePanel.Builder("THREADS", threads)
-      .setShowSeparator(false)
-      .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
-      .build();
     // Clear border set by default on the hideable panel.
     threadsPanel.setBorder(JBUI.Borders.customLine(ProfilerColors.CPU_AXIS_GUIDE_COLOR, 2, 0, 0, 0));
     threadsPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
