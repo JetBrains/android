@@ -296,6 +296,20 @@ filegroup(
 )
 
 filegroup(
+    name = "deploy-artifacts",
+    srcs = select({
+        "//tools/base/bazel:windows": [
+           "//tools/base/deploy/proto:java_proto"
+         ],
+        "//conditions:default": [
+           "//tools/base/deploy/installer:android",
+           "//tools/base/deploy/proto:java_proto"
+        ],
+    }),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
     name = "aapt-proto-artifacts",
     srcs = [
         "//tools/base/sdk-common/aapt-proto-jar-generator:aapt-proto-jarjar.jar",
@@ -336,8 +350,7 @@ filegroup(
         ":profiler-artifacts",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
-        "//tools/base/deploy/installer:android",
-        "//tools/base/deploy/proto:java_proto",
+        ":deploy-artifacts",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     ],
 )
