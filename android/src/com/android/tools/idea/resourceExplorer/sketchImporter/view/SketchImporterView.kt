@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.view
 
+import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchImporterPresenter
+import com.android.tools.idea.resourceExplorer.view.DrawableResourceCellRenderer
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.VerticalFlowLayout
-import com.intellij.testFramework.LightVirtualFile
+import com.intellij.ui.CollectionListModel
 import com.intellij.ui.Gray
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
@@ -34,6 +36,8 @@ private val PAGE_HEADER_BORDER = BorderFactory.createCompoundBorder(
   JBUI.Borders.customLine(PAGE_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
 )
 private val PANEL_SIZE = JBUI.size(600, 400)
+private val ASSET_FIXED_WIDTH = JBUI.scale(150)
+private val ASSET_FIXED_HEIGHT = JBUI.scale(150)
 
 const val FILTER_EXPORTABLE_CHECKBOX_TEXT = "Only show exportable assets"
 const val FILTER_EXPORTABLE_TOOLTIP_TEXT = "Any item that has at least one export format in Sketch is considered exportable"
@@ -48,13 +52,14 @@ class SketchImporterView {
     preferredSize = PANEL_SIZE
     add(JScrollPane(previewPanel).apply {
       border = null
+      horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
     }, BorderLayout.CENTER)
   }
 
   /**
    * Maps page IDs to the panel associated with the page.
    */
-  private val pagePanelMap = HashMap<String, JPanel>()
+  private val assetListMap = HashMap<String, JList<*>>()
 
   fun addFilterExportableButton(defaultState: Boolean) {
     val filterExportableButton = JCheckBox(FILTER_EXPORTABLE_CHECKBOX_TEXT).apply {
@@ -70,26 +75,41 @@ class SketchImporterView {
   }
 
   /**
-   * Adds a preview for the [vectorDrawableFiles] corresponding to the page named [pageName] of type [pageTypes] [[selectedTypeIndex]])
+   * Adds a preview for the [listModel] corresponding to the page named [pageName] of type [pageTypes] [[selectedTypeIndex]])
    */
-  fun addIconPage(pageId: String,
-                  pageName: String,
-                  pageTypes: Array<String>,
-                  selectedTypeIndex: Int,
-                  vectorDrawableFiles: List<LightVirtualFile>) {
+  fun addAssetPage(pageId: String,
+                   pageName: String,
+                   pageTypes: Array<String>,
+                   selectedTypeIndex: Int,
+                   listModel: List<DesignAssetSet>) {
     val pagePanel = JPanel(BorderLayout())
     pagePanel.add(createPageHeader(pageId, pageName, pageTypes, selectedTypeIndex), BorderLayout.NORTH)
-    renderIcons(vectorDrawableFiles, pagePanel)
+    val assetList = createAssetList(listModel)
 
-    pagePanelMap[pageId] = pagePanel
+    if (assetList == null) {
+      pagePanel.add(JLabel("No valid assets"))
+    }
+    else {
+      pagePanel.add(assetList)
+      assetListMap[pageId] = assetList
+    }
     previewPanel.add(pagePanel)
   }
 
-  private fun renderIcons(vectorDrawableFiles: List<LightVirtualFile>,
-                          pagePanel: JPanel) {
-    // TODO change this
-    if (!vectorDrawableFiles.isEmpty())
-      pagePanel.add(JLabel("iconsGoHere"), BorderLayout.SOUTH)
+  private fun createAssetList(assetList: List<DesignAssetSet>): JList<*>? {
+    val presenter = presenter ?: return null
+    if (assetList.isNotEmpty()) {
+      return JList<DesignAssetSet>().apply {
+        cellRenderer = DrawableResourceCellRenderer(presenter::fetchImage) { repaint() }
+        fixedCellWidth = ASSET_FIXED_WIDTH
+        fixedCellHeight = ASSET_FIXED_HEIGHT
+        selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
+        visibleRowCount = -1
+        layoutOrientation = JList.HORIZONTAL_WRAP
+        model = CollectionListModel(assetList)
+      }
+    }
+    return null
   }
 
   /**
@@ -135,13 +155,10 @@ class SketchImporterView {
   /**
    * Refresh the preview associated with the file with [pageId].
    */
-  fun refreshPreview(pageId: String, vectorDrawableFiles: List<LightVirtualFile>) {
-    val pagePanel = pagePanelMap[pageId] ?: return
-    if (pagePanel.components.size > 1) {
-      pagePanel.remove(1)
-    }
-    renderIcons(vectorDrawableFiles, pagePanel)
-    pagePanel.revalidate()
+  fun refreshPreview(pageId: String, listModel: List<DesignAssetSet>) {
+    val assetList = assetListMap[pageId] ?: return
+    @Suppress("UNCHECKED_CAST")
+    (assetList.model as CollectionListModel<DesignAssetSet>).replaceAll(listModel)
   }
 
   /**
