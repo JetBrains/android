@@ -19,9 +19,9 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.adtui.ImageUtils.lowQualityFastScale
 import com.android.tools.idea.concurrent.EdtExecutor
-import com.android.tools.idea.projectsystem.transform
 import com.android.tools.idea.res.resolveMultipleColors
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.transform
 import com.google.common.cache.CacheBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
