@@ -23,6 +23,7 @@ import com.android.tools.profilers.ProfilerMonitorTooltip;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class EventActivityTooltip extends ProfilerMonitorTooltip<EventMonitor> {
@@ -42,5 +43,18 @@ public class EventActivityTooltip extends ProfilerMonitorTooltip<EventMonitor> {
       }
     }
     return null;
+  }
+
+  @NotNull
+  public List<ActivityAction> getFragmentsAt(double time) {
+    List<SeriesData<EventAction<StackedEventType>>> activitySeries =
+      getMonitor().getFragmentEvents().getRangedSeries().getSeries();
+    ArrayList<ActivityAction> fragments = new ArrayList<>();
+    for (SeriesData<EventAction<StackedEventType>> series : activitySeries) {
+      if (series.value.getStartUs() <= time && (series.value.getEndUs() > time || series.value.getEndUs() == 0)) {
+        fragments.add((ActivityAction)series.value);
+      }
+    }
+    return fragments;
   }
 }

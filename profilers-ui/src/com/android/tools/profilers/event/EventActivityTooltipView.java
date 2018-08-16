@@ -23,23 +23,29 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorTooltipView;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StageView;
-import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.intellij.openapi.ui.VerticalFlowLayout;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
+import org.jetbrains.annotations.TestOnly;
 
 public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMonitor> {
-
-  @VisibleForTesting
-  protected JLabel myDurationLabel;
 
   @NotNull
   private final EventActivityTooltip myActivityTooltip;
 
-  @VisibleForTesting
-  protected JLabel myContentLabel;
+  @NotNull
+  private JLabel myActivityNameLabel;
 
+  @NotNull
+  private JLabel myDurationLabel;
+
+  @NotNull
+  private JLabel myFragmentsLabel;
 
   public EventActivityTooltipView(StageView parent, @NotNull EventActivityTooltip tooltip) {
     super(tooltip.getMonitor());
@@ -48,6 +54,10 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
     // Callback on the data range so the active event time gets updated properly.
     getMonitor().getProfilers().getTimeline().getDataRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
     getMonitor().getProfilers().getTimeline().getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
+
+    myActivityNameLabel = new JLabel();
+    myDurationLabel = new JLabel();
+    myFragmentsLabel = new JLabel();
   }
 
   @Override
@@ -67,6 +77,8 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
 
   private void clearTooltipInfo() {
     myDurationLabel.setText("");
+    myActivityNameLabel.setText("");
+    myFragmentsLabel.setText("");
   }
 
   private void showStackedEventInfo(ProfilerTimeline timeline, Range dataRange, Range range) {
@@ -75,13 +87,21 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
       // Set the label to [Activity] [Length of time activity was active]
       double endTime = activity.getEndUs() == 0 ? dataRange.getMax() : activity.getEndUs();
       setTimelineText(timeline.getDataRange(), activity.getStartUs(), endTime);
-      myContentLabel.setText(activity.getData());
+      List<ActivityAction> fragments = myActivityTooltip.getFragmentsAt(range.getMin());
+      myActivityNameLabel.setText(activity.getData());
+      // TODO: b/113512506 Render fragment information with customized component
+      if (getMonitor().getProfilers().getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
+        String htmlText = "<html>" +
+                          Joiner.on("<br>").join(fragments.stream().map(fragment -> fragment.getData()).sorted()
+                                                          .collect(Collectors.toList())) +
+                          "</html>";
+        myFragmentsLabel.setText(htmlText);
+      }
     }
     else {
       clearTooltipInfo();
     }
   }
-
 
   private void setTimelineText(Range dataRange, double startTime, double endTime) {
     // Set the label to [Activity StartTime] - [Activity EndTime]
@@ -90,17 +110,36 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
     myDurationLabel.setText(String.format("%s - %s", startTimeString, endTimeString));
   }
 
+  @TestOnly
+  @NotNull
+  public JLabel getActivityNameLabel() {
+    return myActivityNameLabel;
+  }
+
+  @TestOnly
+  @NotNull
+  public JLabel getDurationLabel() {
+    return myDurationLabel;
+  }
+
+  @TestOnly
+  @NotNull
+  public JLabel getFragmentsLabel() {
+    return myFragmentsLabel;
+  }
+
   @NotNull
   @Override
   public JComponent createTooltip() {
-    JPanel panel = new JPanel(new TabularLayout("*"));
+    JPanel panel = new JPanel(new VerticalFlowLayout(0, 0));
     panel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-    myContentLabel = new JLabel();
-    panel.add(myContentLabel, new TabularLayout.Constraint(0, 0));
-    myDurationLabel = new JLabel();
+    panel.add(myActivityNameLabel);
     myDurationLabel.setForeground(Color.GRAY);
     myDurationLabel.setFont(myFont);
-    panel.add(myDurationLabel, new TabularLayout.Constraint(1, 0));
+    panel.add(myDurationLabel);
+    if (getMonitor().getProfilers().getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
+      panel.add(myFragmentsLabel);
+    }
     return panel;
   }
 }

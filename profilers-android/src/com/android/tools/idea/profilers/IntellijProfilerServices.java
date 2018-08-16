@@ -244,6 +244,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isFragmentsEnabled() {
+        return StudioFlags.PROFILER_FRAGMENT_PROFILER_ENABLED.get();
+      }
+
+      @Override
       public boolean isStartupCpuProfilingEnabled() {
         return StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get();
       }
