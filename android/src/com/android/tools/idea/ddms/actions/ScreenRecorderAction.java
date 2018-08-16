@@ -13,80 +13,61 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.ddms.actions;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.avdmanager.EmulatorAdvFeatures;
 import com.android.tools.idea.ddms.DeviceContext;
-import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.run.DeviceStateCache;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.CompletableFuture;
-
-public class ScreenRecorderAction extends AbstractDeviceAction {
-  // Only need to cache if device supports recording, so key can be empty string.
-  private static final String PKG_NAME = "";
-
+public final class ScreenRecorderAction extends AbstractDeviceAction {
+  private final Features myFeatures;
   private final Project myProject;
-  private final DeviceStateCache<CompletableFuture<Boolean>> myCache;
 
   public ScreenRecorderAction(@NotNull Project project, @NotNull DeviceContext context) {
-    super(context,
-          AndroidBundle.message("android.ddms.actions.screenrecord"),
-          AndroidBundle.message("android.ddms.actions.screenrecord.description"),
-          AndroidIcons.Ddms.ScreenRecorder);
-
-    myProject = project;
-    myCache = new DeviceStateCache<>(project);
+    this(project, context, new CachedFeatures(project));
   }
 
-  boolean isEmulatorAndSupportsEmuRecording(@NotNull IDevice device) {
-    if (device.isEmulator()) {
-      AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-      return EmulatorAdvFeatures.emulatorSupportsScreenRecording(
-        handler,
-        new StudioLoggerProgressIndicator(ScreenRecorderAction.class),
-        new LogWrapper(Logger.getInstance(ScreenRecorderAction.class)));
-    }
-    return false;
+  @VisibleForTesting
+  ScreenRecorderAction(@NotNull Project project, @NotNull DeviceContext context, @NotNull Features features) {
+    super(context, AndroidBundle.message("android.ddms.actions.screenrecord"),
+          AndroidBundle.message("android.ddms.actions.screenrecord.description"), AndroidIcons.Ddms.ScreenRecorder);
+
+    myFeatures = features;
+    myProject = project;
   }
 
   @Override
-  protected boolean isEnabled() {
-    if (!super.isEnabled()) {
-      return false;
+  public void update(@NotNull AnActionEvent event) {
+    Presentation presentation = event.getPresentation();
+
+    if (!isEnabled()) {
+      presentation.setEnabled(false);
+      presentation.setText(AndroidBundle.message("android.ddms.actions.screenrecord"));
+
+      return;
     }
 
     IDevice device = myDeviceContext.getSelectedDevice();
 
-    // Use emulator recording feature if it is supported.
-    if (isEmulatorAndSupportsEmuRecording(device)) {
-      return true;
+    if (myFeatures.watch(device)) {
+      presentation.setEnabled(false);
+      presentation.setText("Screen Record Is Unavailable for Wear OS");
+
+      return;
     }
 
-    CompletableFuture<Boolean> cf = myCache.get(device, PKG_NAME);
-    // first time execution for this device, async query if device supports recording and save it in the cache.
-    if (cf == null) {
-      cf = CompletableFuture.supplyAsync(() -> device.supportsFeature(IDevice.Feature.SCREEN_RECORD));
-      myCache.put(device, PKG_NAME, cf);
-    }
-
-    // default return false until future is complete since this method will be called each time studio updates
-    return cf.getNow(false);
+    presentation.setEnabled(myFeatures.screenRecord(device));
+    presentation.setText(AndroidBundle.message("android.ddms.actions.screenrecord"));
   }
 
   @Override
   protected void performAction(@NotNull IDevice device) {
-    boolean useEmuScreenRecording = isEmulatorAndSupportsEmuRecording(device);
-    new com.android.tools.idea.ddms.screenrecord.ScreenRecorderAction(myProject, device, useEmuScreenRecording).performAction();
+    new com.android.tools.idea.ddms.screenrecord.ScreenRecorderAction(myProject, device, myFeatures.screenRecord(device)).performAction();
   }
 }
