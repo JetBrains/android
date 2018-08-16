@@ -238,7 +238,7 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
     DefaultComboBoxModel<ValueWithDisplayString> model = (DefaultComboBoxModel<ValueWithDisplayString>)myCombo.getModel();
     int index = model.getIndexOf(value);
     if (index == -1) {
-      if (myAddedValueIndex >= 0) {
+      if (myAddedValueIndex >= 0 && model.getSize() > myAddedValueIndex) {
         model.removeElementAt(myAddedValueIndex);
       }
       myAddedValueIndex = findBestInsertionPoint(value);
