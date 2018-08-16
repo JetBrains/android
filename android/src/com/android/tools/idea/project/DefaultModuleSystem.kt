@@ -93,7 +93,6 @@ class DefaultModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFi
 
         // all libraries are assumed to have a classes.jar & a non-empty name
         val classesJar = roots.firstOrNull { it.name == SdkConstants.FN_CLASSES_JAR }?.toPathString()
-                         ?: return@forEachLibrary true
         val libraryName = library.name ?: return@forEachLibrary true
 
         // For testing purposes we create libraries with a res.apk root (legacy projects don't have those). Recognize them here and
@@ -109,15 +108,14 @@ class DefaultModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFi
 
           libraries.add(AarLibrary(
             address = libraryName,
-            location = null,
             manifestFile = resFolder.parentOrRoot.resolve(FN_ANDROID_MANIFEST_XML),
             classesJar = classesJar,
-            dependencyJars = emptyList(),
             resFolder = resFolder,
             symbolFile = resFolder.parentOrRoot.resolve(FN_RESOURCE_TEXT),
             resApkFile = resApk
           ))
         } else { // jar
+          classesJar ?: return@forEachLibrary true
           libraries.add(JavaLibrary(
             address = libraryName,
             classesJar = classesJar

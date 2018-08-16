@@ -79,7 +79,7 @@ class GradleProjectSystemIntegrationTest : AndroidGradleTestCase() {
       .first()
 
     assertThat(appcompat.address).matches("com.android.support:support-compat:[\\.\\d]+@aar")
-    assertThat(appcompat.manifestFile.fileName).isEqualTo(SdkConstants.FN_ANDROID_MANIFEST_XML)
-    assertThat(appcompat.resFolder.toFile()!!).isDirectory()
+    assertThat(appcompat.manifestFile?.fileName).isEqualTo(SdkConstants.FN_ANDROID_MANIFEST_XML)
+    assertThat(appcompat.resFolder!!.toFile()).isDirectory()
   }
 }

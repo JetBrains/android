@@ -159,7 +159,7 @@ class ProjectLightResourceClassService(
             ResourceNamespace.fromPackageName(packageName)
           )
         },
-        nonNamespaced = aarLibrary.symbolFile.toFile()?.takeIf { it.exists() }?.let { symbolFile ->
+        nonNamespaced = aarLibrary.symbolFile?.toFile()?.takeIf { it.exists() }?.let { symbolFile ->
           NonNamespacedAarPackageRClass(psiManager, packageName, symbolFile)
         }
       )
@@ -196,7 +196,7 @@ class ProjectLightResourceClassService(
   private fun getAarPackageName(aarLibrary: AarLibrary): String {
     return aarPackageNamesCache.getAndUnwrap(aarLibrary) {
       val fromManifest = try {
-        aarLibrary.manifestFile.let(AndroidManifestUtils::getPackageNameFromManifestFile)
+        aarLibrary.representativeManifestFile?.let(AndroidManifestUtils::getPackageNameFromManifestFile) ?: ""
       }
       catch (e: IOException) {
         null
