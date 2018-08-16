@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
+import com.intellij.icons.AllIcons
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -85,6 +86,8 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
           icon = userObject.icon
           iconTextGap = iconGap
           ipad = editorInsets
+        } else {
+          icon = EmptyIcon.ICON_16
         }
       }
     })
@@ -409,7 +412,11 @@ class EmptyVariableNode(private val variablesScope: PsVariablesScope, val type: 
 
 class VariableNode(znode: ShadowNode, variable: PsVariable) : BaseVariableNode(znode, variable) {
   init {
-    userObject = NodeDescription(variable.name, com.intellij.util.ui.EmptyIcon.ICON_0)
+    userObject = NodeDescription(variable.name, when {
+      variable.isMap -> AllIcons.Json.Object
+      variable.isList -> AllIcons.Json.Array
+      else -> AllIcons.Nodes.C_plocal
+    })
   }
   override fun getUnresolvedValue(expanded: Boolean): String {
     if (expanded) {
