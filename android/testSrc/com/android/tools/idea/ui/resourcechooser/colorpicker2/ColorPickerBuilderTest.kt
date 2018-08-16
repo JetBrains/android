@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.intellij.testFramework.IdeaTestCase
+import org.mockito.Mockito
 import java.awt.Color
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
@@ -78,11 +79,37 @@ class ColorPickerBuilderTest : IdeaTestCase() {
       .addKeyAction(keyStroke, action)
       .build()
 
-    assertEquals(1, colorPicker.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).size())
-    val actionId = colorPicker.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).get(keyStroke)
+    assertEquals(1, colorPicker.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).size())
+    val actionId = colorPicker.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).get(keyStroke)
     assertNotNull(actionId)
     assertEquals(1, colorPicker.actionMap.size())
     assertEquals(action, colorPicker.actionMap.get(actionId))
+  }
+
+  fun testFocusTraversal() {
+    val colorPicker = ColorPickerBuilder()
+      .addColorValuePanel()
+      .addSeparator()
+      .addColorValuePanel().withFocus()
+      .build()
+
+    val secondColorValuePanel = colorPicker.getComponent(2) as ColorValuePanel
+    assertEquals(secondColorValuePanel, colorPicker.focusTraversalPolicy.getDefaultComponent(colorPicker))
+  }
+
+  fun testEscapeTriggersCancelOperations() {
+    val cancelTask = Mockito.mock(Runnable::class.java)
+
+    val colorPicker = ColorPickerBuilder()
+      .addOperationPanel({ _ -> Unit }, { _ -> cancelTask.run() })
+      .build()
+
+    val key = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, true)
+    val action = colorPicker.getActionForKeyStroke(key)!!
+    val actionEvent = ActionEvent(colorPicker, 0, key.keyChar.toString(), key.modifiers)
+
+    action.actionPerformed(actionEvent)
+    Mockito.verify(cancelTask, Mockito.times(1)).run()
   }
 }
 
