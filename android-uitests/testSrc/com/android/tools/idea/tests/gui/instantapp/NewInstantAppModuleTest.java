@@ -120,10 +120,10 @@ public class NewInstantAppModuleTest {
 
   @Test
   public void testPackageGeneratedCorrectly() throws IOException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
-    addNewFeatureModule("feature1");
+    guiTest.importSimpleLocalApplication();
+    addNewFeatureModule("feature");
 
-    Module module = guiTest.ideFrame().getModule("feature1");
+    Module module = guiTest.ideFrame().getModule("feature");
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assertNotNull(facet);
     Manifest manifest = facet.getManifest();
