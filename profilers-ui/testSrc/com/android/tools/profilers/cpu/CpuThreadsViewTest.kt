@@ -36,7 +36,7 @@ class CpuThreadsViewTest {
 
   @Rule
   @JvmField
-  var grpcChannel = FakeGrpcChannel("CpuUsageImportModeViewTest", cpuService, FakeProfilerService(),
+  var grpcChannel = FakeGrpcChannel("CpuThreadsViewTest", cpuService, FakeProfilerService(),
                                     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
   private val timer = FakeTimer()
