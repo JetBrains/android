@@ -34,7 +34,6 @@ import com.android.tools.idea.naveditor.scene.HEADER_TEXT_HEIGHT
 import com.android.tools.idea.naveditor.scene.HEADER_TEXT_PADDING
 import com.android.tools.idea.naveditor.scene.draw.DrawIcon
 import com.android.tools.idea.naveditor.scene.scaledFont
-import com.intellij.util.ui.JBUI
 import java.awt.Font
 import java.awt.geom.Rectangle2D
 

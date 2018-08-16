@@ -91,7 +91,7 @@ public class SceneDisplayListSortedTest extends SceneTest {
     BufferedImage img = new BufferedImage(2000, 2000, BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());
     assertEquals(17, disp.getCommands().size());
-    String result = disp.generateSortedDisplayList(SceneContext.get());
+    String result = disp.generateSortedDisplayList();
     String sorted = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                     "Clip,0,0,1000,1000\n" +
                     "DrawLinearLayout,10,10,990,20,1\n" +

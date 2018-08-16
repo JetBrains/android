@@ -62,6 +62,11 @@ public abstract class BaseTarget implements Target {
   }
 
   @Override
+  public boolean isMouseHovered() {
+    return mIsOver;
+  }
+
+  @Override
   @AndroidDpCoordinate
   public float getCenterX() {
     return myLeft + (myRight - myLeft) / 2;

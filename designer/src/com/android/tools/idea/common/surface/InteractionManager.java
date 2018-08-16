@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.surface;
 
+import static com.android.tools.idea.common.model.Coordinates.getAndroidXDip;
+import static com.android.tools.idea.common.model.Coordinates.getAndroidYDip;
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
 import com.android.annotations.VisibleForTesting;
@@ -30,6 +32,7 @@ import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
@@ -356,9 +359,8 @@ public class InteractionManager {
       int y = event.getY();
       int clickCount = event.getClickCount();
 
+      NlComponent component = getComponentAt(x, y);
       if (clickCount == 2 && event.getButton() == MouseEvent.BUTTON1) {
-        NlComponent component = getComponentAt(x, y);
-
         if (component != null) {
           // TODO: find a way to move layout-specific logic elsewhere.
           if (mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
@@ -382,7 +384,6 @@ public class InteractionManager {
 
       // If shift is down, the user is multi-selecting the component, no need to navigate XML file in this case.
       if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1 && !event.isShiftDown()) {
-        NlComponent component = getComponentAt(x, y);
         // TODO: find a way to move layout-specific logic elsewhere.
         if (component != null && mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
           navigateEditor(component, false);
@@ -391,7 +392,7 @@ public class InteractionManager {
 
       if (event.isPopupTrigger()) {
         selectComponentAt(x, y, false, true);
-        mySurface.getActionManager().showPopup(event);
+        mySurface.getActionManager().showPopup(event, component);
       }
     }
 
@@ -420,8 +421,8 @@ public class InteractionManager {
       ourLastStateMask = event.getModifiers();
 
       if (event.isPopupTrigger()) {
-        selectComponentAt(event.getX(), event.getY(), false, true);
-        mySurface.getActionManager().showPopup(event);
+        NlComponent selected = selectComponentAt(event.getX(), event.getY(), false, true);
+        mySurface.getActionManager().showPopup(event, selected);
         return;
       }
 
@@ -438,9 +439,9 @@ public class InteractionManager {
     @Override
     public void mouseReleased(@NotNull MouseEvent event) {
       if (event.isPopupTrigger()) {
-        selectComponentAt(event.getX(), event.getY(), false, true);
+        NlComponent selected = selectComponentAt(event.getX(), event.getY(), false, true);
         mySurface.repaint();
-        mySurface.getActionManager().showPopup(event);
+        mySurface.getActionManager().showPopup(event, selected);
         return;
       }
       else if (event.getButton() > 1 || SystemInfo.isMac && event.isControlDown()) {
@@ -483,18 +484,35 @@ public class InteractionManager {
      * @param ignoreIfAlreadySelected If true, and the clicked component is already selected, leave the
      *                                selection (including possibly other selected components) alone
      */
-    private void selectComponentAt(@SwingCoordinate int x, @SwingCoordinate int y, boolean allowToggle,
-                                   boolean ignoreIfAlreadySelected) {
+    @Nullable
+    private NlComponent selectComponentAt(@SwingCoordinate int x, @SwingCoordinate int y, boolean allowToggle,
+                                          boolean ignoreIfAlreadySelected) {
       // Just a click, select
       SceneView sceneView = mySurface.getSceneView(x, y);
       if (sceneView == null) {
-        return;
+        return null;
       }
-      SelectionModel selectionModel = sceneView.getSelectionModel();
-      NlComponent component = Coordinates.findComponent(sceneView, x, y);
 
+      SceneContext context = SceneContext.get(sceneView);
+      int xDip = getAndroidXDip(sceneView, x);
+      int yDip = getAndroidYDip(sceneView, y);
+      Scene scene = sceneView.getScene();
+      Target clickedTarget = scene.findTarget(context, xDip, yDip);
+      SceneComponent clicked;
+      if (clickedTarget != null) {
+        clicked = clickedTarget.getComponent();
+      }
+      else {
+        clicked = scene.findComponent(context, xDip, yDip);
+      }
+      NlComponent component = null;
+      if (clicked != null) {
+        component = clicked.getNlComponent();
+      }
+
+      SelectionModel selectionModel = sceneView.getSelectionModel();
       if (ignoreIfAlreadySelected && component != null && selectionModel.isSelected(component)) {
-        return;
+        return component;
       }
 
       if (component == null) {
@@ -506,6 +524,7 @@ public class InteractionManager {
       else {
         selectionModel.setSelection(Collections.singletonList(component));
       }
+      return component;
     }
 
     @Nullable
@@ -569,8 +588,8 @@ public class InteractionManager {
         Scene scene = sceneView.getScene();
         SelectionModel selectionModel = sceneView.getSelectionModel();
 
-        int xDp = Coordinates.getAndroidXDip(sceneView, x);
-        int yDp = Coordinates.getAndroidYDip(sceneView, y);
+        int xDp = getAndroidXDip(sceneView, x);
+        int yDp = getAndroidYDip(sceneView, y);
 
         Interaction interaction;
         NlModel model = sceneView.getModel();

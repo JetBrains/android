@@ -80,7 +80,7 @@ public class SceneDisplayListTest6 extends SceneTest {
     BufferedImage img = new BufferedImage(2000, 2000,BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());
     assertEquals(10, disp.getCommands().size());
-    String result = disp.generateSortedDisplayList(SceneContext.get());
+    String result = disp.generateSortedDisplayList();
     String sorted = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                     "Clip,0,0,1000,1000\n" +
                     "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,0,0,0\n" +

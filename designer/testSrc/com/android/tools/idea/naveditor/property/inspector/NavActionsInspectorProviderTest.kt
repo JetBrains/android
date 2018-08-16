@@ -21,7 +21,7 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavActionsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
-import com.android.tools.idea.naveditor.scene.targets.ActionTarget
+import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_CLIENT_PROPERTY
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBList
 import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertNotEquals
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.doAnswer
@@ -213,20 +214,18 @@ class NavActionsInspectorProviderTest : NavTestCase() {
 
     val panel = NavInspectorPanel(myRootDisposable)
     val f1 = model.find("f1")!!
+    model.surface.selectionModel.setSelection(listOf(f1))
     panel.setComponent(listOf(f1), HashBasedTable.create<String, String, NlProperty>(), manager)
 
     @Suppress("UNCHECKED_CAST")
     val actionsList = flatten(panel).find { it.name == NAV_LIST_COMPONENT_NAME }!! as JBList<NlProperty>
     actionsList.addSelectionInterval(1, 1)
 
-    var highlightedTargets = model.surface.scene!!.getSceneComponent("f1")!!.targets!!.filter { it is ActionTarget && it.isHighlighted }
-    assertEquals(1, highlightedTargets.size)
-    assertEquals("a1", (highlightedTargets[0] as ActionTarget).id)
+    assertEquals(true, model.find("a1")!!.getClientProperty(HIGHLIGHTED_CLIENT_PROPERTY))
+    assertNotEquals(true, model.find("a2")!!.getClientProperty(HIGHLIGHTED_CLIENT_PROPERTY))
 
     actionsList.focusListeners.forEach { it.focusLost(FocusEvent(actionsList, FocusEvent.FOCUS_LOST)) }
-
-    highlightedTargets = model.surface.scene!!.getSceneComponent("f1")!!.targets!!.filter { it is ActionTarget && it.isHighlighted }
-    assertEmpty(highlightedTargets)
+    assertNotEquals(true, model.find("a1")!!.getClientProperty(HIGHLIGHTED_CLIENT_PROPERTY))
   }
 
   fun testPlusContents() {

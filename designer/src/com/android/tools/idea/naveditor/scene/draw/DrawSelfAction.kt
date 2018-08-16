@@ -18,19 +18,19 @@ package com.android.tools.idea.naveditor.scene.draw
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.*
-import com.android.tools.idea.naveditor.scene.ACTION_STROKE
-import com.android.tools.idea.naveditor.scene.DRAW_ACTION_LEVEL
-import com.android.tools.idea.naveditor.scene.SELF_ACTION_RADII
-import com.android.tools.idea.naveditor.scene.selfActionPoints
+import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.naveditor.scene.*
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.geom.GeneralPath
 import java.awt.geom.Point2D
+import java.awt.geom.Rectangle2D
+
 
 class DrawSelfAction(@SwingCoordinate private val start: Point2D.Float,
                      @SwingCoordinate private val end: Point2D.Float,
-                     private val myColor: Color) : DrawCommand {
+                     private val myColor: Color) : DrawCommandBase() {
   private constructor(sp: Array<String>) : this(stringToPoint2D(sp[0]), stringToPoint2D(sp[1]), stringToColor(sp[2]))
 
   constructor(s: String) : this(parse(s, 3))
@@ -39,24 +39,36 @@ class DrawSelfAction(@SwingCoordinate private val start: Point2D.Float,
     return DRAW_ACTION_LEVEL
   }
 
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
+  override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     val path = GeneralPath()
-    path.moveTo(start.x.toFloat(), start.y.toFloat())
+    path.moveTo(start.x, start.y)
 
     val points = selfActionPoints(start, end, sceneContext)
     DrawConnectionUtils.drawRound(path, points.map { it.x.toInt() }.toIntArray(), points.map { it.y.toInt() }.toIntArray(), points.size,
                                   SELF_ACTION_RADII.map { sceneContext.getSwingDimensionDip(it) }.toIntArray())
 
-    val g2 = g.create() as Graphics2D
-
-    g2.color = myColor
-    g2.stroke = ACTION_STROKE
-    g2.draw(path)
-
-    g2.dispose()
+    g.color = myColor
+    g.stroke = ACTION_STROKE
+    g.draw(path)
   }
 
   override fun serialize(): String {
     return buildString(javaClass.simpleName, point2DToString(start), point2DToString(end), colorToString(myColor))
+  }
+
+  companion object {
+    fun buildDisplayList(list: DisplayList, sceneView: SceneView, rect: Rectangle2D.Float, color: Color) {
+      val start = getStartPoint(rect)
+      val sceneContext = SceneContext.get(sceneView)
+      val arrowPoint = getArrowPoint(sceneContext, rect, ConnectionDirection.BOTTOM)
+      arrowPoint.x += rect.width / 2 + sceneContext.getSwingDimension(
+        SELF_ACTION_LENGTHS[0] - SELF_ACTION_LENGTHS[2])
+
+      val arrowRectangle = getArrowRectangle(sceneView, arrowPoint, ConnectionDirection.BOTTOM)
+      val end = Point2D.Float(arrowRectangle.x + arrowRectangle.width / 2, arrowRectangle.y + arrowRectangle.height - 1)
+
+      list.add(DrawArrow(DRAW_ACTION_LEVEL, ArrowDirection.UP, arrowRectangle, color))
+      list.add(DrawSelfAction(start, end, color))
+    }
   }
 }
