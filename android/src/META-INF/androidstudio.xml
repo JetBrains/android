@@ -36,6 +36,11 @@
       <headless-implementation-class/>
     </component>
   </application-components>
+  <project-components>
+    <component>
+      <implementation-class>com.android.tools.idea.stats.UserSentimentProjectComponent</implementation-class>
+    </component>
+  </project-components>
 
   <actions>
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
