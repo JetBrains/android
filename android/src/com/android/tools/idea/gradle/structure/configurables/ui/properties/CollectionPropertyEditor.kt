@@ -26,8 +26,11 @@ import com.intellij.ui.table.JBTable
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.event.MouseWheelEvent
+import java.awt.event.MouseWheelListener
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.JScrollPane
 import javax.swing.JTable
 import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableCellRenderer
@@ -65,6 +68,8 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
           .setToolbarPosition(ActionToolbarPosition.RIGHT)
           .createPanel()
       )
+    }.also {
+      it.patchScrolling()
     }
 
   protected fun loadValue() {
@@ -123,4 +128,24 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
     override fun Annotated<ParsedValue<ValueT>>.toModelValue(): Any = toTableModelValue()
     override fun initEditorFor(row: Int): ModelPropertyEditor<ValueT> = editor(getPropertyAt(row), propertyContext, variablesScope)
   }
+}
+
+private fun JComponent.patchScrolling() {
+  fun Component.parentScrollPane() = generateSequence<Component>(parent) { it.parent }.mapNotNull { it as? JScrollPane }.firstOrNull()
+  var lastKnownPosition = 0
+  val patchedScrollPane = parentScrollPane()
+  patchedScrollPane?.addMouseWheelListener(MouseWheelListener { e ->
+    val verticalBar = patchedScrollPane.verticalScrollBar
+    if (verticalBar.value == lastKnownPosition
+        && (e.wheelRotation < 0 && verticalBar.value == 0 || verticalBar.value == verticalBar.maximum - verticalBar.visibleAmount)) {
+      val parentScrollPane = patchedScrollPane.parentScrollPane()
+      if (parentScrollPane != null) {
+        parentScrollPane.dispatchEvent(
+          MouseWheelEvent(parentScrollPane, e.id, e.`when`, e.modifiers, e.xOnScreen - parentScrollPane.locationOnScreen.x,
+                          e.yOnScreen - parentScrollPane.locationOnScreen.y, e.xOnScreen, e.yOnScreen, e.clickCount, e.isPopupTrigger,
+                          e.scrollType, e.scrollAmount, e.wheelRotation, e.preciseWheelRotation))
+      }
+    }
+    lastKnownPosition = verticalBar.value
+  })
 }
