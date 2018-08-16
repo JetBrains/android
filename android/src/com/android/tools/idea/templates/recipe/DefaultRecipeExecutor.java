@@ -507,9 +507,8 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
   }
 
   private String convertToAndroidX(String dep) {
-    Object buildApiObj = getParamMap().get(ATTR_BUILD_API);
-    int buildApi = buildApiObj == null ? 0 : Integer.parseInt(buildApiObj.toString());
-    if (MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED.get() && buildApi >= 28) {
+    Boolean useAndroidX = (Boolean)getParamMap().get(ATTR_ANDROIDX_SUPPORT);
+    if (Boolean.TRUE.equals(useAndroidX)) {
       Module module = myContext.getModule();
       if (module != null && dependsOnOldSupportLib(module)) {
           return dep;
