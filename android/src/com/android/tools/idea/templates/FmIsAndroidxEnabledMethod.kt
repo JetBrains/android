@@ -57,7 +57,7 @@ class FmIsAndroidxEnabledMethod(private val paramMap: Map<String, Any>) : Templa
 
   @Throws(TemplateModelException::class)
   override fun exec(args: List<*>): TemplateModel {
-    val buildApiObject = (paramMap.get(TemplateMetadata.ATTR_BUILD_API) as? Int) ?: 0
+    val buildApiObject = (paramMap[TemplateMetadata.ATTR_BUILD_API] as? Int) ?: 0
 
     if (buildApiObject < 28) {
       // androidx is not supported for <28
@@ -73,7 +73,7 @@ class FmIsAndroidxEnabledMethod(private val paramMap: Map<String, Any>) : Templa
       project?.hasAndroidxProperty() == true -> project.isAndroidx()
 
       // Default based on the global flag
-      else -> NELE_USE_ANDROIDX_DEFAULT.get()
+      else -> paramMap[TemplateMetadata.ATTR_ANDROIDX_SUPPORT] as? Boolean ?: false
     }
 
     return if (useAndroidx) TemplateBooleanModel.TRUE else TemplateBooleanModel.FALSE
