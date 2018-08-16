@@ -712,8 +712,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
         new EventLegend<>("GC Duration", duration -> TimeAxisFormatter.DEFAULT
           .getFormattedString(TimeUnit.MILLISECONDS.toMicros(1), duration.getDurationUs(), true));
 
-      List<Legend> legends = isTooltip ? Arrays.asList(myTotalLegend, myOtherLegend, myCodeLegend, myStackLegend, myGraphicsLegend,
-                                                       myNativeLegend, myJavaLegend, myObjectsLegend, myGcDurationLegend)
+      List<Legend> legends = isTooltip ? Arrays.asList(myOtherLegend, myCodeLegend, myStackLegend, myGraphicsLegend,
+                                                       myNativeLegend, myJavaLegend, myObjectsLegend, myGcDurationLegend, myTotalLegend)
                                        : Arrays.asList(myTotalLegend, myJavaLegend, myNativeLegend,
                                                        myGraphicsLegend, myStackLegend, myCodeLegend, myOtherLegend, myObjectsLegend);
       legends.forEach(this::add);
