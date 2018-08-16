@@ -20,7 +20,6 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType;
 import com.android.tools.profilers.*;
@@ -34,7 +33,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBDimension;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
 
@@ -264,7 +262,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       PanelSpacing panelSpacing = threadsPanel.isExpanded() ? PanelSpacing.THREADS_EXPANDED : PanelSpacing.THREADS_COLLAPSED;
       detailsLayout.setRowSizing(DETAILS_THREADS_PANEL_ROW, panelSpacing.toString());
     });
-    myTooltipComponent.registerListenersOn(myThreads);
+    myTooltipComponent.registerListenersOn(myThreads.getThreads());
     detailsPanel.add(threadsPanel, new TabularLayout.Constraint(DETAILS_THREADS_PANEL_ROW, 0));
   }
 

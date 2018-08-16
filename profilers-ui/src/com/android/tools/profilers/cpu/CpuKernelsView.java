@@ -59,7 +59,7 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
     setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
     setCellRenderer(new CpuKernelCellRenderer(myStage.getStudioProfilers().getIdeServices().getFeatureConfig(),
                                               myStage.getStudioProfilers().getSession().getPid(),
-                                              this, threadsView));
+                                              this, threadsView.getThreads()));
   }
 
   @NotNull
@@ -138,7 +138,7 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
 
     int id = process.get(0).value.getId();
     CpuThreadsModel threadsModel = myStage.getThreadStates();
-    for (int i = 0; i < myThreads.getModel().getSize(); i++) {
+    for (int i = 0; i < myThreads.getThreads().getModel().getSize(); i++) {
       CpuThreadsModel.RangedCpuThread thread = threadsModel.getElementAt(i);
       if (id == thread.getThreadId()) {
         myStage.setSelectedThread(thread.getThreadId());

@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.*
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel
 import com.android.tools.profilers.event.FakeEventService
@@ -62,13 +61,13 @@ class CpuThreadsViewTest {
     stage.studioProfilers.timeline.viewRange.set(-Double.MAX_VALUE, Double.MAX_VALUE)
 
     val tracker = ideServices.featureTracker as FakeFeatureTracker
-    assertThat(threadsView.selectedValue).isNull()
+    assertThat(threadsView.threads.selectedValue).isNull()
     assertThat(stage.selectedThread).isEqualTo(CaptureModel.NO_THREAD)
     assertThat(tracker.isTrackSelectThreadCalled).isFalse()
 
-    threadsView.selectedIndex = 0
-    assertThat(threadsView.selectedValue).isNotNull()
-    assertThat(stage.selectedThread).isEqualTo(threadsView.selectedValue.threadId)
+    threadsView.threads.selectedIndex = 0
+    assertThat(threadsView.threads.selectedValue).isNotNull()
+    assertThat(stage.selectedThread).isEqualTo(threadsView.threads.selectedValue.threadId)
     assertThat(tracker.isTrackSelectThreadCalled).isTrue()
   }
 
@@ -87,30 +86,30 @@ class CpuThreadsViewTest {
     assertThat(descendants).hasSize(1)
     val scrollPane = descendants[0]
 
-    assertThat(scrollPane.viewport.view).isEqualTo(threadsView)
+    assertThat(scrollPane.viewport.view).isEqualTo(threadsView.threads)
   }
 
   @Test
   fun selectionModelShouldBeSingleSelection() {
     val threadsView = CpuThreadsView(stage, JPanel())
-    assertThat(threadsView.selectionModel.selectionMode).isEqualTo(ListSelectionModel.SINGLE_SELECTION)
+    assertThat(threadsView.threads.selectionModel.selectionMode).isEqualTo(ListSelectionModel.SINGLE_SELECTION)
   }
 
   @Test
   fun threadsViewShouldHaveNullBorder() {
     val threadsView = CpuThreadsView(stage, JPanel())
-    assertThat(threadsView.border).isNull()
+    assertThat(threadsView.threads.border).isNull()
   }
 
   @Test
   fun cellRendererShouldBeThreadCellRenderer() {
     val threadsView = CpuThreadsView(stage, JPanel())
-    assertThat(threadsView.cellRenderer).isInstanceOf(ThreadCellRenderer::class.java)
+    assertThat(threadsView.threads.cellRenderer).isInstanceOf(ThreadCellRenderer::class.java)
   }
 
   @Test
   fun backgroundShouldBeDefaultStage() {
     val threadsView = CpuThreadsView(stage, JPanel())
-    assertThat(threadsView.background).isEqualTo(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
+    assertThat(threadsView.threads.background).isEqualTo(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
   }
 }
