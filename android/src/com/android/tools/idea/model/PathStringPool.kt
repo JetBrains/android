@@ -17,7 +17,7 @@ package com.android.tools.idea.model
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.util.PathString
-import com.android.tools.idea.util.inputStream
+import com.android.ide.common.util.inputStream
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
