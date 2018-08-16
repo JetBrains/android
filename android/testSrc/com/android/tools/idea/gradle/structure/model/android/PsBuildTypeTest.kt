@@ -417,7 +417,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     assertThat(buildType, notNullValue()); buildType!!
 
     PsBuildType.BuildTypeDescriptors.manifestPlaceholders.bind(buildType).run {
-      addEntry("k").setParsedValue("v".asParsed())
+      addEntry("k").setParsedValue("v".asParsed<Any>())
     }
 
 
@@ -425,7 +425,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       val manifestPlaceholders =
         PsBuildType.BuildTypeDescriptors.manifestPlaceholders.bind(buildType).getEditableValues().mapValues { it.value.getValue() }
 
-      assertThat(manifestPlaceholders["k"]?.parsedValue?.asTestValue(), equalTo("v"))
+      assertThat(manifestPlaceholders["k"]?.parsedValue?.asTestValue(), equalTo<Any>("v"))
 
       if (afterSync) {
         assertThat(manifestPlaceholders["k"]?.parsedValue?.asTestValue(), equalTo(manifestPlaceholders["k"]?.resolved?.asTestValue()))
