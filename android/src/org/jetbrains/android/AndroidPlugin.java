@@ -18,6 +18,7 @@ package org.jetbrains.android;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ApplicationComponent;
@@ -37,6 +38,7 @@ public class AndroidPlugin implements ApplicationComponent {
 
   @Override
   public void initComponent() {
+    VirtualFileSystemOpener.INSTANCE.mount();
     if (!IdeInfo.getInstance().isAndroidStudio()) {
       initializeForNonStudio();
     }
