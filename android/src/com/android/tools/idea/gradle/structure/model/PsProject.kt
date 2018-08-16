@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
 import com.intellij.openapi.project.Project
 import java.util.function.Consumer
 
@@ -24,6 +25,7 @@ interface PsProject : PsModel {
   val parsedModel: ProjectBuildModel
   val variables: PsVariables
   val pomDependencyCache: PsPomDependencyCache
+  val repositorySearchFactory: RepositorySearchFactory
   val modules: PsModelCollection<PsModule>
   val modelCount: Int
 

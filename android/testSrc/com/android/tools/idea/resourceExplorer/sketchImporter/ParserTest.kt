@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchParser
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.*
+import com.intellij.testFramework.ProjectRule
 import org.jetbrains.android.AndroidTestBase
+import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ParserTest {
+
+  @get:Rule
+  val projectRule = ProjectRule()
 
   @Test
   fun findLayers() {
@@ -224,6 +230,4 @@ class ParserTest {
     assertEquals(false, points[1].hasCurveTo())
     assertEquals(SketchPoint2D(0.99826388888888884, 0.0062500000000000003), points[1].point)
   }
-
-
 }

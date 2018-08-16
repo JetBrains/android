@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.variables
 
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariable
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
+import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
@@ -52,7 +55,7 @@ private const val RESOLVED_VALUE = 2
  * Main table for the Variables view in the Project Structure Dialog
  */
 class VariablesTable(private val project: Project, private val psProject: PsProject) :
-  TreeTable(VariablesTableModel(DefaultMutableTreeNode())) {
+  TreeTable(VariablesTableModel(VariablesBaseNode())) {
 
   private val iconGap = JBUI.scale(2)
   private val editorInsets = JBUI.insets(1, 2)
@@ -72,7 +75,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
         if (value is EmptyMapItemNode) {
           append("Insert new key", SimpleTextAttributes.GRAYED_ATTRIBUTES)
         }
-        val userObject = (value as DefaultMutableTreeNode).userObject
+        val userObject = (value as VariablesBaseNode).userObject
         if (userObject is NodeDescription) {
           icon = userObject.icon
           iconTextGap = iconGap
@@ -87,9 +90,8 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
 
   private fun fillTable() {
     fun createRoot(variablesScope: PsVariablesScope): ModuleNode {
-      val moduleVariables = variablesScope.getModuleVariables()
       val moduleRoot = ModuleNode(variablesScope)
-      moduleVariables.map { VariableNode(it) }.sortedBy { it.variable.getName() }.forEach { moduleRoot.add(it) }
+      variablesScope.map { VariableNode(it) }.sortedBy { it.variable.name }.forEach { moduleRoot.add(it) }
       return moduleRoot
     }
 
@@ -98,7 +100,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     moduleNodes.sortBy { it.variables.name }
     moduleNodes.add(0, createRoot(psProject.variables))
 
-    moduleNodes.forEach { (tableModel.root as DefaultMutableTreeNode).add(it) }
+    moduleNodes.forEach { (tableModel.root as VariablesBaseNode).add(it) }
     tree.expandRow(0)
     tree.expandRow(1)
     tree.isRootVisible = false
@@ -124,13 +126,13 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
 
   fun addVariable(type: ValueType) {
     getCellEditor()?.stopCellEditing()
-    val selectedNodes = tree.getSelectedNodes(DefaultMutableTreeNode::class.java, null)
+    val selectedNodes = tree.getSelectedNodes(VariablesBaseNode::class.java, null)
     if (selectedNodes.isEmpty()) {
       return
     }
     var last = selectedNodes.last()
     while (last !is ModuleNode) {
-      last = last.parent as DefaultMutableTreeNode
+      last = last.parent as VariablesBaseNode
     }
 
     val emptyNode = EmptyNode(last.variables, type)
@@ -145,12 +147,13 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
   override fun getCellRenderer(row: Int, column: Int): TableCellRenderer {
     val defaultRenderer = super.getCellRenderer(row, column)
     return TableCellRenderer { table, value, isSelected, _, rowIndex, columnIndex ->
-      val nodeRendered = tree.getPathForRow(rowIndex).lastPathComponent as DefaultMutableTreeNode
+      val nodeRendered = tree.getPathForRow(rowIndex).lastPathComponent as VariablesBaseNode
       val component = defaultRenderer.getTableCellRendererComponent(table, value, isSelected, false, rowIndex, columnIndex)
       if (nodeRendered is EmptyListItemNode && column == UNRESOLVED_VALUE) {
         component.foreground = UIUtil.getInactiveTextColor()
         (component as JLabel).text = "Insert new value"
-      } else {
+      }
+      else {
         component.foreground = if (table.isRowSelected(rowIndex)) table.selectionForeground else table.foreground
       }
       component
@@ -238,7 +241,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       // Reproduce the tree element layout (see BasicTreeUI)
       val panel = JPanel()
       panel.layout = BoxLayout(panel, BoxLayout.LINE_AXIS)
-      val nodeBeingEdited = (table as VariablesTable).tree.getPathForRow(row).lastPathComponent as DefaultMutableTreeNode
+      val nodeBeingEdited = (table as VariablesTable).tree.getPathForRow(row).lastPathComponent as VariablesBaseNode
       val bounds = tree.getRowBounds(row)
       if (!nodeBeingEdited.isLeaf) {
         val icon = UIUtil.getTreeNodeIcon(tree.isExpanded(row), isSelected, tree.hasFocus())
@@ -296,7 +299,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       }
       val nodeBeingEdited = (table as VariablesTable).tree.getPathForRow(row).lastPathComponent
       if (nodeBeingEdited is BaseVariableNode) {
-        textBox.setVariants(nodeBeingEdited.variable.scopePsVariables.getModuleVariables().map { it.getName() })
+        textBox.setVariants(nodeBeingEdited.variable.scopePsVariables.map { it.name })
       }
       textBox.text = value
       return textBox
@@ -349,8 +352,8 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
         NAME -> node is VariableNode || node is MapItemNode || node is EmptyNode || node is EmptyMapItemNode
         UNRESOLVED_VALUE -> {
           if (node is VariableNode) {
-            val type = node.variable.valueType
-            type != ValueType.MAP && type != ValueType.LIST
+            val literalValue = node.variable.value.maybeLiteralValue
+            literalValue !is Map<*, *> && literalValue !is List<*>
           }
           else {
             node is BaseVariableNode || node is EmptyListItemNode
@@ -416,176 +419,131 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       tableTree = tree
     }
   }
+}
 
-  class ModuleNode(val variables: PsVariablesScope) : DefaultMutableTreeNode(
-    NodeDescription(variables.name, StudioIcons.Shell.Filetree.GRADLE_FILE))
+open class VariablesBaseNode(userObject: Any? = null) : DefaultMutableTreeNode(userObject)
 
-  abstract class BaseVariableNode(val variable: PsVariable) : DefaultMutableTreeNode() {
-    abstract fun getUnresolvedValue(expanded: Boolean): String
-    abstract fun getResolvedValue(expanded: Boolean): String
-    abstract fun setName(newName: String)
-    fun setValue(newValue: String) = variable.setValue(newValue)
-  }
+class ModuleNode(val variables: PsVariablesScope) : VariablesBaseNode(
+  NodeDescription(variables.name, StudioIcons.Shell.Filetree.GRADLE_FILE))
 
-  class EmptyNode(private val variablesScope: PsVariablesScope, val type: ValueType) : DefaultMutableTreeNode() {
-    fun createVariableNode(name: String): BaseVariableNode {
-      val property = variablesScope.container.findProperty(name)
-      if (type == ValueType.LIST) {
-        property.convertToEmptyList()
-      }
-      else if (type == ValueType.MAP) {
-        property.convertToEmptyMap()
-      }
-      val variable = PsVariable(property, property.resolve(), variablesScope.model, variablesScope)
-      return VariableNode(variable)
+abstract class BaseVariableNode(val variable: PsVariable) : VariablesBaseNode() {
+  abstract fun getUnresolvedValue(expanded: Boolean): String
+  abstract fun getResolvedValue(expanded: Boolean): String
+  abstract fun setName(newName: String)
+  fun setValue(newValue: String) = variable.setValue(newValue)
+}
+
+class EmptyNode(private val variablesScope: PsVariablesScope, val type: ValueType) : VariablesBaseNode() {
+  fun createVariableNode(name: String): BaseVariableNode {
+    val variable = variablesScope.addNewVariable(name)
+    if (type == ValueType.LIST) {
+      variable.convertToEmptyList()
     }
+    else if (type == ValueType.MAP) {
+      variable.convertToEmptyMap()
+    }
+    return VariableNode(variable)
+  }
+}
+
+class VariableNode(variable: PsVariable) : BaseVariableNode(variable) {
+  init {
+    when {
+      variable.isMap -> {
+        variable.mapEntries.entries.forEach {
+          add(MapItemNode(it.key, it.value))
+        }
+        add(EmptyMapItemNode(variable))
+      }
+      variable.isList -> {
+        variable.listItems.entries.forEach {
+          add(ListItemNode(it.key, it.value))
+        }
+        add(EmptyListItemNode(variable))
+      }
+    }
+    userObject = NodeDescription(variable.name, EmptyIcon.ICON_0)
   }
 
-  class VariableNode(variable: PsVariable) : BaseVariableNode(variable) {
-    init {
-      when (variable.valueType) {
-        GradlePropertyModel.ValueType.MAP -> {
-          variable.getUnresolvedValue(MAP_TYPE)?.forEach {
-            add(MapItemNode(it.key, PsVariable(it.value, it.value.resolve(), variable.model, variable.scopePsVariables)))
+  override fun getUnresolvedValue(expanded: Boolean): String {
+    if (expanded) {
+      return ""
+    }
+    val value = variable.value
+    return when (value) {
+      ParsedValue.NotSet -> ""
+      is ParsedValue.Set.Parsed -> when (value.dslText) {
+        DslText.Literal -> {
+          val literalValue = value.value
+          when (literalValue) {
+            is Map<*, *> -> literalValue.entries.joinToString(prefix = "[", postfix = "]")
+            is List<*> -> literalValue.joinToString(prefix = "[", postfix = "]")
+            is String -> StringUtil.wrapWithDoubleQuote(literalValue)
+            null -> ""
+            else -> literalValue.toString()
           }
-          add(EmptyMapItemNode(variable))
-          userObject = NodeDescription(variable.getName(), EmptyIcon.ICON_0)
         }
-        GradlePropertyModel.ValueType.LIST -> {
-          val list = variable.getUnresolvedValue(LIST_TYPE)
-          if (list != null) {
-            list.forEachIndexed { index, propertyModel ->
-              add(ListItemNode(index, PsVariable(propertyModel, propertyModel.resolve(), variable.model, variable.scopePsVariables)))
-            }
-            add(EmptyListItemNode(variable))
-          }
-          userObject = NodeDescription(variable.getName(), EmptyIcon.ICON_0)
-        }
-        else -> {
-          userObject = NodeDescription(variable.getName(), EmptyIcon.ICON_0)
-        }
+        is DslText.InterpolatedString -> value.dslText.text
+        is DslText.OtherUnparsedDslText -> value.dslText.text
+        is DslText.Reference -> value.dslText.text
       }
-    }
-
-    override fun getUnresolvedValue(expanded: Boolean): String {
-      if (expanded) {
-        return ""
-      }
-      val type = variable.valueType
-      return when (type) {
-        GradlePropertyModel.ValueType.MAP -> {
-          val unresolvedMapValue = variable.getUnresolvedValue(MAP_TYPE) ?: return ""
-          unresolvedMapValue.entries.joinToString(prefix = "[", postfix = "]")
-        }
-        GradlePropertyModel.ValueType.LIST -> {
-          val unresolvedListValue = variable.getUnresolvedValue(LIST_TYPE) ?: return ""
-          unresolvedListValue.joinToString(prefix = "[", postfix = "]")
-        }
-        GradlePropertyModel.ValueType.STRING -> {
-          val unresolvedValue = variable.getUnresolvedValue(STRING_TYPE) ?: return ""
-          StringUtil.wrapWithDoubleQuote(unresolvedValue)
-        }
-        else -> variable.getUnresolvedValue(STRING_TYPE) ?: ""
-      }
-    }
-
-    override fun getResolvedValue(expanded: Boolean): String {
-      if (expanded) {
-        return ""
-      }
-      val resolvedValue = variable.getResolvedValue(STRING_TYPE) ?: return ""
-      if (variable.getDependencies().isEmpty()) {
-        return ""
-      }
-      if (variable.resolvedValueType == ValueType.STRING) {
-        return StringUtil.wrapWithDoubleQuote(resolvedValue)
-      }
-      return resolvedValue
-    }
-
-    override fun setName(newName: String) {
-      (userObject as NodeDescription).name = newName
-      variable.setName(newName)
     }
   }
 
-  class ListItemNode(index: Int, variable: PsVariable) : BaseVariableNode(variable) {
-    init {
-      userObject = index
-    }
+  override fun getResolvedValue(expanded: Boolean): String = variable.value.getNonLiteralResolvedText()
 
-    override fun getUnresolvedValue(expanded: Boolean): String {
-      val value = variable.getUnresolvedValue(STRING_TYPE) ?: ""
-      if (variable.valueType == ValueType.STRING) {
-        return StringUtil.wrapWithDoubleQuote(value)
-      }
-      return value
-    }
+  override fun setName(newName: String) {
+    (userObject as NodeDescription).name = newName
+    variable.setName(newName)
+  }
+}
 
-    override fun getResolvedValue(expanded: Boolean): String {
-      val resolvedValue = variable.getResolvedValue(STRING_TYPE) ?: ""
-      if (variable.getDependencies().isEmpty()) {
-        return ""
-      }
-      if (variable.resolvedValueType == ValueType.STRING) {
-        return StringUtil.wrapWithDoubleQuote(resolvedValue)
-      }
-      return resolvedValue
-    }
-
-    override fun setName(newName: String) {
-      throw UnsupportedOperationException("List item indices cannot be renamed")
-    }
-
-    fun updateIndex(newIndex: Int) {
-      userObject = newIndex
-    }
-
-    fun getIndex() = userObject as Int
+class ListItemNode(index: Int, variable: PsVariable) : BaseVariableNode(variable) {
+  init {
+    userObject = index
   }
 
-  class EmptyListItemNode(private val containingList: PsVariable) : DefaultMutableTreeNode() {
-    fun createVariableNode(value: String): ListItemNode {
-      val newVariable = containingList.addListValue(value)
-      return ListItemNode(parent.getIndex(this), newVariable)
-    }
+  override fun getUnresolvedValue(expanded: Boolean): String = variable.value.toVariableEditorText()
+
+  override fun getResolvedValue(expanded: Boolean): String = variable.value.getNonLiteralResolvedText()
+
+  override fun setName(newName: String) {
+    throw UnsupportedOperationException("List item indices cannot be renamed")
   }
 
-  class MapItemNode(key: String, variable: PsVariable) : BaseVariableNode(variable) {
-    init {
-      userObject = key
-    }
-
-    override fun getUnresolvedValue(expanded: Boolean): String {
-      val value = variable.getUnresolvedValue(STRING_TYPE) ?: ""
-      if (variable.valueType == ValueType.STRING) {
-        return StringUtil.wrapWithDoubleQuote(value)
-      }
-      return value
-    }
-
-    override fun getResolvedValue(expanded: Boolean): String {
-      val resolvedValue = variable.getResolvedValue(STRING_TYPE) ?: ""
-      if (variable.getDependencies().isEmpty()) {
-        return ""
-      }
-      if (variable.resolvedValueType == ValueType.STRING) {
-        return StringUtil.wrapWithDoubleQuote(resolvedValue)
-      }
-      return resolvedValue
-    }
-
-    override fun setName(newName: String) {
-      userObject = newName
-      variable.setName(newName)
-    }
+  fun updateIndex(newIndex: Int) {
+    userObject = newIndex
   }
 
-  class EmptyMapItemNode(private val containingMap: PsVariable) : DefaultMutableTreeNode() {
-    fun createVariableNode(key: String): MapItemNode? {
-      val newVariable = containingMap.addMapValue(key) ?: return null
-      return MapItemNode(key, newVariable)
-    }
+  fun getIndex() = userObject as Int
+}
+
+class EmptyListItemNode(private val containingList: PsVariable) : VariablesBaseNode() {
+  fun createVariableNode(value: String): ListItemNode {
+    val newVariable = containingList.addListValue(value)
+    return ListItemNode(parent.getIndex(this), newVariable)
+  }
+}
+
+class MapItemNode(key: String, variable: PsVariable) : BaseVariableNode(variable) {
+  init {
+    userObject = key
+  }
+
+  override fun getUnresolvedValue(expanded: Boolean): String = variable.value.toVariableEditorText()
+
+  override fun getResolvedValue(expanded: Boolean): String = variable.value.getNonLiteralResolvedText()
+
+  override fun setName(newName: String) {
+    userObject = newName
+    variable.setName(newName)
+  }
+}
+
+class EmptyMapItemNode(private val containingMap: PsVariable) : VariablesBaseNode() {
+  fun createVariableNode(key: String): MapItemNode? {
+    val newVariable = containingMap.addMapValue(key) ?: return null
+    return MapItemNode(key, newVariable)
   }
 }
 
@@ -594,3 +552,23 @@ class NodeDescription(var name: String, val icon: Icon) {
 }
 
 class NewVariableEvent(source: Any) : EventObject(source)
+
+private fun <T> ParsedValue<T>.toVariableEditorText() =
+  when (this) {
+    ParsedValue.NotSet -> ""
+    is ParsedValue.Set.Parsed -> when (dslText) {
+      DslText.Literal -> when (value) {
+        is String -> StringUtil.wrapWithDoubleQuote(value)
+        else -> value.toString()
+      }
+      is DslText.Reference -> dslText.text
+      is DslText.InterpolatedString -> StringUtil.wrapWithDoubleQuote(dslText.text)
+      is DslText.OtherUnparsedDslText -> StringUtil.wrapWithDoubleQuote(dslText.text)
+    }
+  }
+
+private fun <T> ParsedValue<T>.getNonLiteralResolvedText(): String =
+  takeIf { it is ParsedValue.Set.Parsed && it.dslText !== DslText.Literal }
+    ?.maybeValue
+    ?.let { if (it is String) StringUtil.wrapWithDoubleQuote(it) else it.toString() }
+  ?: ""

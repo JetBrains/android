@@ -22,16 +22,19 @@ import com.android.tools.idea.gradle.structure.configurables.ui.modules.ModulePa
 import com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptors
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefaultConfigDescriptors
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 
 class AndroidModuleRootConfigurable(
   context: PsContext, module: PsAndroidModule
-) : AbstractModuleConfigurable<PsAndroidModule, ModulePanel>(context, module) {
+) : AbstractModuleConfigurable<PsAndroidModule, ModulePanel>(context, module), Disposable {
 
-  private val signingConfigsModel = createTreeModel(SigningConfigsConfigurable(module))
+  private val signingConfigsModel = createTreeModel(SigningConfigsConfigurable(module).also { Disposer.register(this, it) })
 
   override fun getId() = "android.psd.modules." + displayName
   override fun createPanel() =
       ModulePanel(context, module, signingConfigsModel)
+  override fun dispose() = Unit
 }
 
 fun androidModulePropertiesModel() =

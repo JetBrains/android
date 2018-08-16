@@ -23,6 +23,7 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -383,8 +384,13 @@ public final class AndroidSdkUtils {
     return containsJarFromJdk == forMaven;
   }
 
+  /**
+   * Finds and returns the adb executable
+   * @param project the project from which SDK path will be determined
+   * @return ADB file in SDK path specified by ADB_PATH_PROPERTY or the project, or default SDK if project is null
+   */
   @Nullable
-  public static File getAdb(@NotNull Project project) {
+  public static File getAdb(@Nullable Project project) {
     String path = System.getProperty(ADB_PATH_PROPERTY);
     if (path != null) {
       File adb = new File(path);
@@ -395,11 +401,21 @@ public final class AndroidSdkUtils {
         LOG.warn(String.format("%1$s was set to \"%2$s\", but no such file exists.", ADB_PATH_PROPERTY, path));
       }
     }
-    AndroidSdkData data = getProjectSdkData(project);
-    if (data == null) {
-      data = getFirstAndroidModuleSdkData(project);
+
+    File adb = null;
+    if (project == null) {
+      // If project is null, we'll use the global default path
+      if (IdeSdks.getInstance().getAndroidSdkPath() != null) {
+        adb = new File(IdeSdks.getInstance().getAndroidSdkPath(), platformToolPath(FN_ADB));
+      }
+    } else {
+      AndroidSdkData data = getProjectSdkData(project);
+      if (data == null) {
+        data = getFirstAndroidModuleSdkData(project);
+      }
+      adb = data == null ? null : new File(data.getLocation(), platformToolPath(FN_ADB));
     }
-    File adb = data == null ? null : new File(data.getLocation(), platformToolPath(FN_ADB));
+
     return adb != null && adb.exists() ? adb : null;
   }
 

@@ -18,13 +18,18 @@ package com.android.tools.idea.gradle.variant.view;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkVariant;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.VariantOnlySyncModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidVariantChangeModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkVariantChangeModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.IdeModifiableModelsProviderFactory;
 import com.android.tools.idea.testing.IdeComponents;
@@ -39,6 +44,7 @@ import org.mockito.stubbing.Answer;
 import java.util.Collections;
 
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddNdkFacet;
 import static com.intellij.util.ThreeState.YES;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -51,10 +57,14 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
   @Mock private IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
   @Mock private AndroidModuleSetupStep mySetupStepToInvoke;
   @Mock private AndroidModuleSetupStep mySetupStepToIgnore;
+  @Mock private NdkModuleSetupStep myNdkSetupStepToInvoke;
+  @Mock private NdkModuleSetupStep myNdkSetupStepToIgnore;
   @Mock private AndroidModuleModel myAndroidModel;
+  @Mock private NdkModuleModel myNdkModel;
   @Mock private IdeAndroidProject myAndroidProject;
   @Mock private IdeDependencies myIdeDependencies;
   @Mock private IdeVariant myDebugVariant;
+  @Mock private NdkVariant myNdkDebugVariant;
   @Mock private PostSyncProjectSetup myPostSyncProjectSetup;
   @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
   @Mock private ModuleSetupContext myModuleSetupContext;
@@ -76,6 +86,9 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     when(mySetupStepToInvoke.invokeOnBuildVariantChange()).thenReturn(true);
     when(mySetupStepToIgnore.invokeOnBuildVariantChange()).thenReturn(false);
 
+    when(myNdkSetupStepToInvoke.invokeOnBuildVariantChange()).thenReturn(true);
+    when(myNdkSetupStepToIgnore.invokeOnBuildVariantChange()).thenReturn(false);
+
     when(myDebugVariant.getName()).thenReturn("debug");
 
     when(myAndroidModel.getSelectedMainCompileLevel2Dependencies()).thenReturn(myIdeDependencies);
@@ -86,7 +99,8 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     new IdeComponents(project).replaceProjectService(PostSyncProjectSetup.class, myPostSyncProjectSetup);
 
     myVariantUpdater = new BuildVariantUpdater(myModuleSetupContextFactory, myModifiableModelsProviderFactory,
-                                               new VariantOnlySyncModuleSetup(mySetupStepToInvoke, mySetupStepToIgnore));
+                                               new AndroidVariantChangeModuleSetup(mySetupStepToInvoke, mySetupStepToIgnore),
+                                               new NdkVariantChangeModuleSetup(myNdkSetupStepToIgnore, myNdkSetupStepToInvoke));
     myVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
   }
 
@@ -101,6 +115,38 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
     verify(mySetupStepToInvoke).setUpModule(myModuleSetupContext, myAndroidModel);
     verify(mySetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myAndroidModel);
+    verify(myVariantSelectionChangeListener).selectionChanged();
+
+    // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
+    // See http://b/64069792
+    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+    setupRequest.generateSourcesAfterSync = false;
+    setupRequest.cleanProjectAfterSync = false;
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
+  }
+
+  public void testUpdateSelectedVariantWithNdkModule() {
+    // variant display name for ndk module contains both of variant and abi.
+    String variantToSelect = "release-x86";
+
+    // setup ndk facet and NdkModuleModel.
+    when(myNdkDebugVariant.getName()).thenReturn("debug");
+    when(myNdkModel.getSelectedVariant()).thenReturn(myNdkDebugVariant);
+    when(myNdkModel.variantExists(variantToSelect)).thenReturn(true);
+    when(myNdkModel.getVariantName(variantToSelect)).thenReturn("release");
+    NdkFacet ndkFacet = createAndAddNdkFacet(myModule);
+    ndkFacet.setNdkModuleModel(myNdkModel);
+
+    when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
+    when(myAndroidModel.variantExists("release")).thenReturn(true);
+
+    when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
+
+    // invoke method to test.
+    myVariantUpdater.updateSelectedVariant(myProject, myModule.getName(), variantToSelect);
+
+    verify(myNdkSetupStepToInvoke).setUpModule(myModuleSetupContext, myNdkModel);
+    verify(myNdkSetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myNdkModel);
     verify(myVariantSelectionChangeListener).selectionChanged();
 
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.

@@ -26,7 +26,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 final class VirtualDevice extends Device {
-  static final ImmutableCollection<String> DEFAULT_SNAPSHOT_LIST = ImmutableList.of("default_boot");
+  static final String DEFAULT_SNAPSHOT = "default_boot";
+  static final ImmutableCollection<String> DEFAULT_SNAPSHOT_COLLECTION = ImmutableList.of(DEFAULT_SNAPSHOT);
+
   private static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(AndroidIcons.Ddms.EmulatorDevice);
 
   private final boolean myConnected;
@@ -53,14 +55,15 @@ final class VirtualDevice extends Device {
   }
 
   @NotNull
-  ImmutableCollection<String> getSnapshots() {
-    return mySnapshots;
+  @Override
+  Icon getIcon() {
+    return myConnected ? ourConnectedIcon : AndroidIcons.Ddms.EmulatorDevice;
   }
 
   @NotNull
   @Override
-  Icon getIcon() {
-    return myConnected ? ourConnectedIcon : AndroidIcons.Ddms.EmulatorDevice;
+  ImmutableCollection<String> getSnapshots() {
+    return mySnapshots;
   }
 
   @Override
@@ -70,14 +73,14 @@ final class VirtualDevice extends Device {
     }
 
     VirtualDevice device = (VirtualDevice)object;
-    return myConnected == device.myConnected && myName.equals(device.myName) && mySnapshots.equals(device.mySnapshots);
+    return myConnected == device.myConnected && getName().equals(device.getName()) && mySnapshots.equals(device.mySnapshots);
   }
 
   @Override
   public int hashCode() {
     int hashCode = Boolean.hashCode(myConnected);
 
-    hashCode = 31 * hashCode + myName.hashCode();
+    hashCode = 31 * hashCode + getName().hashCode();
     hashCode = 31 * hashCode + mySnapshots.hashCode();
 
     return hashCode;

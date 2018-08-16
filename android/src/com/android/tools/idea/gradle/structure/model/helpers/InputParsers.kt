@@ -24,19 +24,19 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
 import java.io.File
 
-fun parseAny(context: Any?, text: String): Annotated<ParsedValue<Any>> =
+fun parseAny(text: String): Annotated<ParsedValue<Any>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
   else
     ParsedValue.Set.Parsed(text.toIntOrNull() ?: text.toBigDecimalOrNull() ?: text.toBooleanOrNull() ?: text, DslText.Literal).annotated()
 
-fun parseString(context: Any?, text: String): Annotated<ParsedValue<String>> =
+fun parseString(text: String): Annotated<ParsedValue<String>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
   else
     ParsedValue.Set.Parsed(text, DslText.Literal).annotated()
 
-fun parseFile(context: Any?, text: String): Annotated<ParsedValue<File>> =
+fun parseFile(text: String): Annotated<ParsedValue<File>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
   else
@@ -60,7 +60,7 @@ private fun String.toBooleanOrNull() = when {
   else -> null
 }
 
-fun parseBoolean(context: Any?, text: String): Annotated<ParsedValue<Boolean>> =
+fun parseBoolean(text: String): Annotated<ParsedValue<Boolean>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
   else {
@@ -72,7 +72,7 @@ fun parseBoolean(context: Any?, text: String): Annotated<ParsedValue<Boolean>> =
         .annotateWithError("Unknown boolean value: '$text'. Expected 'true' or 'false'")
   }
 
-fun parseInt(context: Any?, text: String): Annotated<ParsedValue<Int>> =
+fun parseInt(text: String): Annotated<ParsedValue<Int>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
   else {
@@ -85,7 +85,7 @@ fun parseInt(context: Any?, text: String): Annotated<ParsedValue<Int>> =
     }
   }
 
-fun parseLanguageLevel(context: Any?, text: String): Annotated<ParsedValue<LanguageLevel>> =
+fun parseLanguageLevel(text: String): Annotated<ParsedValue<LanguageLevel>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
   else
@@ -93,12 +93,12 @@ fun parseLanguageLevel(context: Any?, text: String): Annotated<ParsedValue<Langu
     ?: ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
       .annotateWithError("'$text' is not a valid language level")
 
-fun parseHashString(context: Any?, text: String) =
+fun parseHashString(text: String) =
   if (text.isEmpty()) ParsedValue.NotSet.annotated()
   else AndroidTargetHash.getPlatformVersion(text)?.let { ParsedValue.Set.Parsed(text, DslText.Literal).annotated() }
        ?: ParsedValue.Set.Parsed(text, DslText.Literal).annotateWithError("Invalid hash string")
 
-fun parseGradleVersion(context: Any?, text: String): Annotated<ParsedValue<GradleVersion>> =
+fun parseGradleVersion(text: String): Annotated<ParsedValue<GradleVersion>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
   else
@@ -110,18 +110,18 @@ fun parseGradleVersion(context: Any?, text: String): Annotated<ParsedValue<Gradl
         .annotateWithError("'$text' is not a valid version specification")
     }
 
-fun parseReferenceOnly(context: Any?, text: String): Annotated<ParsedValue<Unit>> =
+fun parseReferenceOnly(text: String): Annotated<ParsedValue<Unit>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
   else
     ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
       .annotateWithError("A signing config reference should be in a form of '\$configName'")
 
-fun formatLanguageLevel(context: Any?, value: LanguageLevel): String = value.toJavaVersion().toString()
+fun formatLanguageLevel(value: LanguageLevel): String = value.toJavaVersion().toString()
 
-fun formatUnit(context: Any?, value: Unit): String = ""
+fun formatUnit(value: Unit): String = ""
 
-fun matchHashStrings(context: Any?, parsed: String?, resolved: String) =
+fun matchHashStrings(mode: Any?, parsed: String?, resolved: String) =
   AndroidTargetHash.getPlatformVersion(parsed.orEmpty())?.featureLevel == AndroidTargetHash.getPlatformVersion(resolved)?.featureLevel
 
 fun matchFiles(rootDir: File?, parsed: File?, resolved: File): Boolean =

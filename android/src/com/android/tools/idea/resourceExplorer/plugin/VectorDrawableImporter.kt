@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.plugin
 
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
+import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.JPanel
 
 
@@ -27,7 +28,9 @@ private val supportedFileTypes = setOf("xml")
 class VectorDrawableImporter : ResourceImporter {
   override fun getPresentableName() = "Vector Drawable Importer"
 
-  override fun getConfigurationPanel(callback: ConfigurationDoneCallback): JPanel? {
+  override fun getConfigurationPanel(facet: AndroidFacet,
+                                     callback: ConfigurationDoneCallback)
+    : JPanel? {
     callback.configurationDone()
     return null
   }

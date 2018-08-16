@@ -18,5 +18,5 @@ package com.android.tools.idea.gradle.structure.model.repositories.search
 import com.google.common.util.concurrent.ListenableFuture
 
 interface ArtifactRepositorySearchService {
-  fun search(request: SearchRequest): ListenableFuture<ArtifactRepositorySearchResults>
+  fun search(request: SearchRequest): ListenableFuture<SearchResult>
 }

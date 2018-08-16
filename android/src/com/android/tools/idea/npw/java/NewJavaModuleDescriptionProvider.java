@@ -22,6 +22,7 @@ import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,7 +34,7 @@ import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
 
 public class NewJavaModuleDescriptionProvider implements ModuleDescriptionProvider {
   @Override
-  public Collection<ModuleGalleryEntry> getDescriptions() {
+  public Collection<ModuleGalleryEntry> getDescriptions(Project project) {
     return Collections.singletonList(new JavaModuleTemplateGalleryEntry());
   }
 

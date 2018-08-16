@@ -71,30 +71,30 @@ public class NewInstantAppModuleTest {
 
   @Test
   public void testCanBuildDefaultNewInstantAppFeatureModules() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
     addNewFeatureModule("feature1");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
   @Test
   public void testCanBuildEmptyNewInstantAppFeatureModules() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
     addNewFeatureModule("feature1", "Add No Activity");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
   @Test
   public void testCanBuildProjectWithMultipleFeatureModules() throws IOException {
-    guiTest.importSimpleLocalApplication();
-    addNewFeatureModule(null, null);
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
+    addNewFeatureModule("base1", null);
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
-    addNewFeatureModule(null, null);
+    addNewFeatureModule("feature1", null);
     assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
 
     // Check that the modules are correctly added to the project
-    assertValidFeatureModule(ideFrame.getModule("base"));
-    assertValidFeatureModule(ideFrame.getModule("feature"));
+    assertValidFeatureModule(ideFrame.getModule("base1"));
+    assertValidFeatureModule(ideFrame.getModule("feature1"));
     assertNotNull(ideFrame.getModule("instantapp"));
 
     // Verify application attributes are in feature1 (the base feature) and not in feature2
@@ -110,7 +110,7 @@ public class NewInstantAppModuleTest {
 
   @Test
   public void testCanBuildProjectWithEmptySecondFeatureModule() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
     addNewFeatureModule("feature1");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
     addNewFeatureModule("feature2", "Add No Activity");
@@ -139,19 +139,20 @@ public class NewInstantAppModuleTest {
 
   @Test
   public void testAddNewInstantAppModule() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Instant App")
-      .clickNext() // Selected App
-      .clickFinish();
+    NewModuleWizardFixture newModuleWizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
+
+   newModuleWizardFixture.chooseModuleType("Instant App")
+    .clickNext() // Selected App
+    .clickFinish();
 
     ideFrame
       .waitForGradleProjectSyncToFinish(Wait.seconds(20))
       .waitForBuildToFinish(SOURCE_GEN);
 
-    Module module = ideFrame.getModule("instantapp");
+    Module module = ideFrame.getModule("instantapp2");
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assertNotNull(facet);
     assertEquals(PROJECT_TYPE_INSTANTAPP, facet.getConfiguration().getProjectType());

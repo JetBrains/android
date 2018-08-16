@@ -21,8 +21,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
+import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 import static com.intellij.openapi.util.Pair.pair;
 
 public class StyleItemNameConverter extends ResolvingConverter<String> {
@@ -99,7 +99,7 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
     if (parentStyleReference == null) {
       return Collections.emptyList();
     }
-    List<ResourceItem> parentStyles = appResources.getResourceItems(parentStyleReference);
+    List<ResourceItem> parentStyles = appResources.getResources(parentStyleReference);
 
     ResourceNamespaceContext namespacesContext = ResourceHelper.getNamespacesContext(styleTag);
     if (namespacesContext == null) {
@@ -140,7 +140,7 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
 
       parentStyleReference = parentValue.getParentStyle();
       if (parentStyleReference != null) {
-        for (ResourceItem parentStyle : appResources.getResourceItems(parentStyleReference)) {
+        for (ResourceItem parentStyle : appResources.getResources(parentStyleReference)) {
           toExplore.add(pair(parentStyle, depth + 1));
         }
       }
@@ -213,14 +213,14 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
       return null;
     }
 
-    AbstractResourceRepository repository = attributeReference.getNamespace() == ResourceNamespace.ANDROID ?
+    ResourceRepository repository = attributeReference.getNamespace() == ResourceNamespace.ANDROID ?
                                             repositoryManager.getFrameworkResources(false) :
                                             repositoryManager.getAppResources(true);
     if (repository == null) {
       return null;
     }
 
-    return repository.getResourceItems(attributeReference).isEmpty() ? null : s;
+    return repository.getResources(attributeReference).isEmpty() ? null : s;
   }
 
   @Override

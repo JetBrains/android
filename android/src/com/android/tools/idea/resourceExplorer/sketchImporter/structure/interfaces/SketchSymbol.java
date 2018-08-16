@@ -20,6 +20,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
+/**
+ * Holds the fields that are shared between all types of symbols in the sketch JSON file.
+ */
 public abstract class SketchSymbol extends SketchLayer {
 
   public SketchSymbol(@NotNull String classType,

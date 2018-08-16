@@ -17,6 +17,9 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfa
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchStyle;
 
+/**
+ * Denotes a class that has a style and a list of layers.
+ */
 public interface SketchLayerable {
 
   SketchStyle getStyle();

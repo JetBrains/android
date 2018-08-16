@@ -22,6 +22,7 @@ import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
+import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.EventQueue
@@ -65,6 +66,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
   private val textField = editor.editorComponent as CommonTextField<*>
 
   init {
+    putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
     registerKeyAction({ model.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
     registerKeyAction({ model.escapeKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "escape")
     if (asTableCellEditor) {
@@ -75,8 +77,13 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     textField.registerKeyAction({ escape() }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape")
     textField.registerKeyAction({ model.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
     textField.registerKeyAction({ model.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
+    textField.foreground = foreground
+    textField.background = background
 
-    addFocusListener(EditorFocusListener(model, { currentValue }))
+    val focusListener = EditorFocusListener(model)
+    addFocusListener(focusListener)
+    textField.addFocusListener(focusListener)
+
     addPopupMenuListener(
       object : PopupMenuListener {
         override fun popupMenuWillBecomeInvisible(event: PopupMenuEvent) {
@@ -107,7 +114,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
 
   private fun enter() {
     textField.enterInLookup()
-    model.enterKeyPressed(currentValue)
+    model.enterKeyPressed()
   }
 
   private fun escape() {
@@ -132,12 +139,16 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
 
   override fun setForeground(color: Color?) {
     super.setForeground(color)
-    textField.foreground = color
+
+    // This method may be called in constructor of super class. Don't use textField here:
+    editor?.editorComponent?.foreground = color
   }
 
   override fun setBackground(color: Color?) {
     super.setBackground(color)
-    textField.background = color
+
+    // This method may be called in constructor of super class. Don't use textField here:
+    editor?.editorComponent?.background = color
   }
 
   override fun getToolTipText(): String? = model.tooltip

@@ -219,12 +219,14 @@ abstract class BasePerspectiveConfigurable protected constructor(
   }
 
   private fun loadTree() {
-    myTree.model = createTreeModel(object : NamedContainerConfigurableBase<PsModule>("root") {
-      override fun getChildrenModels(): Collection<PsModule> = context.project.modules.filter { it.isDeclared } + extraModules
-      override fun createChildConfigurable(model: PsModule) = createConfigurableFor(model).also { it.setHistory(myHistory) }
-      override fun onChange(disposable: Disposable, listener: () -> Unit) = context.project.modules.onChange(disposable, listener)
-      override fun dispose() = Unit
-    })
+    myTree.model =
+      createTreeModel(
+        object : NamedContainerConfigurableBase<PsModule>("root") {
+          override fun getChildrenModels(): Collection<PsModule> = context.project.modules.filter { it.isDeclared } + extraModules
+          override fun createChildConfigurable(model: PsModule) = createConfigurableFor(model).also { it.setHistory(myHistory) }
+          override fun onChange(disposable: Disposable, listener: () -> Unit) = context.project.modules.onChange(disposable, listener)
+          override fun dispose() = Unit
+        }.also { Disposer.register(this, it) })
     myRoot = myTree.model.root as MyNode
     uiDisposed = false
   }

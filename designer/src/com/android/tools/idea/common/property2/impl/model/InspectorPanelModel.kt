@@ -132,6 +132,6 @@ class InspectorPanelModel {
   }
 
   private fun fireValueChanged() {
-    listeners.forEach { it.valueChanged() }
+    listeners.toTypedArray().forEach { it.valueChanged() }
   }
 }

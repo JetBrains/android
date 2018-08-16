@@ -38,7 +38,8 @@ class PropertyNameEditorModelTest {
     val (model, listener) = createModel()
     val line = FakeInspectorLine(LineType.PROPERTY)
     model.lineModel = line
-    model.enter("world")
+    model.text = "world"
+    model.enterKeyPressed()
     Truth.assertThat(model.property.name).isEqualTo("world")
     Mockito.verify(listener).valueChanged()
     Truth.assertThat(line.gotoNextLineWasRequested).isTrue()

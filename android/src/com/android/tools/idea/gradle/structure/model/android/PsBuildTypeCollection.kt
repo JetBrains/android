@@ -17,6 +17,10 @@ package com.android.tools.idea.gradle.structure.model.android
 
 class PsBuildTypeCollection internal constructor(parent: PsAndroidModule)
   : PsMutableCollectionBase<PsBuildType, String, PsAndroidModule>(parent) {
+  init {
+    refresh()
+  }
+
   override fun getKeys(from: PsAndroidModule): Set<String> {
     val result = mutableSetOf<String>()
     result.addAll(from.parsedModel?.android()?.buildTypes()?.map { it.name() }.orEmpty())
@@ -34,10 +38,10 @@ class PsBuildTypeCollection internal constructor(parent: PsAndroidModule)
   }
 
   override fun instantiateNew(key: String) {
-    parent.parsedModel!!.android()!!.addBuildType(key)
+    parent.parsedModel!!.android().addBuildType(key)
   }
 
   override fun removeExisting(key: String) {
-    parent.parsedModel!!.android()!!.removeBuildType(key)
+    parent.parsedModel!!.android().removeBuildType(key)
   }
 }

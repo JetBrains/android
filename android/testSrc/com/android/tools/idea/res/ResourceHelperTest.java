@@ -16,12 +16,14 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.TestAndroidModel;
@@ -32,10 +34,17 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ui.ColorIcon;
+import com.intellij.util.ui.TwoColorsIcon;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -212,6 +221,43 @@ public class ResourceHelperTest extends AndroidTestCase {
     stateList.addState(selected);
     stateList.addState(notFocused);
     assertThat(stateList.getDisabledStates()).containsExactly(selected, notFocused);
+  }
+
+  public void testResolveAsIconFromColorReference() {
+    VirtualFile file = myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml");
+
+    ResourceUrl url = ResourceUrl.parse("@color/myColor2");
+    ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
+    ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
+    ResourceValue value = rr.getResolvedResource(reference);
+    Icon icon = ResourceHelper.resolveAsIcon(rr, value, getProject());
+    assertEquals(new ColorIcon(16, new Color(0xEEDDCC)), icon);
+  }
+
+  public void testResolveAsIconFromColorStateList() {
+    myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml");
+    VirtualFile file = myFixture.copyFileToProject("resourceHelper/my_state_list.xml", "res/color/my_state_list.xml");
+
+    ResourceUrl url = ResourceUrl.parse("@color/my_state_list");
+    ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
+    ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
+    ResourceValue value = rr.getResolvedResource(reference);
+    Icon icon = ResourceHelper.resolveAsIcon(rr, value, getProject());
+    assertEquals(new TwoColorsIcon(16, new Color(0xEEDDCC), new Color(0x33123456, true)), icon);
+  }
+
+  public void testResolveAsIconFromDrawable() throws IOException {
+    VirtualFile file = myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml");
+    ResourceUrl url = ResourceUrl.parse("@android:drawable/ic_delete");
+    ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
+    ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
+    ResourceValue value = rr.getResolvedResource(reference);
+    Icon icon = ResourceHelper.resolveAsIcon(rr, value, getProject());
+    @SuppressWarnings("UndesirableClassUsage")
+    BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+    icon.paintIcon(null, image.getGraphics(), 0, 0);
+    BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/resourceHelper/ic_delete.png"));
+    ImageDiffUtil.assertImageSimilar("ic_delete", goldenImage, image, 1.0d);
   }
 
   public void testGetCompletionFromTypes() {

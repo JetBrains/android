@@ -46,7 +46,6 @@ import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -147,12 +146,11 @@ public class BuildVariantView {
 
       String variantName;
 
-      if (androidFacet != null) {
-        JpsAndroidModuleProperties facetProperties = androidFacet.getProperties();
-        variantName = facetProperties.SELECTED_BUILD_VARIANT;
+      if (ndkFacet != null) {
+        variantName = ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT;
       }
       else {
-        variantName = ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT;
+        variantName = androidFacet.getProperties().SELECTED_BUILD_VARIANT;
       }
 
       BuildVariantItem[] variantNames = getVariantItems(module);
@@ -224,16 +222,17 @@ public class BuildVariantView {
 
   @Nullable
   private static Collection<String> getVariantNames(@NotNull Module module) {
+    // Get variant names from NDKModuleModel instead of AndroidModuleModel for native modules,
+    // they are different for native modules because NDKModuleModel is ABI based.
+    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+    if (ndkModuleModel != null) {
+      return ndkModuleModel.getNdkVariantNames();
+    }
+
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
       return androidModel.getVariantNames();
     }
-
-    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-    if (ndkModuleModel != null) {
-      return ndkModuleModel.getVariantNames();
-    }
-
     return null;
   }
 

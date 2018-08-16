@@ -50,13 +50,31 @@ public class Path2DBuilder {
   }
 
   public void createClosedShape(@NotNull SketchShapePath shapePath,
-                                @NotNull SketchCurvePoint currentPoint,
+                                @NotNull SketchCurvePoint currentCurvePoint,
                                 @NotNull Rectangle2D.Double parentFrame) {
-    SketchPoint2D currentPointCurveFrom = currentPoint.getCurveFrom().makeAbsolutePosition(parentFrame, shapePath.getFrame());
-    SketchPoint2D firstPointCurveTo = shapePath.getPoints()[0].getCurveTo().makeAbsolutePosition(parentFrame, shapePath.getFrame());
-    SketchPoint2D firstPoint = shapePath.getPoints()[0].getPoint().makeAbsolutePosition(parentFrame, shapePath.getFrame());
+    SketchPoint2D currentPointCurveFrom;
+    if (currentCurvePoint.hasCurveFrom()) {
+      currentPointCurveFrom = currentCurvePoint.getCurveFrom().makeAbsolutePosition(parentFrame, shapePath.getFrame());
+    }
+    else {
+      currentPointCurveFrom = currentCurvePoint.getPoint().makeAbsolutePosition(parentFrame, shapePath.getFrame());
+    }
+    SketchCurvePoint firstCurvePoint = shapePath.getPoints()[0];
+    SketchPoint2D firstPoint = firstCurvePoint.getPoint().makeAbsolutePosition(parentFrame, shapePath.getFrame());
+    SketchPoint2D firstPointCurveTo;
+    if (firstCurvePoint.hasCurveTo()) {
+      firstPointCurveTo = firstCurvePoint.getCurveTo().makeAbsolutePosition(parentFrame, shapePath.getFrame());
+    }
+    else {
+      firstPointCurveTo = firstPoint;
+    }
 
-    createBezierCurve(currentPointCurveFrom, firstPointCurveTo, firstPoint);
+    if (currentCurvePoint.equals(currentPointCurveFrom) && firstPoint.equals(firstPointCurveTo)) {
+      closePath();
+    }
+    else {
+      createBezierCurve(currentPointCurveFrom, firstPointCurveTo, firstPoint);
+    }
   }
 
   public void closePath() {

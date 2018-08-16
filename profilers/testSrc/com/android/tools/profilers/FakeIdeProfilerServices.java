@@ -273,11 +273,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isNetworkThreadViewEnabled() {
-        return true;
-      }
-
-      @Override
       public boolean isPerformanceMonitoringEnabled() {
         return false;
       }

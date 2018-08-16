@@ -45,7 +45,7 @@ abstract class PsModule protected constructor(
 
   var parentModule: PsModule? = null ; private set
   private var myParsedDependencies: PsParsedDependencies? = null
-  private var myVariables: PsVariablesScope? = null
+  private var myVariables: PsVariables? = null
   private val dependenciesChangeEventDispatcher = EventDispatcher.create(DependenciesChangeListener::class.java)
 
   abstract val dependencies: PsDependencyCollection<PsModule, PsDeclaredLibraryDependency, PsDeclaredModuleDependency>
@@ -53,8 +53,7 @@ abstract class PsModule protected constructor(
     get() = myParsedDependencies ?: PsParsedDependencies(parsedModel).also { myParsedDependencies = it }
 
   val variables: PsVariablesScope
-    get() = myVariables ?: createVariablesScopeFor(this, name, parentModule?.variables ?: parent.variables,
-                                                   parsedModel).also { myVariables = it }
+    get() = myVariables ?: PsVariables(this, "Module: $name", parentModule?.variables ?: parent.variables).also { myVariables = it }
 
   override val isDeclared: Boolean get() = parsedModel != null
 
@@ -76,7 +75,7 @@ abstract class PsModule protected constructor(
       fireDependenciesReloadedEvent()
     }
     myParsedDependencies = null
-    myVariables = null
+    myVariables?.refresh()
   }
 
   abstract val rootDir: File?
@@ -154,10 +153,10 @@ abstract class PsModule protected constructor(
     }
   }
 
-  fun getArtifactRepositories(): List<ArtifactRepository> {
+  fun getArtifactRepositories(): Collection<ArtifactRepository> {
     val repositories = mutableListOf<ArtifactRepository>()
     populateRepositories(repositories)
-    return repositories
+    return repositories.toSet()
   }
 
   fun add(listener: DependenciesChangeListener, parentDisposable: Disposable) {
@@ -273,11 +272,3 @@ abstract class PsModule protected constructor(
 
   class DependenciesReloadedEvent internal constructor() : DependencyChangedEvent
 }
-
-private fun createVariablesScopeFor(
-  module: PsModule,
-  name: String,
-  parentVariables: PsVariablesScope,
-  parsedModel: GradleBuildModel?
-): PsVariablesScope =
-  parsedModel?.let { PsVariables(module, "Module: $name", it.ext(), parentVariables) } ?: PsVariablesScope.NONE

@@ -71,6 +71,11 @@ public final class StudioFlags {
     "Let the user keep templates in the .android folder such that they are kept after a Studio install/upgrade",
     true);
 
+  public static final Flag<Boolean> NPW_OFFLINE_REPO_CHECKBOX = Flag.create(
+    NPW, "offline.repo.checkbox", "Use offline repo shipped with Android Studio",
+    "Checkbox mark adds a path to shipped offline repo to local.properties and references it in build.gradle's dependencies",
+    false);
+
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
   public static final Flag<Boolean> PROFILER_SHOW_SESSIONS = Flag.create(
@@ -112,11 +117,6 @@ public final class StudioFlags {
     "Support method tracing through APIs from android.os.Debug.",
     true);
 
-  public static final Flag<Boolean> PROFILER_SHOW_THREADS_VIEW = Flag.create(
-    PROFILER, "threads.view", "Show network threads view",
-    "Show a view in the network profiler that groups connections by their creation thread.",
-    true);
-
   public static final Flag<Boolean> PROFILER_CPU_CAPTURE_FILTER = Flag.create(
     PROFILER, "cpu.capture.filter", "Enable CPU Capture Filter",
     "Show a text input field in the CPU profiler that is used to filter methods in the method trace pane.",
@@ -135,11 +135,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_MEMORY_SNAPSHOT = Flag.create(
     PROFILER, "memory.livealloc.snapshot", "Enable Memory Class Histogram Display",
     "For Android O or newer, supports single-point selection which shows a snapshot of the heap at the specific time.",
-    true);
-
-  public static final Flag<Boolean> PROFILER_NETWORK_REQUEST_PAYLOAD = Flag.create(
-    PROFILER, "network.request.payload", "Enable tracking and displaying connection request payload",
-    "Add a new tab in the network profiler that shows the connection request payload",
     true);
 
   public static final Flag<Boolean> PROFILER_USE_ATRACE = Flag.create(
@@ -252,11 +247,11 @@ public final class StudioFlags {
     "Changing the value of this flag requires restarting Android Studio.",
     true);
 
-  public static final Flag<Boolean> SELECT_SNAPSHOT_DEVICE_COMBO_BOX_VISIBLE = Flag.create(
+  public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE = Flag.create(
     RUNDEBUG,
-    "select.snapshot.device.combo.box.visible",
-    "Show the Select Snapshot/Device combo box",
-    "Show the Select Snapshot/Device combo box next to the Select Run/Debug Configuration one in the toolbar",
+    "select.device.snapshot.combo.box.visible",
+    "Show the Select Device/Snapshot combo box",
+    "Show the Select Device/Snapshot combo box next to the Select Run/Debug Configuration one in the toolbar",
     false);
 
   public static final Flag<Boolean> JVMTI_REFRESH = Flag.create(
@@ -378,6 +373,14 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_APP_SIZE_OPTIMIZER = Flag.create(
     ANALYZER, "enable.app.size.optimizer", "Enable size optimization suggestions in apk analyzer",
     "If enabled, it will enable the apk analyzer tool to display suggestions for reducing application size", false);
+
+  private static final FlagGroup UAB = new FlagGroup(FLAGS, "uab", "Unified App Bundle");
+
+  public static final Flag<Boolean> UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS = Flag.create(
+    UAB, "hide.instant.modules", "Hide Instant Modules for non-feature plugin Project",
+    "If a user is working on an older instant app project, they will be able to create instant modules. Otherwise the option won't be avialble",
+    false
+  );
 
   private StudioFlags() {
   }

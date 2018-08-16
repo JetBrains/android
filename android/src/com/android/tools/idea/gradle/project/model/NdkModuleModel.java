@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.builder.model.*;
+import com.android.builder.model.NativeArtifact;
+import com.android.builder.model.NativeSettings;
+import com.android.builder.model.NativeToolchain;
+import com.android.builder.model.NativeVariantInfo;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
+import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.google.common.collect.Iterables;
@@ -31,10 +35,11 @@ import java.io.ObjectOutputStream;
 import java.util.*;
 
 import static java.util.Collections.sort;
+import static java.util.stream.Collectors.toList;
 
 public class NdkModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 3L;
+  private static final long serialVersionUID = 4L;
 
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
@@ -43,6 +48,10 @@ public class NdkModuleModel implements ModuleModel {
   @NotNull private transient NdkModelFeatures myFeatures;
   @Nullable private transient GradleVersion myModelVersion;
 
+  @NotNull private List<IdeNativeVariantAbi> myVariantAbi = new ArrayList<>();
+  // Map of all variants, key: debug-x86, value: NdkVariantName(debug, x86).
+  @NotNull private Map<String, NdkVariantName> myVariantNamesByVariantAndAbiName = new HashMap<>();
+  // Map of synced variants. For full-variants sync, contains all variants form myVariantNames.
   @NotNull private Map<String, NdkVariant> myVariantsByName = new HashMap<>();
   @NotNull private Map<String, NativeToolchain> myToolchainsByName = new HashMap<>();
   @NotNull private Map<String, NativeSettings> mySettingsByName = new HashMap<>();
@@ -67,30 +76,29 @@ public class NdkModuleModel implements ModuleModel {
 
   public NdkModuleModel(@NotNull String moduleName,
                         @NotNull File rootDirPath,
-                        @NotNull IdeNativeAndroidProject androidProject) {
+                        @NotNull IdeNativeAndroidProject androidProject,
+                        @NotNull List<IdeNativeVariantAbi> variantAbi) {
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
     myAndroidProject = androidProject;
+    myVariantAbi.addAll(variantAbi);
 
     parseAndSetModelVersion();
     myFeatures = new NdkModelFeatures(myModelVersion);
 
-    populateVariantsByName();
-    populateToolchainsByName();
-    populateSettingsByName();
+    populateModuleFields();
 
     initializeSelectedVariant();
   }
 
-  private void populateVariantsByName() {
-    for (NativeArtifact artifact : myAndroidProject.getArtifacts()) {
-      String variantName = myFeatures.isGroupNameSupported() ? artifact.getGroupName() : artifact.getName();
-      NdkVariant variant = myVariantsByName.get(variantName);
-      if (variant == null) {
-        variant = new NdkVariant(variantName, myFeatures.isExportedHeadersSupported());
-        myVariantsByName.put(variant.getName(), variant);
-      }
-      variant.addArtifact(artifact);
+  private void populateModuleFields() {
+    if (myVariantAbi.isEmpty()) {
+      // Full-variants sync.
+      populateForFullVariantsSync();
+    }
+    else {
+      // Single-variant sync.
+      populateForSingleVariantSync();
     }
     if (myVariantsByName.isEmpty()) {
       // There will mostly be at least one variant, but create a dummy variant when there are none.
@@ -98,14 +106,57 @@ public class NdkModuleModel implements ModuleModel {
     }
   }
 
-  private void populateToolchainsByName() {
+  // Call this method for full variants sync.
+  private void populateForFullVariantsSync() {
+    for (NativeArtifact artifact : myAndroidProject.getArtifacts()) {
+      String variantName = myFeatures.isGroupNameSupported() ? artifact.getGroupName() : artifact.getName();
+      NdkVariantName ndkVariantName = new NdkVariantName(variantName, artifact.getAbi());
+      NdkVariant variant = myVariantsByName.get(ndkVariantName.displayName);
+      if (variant == null) {
+        variant = new NdkVariant(ndkVariantName.displayName, myFeatures.isExportedHeadersSupported());
+        myVariantsByName.put(ndkVariantName.displayName, variant);
+        myVariantNamesByVariantAndAbiName.put(ndkVariantName.displayName, ndkVariantName);
+      }
+      variant.addArtifact(artifact);
+    }
+
+    // populate toolchains
     for (NativeToolchain toolchain : myAndroidProject.getToolChains()) {
       myToolchainsByName.put(toolchain.getName(), toolchain);
     }
+
+    // populate settings
+    for (NativeSettings settings : myAndroidProject.getSettings()) {
+      mySettingsByName.put(settings.getName(), settings);
+    }
   }
 
-  private void populateSettingsByName() {
-    for (NativeSettings settings : myAndroidProject.getSettings()) {
+  // Call this method for single variant sync.
+  private void populateForSingleVariantSync() {
+    for (Map.Entry<String, NativeVariantInfo> entry : myAndroidProject.getVariantInfos().entrySet()) {
+      for (String abi : entry.getValue().getAbiNames()) {
+        NdkVariantName ndkVariantName = new NdkVariantName(entry.getKey(), abi);
+        myVariantNamesByVariantAndAbiName.put(ndkVariantName.displayName, ndkVariantName);
+      }
+    }
+
+    List<NativeArtifact> nativeArtifacts = myVariantAbi.stream().flatMap(it -> it.getArtifacts().stream()).collect(toList());
+    for (NativeArtifact artifact : nativeArtifacts) {
+      String variantName = getNdkVariantName(artifact.getGroupName(), artifact.getAbi());
+      NdkVariant variant = new NdkVariant(variantName, myFeatures.isExportedHeadersSupported());
+      variant.addArtifact(artifact);
+      myVariantsByName.put(variantName, variant);
+    }
+
+    // populate toolchains
+    List<NativeToolchain> nativeToolchains = myVariantAbi.stream().flatMap(it -> it.getToolChains().stream()).collect(toList());
+    for (NativeToolchain toolchain : nativeToolchains) {
+      myToolchainsByName.put(toolchain.getName(), toolchain);
+    }
+
+    // populate settings
+    List<NativeSettings> nativeSettings = myVariantAbi.stream().flatMap(it -> it.getSettings().stream()).collect(toList());
+    for (NativeSettings settings : nativeSettings) {
       mySettingsByName.put(settings.getName(), settings);
     }
   }
@@ -120,7 +171,7 @@ public class NdkModuleModel implements ModuleModel {
     }
 
     for (String variantName : variantNames) {
-      if (variantName.equals("debug")) {
+      if (variantName.equals("debug") || variantName.equals(getNdkVariantName("debug", "x86"))) {
         mySelectedVariantName = variantName;
         return;
       }
@@ -130,6 +181,17 @@ public class NdkModuleModel implements ModuleModel {
     sort(sortedVariantNames);
     assert !sortedVariantNames.isEmpty();
     mySelectedVariantName = sortedVariantNames.get(0);
+  }
+
+  /**
+   * Inject the Variant-Only Sync model to existing NdkModuleModel.
+   * Since the build files were not changed from last sync, only add the new VariantAbi to existing list.
+   *
+   * @param variantAbi The NativeVariantAbi model obtained from Variant-Only sync.
+   */
+  public void addVariantOnlyModuleModel(@NotNull IdeNativeVariantAbi variantAbi) {
+    myVariantAbi.add(variantAbi);
+    populateForSingleVariantSync();
   }
 
   private void parseAndSetModelVersion() {
@@ -152,9 +214,37 @@ public class NdkModuleModel implements ModuleModel {
     return myAndroidProject;
   }
 
+  /**
+   * Returns a list of all NdkVariant names. For single-variant sync, some variant names may not synced.
+   */
   @NotNull
-  public Collection<String> getVariantNames() {
-    return myVariantsByName.keySet();
+  public Collection<String> getNdkVariantNames() {
+    return myVariantNamesByVariantAndAbiName.keySet();
+  }
+
+  /**
+   * Returns the artifact name of a given ndkVariantName, which will be used as variant name for non-native models.
+   *
+   * @param ndkVariantName the display name of ndk variant. For example: debug-x86.
+   */
+  @NotNull
+  public String getVariantName(@NotNull String ndkVariantName) {
+    return myVariantNamesByVariantAndAbiName.get(ndkVariantName).variant;
+  }
+
+  /**
+   * Returns the abi name of a given ndkVariantName.
+   *
+   * @param ndkVariantName the display name of ndk variant. For example: debug-x86.
+   */
+  @NotNull
+  public String getAbiName(@NotNull String ndkVariantName) {
+    return myVariantNamesByVariantAndAbiName.get(ndkVariantName).abi;
+  }
+
+  @NotNull
+  public static String getNdkVariantName(@NotNull String variant, @NotNull String abi) {
+    return variant + "-" + abi;
   }
 
   @NotNull
@@ -177,7 +267,8 @@ public class NdkModuleModel implements ModuleModel {
   }
 
   public void setSelectedVariantName(@NotNull String name) {
-    Collection<String> variantNames = getVariantNames();
+    // Select from synced variants.
+    Collection<String> variantNames = myVariantsByName.keySet();
     if (variantNames.contains(name)) {
       mySelectedVariantName = name;
     }
@@ -206,6 +297,7 @@ public class NdkModuleModel implements ModuleModel {
     out.writeObject(myRootDirPath);
     out.writeObject(myAndroidProject);
     out.writeObject(mySelectedVariantName);
+    out.writeObject(myVariantAbi);
   }
 
   private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -213,16 +305,22 @@ public class NdkModuleModel implements ModuleModel {
     myRootDirPath = (File)in.readObject();
     myAndroidProject = (IdeNativeAndroidProject)in.readObject();
     mySelectedVariantName = (String)in.readObject();
+    //noinspection unchecked
+    myVariantAbi = (List<IdeNativeVariantAbi>)in.readObject();
 
     parseAndSetModelVersion();
     myFeatures = new NdkModelFeatures(myModelVersion);
 
+    myVariantNamesByVariantAndAbiName = new HashMap<>();
     myVariantsByName = new HashMap<>();
     myToolchainsByName = new HashMap<>();
     mySettingsByName = new HashMap<>();
 
-    populateVariantsByName();
-    populateToolchainsByName();
-    populateSettingsByName();
+    if (myVariantAbi.isEmpty()) {
+      populateForFullVariantsSync();
+    }
+    else {
+      populateForSingleVariantSync();
+    }
   }
 }

@@ -19,6 +19,10 @@ import com.android.tools.idea.gradle.structure.model.meta.asString
 
 internal class PsProductFlavorCollection(parent: PsAndroidModule)
   : PsMutableCollectionBase<PsProductFlavor, PsProductFlavorKey, PsAndroidModule>(parent) {
+  init {
+    refresh()
+  }
+
   override fun getKeys(from: PsAndroidModule): Set<PsProductFlavorKey> {
     val result = mutableSetOf<PsProductFlavorKey>()
     // If there is only one dimension and a product flavor is not configured with any dimension it is assumed to belong to the available

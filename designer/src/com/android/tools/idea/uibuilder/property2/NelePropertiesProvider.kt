@@ -183,6 +183,9 @@ class NelePropertiesProvider(private val model: NelePropertiesModel) {
   private fun createProperty(namespace: String, name: String, attr: AttributeDefinition?, components: List<NlComponent>): NelePropertyItem {
     val type = TypeResolver.resolveType(name, attr)
     val libraryName = attr?.libraryName ?: ""
+    if (namespace == ANDROID_URI && name == ATTR_ID) {
+      return NeleIdPropertyItem(model, attr, components)
+    }
     if (attr != null && attr.formats.contains(AttributeFormat.FLAGS) && attr.values.isNotEmpty()) {
       return NeleFlagsPropertyItem(namespace, name, type, attr, libraryName, model, components)
     }

@@ -18,8 +18,8 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -29,7 +29,6 @@ import com.google.common.io.Files;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
@@ -113,7 +112,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     }
   }
 
-  private static void compareContents(@NotNull AbstractResourceRepository expected, @NotNull AbstractResourceRepository actual) {
+  private static void compareContents(@NotNull ResourceRepository expected, @NotNull ResourceRepository actual) {
     List<ResourceItem> expectedItems = new ArrayList<>(expected.getAllResourceItems());
     List<ResourceItem> actualItems = new ArrayList<>(actual.getAllResourceItems());
 
@@ -146,8 +145,8 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     }
 
     for (ResourceType type : ResourceType.values()) {
-      List<ResourceItem> expectedPublic = new ArrayList<>(expected.getPublicResourcesOfType(type));
-      List<ResourceItem> actualPublic = new ArrayList<>(actual.getPublicResourcesOfType(type));
+      List<ResourceItem> expectedPublic = new ArrayList<>(expected.getPublicResources(ResourceNamespace.ANDROID, type));
+      List<ResourceItem> actualPublic = new ArrayList<>(actual.getPublicResources(ResourceNamespace.ANDROID, type));
       assertEquals("Number of public resources doesn't match for type " + type.getName(), expectedPublic.size(), actualPublic.size());
       expectedPublic.sort(comparator);
       actualPublic.sort(comparator);
@@ -207,7 +206,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
 
   private static AttrResourceValue getAttrValue(@NotNull FrameworkResourceRepository repository,
                                                 @NotNull String attrName) {
-    ResourceItem attrItem = repository.getResourceItems(ResourceNamespace.ANDROID, ResourceType.ATTR, attrName).get(0);
+    ResourceItem attrItem = repository.getResources(ResourceNamespace.ANDROID, ResourceType.ATTR, attrName).get(0);
     return (AttrResourceValue)attrItem.getResourceValue();
   }
 
@@ -225,7 +224,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
         ResourceType.LAYOUT, 20
     );
     for (ResourceType type : ResourceType.values()) {
-      Collection<ResourceItem> publicExpected = repository.getPublicResourcesOfType(type);
+      Collection<ResourceItem> publicExpected = repository.getPublicResources(ResourceNamespace.ANDROID, type);
       Integer minExpected = expectations.get(type);
       if (minExpected != null) {
         assertTrue("Too few public resources of type " + type.getName(), publicExpected.size() >= minExpected);

@@ -17,10 +17,15 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
+import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.gradle.structure.configurables.ui.readOnPooledThread
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
+import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.ModuleManager
@@ -28,22 +33,22 @@ import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.search.FilenameIndex
 import java.io.File
 
-fun booleanValues(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<Boolean>>> =
+fun booleanValues(model: Any?): ListenableFuture<List<ValueDescriptor<Boolean>>> =
   immediateFuture(listOf(ValueDescriptor(value = false), ValueDescriptor(value = true)))
 
-fun installedSdksAsStrings(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
+fun installedSdksAsStrings(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(installedEnvironments().androidSdks.map { ValueDescriptor(it.value.getText { toString() }, it.description) })
 
-fun installedSdksAsInts(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<Int>>> =
+fun installedSdksAsInts(model: Any?): ListenableFuture<List<ValueDescriptor<Int>>> =
   immediateFuture(installedEnvironments().androidSdks)
 
-fun installedBuildTools(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
+fun installedBuildTools(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(installedEnvironments().buildTools)
 
-fun installedCompiledApis(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
+fun installedCompiledApis(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(installedEnvironments().compiledApis)
 
-fun languageLevels(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<LanguageLevel>>> = immediateFuture(listOf(
+fun languageLevels(model: Any?): ListenableFuture<List<ValueDescriptor<LanguageLevel>>> = immediateFuture(listOf(
   ValueDescriptor(value = LanguageLevel.JDK_1_6, description = "Java 6"),
   ValueDescriptor(value = LanguageLevel.JDK_1_7, description = "Java 7"),
   ValueDescriptor(value = LanguageLevel.JDK_1_8, description = "Java 8")
@@ -109,3 +114,21 @@ fun buildTypeMatchingFallbackValues(project: PsProject): ListenableFuture<List<V
 
 fun productFlavorMatchingFallbackValues(project: PsProject, dimension: String?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(productFlavorMatchingFallbackValuesCore(project, dimension))
+
+private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
+fun dependencyVersionValues(model: PsDeclaredLibraryDependency): ListenableFuture<List<ValueDescriptor<String>>> =
+  Futures.transform(
+    model.parent.parent.repositorySearchFactory
+      .create(model.parent.getArtifactRepositories())
+      .search(SearchRequest(model.spec.name, model.spec.group, MAX_ARTIFACTS_TO_REQUEST, 0))
+  ) {
+    it!!.toVersionValueDescriptors()
+  }
+
+@VisibleForTesting
+fun SearchResult.toVersionValueDescriptors(): List<ValueDescriptor<String>> =
+  artifacts
+    .flatMap { it.versions }
+    .distinct()
+    .sortedDescending()
+    .map { version -> ValueDescriptor(version.toString()) }

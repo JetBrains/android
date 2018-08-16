@@ -17,8 +17,8 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
@@ -27,7 +27,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.util.containers.SmartHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,13 +54,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   private ResourceTable myFullTable;
 
   @GuardedBy("ITEM_MAP_LOCK")
-  private Set<ResourceNamespace> myCachedNamespaces;
-
-  @GuardedBy("ITEM_MAP_LOCK")
   private final ResourceTable myCachedMaps = new ResourceTable();
-
-  @GuardedBy("ITEM_MAP_LOCK")
-  private final Map<ResourceType, Boolean> myCachedHasResourcesOfType = new EnumMap<>(ResourceType.class);
 
   @GuardedBy("ITEM_MAP_LOCK")
   private Map<String, DataBindingInfo> myDataBindingResourceFiles = new HashMap<>();
@@ -97,7 +90,6 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       }
       myFullTable = null;
       myCachedMaps.clear();
-      myCachedHasResourcesOfType.clear();
 
       myRepositoriesByNamespace.clear();
       populateNamespaceMap(this, myRepositoriesByNamespace);
@@ -121,7 +113,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   }
 
   @NotNull
-  public List<LocalResourceRepository> getChildren() {
+  public final List<LocalResourceRepository> getChildren() {
     synchronized (ITEM_MAP_LOCK) {
       return myChildren == null ? Collections.emptyList() : ImmutableList.copyOf(myChildren);
     }
@@ -130,7 +122,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   /**
    * Returns resource repositories for the given namespace. Each of the returned repositories is guaranteed to implement
    * the {@link SingleNamespaceResourceRepository} interface. In case of nested single-namespace repositories only the outermost
-   * repositories are returned. Collectively the returned repositories are guaranteed to contain all resources with the given namespace
+   * repositories are returned. Collectively the returned repositories are guaranteed to contain all resources in the given namespace
    * contained in this repository.
    *
    * @param namespace the namespace to return resource repositories for
@@ -208,18 +200,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   @NotNull
   public synchronized Set<ResourceNamespace> getNamespaces() {
     synchronized (ITEM_MAP_LOCK) {
-      if (myCachedNamespaces == null) {
-        if (myChildren.size() == 1) {
-          myCachedNamespaces = myChildren.get(0).getNamespaces();
-        } else {
-          myCachedNamespaces = new SmartHashSet<>();
-          for (LocalResourceRepository child : myChildren) {
-            myCachedNamespaces.addAll(child.getNamespaces());
-          }
-        }
-      }
-
-      return myCachedNamespaces;
+      return ImmutableSet.copyOf(myRepositoriesByNamespace.keySet());
     }
   }
 
@@ -229,7 +210,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     synchronized (ITEM_MAP_LOCK) {
       if (myFullTable == null) {
         if (myChildren.size() == 1) {
-          myFullTable = myChildren.get(0).getItems();
+          myFullTable = myChildren.get(0).getFullTablePackageAccessible();
         }
         else {
           myFullTable = new ResourceTable();
@@ -265,7 +246,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         if (child instanceof MultiResourceRepository) {
           return ((MultiResourceRepository)child).getMap(namespace, type);
         }
-        return child.getItems().get(namespace, type);
+        return child.getFullTablePackageAccessible().get(namespace, type);
       }
 
       map = ArrayListMultimap.create();
@@ -294,32 +275,26 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   }
 
   @Override
-  public boolean hasResourcesOfType(@NotNull ResourceType type) {
+  public boolean hasResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
     synchronized (ITEM_MAP_LOCK) {
       if (myChildren.size() == 1) {
-        return myChildren.get(0).hasResourcesOfType(type);
+        return myChildren.get(0).hasResources(namespace, type);
       }
 
-      Boolean cachedResult = myCachedHasResourcesOfType.get(type);
-      if (cachedResult != null) {
-        return cachedResult;
-      }
-
-      Set<LocalResourceRepository> visited = new HashSet<>();
-      boolean result = computeHasResourcesOfType(type, visited);
-      myCachedHasResourcesOfType.put(type, result);
-      return result;
-    }
-  }
-
-  @Override
-  protected boolean computeHasResourcesOfType(@NotNull ResourceType type, @NotNull Set<LocalResourceRepository> visited) {
-    synchronized (ITEM_MAP_LOCK) {
-      if (!visited.add(this)) {
+      if (this instanceof SingleNamespaceResourceRepository) {
+        if (namespace.equals(((SingleNamespaceResourceRepository)this).getNamespace())) {
+          for (LocalResourceRepository child : myChildren) {
+            if (child.hasResources(namespace, type)) {
+              return true;
+            }
+          }
+        }
         return false;
       }
-      for (LocalResourceRepository child : myChildren) {
-        if (child.computeHasResourcesOfType(type, visited)) {
+
+      Collection<LocalResourceRepository> repositories = myRepositoriesByNamespace.get(namespace);
+      for (LocalResourceRepository repository : repositories) {
+        if (repository.hasResources(namespace, type)) {
           return true;
         }
       }
@@ -345,9 +320,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     synchronized (ITEM_MAP_LOCK) {
       assert myChildren.contains(repository) : repository;
 
-      myCachedNamespaces = null;
       myCachedMaps.clear();
-      myCachedHasResourcesOfType.clear();
       myFullTable = null;
       setModificationCount(ourModificationCounter.incrementAndGet());
 
@@ -365,12 +338,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       assert myChildren.contains(repository) : repository;
 
       for (ResourceType type : types) {
-        myCachedNamespaces = null;
         myCachedMaps.remove(namespace, type);
-
-        if (ResourceNamespace.TODO().equals(namespace)) {
-          myCachedHasResourcesOfType.remove(type);
-        }
       }
 
       myFullTable = null;
@@ -418,9 +386,9 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   }
 
   @Override
-  public void getLeafResourceRepositories(@NotNull Collection<AbstractResourceRepository> result) {
+  public void getLeafResourceRepositories(@NotNull Collection<SingleNamespaceResourceRepository> result) {
     synchronized (ITEM_MAP_LOCK) {
-      for (LocalResourceRepository child : myChildren) {
+      for (ResourceRepository child : myChildren) {
         child.getLeafResourceRepositories(result);
       }
     }

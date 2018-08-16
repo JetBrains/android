@@ -15,30 +15,32 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
-import com.android.tools.idea.gradle.dsl.api.util.TypeReference
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.asParsed
+import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.util.concurrent.ListenableFuture
 import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.hasItems
+import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume.assumeThat
 
 class PsVariablesTest : AndroidGradleTestCase() {
 
   fun testGetModuleVariables_project() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
     val psProject = PsProjectImpl(project)
-    val variables = psProject.variables.getModuleVariables()
-    assertThat(variables.size, equalTo(1))
+    val variables = psProject.variables
     assertThat(
-      variables.map { it.getName() },
-      hasItems(
-        "someVar"
-      )
+      variables.map { it.name },
+      equalTo(listOf(
+        "someVar",
+        "rootBool",
+        "rootBool3",
+        "rootBool2"
+      ))
     )
   }
 
@@ -46,22 +48,74 @@ class PsVariablesTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
     val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
-    val variables = psAppModule.variables.getModuleVariables()
-    assertThat(variables.size, equalTo(9))
+    val variables = psAppModule.variables
     assertThat(
-      variables.map { it.getName() },
-      hasItems(
+      variables.map { it.name },
+      equalTo(listOf(
         "myVariable",
         "variable1",
         "anotherVariable",
-        "mapVariable",
-        "moreVariable",
         "varInt",
         "varBool",
         "varRefString",
-        "varProGuardFiles"
-      )
+        "varProGuardFiles",
+        "moreVariable",
+        "mapVariable"))
     )
+  }
+
+  fun testListVariables() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
+    val variables = psAppModule.variables
+    val listVariable = variables.findElement("varProGuardFiles")!!
+
+    assertThat(listVariable.listItems.map { it.value },
+               equalTo(listOf("proguard-rules.txt".asParsed<Any>(), "proguard-rules2.txt".asParsed<Any>())))
+
+    listVariable.listItems.findElement(0)!!.delete()
+
+    assertThat(listVariable.listItems.map { it.value },
+               equalTo(listOf("proguard-rules2.txt".asParsed<Any>())))
+  }
+
+  fun testMapVariables() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
+    val variables = psAppModule.variables
+    val mapVariable = variables.findElement("mapVariable")!!
+
+    assertThat(mapVariable.mapEntries.entries.mapValues { it.value.value },
+               equalTo(mapOf("a" to "\"double\" quotes".asParsed<Any>(), "b" to "'single' quotes".asParsed<Any>())))
+
+    mapVariable.mapEntries.findElement("b")!!.setName("Z")
+
+    assertThat(mapVariable.mapEntries.entries.mapValues { it.value.value },
+               equalTo(mapOf("a" to "\"double\" quotes".asParsed<Any>(), "Z" to "'single' quotes".asParsed<Any>())))
+  }
+
+  fun testVariableWellKnownValues() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val rootVariables = psProject.variables
+    val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
+    val variables = psAppModule.variables
+    // Variable's possible values are inferred from its usage in config files.
+    val rootVariableKnownValues =
+      PsVariable.Descriptors.variableValue.bindContext(rootVariables.getOrCreateVariable("rootBool")).getKnownValues().get()
+    val rootVariable2KnownValues =
+      PsVariable.Descriptors.variableValue.bindContext(rootVariables.getOrCreateVariable("rootBool2")).getKnownValues().get()
+    val rootVariable3KnownValues =
+      PsVariable.Descriptors.variableValue.bindContext(rootVariables.getOrCreateVariable("rootBool3")).getKnownValues().get()
+    val variableKnownValues =
+      PsVariable.Descriptors.variableValue.bindContext(variables.getOrCreateVariable("varBool")).getKnownValues().get()
+
+    assertThat(rootVariableKnownValues.literals, equalTo<List<ValueDescriptor<Any>>>(booleanValues(null).get()))
+    assertThat(rootVariable2KnownValues.literals, equalTo<List<ValueDescriptor<Any>>>(booleanValues(null).get()))
+    assertThat(rootVariable3KnownValues.literals, equalTo<List<ValueDescriptor<Any>>>(booleanValues(null).get()))
+    assertThat(variableKnownValues.literals, equalTo<List<ValueDescriptor<Any>>>(booleanValues(null).get()))
   }
 
   fun testGetAvailableVariablesForType() {
@@ -119,11 +173,32 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val tmp123 = variables.getOrCreateVariable("tmp123")
     tmp123.setName("tmp321")
     tmp123.setValue("123")
-    val secondTmp123 = variables.getOrCreateVariable("tmp123")
-    assertThat(secondTmp123.valueType, equalTo(GradlePropertyModel.ValueType.NONE))
+    val secondTmp123 = variables.getVariable("tmp123")
+    assertThat(secondTmp123, nullValue())
     val tmp321 = variables.getOrCreateVariable("tmp321")
-    assertThat(tmp321.getResolvedValue(STRING_TYPE), equalTo("123"))
+    assertThat(tmp321.value, equalTo("123".asParsed<Any>()))
   }
-}
 
-private fun <T : Any> Pair<String, T>.asParsed() = ParsedValue.Set.Parsed(dslText = DslText.Reference(first), value = second)
+  fun testRefresh() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val variables = psProject.variables
+    val otherVariables = PsVariables(psProject, "other", null)
+
+    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3")))
+
+    val someVar = variables.getVariable("someVar")
+    someVar?.setName("tmp321")
+    val rootBool2 = variables.getVariable("rootBool2")
+    rootBool2?.delete()
+    val tmp999 = variables.getOrCreateVariable("tmp999")
+    tmp999.setValue(999)
+    assertThat(variables.map{ it.name }.toSet(), equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999")))
+
+    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3")))
+    otherVariables.refresh()
+    assertThat(otherVariables.entries.keys, equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999")))
+  }
+
+  private fun <T : Any> Pair<String, T>.asParsed() = ParsedValue.Set.Parsed(dslText = DslText.Reference(first), value = second)
+}

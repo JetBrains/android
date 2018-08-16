@@ -27,6 +27,8 @@ import com.android.tools.idea.naveditor.editor.Destination
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.search.GlobalSearchScope
 import org.mockito.Mockito
 import java.awt.Point
 
@@ -171,8 +173,10 @@ class NavSceneManagerTest : NavTestCase() {
     val p = Point((scrollPosition.x / scale).toInt() + initialOffset + scene.root!!.drawX,
                   (scrollPosition.y / scale).toInt() + initialOffset + scene.root!!.drawY)
 
+    val fragmentClass = JavaPsiFacade.getInstance(project).findClass("android.support.v4.app.Fragment",
+                                                                     GlobalSearchScope.allScope(project))!!
     listOf("first", "second", "third", "fourth", "fifth").forEach {
-      val destination = Destination.RegularDestination(currentNavigation, "fragment", idBase = it)
+      val destination = Destination.RegularDestination(currentNavigation, "fragment", idBase = it, destinationClass = fragmentClass)
       WriteCommandAction.runWriteCommandAction(project) { destination.addToGraph() }
       destination.component!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
       sceneManager.update()

@@ -32,8 +32,8 @@ public class VariantOnlySyncAction implements BuildAction<VariantOnlyProjectMode
   @Override
   @Nullable
   public VariantOnlyProjectModels execute(@NotNull BuildController controller) {
-    VariantOnlyProjectModels models = new VariantOnlyProjectModels();
-    models.populate(controller, myOptions);
+    VariantOnlyProjectModels models = new VariantOnlyProjectModels(myOptions);
+    models.populate(controller);
     return models;
   }
 }

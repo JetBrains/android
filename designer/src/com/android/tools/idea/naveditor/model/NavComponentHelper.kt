@@ -89,15 +89,29 @@ fun NlComponent.findVisibleDestination(id: String): NlComponent? {
   val schema = NavigationSchema.get(model.facet)
   var p = parent
   while (p != null) {
-    p.children.firstOrNull { c -> schema.getDestinationType(c.tagName) != null && c.id == id }?.let { return it }
+    p.children.firstOrNull { c -> !schema.getDestinationTypesForTag(c.tagName).isEmpty() && c.id == id }?.let { return it }
     p = p.parent
   }
   // The above won't pick up the root
   return model.components.firstOrNull { c -> c.id == id }
 }
 
-val NlComponent.destinationType
-  get() = model.schema.getDestinationType(tagName)
+/**
+ * Attempts to find the best []DestinationType] for this component
+ */
+val NlComponent.destinationType: NavigationSchema.DestinationType?
+  get() {
+    val schema = model.schema
+    var type = className?.let { schema.getDestinationTypeForDestinationClassName(it) }
+
+    if (type == null) {
+      val typeCollection = schema.getDestinationTypesForTag(tagName)
+      if (typeCollection.size == 1) {
+        type = typeCollection.first()
+      }
+    }
+    return type
+  }
 
 val NlComponent.includeAttribute: String?
   get() = resolveAttribute(AUTO_URI, ATTR_GRAPH)

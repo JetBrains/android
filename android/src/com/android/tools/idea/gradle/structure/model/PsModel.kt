@@ -15,9 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
 import javax.swing.Icon
 
 interface PsModel {
+  /**
+   * A model descriptor to inspect the content of the model in a generic manner.
+   */
+  val descriptor: PsModelDescriptor get() = PsModelDescriptor.None
+
   val parent: PsModel?
 
   var isModified: Boolean
@@ -29,4 +35,23 @@ interface PsModel {
   val icon: Icon? get() = null
 
   val path: PsPath? get() = null
+}
+
+interface PsModelDescriptor {
+  /**
+   * Returns a collection of models contained in the given instance (including transitively-contained ones).
+   */
+  fun enumerateContainedModels(): Collection<PsModel> = listOf()
+
+  /**
+   * Enumerates properties defined on the given instance in a type-safe manner.
+   */
+  fun enumerateProperties(receiver: PropertyReceiver) = Unit
+
+  object None : PsModelDescriptor
+
+  @FunctionalInterface
+  interface PropertyReceiver {
+    fun <T: PsModel> receive(model: T, property: ModelProperty<T, *, *, *>)
+  }
 }

@@ -18,8 +18,8 @@ package com.android.tools.idea.configurations;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.*;
 import com.android.io.IAbstractFile;
 import com.android.resources.*;
@@ -51,7 +51,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.FD_RES_LAYOUT;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
+import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 
 /**
  * Produces matches for configurations.
@@ -214,7 +214,7 @@ public class ConfigurationMatcher {
   }
 
   @NotNull
-  public static List<VirtualFile> getMatchingFiles(@NotNull AbstractResourceRepository repository,
+  public static List<VirtualFile> getMatchingFiles(@NotNull ResourceRepository repository,
                                                    @NotNull VirtualFile file,
                                                    @NotNull ResourceNamespace namespace,
                                                    @NotNull ResourceType type,
@@ -224,7 +224,7 @@ public class ConfigurationMatcher {
   }
 
   @NotNull
-  private static List<VirtualFile> getMatchingFiles(@NotNull AbstractResourceRepository repository,
+  private static List<VirtualFile> getMatchingFiles(@NotNull ResourceRepository repository,
                                                     @NotNull ResourceReference reference,
                                                     @NotNull FolderConfiguration config,
                                                     @NotNull Set<ResourceReference> seenResources,
@@ -234,7 +234,7 @@ public class ConfigurationMatcher {
       return Collections.emptyList();
     }
     List<ResourceItem> matchingItems =
-      repository.getResourceItems(reference.getNamespace(), reference.getResourceType(), reference.getName());
+      repository.getResources(reference.getNamespace(), reference.getResourceType(), reference.getName());
     if (matchingItems.isEmpty()) {
       return Collections.emptyList();
     }

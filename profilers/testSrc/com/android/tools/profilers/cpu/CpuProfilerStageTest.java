@@ -1879,7 +1879,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     }
 
     @Override
-    void abortParsing() {
+    public void abortParsing() {
       myAbortParsingCalled = true;
       super.abortParsing();
     }

@@ -21,6 +21,7 @@ import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.common.property2.impl.support.ActionEnumValue
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
+import kotlin.properties.Delegates
 
 /**
  * Model of a ComboBox control for editing a property.
@@ -45,38 +46,70 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
       fireValueChanged()
     }
 
-  init {
-    updateValueFromProperty()
+  /**
+   * A property change is pending.
+   *
+   * Indicates if a change to the property value was initiated, but the value wasn't
+   * immediately registered by the property. Use this value to omit change requests
+   * generated from [focusLost].
+   */
+  private var pendingValueChange = false
+
+  override var text: String by Delegates.observable(property.value.orEmpty()) { _, _, _ -> pendingValueChange = false }
+
+  override fun updateValueFromProperty() {
+    text = value
+    pendingValueChange = false
   }
 
-  override var text: String = ""
+  override fun focusLost() {
+    super.focusLost()
+    commitChange()
+  }
 
   override val editingSupport: EditingSupport
     get() = property.editingSupport
 
-  fun enterKeyPressed(editedValue: String) {
+  override fun enterKeyPressed() {
     blockUpdates = true
-    value = editedValue
-    isPopupVisible = false
-    super.enterKeyPressed()
-    blockUpdates = false
+    try {
+      isPopupVisible = false
+      if (commitChange()) {
+        super.enterKeyPressed()
+      }
+    }
+    finally {
+      blockUpdates = false
+    }
   }
 
   fun escapeKeyPressed() {
     cancelEditing()
   }
 
-  override fun cancelEditing(): Boolean {
-    if (isPopupVisible) {
-      blockUpdates = true
-      updateValueFromProperty()
-      isPopupVisible = false
-      blockUpdates = false
-      return false
+  /**
+   * Commit the current changed text.
+   *
+   * Return true if the change was successfully updated.
+   */
+  private fun commitChange(): Boolean {
+    if (pendingValueChange || text == value) {
+      return !pendingValueChange
     }
-    else {
+    value = text
+    pendingValueChange = value != text
+    return !pendingValueChange
+  }
+
+  override fun cancelEditing(): Boolean {
+    if (!isPopupVisible) {
       return super.cancelEditing()
     }
+    blockUpdates = true
+    updateValueFromProperty()
+    isPopupVisible = false
+    blockUpdates = false
+    return false
   }
 
   fun popupMenuWillBecomeVisible() {
@@ -87,7 +120,8 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
   fun popupMenuWillBecomeInvisible(ignoreChanges: Boolean) {
     val newValue = selectedValue
     if (!ignoreChanges && newValue != null) {
-      value = newValue.value
+      text = newValue.value
+      value = text
     }
     _popupVisible = false
   }
@@ -130,6 +164,6 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
 
   private fun fireListDataChanged() {
     val event = ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, size)
-    listListeners.forEach { it.contentsChanged(event) }
+    listListeners.toTypedArray().forEach { it.contentsChanged(event) }
   }
 }

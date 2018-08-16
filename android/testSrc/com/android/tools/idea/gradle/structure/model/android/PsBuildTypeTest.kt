@@ -26,6 +26,21 @@ import java.io.File
 
 class PsBuildTypeTest : AndroidGradleTestCase() {
 
+  fun testDescriptor() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val buildType = appModule.findBuildType("release")
+    assertThat(buildType, notNullValue()); buildType!!
+
+    assertThat(buildType.descriptor.testEnumerateProperties(), equalTo(PsBuildType.BuildTypeDescriptors.testEnumerateProperties()))
+  }
+
   fun testProperties() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 

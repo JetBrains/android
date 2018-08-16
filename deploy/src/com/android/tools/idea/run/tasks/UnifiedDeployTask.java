@@ -18,14 +18,20 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.AdbClient;
-import com.android.tools.deployer.Apk;
+import com.android.tools.deploy.swapper.DexArchiveDatabase;
+import com.android.tools.deploy.swapper.InMemoryDexArchiveDatabase;
+import com.android.tools.deployer.ApkDiffer;
 import com.android.tools.deployer.Deployer;
-import com.android.tools.deployer.DeployerRunner;
+import com.android.tools.deployer.Installer;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.intellij.openapi.application.PathManager;
 import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.diagnostic.Logger;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -37,8 +43,22 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
 
   private final Collection<ApkInfo> myApks;
 
-  public UnifiedDeployTask(@NotNull Collection<ApkInfo> apks) {
+  // TODO: Move this to an an application component.
+  private static DexArchiveDatabase myDb = new InMemoryDexArchiveDatabase();
+
+  public static final Logger LOG = Logger.getInstance(UnifiedDeployTask.class);
+
+  private final boolean mySwap;
+
+  /**
+   * Creates a task to deploy a list of apks.
+   *
+   * @param apks the apks to deploy.
+   * @param swap whether to perform swap on a running app or to just install and restart.
+   */
+  public UnifiedDeployTask(@NotNull Collection<ApkInfo> apks, boolean swap) {
     myApks = apks;
+    mySwap = swap;
   }
 
   @NotNull
@@ -52,6 +72,15 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
     return 20;
   }
 
+  private String getLocalInstaller() {
+    File path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
+    if (!path.exists()) {
+      // Development mode
+      path = new File(PathManager.getHomePath(), "../../bazel-bin/tools/base/deploy/installer/android");
+    }
+    return path.getAbsolutePath();
+  }
+
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
 
@@ -61,9 +90,25 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
 
       List<String> paths = apk.getFiles().stream().map(
         apkunit -> apkunit.getApkFile().getPath()).collect(Collectors.toList());
-      Deployer deployer = new Deployer(apk.getApplicationId(), paths, this, new AdbClient(device));
-      Deployer.RunResponse response = deployer.run();
+      AdbClient adb = new AdbClient(device);
+      Installer installer = new Installer(getLocalInstaller(), adb);
+      Deployer deployer = new Deployer(apk.getApplicationId(), paths, this, adb, myDb, installer);
+      Deployer.RunResponse response = null;
+      try {
+        if (mySwap) {
+          // TODO: Separate code-swap and full-swap
+          response = deployer.fullSwap();
+        } else {
+          response = deployer.install();
+        }
+      }
+      catch (IOException e) {
+        LOG.error("Error deploying APK", e);
+        return false;
+      }
 
+
+      // TODO: shows the error somewhere other than System.err
       if (response.status == Deployer.RunResponse.Status.ERROR) {
         System.err.println(response.errorMessage);
         return error;
@@ -89,7 +134,7 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
         System.err.println("    local apk id: " + analysis.localApkHash);
         System.err.println("    remot apk id: " + analysis.remoteApkHash);
 
-        for (Map.Entry<String, Apk.ApkEntryStatus> statusEntry : analysis.diffs.entrySet()) {
+        for (Map.Entry<String, ApkDiffer.ApkEntryStatus> statusEntry : analysis.diffs.entrySet()) {
           System.err.println("  " + statusEntry.getKey() +
                              " [" + statusEntry.getValue().toString().toLowerCase() + "]");
         }

@@ -38,19 +38,10 @@ import java.util.Set;
 public class ThemeMenuAction extends DropDownAction {
 
   private final ConfigurationHolder myRenderContext;
-  /**
-   * May be null if the given configuration does not exist.
-   */
-  @Nullable private ThemeResolver myThemeResolver;
 
   public ThemeMenuAction(@NotNull ConfigurationHolder renderContext) {
     super("", "Theme for Preview", StudioIcons.LayoutEditor.Toolbar.THEME_BUTTON);
     myRenderContext = renderContext;
-
-    Configuration conf = myRenderContext.getConfiguration();
-    if (conf != null) {
-      myThemeResolver = new ThemeResolver(myRenderContext.getConfiguration());
-    }
   }
 
   @Override
@@ -116,9 +107,11 @@ public class ThemeMenuAction extends DropDownAction {
   }
 
   private void addThemeActions() {
-    if (myThemeResolver == null) {
+    Configuration conf = myRenderContext.getConfiguration();
+    if (conf == null) {
       return;
     }
+    ThemeResolver themeResolver = new ThemeResolver(myRenderContext.getConfiguration());
 
     // This is the selected theme in layout editor, may be different with the theme used at runtime.
     String currentThemeName = getCurrentTheme();
@@ -133,11 +126,11 @@ public class ThemeMenuAction extends DropDownAction {
 
     // Add project themes exclude the default theme.
     Set<String> excludedThemes = defaultTheme != null ? ImmutableSet.of(defaultTheme) : ImmutableSet.of();
-    List<String> projectThemeWithoutDefaultTheme = ThemeUtils.getProjectThemeNames(myThemeResolver, excludedThemes);
+    List<String> projectThemeWithoutDefaultTheme = ThemeUtils.getProjectThemeNames(themeResolver, excludedThemes);
     addThemes(projectThemeWithoutDefaultTheme, currentThemeName, false);
 
     // Add recommended themes.
-    List<String> recommendedThemes = ThemeUtils.getRecommendedThemeNames(myThemeResolver, excludedThemes);
+    List<String> recommendedThemes = ThemeUtils.getRecommendedThemeNames(themeResolver, excludedThemes);
     addThemes(recommendedThemes, currentThemeName, true);
 
     Configuration config = myRenderContext.getConfiguration();

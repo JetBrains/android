@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
-import com.android.SdkConstants.ATTR_LAYOUT
-import com.android.SdkConstants.TOOLS_URI
+import com.android.SdkConstants
+import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.command.NlWriteCommandAction
@@ -29,6 +29,8 @@ import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiClass
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.util.ClassUtil
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.AndroidGotoRelatedProvider
@@ -73,18 +75,26 @@ class DestinationClassEditor(listener: NlEditingListener, comboBox: CustomComboB
   override fun getEnumSupport(property: NlProperty): EnumSupport = SubclassEnumSupport(property)
 
   private class SubclassEnumSupport(property: NlProperty) : EnumSupport(property) {
-    override fun getAllValues(): MutableList<ValueWithDisplayString> {
+    override fun getAllValues(): List<ValueWithDisplayString> {
       val component = myProperty.components[0]
-      val result = mutableListOf<ValueWithDisplayString>()
-      val schema = NavigationSchema.get(component.model.facet)
+      val facet = component.model.facet
+      val schema = NavigationSchema.get(facet)
 
-      for (inheritor in schema.getDestinationClasses(component.tagName)) {
-        val qName = inheritor.qualifiedName ?: continue
-        result.add(ValueWithDisplayString(displayString(qName), qName))
+      val classNames = mutableSetOf<String>()
+      val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(facet.module)
+      for (inheritor in schema.getDestinationClassesForTag(component.tagName)) {
+        for (child in ClassInheritorsSearch.search(inheritor, scope, true).plus(inheritor)) {
+          val qName = child.qualifiedName
+          if (qName == null ||
+              classNames.contains(qName) ||
+              child.supers.any { it.qualifiedName == SdkConstants.FQCN_NAV_HOST_FRAGMENT }) {
+            continue
+          }
+          classNames.add(qName)
+        }
       }
 
-      result.sortBy { it.displayString }
-      return result
+      return classNames.map { ValueWithDisplayString(displayString(it), it) }.toMutableList().sortedBy { it.displayString }
     }
 
     override fun createFromResolvedValue(resolvedValue: String, value: String?, hint: String?): ValueWithDisplayString {

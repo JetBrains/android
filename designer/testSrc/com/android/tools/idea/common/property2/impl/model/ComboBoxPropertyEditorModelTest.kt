@@ -23,6 +23,8 @@ import com.android.tools.idea.uibuilder.property2.testutils.FakeInspectorLine
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.*
+import javax.swing.event.ListDataEvent
+import javax.swing.event.ListDataListener
 
 class ComboBoxPropertyEditorModelTest {
 
@@ -51,7 +53,8 @@ class ComboBoxPropertyEditorModelTest {
     val (model, listener) = createModelWithListener()
     val line = FakeInspectorLine(LineType.PROPERTY)
     model.lineModel = line
-    model.enterKeyPressed("gone")
+    model.text = "gone"
+    model.enterKeyPressed()
     assertThat(model.property.value).isEqualTo("gone")
     assertThat(model.isPopupVisible).isFalse()
     verify(listener).valueChanged()
@@ -113,5 +116,56 @@ class ComboBoxPropertyEditorModelTest {
     assertThat(model.getElementAt(0).toString()).isEqualTo("visible")
     assertThat(model.getElementAt(1).toString()).isEqualTo("invisible")
     assertThat(model.getElementAt(2).toString()).isEqualTo("gone")
+  }
+
+  @Test
+  fun testFocusLossWillUpdateValue() {
+    // setup
+    val (model, listener) = createModelWithListener()
+    model.focusGained()
+    model.text = "#333333"
+
+    // test
+    model.focusLost()
+    assertThat(model.hasFocus).isFalse()
+    assertThat(model.property.value).isEqualTo("#333333")
+    verify(listener).valueChanged()
+  }
+
+  @Test
+  fun testFocusLossWithUnchangedValueWillNotUpdateValue() {
+    // setup
+    val (model, listener) = createModelWithListener()
+    model.focusGained()
+
+    // test
+    model.focusLost()
+    assertThat(model.property.value).isEqualTo("visible")
+    verify(listener, never()).valueChanged()
+  }
+
+  @Test
+  fun testListenersAreConcurrentModificationSafe() {
+    // Make sure that ConcurrentModificationException is NOT generated from the code below:
+    val model = createModel()
+    val listener = RecursiveListDataListener(model)
+    model.addListDataListener(listener)
+    model.selectedItem = "text"
+    assertThat(listener.called).isTrue()
+  }
+
+  private class RecursiveListDataListener(private val model: ComboBoxPropertyEditorModel): ListDataListener {
+    var called = false
+
+    override fun intervalRemoved(event: ListDataEvent) {
+    }
+
+    override fun intervalAdded(event: ListDataEvent) {
+    }
+
+    override fun contentsChanged(event: ListDataEvent) {
+      model.addListDataListener(RecursiveListDataListener(model))
+      called = true
+    }
   }
 }

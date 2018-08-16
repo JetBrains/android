@@ -16,6 +16,8 @@
 package com.android.tools.idea.templates
 
 import com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT
+import com.android.tools.idea.util.dependsOnOldSupportLib
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectLocator
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -40,6 +42,13 @@ class FmIsAndroidxEnabledMethod(private val paramMap: Map<String, Any>) : Templa
     }
   }
 
+  private fun findModuleIfAny(): Module? {
+    val modulePath = paramMap[TemplateMetadata.ATTR_PROJECT_OUT] as? String
+    return modulePath?.let {
+      FmUtil.findModule(modulePath)
+    }
+  }
+
   @Throws(TemplateModelException::class)
   override fun exec(args: List<*>): TemplateModel {
     val buildApiObject = (paramMap.get(TemplateMetadata.ATTR_BUILD_API) as? Int) ?: 0
@@ -49,17 +58,16 @@ class FmIsAndroidxEnabledMethod(private val paramMap: Map<String, Any>) : Templa
       return TemplateBooleanModel.FALSE
     }
 
-    // If the project has already the "useAndroidx" property set, use that to decide whether to use androidx or not.
-    // If it does not have it, default to the NELE_USE_ANDROIDX_DEFAULT property
-
     val project = findProjectIfAny()
-    val useAndroidx = if (project?.hasAndroidxProperty() == true) {
-      // The project already has a properties file so just do what the property says
-      project.isAndroidx()
-    }
-    else {
-      // The property is not defined so use our default based on the global flag
-      NELE_USE_ANDROIDX_DEFAULT.get()
+    val useAndroidx = when {
+      // Don't use AndroidX if the module has old support library dependencies
+      findModuleIfAny()?.dependsOnOldSupportLib() == true -> false
+
+      // If the project already has the "useAndroidx" property set, just do what the property says
+      project?.hasAndroidxProperty() == true -> project.isAndroidx()
+
+      // Default based on the global flag
+      else -> NELE_USE_ANDROIDX_DEFAULT.get()
     }
 
     return if (useAndroidx) TemplateBooleanModel.TRUE else TemplateBooleanModel.FALSE

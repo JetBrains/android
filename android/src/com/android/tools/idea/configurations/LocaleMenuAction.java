@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.ide.common.resources.LocaleManager;
+import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.adtui.actions.DropDownAction;
@@ -38,10 +39,7 @@ import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class LocaleMenuAction extends DropDownAction {
 
@@ -162,7 +160,7 @@ public class LocaleMenuAction extends DropDownAction {
     }
 
     LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(module);
-    Set<LocaleQualifier> languages = projectResources != null ? projectResources.getLocales() : Collections.emptySet();
+    Set<LocaleQualifier> languages = projectResources != null ? ResourceRepositoryUtil.getLocales(projectResources) : Collections.emptySet();
     for (LocaleQualifier l : languages) {
       if (specificLocale != null && !specificLocale.isMatchFor(l)) {
         continue;

@@ -31,7 +31,7 @@ import kotlin.properties.Delegates
 abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : PropertyEditorModel {
   private val valueChangeListeners = mutableListOf<ValueChangedListener>()
 
-  override var property: PropertyItem by Delegates.observable(initialProperty, { _, _, _ -> fireValueChanged()})
+  override var property: PropertyItem by Delegates.observable(initialProperty) { _, _, _ -> fireValueChanged()}
 
   override var value: String
     get() = property.value.orEmpty()
@@ -117,11 +117,8 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
     hasFocus = true
   }
 
-  open fun focusLost(editedValue: String, updateValueOnFocusLoss: Boolean = true) {
+  open fun focusLost() {
     hasFocus = false
-    if (updateValueOnFocusLoss && editedValue != value) {
-      value = editedValue
-    }
   }
 
   override fun addListener(listener: ValueChangedListener) {
@@ -140,7 +137,7 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
 
   protected fun fireValueChanged() {
     if (!blockUpdates) {
-      valueChangeListeners.forEach { it.valueChanged() }
+      valueChangeListeners.toTypedArray().forEach { it.valueChanged() }
     }
   }
 

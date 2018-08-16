@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 
+import com.android.SdkConstants;
 import com.android.ddmlib.Log;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.DrawableShape;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchGradient;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchGradientStop;
 import com.android.tools.layoutlib.annotations.NotNull;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -34,17 +37,32 @@ import static com.intellij.openapi.application.ApplicationManager.getApplication
 public class VectorDrawableFile {
 
   private static final String TAG_VECTOR_HEAD = "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"";
-  private static final String TAG_PATH = "<path/>";
-  private static final String ATTRIBUTE_BASE = "android:";
-  private static final String ATTRIBUTE_HEIGHT = "height";
-  private static final String ATTRIBUTE_WIDTH = "width";
-  private static final String ATTRIBUTE_VIEWPORT_HEIGHT = "viewportHeight";
-  private static final String ATTRIBUTE_VIEWPORT_WIDTH = "viewportWidth";
-  private static final String ATTRIBUTE_NAME = "name";
-  private static final String ATTRIBUTE_PATH_DATA = "pathData";
-  private static final String ATTRIBUTE_FILL_COLOR = "fillColor";
-  private static final String ATTRIBUTE_STROKE_COLOR = "strokeColor";
-  private static final String ATTRIBUTE_STROKE_WIDTH = "strokeWidth";
+  private static final String TAG_PATH = "<path";
+  private static final String TAG_AAPT_ATTR = "<aapt:attr name = \"android:fillColor\"";
+  private static final String TAG_GRADIENT = "<gradient";
+  private static final String TAG_ITEM = "<item/>";
+
+  private static final String ATTRIBUTE_AAPT = "xmlns:aapt";
+  private static final String VALUE_AAPT = SdkConstants.AAPT_URI;
+  private static final String ATTRIBUTE_HEIGHT = "android:height";
+  private static final String ATTRIBUTE_WIDTH = "android:width";
+  private static final String ATTRIBUTE_VIEWPORT_HEIGHT = "android:viewportHeight";
+  private static final String ATTRIBUTE_VIEWPORT_WIDTH = "android:viewportWidth";
+  private static final String ATTRIBUTE_NAME = "android:name";
+  private static final String ATTRIBUTE_PATH_DATA = "android:pathData";
+  private static final String ATTRIBUTE_FILL_COLOR = "android:fillColor";
+  private static final String ATTRIBUTE_GRADIENT_ENDX = "android:endX";
+  private static final String ATTRIBUTE_GRADIENT_ENDY = "android:endY";
+  private static final String ATTRIBUTE_GRADIENT_STARTX = "android:startX";
+  private static final String ATTRIBUTE_GRADIENT_STARTY = "android:startY";
+  private static final String ATTRIBUTE_GRADIENT_CENTERX = "android:centerX";
+  private static final String ATTRIBUTE_GRADIENT_CENTERY = "android:centerY";
+  private static final String ATTRIBUTE_GRADIENT_RADIUS = "android:gradientRadius";
+  private static final String ATTRIBUTE_GRADIENT_TYPE = "android:type";
+  private static final String ATTRIBUTE_GRADIENT_STOP_COLOR = "android:color";
+  private static final String ATTRIBUTE_GRADIENT_STOP_OFFSET = "android:offset";
+  private static final String ATTRIBUTE_STROKE_COLOR = "android:strokeColor";
+  private static final String ATTRIBUTE_STROKE_WIDTH = "android:strokeWidth";
 
   @NotNull private SketchArtboard artboard;
   @NotNull private Project project;
@@ -66,30 +84,70 @@ public class VectorDrawableFile {
 
   public void setVectorDimensions(double height, double width) {
     getApplication().runReadAction(() -> {
-      root.setAttribute(ATTRIBUTE_BASE + ATTRIBUTE_HEIGHT, Double.toString(height) + "dp");
-      root.setAttribute(ATTRIBUTE_BASE + ATTRIBUTE_WIDTH, Double.toString(width) + "dp");
+      root.setAttribute(ATTRIBUTE_HEIGHT, Double.toString(height) + "dp");
+      root.setAttribute(ATTRIBUTE_WIDTH, Double.toString(width) + "dp");
     });
   }
 
   public void setViewportDimensions(double height, double width) {
     getApplication().runReadAction(() -> {
-      root.setAttribute(ATTRIBUTE_BASE + ATTRIBUTE_VIEWPORT_HEIGHT, Double.toString(height));
-      root.setAttribute(ATTRIBUTE_BASE + ATTRIBUTE_VIEWPORT_WIDTH, Double.toString(width));
+      root.setAttribute(ATTRIBUTE_VIEWPORT_HEIGHT, Double.toString(height));
+      root.setAttribute(ATTRIBUTE_VIEWPORT_WIDTH, Double.toString(width));
     });
   }
 
   public void addPath(@NotNull DrawableShape shape) {
     getApplication().runReadAction(() -> {
       XmlTag pathTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_PATH);
-
-      pathTag.setAttribute(ATTRIBUTE_BASE + ATTRIBUTE_NAME, shape.getName());
-      pathTag.setAttribute(ATTRIBUTE_BASE + ATTRIBUTE_PATH_DATA, shape.getPathData());
-      pathTag.setAttribute(ATTRIBUTE_BASE + ATTRIBUTE_FILL_COLOR, shape.getFillColor());
-      pathTag.setAttribute(ATTRIBUTE_BASE + ATTRIBUTE_STROKE_COLOR, shape.getStrokeColor());
-      pathTag.setAttribute(ATTRIBUTE_BASE + ATTRIBUTE_STROKE_WIDTH, shape.getStrokeWidth());
-
+      pathTag.setAttribute(ATTRIBUTE_NAME, shape.getName());
+      pathTag.setAttribute(ATTRIBUTE_PATH_DATA, shape.getPathData());
+      if (shape.getStrokeColor() != null) {
+        pathTag.setAttribute(ATTRIBUTE_STROKE_COLOR, shape.getStrokeColor());
+        pathTag.setAttribute(ATTRIBUTE_STROKE_WIDTH, shape.getStrokeWidth());
+      }
+      if (shape.getGradient() != null) {
+        root.setAttribute(ATTRIBUTE_AAPT, VALUE_AAPT);
+        pathTag.addSubTag(generateGradientSubTag(shape.getGradient()), false);
+      }
+      else {
+        pathTag.setAttribute(ATTRIBUTE_FILL_COLOR, shape.getFillColor());
+      }
       root.addSubTag(pathTag, false);
     });
+  }
+
+  @NotNull
+  private XmlTag generateGradientSubTag(@NotNull SketchGradient gradient) {
+    XmlTag aaptAttrTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_AAPT_ATTR);
+    XmlTag gradientTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_GRADIENT);
+    switch (gradient.getDrawableGradientType()) {
+      case SketchGradient.GRADIENT_LINEAR:
+        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_ENDX, gradient.getGradientEndX());
+        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_ENDY, gradient.getGradientEndY());
+        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_STARTX, gradient.getGradientStartX());
+        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_STARTY, gradient.getGradientStartY());
+        break;
+      case SketchGradient.GRADIENT_RADIAL:
+        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERX, gradient.getGradientStartX());
+        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERY, gradient.getGradientStartY());
+        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_RADIUS, gradient.getGradientRadius());
+        break;
+      case SketchGradient.GRADIENT_SWEEP:
+        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERX, gradient.getGradientStartX());
+        gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERY, gradient.getSweepCenterY());
+        break;
+    }
+    gradientTag.setAttribute(ATTRIBUTE_GRADIENT_TYPE, gradient.getDrawableGradientType());
+
+    for (SketchGradientStop item : gradient.getStops()) {
+      XmlTag itemTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_ITEM);
+      itemTag.setAttribute(ATTRIBUTE_GRADIENT_STOP_COLOR, "#" + Integer.toHexString(item.getColor().getRGB()));
+      itemTag.setAttribute(ATTRIBUTE_GRADIENT_STOP_OFFSET, Double.toString(item.getPosition()));
+      gradientTag.addSubTag(itemTag, false);
+    }
+
+    aaptAttrTag.addSubTag(gradientTag, false);
+    return aaptAttrTag;
   }
 
   public void saveDrawableToDisk(@NotNull String path) {
@@ -101,7 +159,7 @@ public class VectorDrawableFile {
         drawableFile.createNewFile();
       }
       catch (IOException e) {
-        e.printStackTrace();
+        Log.e(VectorDrawableFile.class.getName(), "Could not save file to disk");
       }
     }
 
@@ -118,9 +176,12 @@ public class VectorDrawableFile {
     }
   }
 
+  /**
+   * @return virtual Vector Drawable file whose name corresponds to the {@code filename}
+   */
   @NotNull
-  public LightVirtualFile generateFile() {
-    LightVirtualFile virtualFile = new LightVirtualFile();
+  public LightVirtualFile generateFile(@NotNull String filename) {
+    LightVirtualFile virtualFile = new LightVirtualFile(filename + ".xml");
     createVectorDrawable();
     if (artboard != null) {
       Rectangle2D.Double frame = artboard.getFrame();
@@ -131,12 +192,7 @@ public class VectorDrawableFile {
         addPath(shape);
       }
     }
-    String content = getApplication().runReadAction(new Computable<String>() {
-      @Override
-      public String compute() {
-        return root.getText();
-      }
-    });
+    String content = getApplication().runReadAction((Computable<String>)() -> root.getText());
     virtualFile.setContent(null, content, false);
     return virtualFile;
   }

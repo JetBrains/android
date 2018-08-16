@@ -159,22 +159,6 @@ public class ConnectionsViewTest {
     assertThat(table.prepareRenderer(renderer, 1, timelineColumn).getBackground(), is(selectionColor));
   }
 
-  @Test
-  public void ensureAxisInTheFirstRow() throws Exception {
-    myStageView.getTimeline().getSelectionRange().set(0, TimeUnit.SECONDS.toMicros(100));
-    ConnectionsView view = new ConnectionsView(myStageView);
-
-    JTable table = getConnectionsTable(view);
-
-    int timelineColumn = ConnectionsView.Column.TIMELINE.ordinal();
-    TableCellRenderer renderer = table.getCellRenderer(1, timelineColumn);
-
-    Component comp = table.prepareRenderer(renderer, 0, timelineColumn);
-    assertThat(comp, instanceOf(JPanel.class));
-    assertThat(((JPanel)comp).getComponent(0), instanceOf(AxisComponent.class));
-    assertThat(((JPanel)comp).getComponent(1), instanceOf(StateChart.class));
-  }
-
   /**
    * The underlying table in ConnectionsView is intentionally not exposed to regular users of the
    * class. However, for tests, it is useful to inspect the contents of the table to verify it was

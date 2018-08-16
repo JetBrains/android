@@ -185,8 +185,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
       // No psiElement means that there is no repository block
       return false;
     }
-    Project project = getPsiElement().getProject();
-    if (GradleVersions.getInstance().isGradle4OrNewer(project) && containsMethodCall(GOOGLE_METHOD_NAME)) {
+    if (containsMethodCall(GOOGLE_METHOD_NAME)) {
       // google repository by method can only be used in gradle 4.0+
       return true;
     }

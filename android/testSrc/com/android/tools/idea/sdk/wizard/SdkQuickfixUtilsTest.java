@@ -44,11 +44,23 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link SdkQuickfixUtils}.
  */
 public class SdkQuickfixUtilsTest extends AndroidGradleTestCase {
+  RepoManager myRepoManager;
+  AndroidSdkHandler mySdkHandler;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this.getClass());
+
+    MockFileOp fileOp = new MockFileOp();
+    RepositoryPackages packages = new RepositoryPackages();
+    File sdkPath = new File("/sdk");
+    File avdPath = new File("/avd");
+    myRepoManager = spy(new FakeRepoManager(sdkPath, packages));
+    mySdkHandler = new AndroidSdkHandler(sdkPath, avdPath, fileOp, myRepoManager);
+    assertNotNull(mySdkHandler);
+    FakeProgressIndicator progress = new FakeProgressIndicator();
+    assertSame(myRepoManager, mySdkHandler.getSdkManager(progress));
   }
 
   public void testCreateDialogForPathsNoOpMessageNull() {
@@ -73,24 +85,33 @@ public class SdkQuickfixUtilsTest extends AndroidGradleTestCase {
     assertThat(causedException).isTrue();
   }
 
-  public void testCreateDialogNoRepoManagerLoadIfNoInstallationsRequested() {
-    MockFileOp fileOp = new MockFileOp();
-    RepositoryPackages packages = new RepositoryPackages();
-    File sdkPath = new File("/sdk");
-    File avdPath = new File("/avd");
-    RepoManager mgr = spy(new FakeRepoManager(sdkPath, packages));
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(sdkPath, avdPath, fileOp, mgr);
-    assertNotNull(sdkHandler);
-    FakeProgressIndicator progress = new FakeProgressIndicator();
-    assertSame(mgr, sdkHandler.getSdkManager(progress));
-    LocalPackage p = new FakePackage.FakeLocalPackage("some;sdk;package");
+  public void testCreateDialogNoRepoReloadsWhenUninstallsOnly() {
+    LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package");
+
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(null, null, null,
-                                                             Collections.emptyList(), ImmutableList.of(p), sdkHandler,
+                                                             Collections.emptyList(), ImmutableList.of(localPackage), mySdkHandler,
                                                              null, false);
     assertNotNull(dialog);
     Disposer.register(getTestRootDisposable(), dialog.getDisposable());
     // We're fine with non-zero cache expiration values, as those inherently optimize the redundant downloads.
     // One such call is currently made from the wizard, which starts SDK installation once built - we will accept that.
-    verify(mgr, never()).load(eq(0), any(), any(), any(), any(), any(), any(), anyBoolean());
+    verify(myRepoManager, never()).load(eq(0), any(), any(), any(), any(), any(), any(), anyBoolean());
+  }
+
+  public void testCreateDialogNoUncachedRepoReloads() {
+    LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package");
+    try {
+      SdkQuickfixUtils.createDialog(null, null, ImmutableList.of("some;other;package"),
+                                    null, ImmutableList.of(localPackage), mySdkHandler,
+                                    null, false);
+    }
+    catch (RuntimeException e) {
+      // Expected RuntimeException when creating the dialog in unit test mode.
+      assertThat(e.getMessage()).contains("All packages are not available for download!");
+    }
+
+    verify(myRepoManager, never()).load(eq(0), any(), any(), any(), any(), any(), any(), anyBoolean());
+    verify(myRepoManager, times(1)).load(eq(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS), any(), any(), any(), any(),
+                                         any(), any(), anyBoolean());
   }
 }

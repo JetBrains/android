@@ -65,7 +65,14 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
   @Override
   public List<SceneComponent> newSelection() {
     if (hasChangedComponent()) {
-      return ImmutableList.of(getComponent());
+      List<NlComponent> selection = getComponent().getScene().getSelection();
+      if (selection.size() == 1) {
+        return ImmutableList.of(getComponent());
+      }
+      else {
+        Scene scene = myComponent.getScene();
+        return selection.stream().map(c -> scene.getSceneComponent(c)).collect(ImmutableList.toImmutableList());
+      }
     }
     return null;
   }

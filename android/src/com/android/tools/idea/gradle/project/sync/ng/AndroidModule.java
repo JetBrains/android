@@ -38,40 +38,44 @@ public class AndroidModule {
   @NotNull private final Map<String, Variant> myVariantsByName = new HashMap<>();
   // Format of ArtifactAddress for module library, BuildId@@GradlePath::Variant, the "::Variant" part is optional if variant is null.
   @NotNull public static final Pattern MODULE_ARTIFACT_ADDRESS_PATTERN = Pattern.compile("([^@]*)@@(.[^:]*)(::(.*))?");
+  @Nullable private final NativeAndroidProject myNativeAndroidProject;
 
-  AndroidModule(@NotNull AndroidProject androidProject, @NotNull SyncModuleModels moduleModels) {
+  AndroidModule(@NotNull AndroidProject androidProject,
+                @NotNull SyncModuleModels moduleModels,
+                @Nullable NativeAndroidProject nativeAndroidProject) {
     myAndroidProject = androidProject;
     myModuleModels = moduleModels;
+    myNativeAndroidProject = nativeAndroidProject;
   }
 
-  void addSelectedVariant(@NotNull Variant selectedVariant) {
+  void addSelectedVariant(@NotNull Variant selectedVariant, @Nullable String abi) {
     myVariantsByName.put(selectedVariant.getName(), selectedVariant);
     AndroidArtifact artifact = selectedVariant.getMainArtifact();
     Dependencies dependencies = artifact.getDependencies();
 
     if (!dependencies.getLibraries().isEmpty()) {
       // Level1 Dependencies model.
-      populateDependencies(dependencies);
+      populateDependencies(dependencies, abi);
     }
     else {
       // Level4 DependencyGraphs model.
       // DependencyGraph was added in AGP 3.0. If the code gets here, means current AGP is 3.2+, no try/catch needed.
-      populateDependencies(artifact.getDependencyGraphs());
+      populateDependencies(artifact.getDependencyGraphs(), abi);
     }
   }
 
-  private void populateDependencies(@NotNull Dependencies dependencies) {
+  private void populateDependencies(@NotNull Dependencies dependencies, @Nullable String abi) {
     for (AndroidLibrary library : dependencies.getLibraries()) {
       String project = library.getProject();
       if (project != null) {
         String id = createUniqueModuleId(nullToEmpty(library.getBuildId()), project);
         String variant = library.getProjectVariant();
-        addModuleDependency(id, variant);
+        addModuleDependency(id, variant, abi);
       }
     }
   }
 
-  private void populateDependencies(@NotNull DependencyGraphs dependencyGraphs) {
+  private void populateDependencies(@NotNull DependencyGraphs dependencyGraphs, @Nullable String abi) {
     for (GraphItem item : dependencyGraphs.getCompileDependencies()) {
       String address = item.getArtifactAddress();
       Matcher matcher = MODULE_ARTIFACT_ADDRESS_PATTERN.matcher(address);
@@ -81,20 +85,25 @@ public class AndroidModule {
         if (buildId != null && project != null) {
           String id = createUniqueModuleId(nullToEmpty(buildId), project);
           String variant = matcher.group(4);
-          addModuleDependency(id, variant);
+          addModuleDependency(id, variant, abi);
         }
       }
     }
   }
 
-  private void addModuleDependency(@NotNull String id, @Nullable String variant) {
-    ModuleDependency dependency = new ModuleDependency(id, variant);
+  private void addModuleDependency(@NotNull String id, @Nullable String variant, @Nullable String abi) {
+    ModuleDependency dependency = new ModuleDependency(id, variant, abi);
     myModuleDependencies.add(dependency);
   }
 
   @NotNull
   AndroidProject getAndroidProject() {
     return myAndroidProject;
+  }
+
+  @Nullable
+  NativeAndroidProject getNativeAndroidProject() {
+    return myNativeAndroidProject;
   }
 
   @NotNull
@@ -114,10 +123,12 @@ public class AndroidModule {
   static class ModuleDependency {
     @NotNull final String id;
     @Nullable final String variant;
+    @Nullable final String abi;
 
-    ModuleDependency(@NotNull String id, @Nullable String variant) {
+    ModuleDependency(@NotNull String id, @Nullable String variant, @Nullable String abi) {
       this.id = id;
       this.variant = variant;
+      this.abi = abi;
     }
   }
 }

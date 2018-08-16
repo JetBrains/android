@@ -17,12 +17,15 @@ package com.android.tools.idea.common.property2.impl.model
 
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.property2.api.NewPropertyItem
+import kotlin.properties.Delegates
 
 /**
  * Model of a text editor for editing a property name.
  */
 class PropertyNameEditorModel(private val newProperty: NewPropertyItem) :
   TextFieldPropertyEditorModel(newProperty, true) {
+
+  override var text: String by Delegates.observable(newProperty.name) { _, _, _ -> pendingValueChange = false }
 
   override var value: String
     get() = newProperty.name

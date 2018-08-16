@@ -44,10 +44,7 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotExist;
@@ -125,7 +122,8 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
     AndroidFacet facet = AndroidFacet.getInstance(startElement);
     LocalResourceRepository appResources = facet == null ? null : ResourceRepositoryManager.getAppResources(facet);
-    return appResources == null || !appResources.getItemsOfType(ResourceType.XML).contains(myUrl.name);
+    return appResources == null || !((Collection<String>)appResources.getResources(ResourceNamespace.TODO(), ResourceType.XML).keySet())
+      .contains(myUrl.name);
   }
 
   @NotNull

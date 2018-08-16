@@ -20,19 +20,15 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 
 /**
- * [FocusListener] that can be used in models erived from [BasePropertyEditorModel].
- *
- * When focus is lost make sure to supply the last value edited, such that
- * the model can update its property value. (May be ignored in certain models).
+ * [FocusListener] that can be used in controls using models derived from [BasePropertyEditorModel].
  */
-class EditorFocusListener(private val model: BasePropertyEditorModel,
-                          private val lastValue: () -> String,
-                          private val updateValueOnFocusLoss: Boolean = true): FocusListener {
+class EditorFocusListener(private val model: BasePropertyEditorModel) : FocusListener {
+
   override fun focusGained(event: FocusEvent) {
     model.focusGained()
   }
 
   override fun focusLost(event: FocusEvent) {
-    model.focusLost(lastValue(), updateValueOnFocusLoss)
+    model.focusLost()
   }
 }

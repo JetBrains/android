@@ -43,7 +43,7 @@ private const val FONT_NAME = "Default"
  */
 class DrawNavScreen(@SwingCoordinate private val rectangle: Rectangle,
                     private val imageFuture: CompletableFuture<BufferedImage?>,
-                    private val oldImage: BufferedImage? = null) : NavBaseDrawCommand() {
+                    private val oldImage: BufferedImage? = null) : DrawCommandBase() {
 
   private constructor(sp: Array<String>) : this(stringToRect(sp[0]), CompletableFuture.completedFuture(null))
 

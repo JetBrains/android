@@ -61,9 +61,8 @@ import static com.google.common.collect.Sets.newLinkedHashSetWithExpectedSize;
  * Repository of resources of the Android framework.
  *
  * <p>This repository behaves similar to {@link AarSourceResourceRepository} except that it differentiates
- * between resources that are public and non public. {@link #getPublicResourcesOfType(ResourceType)}
- * can be used to obtain only public resources. This is typically used to display resource lists in
- * the UI.
+ * between resources that are public and non public. {@link #getPublicResources} can be used to obtain only
+ * public the resources. This is typically used to display resource lists in the UI.
  *
  * <p>For performance the repository, when possible, is loaded from a binary cache file located
  * under the directory returned by the {@link PathManager#getSystemPath()} method.
@@ -169,13 +168,16 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
   @Override
   @NotNull
-  public Collection<ResourceItem> getPublicResourcesOfType(@NotNull ResourceType type) {
+  public Collection<ResourceItem> getPublicResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
+    if (!namespace.equals(ANDROID_NAMESPACE)) {
+      return Collections.emptySet();
+    }
     Set<ResourceItem> resourceItems = myPublicResources.get(type);
     return resourceItems == null ? Collections.emptySet() : resourceItems;
   }
 
   public boolean isPublic(@NotNull ResourceType type, @NotNull String name) {
-    List<ResourceItem> items = getResourceItems(ANDROID_NAMESPACE, type, name);
+    List<ResourceItem> items = getResources(ANDROID_NAMESPACE, type, name);
     if (items.isEmpty()) {
       return false;
     }
@@ -209,7 +211,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
    * Adds synthetic "description" attributes to the "attr" XML nodes located in attrs.xml.
    */
   private void assignAttrDescriptions() {
-    List<ResourceItem> items = getResourceItems(ANDROID_NAMESPACE, ResourceType.ATTR);
+    Collection<ResourceItem> items = getResources(ANDROID_NAMESPACE, ResourceType.ATTR).values();
     for (ResourceItem item: items) {
       Node node = ((ResourceMergerItem)item).getValue();
       if (node != null) {
@@ -245,7 +247,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     // so to identify these we just look for <eat-comment>, and then we look for the comment within the block that isn't ASCII art.
 
     // To find the XML document corresponding to attrs.xml file we use the "Theme" <declare-styleable> defined in the same file.
-    List<ResourceItem> items = getResourceItems(ANDROID_NAMESPACE, ResourceType.STYLEABLE, "Theme");
+    List<ResourceItem> items = getResources(ANDROID_NAMESPACE, ResourceType.STYLEABLE, "Theme");
     if (items.size() != 1) {
       return;
     }
@@ -371,7 +373,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
             }
 
             if (type != null) {
-              List<ResourceItem> matchingResources = getResourceItems(ANDROID_NAMESPACE, type, name);
+              List<ResourceItem> matchingResources = getResources(ANDROID_NAMESPACE, type, name);
               // Some entries in public.xml point to attributes defined attrs_manifest.xml and therefore
               // don't match any resources.
               if (!matchingResources.isEmpty()) {
@@ -434,7 +436,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
   @Override
   @NotNull
-  public ImmutableSet<ResourceType> getAvailableResourceTypes(@NotNull ResourceNamespace namespace) {
+  public Set<ResourceType> getResourceTypes(@NotNull ResourceNamespace namespace) {
     return namespace == ANDROID_NAMESPACE ? Sets.immutableEnumSet(getMapByType().keySet()) : ImmutableSet.of();
   }
 

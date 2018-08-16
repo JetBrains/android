@@ -44,7 +44,7 @@ class ResourceImportDialogViewModel(private val facet: AndroidFacet,
   fun getAssetPreview(asset: DesignAsset): Image? {
     return rendererManager
       .getViewer(asset.file)
-      .getImage(asset.file, null, JBUI.size(50))
+      .getImage(asset.file, facet.module, JBUI.size(50))
       .get()
   }
 

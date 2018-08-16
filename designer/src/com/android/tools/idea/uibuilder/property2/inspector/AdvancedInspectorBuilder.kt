@@ -132,7 +132,7 @@ private class NeleTableModel(override val items: MutableList<NelePropertyItem>) 
   fun updateItems(newItems: MutableList<NelePropertyItem>) {
     items.clear()
     items.addAll(newItems)
-    listeners.forEach { it.itemsUpdated() }
+    listeners.toTypedArray().forEach { it.itemsUpdated() }
   }
 
   /**

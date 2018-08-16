@@ -1798,7 +1798,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       // from libraries (such as appcompat) either
       LocalResourceRepository repository = ResourceRepositoryManager.getProjectResources(myModule);
       assert repository != null;
-      if (!repository.hasResourceItem(item.getType(), item.getName())) {
+      if (!repository.hasResources(ResourceNamespace.TODO(), item.getType(), item.getName())) {
         return false;
       }
 
@@ -1845,7 +1845,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         if ((myType == ResourceType.COLOR || myType == ResourceType.DRAWABLE || myType == ResourceType.MIPMAP) && element != null) {
           LocalResourceRepository repository = ResourceRepositoryManager.getProjectResources(myModule);
           assert repository != null;
-          boolean inProject = repository.hasResourceItem(element.getType(), element.getName());
+          boolean inProject = repository.hasResources(ResourceNamespace.TODO(), element.getType(), element.getName());
           if (inProject) {
             showEditorPanel();
             myEditorPanel.setResourceName(element.getName());
@@ -2039,9 +2039,8 @@ public class ChooseResourceDialog extends DialogWrapper {
      */
     @Nullable
     private ResourceItem setupVariants() {
-      List<ResourceItem> resources =
-        ResourceRepositoryManager.getAppResources(myFacet).getResourceItem(myType, myEditorPanel.getResourceName());
-      assert resources != null;
+      LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myFacet);
+      List<ResourceItem> resources = repository.getResources(ResourceNamespace.TODO(), myType, myEditorPanel.getResourceName());
       ResourceItem defaultValue = getConfiguration().getFullConfig().findMatchingConfigurable(resources);
       if (defaultValue == null && !resources.isEmpty()) {
         // we may not have ANY value that works in current config, then just pick the first one

@@ -16,7 +16,7 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -73,7 +73,7 @@ public class LocalResourceManager extends ResourceManager {
 
   @Override
   @NotNull
-  public AbstractResourceRepository getResourceRepository() {
+  public ResourceRepository getResourceRepository() {
     return ResourceRepositoryManager.getAppResources(myFacet);
   }
 

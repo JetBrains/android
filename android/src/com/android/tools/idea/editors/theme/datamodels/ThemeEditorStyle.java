@@ -20,8 +20,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceType;
@@ -124,7 +124,7 @@ public class ThemeEditorStyle {
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myManager.getModule());
     assert repositoryManager != null;
     LocalResourceRepository repository = repositoryManager.getProjectResources(true);
-    return repository.hasResourceItem(myStyleReference.getNamespace(), myStyleReference.getResourceType(), myStyleReference.getName());
+    return repository.hasResources(myStyleReference.getNamespace(), myStyleReference.getResourceType(), myStyleReference.getName());
   }
 
   /**
@@ -150,7 +150,7 @@ public class ThemeEditorStyle {
         }
 
         List<ResourceItem> items =
-            resources.getResourceItems(myStyleReference.getNamespace(), myStyleReference.getResourceType(), myStyleReference.getName());
+            resources.getResources(myStyleReference.getNamespace(), myStyleReference.getResourceType(), myStyleReference.getName());
 
         for (ResourceItem item : items) {
           String key = item.getConfiguration().toShortDisplayString() + "/" + item.getName();
@@ -163,7 +163,7 @@ public class ThemeEditorStyle {
     else {
       LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(module);
       assert resources != null;
-      return resources.getResourceItems(myStyleReference.getNamespace(), myStyleReference.getResourceType(), myStyleReference.getName());
+      return resources.getResources(myStyleReference.getNamespace(), myStyleReference.getResourceType(), myStyleReference.getName());
     }
   }
 
@@ -192,10 +192,10 @@ public class ThemeEditorStyle {
       IAndroidTarget target = myManager.getHighestApiTarget();
       assert target != null;
 
-      AbstractResourceRepository frameworkResources =
+      ResourceRepository frameworkResources =
           myManager.getResolverCache().getFrameworkResources(new FolderConfiguration(), target);
       if (frameworkResources != null) {
-        List<ResourceItem> styleItems = frameworkResources.getResourceItems(ResourceNamespace.ANDROID, ResourceType.STYLE, getName());
+        List<ResourceItem> styleItems = frameworkResources.getResources(ResourceNamespace.ANDROID, ResourceType.STYLE, getName());
 
         for (ResourceItem item : styleItems) {
           if (item.getConfiguration().equals(configuration)) {
@@ -232,10 +232,10 @@ public class ThemeEditorStyle {
       IAndroidTarget target = myManager.getHighestApiTarget();
       assert target != null;
 
-      AbstractResourceRepository frameworkResources =
+      ResourceRepository frameworkResources =
           myManager.getResolverCache().getFrameworkResources(new FolderConfiguration(), target);
       if (frameworkResources != null) {
-        List<ResourceItem> styleItems = frameworkResources.getResourceItems(ResourceNamespace.ANDROID, ResourceType.STYLE, getName());
+        List<ResourceItem> styleItems = frameworkResources.getResources(ResourceNamespace.ANDROID, ResourceType.STYLE, getName());
 
         for (ResourceItem item : styleItems) {
           if (item.getConfiguration().equals(configuration)) {

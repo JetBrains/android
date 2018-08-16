@@ -30,6 +30,13 @@
     <fileIconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioFileIconProvider" id="androidFileIcons"/>
   </extensions>
 
+  <application-components>
+    <component>
+      <implementation-class>com.intellij.ide.AndroidStudioSystemHealthMonitor</implementation-class>
+      <headless-implementation-class/>
+    </component>
+  </application-components>
+
   <actions>
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
 
@@ -58,6 +65,11 @@
 
     <action id="WelcomeScreen.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
             icon="StudioIcons.Shell.Toolbar.SDK_MANAGER">
+      <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
+    </action>
+
+    <action id="WelcomeScreen.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
+            icon="StudioIcons.Shell.Menu.AVD_MANAGER">
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
 

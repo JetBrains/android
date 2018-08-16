@@ -22,6 +22,7 @@ import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.resourceExplorer.getPNGFile
 import com.android.tools.idea.resourceExplorer.getPNGResourceItem
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
+import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
@@ -85,15 +86,20 @@ class ProjectResourcesBrowserViewModelTest {
 
     val viewModel = createViewModel(projectRule.module)
     Truth.assertThat(ResourceRepositoryManager.getModuleResources(projectRule.module)!!.allResourceItems).isEmpty()
-    val colorSection = viewModel.getResourcesLists(listOf(ResourceType.COLOR))
+    viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR)
+    val colorSection = viewModel.getResourcesLists()
     Truth.assertThat(colorSection).hasSize(2)
     Truth.assertThat(colorSection[0].assets).isEmpty()
     Truth.assertThat(colorSection[1].assets).isNotEmpty()
+    Truth.assertThat(colorSection[1].assets).isNotEmpty()
+    Truth.assertThat(colorSection[1].assets[0].designAssets[0].type).isEqualTo(ResourceType.COLOR)
 
-    val drawableSection = viewModel.getResourcesLists(listOf(ResourceType.COLOR))
+    viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.DRAWABLE)
+    val drawableSection = viewModel.getResourcesLists()
     Truth.assertThat(drawableSection).hasSize(2)
     Truth.assertThat(drawableSection[0].assets).isEmpty()
     Truth.assertThat(drawableSection[1].assets).isNotEmpty()
+    Truth.assertThat(drawableSection[1].assets[0].designAssets[0].type).isEqualTo(ResourceType.DRAWABLE)
   }
 
   @RunsInEdt
@@ -102,7 +108,8 @@ class ProjectResourcesBrowserViewModelTest {
     projectRule.fixture.copyFileToProject("res/values/colors.xml", "res/values/colors.xml")
     val viewModel = createViewModel(projectRule.module)
 
-    val values = viewModel.getResourcesLists(listOf(ResourceType.COLOR))[0].assets
+    viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR)
+    val values = viewModel.getResourcesLists()[0].assets
     Truth.assertThat(values).isNotNull()
     Truth.assertThat(values.flatMap { it.designAssets }
                        .map { it.resourceItem.resourceValue?.value })
@@ -113,6 +120,6 @@ class ProjectResourcesBrowserViewModelTest {
     val facet = AndroidFacet.getInstance(module)!!
     val synchronizationManager = SynchronizationManager(facet)
     Disposer.register(disposable, synchronizationManager)
-    return ProjectResourcesBrowserViewModel(facet, synchronizationManager)
+    return ProjectResourcesBrowserViewModel(facet, synchronizationManager, ImportersProvider())
   }
 }

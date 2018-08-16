@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.intellij.ui.JBColor
+import com.intellij.ui.picker.ColorListener
 import com.intellij.util.ui.JBUI
 import java.awt.Color
 import java.awt.Dimension
@@ -39,6 +40,8 @@ class ColorPickerBuilder {
   private val componentsToBuild = mutableListOf<JComponent>()
   private val model = ColorPickerModel()
   private var originalColor: Color? = null
+  private val actionMap = mutableMapOf<KeyStroke, Action>()
+  private val colorListeners = mutableListOf<ColorListener>()
 
   fun setOriginalColor(originalColor: Color?) = apply { this.originalColor = originalColor }
 
@@ -67,6 +70,10 @@ class ColorPickerBuilder {
     componentsToBuild.add(separator)
   }
 
+  fun addKeyAction(keyStroke: KeyStroke, action: Action) = apply { actionMap[keyStroke] = action }
+
+  fun addColorListener(colorListener: ColorListener) = apply { colorListeners.add(colorListener) }
+
   fun build(): JPanel {
     if (componentsToBuild.isEmpty()) {
       throw IllegalStateException("The Color Picker should have at least one picking component.")
@@ -89,6 +96,14 @@ class ColorPickerBuilder {
     if (c != null) {
       model.setColor(c, null)
     }
+
+    actionMap.forEach { keyStroke, action ->
+      val key = keyStroke.toString()
+      panel.actionMap.put(key, action)
+      panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, key)
+    }
+
+    colorListeners.forEach { model.addListener(it) }
 
     panel.repaint()
     return panel

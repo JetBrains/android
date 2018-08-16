@@ -22,27 +22,44 @@ import com.android.tools.idea.resourceExplorer.viewmodel.ResourceSection
 import com.android.tools.idea.resourceExplorer.widget.Section
 import com.android.tools.idea.resourceExplorer.widget.SectionList
 import com.android.tools.idea.resourceExplorer.widget.SectionListModel
+import com.intellij.ide.dnd.DnDManager
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.ui.JBMenuItem
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBMenu
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.event.InputEvent
 import javax.swing.*
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
+
 
 private const val HEIGHT_WIDTH_RATIO = 3 / 4f
-private const val DEFAULT_CELL_WIDTH = 300
-private const val COMPACT_MODE_TRIGGER_SIZE = 150
-private const val SECTION_CELL_MARGIN = 4
-private const val SECTION_CELL_MARGIN_LEFT = 8
-private const val COLORED_BORDER_WIDTH = 4
+private val DEFAULT_CELL_WIDTH = JBUI.scale(150)
+private val MAX_CELL_WIDTH = JBUI.scale(300)
+private val MIN_CELL_WIDTH = JBUI.scale(100)
+private val COMPACT_MODE_TRIGGER_SIZE = JBUI.scale(150)
+private val SECTION_CELL_MARGIN = JBUI.scale(4)
+private val SECTION_CELL_MARGIN_LEFT = JBUI.scale(8)
+private val COLORED_BORDER_WIDTH = JBUI.scale(4)
 private val SECTION_HEADER_SECONDARY_COLOR = Gray.x66
 private val SECTION_HEADER_BORDER = BorderFactory.createCompoundBorder(
-  BorderFactory.createEmptyBorder(0, 0, 8, 0),
+  JBUI.Borders.emptyBottom(8),
   JBUI.Borders.customLine(SECTION_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
 )
+
+private val ADD_BUTTON_SIZE = JBUI.size(30)
 
 /**
  * View meant to display [com.android.tools.idea.resourceExplorer.model.DesignAsset] located
@@ -50,14 +67,18 @@ private val SECTION_HEADER_BORDER = BorderFactory.createCompoundBorder(
  * It uses an [ProjectResourcesBrowserViewModel] to populates the views
  */
 class ResourceExplorerView(
-  private val resourcesBrowserViewModel: ProjectResourcesBrowserViewModel
-) : JPanel(BorderLayout()) {
+  private val resourcesBrowserViewModel: ProjectResourcesBrowserViewModel,
+  private val resourceImportDragTarget: ResourceImportDragTarget
+) : JPanel(BorderLayout()), Disposable {
 
-  var cellWidth = DEFAULT_CELL_WIDTH
+  private var cellWidth = DEFAULT_CELL_WIDTH
     set(value) {
-      field = value
-      sectionList.getLists().forEach {
-        it.setupListUI()
+      val boundedValue = min(MAX_CELL_WIDTH, max(MIN_CELL_WIDTH, value))
+      if (boundedValue != field) {
+        field = boundedValue
+        sectionList.getLists().forEach {
+          it.setupListUI()
+        }
       }
     }
 
@@ -67,26 +88,81 @@ class ResourceExplorerView(
   private val sectionList: SectionList = SectionList(sectionListModel)
   private val dragHandler = resourceDragHandler()
 
-  private val listPanel: JBScrollPane
+  private val headerPanel = Box.createVerticalBox().apply {
+    add(JPanel(BorderLayout()).apply {
+      val menuBar = JMenuBar()
+      val addButton = JBMenu().apply {
+        font = font.deriveFont(JBUI.scaleFontSize(24f))
+        preferredSize = ADD_BUTTON_SIZE
+        icon = StudioIcons.Common.ADD
+      }
+
+      addButton.add(JBMenuItem("Import .sketch file...").apply {
+        addActionListener { _ -> resourcesBrowserViewModel.importSketchFile() }
+      })
+
+      // TODO add mnemonic, accelerator
+
+      menuBar.add(addButton, BorderLayout.WEST)
+      add(menuBar)
+    })
+
+    add(JTabbedPane(JTabbedPane.NORTH).apply {
+      tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT
+      resourcesBrowserViewModel.resourceTypes.forEach {
+        addTab(it.displayName, null)
+      }
+      addChangeListener { event ->
+        val index = (event.source as JTabbedPane).model.selectedIndex
+        resourcesBrowserViewModel.resourceTypeIndex = index
+      }
+    })
+  }
+
+  private val listPanel: JBScrollPane = sectionList.mainComponent.apply {
+    border = JBUI.Borders.empty(8)
+    horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+    addMouseWheelListener { event ->
+      val modifierKey = if (SystemInfo.isMac) InputEvent.META_MASK else InputEvent.CTRL_MASK
+      val modifierPressed = (event.modifiers and modifierKey) == modifierKey
+      if (modifierPressed) {
+        cellWidth = (cellWidth * (1 - event.preciseWheelRotation * 0.1)).roundToInt()
+      }
+    }
+  }
+
+  private val footerPanel = JPanel(BorderLayout()).apply {
+    border = JBUI.Borders.customLine(JBColor.border(), 1, 0, 0, 0)
+
+    add(ActionManager.getInstance().createActionToolbar(
+      "resourceExplorer",
+      DefaultActionGroup(
+        ActionButton(StudioIcons.LayoutEditor.Palette.GRID_VIEW) {},
+        ActionButton(StudioIcons.LayoutEditor.Palette.LIST_VIEW) {},
+        Separator(),
+        ActionButton(StudioIcons.Common.ZOOM_OUT) { cellWidth = (cellWidth * 0.9).roundToInt() },
+        ActionButton(StudioIcons.Common.ZOOM_IN) { cellWidth = (cellWidth * 1.1).roundToInt() }
+      ), true).component, BorderLayout.EAST)
+  }
 
   init {
+    DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
+
     sectionList.setSectionListCellRenderer(createSectionListCellRenderer())
     resourcesBrowserViewModel.updateCallback = ::populateResourcesLists
     populateResourcesLists()
 
-    listPanel = sectionList.mainComponent
-    listPanel.border = JBUI.Borders.empty(8)
-    listPanel.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+    add(headerPanel, BorderLayout.NORTH)
     add(listPanel)
+    add(footerPanel, BorderLayout.SOUTH)
   }
 
   private fun populateResourcesLists() {
     sectionListModel.clear()
-    resourcesBrowserViewModel.getResourcesLists(listOf(ResourceType.DRAWABLE,
-                                                       ResourceType.COLOR))
+    resourcesBrowserViewModel.getResourcesLists()
       .filterNot { it.assets.isEmpty() }
       .forEach { (type, libName, assets): ResourceSection ->
-        sectionListModel.addSection(AssetSection(type.displayName + " ${libName}", JList<DesignAssetSet>().apply {
+        sectionListModel.addSection(AssetSection(libName, JList<DesignAssetSet>().apply {
           model = CollectionListModel(assets)
           cellRenderer = getRendererForType(type, this)
           dragHandler.registerSource(this)
@@ -142,11 +218,14 @@ class ResourceExplorerView(
   }
 
   private fun getRendererForType(type: ResourceType, list: JList<*>): ListCellRenderer<DesignAssetSet> {
+    val refreshCallBack = { index: Int ->
+      list.repaint(list.getCellBounds(index, index))
+    }
     return when (type) {
-      ResourceType.DRAWABLE -> DrawableResourceCellRenderer(resourcesBrowserViewModel) { _ -> list.repaint() }
+      ResourceType.DRAWABLE -> DrawableResourceCellRenderer(resourcesBrowserViewModel::getDrawablePreview, refreshCallBack)
       ResourceType.COLOR -> ColorResourceCellRenderer(resourcesBrowserViewModel.facet.module.project,
                                                       resourcesBrowserViewModel.resourceResolver)
-      ResourceType.SAMPLE_DATA -> DrawableResourceCellRenderer(resourcesBrowserViewModel) { _ -> list.repaint() }
+      ResourceType.SAMPLE_DATA -> DrawableResourceCellRenderer(resourcesBrowserViewModel::getDrawablePreview, refreshCallBack)
       else -> ListCellRenderer { _, value, _, _, _ ->
         JLabel(value.name)
       }
@@ -173,5 +252,15 @@ class ResourceExplorerView(
         border = SECTION_HEADER_BORDER
       }
     }
+  }
+
+  override fun dispose() {
+    DnDManager.getInstance().unregisterTarget(resourceImportDragTarget, this)
+  }
+}
+
+private class ActionButton(icon: Icon, private val action: () -> Unit) : AnAction(icon), DumbAware {
+  override fun actionPerformed(e: AnActionEvent?) {
+    action()
   }
 }

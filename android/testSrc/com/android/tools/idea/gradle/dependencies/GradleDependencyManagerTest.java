@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB;
 import static com.android.tools.idea.testing.TestProjectPaths.SPLIT_BUILD_FILES;
 import static com.google.common.truth.Truth.assertThat;
@@ -69,7 +70,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
 
     // @formatter:off
     List<ResourceItem> items = ResourceRepositoryManager.getAppResources(myAndroidFacet)
-                                                    .getResourceItem(ResourceType.STYLEABLE, "RecyclerView");
+                                                    .getResources(RES_AUTO, ResourceType.STYLEABLE, "RecyclerView");
     // @formatter:on
     assertThat(items).isNotEmpty();
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();

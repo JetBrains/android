@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
 import javax.swing.Icon
@@ -30,7 +29,7 @@ interface PsLibraryDependency : PsBaseDependency {
 }
 
 interface PsDeclaredLibraryDependency: PsLibraryDependency, PsDeclaredDependency {
-  val versionProperty: ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String>
+  val versionProperty: ModelSimpleProperty<Unit, String>
 }
 
 interface PsResolvedLibraryDependency : PsLibraryDependency, PsResolvedDependency {

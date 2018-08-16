@@ -51,13 +51,16 @@ private const val INSTRUCTIONS =
       |href='https://docs.gradle.org/current/userguide/artifact_dependencies_tutorial.html'>Open Documentation</a>"""
 
 private fun createComboBox(module: PsModule): EditorComboBox {
-  val configurations = module.getConfigurations()
-  val completionProvider = object : TextFieldWithAutoCompletion.StringsCompletionProvider(configurations, null) {
+  val completionProvider = object : TextFieldWithAutoCompletion.StringsCompletionProvider(module.getConfigurations(), null) {
     override fun createPrefixMatcher(prefix: String): PrefixMatcher = CamelHumpMatcher(prefix)
   }
   val documentCreator = TextCompletionUtil.DocumentWithCompletionCreator(completionProvider, true)
-  val initialSelection = configurations.firstOrNull()
-  val document = LanguageTextField.createDocument(initialSelection, PlainTextLanguage.INSTANCE, module.parent.ideProject, documentCreator)
+  val document = LanguageTextField.createDocument("", PlainTextLanguage.INSTANCE, module.parent.ideProject, documentCreator)
+  val importantConfigurations = module.getConfigurations(onlyImportant = true)
+  val initialSelection = importantConfigurations.firstOrNull()
   return EditorComboBox(document, module.parent.ideProject, StdFileTypes.PLAIN_TEXT)
-    .apply { module.getConfigurations(onlyImportant = true).forEach { addItem(it) } }
+    .apply {
+      selectedItem = initialSelection
+      importantConfigurations.forEach { addItem(it) }
+    }
 }

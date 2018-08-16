@@ -30,15 +30,17 @@ import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 /**
- * A standard class for implementing [com.android.tools.idea.common.property2.api.ActionButtonSupport] for an editor.
+ * A standard class for implementing a browse button for an editor.
  *
  * The editor component is wrapped in panel with a possible icon to the right displaying of the editor.
  */
-class ActionButtonBinding(val model: PropertyEditorModel, private val editor: JComponent): CellPanel() {
+class ActionButtonBinding(private val model: PropertyEditorModel,
+                          private val editor: JComponent) : CellPanel() {
   private val boundImage = JBLabel()
+  private val button
+    get() = model.property.browseButton
 
   init {
     add(editor, BorderLayout.CENTER)
@@ -52,7 +54,7 @@ class ActionButtonBinding(val model: PropertyEditorModel, private val editor: JC
         buttonPressed(event)
       }
     })
-    boundImage.isFocusable = model.actionButtonFocusable
+    boundImage.isFocusable = button?.actionButtonFocusable ?: false
     boundImage.addFocusListener(object: FocusListener {
       override fun focusLost(event: FocusEvent) {
         updateFromModel()
@@ -69,12 +71,12 @@ class ActionButtonBinding(val model: PropertyEditorModel, private val editor: JC
   }
 
   private fun updateFromModel() {
-    boundImage.icon = model.getActionIcon(boundImage.hasFocus())
+    boundImage.icon = button?.getActionIcon(boundImage.hasFocus())
     isVisible = model.visible
   }
 
   private fun buttonPressed(mouseEvent: MouseEvent) {
-    val action = model.buttonAction ?: return
+    val action = button?.action ?: return
     if (action is ActionGroup) {
       val popupMenu = ActionManager.getInstance().createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, action)
       popupMenu.component.show(this, mouseEvent.x, mouseEvent.y)

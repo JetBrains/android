@@ -19,30 +19,26 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
 import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.Rectangle
+import java.awt.geom.RoundRectangle2D
 
 class DrawFilledRectangle(
   private val level: Int,
-  @SwingCoordinate private val rectangle: Rectangle,
-  @SwingCoordinate private val color: Color,
-  @SwingCoordinate private val arcSize: Int = 0
-) : DrawCommand {
+  @SwingCoordinate private val rectangle: RoundRectangle2D.Float,
+  @SwingCoordinate private val color: Color
+) : DrawCommandBase() {
 
   private constructor(sp: Array<String>)
-      : this(sp[0].toInt(), stringToRect(sp[1]), stringToColor(sp[2]), sp[3].toInt())
+    : this(sp[0].toInt(), stringToRoundRect2D(sp[1]), stringToColor(sp[2]))
 
-  constructor(s: String) : this(parse(s, 4))
+  constructor(s: String) : this(parse(s, 3))
 
   override fun getLevel(): Int = level
 
-  override fun serialize(): String = buildString(javaClass.simpleName, level, rectToString(rectangle), colorToString(color), arcSize)
+  override fun serialize(): String = buildString(javaClass.simpleName, level, roundRect2DToString(rectangle), colorToString(color))
 
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
-    val g2 = g.create()
-
-    g2.color = color
-    g2.fillRoundRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
-
-    g2.dispose()
+  override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
+    g.color = color
+    g.setRenderingHints(HQ_RENDERING_HINTS)
+    g.fill(rectangle)
   }
 }

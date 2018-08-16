@@ -22,10 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class SnapshotActionGroup extends ActionGroup {
-  private final VirtualDevice myDevice;
-  private final SnapshotOrDeviceComboBoxAction myComboBoxAction;
+  private final Device myDevice;
+  private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
 
-  SnapshotActionGroup(@NotNull VirtualDevice device, @NotNull SnapshotOrDeviceComboBoxAction comboBoxAction) {
+  SnapshotActionGroup(@NotNull VirtualDevice device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
     super(device.getName(), null, device.getIcon());
     setPopup(true);
 
@@ -37,7 +37,7 @@ final class SnapshotActionGroup extends ActionGroup {
   @Override
   public AnAction[] getChildren(@Nullable AnActionEvent event) {
     return myDevice.getSnapshots().stream()
-                   .map(snapshot -> new SelectSnapshotAction(snapshot, myComboBoxAction))
+                   .map(snapshot -> new SelectDeviceAndSnapshotAction(myComboBoxAction, myDevice, snapshot))
                    .toArray(AnAction[]::new);
   }
 

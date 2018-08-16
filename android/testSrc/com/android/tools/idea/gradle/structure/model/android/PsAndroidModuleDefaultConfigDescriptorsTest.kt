@@ -24,6 +24,21 @@ import org.hamcrest.MatcherAssert.assertThat
 
 class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
+  fun testDescriptor() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+    val defaultConfig = appModule.defaultConfig
+
+    assertThat(defaultConfig.descriptor.testEnumerateProperties(),
+               equalTo(PsAndroidModuleDefaultConfigDescriptors.testEnumerateProperties()))
+  }
+
+
   fun testProperties() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
@@ -318,7 +333,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     val defaultConfig = appModule.defaultConfig
     assertThat(defaultConfig, notNullValue())
 
-    val context = PsAndroidModuleDefaultConfigDescriptors.proGuardFiles.bindContext(null, defaultConfig)
+    val context = PsAndroidModuleDefaultConfigDescriptors.proGuardFiles.bindContext(defaultConfig)
     val knownValues = context.getKnownValues().get()
     assertThat(knownValues.literals.map { it.value.getText { toString() } }.toSet(),
                equalTo(setOf("other.pro", "proguard-rules.txt", "\$getDefaultProguardFile('proguard-android.txt')")))

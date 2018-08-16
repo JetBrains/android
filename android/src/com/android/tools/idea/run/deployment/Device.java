@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.google.common.collect.ImmutableCollection;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 abstract class Device {
-  final String myName;
+  private final String myName;
 
   Device(@NotNull String name) {
     myName = name;
@@ -31,6 +32,15 @@ abstract class Device {
 
   @NotNull
   final String getName() {
+    return myName;
+  }
+
+  @NotNull
+  abstract ImmutableCollection<String> getSnapshots();
+
+  @NotNull
+  @Override
+  public String toString() {
     return myName;
   }
 }

@@ -18,7 +18,7 @@ package com.android.tools.idea.configurations;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.*;
@@ -1201,13 +1201,13 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
-   * Returns an {@link AbstractResourceRepository} for the framework resources based on the current
+   * Returns an {@link ResourceRepository} for the framework resources based on the current
    * configuration selection.
    *
    * @return the framework resources or null if not found.
    */
   @Nullable
-  public AbstractResourceRepository getFrameworkResources() {
+  public ResourceRepository getFrameworkResources() {
     IAndroidTarget target = getTarget();
     if (target != null) {
       return myManager.getResolverCache().getFrameworkResources(getFullConfig(), target);

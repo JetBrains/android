@@ -202,7 +202,7 @@ public class ActionBarHandler extends ActionBarCallback {
                   // will first need to properly handle menus.
                   String matchText = method.getText();
                   Matcher matcher = MENU_FIELD_PATTERN.matcher(matchText);
-                  Set<ResourceReference> menus = new TreeSet<>();
+                  Set<ResourceReference> menus = new TreeSet<>(Comparator.comparing(ResourceReference::getName));
                   int index = 0;
                   while (true) {
                     if (matcher.find(index)) {
@@ -261,8 +261,16 @@ public class ActionBarHandler extends ActionBarCallback {
    * If set to null, this searches for the associated menu using tools:context and tools:menu attributes.
    * To set no menu, pass an empty list.
    */
-  public void setMenuIdNames(@Nullable List<String> menus) {
-    myMenuNames = menus;
+  public void setMenuIds(@Nullable List<ResourceReference> menus) {
+    myMenus = menus;
+    if (menus == null) {
+      myMenuNames = null;
+    } else {
+      myMenuNames = new ArrayList<>(menus.size());
+      for (ResourceReference menu : menus) {
+        myMenuNames.add(menu.getName());
+      }
+    }
   }
 
   @Nullable

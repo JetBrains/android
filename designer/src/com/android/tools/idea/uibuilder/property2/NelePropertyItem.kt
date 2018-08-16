@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
@@ -27,10 +28,11 @@ import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.property2.api.ActionButtonSupport
+import com.android.tools.idea.common.property2.api.ActionIconButton
 import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.*
+import com.android.tools.idea.uibuilder.property2.support.ColorSelectionAction
 import com.android.tools.idea.uibuilder.property2.support.OpenResourceManagerAction
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.utils.HashCodes
@@ -39,13 +41,17 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.text.nullize
+import com.intellij.util.ui.ColorIcon
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
+import java.awt.Color
 import javax.swing.Icon
 
 /**
@@ -69,7 +75,7 @@ open class NelePropertyItem(
   val libraryName: String,
   val model: NelePropertiesModel,
   val components: List<NlComponent>
-) : PropertyItem, ActionButtonSupport {
+) : PropertyItem {
 
   override var value: String?
     get() {
@@ -100,6 +106,9 @@ open class NelePropertyItem(
 
   open val rawValue: String?
     get() = getCommonComponentValue()
+
+  private val rawOrDefaultValue: String?
+    get() = rawValue ?: model.provideDefaultValue(this)
 
   override val resolvedValue: String?
     get() = resolveValue(rawValue)
@@ -151,21 +160,7 @@ open class NelePropertyItem(
 
   private fun resolveValueUsingResolver(value: String?): String? {
     if (value == null || !isReferenceValue(value)) return value
-    val resolver = resolver ?: return value
-    // TODO: Should an error be raised if the value cannot be parsed and resolved...
-    val url = ResourceUrl.parse(value) ?: return value
-    val defaultNamespace = ResourceRepositoryManager.getOrCreateInstance(model.facet).namespace
-    val resRef = url.resolve(defaultNamespace, namespaceResolver) ?: return value
-    val resValue = resolver.getResolvedResource(resRef) ?: return resolveFrameworkValueUsingResolver(value)
-    return if (resValue.resourceType == ResourceType.FONT) resValue.name else resValue.value ?: value
-  }
-
-  // TODO: Namespaces. Remove this when the framework & layoutlib is properly using prefixes for framework references
-  private fun resolveFrameworkValueUsingResolver(value: String): String {
-    val resolver = resolver ?: return value
-    val url = ResourceUrl.parse(value) ?: return value
-    val resRef = url.resolve(ResourceNamespace.ANDROID, namespaceResolver) ?: return value
-    val resValue = resolver.getResolvedResource(resRef) ?: return value
+    val resValue = asResourceValue(value) ?: asFrameworkResourceValue(value) ?: return null
     return if (resValue.resourceType == ResourceType.FONT) resValue.name else resValue.value ?: value
   }
 
@@ -186,7 +181,24 @@ open class NelePropertyItem(
   protected open val firstComponent: NlComponent?
     get() = components.firstOrNull()
 
-  private val firstTag: XmlTag?
+  private fun asResourceValue(value: String): ResourceValue? {
+    val url = ResourceUrl.parse(value) ?: return null
+    val defaultNamespace = ResourceRepositoryManager.getOrCreateInstance(model.facet).namespace
+    val resRef = url.resolve(defaultNamespace, namespaceResolver) ?: return null
+    return resolver?.getResolvedResource(resRef)
+  }
+
+  // TODO: Namespaces. Remove this when the framework & layoutlib is properly using prefixes for framework references
+  private fun asFrameworkResourceValue(value: String): ResourceValue? {
+    val url = ResourceUrl.parse(value) ?: return null
+    val resRef = url.resolve(ResourceNamespace.ANDROID, namespaceResolver) ?: return null
+    return resolver?.getResolvedResource(resRef)
+  }
+
+  private val project: Project
+    get() = model.facet.module.project
+
+  protected val firstTag: XmlTag?
     get() = firstComponent?.tag
 
   private val nlModel: NlModel?
@@ -214,7 +226,7 @@ open class NelePropertyItem(
 
   private fun setCommonComponentValue(newValue: String?) {
     assert(ApplicationManager.getApplication().isDispatchThread)
-    if (model.facet.module.project.isDisposed || components.isEmpty()) {
+    if (project.isDisposed || components.isEmpty()) {
       return
     }
     val componentName = if (components.size == 1) components[0].tagName else "Multiple"
@@ -259,7 +271,7 @@ open class NelePropertyItem(
     return prefix + ":"
   }
 
-  private fun getCompletionValues(): List<String> {
+  protected open fun getCompletionValues(): List<String> {
     val values = mutableListOf<String>()
     if (definition != null && definition.values.isNotEmpty()) {
       values.addAll(definition.values)
@@ -273,13 +285,13 @@ open class NelePropertyItem(
     val toName = { item: ResourceItem -> item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString() }
     if (types.isNotEmpty()) {
       for (type in types) {
-        localRepository.getResourceItems(defaultNamespace, type).filter { it.libraryName == null }.mapTo(values, toName)
+        localRepository.getResources(defaultNamespace, type).values().filter { it.libraryName == null }.mapTo(values, toName)
       }
       for (type in types) {
-        localRepository.getPublicResourcesOfType(type).filter { it.libraryName != null }.mapTo(values, toName)
+        localRepository.getPublicResources(ResourceNamespace.TODO(), type).filter { it.libraryName != null }.mapTo(values, toName)
       }
       for (type in types) {
-        frameworkRepository?.getPublicResourcesOfType(type)?.mapTo(values, toName)
+        frameworkRepository?.getPublicResources(ResourceNamespace.ANDROID, type)?.mapTo(values, toName)
       }
     }
     return values
@@ -290,27 +302,80 @@ open class NelePropertyItem(
     return EDITOR_NO_ERROR
   }
 
-  // region Implementation of ActionButtonSupport
+  override val browseButton = createBrowseButton()
 
-  override val showActionButton: Boolean
-    get() = type.resourceTypes.isNotEmpty() && name != ATTR_ID
+  override val colorButton = createColorButton()
 
-  override val actionButtonFocusable: Boolean
-    get() = true
+  // region Implementation of browseButton
 
-  override fun getActionIcon(focused: Boolean): Icon {
-    val reference = isReferenceValue(rawValue)
-    return when {
-      reference && !focused -> StudioIcons.Common.PROPERTY_BOUND
-      reference && focused -> StudioIcons.Common.PROPERTY_BOUND_FOCUS
-      !reference && !focused -> StudioIcons.Common.PROPERTY_UNBOUND
-      else -> StudioIcons.Common.PROPERTY_UNBOUND_FOCUS
+  private fun createBrowseButton(): ActionIconButton? {
+    if (name == ATTR_ID || type.resourceTypes.isEmpty()) {
+      return null
     }
+    return BrowseActionIconButton()
   }
 
-  override fun getAction(): AnAction? {
-    return OpenResourceManagerAction(this)
+  private inner class BrowseActionIconButton: ActionIconButton {
+    override val actionButtonFocusable
+      get() = true
+
+    override fun getActionIcon(focused: Boolean): Icon {
+      val reference = isReferenceValue(rawValue)
+      return when {
+        reference && !focused -> StudioIcons.Common.PROPERTY_BOUND
+        reference && focused -> StudioIcons.Common.PROPERTY_BOUND_FOCUS
+        !reference && !focused -> StudioIcons.Common.PROPERTY_UNBOUND
+        else -> StudioIcons.Common.PROPERTY_UNBOUND_FOCUS
+      }
+    }
+
+    override val action: AnAction?
+      get() = OpenResourceManagerAction(this@NelePropertyItem)
   }
+
+  // endregion
+
+  // region Implementation of colorButton
+
+  private fun createColorButton(): ActionIconButton? {
+    if (!type.resourceTypes.contains(ResourceType.COLOR)) {
+      return null
+    }
+    return ColorActionIconButton()
+  }
+
+  private inner class ColorActionIconButton: ActionIconButton {
+    override val actionButtonFocusable
+      get() = true
+
+    override fun getActionIcon(focused: Boolean): Icon {
+      return resolveAsIcon(rawOrDefaultValue) ?: return StudioIcons.LayoutEditor.Extras.PIPETTE
+    }
+
+    override val action: AnAction?
+      get() {
+        val value = rawOrDefaultValue
+        val color = resolveAsColor(value)
+        return ColorSelectionAction(this@NelePropertyItem, color)
+      }
+
+      private fun resolveAsColor(value: String?): Color? {
+        if (value == null || !isReferenceValue(value)) {
+          return parseColor(value)
+        }
+        val resValue = asResourceValue(value) ?: return null
+        return resolver?.resolveColor(resValue, project)
+      }
+
+      private fun resolveAsIcon(value: String?): Icon? {
+        if (value == null || !isReferenceValue(value)) {
+          val color = parseColor(value) ?: return null
+          return JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false))
+        }
+        val resValue = asResourceValue(value) ?: return null
+        return resolver?.resolveAsIcon(resValue, project)
+      }
+    }
 
   // endregion
 }

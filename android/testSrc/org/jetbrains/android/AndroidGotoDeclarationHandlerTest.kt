@@ -322,8 +322,8 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
 
     // Sanity check.
     val appResources = ResourceRepositoryManager.getAppResources(myFacet)
-    assertSize(1, appResources.getResourceItems(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "LibStyle"))
-    assertSize(1, appResources.getResourceItems(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "libAttr"))
+    assertSize(1, appResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "LibStyle"))
+    assertSize(1, appResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "libAttr"))
 
     if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
       myFixture.addFileToProject(

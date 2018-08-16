@@ -28,6 +28,7 @@ import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable
+import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -94,5 +95,24 @@ class DesignAssetImporterTest {
 
     Truth.assertThat(items[i].name).isEqualTo("resource")
     Truth.assertThat(items[i].resourceValue?.value).endsWith("drawable-xhdpi/resource.png")
+  }
+
+
+  @Test
+  fun importLightVirtualFileInProject() {
+    val lightVirtualFile = LightVirtualFile("vector.xml")
+    val asset = DesignAsset(lightVirtualFile, listOf(), ResourceType.DRAWABLE, "resource")
+
+    val designAssetSet = DesignAssetSet("resource", listOf(asset))
+    val facet = AndroidFacet.getInstance(rule.module)!!
+
+    val designAssetImporter = DesignAssetImporter()
+    designAssetImporter.importDesignAssets(listOf(designAssetSet), facet)
+    val moduleResources = ResourceRepositoryManager.getOrCreateInstance(facet).getModuleResources(true)!!
+    val item = moduleResources.allResourceItems.first()
+
+    Truth.assertThat(item.name).isEqualTo("resource")
+    Truth.assertThat(item.resourceValue?.value).endsWith("drawable/resource.xml")
+
   }
 }

@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
@@ -86,7 +87,7 @@ public class AvailableLibraryUpdateStorage implements PersistentStateComponent<A
       update.groupId = artifact.getGroupId();
       update.name = artifact.getName();
       update.version = artifact.getVersions().get(0).toString();
-      update.repository = artifact.getRepositoryName();
+      update.repository = String.join(",", artifact.getRepositoryNames());
       updates.add(update);
       index(update);
     }

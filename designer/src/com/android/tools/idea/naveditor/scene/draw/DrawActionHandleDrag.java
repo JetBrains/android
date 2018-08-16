@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DrawCommandBase;
 import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +31,7 @@ import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION
  * where the action handle usually is as well as a line from the center
  * of the circle to the current mouse position.
  */
-public class DrawActionHandleDrag extends NavBaseDrawCommand {
+public class DrawActionHandleDrag extends DrawCommandBase {
   public static final Stroke STROKE = new BasicStroke(3.0f);
   @SwingCoordinate private final int myX;
   @SwingCoordinate private final int myY;

@@ -16,35 +16,30 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.structure.model.ChangeDispatcher
+import com.android.tools.idea.gradle.structure.model.PsKeyedModelCollection
 import com.android.tools.idea.gradle.structure.model.PsModel
-import com.android.tools.idea.gradle.structure.model.PsModelCollection
 import com.intellij.openapi.Disposable
 
-abstract class PsCollectionBase<TModel : PsModel, TKey, TParent: PsModel>(val parent: TParent) : PsModelCollection<TModel> {
+abstract class PsCollectionBase<TModel : PsModel, TKey, TParent : PsModel>
+protected constructor(val parent: TParent) :
+  PsKeyedModelCollection<TKey, TModel> {
   private val changedDispatcher = ChangeDispatcher()
 
   protected abstract fun getKeys(from: TParent): Set<TKey>
   protected abstract fun create(key: TKey): TModel
   protected abstract fun update(key: TKey, model: TModel)
 
-  var entries: Map<TKey, TModel> ; protected set
-
-  init {
-    @Suppress("LeakingThis")
-    entries = getKeys(parent)
-      .map { key -> key to create(key) }
-      .toMap()
-    entries.forEach { update(it.key, it.value) }
-  }
+  override var entries: Map<TKey, TModel> = mapOf(); protected set
 
   override fun forEach(consumer: (TModel) -> Unit) = entries.values.forEach(consumer)
 
   override val items: Collection<TModel> get() = entries.values
 
-  fun findElement(key: TKey): TModel? = entries[key]
+  override fun findElement(key: TKey): TModel? = entries[key]
 
   fun refresh() {
-    entries = getKeys(parent).map { key -> key to (entries[key] ?: create(key)).also { update(key, it) } }.toMap()
+    entries = getKeys(parent).map { key -> key to (entries[key] ?: create(key)) }.toMap()
+    entries.forEach { key, value -> update(key, value) }
     notifyChanged()
   }
 
@@ -53,7 +48,7 @@ abstract class PsCollectionBase<TModel : PsModel, TKey, TParent: PsModel>(val pa
   protected fun notifyChanged() = changedDispatcher.changed()
 }
 
-abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel>(parent: TParent)
+abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel> protected constructor(parent: TParent)
   : PsCollectionBase<TModel, TKey, TParent>(parent) {
 
   protected abstract fun instantiateNew(key: TKey)

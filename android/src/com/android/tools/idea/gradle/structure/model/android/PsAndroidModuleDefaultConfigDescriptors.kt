@@ -88,7 +88,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     setter = {},
     parser = ::parseReferenceOnly,
     formatter = ::formatUnit,
-    knownValuesGetter = { _, model -> signingConfigs(model.module) }
+    knownValuesGetter = { model -> signingConfigs(model.module) }
   )
 
   val targetSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
@@ -176,7 +176,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     getter = { asFile() },
     setter = { setValue(it.toString()) },
     parser = ::parseFile,
-    knownValuesGetter = { _, model -> proGuardFileValues(model.module) }
+    knownValuesGetter = { model -> proGuardFileValues(model.module) }
   )
 
   val proGuardFiles: ListProperty<PsAndroidModuleDefaultConfig, File> = listProperty(
@@ -186,7 +186,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     getter = { asFile() },
     setter = { setValue(it.toString()) },
     parser = ::parseFile,
-    knownValuesGetter = { _, model -> proGuardFileValues(model.module) }
+    knownValuesGetter = { model -> proGuardFileValues(model.module) }
   )
 
   val resConfigs: ListProperty<PsAndroidModuleDefaultConfig, String> = listProperty(
@@ -215,4 +215,9 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     setter = { setValue(it) },
     parser = ::parseString
   )
+
+  override val properties: Collection<ModelProperty<PsAndroidModuleDefaultConfig, *, *, *>> =
+    listOf(applicationId, applicationIdSuffix, maxSdkVersion, minSdkVersion, multiDexEnabled, signingConfig, targetSdkVersion,
+           testApplicationId, testFunctionalTest, testHandleProfiling, testInstrumentationRunner, versionCode, versionName,
+           versionNameSuffix, consumerProGuardFiles, proGuardFiles, resConfigs, manifestPlaceholders, testInstrumentationRunnerArguments)
 }

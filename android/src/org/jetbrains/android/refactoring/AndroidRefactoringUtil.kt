@@ -153,14 +153,10 @@ fun offerToCreateBackupAndRun(project: Project, title: String, runRefactoring: (
 fun syncBeforeFinishingRefactoring(project: Project) {
   assert(ApplicationManager.getApplication().isDispatchThread)
 
-  DumbService.getInstance(project).queueTask(object : DumbModeTask() {
-    override fun performInDumbMode(indicator: ProgressIndicator) {
-      GradleSyncInvoker.getInstance().requestProjectSync(
-        project,
-        GradleSyncInvoker.Request.projectModified().apply {
-          runInBackground = false // The refactoring is still running, sync needs to happen in the foreground.
-        }
-      )
+  GradleSyncInvoker.getInstance().requestProjectSync(
+    project,
+    GradleSyncInvoker.Request.projectModified().apply {
+      runInBackground = false // The refactoring is still running, sync needs to happen in the foreground.
     }
-  })
+  )
 }

@@ -96,7 +96,7 @@ public class LocalMavenRepository extends ArtifactRepository {
       Logger.getInstance(LocalMavenRepository.class).warn(msg, e);
     }
 
-    return new SearchResult(myName, foundArtifacts, foundArtifacts.size());
+    return new SearchResult(foundArtifacts);
   }
 
   @Nullable

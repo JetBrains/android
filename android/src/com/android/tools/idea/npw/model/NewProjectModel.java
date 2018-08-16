@@ -56,6 +56,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ui.UIUtil;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidUtils;
@@ -68,6 +69,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
@@ -94,6 +96,7 @@ public class NewProjectModel extends WizardModel {
   private final ProjectSyncInvoker myProjectSyncInvoker;
   private final MultiTemplateRenderer myMultiTemplateRenderer;
   private final BoolProperty myEnableKotlinSupport = new BoolValueProperty();
+  private final BoolProperty myUseOfflineRepo = new BoolValueProperty();
 
   private  NewProjectExtraInfo myNewProjectExtraInfo;
 
@@ -163,6 +166,11 @@ public class NewProjectModel extends WizardModel {
 
   public BoolProperty enableKotlinSupport() {
     return myEnableKotlinSupport;
+  }
+
+  @NotNull
+  public BoolProperty useOfflineRepo() {
+    return myUseOfflineRepo;
   }
 
   public OptionalProperty<Project> project() {
@@ -351,6 +359,15 @@ public class NewProjectModel extends WizardModel {
       myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
       myTemplateValues.put(ATTR_KOTLIN_SUPPORT, myEnableKotlinSupport.get());
 
+      if (StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get()) {
+        String offlineReposString = getOfflineReposString();
+
+        myTemplateValues.put(ATTR_OFFLINE_REPO_PATH, offlineReposString);
+        if (myUseOfflineRepo.get()) {
+          myTemplateValues.put(ATTR_USE_OFFLINE_REPO, true);
+        }
+      }
+
       boolean shouldUseNewExtraProjectInfo = !dryRun & StudioFlags.SHIPPED_SYNC_ENABLED.get();
 
       NewProjectExtraInfoBuilder newProjectExtraInfoBuilder = null;
@@ -464,5 +481,11 @@ public class NewProjectModel extends WizardModel {
         getLogger().error(e);
       }
     }
+  }
+
+  private static String getOfflineReposString() {
+    return EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths().stream()
+                                    .map(f -> FilenameUtils.normalize(f.toString()))
+                                    .collect(Collectors.joining(","));
   }
 }

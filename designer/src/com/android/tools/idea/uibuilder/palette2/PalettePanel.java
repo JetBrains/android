@@ -209,7 +209,11 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       }
 
       private void mouseClick(@NotNull MouseEvent event) {
-        if (event.getX() < myItemList.getWidth() - DOWNLOAD_WIDTH || event.getX() >= myItemList.getWidth()) {
+        // b/111124139 On Windows the scrollbar width is included in myItemList.getWidth().
+        // Use getCellBounds() instead if possible.
+        Rectangle rect = myItemList.getCellBounds(0, 0);
+        int width = rect != null ? rect.width : myItemList.getWidth();
+        if (event.getX() < width - JBUI.scale(DOWNLOAD_WIDTH) || event.getX() >= myItemList.getWidth()) {
           // Ignore mouse clicks that are outside the download button
           return;
         }

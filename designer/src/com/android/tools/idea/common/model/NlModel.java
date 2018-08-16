@@ -1030,7 +1030,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   public Set<String> getIds() {
     LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(getFacet());
-    Set<String> ids = new HashSet<>(resources.getItemsOfType(ResourceType.ID));
+    Set<String> ids = new HashSet<>(resources.getResources(ResourceNamespace.TODO(), ResourceType.ID).keySet());
     Set<String> pendingIds = getPendingIds();
     if (!pendingIds.isEmpty()) {
       Set<String> all = new HashSet<>(pendingIds.size() + ids.size());

@@ -84,8 +84,8 @@ android {
             versionName "2.0"
             versionNameSuffix "vnsFoo"
             testInstrumentationRunnerArguments = ["a": "AAA", "b": "BBB", c: 'CCC']
-            testHandleProfiling true
-            testFunctionalTest true
+            testHandleProfiling varBool
+            testFunctionalTest rootProject.ext.rootBool
         }
         bar {
             dimension "bar"

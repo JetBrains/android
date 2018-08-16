@@ -34,7 +34,14 @@ import com.intellij.ui.SpeedSearchComparator
  *  from the property value.
  */
 class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
-  BasePropertyEditorModel(flagsProperty) {
+  TextFieldPropertyEditorModel(flagsProperty, false) {
+
+  /**
+   * Holds current the value of the property.
+   *
+   * This value is used to determine when the initial setting are up to date in [initDialogState].
+   */
+  private var initialValue: String? = null
 
   /** Holds the names of the flags that are currently set in the value of the property */
   private val initialSelectedItems = mutableSetOf<String>()
@@ -53,20 +60,19 @@ class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
 
   private val filterComparator = SpeedSearchComparator()
 
-  /** The text representing the current value of the property or "Select Flags" if no flag is selected */
-  val buttonText: String
-    get() {
-      val currentValue = value
-      return if (currentValue.isEmpty()) "Select Flags" else currentValue
-    }
-
   /** Returns the names of the flags currently set in the property in order */
   val initialItemsAboveSeparator: List<String>
-    get() = flagsProperty.children.map { it.name }.filter { initialSelectedItems.contains(it) }
+    get() {
+      initDialogState()
+      return flagsProperty.children.map { it.name }.filter { initialSelectedItems.contains(it) }
+    }
 
   /** Returns the names of the flags currently unset in the property in order */
   val initialItemsBelowSeparator: List<String>
-    get() = flagsProperty.children.map { it.name }.filterNot { initialSelectedItems.contains(it) }
+    get() {
+      initDialogState()
+      return flagsProperty.children.map { it.name }.filterNot { initialSelectedItems.contains(it) }
+    }
 
   /** Returns true if there are visible flags (after filtering) that are both set and unset */
   val flagDividerVisible: Boolean
@@ -113,9 +119,40 @@ class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
     computeDialogState()
   }
 
-  /** Call this method before building the popup panel, to initialize data structures */
-  fun buttonPressed() {
-    initDialogState()
+  /**
+   * Initialize variables for a flags dialog.
+   *
+   * Computes:
+   * <ul>
+   *   <li> maskAll   : All the flags bit values as one mask </li>
+   *   <li> zeroValue : Which flag has no bits set </li>
+   *   <li> initialSelectedItems : The names of the flags currently set as the value of the property </li>
+   *   <li> selectedItems        : Reset to the same as initialSelectedItems </li>
+   *   <li> maskValue            : The bit values of the flags currently set </li>
+   * </ul>
+   */
+  private fun initDialogState() {
+    val current = property.resolvedValue.orEmpty()
+    if (initialValue == current && selectedItems == initialSelectedItems) {
+      // Up to date, nothing to do.
+      return
+    }
+    initialValue = current
+    maskAll = 0
+    zeroValue = null
+    initialSelectedItems.clear()
+    for (flag in flagsProperty.children) {
+      maskAll = maskAll or flag.maskValue
+      if (flag.actualValue) {
+        initialSelectedItems.add(flag.name)
+      }
+      if (flag.maskValue == 0) {
+        zeroValue = flag.name
+      }
+    }
+    selectedItems.clear()
+    selectedItems.addAll(initialSelectedItems)
+    computeDialogState()
   }
 
   /** Apply the current selected flags as a new value of the property */
@@ -159,28 +196,6 @@ class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
 
   private fun isMatch(value: String): Boolean {
     return filter.isEmpty() || filterComparator.matchingFragments(filter, value) != null
-  }
-
-  /**
-   * This method should be called before creating the popup panel.
-   * All the data needed for controlling the flag editing is computed.
-   */
-  private fun initDialogState() {
-    maskAll = 0
-    zeroValue = null
-    initialSelectedItems.clear()
-    for (flag in flagsProperty.children) {
-      maskAll = maskAll or flag.maskValue
-      if (flag.actualValue) {
-        initialSelectedItems.add(flag.name)
-      }
-      if (flag.maskValue == 0) {
-        zeroValue = flag.name
-      }
-    }
-    selectedItems.clear()
-    selectedItems.addAll(initialSelectedItems)
-    computeDialogState()
   }
 
   /**

@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.intellij.openapi.Disposable
 
 /**
  * An interface providing access to variables available in the specific scope.
  */
-interface PsVariablesScope {
+interface PsVariablesScope : PsKeyedModelCollection<String, PsVariable> {
   /**
    * The name of the variables scope.
    */
@@ -41,10 +41,6 @@ interface PsVariablesScope {
   fun <ValueT : Any> getAvailableVariablesFor(property: ModelPropertyContext<ValueT>): List<Annotated<ParsedValue.Set.Parsed<ValueT>>>
 
   /**
-   * Returns a list of the variables which are currently defined in the scope.
-   */
-  fun getModuleVariables(): List<PsVariable>
-  /**
    * Returns the specific variable scopes (including this one) from which this the list of variables available in this scope is composed.
    */
   fun getVariableScopes(): List<PsVariablesScope>
@@ -54,32 +50,33 @@ interface PsVariablesScope {
    */
   fun getNewVariableName(preferredName: String) : String
 
+  fun getVariable(name: String): PsVariable?
+
   fun getOrCreateVariable(name: String): PsVariable
+
+  fun addNewVariable(name: String): PsVariable
+
+  fun removeVariable(name: String)
 
   val model: PsModel
 
-  // TODO(solodkyy): Expose list/map manipulation methods instead.
-  val container: ExtModel
-
   object NONE : PsVariablesScope {
     override val name: String = ""
-
     override val title: String = ""
-
     override val model: PsModel get() = throw UnsupportedOperationException()
-
-    override val container: ExtModel get() = throw UnsupportedOperationException()
-
+    override val items: Collection<PsVariable> = listOf()
+    override val entries: Map<String, PsVariable> = mapOf()
+    override fun findElement(key: String): PsVariable? = null
     override fun <ValueT : Any> getAvailableVariablesFor(
       property: ModelPropertyContext<ValueT>): List<Annotated<ParsedValue.Set.Parsed<ValueT>>> = listOf()
 
-    override fun getModuleVariables(): List<PsVariable> = listOf()
-
     override fun getVariableScopes(): List<PsVariablesScope> = listOf()
-
+    override fun getVariable(name: String): PsVariable? = null
     override fun getNewVariableName(preferredName: String): String = throw UnsupportedOperationException()
-
     override fun getOrCreateVariable(name: String): PsVariable = throw UnsupportedOperationException()
+    override fun addNewVariable(name: String): PsVariable = throw UnsupportedOperationException()
+    override fun removeVariable(name: String) = throw UnsupportedOperationException()
+    override fun onChange(disposable: Disposable, listener: () -> Unit) = Unit
   }
 }
 

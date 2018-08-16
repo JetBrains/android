@@ -22,10 +22,8 @@ import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
-import java.io.FileNotFoundException
 
 /**
  * Manage importing a batch of resources into the project.
@@ -63,8 +61,16 @@ class DesignAssetImporter {
     val directory = VfsUtil.createDirectoryIfMissing(folder, folderName)
     designAssets.forEach {
       val resourceName = """${it.name}.${it.file.extension}"""
-      directory.findChild(resourceName)?.delete(this)
-      it.file.copy(this, directory, resourceName)
+      if (it.file.fileSystem.protocol != LocalFileSystem.getInstance().protocol) {
+        directory.findChild(resourceName)?.delete(this)
+        val projectFile = directory.createChildData(this, resourceName)
+        val contentsToByteArray = it.file.contentsToByteArray()
+        projectFile.setBinaryContent(contentsToByteArray)
+      }
+      else {
+        directory.findChild(resourceName)?.delete(this)
+        it.file.copy(this, directory, resourceName)
+      }
     }
   }
 

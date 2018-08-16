@@ -19,10 +19,11 @@ import com.android.SdkConstants
 import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.common.property2.api.PropertiesModel
 import com.android.tools.idea.common.property2.api.PropertiesModelListener
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.mock
@@ -118,6 +119,16 @@ class NelePropertiesModelTest: LayoutTestCase() {
     assertThat(model.provideDefaultValue(property)).isEqualTo("?attr/textAppearanceSmall")
   }
 
+  fun testListenersAreConcurrentModificationSafe() {
+    // Make sure that ConcurrentModificationException is NOT generated from the code below:
+    val model = createModel()
+    val listener = RecursiveValueChangedListener()
+    model.addListener(listener)
+    model.firePropertiesGenerated()
+    model.firePropertyValueChange()
+    assertThat(listener.called).isEqualTo(2)
+  }
+
   private fun createNlModel(tag: String): SyncNlModel {
     val builder = model(
         "linear.xml",
@@ -153,5 +164,19 @@ class NelePropertiesModelTest: LayoutTestCase() {
   private fun waitUntilEventsProcessed(model: NelePropertiesModel) {
     model.lastSelectionUpdate?.get()
     UIUtil.dispatchAllInvocationEvents()
+  }
+
+  private class RecursiveValueChangedListener : PropertiesModelListener<NelePropertyItem> {
+    var called = 0
+
+    override fun propertiesGenerated(model: PropertiesModel<NelePropertyItem>) {
+      model.addListener(RecursiveValueChangedListener())
+      called++
+    }
+
+    override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
+      model.addListener(RecursiveValueChangedListener())
+      called++
+    }
   }
 }

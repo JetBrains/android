@@ -54,7 +54,6 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private static final String CARD_INFO = "Info";
 
   private final ConnectionsView myConnectionsView;
-  private final ThreadsView myThreadsView;
   private final ConnectionDetailsView myConnectionDetails;
   private final JPanel myConnectionsPanel;
 
@@ -72,7 +71,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     myConnectionDetails = new ConnectionDetailsView(this);
     myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));
     myConnectionsView = new ConnectionsView(this);
-    myThreadsView = new ThreadsView(this);
+    ThreadsView threadsView = new ThreadsView(this);
 
     JBSplitter leftSplitter = new JBSplitter(true);
     leftSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
@@ -80,35 +79,29 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     myConnectionsPanel = new JPanel(new TabularLayout("*,Fit-", "Fit-,*"));
     JPanel connectionsPanel = new JPanel(new CardLayout());
-    if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isNetworkThreadViewEnabled()) {
-      JTabbedPane connectionsTab = new CommonTabbedPane();
-      JScrollPane connectionScrollPane = new JBScrollPane(myConnectionsView.getComponent());
-      connectionScrollPane.setBorder(DEFAULT_TOP_BORDER);
-      JScrollPane threadsViewScrollPane = new JBScrollPane(myThreadsView.getComponent());
-      threadsViewScrollPane.setBorder(DEFAULT_TOP_BORDER);
-      connectionsTab.addTab("Connection View", connectionScrollPane);
-      connectionsTab.addTab("Thread View", threadsViewScrollPane);
-      // The toolbar overlays the tab panel so we have to make sure we repaint the parent panel when switching tabs.
-      connectionsTab.addChangeListener((evt) -> {
-        myConnectionsPanel.repaint();
-        int selectedIndex = connectionsTab.getSelectedIndex();
-        if (selectedIndex == 0) {
-          getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkConnectionsView();
-        }
-        else if (selectedIndex == 1) {
-          getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkThreadsView();
-        }
-        else {
-          throw new IllegalStateException("Missing tracking for tab " + connectionsTab.getTitleAt(selectedIndex));
-        }
-      });
-      connectionsPanel.add(connectionsTab, CARD_CONNECTIONS);
-    }
-    else {
-      JScrollPane connectionScrollPane = new JBScrollPane(myConnectionsView.getComponent());
-      connectionScrollPane.setBorder(DEFAULT_TOP_BORDER);
-      connectionsPanel.add(connectionScrollPane, CARD_CONNECTIONS);
-    }
+
+    JTabbedPane connectionsTab = new CommonTabbedPane();
+    JScrollPane connectionScrollPane = new JBScrollPane(myConnectionsView.getComponent());
+    connectionScrollPane.setBorder(DEFAULT_TOP_BORDER);
+    JScrollPane threadsViewScrollPane = new JBScrollPane(threadsView.getComponent());
+    threadsViewScrollPane.setBorder(DEFAULT_TOP_BORDER);
+    connectionsTab.addTab("Connection View", connectionScrollPane);
+    connectionsTab.addTab("Thread View", threadsViewScrollPane);
+    // The toolbar overlays the tab panel so we have to make sure we repaint the parent panel when switching tabs.
+    connectionsTab.addChangeListener((evt) -> {
+      myConnectionsPanel.repaint();
+      int selectedIndex = connectionsTab.getSelectedIndex();
+      if (selectedIndex == 0) {
+        getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkConnectionsView();
+      }
+      else if (selectedIndex == 1) {
+        getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkThreadsView();
+      }
+      else {
+        throw new IllegalStateException("Missing tracking for tab " + connectionsTab.getTitleAt(selectedIndex));
+      }
+    });
+    connectionsPanel.add(connectionsTab, CARD_CONNECTIONS);
 
     JPanel infoPanel = new JPanel(new BorderLayout());
     InstructionsPanel infoMessage = new InstructionsPanel.Builder(

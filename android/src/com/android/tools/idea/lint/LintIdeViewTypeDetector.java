@@ -17,8 +17,8 @@ package com.android.tools.idea.lint;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.lint.checks.ViewTypeDetector;
 import com.android.tools.lint.detector.api.Context;
@@ -36,7 +36,7 @@ public class LintIdeViewTypeDetector extends ViewTypeDetector {
   @Nullable
   @Override
   protected Collection<String> getViewTags(@NonNull Context context, @NonNull ResourceItem item) {
-    AbstractResourceRepository projectResources = context.getClient().getResourceRepository(context.getMainProject(), true, false);
+    ResourceRepository projectResources = context.getClient().getResourceRepository(context.getMainProject(), true, false);
     assert projectResources instanceof LocalResourceRepository : projectResources;
     LocalResourceRepository repository = (LocalResourceRepository)projectResources;
     String viewTag = repository.getViewTag(item);

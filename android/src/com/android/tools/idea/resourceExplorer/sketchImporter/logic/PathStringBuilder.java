@@ -17,6 +17,8 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.text.DecimalFormat;
+
 public class PathStringBuilder {
 
   //TODO Take into consideration max string length: 32,767 characters
@@ -25,6 +27,12 @@ public class PathStringBuilder {
   private static final char BEZIER_CURVE_COMMAND_ABSOLUTE = 'C';
   private static final char QUADRATIC_CURVE_COMMAND_ABSOLUTE = 'Q';
   private static final char CLOSE_PATH_COMMAND = 'z';
+
+  // Trims the number to 2 decimals. Used for formatting it as a string
+  // To change the number of decimals displayed, add or remove hashes after
+  // the dot.
+  // If integers are needed, remove the dot as well.
+  private static final String COORDINATES_PRECISION = "#.##";
 
   @NotNull
   private StringBuilder stringBuilder;
@@ -73,6 +81,21 @@ public class PathStringBuilder {
   }
 
   private void appendPointCoordinates(double x, double y) {
-    stringBuilder.append(String.valueOf(x)).append(",").append(String.valueOf(y)).append(" ");
+    stringBuilder.append(trimDoubles(x)).append(",").append(trimDoubles(y)).append(" ");
+  }
+
+  /**
+   *
+   * Method that trims the doubles to a specified precision. DecimalFormat is used
+   * instead of the String.format(..) because DecimalFormat can detect triailing zeros
+   * in decimals and remove them, while String.format simply displays the zeros as well.
+   *
+   * @param number
+   * @return trimmed number formatted as a String.
+   */
+  @NotNull
+  private static String trimDoubles(double number) {
+    DecimalFormat df = new DecimalFormat(COORDINATES_PRECISION);
+    return df.format(number);
   }
 }

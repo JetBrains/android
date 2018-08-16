@@ -16,7 +16,8 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
-import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
@@ -59,9 +60,7 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.android.SdkConstants.ANDROIDX_APPCOMPAT_LIB_ARTIFACT;
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
-import static com.android.SdkConstants.CLASS_ACTIVITY;
+import static com.android.SdkConstants.*;
 
 class MigrateToAppCompatUtil {
 
@@ -205,7 +204,7 @@ class MigrateToAppCompatUtil {
 
   /**
    * Get {@link XmlFile} instances of type {@link ResourceType} from the given
-   * {@link AbstractResourceRepository} and {@link Project}.
+   * {@link ResourceRepository} and {@link Project}.
    *
    * @param project      The project to use to get the PsiFile.
    * @param repository   The repository to be used for getting the items.
@@ -214,13 +213,13 @@ class MigrateToAppCompatUtil {
    */
   @NonNull
   static Set<XmlFile> getPsiFilesOfType(@NonNull Project project,
-                                        @NonNull AbstractResourceRepository repository,
+                                        @NonNull ResourceRepository repository,
                                         @NonNull ResourceType resourceType) {
 
-    Collection<String> itemsOfType = repository.getItemsOfType(resourceType);
+    Collection<String> itemsOfType = repository.getResources(ResourceNamespace.TODO(), resourceType).keySet();
 
     return itemsOfType.stream()
-      .map(name -> repository.getResourceItem(resourceType, name))
+      .map(name -> repository.getResources(ResourceNamespace.TODO(), resourceType, name))
       .flatMap(Collection::stream)
       .map(item -> LocalResourceRepository.getItemPsiFile(project, item))
       .filter(f -> f instanceof XmlFile)

@@ -26,6 +26,17 @@ class NavArgumentDefaultValuesPropertyTest : NavTestCase() {
 
   override fun setUp() {
     super.setUp()
+    model("included.xml") {
+      navigation("includedRoot", startDestination = "includedStart") {
+        fragment("notStart") {
+          argument("foo")
+        }
+        fragment("includedStart") {
+          argument("bar")
+          argument("baz", type="integer")
+        }
+      }
+    }
     model = model("nav.xml") {
       navigation("root") {
         fragment("f1") {
@@ -42,7 +53,9 @@ class NavArgumentDefaultValuesPropertyTest : NavTestCase() {
         navigation("subnav", startDestination = "f4") {
           fragment("f4") {
             argument("subarg", "string")
+            action("toInclude", destination = "includedRoot")
           }
+          include("included")
         }
       }
     }
@@ -51,7 +64,7 @@ class NavArgumentDefaultValuesPropertyTest : NavTestCase() {
   fun testMultipleArguments() {
     val property = NavArgumentDefaultValuesProperty(listOf(model.find("a1")!!), Mockito.mock(NavPropertiesManager::class.java))
     assertEquals(mapOf("arg1" to null, "arg2" to "actionval2"),
-        property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
+        property.properties.associateBy({ it.argName }, { it.value }))
   }
 
   fun testNoArguments() {
@@ -65,8 +78,8 @@ class NavArgumentDefaultValuesPropertyTest : NavTestCase() {
     val argument = model.find("f1")!!.getChild(0)!!
     fragment.addChild(argument)
     property.refreshList()
-    assertEquals("arg1", property.properties[0].value)
-    assertEquals(null, property.properties[0].defaultValueProperty.value)
+    assertEquals("arg1", property.properties[0].argName)
+    assertEquals(null, property.properties[0].value)
     fragment.removeChild(argument)
     property.refreshList()
     UsefulTestCase.assertEmpty(property.properties)
@@ -74,11 +87,16 @@ class NavArgumentDefaultValuesPropertyTest : NavTestCase() {
 
   fun testActionToSubnav() {
     val property = NavArgumentDefaultValuesProperty(listOf(model.find("a4")!!), Mockito.mock(NavPropertiesManager::class.java))
-    assertEquals(listOf("subarg"), property.properties.map { it.value })
+    assertEquals(listOf("subarg"), property.properties.map { it.argName })
   }
 
   fun testSubnavArgs() {
     val property = NavArgumentDefaultValuesProperty(listOf(model.find("subnav")!!), Mockito.mock(NavPropertiesManager::class.java))
-    assertEquals(listOf("subarg"), property.properties.map { it.value })
+    assertEquals(listOf("subarg"), property.properties.map { it.argName })
+  }
+
+  fun testInclude() {
+    val property = NavArgumentDefaultValuesProperty(listOf(model.find("toInclude")!!), Mockito.mock(NavPropertiesManager::class.java))
+    assertEquals(listOf("bar" to null, "baz" to "integer"), property.properties.map { it.argName to it.type })
   }
 }

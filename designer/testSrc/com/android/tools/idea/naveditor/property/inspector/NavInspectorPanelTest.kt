@@ -85,7 +85,7 @@ class NavInspectorPanelTest : NavTestCase() {
     // Relevant properties will be there, but the specific inspectors can decline to show if different types are selected
     assertFalse(captor.value.containsKey("Actions"))
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
-    assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
+    assertInstanceOf(captor.value["Arguments"], NavArgumentDefaultValuesProperty::class.java)
     assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
   }
 

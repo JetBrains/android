@@ -17,6 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -514,7 +515,7 @@ public final class Parameter {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
       LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(facet);
-      return repository.hasResourceItem(resourceType, name);
+      return repository.hasResources(ResourceNamespace.TODO(), resourceType, name);
     }
     return false;
   }
@@ -536,7 +537,7 @@ public final class Parameter {
         if (virtualResDir != null) {
           ResourceFolderRepository folderRepository = ResourceFolderRegistry.getInstance(facet.getModule().getProject())
                                                                             .get(facet, virtualResDir);
-          List<ResourceItem> resourceItemList = folderRepository.getResourceItem(resourceType, name);
+          List<ResourceItem> resourceItemList = folderRepository.getResources(ResourceNamespace.TODO(), resourceType, name);
           if (resourceItemList != null && !resourceItemList.isEmpty()) {
             return true;
           }

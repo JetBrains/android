@@ -182,12 +182,6 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     return myNamespace;
   }
 
-  @Override
-  @NotNull
-  public Set<ResourceNamespace> getNamespaces() {
-    return Collections.singleton(myNamespace);
-  }
-
   // ---- Implements BuildVariantView.BuildVariantSelectionChangeListener ----
 
   @Override
