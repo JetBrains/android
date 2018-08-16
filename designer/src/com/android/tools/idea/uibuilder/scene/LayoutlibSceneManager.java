@@ -208,7 +208,8 @@ public class LayoutlibSceneManager extends SceneManager {
       NlComponent rootComponent = components.get(0).getRoot();
       boolean previous = getScene().isAnimated();
       scene.setAnimated(false);
-      SceneComponent root = createHierarchy(rootComponent);
+      List<SceneComponent> hierarchy = createHierarchy(rootComponent);
+      SceneComponent root = hierarchy.isEmpty() ? null : hierarchy.get(0);
       updateFromComponent(root, new HashSet<>());
       scene.setRoot(root);
       addTargets(root);

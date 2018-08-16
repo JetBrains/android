@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.TargetProvider;
@@ -25,9 +24,7 @@ import com.android.tools.idea.naveditor.scene.NavSceneHelperKt;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * {@link TargetProvider} for navigation screens.
@@ -47,21 +44,6 @@ public class NavScreenTargetProvider implements TargetProvider {
       return result;
     }
 
-    Map<String, SceneComponent> groupMap = new HashMap<>();
-    for (SceneComponent sibling : parent.getChildren()) {
-      NavSceneHelperKt.flatten(sibling).forEach(
-        component -> groupMap
-          .put(NlComponent.stripId(component.getNlComponent().resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)), sibling));
-    }
-    nlComponent.flatten()
-      .filter(NavComponentHelperKt::isAction)
-      .forEach(nlChild -> {
-        String destinationId = NavComponentHelperKt.getEffectiveDestinationId(nlChild);
-        SceneComponent destination = groupMap.get(destinationId);
-        if (destination != null) {
-          result.add(new ActionTarget(sceneComponent, destination, nlChild));
-        }
-      });
     result.add(new ScreenDragTarget(sceneComponent));
     if (NavComponentHelperKt.getSupportsActions(nlComponent)) {
       result.add(new ActionHandleTarget(sceneComponent));

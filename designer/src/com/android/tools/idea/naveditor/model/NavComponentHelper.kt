@@ -182,7 +182,7 @@ fun NlComponent.getActionType(currentRoot: NlComponent?): ActionType {
 
     val parent = parent ?: throw IllegalStateException()
 
-    val destination = effectiveDestinationId ?: return ActionType.NONE
+    val destination = effectiveDestinationId ?: return ActionType.EXIT
     if (parent.id == destination) {
       return ActionType.SELF
     }
@@ -196,12 +196,7 @@ fun NlComponent.getActionType(currentRoot: NlComponent?): ActionType {
     }
 
     if (currentRoot.containsDestination(destination)) {
-      if (parent.parent == currentRoot) {
-        return ActionType.REGULAR
-      }
-      else {
-        return ActionType.EXIT_DESTINATION
-      }
+      return if (parent.parent == currentRoot) ActionType.REGULAR else ActionType.EXIT_DESTINATION
     }
 
     return ActionType.EXIT
@@ -242,6 +237,11 @@ val NlComponent.effectiveDestination: NlComponent?
     val targetId = effectiveDestinationId ?: return null
     return findVisibleDestination(targetId)
   }
+
+fun NlComponent.getEffectiveSource(currentRoot: NlComponent): NlComponent? {
+  assert(isAction)
+  return parent?.parentSequence()?.find { it.parent == currentRoot }
+}
 
 val NlComponent.startDestination: NlComponent?
   get() = startDestinationId?.let { start -> children.find { it.id == start } }
