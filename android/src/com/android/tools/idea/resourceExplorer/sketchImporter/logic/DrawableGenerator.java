@@ -19,13 +19,13 @@ import com.android.SdkConstants;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.DrawableModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchGradient;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchGradientStop;
-import com.android.tools.layoutlib.annotations.NotNull;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.LightVirtualFile;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -63,6 +63,8 @@ public class DrawableGenerator {
   private static final String ATTRIBUTE_STROKE_COLOR = "android:strokeColor";
   private static final String ATTRIBUTE_STROKE_WIDTH = "android:strokeWidth";
 
+  private static final int INVALID_COLOR_VALUE = 0;
+
   @NotNull private Project project;
   @NotNull private XmlTag root;
   @Nullable private VectorDrawable myVectorDrawable;
@@ -92,16 +94,16 @@ public class DrawableGenerator {
     getApplication().runReadAction(() -> {
       XmlTag pathTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_PATH);
       pathTag.setAttribute(ATTRIBUTE_PATH_DATA, shape.getPathData());
-      if (shape.getStrokeColor() != null) {
-        pathTag.setAttribute(ATTRIBUTE_STROKE_COLOR, shape.getStrokeColor());
+      if (shape.getStrokeColor() != INVALID_COLOR_VALUE) {
+        pathTag.setAttribute(ATTRIBUTE_STROKE_COLOR, colorToHex(shape.getStrokeColor()));
         pathTag.setAttribute(ATTRIBUTE_STROKE_WIDTH, shape.getStrokeWidth());
       }
       if (shape.getGradient() != null) {
         root.setAttribute(ATTRIBUTE_AAPT, VALUE_AAPT);
         pathTag.addSubTag(generateGradientSubTag(shape.getGradient()), false);
       }
-      else {
-        pathTag.setAttribute(ATTRIBUTE_FILL_COLOR, shape.getFillColor());
+      else if (shape.getFillColor() != INVALID_COLOR_VALUE) {
+        pathTag.setAttribute(ATTRIBUTE_FILL_COLOR, colorToHex(shape.getFillColor()));
       }
       root.addSubTag(pathTag, false);
     });
@@ -135,7 +137,7 @@ public class DrawableGenerator {
 
     for (SketchGradientStop item : gradient.getStops()) {
       XmlTag itemTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_ITEM);
-      itemTag.setAttribute(ATTRIBUTE_GRADIENT_STOP_COLOR, "#" + Integer.toHexString(item.getColor().getRGB()));
+      itemTag.setAttribute(ATTRIBUTE_GRADIENT_STOP_COLOR, colorToHex(item.getColor().getRGB()));
       itemTag.setAttribute(ATTRIBUTE_GRADIENT_STOP_OFFSET, Double.toString(item.getPosition()));
       gradientTag.addSubTag(itemTag, false);
     }
@@ -187,5 +189,10 @@ public class DrawableGenerator {
     String content = getApplication().runReadAction((Computable<String>)() -> root.getText());
     virtualFile.setContent(null, content, false);
     return virtualFile;
+  }
+
+  @NotNull
+  private static String colorToHex(int rgb) {
+    return "#" + String.format("%08x", rgb);
   }
 }

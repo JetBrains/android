@@ -122,9 +122,10 @@ class SketchImporterPresenter(private val view: SketchImporterView,
    * @return a list of [LightVirtualFile] Vector Drawables corresponding to each artboard in [page].
    */
   private fun createIconFiles(page: SketchPage) = page.artboards
-    .associate { it to importOptions.getIconOptions(it.objectId)?.name }
-    .map { (artboard, name) ->
-      DrawableGenerator(facet.module.project, VectorDrawable(artboard.createAllDrawableShapes(), artboard.frame)).generateFile(name)
+    .mapNotNull { artboard ->
+      val iconName = importOptions.getIconOptions(artboard.objectId)?.name ?: return@mapNotNull null
+      val vectorDrawable = VectorDrawable(artboard.createAllDrawableShapes(), artboard.frame)
+      DrawableGenerator(facet.module.project, vectorDrawable).generateFile(iconName)
     }
 
   /**

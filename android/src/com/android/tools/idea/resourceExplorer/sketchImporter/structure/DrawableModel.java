@@ -21,15 +21,15 @@ import org.jetbrains.annotations.Nullable;
 public class DrawableModel {
 
   @NotNull private String pathData;
-  @Nullable private String fillColor;
+  private int fillColor;
   @Nullable private SketchGradient gradient;
-  @Nullable private String strokeColor;
+  private int strokeColor;
   @Nullable private String strokeWidth;
 
   public DrawableModel(@NotNull String pathDataParam,
-                       @Nullable String fillColorParam,
+                       int fillColorParam,
                        @Nullable SketchGradient gradientParam,
-                       @Nullable String strokeColorParam,
+                       int strokeColorParam,
                        @Nullable String strokeWidthParam) {
     pathData = pathDataParam;
     fillColor = fillColorParam;
@@ -43,13 +43,11 @@ public class DrawableModel {
     return pathData;
   }
 
-  @Nullable
-  public String getFillColor() {
+  public int getFillColor() {
     return fillColor;
   }
 
-  @Nullable
-  public String getStrokeColor() {
+  public int getStrokeColor() {
     return strokeColor;
   }
 

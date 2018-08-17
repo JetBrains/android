@@ -16,8 +16,8 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathStringBuilder;
-import com.android.tools.layoutlib.annotations.NotNull;
-import com.android.tools.layoutlib.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.*;
@@ -143,19 +143,19 @@ public abstract class ShapeModel {
   public DrawableModel toDrawableShape() {
     String shapePathData = getPathString();
     String shapeBorderWidth = null;
-    String shapeBorderColor = null;
-    String shapeFillColor = null;
+    int shapeBorderColor = 0;
+    int shapeFillColor = 0;
     SketchGradient shapeGradient = null;
 
     if (shapeBorder != null) {
       shapeBorderWidth = Integer.toString(shapeBorder.getThickness());
-      shapeBorderColor = "#" + Integer.toHexString(shapeBorder.getColor().getRGB());
+      shapeBorderColor = shapeBorder.getColor().getRGB();
     }
 
     if (shapeFill != null && shapeFill.isEnabled()) {
       shapeGradient = shapeFill.getGradient();
       if (shapeGradient == null) {
-        shapeFillColor = "#" + Integer.toHexString(shapeFill.getColor().getRGB());
+        shapeFillColor = shapeFill.getColor().getRGB();
       }
     }
 
