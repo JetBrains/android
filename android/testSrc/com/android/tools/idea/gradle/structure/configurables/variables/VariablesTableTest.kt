@@ -212,7 +212,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(variableNode.variable.value, equalTo("3.0.1".asParsed<Any>()))
     assertThat(variableNode.childCount, equalTo(0))
     assertThat(tableModel.getValueAt(variableNode, 0) as String, equalTo("anotherVariable"))
-    assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("\"3.0.1\""))
+    assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("3.0.1"))
 
     val row = variablesTable.tree.getRowForPath(TreePath(variableNode.path))
     for (column in 0..2) {
@@ -256,7 +256,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(variableNode.variable.value.maybeValue is String, equalTo(true))
     assertThat(variableNode.childCount, equalTo(0))
     assertThat(tableModel.getValueAt(variableNode, 0) as String, equalTo("varRefString"))
-    assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("variable1"))
+    assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("\$variable1"))
     assertThat(tableModel.getValueAt(variableNode, 2) as String, equalTo("\"1.3\""))
   }
 
@@ -438,20 +438,20 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as ModuleNode
     val variableNode = appNode.children().asSequence().find { "anotherVariable" == (it as VariableNode).toString() } as VariableNode
     variablesTable.tree.expandPath(TreePath(variableNode.path))
-    assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("\"3.0.1\""))
+    assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("3.0.1"))
     assertThat(tableModel.isCellEditable(variableNode, 1), equalTo(true))
 
-    tableModel.setValueAt("\"3.0.1\"", variableNode, 1)
+    tableModel.setValueAt("3.0.1", variableNode, 1)
     assertThat(variableNode.variable.parent.isModified, equalTo(false))
 
     tableModel.setValueAt("new value", variableNode, 1)
-    assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("\"new value\""))
+    assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("new value"))
 
     psProject.applyAllChanges()
     val newTableModel = VariablesTable(project, psProject, testRootDisposable).tableModel
     val newAppNode = (newTableModel.root as DefaultMutableTreeNode).appModuleChild as ModuleNode
     val newVariableNode = newAppNode.children().asSequence().find { "anotherVariable" == (it as VariableNode).toString() } as VariableNode
-    assertThat(newVariableNode.getUnresolvedValue(false), equalTo("\"new value\""))
+    assertThat(newVariableNode.getUnresolvedValue(false), equalTo("new value"))
   }
 
   fun testListNodeSetValue() {
@@ -527,12 +527,9 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as ModuleNode
     assertThat(appNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newVariable")))
 
-    variablesTable.tree.selectionPath = TreePath(appNode.path)
+    variablesTable.selectNode(appNode)
     variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
-    val editorComp = variablesTable.editorComponent as JPanel
-    val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
-    textBox.text = "newVariable"
-    variablesTable.editingStopped(null)
+    variablesTable.simulateTextInput("newVariable")
 
     val variableNode = appNode.children().asSequence().find { "newVariable" == (it as VariableNode).toString() } as VariableNode
     variableNode.setValue("new value")
@@ -541,7 +538,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val newTableModel = VariablesTable(project, psProject, testRootDisposable).tableModel
     val newAppNode = (newTableModel.root as DefaultMutableTreeNode).appModuleChild as ModuleNode
     val newVariableNode = newAppNode.children().asSequence().find { "newVariable" == (it as VariableNode).toString() } as VariableNode
-    assertThat(newVariableNode.getUnresolvedValue(false), equalTo("\"new value\""))
+    assertThat(newVariableNode.getUnresolvedValue(false), equalTo("new value"))
   }
 
   fun testAddList() {
@@ -553,12 +550,9 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as ModuleNode
     assertThat(appNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newList")))
 
-    variablesTable.tree.selectionPath = TreePath(appNode.path)
+    variablesTable.selectNode(appNode)
     variablesTable.addVariable(GradlePropertyModel.ValueType.LIST)
-    val editorComp = variablesTable.editorComponent as JPanel
-    val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
-    textBox.text = "newList"
-    variablesTable.editingStopped(null)
+    variablesTable.simulateTextInput("newList")
 
     val variableNode = appNode.children().asSequence().find { "newList" == (it as VariableNode).toString() } as VariableNode
     assertThat(variableNode.childCount, equalTo(1))
@@ -590,12 +584,9 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as ModuleNode
     assertThat(appNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newMap")))
 
-    variablesTable.tree.selectionPath = TreePath(appNode.path)
+    variablesTable.selectNode(appNode)
     variablesTable.addVariable(GradlePropertyModel.ValueType.MAP)
-    val editorComp = variablesTable.editorComponent as JPanel
-    val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
-    textBox.text = "newMap"
-    variablesTable.editingStopped(null)
+    variablesTable.simulateTextInput("newMap")
 
     val variableNode = appNode.children().asSequence().find { "newMap" == (it as VariableNode).toString() } as VariableNode
     assertThat(variableNode.childCount, equalTo(1))
@@ -628,13 +619,13 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as ModuleNode
     assertThat(appNode.childCount, equalTo(9))
 
-    variablesTable.tree.selectionPath = TreePath(appNode.path)
+    variablesTable.selectNode(appNode)
     variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
     assertThat(appNode.childCount, equalTo(10))
     variablesTable.editingStopped(null)
     assertThat(appNode.childCount, equalTo(9))
 
-    variablesTable.tree.selectionPath = TreePath(appNode.path)
+    variablesTable.selectNode(appNode)
     variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
     assertThat(appNode.childCount, equalTo(10))
     variablesTable.editingCanceled(null)
@@ -650,7 +641,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as ModuleNode
     val childCount = appNode.childCount
     val variableNode = appNode.children().asSequence().find { "anotherVariable" == (it as VariableNode).toString() } as VariableNode
-    variablesTable.tree.selectionPath = TreePath(variableNode.path)
+    variablesTable.selectNode(variableNode)
     variablesTable.deleteSelectedVariables()
 
     val variableNames = appNode.children().asSequence().map { it.toString() }.toList()
@@ -683,7 +674,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.getValueAt(firstElementNode, 0) as String, equalTo("0"))
     assertThat(tableModel.getValueAt(firstElementNode, 1) as String, equalTo("\"proguard-rules.txt\""))
 
-    variablesTable.tree.selectionPath = TreePath(firstElementNode.path)
+    variablesTable.selectNode(firstElementNode)
     variablesTable.deleteSelectedVariables()
 
     val listNodeFirstChild = listNode.getChildAt(0) as ListItemNode
@@ -720,7 +711,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.getValueAt(firstElementNode, 0) as String, equalTo("a"))
     assertThat(tableModel.getValueAt(firstElementNode, 1) as String, equalTo("\"\"double\" quotes\""))
 
-    variablesTable.tree.selectionPath = TreePath(firstElementNode.path)
+    variablesTable.selectNode(firstElementNode)
     variablesTable.deleteSelectedVariables()
 
     val mapNodeFirstChild = mapNode.getChildAt(0) as MapItemNode
@@ -751,6 +742,17 @@ private fun PsProject.applyAllChanges() {
       module.applyChanges()
     }
   })
+}
+
+private fun VariablesTable.simulateTextInput(input: String) {
+  val editorComp = editorComponent as JPanel
+  val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
+  textBox.text = input
+  editingStopped(null)
+}
+
+private fun VariablesTable.selectNode(node: VariablesBaseNode) {
+  tree.selectionPath = TreePath(node.path)
 }
 
 private fun PsVariable.isList() = value.maybeLiteralValue is List<*>

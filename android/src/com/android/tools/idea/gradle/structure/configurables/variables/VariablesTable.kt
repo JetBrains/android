@@ -21,10 +21,8 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariable
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
-import com.android.tools.idea.gradle.structure.model.meta.DslText
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
-import com.android.tools.idea.gradle.structure.model.meta.maybeValue
+import com.android.tools.idea.gradle.structure.model.helpers.parseAny
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.Disposable
@@ -398,7 +396,9 @@ abstract class BaseVariableNode(znode: ShadowNode, val variable: PsVariable) : V
   abstract fun getUnresolvedValue(expanded: Boolean): String
   abstract fun getResolvedValue(expanded: Boolean): String
   abstract fun setName(newName: String)
-  fun setValue(newValue: String) = variable.setValue(newValue)
+  fun setValue(newValue: String) {
+    variable.value = VariablePropertyContextStub.parseEditorText(newValue).value
+  }
 }
 
 class EmptyVariableNode(private val variablesScope: PsVariablesScope, val type: ValueType) : VariablesBaseNode(FakeShadowNode) {
@@ -422,24 +422,11 @@ class VariableNode(znode: ShadowNode, variable: PsVariable) : BaseVariableNode(z
     if (expanded) {
       return ""
     }
-    val value = variable.value
-    return when (value) {
-      ParsedValue.NotSet -> ""
-      is ParsedValue.Set.Parsed -> when (value.dslText) {
-        DslText.Literal -> {
-          val literalValue = value.value
-          when (literalValue) {
-            is Map<*, *> -> literalValue.entries.joinToString(prefix = "[", postfix = "]")
-            is List<*> -> literalValue.joinToString(prefix = "[", postfix = "]")
-            is String -> StringUtil.wrapWithDoubleQuote(literalValue)
-            null -> ""
-            else -> literalValue.toString()
-          }
-        }
-        is DslText.InterpolatedString -> value.dslText.text
-        is DslText.OtherUnparsedDslText -> value.dslText.text
-        is DslText.Reference -> value.dslText.text
-      }
+    val literalValue = variable.value.maybeLiteralValue
+    return when (literalValue) {
+      is Map<*, *> -> literalValue.entries.joinToString(prefix = "[", postfix = "]")
+      is List<*> -> literalValue.joinToString(prefix = "[", postfix = "]")
+      else -> variable.value.getText { toString() }
     }
   }
 
@@ -472,7 +459,8 @@ class ListItemNode(znode: ShadowNode, index: Int, variable: PsVariable) : BaseVa
 }
 
 class EmptyListItemNode(znode: ShadowNode, private val containingList: PsVariable) : VariablesBaseNode(znode) {
-  fun createVariable(value: String): PsVariable = containingList.addListValue(value)
+  fun createVariable(value: String): PsVariable =
+    containingList.addListValue(VariablePropertyContextStub.parseEditorText(value).value)
 }
 
 class MapItemNode(znode: ShadowNode, key: String, variable: PsVariable) : BaseVariableNode(znode, variable) {
@@ -583,4 +571,8 @@ internal data class VariableShadowNode(val variable: PsVariable) : ShadowNode {
     variable.isList -> variable.listItems.onChange(disposable, listener)
     else -> Unit
   }
+}
+
+private object VariablePropertyContextStub: PropertyContextStub<Any>() {
+  override fun parse(value: String) = parseAny(value)
 }

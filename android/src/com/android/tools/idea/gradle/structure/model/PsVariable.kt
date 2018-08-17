@@ -57,16 +57,6 @@ class PsVariable(
   fun convertToEmptyList() = resolvedProperty!!.convertToEmptyList()
   fun convertToEmptyMap() = resolvedProperty!!.convertToEmptyMap()
 
-  fun setValue(aValue: Any) {
-    val property = property!!
-    if (property.valueType == GradlePropertyModel.ValueType.BOOLEAN) {
-      property.setValue((aValue as String).toBoolean())
-    } else {
-      property.setValue(aValue)
-    }
-    parent.isModified = true
-  }
-
   fun delete() {
     property!!.delete()
     refreshCollection()
@@ -79,26 +69,19 @@ class PsVariable(
     parent.isModified = true
   }
 
-  fun addListValue(value: String): PsVariable {
-    val property = property!!
-    if (property.valueType != GradlePropertyModel.ValueType.LIST) {
-      throw IllegalStateException("addListValue can only be called for list variables")
-    }
-
-    val listValue = property.addListValue()
-    listValue.setValue(value)
+  fun addListValue(value: ParsedValue<Any>): PsVariable {
+    if (value === ParsedValue.NotSet) throw IllegalArgumentException()
+    if (!isList) throw IllegalStateException("addListValue can only be called for list variables")
+    val listValue = this.property!!.addListValue().resolve()
+    listValue.setParsedValue({ setValue(it) }, {}, value)
     parent.isModified = true
     myListItems?.refresh()
     return listItems.findElement(listItems.size - 1)!!
   }
 
   fun addMapValue(key: String): PsVariable? {
-    val property = property!!
-    if (property.valueType != GradlePropertyModel.ValueType.MAP) {
-      throw IllegalStateException("addMapValue can only be called for map variables")
-    }
-
-    val mapValue = property.getMapValue(key)
+    if (!isMap) throw IllegalStateException("addMapValue can only be called for map variables")
+    val mapValue = property!!.getMapValue(key)
     if (mapValue.psiElement != null) {
       return null
     }
@@ -123,6 +106,8 @@ class PsVariable(
 
     override fun setModified(model: PsVariable) {
       model.scopePsVariables.model.isModified = true
+      model.myListItems?.refresh()
+      model.myMapEntries?.refresh()
     }
 
     val variableValue: SimpleProperty<PsVariable, Any> = property(
