@@ -113,7 +113,7 @@ class DefaultModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFi
             location = null,
             manifestFile = PathString(File(resFolder.parentFile, FN_ANDROID_MANIFEST_XML)),
             classesJar = classJarLocation,
-            dependencyJars = emptySet(),
+            dependencyJars = emptyList(),
             resFolder = PathString(resFolder),
             symbolFile = PathString(File(resFolder.parentFile, FN_RESOURCE_TEXT)),
             resApkFile = PathString(resApk)
