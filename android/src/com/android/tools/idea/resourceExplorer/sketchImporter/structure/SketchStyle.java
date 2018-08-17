@@ -60,7 +60,7 @@ public class SketchStyle {
     return borderOptions;
   }
 
-  @NotNull
+  @Nullable
   public SketchBorder[] getBorders() {
     return borders;
   }
@@ -75,7 +75,7 @@ public class SketchStyle {
     return colorControls;
   }
 
-  @NotNull
+  @Nullable
   public SketchFill[] getFills() {
     return fills;
   }
