@@ -18,6 +18,6 @@ package com.android.tools.idea.gradle.structure.model.meta
 /**
  * A short-text description of a value of type [T] for use in the UI.
  */
-data class ValueDescriptor<out T>(val value: ParsedValue<T>, val description: String? = null) {
+data class ValueDescriptor<out T : Any>(val value: ParsedValue<T>, val description: String? = null) {
   constructor (value: T, description: String? = null) : this(ParsedValue.Set.Parsed(value, DslText.Literal), description)
 }

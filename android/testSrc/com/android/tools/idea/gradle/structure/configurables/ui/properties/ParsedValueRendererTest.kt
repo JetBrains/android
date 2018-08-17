@@ -310,7 +310,7 @@ private fun <T : Any> Annotated<ParsedValue<T>>.testRenderWith(valueToText: Map<
 // Use custom toString() in tests to ensure it is called when it is appropriate.
 private fun Any.testToString() = toString() + "@"
 
-private fun <T> knownValuesFrom(literals: List<ValueDescriptor<T>>) = object : KnownValues<T> {
+private fun <T : Any> knownValuesFrom(literals: List<ValueDescriptor<T>>) = object : KnownValues<T> {
   override val literals: List<ValueDescriptor<T>> = literals
   override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<T>>): Boolean = true
 }

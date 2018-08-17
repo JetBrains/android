@@ -20,13 +20,13 @@ enum class VariableMatchingStrategy {
    * The strategy matching no variables to the property.
    */
   NONE {
-    override fun <T> matches(variable: ParsedValue.Set.Parsed<T>, knownValues: Set<T>): Boolean = false
+    override fun <T : Any> matches(variable: ParsedValue.Set.Parsed<T>, knownValues: Set<T>): Boolean = false
   },
   /**
    * The strategy matching to the property the variables whose current values are in the set of the well-known values.
    */
   WELL_KNOWN_VALUE {
-    override fun <T> matches(variable: ParsedValue.Set.Parsed<T>, knownValues: Set<T>): Boolean = knownValues.contains(variable.value)
+    override fun <T : Any> matches(variable: ParsedValue.Set.Parsed<T>, knownValues: Set<T>): Boolean = knownValues.contains(variable.value)
     override fun <T : Any> prepare(descriptors: List<ValueDescriptor<T>>): Set<T> =
       descriptors.mapNotNull { it.value.maybeValue }.toSet()
   },
@@ -34,9 +34,9 @@ enum class VariableMatchingStrategy {
    * The strategy matching to the property the variables compatible by the type of their current values.
    */
   BY_TYPE {
-    override fun <T> matches(variable: ParsedValue.Set.Parsed<T>, knownValues: Set<T>): Boolean = true
+    override fun <T : Any> matches(variable: ParsedValue.Set.Parsed<T>, knownValues: Set<T>): Boolean = true
   };
 
-  internal abstract fun <T> matches(variable: ParsedValue.Set.Parsed<T>, knownValues: Set<T>): Boolean
+  internal abstract fun <T : Any> matches(variable: ParsedValue.Set.Parsed<T>, knownValues: Set<T>): Boolean
   internal open fun <T : Any> prepare(descriptors: List<ValueDescriptor<T>>): Set<T> = setOf()
 }

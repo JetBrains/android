@@ -91,12 +91,12 @@ interface ModelProperty<in ModelT, PropertyT : Any, ValueT : Any, out PropertyCo
 /**
  * Metadata describing the well-known values and recognising variables suitable for a property.
  */
-interface KnownValues<ValueT> {
+interface KnownValues<ValueT : Any> {
   val literals: List<ValueDescriptor<ValueT>>
   fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<ValueT>>): Boolean
 }
 
-fun <T> emptyKnownValues() = object : KnownValues<T> {
+fun <T : Any> emptyKnownValues() = object : KnownValues<T> {
   override val literals: List<ValueDescriptor<T>> = listOf()
   override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<T>>): Boolean = false
 }

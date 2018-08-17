@@ -222,7 +222,7 @@ class PsVariable(
 /**
  * Combines multiple [KnownValues] instances by intersecting non-empty sets of known-values.
  */
-private fun <T> Collection<KnownValues<out T>>.combineKnownValues() =
+private fun <T : Any> Collection<KnownValues<out T>>.combineKnownValues() =
   map { it.literals.toSet() }
     .fold(setOf<ValueDescriptor<T>>()) { acc, v ->
       when {
