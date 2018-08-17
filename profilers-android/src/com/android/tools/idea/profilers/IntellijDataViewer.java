@@ -55,8 +55,14 @@ public class IntellijDataViewer implements DataViewer {
     return new IntellijDataViewer(new ResizableImage(image), new Dimension(image.getWidth(), image.getHeight()), Style.RAW);
   }
 
+  /**
+   * Create a data viewer that renders its content as is, without any attempt to clean it up.
+   *
+   * @param fileType An optional file type that can be associated with this content, which, if
+   *                 provided, hints to the editor how it should color it.
+   */
   @NotNull
-  public static IntellijDataViewer createEditorViewer(@NotNull Disposable parent, @NotNull String content, @Nullable FileType contentType) {
+  public static IntellijDataViewer createEditorViewer(@NotNull Project project, @NotNull byte[] content, @Nullable FileType fileType) {
     try {
       EditorFactory editorFactory = EditorFactory.getInstance();
 
@@ -65,9 +71,9 @@ public class IntellijDataViewer implements DataViewer {
       // content and the user will see a mysterious "NO PREVIEW" message without any information
       // on why. The Document class allows you to change a setting to allow \r, but this breaks
       // soft wrapping in the editor.
-      content = content.replace("\r\n", "\n");
+      String contentStr = new String(content).replace("\r\n", "\n");
 
-      Document document = editorFactory.createDocument(content.toCharArray());
+      Document document = editorFactory.createDocument(contentStr.toCharArray());
       document.setReadOnly(true);
 
       EditorEx editor = (EditorEx)editorFactory.createViewer(document);
@@ -77,11 +83,11 @@ public class IntellijDataViewer implements DataViewer {
       editor.getSettings().setFoldingOutlineShown(false);
       editor.getSettings().setUseSoftWraps(true);
 
-      if (contentType != null) {
-        editor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(null, contentType));
+      if (fileType != null) {
+        editor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(project, fileType));
       }
 
-      Disposer.register(parent, new Disposable() {
+      Disposer.register(project, new Disposable() {
         @Override
         public void dispose() {
           editorFactory.releaseEditor(editor);
@@ -95,10 +101,18 @@ public class IntellijDataViewer implements DataViewer {
     }
   }
 
+  /**
+   * Create a data viewer that automatically formats the content it receives.
+   *
+   * @param fileType An optional file type that can be associated with this content, which,
+   *                 if provided, hints to the editor how it should format it.
+   */
   @NotNull
-  public static IntellijDataViewer createPrettyViewer(@NotNull Project project, @NotNull byte[] content, @Nullable FileType contentType) {
-    String fileExtension = contentType != null ? contentType.getDefaultExtension() : "";
-    VirtualFile virtualFile = new LightVirtualFile(new Random().nextLong() + "." + fileExtension, contentType, new String(content));
+  public static IntellijDataViewer createPrettyViewer(@NotNull Project project,
+                                                      @NotNull byte[] content,
+                                                      @Nullable FileType fileType) {
+    String fileExtension = fileType != null ? fileType.getDefaultExtension() : "";
+    VirtualFile virtualFile = new LightVirtualFile(new Random().nextLong() + "." + fileExtension, fileType, new String(content));
     FileEditorProvider[] fileEditors = FileEditorProviderManager.getInstance().getProviders(project, virtualFile);
     FileEditor fileEditor = fileEditors.length != 0 ? fileEditors[0].createEditor(project, virtualFile) : null;
     if (!(fileEditor instanceof TextEditor)) {
