@@ -23,7 +23,7 @@ package com.android.tools.idea.gradle.structure.model.meta
  *   - there is a valid input which can be parsed as [T]. See: [Set.Parsed]
  *   - there is an input that can't be parsed a valid expression of type [T]. See: [Set.Invalid]
  */
-sealed class ParsedValue<out T> {
+sealed class ParsedValue<out T : Any> {
   /**
    * The outcome of parsing of a text input representing the case "Nothing to parse".
    */
@@ -32,12 +32,12 @@ sealed class ParsedValue<out T> {
   /**
    * An outcome of parsing of a text input representing the cases where there is some text input to parse.
    */
-  sealed class Set<out T> : ParsedValue<T>() {
+  sealed class Set<out T : Any> : ParsedValue<T>() {
 
     /**
      * An outcome of parsing of a valid text input representing a value of type [T].
      */
-    data class Parsed<out T>(
+    data class Parsed<out T : Any>(
       /**
        * The parsed value.
        *
@@ -100,7 +100,7 @@ sealed class DslText {
 /**
  * Returns the text representation of [ParsedValue] with its value formatted by [formatValue].
  */
-fun <PropertyT> ParsedValue<PropertyT>.getText(formatValue: PropertyT.() -> String) = when (this) {
+fun <PropertyT : Any> ParsedValue<PropertyT>.getText(formatValue: PropertyT.() -> String) = when (this) {
   is ParsedValue.NotSet -> ""
   is ParsedValue.Set.Parsed -> {
     val dsl = dslText
@@ -113,8 +113,8 @@ fun <PropertyT> ParsedValue<PropertyT>.getText(formatValue: PropertyT.() -> Stri
   }
 }
 
-val <T> ParsedValue<T>.maybeValue: T? get() = (this as? ParsedValue.Set.Parsed)?.value
-val <T> ParsedValue<T>.maybeLiteralValue: T? get() = (this as? ParsedValue.Set.Parsed)?.takeIf { it.dslText === DslText.Literal }?.value
+val <T : Any> ParsedValue<T>.maybeValue: T? get() = (this as? ParsedValue.Set.Parsed)?.value
+val <T : Any> ParsedValue<T>.maybeLiteralValue: T? get() = (this as? ParsedValue.Set.Parsed)?.takeIf { it.dslText === DslText.Literal }?.value
 
 fun <T : Any> makeAnnotatedParsedValue(parsed: T?, annotatedDslText: Annotated<DslText>?): Annotated<ParsedValue<T>> =
   makeAnnotatedParsedValue(parsed, annotatedDslText?.value, annotatedDslText?.annotation)

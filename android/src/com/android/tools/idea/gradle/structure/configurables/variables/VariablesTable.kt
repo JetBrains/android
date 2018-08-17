@@ -500,7 +500,7 @@ class NodeDescription(var name: String, val icon: Icon) {
 
 class NewVariableEvent(source: Any) : EventObject(source)
 
-private fun <T> ParsedValue<T>.toVariableEditorText() =
+private fun <T : Any> ParsedValue<T>.toVariableEditorText() =
   when (this) {
     ParsedValue.NotSet -> ""
     is ParsedValue.Set.Parsed -> when (dslText) {
@@ -514,7 +514,7 @@ private fun <T> ParsedValue<T>.toVariableEditorText() =
     }
   }
 
-private fun <T> ParsedValue<T>.getNonLiteralResolvedText(): String =
+private fun <T : Any> ParsedValue<T>.getNonLiteralResolvedText(): String =
   takeIf { it is ParsedValue.Set.Parsed && it.dslText !== DslText.Literal }
     ?.maybeValue
     ?.let { if (it is String) StringUtil.wrapWithDoubleQuote(it) else it.toString() }
