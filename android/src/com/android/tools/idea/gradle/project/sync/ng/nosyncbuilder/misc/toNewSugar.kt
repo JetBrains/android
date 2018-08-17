@@ -38,9 +38,9 @@ fun OldTestOptions.toNew() = NewTestOptions(this)
 fun OldJavaSourceSet.toNew() = NewJavaSourceSet(this)
 fun SourceProvider.toAndroidSourceSet() = NewAndroidSourceSet(this)
 
-fun Level2Library.toNew(converter: LibraryConverter): Library = when (this.type) {
-  LIBRARY_ANDROID -> converter.convertCachedLibraryToProper(NewAndroidLibrary(this as IdeAndroidLibrary))
-  LIBRARY_JAVA -> converter.convertCachedLibraryToProper(NewJavaLibrary(this as IdeJavaLibrary))
+fun Level2Library.toNew(): Library = when (this.type) {
+  LIBRARY_ANDROID -> NewAndroidLibrary(this as IdeAndroidLibrary)
+  LIBRARY_JAVA -> NewJavaLibrary(this as IdeJavaLibrary)
   LIBRARY_MODULE -> NewModuleDependency(this as IdeModuleLibrary)
   else -> throw IllegalStateException("Level 2 library has unknown type")
 }

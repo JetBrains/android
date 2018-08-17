@@ -155,7 +155,7 @@ class ShippedSyncGenerator(private val projectRoot: File,
       cacheModuleModel(moduleModel, converter, projectSyncPath)
     }
     // Contents of the global library map was filled while running [cacheModuleModel]
-    cacheGlobalLibraryMap(rootConverter, projectSyncPath, properOfflineRepo?.toPath())
+    cacheGlobalLibraryMap(rootConverter, projectSyncPath)
   }
 
   private fun cacheProjectModel(model: SyncModuleModels, converter: PathConverter, syncPath: Path) {
@@ -196,16 +196,10 @@ class ShippedSyncGenerator(private val projectRoot: File,
     Files.write(gradleModuleProjectPath, gradleModuleProjectJSON.toByteArray())
   }
 
-  private fun cacheGlobalLibraryMap(converter: PathConverter, syncPath: Path, properOfflineRepo: Path?) {
+  private fun cacheGlobalLibraryMap(converter: PathConverter, syncPath: Path) {
     val globalLibraryMapPath = syncPath.resolve(GLOBAL_LIBRARY_MAP_CACHE_PATH)
-    val libraryConverter = if (properOfflineRepo != null) {
-      LibraryConverter(properOfflineRepo, false)
-    } else {
-      val offlineRepoPath = outRoot.toPath().resolve(OFFLINE_REPO_PATH)
-      LibraryConverter(offlineRepoPath, true)
-    }
 
-    val newGlobalLibraryMap = NewGlobalLibraryMap(GlobalLibraryMap { glmBuilder.build() }, libraryConverter)
+    val newGlobalLibraryMap = NewGlobalLibraryMap(GlobalLibraryMap { glmBuilder.build() })
     val globalLibraryMapJSON = newGlobalLibraryMap.toJson(converter)
     Files.write(globalLibraryMapPath, globalLibraryMapJSON.toByteArray())
   }
