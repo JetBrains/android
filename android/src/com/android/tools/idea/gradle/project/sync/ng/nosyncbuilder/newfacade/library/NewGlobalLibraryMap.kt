@@ -18,14 +18,13 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.li
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.GlobalLibraryMap
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.Library
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.Level2GlobalLibraryMap
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.LibraryConverter
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.toNew
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.LibraryProto
 
 data class NewGlobalLibraryMap(override val libraries: Map<String, Library>) : GlobalLibraryMap {
-  constructor(globalLibraryMap: Level2GlobalLibraryMap, converter: LibraryConverter) : this(
-    globalLibraryMap.libraries.mapValues { it.value.toNew(converter) }
+  constructor(globalLibraryMap: Level2GlobalLibraryMap) : this(
+    globalLibraryMap.libraries.mapValues { it.value.toNew() }
   )
 
   constructor(androidLibraries: Map<String, Library>,
