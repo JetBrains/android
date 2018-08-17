@@ -1,4 +1,4 @@
-package com.thebigg.rizhang.simpleoldinstantapp.feature;
+package com.thebigg.aia.simpleoldinstantapp.feature;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

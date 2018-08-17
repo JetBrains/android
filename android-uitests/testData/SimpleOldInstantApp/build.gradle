@@ -22,23 +22,3 @@ allprojects {
 }
 
 
-class TaskListener implements TaskExecutionListener {
-    File output;
-    long startTime;
-
-    @Override
-    void beforeExecute(Task task) {
-        long ellapsed = System.currentTimeMillis() - startTime
-        output.append "Start ${task.path}: Ellapsed ${ellapsed}ms\n"
-    }
-
-    @Override
-    void afterExecute(Task task, TaskState taskState) {
-        long ellapsed = System.currentTimeMillis() - startTime
-        output.append "End ${task.path}: Ellapsed ${ellapsed}ms\n\n"
-    }
-}
-
-File performanceFile = gradle.rootProject.file("gradle_performance.txt")
-performanceFile.append("=============== build.gradle Loaded ========\n")
-gradle.addListener new TaskListener(startTime : System.currentTimeMillis(), output : performanceFile)
