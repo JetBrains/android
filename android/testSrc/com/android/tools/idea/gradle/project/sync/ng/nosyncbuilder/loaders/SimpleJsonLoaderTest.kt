@@ -42,8 +42,9 @@ class SimpleJsonLoaderTest(): AndroidGradleTestCase() {
     val moduleDir = oldAndroidProject.buildFolder.parentFile
     val sdkDir = File(oldAndroidProject.bootClasspath.first()).parentFile
     val offlineRepo = File("/")
+    val bundle = File("/")
 
-    val converter = PathConverter(moduleDir, sdkDir, offlineRepo)
+    val converter = PathConverter(moduleDir, sdkDir, offlineRepo, bundle)
 
     val newAndroidProject = NewAndroidProject(oldAndroidProject, modulePath)
     val androidProjectJson = newAndroidProject.toJson(converter)

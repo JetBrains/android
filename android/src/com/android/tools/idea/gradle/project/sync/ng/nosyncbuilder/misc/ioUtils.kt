@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc
 
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.FileProto
 import org.apache.commons.io.FilenameUtils
 import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils
 import java.io.File
@@ -25,13 +26,18 @@ const val ANDROID_PROJECT_CACHE_PATH = "android_project.json"
 const val VARIANTS_CACHE_DIR_PATH = "variants"
 const val GRADLE_PROJECT_CACHE_PATH = "gradle_project.json"
 const val OFFLINE_REPO_PATH = "offline_repo"
+const val BUNDLE_PATH = "bundles"
 
 fun projectNameFromProjectLocation(location: String) = StringUtils.substringAfterLast(location, File.separator)!!
 fun getProjectCacheDir(activity: String, minApi: Int, targetApi: Int) = "${activity}_min_${minApi}_build_and_target_${targetApi}"
 
-fun getConverter(rootDir: File, moduleName: String, sdkDir: String): PathConverter {
-  // TODO(qumeric): fix path, also should offline_repo be in relative path?
-  return PathConverter(File(rootDir, moduleName), File(sdkDir),
-                       File(FilenameUtils.normalize(Paths.get("../../adt/idea/android/testData").toAbsolutePath().toString())))
+fun artifactAddressToRelativePath(artifactAddress: String): String {
+  val (pkg, name, version) = artifactAddress.dropLast(4).split(':')
+
+  return pkg.replace('.', File.separatorChar) + File.separator + name + File.separator + version
 }
 
+fun newProtoFile(relativePath: String, relativeTo: PathConverter.DirType) = FileProto.File.newBuilder()
+  .setRelativePath(relativePath)
+  .setRelativeTo(FileProto.File.RelativeTo.valueOf(relativeTo.name))
+  .build()!!
