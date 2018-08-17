@@ -212,13 +212,13 @@ class SimplePropertyStub<ValueT : Any> : ModelPropertyCore<ValueT> {
   override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
 }
 
-class PropertyContextStub<ValueT : Any> : ModelPropertyContext<ValueT> {
+open class PropertyContextStub<ValueT : Any> : ModelPropertyContext<ValueT> {
   override fun parse(value: String): Annotated<ParsedValue<ValueT>> = throw UnsupportedOperationException()
   override fun format(value: ValueT): String = value.toString()
   override fun getKnownValues(): ListenableFuture<KnownValues<ValueT>> = Futures.immediateCancelledFuture()
 }
 
-fun <T : Any> ModelPropertyContext<T>.parseEditorText(text: String): Annotated<ParsedValue<T>>? = when {
+fun <T : Any> ModelPropertyContext<T>.parseEditorText(text: String): Annotated<ParsedValue<T>> = when {
   text.startsWith("\$\$") ->
     ParsedValue.Set.Parsed(value = null, dslText = DslText.OtherUnparsedDslText(text.substring(2))).annotated()
   text.startsWith("\$") ->

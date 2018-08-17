@@ -103,3 +103,36 @@ fun ResolvedPropertyModel.setDslText(value: DslText) =
       is DslText.OtherUnparsedDslText -> RawText(value.text)  // null text is invalid here.
       DslText.Literal -> throw IllegalArgumentException("Literal values should not be set via DslText.")
     })
+
+internal fun <T : Any> ResolvedPropertyModel?.getParsedValue(
+  getter: ResolvedPropertyModel.() -> T?
+): Annotated<ParsedValue<T>> =
+  makeAnnotatedParsedValue(this?.getter(), this?.dslText())
+
+internal fun <T : Any> ResolvedPropertyModel.setParsedValue(
+  setter: ResolvedPropertyModel.(T) -> Unit,
+  nullifier: ResolvedPropertyModel.() -> Unit,
+  value: ParsedValue<T>
+) {
+  when (value) {
+    is ParsedValue.NotSet -> {
+      nullifier()
+    }
+    is ParsedValue.Set.Parsed -> {
+      val dsl = value.dslText
+      when (dsl) {
+      // Dsl modes.
+        is DslText.Reference -> setDslText(dsl)
+        is DslText.InterpolatedString -> setDslText(dsl)
+        is DslText.OtherUnparsedDslText -> setDslText(dsl)
+      // Literal modes.
+        DslText.Literal -> if (value.value != null) {
+          setter(value.value)
+        }
+        else {
+          nullifier()
+        }
+      }
+    }
+  }
+}
