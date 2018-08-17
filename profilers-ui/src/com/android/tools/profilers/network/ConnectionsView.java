@@ -67,7 +67,8 @@ final class ConnectionsView {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
         HttpData.ContentType type = data.getResponseHeader().getContentType();
-        return type.getMimeType();
+        String[] mimeTypeParts = type.getMimeType().split("/");
+        return mimeTypeParts[mimeTypeParts.length-1];
       }
     },
     STATUS(0.25 / 4, Integer.class) {

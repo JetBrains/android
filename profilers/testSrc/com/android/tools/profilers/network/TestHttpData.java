@@ -65,10 +65,15 @@ public final class TestHttpData {
   }
 
   @NotNull
-  public static String fakeResponseFields(long id) {
+  public static String fakeResponseFields(long id, String contentType) {
     return String
       .format("status line = HTTP/1.1 %d %s\nContent-Type = %s;\nconnId = %d\n Content-Length = %d\n", FAKE_RESPONSE_CODE,
-              FAKE_RESPONSE_DESCRIPTION, FAKE_CONTENT_TYPE, id, fakeContentSize(id));
+              FAKE_RESPONSE_DESCRIPTION, contentType, id, fakeContentSize(id));
+  }
+
+  @NotNull
+  public static String fakeResponseFields(long id) {
+    return fakeResponseFields(id, FAKE_CONTENT_TYPE);
   }
 
   @NotNull
