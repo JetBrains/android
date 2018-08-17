@@ -21,10 +21,10 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.draw.DrawCommandBase;
 import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
+import com.android.tools.idea.naveditor.model.ActionType;
 import com.android.tools.idea.naveditor.scene.NavColorSet;
 import com.android.tools.idea.naveditor.scene.NavDrawHelperKt;
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -41,10 +41,9 @@ import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SE
  */
 public class DrawAction extends DrawCommandBase {
   private static final GeneralPath PATH = new GeneralPath();
-  private final ActionTarget.ConnectionType myConnectionType;
+  private final ActionType myActionType;
   @SwingCoordinate private final Rectangle2D.Float mySource = new Rectangle2D.Float();
   @SwingCoordinate private final Rectangle2D.Float myDest = new Rectangle2D.Float();
-  private static final int ARCH_LEN = JBUI.scale(10);
 
   private final DrawMode myMode;
 
@@ -62,7 +61,7 @@ public class DrawAction extends DrawCommandBase {
   @Override
   public String serialize() {
     return DrawCommandSerializationHelperKt
-      .buildString(getClass().getSimpleName(), myConnectionType, DrawCommandSerializationHelperKt.rect2DToString(mySource),
+      .buildString(getClass().getSimpleName(), myActionType, DrawCommandSerializationHelperKt.rect2DToString(mySource),
                    DrawCommandSerializationHelperKt.rect2DToString(myDest), myMode);
   }
 
@@ -70,26 +69,26 @@ public class DrawAction extends DrawCommandBase {
   protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
     setRenderingHints(g);
     NavColorSet color = (NavColorSet)sceneContext.getColorSet();
-    draw(g, color, myConnectionType, mySource, myDest, myMode, sceneContext);
+    draw(g, color, myActionType, mySource, myDest, myMode, sceneContext);
   }
 
-  public DrawAction(@NotNull ActionTarget.ConnectionType connectionType,
+  public DrawAction(@NotNull ActionType actionType,
                     @SwingCoordinate Rectangle2D.Float source,
                     @SwingCoordinate Rectangle2D.Float dest,
                     @NotNull DrawMode mode) {
     mySource.setRect(source);
     myDest.setRect(dest);
-    myConnectionType = connectionType;
+    myActionType = actionType;
     myMode = mode;
   }
 
   private DrawAction(@NotNull String[] s) {
-    this(ActionTarget.ConnectionType.valueOf(s[0]), DrawCommandSerializationHelperKt.stringToRect2D(s[1]),
+    this(ActionType.valueOf(s[0]), DrawCommandSerializationHelperKt.stringToRect2D(s[1]),
          DrawCommandSerializationHelperKt.stringToRect2D(s[2]), DrawMode.valueOf(s[3]));
   }
 
   public static void buildDisplayList(@NotNull DisplayList list,
-                                      @NotNull ActionTarget.ConnectionType connectionType,
+                                      @NotNull ActionType connectionType,
                                       @SwingCoordinate Rectangle2D.Float source,
                                       @SwingCoordinate Rectangle2D.Float dest,
                                       @NotNull DrawMode mode) {
@@ -98,7 +97,7 @@ public class DrawAction extends DrawCommandBase {
 
   private static void draw(@NotNull Graphics2D g,
                            @NotNull NavColorSet color,
-                           @NotNull ActionTarget.ConnectionType connectionType,
+                           @NotNull ActionType connectionType,
                            @SwingCoordinate Rectangle2D.Float source,
                            @SwingCoordinate Rectangle2D.Float dest,
                            @NotNull DrawMode mode,
@@ -111,7 +110,7 @@ public class DrawAction extends DrawCommandBase {
     PATH.moveTo(points.p1.x, points.p1.y);
     PATH.curveTo(points.p2.x, points.p2.y, points.p3.x, points.p3.y, points.p4.x, points.p4.y);
 
-    BasicStroke actionStroke = (connectionType == ActionTarget.ConnectionType.EXIT)
+    BasicStroke actionStroke = (connectionType == ActionType.EXIT_DESTINATION)
                                ? NavDrawHelperKt.DASHED_ACTION_STROKE
                                : NavDrawHelperKt.ACTION_STROKE;
 

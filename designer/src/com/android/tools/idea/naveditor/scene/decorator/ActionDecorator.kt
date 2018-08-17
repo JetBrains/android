@@ -25,7 +25,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawArrow
 import com.android.tools.idea.common.scene.draw.DrawLine
 import com.android.tools.idea.naveditor.model.ActionType
-import com.android.tools.idea.naveditor.model.actionType
+import com.android.tools.idea.naveditor.model.getActionType
 import com.android.tools.idea.naveditor.scene.ACTION_STROKE
 import com.android.tools.idea.naveditor.scene.DRAW_ACTION_LEVEL
 import com.android.tools.idea.naveditor.scene.NavSceneManager
@@ -43,7 +43,7 @@ object ActionDecorator : SceneDecorator() {
 
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     // TODO: Add support for other action types
-    when (component.nlComponent.actionType) {
+    when (component.nlComponent.getActionType(component.scene.root?.nlComponent)) {
       ActionType.GLOBAL, ActionType.EXIT -> {
         val color = actionColor(sceneContext, component)
 
@@ -62,6 +62,7 @@ object ActionDecorator : SceneDecorator() {
         arrowRect.height = drawRect.height
         list.add(DrawArrow(DRAW_ACTION_LEVEL, ArrowDirection.RIGHT, arrowRect, color))
       }
+      else -> {}
     }
   }
 

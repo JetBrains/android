@@ -17,7 +17,7 @@ package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.idea.common.scene.LerpFloat
 import com.android.tools.idea.common.scene.draw.*
-import com.android.tools.idea.naveditor.scene.targets.ActionTarget
+import com.android.tools.idea.naveditor.model.ActionType
 import junit.framework.TestCase
 import java.awt.*
 import java.awt.geom.Point2D
@@ -42,12 +42,12 @@ class SerializationTest : TestCase() {
   fun testDrawAction() {
     val factory = { s: String -> DrawAction(s) }
 
-    testSerialization("DrawAction,NORMAL,10.0x20.0x30.0x40.0,50.0x60.0x70.0x80.0,NORMAL", DrawAction(ActionTarget.ConnectionType.NORMAL,
+    testSerialization("DrawAction,REGULAR,10.0x20.0x30.0x40.0,50.0x60.0x70.0x80.0,NORMAL", DrawAction(ActionType.REGULAR,
         Rectangle2D.Float(10f, 20f, 30f, 40f),
         Rectangle2D.Float(50f, 60f, 70f, 80f),
         DrawAction.DrawMode.NORMAL), factory)
 
-    testSerialization("DrawAction,EXIT,10.0x20.0x30.0x40.0,50.0x60.0x70.0x80.0,HOVER", DrawAction(ActionTarget.ConnectionType.EXIT,
+    testSerialization("DrawAction,EXIT_DESTINATION,10.0x20.0x30.0x40.0,50.0x60.0x70.0x80.0,HOVER", DrawAction(ActionType.EXIT_DESTINATION,
         Rectangle2D.Float(10f, 20f, 30f, 40f),
         Rectangle2D.Float(50f, 60f, 70f, 80f),
         DrawAction.DrawMode.HOVER), factory)
