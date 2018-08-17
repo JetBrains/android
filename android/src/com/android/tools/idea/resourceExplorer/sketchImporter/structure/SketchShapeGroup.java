@@ -89,6 +89,14 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
   @NotNull
   @Override
   public ImmutableList<ShapeModel> createShapeModels(@NotNull Point2D.Double parentCoords) {
+    SketchFill[] fills = getStyle().getFills();
+    SketchBorder[] borders = getStyle().getBorders();
+    SketchFill shapeGroupFill = fills != null ? fills[0] : null;
+    SketchBorder shapeGroupBorder = borders != null ? borders[0] : null;
+    if (shapeGroupBorder == null && shapeGroupFill == null) {
+      return ImmutableList.of();
+    }
+
     Point2D.Double newParentCoords = new Point2D.Double(parentCoords.getX() + getFrame().getX(),
                                                         parentCoords.getY() + getFrame().getY());
 
@@ -97,8 +105,8 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
 
     Path2D.Double baseShapePath = baseSketchShapePath.getPath2D();
     PathModel finalShape = new PathModel(baseShapePath,
-                                         getStyle().getFills()[0],
-                                         getStyle().getBorders()[0],
+                                         shapeGroupFill,
+                                         shapeGroupBorder,
                                          baseSketchShapePath.isFlippedHorizontal(),
                                          baseSketchShapePath.isFlippedVertical(),
                                          baseSketchShapePath.isClosed(),
