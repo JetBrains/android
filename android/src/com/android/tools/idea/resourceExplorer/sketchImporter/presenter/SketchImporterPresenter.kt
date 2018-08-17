@@ -30,7 +30,6 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.model.SketchFile
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage
 import com.android.tools.idea.resourceExplorer.sketchImporter.view.SketchImporterView
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
@@ -47,7 +46,6 @@ class SketchImporterPresenter(private val view: SketchImporterView,
                               private val designAssetImporter: DesignAssetImporter,
                               val facet: AndroidFacet) {
 
-  private val filesToDisplay = HashMap<String, List<VirtualFile>>()
   private val pageIdToFiles = generateFiles()
 
   init {
@@ -59,13 +57,11 @@ class SketchImporterPresenter(private val view: SketchImporterView,
    * Create assets and add a preview for each page in the view.
    */
   private fun populatePages() {
-    filesToDisplay.clear()
     pageIdToFiles.forEach { pageId, files ->
       val pageOptions = importOptions.getPageOptions(pageId) ?: return@forEach
 
-      updateFilesToDisplay(pageId, files)
       view.addAssetPage(pageId, pageOptions.name, PageOptions.PAGE_TYPE_LABELS, pageOptions.pageType.ordinal,
-                        files.toAssets())
+                        getExportableFiles(files).toAssets())
     }
   }
 
@@ -77,31 +73,19 @@ class SketchImporterPresenter(private val view: SketchImporterView,
   }
 
   /**
-   * Updates the files associated with the page with [pageId] to be the exportable files in [files].
-   *
-   * @return exportable files that were obtained and updated
-   */
-  private fun updateFilesToDisplay(pageId: String, files: List<LightVirtualFile>): List<LightVirtualFile> {
-    val exportableFiles = if (!importOptions.importAll) getExportableFiles(files) else files
-    filesToDisplay[pageId] = exportableFiles
-    return exportableFiles
-  }
-
-  /**
-   * Filter only the files that are exportable.
+   * Filter only the files that are exportable (unless the importAll marker is set).
    */
   private fun getExportableFiles(files: List<LightVirtualFile>): List<LightVirtualFile> {
-    return files.filter {
-      importOptions.getIconOptions(it.name)?.isExportable ?: false
-    }
+    return if (importOptions.importAll) files else files.filter { importOptions.getIconOptions(it.name)?.isExportable ?: false }
   }
 
   /**
    * Add exportable files to the project.
    */
   fun importFilesIntoProject() {
-    val assets = filesToDisplay.values
+    val assets = pageIdToFiles.values
       .flatten()
+      .filter { importOptions.importAll || importOptions.getIconOptions(it.name)?.isExportable ?: false }  // to be replaced with selected files
       .associate { it to it.nameWithoutExtension }  // to be replaced with the name from options
       .map { (file, name) ->
         DesignAssetSet(name, listOf(DesignAsset(file, listOf(DensityQualifier(Density.ANYDPI)), ResourceType.DRAWABLE, name)))
@@ -157,9 +141,8 @@ class SketchImporterPresenter(private val view: SketchImporterView,
 
     val page = sketchFile.findLayer(pageId) as? SketchPage ?: return
     val options = getPageOptions(page) ?: return
-    val assets = generateFilesFromPage(page, options)
-    val displayableFiles = updateFilesToDisplay(pageId, assets)
-    view.refreshPreview(pageId, displayableFiles.toAssets())
+    val files = generateFilesFromPage(page, options)
+    view.refreshPreview(pageId, getExportableFiles(files).toAssets())
   }
 
   /**
