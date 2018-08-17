@@ -6,7 +6,7 @@ android {
 
 
     defaultConfig {
-        applicationId "com.thebigg.rizhang.simpleoldinstantapp.app"
+        applicationId "com.thebigg.aia.simpleoldinstantapp.app"
         minSdkVersion 25
         targetSdkVersion 27
         versionCode 1

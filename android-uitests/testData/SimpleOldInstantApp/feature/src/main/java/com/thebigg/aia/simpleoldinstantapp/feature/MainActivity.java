@@ -1,4 +1,4 @@
-package com.thebigg.rizhang.simpleoldinstantapp.feature;
+package com.thebigg.aia.simpleoldinstantapp.feature;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
