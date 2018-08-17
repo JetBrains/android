@@ -217,3 +217,14 @@ class PropertyContextStub<ValueT : Any> : ModelPropertyContext<ValueT> {
   override fun format(value: ValueT): String = value.toString()
   override fun getKnownValues(): ListenableFuture<KnownValues<ValueT>> = Futures.immediateCancelledFuture()
 }
+
+fun <T : Any> ModelPropertyContext<T>.parseEditorText(text: String): Annotated<ParsedValue<T>>? = when {
+  text.startsWith("\$\$") ->
+    ParsedValue.Set.Parsed(value = null, dslText = DslText.OtherUnparsedDslText(text.substring(2))).annotated()
+  text.startsWith("\$") ->
+    ParsedValue.Set.Parsed<T>(value = null, dslText = DslText.Reference(text.substring(1))).annotated()
+  text.startsWith("\"") && text.endsWith("\"") ->
+    ParsedValue.Set.Parsed<T>(value = null,
+                              dslText = DslText.InterpolatedString(text.substring(1, text.length - 1))).annotated()
+  else -> parse(text)
+}
