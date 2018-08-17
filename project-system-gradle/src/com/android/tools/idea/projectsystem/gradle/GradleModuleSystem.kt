@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.ide.common.gradle.model.GradleModelConverter
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.util.PathString
-import com.android.projectmodel.AarLibrary
-import com.android.projectmodel.JavaLibrary
 import com.android.projectmodel.Library
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
@@ -58,25 +56,9 @@ class GradleModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFin
   override fun getDependentLibraries(): Collection<Library> {
     val gradleModel = AndroidModuleModel.get(module) ?: return emptySet()
 
-    val javaLibraries = gradleModel.selectedMainCompileLevel2Dependencies.javaLibraries.map { library ->
-        JavaLibrary(
-          address = library.artifactAddress,
-          classesJar = PathString(library.artifact)
-        )
-      }
-
-    val androidLibraries = gradleModel.selectedMainCompileLevel2Dependencies.androidLibraries.map { library ->
-        AarLibrary(
-          address = library.artifactAddress,
-          location = PathString(library.artifact),
-          manifestFile = PathString(library.manifest),
-          classesJar = PathString(library.jarFile),
-          dependencyJars = library.localJars.map(::PathString),
-          resFolder = PathString(library.resFolder),
-          symbolFile = PathString(library.symbolFile),
-          resApkFile = library.resStaticLibrary?.let(::PathString)
-        )
-      }
+    val converter = GradleModelConverter(gradleModel.androidProject)
+    val javaLibraries = gradleModel.selectedMainCompileLevel2Dependencies.javaLibraries.mapNotNull(converter::convert)
+    val androidLibraries = gradleModel.selectedMainCompileLevel2Dependencies.androidLibraries.mapNotNull(converter::convert)
 
     return javaLibraries + androidLibraries
   }
