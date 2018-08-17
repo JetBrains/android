@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.module.ModuleManager;
@@ -87,7 +88,7 @@ class SyncResultHandler {
             open(myProject);
           }
           if (!isTest) {
-            myProject.save();
+            CommandProcessor.getInstance().runUndoTransparentAction(() -> myProject.save());
           }
           if (isImportedProject) {
             // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
