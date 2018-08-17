@@ -119,21 +119,21 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val rootNode = (tableModel.root as ShadowedTreeNode).childNodes.toList()[1]
     assertThat(rootNode.testStructure().toString().trimIndent(), equalTo("""
         app
-            anotherVariable
-            mapVariable
-                a
-                b
-                (null)
-            moreVariable
             myVariable
-            varBool
+            variable1
+            anotherVariable
             varInt
+            varBool
+            varRefString
             varProGuardFiles
                 0
                 1
                 (null)
-            varRefString
-            variable1
+            moreVariable
+            mapVariable
+                a
+                b
+                (null)
             """.trimIndent()))
   }
 
@@ -149,21 +149,21 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val rootNode = (tableModel.root as ShadowedTreeNode).childNodes.toList()[1]
     assertThat(rootNode.testStructure().toString().trimIndent(), equalTo("""
         app
-            anotherVariable
-            mapVariable
-                a
-                b
-                (null)
-            moreVariable
             myVariable
-            varBool
+            variable1
+            anotherVariable
             varInt
+            varBool
+            varRefString
             varProGuardFiles
                 0
                 1
                 (null)
-            varRefString
-            variable1
+            moreVariable
+            mapVariable
+                a
+                b
+                (null)
             varList
                 (null)
             """.trimIndent()))
@@ -181,20 +181,20 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val rootNode = (tableModel.root as ShadowedTreeNode).childNodes.toList()[1]
     assertThat(rootNode.testStructure().toString().trimIndent(), equalTo("""
         app
+            myVariable
+            variable1
             anotherVariable
+            varInt
+            varBool
+            varRefString
+            varProGuardFiles
+                0
+                (null)
+            moreVariable
             mapVariable
                 a
                 b
                 (null)
-            moreVariable
-            myVariable
-            varBool
-            varInt
-            varProGuardFiles
-                0
-                (null)
-            varRefString
-            variable1
             """.trimIndent()))
   }
 
