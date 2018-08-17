@@ -127,7 +127,7 @@ public class SketchShapePath extends SketchLayer {
         currentPointCurveTo = currentCurvePoint.getCurveTo().makeAbsolutePosition(getFrame());
       }
 
-      if (!previousCurvePoint.hasCurveTo() && !currentCurvePoint.hasCurveFrom()) {
+      if (!previousCurvePoint.hasCurveFrom() && !currentCurvePoint.hasCurveTo()) {
         path2DBuilder.createLine(currentPoint);
       }
       else {
