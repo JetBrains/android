@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library
 
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.artifactAddressToRelativePath
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.newProtoFile
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.FileProto
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.LibraryProto
 import java.io.File
 
@@ -27,10 +30,14 @@ interface AndroidLibrary : Library {
   /** The location of the unzipped AAR folder. */
   val bundleFolder: File
 
-  fun toProto(converter: PathConverter) = LibraryProto.AndroidLibrary.newBuilder()
-    .setLibrary(LibraryProto.Library.newBuilder().setArtifactAddress(artifactAddress))
-    .setArtifact(converter.fileToProto(artifact, PathConverter.DirType.OFFLINE_REPO))
-    .setBundleFolder(converter.fileToProto(bundleFolder, PathConverter.DirType.OFFLINE_REPO))
-    .addAllLocalJars(localJars.map { converter.fileToProto(it, PathConverter.DirType.OFFLINE_REPO) })
-    .build()!!
+  fun toProto(converter: PathConverter): LibraryProto.AndroidLibrary{
+    val path = artifactAddressToRelativePath(artifactAddress!!)
+
+    return LibraryProto.AndroidLibrary.newBuilder()
+        .setLibrary(LibraryProto.Library.newBuilder().setArtifactAddress(artifactAddress))
+        .setArtifact(newProtoFile(path, PathConverter.DirType.OFFLINE_REPO))
+        .setBundleFolder(newProtoFile(path, PathConverter.DirType.BUNDLE))
+        .addAllLocalJars(localJars.map { newProtoFile("$path/jars/libs/${it.name}", PathConverter.DirType.BUNDLE) })
+        .build()!!
+  }
 }
