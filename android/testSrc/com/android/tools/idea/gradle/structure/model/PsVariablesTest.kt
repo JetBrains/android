@@ -36,10 +36,10 @@ class PsVariablesTest : AndroidGradleTestCase() {
     assertThat(
       variables.map { it.name },
       equalTo(listOf(
+        "someVar",
         "rootBool",
-        "rootBool2",
         "rootBool3",
-        "someVar"
+        "rootBool2"
       ))
     )
   }
@@ -52,16 +52,15 @@ class PsVariablesTest : AndroidGradleTestCase() {
     assertThat(
       variables.map { it.name },
       equalTo(listOf(
-        "anotherVariable",
-        "mapVariable",
-        "moreVariable",
         "myVariable",
-        "varBool",
+        "variable1",
+        "anotherVariable",
         "varInt",
-        "varProGuardFiles",
+        "varBool",
         "varRefString",
-        "variable1"
-      ))
+        "varProGuardFiles",
+        "moreVariable",
+        "mapVariable"))
     )
   }
 

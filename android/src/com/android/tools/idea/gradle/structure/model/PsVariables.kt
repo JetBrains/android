@@ -33,7 +33,6 @@ open class PsVariables constructor(
     getContainer(from)
       ?.properties
       ?.map { it.name }
-      ?.sorted()
       ?.toSet()
     ?: setOf()
 
