@@ -60,11 +60,13 @@ public interface IdeProfilerComponents {
 
   /**
    * Creates a UI component that displays some data (which may be text or binary). The view uses the data's content type, if known,
-   * to render it correctly. The given {@param style} will be attempted to apply in the viewer, and if that failed the result actual style
-   * might be different.
+   * to render it correctly.
+   *
+   * @param styleHint A style which the viewer will attempt to apply; however, this may fail in some cases, so you are encouraged
+   *                  to check {@link DataViewer#getStyle()} if you need to confirm the style was actually accepted.
    */
   @NotNull
-  DataViewer createDataViewer(@NotNull byte[] bytes, @NotNull ContentType contentType, @NotNull DataViewer.Style style);
+  DataViewer createDataViewer(@NotNull byte[] bytes, @NotNull ContentType contentType, @NotNull DataViewer.Style styleHint);
 
   @NotNull
   JComponent createResizableImageComponent(@NotNull BufferedImage image);
