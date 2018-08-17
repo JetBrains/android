@@ -39,20 +39,23 @@ import java.io.File
  */
 
 /**
- * This is an enumeration indicating the type of action represented by the specified NlComponent.
+ * This is an enumeration indicating the type of action represented by the specified NlComponent when viewed from a given context.
  * In order of decreasing precedence:
  * NONE: This tag is either not an action or is invalid.
  * SELF: The destination attribute refers to the action's parent.
- * GLOBAL: The action's parent is a navigation element.
- * REGULAR: The destination attribute refers to a sibling of the action's parent
- * EXIT: The destination attribute refers to an element that is not under the action's parent's parent.
+ * GLOBAL: The action's parent is the current view context.
+ * REGULAR: The destination attribute refers to a sibling of the action's parent.
+ * EXIT: The destination attribute refers to an element that is not under the current view context.
+ * EXIT_DESTINATION: The destination attribute refers to a child of the current view context, but the source is a (great-)grandchild.
+ *
  */
 enum class ActionType {
   NONE,
   SELF,
   GLOBAL,
   REGULAR,
-  EXIT
+  EXIT,
+  EXIT_DESTINATION
 }
 
 val NlComponent.uiName: String
@@ -158,28 +161,34 @@ val NlComponent.isInclude: Boolean
   get() = model.schema.isIncludeTag(tagName)
 
 val NlComponent.isSelfAction: Boolean
-  get() = actionType == ActionType.SELF
+  get() = getActionType(null) == ActionType.SELF
 
-val NlComponent.actionType: ActionType
-  get() {
+fun NlComponent.getActionType(currentRoot: NlComponent?): ActionType {
     if (!isAction) {
       return ActionType.NONE
     }
 
-    val myParent = parent ?: throw IllegalStateException()
+    val parent = parent ?: throw IllegalStateException()
 
-    val destination = effectiveDestinationId
-    if (myParent.id == destination) {
+    val destination = effectiveDestinationId ?: return ActionType.NONE
+    if (parent.id == destination) {
       return ActionType.SELF
     }
 
-    if (myParent.isNavigation) {
+    if (currentRoot == null) {
+      return ActionType.NONE
+    }
+
+    if (parent.isNavigation && parent == currentRoot) {
       return ActionType.GLOBAL
     }
 
-    myParent.parent?.let {
-      if (destination != null && it.containsDestination(destination)) {
+    if (currentRoot.containsDestination(destination)) {
+      if (parent.parent == currentRoot) {
         return ActionType.REGULAR
+      }
+      else {
+        return ActionType.EXIT_DESTINATION
       }
     }
 

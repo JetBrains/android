@@ -131,7 +131,7 @@ public class NavSceneManager extends SceneManager {
 
     NlComponent nlComponent = sceneComponent.getNlComponent();
 
-    switch (NavComponentHelperKt.getActionType(nlComponent)) {
+    switch (NavComponentHelperKt.getActionType(nlComponent, getRoot())) {
       case GLOBAL:
         sceneComponent.setSize((int)GLOBAL_ACTION_WIDTH, (int)ACTION_HEIGHT, false);
         return;
@@ -276,16 +276,12 @@ public class NavSceneManager extends SceneManager {
   }
 
   private boolean shouldCreateActionHierarchy(@NotNull NlComponent component) {
-    ActionType actionType = NavComponentHelperKt.getActionType(component);
+    ActionType actionType = NavComponentHelperKt.getActionType(component, getRoot());
 
     switch (actionType) {
       case GLOBAL:
-        // Create scene components for global actions under the root navigation
-        return component.getParent() == getRoot();
       case EXIT:
-        // Create scene components for exit actions under children of the root navigation
-        NlComponent parent = component.getParent();
-        return parent != null && parent.getParent() == getRoot();
+        return true;
       default:
         // Regular and self actions are handled as targets
         return false;
@@ -386,7 +382,7 @@ public class NavSceneManager extends SceneManager {
       ArrayList<SceneComponent> exitActions = new ArrayList<>();
 
       for (SceneComponent child : component.getChildren()) {
-        switch (NavComponentHelperKt.getActionType(child.getNlComponent())) {
+        switch (NavComponentHelperKt.getActionType(child.getNlComponent(), getRoot())) {
           case GLOBAL:
             globalActions.add(child);
             break;

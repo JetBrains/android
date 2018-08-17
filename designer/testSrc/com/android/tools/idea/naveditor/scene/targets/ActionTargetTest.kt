@@ -93,7 +93,7 @@ class ActionTargetTest : NavTestCase() {
     fragment1.buildDisplayList(0, list, context)
 
     assertEquals("DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
-                 "DrawAction,NORMAL,490.0x400.0x76.5x128.0,400.0x389.0x78.5x139.0,NORMAL\n" +
+                 "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x389.0x78.5x139.0,NORMAL\n" +
                  "DrawArrow,2,UP,436.25x532.0x6.0x5.0,b2a7a7a7\n" +
                  "DrawTruncatedText,3,fragment1,498.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
                  "DrawIcon,490.0x389.0x7.0x7.0,START_DESTINATION\n" +
@@ -105,7 +105,7 @@ class ActionTargetTest : NavTestCase() {
     fragment1.buildDisplayList(0, list, context)
 
     assertEquals("DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
-                 "DrawAction,NORMAL,490.0x400.0x76.5x128.0,400.0x389.0x78.5x139.0,HOVER\n" +
+                 "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x389.0x78.5x139.0,HOVER\n" +
                  "DrawArrow,2,UP,436.25x532.0x6.0x5.0,ffa7a7a7\n" +
                  "DrawTruncatedText,3,fragment1,498.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
                  "DrawIcon,490.0x389.0x7.0x7.0,START_DESTINATION\n" +
@@ -164,31 +164,31 @@ class ActionTargetTest : NavTestCase() {
       "\n" +
       "DrawRectangle,1,650.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,651.0x401.0x74.5x126.0\n" +
-      "DrawAction,NORMAL,650.0x400.0x76.5x128.0,650.0x639.0x78.5x139.0,NORMAL\n" +
+      "DrawAction,REGULAR,650.0x400.0x76.5x128.0,650.0x639.0x78.5x139.0,NORMAL\n" +
       "DrawArrow,2,DOWN,686.25x630.0x6.0x5.0,b2a7a7a7\n" +
       "DrawTruncatedText,3,fragment2,650.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "DrawRectangle,1,900.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,901.0x401.0x74.5x126.0\n" +
-      "DrawAction,NORMAL,900.0x400.0x76.5x128.0,650.0x639.0x78.5x139.0,NORMAL\n" +
+      "DrawAction,REGULAR,900.0x400.0x76.5x128.0,650.0x639.0x78.5x139.0,NORMAL\n" +
       "DrawArrow,2,DOWN,686.25x630.0x6.0x5.0,b2a7a7a7\n" +
       "DrawTruncatedText,3,fragment3,900.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "DrawRectangle,1,400.0x650.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,401.0x651.0x74.5x126.0\n" +
-      "DrawAction,NORMAL,400.0x650.0x76.5x128.0,650.0x639.0x78.5x139.0,NORMAL\n" +
+      "DrawAction,REGULAR,400.0x650.0x76.5x128.0,650.0x639.0x78.5x139.0,NORMAL\n" +
       "DrawArrow,2,RIGHT,641.0x705.5x5.0x6.0,b2a7a7a7\n" +
       "DrawTruncatedText,3,fragment4,400.0x640.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "DrawRectangle,1,650.0x900.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,651.0x901.0x74.5x126.0\n" +
-      "DrawAction,NORMAL,650.0x900.0x76.5x128.0,650.0x639.0x78.5x139.0,NORMAL\n" +
+      "DrawAction,REGULAR,650.0x900.0x76.5x128.0,650.0x639.0x78.5x139.0,NORMAL\n" +
       "DrawArrow,2,UP,686.25x782.0x6.0x5.0,b2a7a7a7\n" +
       "DrawTruncatedText,3,fragment5,650.0x890.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "DrawRectangle,1,900.0x900.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,901.0x901.0x74.5x126.0\n" +
-      "DrawAction,NORMAL,900.0x900.0x76.5x128.0,650.0x639.0x78.5x139.0,NORMAL\n" +
+      "DrawAction,REGULAR,900.0x900.0x76.5x128.0,650.0x639.0x78.5x139.0,NORMAL\n" +
       "DrawArrow,2,UP,686.25x782.0x6.0x5.0,b2a7a7a7\n" +
       "DrawTruncatedText,3,fragment6,900.0x890.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +

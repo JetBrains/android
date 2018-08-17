@@ -70,14 +70,6 @@ public class ActionTarget extends BaseTarget {
     public ConnectionDirection dir;
   }
 
-  public static class SelfActionPoints {
-    @SwingCoordinate public final float[] x = new float[5];
-    @SwingCoordinate public final float[] y = new float[5];
-    public ConnectionDirection dir;
-  }
-
-  public enum ConnectionType {NORMAL, EXIT}
-
   public enum ConnectionDirection {
     LEFT(-1, 0), RIGHT(1, 0), TOP(0, -1), BOTTOM(0, 1);
 
@@ -191,12 +183,9 @@ public class ActionTarget extends BaseTarget {
       return;
     }
 
-    ConnectionType connectionType = ConnectionType.NORMAL;
-    if (NavComponentHelperKt.getActionType(myNlComponent) == ActionType.EXIT) {
-      connectionType = ConnectionType.EXIT;
-    }
+    ActionType type = NavComponentHelperKt.getActionType(myNlComponent, getComponent().getScene().getRoot().getNlComponent());
 
-    DrawAction.buildDisplayList(list, connectionType, sourceRect, myDestRect,
+    DrawAction.buildDisplayList(list, type, sourceRect, myDestRect,
                                 selected ? SELECTED : mIsOver || myHighlighted ? HOVER : NORMAL);
 
     ConnectionDirection direction = getDestinationDirection(sourceRect, myDestRect);
