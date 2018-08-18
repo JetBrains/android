@@ -5,7 +5,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
-import com.android.projectmodel.AarLibrary;
+import com.android.projectmodel.ExternalLibrary;
 import com.android.projectmodel.Library;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
@@ -304,13 +304,13 @@ public final class ModuleClassLoader extends RenderClassLoader {
   private static void registerResources(@NotNull Module module) {
     AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
     for (Library library : moduleSystem.getDependentLibraries()) {
-      if (library instanceof AarLibrary) {
-        registerLibraryResources(module, (AarLibrary)library);
+      if (library instanceof ExternalLibrary && ((ExternalLibrary)library).hasResources()) {
+        registerLibraryResources(module, (ExternalLibrary)library);
       }
     }
   }
 
-  private static void registerLibraryResources(@NotNull Module module, @NotNull AarLibrary library) {
+  private static void registerLibraryResources(@NotNull Module module, @NotNull ExternalLibrary library) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       return;
@@ -349,7 +349,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   @Nullable
-  private static String getPackageName(@NotNull AarLibrary library) {
+  private static String getPackageName(@NotNull ExternalLibrary library) {
     PathString manifestFile = library.getRepresentativeManifestFile();
     if (manifestFile != null) {
       try {

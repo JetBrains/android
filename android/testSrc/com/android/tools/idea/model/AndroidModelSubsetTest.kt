@@ -26,7 +26,7 @@ import org.junit.Test
  * Test cases for [AndroidModelSubset].
  */
 class AndroidModelSubsetTest {
-  private val databindingLib = ArtifactDependency(library = JavaLibrary("foo.bar", PathString("/bin")),
+  private val databindingLib = ArtifactDependency(library = ExternalLibrary(address = "foo.bar", classesJar = PathString("/bin")),
                                                   requestedMavenCoordinate = ANDROIDX_DATA_BINDING_LIB.getCoordinate("+"),
                                                   resolvedMavenCoordinate = ANDROIDX_DATA_BINDING_LIB.getCoordinate(""))
 
