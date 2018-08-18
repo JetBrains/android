@@ -18,8 +18,7 @@ package com.android.tools.idea.project
 import com.android.SdkConstants
 import com.android.SdkConstants.*
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.projectmodel.AarLibrary
-import com.android.projectmodel.JavaLibrary
+import com.android.projectmodel.ExternalLibrary
 import com.android.projectmodel.Library
 import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.projectsystem.*
@@ -96,31 +95,23 @@ class DefaultModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFi
         val libraryName = library.name ?: return@forEachLibrary true
 
         // For testing purposes we create libraries with a res.apk root (legacy projects don't have those). Recognize them here and
-        // create AarLibrary as necessary.
+        // create ExternalLibrary as necessary.
         val resFolderRoot = roots.firstOrNull { it.name == FD_RES }?.toPathString()
         val resApkRoot = roots.firstOrNull { it.name == FN_RESOURCE_STATIC_LIBRARY }?.toPathString()
-        if (resFolderRoot != null || resApkRoot != null) { // aar
-          val (resFolder, resApk) = when {
-            resApkRoot != null -> Pair(resApkRoot.parentOrRoot.resolve(FD_RES), resApkRoot)
-            resFolderRoot != null -> Pair(resFolderRoot, resFolderRoot.parentOrRoot.resolve(FN_RESOURCE_STATIC_LIBRARY))
-            else -> return@forEachLibrary true
-          }
-
-          libraries.add(AarLibrary(
-            address = libraryName,
-            manifestFile = resFolder.parentOrRoot.resolve(FN_ANDROID_MANIFEST_XML),
-            classesJar = classesJar,
-            resFolder = resFolder,
-            symbolFile = resFolder.parentOrRoot.resolve(FN_RESOURCE_TEXT),
-            resApkFile = resApk
-          ))
-        } else { // jar
-          classesJar ?: return@forEachLibrary true
-          libraries.add(JavaLibrary(
-            address = libraryName,
-            classesJar = classesJar
-          ))
+        val (resFolder, resApk) = when {
+          resApkRoot != null -> Pair(resApkRoot.parentOrRoot.resolve(FD_RES), resApkRoot)
+          resFolderRoot != null -> Pair(resFolderRoot, resFolderRoot.parentOrRoot.resolve(FN_RESOURCE_STATIC_LIBRARY))
+          else -> return@forEachLibrary true
         }
+
+        libraries.add(ExternalLibrary(
+          address = libraryName,
+          manifestFile = resFolder.parentOrRoot.resolve(FN_ANDROID_MANIFEST_XML),
+          classesJar = classesJar,
+          resFolder = resFolder,
+          symbolFile = resFolder.parentOrRoot.resolve(FN_RESOURCE_TEXT),
+          resApkFile = resApk
+        ))
 
         true // continue processing.
       }
