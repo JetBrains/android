@@ -208,7 +208,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
 
     myThreads = new CpuThreadsView(stage);
-    myCpus = new CpuKernelsView(myStage, detailsPanel);
+    myCpus = new CpuKernelsView(myStage);
     addKernelPanelToDetails(detailsPanel);
     addThreadsPanelToDetails(detailsLayout, detailsPanel);
     mainPanel.add(myUsageView, new TabularLayout.Constraint(MONITOR_PANEL_ROW, 0));

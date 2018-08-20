@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.ui.HideablePanel;
@@ -45,11 +46,10 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
   @NotNull
   private final CpuProfilerStage myStage;
 
-  // TODO(b/110766649): Do not expose the parent only to capture mouse events.
-  public CpuKernelsView(@NotNull CpuProfilerStage stage, @NotNull JPanel parent) {
+  public CpuKernelsView(@NotNull CpuProfilerStage stage) {
     super(stage.getCpuKernelModel());
     myStage = stage;
-    myPanel = createKernelsPanel(parent);
+    myPanel = createKernelsPanel();
 
     setupListeners();
     setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
@@ -92,9 +92,10 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
   }
 
   @NotNull
-  private HideablePanel createKernelsPanel(@NotNull JPanel parent) {
+  private HideablePanel createKernelsPanel() {
+    JPanel kernelsContent = new JPanel(new TabularLayout("*", "*"));
     // Create hideable panel for CPU list.
-    HideablePanel kernelsPanel = new HideablePanel.Builder("KERNEL", new CpuListScrollPane(this, parent))
+    HideablePanel kernelsPanel = new HideablePanel.Builder("KERNEL", kernelsContent)
       .setShowSeparator(false)
       // We want to keep initially expanded to false because the kernel layout is set to "Fix" by default. As such when
       // we later change the contents to have elements and expand the view we also want to trigger the StateChangedListener below
@@ -103,7 +104,7 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
       .setInitiallyExpanded(false)
       .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
       .build();
-
+    kernelsContent.add(new CpuListScrollPane(this, kernelsPanel), new TabularLayout.Constraint(0, 0));
     // Hide CPU panel by default
     kernelsPanel.setVisible(false);
 
