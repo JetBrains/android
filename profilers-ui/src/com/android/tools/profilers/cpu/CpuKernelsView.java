@@ -45,21 +45,17 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
   @NotNull
   private final CpuProfilerStage myStage;
 
-  @NotNull
-  private final CpuThreadsView myThreads;
-
   // TODO(b/110766649): Do not expose the parent only to capture mouse events.
-  public CpuKernelsView(@NotNull CpuProfilerStage stage, @NotNull CpuThreadsView threadsView, @NotNull JPanel parent) {
+  public CpuKernelsView(@NotNull CpuProfilerStage stage, @NotNull JPanel parent) {
     super(stage.getCpuKernelModel());
     myStage = stage;
-    myThreads = threadsView;
     myPanel = createKernelsPanel(parent);
 
     setupListeners();
     setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    setCellRenderer(new CpuKernelCellRenderer(myStage.getStudioProfilers().getIdeServices().getFeatureConfig(),
+    setCellRenderer(new CpuKernelCellRenderer(myStage, myStage.getStudioProfilers().getIdeServices().getFeatureConfig(),
                                               myStage.getStudioProfilers().getSession().getPid(),
-                                              this, threadsView.getThreads()));
+                                              this));
   }
 
   @NotNull
@@ -138,7 +134,7 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
 
     int id = process.get(0).value.getId();
     CpuThreadsModel threadsModel = myStage.getThreadStates();
-    for (int i = 0; i < myThreads.getThreads().getModel().getSize(); i++) {
+    for (int i = 0; i < threadsModel.getSize(); i++) {
       CpuThreadsModel.RangedCpuThread thread = threadsModel.getElementAt(i);
       if (id == thread.getThreadId()) {
         myStage.setSelectedThread(thread.getThreadId());
