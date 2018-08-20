@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.Variant;
+import com.android.builder.model.*;
 import com.android.java.model.GradlePluginModel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
@@ -31,6 +30,7 @@ import com.google.common.io.Files;
 import com.intellij.mock.MockProgressIndicator;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -46,7 +46,6 @@ import static com.android.tools.idea.testing.AndroidGradleTests.replaceRegexGrou
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.android.utils.FileUtils.join;
 import static com.android.utils.FileUtils.writeToFile;
-import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -55,7 +54,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 /**
- * Tests for {@link SyncExecutorIntegration}.
+ * Tests for {@link SyncExecutor}.
  */
 public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
   @Override
@@ -184,7 +183,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
                   "}";
     writeToFile(buildFile, text);
     File settingsFile = new File(projectFolderPath, FN_SETTINGS_GRADLE);
-    String contents = Files.toString(settingsFile, Charsets.UTF_8).trim();
+    String contents = Files.asCharSource(settingsFile, Charsets.UTF_8).read().trim();
     contents += ", ':library3'";
     writeToFile(settingsFile, contents);
 
@@ -269,12 +268,12 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     createGradleWrapper(projectFolderPath, "2.4");
 
     File topBuildFilePath = new File(projectFolderPath, "build.gradle");
-    String contents = Files.toString(topBuildFilePath, Charsets.UTF_8);
+    String contents = Files.asCharSource(topBuildFilePath, Charsets.UTF_8).read();
 
     contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]", "1.5.0");
     // Remove constraint-layout, which was not supported by old plugins.
     contents = replaceRegexGroup(contents, "(compile 'com.android.support.constraint:constraint-layout:\\+')", "");
-    write(contents, topBuildFilePath, Charsets.UTF_8);
+    Files.asCharSink(topBuildFilePath, Charsets.UTF_8).write(contents);
 
     Project project = getProject();
 
@@ -378,6 +377,84 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     }
   }
 
+  public void testSyncProjectWithSingleVariantSyncWithNdkProject() throws Throwable {
+    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+
+    prepareProjectForImport(HELLO_JNI);
+
+    Project project = getProject();
+
+    // Simulate that "release" variant is selected in "app" module.
+    String variant = "x86Release";
+    String abi = "x86";
+    SelectedVariantCollectorMock variantCollector = new SelectedVariantCollectorMock(project);
+    variantCollector.setSelectedVariants("app", variant, abi);
+
+    SyncExecutor syncExecutor = new SyncExecutor(project, ExtraGradleSyncModelsManager.getInstance(),
+                                                 new CommandLineArgs(true /* apply Java library plugin */),
+                                                 new SyncErrorHandlerManager(project), variantCollector);
+
+    SyncListener syncListener = new SyncListener();
+    syncExecutor.syncProject(new MockProgressIndicator(), syncListener);
+    syncListener.await();
+
+    syncListener.propagateFailureIfAny();
+
+    SyncProjectModels models = syncListener.getSyncModels();
+    Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getModuleModels());
+    assertThat(modelsByModule).hasSize(2);
+
+    SyncModuleModels moduleModels = modelsByModule.get("app");
+    verifyRequestedVariants(moduleModels, singletonList(variant));
+
+    NativeAndroidProject nativeProject = moduleModels.findModel(NativeAndroidProject.class);
+    assertNotNull(nativeProject);
+    assertThat(nativeProject.getArtifacts()).isEmpty();
+
+    List<NativeVariantAbi> variants = moduleModels.findModels(NativeVariantAbi.class);
+    assertNotNull(variants);
+    List<NativeArtifact> artifacts = variants.stream()
+                                             .flatMap(it -> it.getArtifacts().stream())
+                                             .filter(it -> variant.equals(it.getGroupName()) && abi.equals(it.getAbi()))
+                                             .collect(toList());
+    assertNotEmpty(artifacts);
+  }
+
+  public void testVariantOnlySyncWithNdkProject() throws Throwable {
+    prepareProjectForImport(HELLO_JNI);
+
+    Project project = getProject();
+    SyncExecutor syncExecutor = new SyncExecutor(project, ExtraGradleSyncModelsManager.getInstance(),
+                                                 new CommandLineArgs(true /* apply Java library plugin */),
+                                                 new SyncErrorHandlerManager(project), new SelectedVariantCollectorMock(project));
+    SyncListener syncListener = new SyncListener();
+
+    // Request for single-variant sync for app module with variant "x86Release", abi "x86".
+    String variant = "x86Release";
+    String abi = "x86";
+    File buildId = getProjectFolderPath();
+    VariantOnlySyncOptions options = new VariantOnlySyncOptions(buildId, ":app", variant, abi);
+    syncExecutor.syncProject(new MockProgressIndicator(), syncListener, options);
+    syncListener.await();
+
+    syncListener.propagateFailureIfAny();
+
+    VariantOnlyProjectModels models = syncListener.getVariantOnlyModels();
+    Map<String, VariantOnlyModuleModel> modelsByModuleId =
+      models.getModuleModels().stream().collect(toMap(VariantOnlyModuleModel::getModuleId, m -> m));
+
+    VariantOnlyModuleModel moduleModels = modelsByModuleId.get(createUniqueModuleId(buildId, ":app"));
+    // Verify that variant x86Release is requested for Android variant.
+    verifyRequestedVariants(moduleModels, singletonList(variant));
+    // Verify that variant x86Release, and abi x86 is requested for NativeVariantAbi.
+    NativeVariantAbi nativeVariantAbi = moduleModels.getNativeVariantAbi().model;
+    assertNotNull(nativeVariantAbi);
+    List<NativeArtifact> artifacts = nativeVariantAbi.getArtifacts().stream()
+                                                     .filter(it -> variant.equals(it.getGroupName()) && abi.equals(it.getAbi()))
+                                                     .collect(toList());
+    assertNotEmpty(artifacts);
+  }
+
   private static class SelectedVariantCollectorMock extends SelectedVariantCollector {
     @NotNull private final SelectedVariants mySelectedVariants = new SelectedVariants();
     @NotNull private final File myProjectFolderPath;
@@ -394,8 +471,12 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     }
 
     void setSelectedVariants(@NotNull String moduleName, @NotNull String selectedVariant) {
+      setSelectedVariants(moduleName, selectedVariant, null);
+    }
+
+    void setSelectedVariants(@NotNull String moduleName, @NotNull String selectedVariant, @Nullable String selectedAbi) {
       String moduleId = createUniqueModuleId(myProjectFolderPath, ":" + moduleName);
-      mySelectedVariants.addSelectedVariant(moduleId, selectedVariant, null);
+      mySelectedVariants.addSelectedVariant(moduleId, selectedVariant, selectedAbi);
     }
   }
 
