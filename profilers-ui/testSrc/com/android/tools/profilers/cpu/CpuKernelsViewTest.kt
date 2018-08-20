@@ -28,7 +28,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JLabel
-import javax.swing.JPanel
 
 // TODO(b/110767935): add tests for handling mouse events (e.g. selecting a kernel slice or toggling the panel expanded state)
 class CpuKernelsViewTest {
@@ -66,7 +65,7 @@ class CpuKernelsViewTest {
     stage.studioProfilers.sessionsManager.endCurrentSession()
     stage.studioProfilers.sessionsManager.beginSession(device, process1)
     val session = stage.studioProfilers.sessionsManager.selectedSession
-    val kernelsView = CpuKernelsView(stage, JPanel())
+    val kernelsView = CpuKernelsView(stage)
     // JBList wraps cellRenderer in a ExpandedItemListCellRendererWrapper, so we get this and unwrap our instance.
     assertThat(kernelsView.cellRenderer).isInstanceOf(ExpandedItemListCellRendererWrapper::class.java)
     val cellRenderer = kernelsView.cellRenderer as ExpandedItemListCellRendererWrapper
@@ -78,19 +77,19 @@ class CpuKernelsViewTest {
 
   @Test
   fun backgroundShouldBeDefaultStage() {
-    val kernelsView = CpuKernelsView(stage, JPanel())
+    val kernelsView = CpuKernelsView(stage)
     assertThat(kernelsView.background).isEqualTo(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
   }
 
   @Test
   fun panelShouldBeHiddenByDefault() {
-    val kernelsView = CpuKernelsView(stage, JPanel())
+    val kernelsView = CpuKernelsView(stage)
     assertThat(kernelsView.panel.isVisible).isFalse()
   }
 
   @Test
   fun verifyTitleContent() {
-    val kernelsView = CpuKernelsView(stage, JPanel())
+    val kernelsView = CpuKernelsView(stage)
 
     val title = TreeWalker(kernelsView.panel).descendants().filterIsInstance(JLabel::class.java).first().text
     // Text is actual an HTML, so we use contains instead of equals
@@ -99,7 +98,7 @@ class CpuKernelsViewTest {
 
   @Test
   fun scrollPaneViewportViewShouldBeKernelsView() {
-    val kernelsView = CpuKernelsView(stage, JPanel())
+    val kernelsView = CpuKernelsView(stage)
     val descendants = TreeWalker(kernelsView.panel).descendants().filterIsInstance(CpuListScrollPane::class.java)
     assertThat(descendants).hasSize(1)
     val scrollPane = descendants[0]
