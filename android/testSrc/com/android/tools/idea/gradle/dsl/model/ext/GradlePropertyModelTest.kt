@@ -2356,6 +2356,26 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testMapOrder() {
+    val text = """
+               ext {
+                 prop1 = [key1 : 1, key3 : 3, key2 : 2]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(3, map.entries)
+
+      assertThat(map.keys.toList(), equalTo(listOf("key1", "key3", "key2")))
+    }
+  }
+
+  @Test
   fun testSetMapInMap() {
     val text = """
                ext {
