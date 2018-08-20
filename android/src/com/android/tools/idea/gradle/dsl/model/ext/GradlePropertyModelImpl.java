@@ -146,7 +146,9 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     }
 
     return map.getPropertyElements(GradleDslExpression.class).stream()
-      .collect(Collectors.toMap(e -> e.getName() ,e -> new GradlePropertyModelImpl(e)));
+      .collect(Collectors.toMap(e -> e.getName() ,e -> new GradlePropertyModelImpl(e), (u, v) -> {
+        throw new IllegalStateException(String.format("Duplicate key %s", u));
+      }, LinkedHashMap::new));
   }
 
   @NotNull
