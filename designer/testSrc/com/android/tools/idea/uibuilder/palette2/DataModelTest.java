@@ -23,7 +23,6 @@ import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.ide.util.PropertiesComponent;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatchers;
 import org.mockito.invocation.InvocationOnMock;

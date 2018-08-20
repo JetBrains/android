@@ -218,7 +218,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
   private NavigationSchema getSchema() {
     if (mySchema == null) {
       assert myModel != null;
-      mySchema = NavigationSchema.get(myModel.getFacet());
+      mySchema = NavigationSchema.get(myModel.getModule());
     }
     return mySchema;
   }

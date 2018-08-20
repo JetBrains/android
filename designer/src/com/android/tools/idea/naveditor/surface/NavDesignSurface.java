@@ -47,6 +47,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -233,9 +234,10 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   private static boolean tryToCreateSchema(@NotNull AndroidFacet facet) {
-    return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(() -> {
+    Module module = facet.getModule();
+    return DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
       try {
-        NavigationSchema.createIfNecessary(facet);
+        NavigationSchema.createIfNecessary(module);
         return true;
       }
       catch (ClassNotFoundException e) {

@@ -58,7 +58,7 @@ object NavModelBuilderUtil {
       val surface = model.surface as NavDesignSurface
 
       try {
-        createIfNecessary(facet)
+        createIfNecessary(facet.module)
       }
       catch (e: Exception) {
         throw RuntimeException(e)

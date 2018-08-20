@@ -77,11 +77,11 @@ class DestinationClassEditor(listener: NlEditingListener, comboBox: CustomComboB
   private class SubclassEnumSupport(property: NlProperty) : EnumSupport(property) {
     override fun getAllValues(): List<ValueWithDisplayString> {
       val component = myProperty.components[0]
-      val facet = component.model.facet
-      val schema = NavigationSchema.get(facet)
+      val module = component.model.module
+      val schema = NavigationSchema.get(module)
 
       val classNames = mutableSetOf<String>()
-      val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(facet.module)
+      val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)
       for (inheritor in schema.getDestinationClassesForTag(component.tagName)) {
         for (child in ClassInheritorsSearch.search(inheritor, scope, true).plus(inheritor)) {
           val qName = child.qualifiedName
