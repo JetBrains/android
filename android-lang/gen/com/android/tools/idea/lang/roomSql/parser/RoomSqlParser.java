@@ -3927,20 +3927,21 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   public static boolean update_statement(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "update_statement")) return false;
     if (!nextTokenIs(builder, UPDATE)) return false;
-    boolean result;
-    Marker marker = enter_section_(builder);
+    boolean result, pinned;
+    Marker marker = enter_section_(builder, level, _NONE_, UPDATE_STATEMENT, null);
     result = consumeToken(builder, UPDATE);
-    result = result && update_statement_1(builder, level + 1);
-    result = result && single_table_statement_table(builder, level + 1);
-    result = result && update_statement_3(builder, level + 1);
-    result = result && consumeToken(builder, SET);
-    result = result && column_name(builder, level + 1);
-    result = result && consumeToken(builder, EQ);
-    result = result && expression(builder, level + 1, -1);
-    result = result && update_statement_8(builder, level + 1);
-    result = result && update_statement_9(builder, level + 1);
-    exit_section_(builder, marker, UPDATE_STATEMENT, result);
-    return result;
+    pinned = result; // pin = 1
+    result = result && report_error_(builder, update_statement_1(builder, level + 1));
+    result = pinned && report_error_(builder, single_table_statement_table(builder, level + 1)) && result;
+    result = pinned && report_error_(builder, update_statement_3(builder, level + 1)) && result;
+    result = pinned && report_error_(builder, consumeToken(builder, SET)) && result;
+    result = pinned && report_error_(builder, column_name(builder, level + 1)) && result;
+    result = pinned && report_error_(builder, consumeToken(builder, EQ)) && result;
+    result = pinned && report_error_(builder, expression(builder, level + 1, -1)) && result;
+    result = pinned && report_error_(builder, update_statement_8(builder, level + 1)) && result;
+    result = pinned && update_statement_9(builder, level + 1) && result;
+    exit_section_(builder, level, marker, result, pinned, null);
+    return result || pinned;
   }
 
   // ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )?

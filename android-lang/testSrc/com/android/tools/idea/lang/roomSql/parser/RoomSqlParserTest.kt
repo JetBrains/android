@@ -18,6 +18,7 @@ package com.android.tools.idea.lang.roomSql.parser
 import com.android.tools.idea.lang.roomSql.ROOM_SQL_FILE_TYPE
 import com.android.tools.idea.lang.roomSql.RoomPairedBraceMatcher
 import com.android.tools.idea.lang.roomSql.RoomSqlLanguage
+import com.intellij.codeInsight.completion.CompletionUtil
 import com.intellij.lang.LanguageBraceMatching
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiFile
@@ -125,6 +126,37 @@ class MiscParserTest : RoomSqlParserTest() {
     check("update foo set bar = 42, baz = :value, quux=:anotherValue")
     check("update or fail foo set bar=42")
     check("update foo set bar=bar*2 where predicate(bar)")
+  }
+
+  fun testUpdatePartial() {
+    assertEquals("""
+        FILE
+          RoomUpdateStatementImpl(UPDATE_STATEMENT)
+            PsiElement(UPDATE)('update')
+            RoomSingleTableStatementTableImpl(SINGLE_TABLE_STATEMENT_TABLE)
+              RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                PsiElement(IDENTIFIER)('${CompletionUtil.DUMMY_IDENTIFIER_TRIMMED}')
+            PsiErrorElement:'.', INDEXED, NOT or SET expected
+              <empty list>
+        """.trimIndent(),
+        toParseTreeText("update ${CompletionUtil.DUMMY_IDENTIFIER}")
+    )
+
+    assertEquals("""
+          FILE
+            RoomUpdateStatementImpl(UPDATE_STATEMENT)
+              PsiElement(UPDATE)('update')
+              RoomSingleTableStatementTableImpl(SINGLE_TABLE_STATEMENT_TABLE)
+                RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                  PsiElement(IDENTIFIER)('foo')
+              PsiElement(SET)('set')
+              RoomColumnNameImpl(COLUMN_NAME)
+                PsiElement(IDENTIFIER)('${CompletionUtil.DUMMY_IDENTIFIER_TRIMMED}')
+              PsiErrorElement:'=' expected
+                <empty list>
+        """.trimIndent(),
+        toParseTreeText("update foo set ${CompletionUtil.DUMMY_IDENTIFIER}")
+    )
   }
 
   fun testExpressions() {
