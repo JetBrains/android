@@ -282,10 +282,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myStage.getCpuKernelModel().addListDataListener(new ListDataListener() {
       @Override
       public void contentsChanged(ListDataEvent e) {
-        int size = myCpus.getModel().getSize();
+        int size = myCpus.getKernels().getModel().getSize();
         boolean hasElements = size != 0;
         // Lets only show 4 cores max the user can scroll to view the rest.
-        myCpus.setVisibleRowCount(Math.min(4, size));
+        myCpus.getKernels().setVisibleRowCount(Math.min(4, size));
         kernelsPanel.setVisible(hasElements);
         kernelsPanel.setExpanded(hasElements);
         kernelsPanel.setTitle(String.format("KERNEL (%d)", size));
@@ -310,7 +310,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       public void intervalRemoved(ListDataEvent e) {
       }
     });
-    myTooltipComponent.registerListenersOn(myCpus);
+    myTooltipComponent.registerListenersOn(myCpus.getKernels());
     detailsPanel.add(myCpus.getPanel(), new TabularLayout.Constraint(DETAILS_KERNEL_PANEL_ROW, 0));
   }
 

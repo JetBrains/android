@@ -38,7 +38,7 @@ import java.util.List;
  * represents a core found in an atrace file and is composed by a {@link com.android.tools.adtui.chart.statechart.StateChart} whose data are
  * the list of {@link CpuThreadSliceInfo} associated with that core.
  */
-public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
+public class CpuKernelsView {
 
   @NotNull
   private final HideablePanel myPanel;
@@ -46,16 +46,18 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
   @NotNull
   private final CpuProfilerStage myStage;
 
-  public CpuKernelsView(@NotNull CpuProfilerStage stage) {
-    super(stage.getCpuKernelModel());
-    myStage = stage;
-    myPanel = createKernelsPanel();
+  @NotNull
+  private final JBList<CpuKernelModel.CpuState> myKernels;
 
+  public CpuKernelsView(@NotNull CpuProfilerStage stage) {
+    myStage = stage;
+    myKernels = new JBList<>(stage.getCpuKernelModel());
+    myPanel = createKernelsPanel();
     setupListeners();
-    setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    setCellRenderer(new CpuKernelCellRenderer(myStage, myStage.getStudioProfilers().getIdeServices().getFeatureConfig(),
+    myKernels.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
+    myKernels.setCellRenderer(new CpuKernelCellRenderer(myStage, myStage.getStudioProfilers().getIdeServices().getFeatureConfig(),
                                               myStage.getStudioProfilers().getSession().getPid(),
-                                              this));
+                                              myKernels));
   }
 
   @NotNull
@@ -63,25 +65,33 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
     return myPanel;
   }
 
+  /* TODO(b/112827411): We don't need to expose the list when refactoring will be done.
+     Consumers of CpuKernelsView should be able to register mouse or UI events directly to the top-level component of CpuKernelsView.
+   */
+  @NotNull
+  public JBList<CpuKernelModel.CpuState> getKernels() {
+    return myKernels;
+  }
+
   private void setupListeners() {
     // Handle selection.
-    addListSelectionListener((e) -> cpuKernelRunningStateSelected(getModel()));
-    addMouseListener(new MouseAdapter() {
+    myKernels.addListSelectionListener((e) -> cpuKernelRunningStateSelected(myKernels.getModel()));
+    myKernels.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        cpuKernelRunningStateSelected(getModel());
+        cpuKernelRunningStateSelected(myKernels.getModel());
         myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectCpuKernelElement();
       }
     });
 
     // Handle Tooltip
-    addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuKernelTooltip(myStage)));
-    addMouseMotionListener(new MouseAdapter() {
+    myKernels.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuKernelTooltip(myStage)));
+    myKernels.addMouseMotionListener(new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
-        int row = locationToIndex(e.getPoint());
+        int row = myKernels.locationToIndex(e.getPoint());
         if (row != -1) {
-          CpuKernelModel.CpuState model = getModel().getElementAt(row);
+          CpuKernelModel.CpuState model = myKernels.getModel().getElementAt(row);
           if (myStage.getTooltip() instanceof CpuKernelTooltip) {
             CpuKernelTooltip tooltip = (CpuKernelTooltip)myStage.getTooltip();
             tooltip.setCpuSeries(model.getCpuId(), model.getSeries());
@@ -104,7 +114,7 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
       .setInitiallyExpanded(false)
       .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
       .build();
-    kernelsContent.add(new CpuListScrollPane(this, kernelsPanel), new TabularLayout.Constraint(0, 0));
+    kernelsContent.add(new CpuListScrollPane(myKernels, kernelsPanel), new TabularLayout.Constraint(0, 0));
     // Hide CPU panel by default
     kernelsPanel.setVisible(false);
 
@@ -121,7 +131,7 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
    * triggering the feature tracker to register the thread selection.
    */
   private void cpuKernelRunningStateSelected(@NotNull ListModel<CpuKernelModel.CpuState> cpuModel) {
-    int selectedIndex = getSelectedIndex();
+    int selectedIndex = myKernels.getSelectedIndex();
     if (selectedIndex < 0) {
       myStage.setSelectedThread(CaptureModel.NO_THREAD);
       return;
