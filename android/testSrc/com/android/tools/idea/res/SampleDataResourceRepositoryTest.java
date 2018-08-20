@@ -25,6 +25,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -41,6 +42,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.google.common.truth.Truth.assertThat;
 
 public class SampleDataResourceRepositoryTest extends AndroidTestCase {
   @Override
@@ -65,6 +67,17 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
   @Nullable
   private static List<ResourceItem> onlyProjectSources(@NotNull SampleDataResourceRepository repo, @NotNull String resName) {
     return repo.getMap(RES_AUTO, ResourceType.SAMPLE_DATA, true).get(resName);
+  }
+
+  public void testGetInstance() {
+    SampleDataResourceRepository repository = SampleDataResourceRepository.getInstance(myFacet);
+    // We should return a cached instance of the resource repository..
+    assertThat(SampleDataResourceRepository.getInstance(myFacet)).isSameAs(repository);
+
+    // ..until we dispose of the existing repository, at which point another call to
+    // getInstance() should give us a newly-constructed repository and not the disposed one.
+    Disposer.dispose(repository);
+    assertThat(SampleDataResourceRepository.getInstance(myFacet)).isNotSameAs(repository);
   }
 
   public void testDataLoad() {
