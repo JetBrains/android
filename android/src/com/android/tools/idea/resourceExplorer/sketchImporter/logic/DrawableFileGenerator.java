@@ -21,6 +21,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.DrawableModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchGradient;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchGradientStop;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchGraphicContextSettings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -85,6 +86,21 @@ public class DrawableFileGenerator {
     });
   }
 
+  private void addArtboardPathForTesting(@NotNull VectorDrawable vectorDrawable, @NotNull XmlTag root) {
+    getApplication().runReadAction(() -> {
+      XmlTag pathTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_PATH);
+      PathStringBuilder pathStringBuilder = new PathStringBuilder();
+      pathStringBuilder.startPath(0, 0);
+      pathStringBuilder.createLine(vectorDrawable.getArtboardWidth(), 0);
+      pathStringBuilder.createLine(vectorDrawable.getArtboardWidth(), vectorDrawable.getArtboardHeight());
+      pathStringBuilder.createLine(0, vectorDrawable.getArtboardHeight());
+      pathStringBuilder.endPath();
+      pathTag.setAttribute(ATTRIBUTE_PATH_DATA, pathStringBuilder.build());
+      pathTag.setAttribute(ATTRIBUTE_FILL_COLOR, "#FFFFFFFF");
+      root.addSubTag(pathTag, false);
+    });
+  }
+
   private void addPath(@NotNull DrawableModel shape, @NotNull XmlTag root) {
     getApplication().runReadAction(() -> {
       XmlTag pathTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_PATH);
@@ -95,7 +111,7 @@ public class DrawableFileGenerator {
       }
       if (shape.getGradient() != null) {
         root.setAttribute(ATTRIBUTE_AAPT, SdkConstants.AAPT_URI);
-        pathTag.addSubTag(generateGradientSubTag(shape.getGradient()), false);
+        pathTag.addSubTag(generateGradientSubTag(shape.getGradient(), shape.getGraphicContextSettings()), false);
       }
       else if (shape.getFillColor() != INVALID_COLOR_VALUE) {
         pathTag.setAttribute(ATTRIBUTE_FILL_COLOR, colorToHex(shape.getFillColor()));
@@ -105,7 +121,7 @@ public class DrawableFileGenerator {
   }
 
   @NotNull
-  private XmlTag generateGradientSubTag(@NotNull SketchGradient gradient) {
+  private XmlTag generateGradientSubTag(@NotNull SketchGradient gradient, @Nullable SketchGraphicContextSettings contextSettings) {
     XmlTag aaptAttrTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_AAPT_ATTR);
     XmlTag gradientTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_GRADIENT);
     String gradientType = gradient.getDrawableGradientType();
@@ -130,6 +146,7 @@ public class DrawableFileGenerator {
       gradientTag.setAttribute(ATTRIBUTE_GRADIENT_TYPE, gradient.getDrawableGradientType());
     }
 
+    gradient.applyGraphicContextSettings(contextSettings);
     for (SketchGradientStop item : gradient.getStops()) {
       XmlTag itemTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_ITEM);
       itemTag.setAttribute(ATTRIBUTE_GRADIENT_STOP_COLOR, colorToHex(item.getColor().getRGB()));
@@ -151,6 +168,7 @@ public class DrawableFileGenerator {
     XmlTag root = createVectorDrawable(myProject);
     if (vectorDrawable != null) {
       updateDimensionsFromVectorDrawable(vectorDrawable, root);
+      //addArtboardPathForTesting();
       List<DrawableModel> drawableModels = vectorDrawable.getDrawableModels();
       for (DrawableModel drawableModel : drawableModels) {
         addPath(drawableModel, root);

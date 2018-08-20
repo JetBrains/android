@@ -19,6 +19,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -129,11 +130,22 @@ public class SketchGradient {
     to = to.makeAbsolutePosition(ownFrame);
   }
 
-  public void applyTransformation(AffineTransform transformation) {
+  public void applyTransformation(@NotNull AffineTransform transformation) {
     Point2D[] origin = {from, to};
     Point2D[] newPoints = new Point2D[2];
     transformation.transform(origin, 0, newPoints, 0, 2);
     from.setLocation(newPoints[0]);
     to.setLocation(newPoints[1]);
+  }
+
+  public void applyGraphicContextSettings(@Nullable SketchGraphicContextSettings contextSettings) {
+    if (contextSettings != null) {
+      for (int i = 0; i < stops.length; i++) {
+        Color stopColor = stops[i].getColor();
+        Color newStopColor = new Color(stopColor.getRed(), stopColor.getGreen(), stopColor.getBlue(),
+                                       (int)(stopColor.getAlpha() * contextSettings.getOpacity()));
+        stops[i] = new SketchGradientStop(newStopColor, stops[i].getPosition());
+      }
+    }
   }
 }

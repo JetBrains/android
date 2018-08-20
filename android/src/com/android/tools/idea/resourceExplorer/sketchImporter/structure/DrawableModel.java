@@ -25,14 +25,17 @@ public class DrawableModel {
   @Nullable private SketchGradient gradient;
   private int strokeColor;
   @Nullable private String strokeWidth;
+  @Nullable private SketchGraphicContextSettings graphicContextSettings;
 
   public DrawableModel(@NotNull String pathDataParam,
                        int fillColorParam,
+                       @Nullable SketchGraphicContextSettings graphicContextSettingsParam,
                        @Nullable SketchGradient gradientParam,
                        int strokeColorParam,
                        @Nullable String strokeWidthParam) {
     pathData = pathDataParam;
     fillColor = fillColorParam;
+    graphicContextSettings = graphicContextSettingsParam;
     strokeColor = strokeColorParam;
     strokeWidth = strokeWidthParam;
     gradient = gradientParam;
@@ -59,5 +62,10 @@ public class DrawableModel {
   @Nullable
   public SketchGradient getGradient() {
     return gradient;
+  }
+
+  @Nullable
+  public SketchGraphicContextSettings getGraphicContextSettings(){
+    return graphicContextSettings;
   }
 }
