@@ -289,4 +289,10 @@ public class GradleSyncStateTest extends IdeaTestCase {
     mySyncState.syncSkipped(timestamp);
     assertNull(mySyncState.getExternalSystemTaskId());
   }
+
+  public void testSourceGenerationFinished() {
+    mySyncState.sourceGenerationFinished();
+
+    verify(myGradleSyncListener, times(1)).sourceGenerationFinished(myProject);
+  }
 }

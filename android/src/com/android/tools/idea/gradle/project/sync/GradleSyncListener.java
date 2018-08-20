@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.intellij.openapi.project.Project;
-import org.gradle.api.tasks.Sync;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EventListener;
@@ -56,5 +55,8 @@ public interface GradleSyncListener extends EventListener {
    * @param project the project.
    */
   default void syncSkipped(@NotNull Project project) {
+  }
+
+  default void sourceGenerationFinished(@NotNull Project project) {
   }
 }

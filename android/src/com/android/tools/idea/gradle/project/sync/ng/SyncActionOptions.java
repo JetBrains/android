@@ -22,6 +22,7 @@ import java.io.Serializable;
 public class SyncActionOptions implements Serializable {
   @Nullable private SelectedVariants mySelectedVariants;
   private boolean mySingleVariantSyncEnabled;
+  private boolean myShouldGenerateSources;
 
   public boolean isSingleVariantSyncEnabled() {
     return mySingleVariantSyncEnabled;
@@ -29,6 +30,14 @@ public class SyncActionOptions implements Serializable {
 
   public void setSingleVariantSyncEnabled(boolean singleVariantSyncEnabled) {
     mySingleVariantSyncEnabled = singleVariantSyncEnabled;
+  }
+
+  public boolean shouldGenerateSources() {
+    return myShouldGenerateSources;
+  }
+
+  public void setShouldGenerateSources(boolean shouldGenerateSources) {
+    myShouldGenerateSources = shouldGenerateSources;
   }
 
   @Nullable

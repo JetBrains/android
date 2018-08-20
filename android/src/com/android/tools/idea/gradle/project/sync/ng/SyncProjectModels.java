@@ -81,7 +81,7 @@ public class SyncProjectModels implements Serializable {
     if (myOptions.isSingleVariantSyncEnabled()) {
       SelectedVariants variants = myOptions.getSelectedVariants();
       requireNonNull(variants);
-      myVariantChooser.chooseSelectedVariants(myModuleModels, controller, variants);
+      myVariantChooser.chooseSelectedVariants(myModuleModels, controller, variants, myOptions.shouldGenerateSources());
     }
     // Ensure unique module names.
     deduplicateModuleNames();

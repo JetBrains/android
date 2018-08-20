@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
+import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidVariantChangeModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkVariantChangeModuleSetup;
@@ -335,10 +336,11 @@ public class BuildVariantUpdater {
             variantName = ndkModuleModel.getVariantName(buildVariantName);
             abiName = ndkModuleModel.getAbiName(buildVariantName);
           }
+          boolean isCompoundSyncEnabled = NewGradleSync.isCompoundSync(project);
           request.variantOnlySyncOptions =
-            new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName);
-          // TODO: It is not necessary to generate source for all modules, only the modules that have variant changes need to be re-generated.
-          // Need to change generateSource functions to accept specified modules.
+            new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName, isCompoundSyncEnabled);
+          // TODO: It is not necessary to generate source for all modules (when not in compound-sync), only the modules that have variant
+          // changes need to be re-generated. Need to change generateSource functions to accept specified modules.
           request.generateSourcesOnSuccess = true;
           GradleSyncInvoker.getInstance().requestProjectSync(project, request, getSyncListener(variantSelectionChangeListeners));
         }

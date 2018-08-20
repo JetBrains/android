@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -80,5 +81,28 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
     mySyncState.getSummary().setSyncErrorsFound(true);
 
     assertTrue(mySyncState.lastSyncFailed());
+  }
+
+  public void testCompoundSyncEnabled() throws Exception {
+    try {
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+      StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
+
+      loadSimpleApplication();
+
+      // Project imported with no source generation
+      verify(myGradleSyncListener, times(0)).sourceGenerationFinished(eq(getProject()));
+
+      // Sync with source generation
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_MODIFIED, myGradleSyncListener);
+
+      verify(myGradleSyncListener).sourceGenerationFinished(eq(getProject()));
+    }
+    finally {
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
+      StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
+    }
   }
 }

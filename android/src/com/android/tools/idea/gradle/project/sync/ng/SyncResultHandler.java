@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCach
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
@@ -35,10 +34,13 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.gradle.util.GradleProjects.open;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.invokeLater;
@@ -53,6 +55,8 @@ class SyncResultHandler {
   @NotNull private final GradleProjectInfo myProjectInfo;
   @NotNull private final ProjectSetup.Factory myProjectSetupFactory;
   @NotNull private final PostSyncProjectSetup myPostSyncProjectSetup;
+
+  @NotNull private final CompoundSyncTestManager myCompoundSyncTestManager = new CompoundSyncTestManager();
 
   SyncResultHandler(@NotNull Project project) {
     this(project, GradleSyncState.getInstance(project), GradleProjectInfo.getInstance(project), new ProjectSetup.Factory(),
@@ -244,6 +248,66 @@ class SyncResultHandler {
     else {
       // SyncAction.ProjectModels should not be null. Something went wrong.
       notifyAndLogSyncError("Gradle did not return any project models", null /* no exception */, syncListener);
+    }
+  }
+
+  void onCompoundSyncModels(@NotNull SyncExecutionCallback callback,
+                            @NotNull PostSyncProjectSetup.Request setupRequest,
+                            @NotNull ProgressIndicator indicator,
+                            @Nullable GradleSyncListener syncListener,
+                            boolean variantOnlySync) {
+    Runnable runnable = variantOnlySync ? () -> onVariantOnlySyncFinished(callback, setupRequest, indicator, syncListener)
+                                        : () -> onSyncFinished(callback, setupRequest, indicator, syncListener);
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      // If in unit test mode, instead of running the callback (project setup), registers it to be run late, when Gradle returns
+      myCompoundSyncTestManager.myModelsCallback.set(runnable);
+      myCompoundSyncTestManager.myLatch.countDown();
+    }
+    else {
+      // Call project setup (and entire sync finished flow in another thread to unblock Gradle to generate sources)
+      ApplicationManager.getApplication().executeOnPooledThread(runnable);
+    }
+  }
+
+  void onCompoundSyncFinished(@Nullable GradleSyncListener syncListener) {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      // If in unit test mode, runs the previously registered callback (project setup)
+      try {
+        if (!myCompoundSyncTestManager.myLatch.await(1, TimeUnit.MINUTES)) {
+          throw new RuntimeException("Waiting for Project Setup in Compound Sync timed out");
+        }
+      }
+      catch (InterruptedException e) {
+        myCompoundSyncTestManager.reset();
+        throw new RuntimeException(e);
+      }
+      myCompoundSyncTestManager.myModelsCallback.get().run();
+      myCompoundSyncTestManager.reset();
+    }
+
+    LocalFileSystem.getInstance().refresh(true);
+    if (syncListener != null) {
+      syncListener.sourceGenerationFinished(myProject);
+    }
+    mySyncState.sourceGenerationFinished();
+  }
+
+  /**
+   * When unit testing, there might be some concurrency problems:
+   * - Test code starts in EDT -> registers a callback to be invoked by Gradle -> invokes Gradle in EDT (or thread forked from EDT)
+   * - Gradle (before finishing execution and thus returning to EDT) calls the callback via proxy, in a different thread -> invokes callback
+   * containing project setup code (which contains code that must be run in EDT, which is busy waiting for Gradle invocation completion)
+   *
+   * To solve this, instead of really calling the setup code in the callback when in unit test mode, we register a runnable to be run after
+   * Gradle returns, in the EDT.
+   */
+  private static class CompoundSyncTestManager {
+    @NotNull private AtomicReference<Runnable> myModelsCallback = new AtomicReference<>();
+    @NotNull private CountDownLatch myLatch = new CountDownLatch(1);
+
+    private void reset() {
+      myModelsCallback.set(null);
+      myLatch = new CountDownLatch(1);
     }
   }
 }
