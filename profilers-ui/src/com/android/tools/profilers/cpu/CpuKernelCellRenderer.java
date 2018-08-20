@@ -37,10 +37,7 @@ import java.awt.*;
  * This class is responsible for the layout of each row of the cpu process rendering.
  */
 public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuState, CpuThreadSliceInfo> {
-  /**
-   * Maintain threads list so we can match selection state between the two lists.
-   */
-  private final JList<CpuThreadsModel.RangedCpuThread> myThreadsList;
+  @NotNull private final CpuProfilerStage myStage;
 
   private final boolean myDebugRenderingEnabled;
 
@@ -56,15 +53,14 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
    *
    * @param processId        Id of the process to stand out as the user process.
    * @param cpuStateList     list to be passed to the base cell renderer.
-   * @param threadsList      list containing thread elements to keep selection in sync between the two list.
    */
-  public CpuKernelCellRenderer(@NotNull FeatureConfig featureConfig,
+  public CpuKernelCellRenderer(@NotNull CpuProfilerStage stage,
+                               @NotNull FeatureConfig featureConfig,
                                int processId,
-                               @NotNull JList<CpuKernelModel.CpuState> cpuStateList,
-                               @NotNull JList<CpuThreadsModel.RangedCpuThread> threadsList) {
+                               @NotNull JList<CpuKernelModel.CpuState> cpuStateList) {
     super(cpuStateList);
+    myStage = stage;
     myProcessId = processId;
-    myThreadsList = threadsList;
     myDebugRenderingEnabled = featureConfig.isPerformanceMonitoringEnabled();
   }
 
@@ -126,8 +122,7 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
           return isMouseOver ? ProfilerColors.CPU_KERNEL_OTHER_HOVER : ProfilerColors.CPU_KERNEL_OTHER;
         }
         // Test and return our process color.
-        CpuThreadsModel.RangedCpuThread selectedThread = myThreadsList.getSelectedValue();
-        boolean isSelected = selectedThread != null && selectedThread.getThreadId() == value.getId();
+        boolean isSelected = myStage.getSelectedThread() == value.getId();
         if (isMouseOver) {
           return ProfilerColors.CPU_KERNEL_APP_HOVER;
         }
@@ -150,8 +145,7 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
           return isMouseOver ? ProfilerColors.CPU_KERNEL_OTHER_TEXT_HOVER : ProfilerColors.CPU_KERNEL_OTHER_TEXT;
         }
         // Test and return our process color.
-        CpuThreadsModel.RangedCpuThread selectedThread = myThreadsList.getSelectedValue();
-        boolean isSelected = selectedThread != null && selectedThread.getThreadId() == value.getId();
+        boolean isSelected = myStage.getSelectedThread() == value.getId();
         if (isMouseOver) {
           return ProfilerColors.CPU_KERNEL_APP_TEXT_HOVER;
         }
