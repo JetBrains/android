@@ -100,6 +100,7 @@ public class GradleSyncState {
   private long mySyncStartedTimestamp = -1L;
   private long mySyncSetupStartedTimeStamp = -1L;
   private long mySyncEndedTimeStamp = -1L;
+  private long mySourceGenerationEndedTimeStamp = -1L;
   private long mySyncFailedTimeStamp = -1L;
   private GradleSyncStats.Trigger myTrigger = TRIGGER_UNKNOWN;
 
@@ -238,6 +239,7 @@ public class GradleSyncState {
     mySyncStartedTimestamp = timeStampMs;
     mySyncSetupStartedTimeStamp = -1;
     mySyncEndedTimeStamp = -1;
+    mySourceGenerationEndedTimeStamp = -1;
     mySyncFailedTimeStamp = -1;
     myTrigger = trigger;
   }
@@ -250,6 +252,11 @@ public class GradleSyncState {
   @VisibleForTesting
   void setSyncEndedTimeStamp(long timeStampMs) {
     mySyncEndedTimeStamp = timeStampMs;
+  }
+
+  @VisibleForTesting
+  void setSourceGenerationEndedTimeStamp(long timeStampMs) {
+    mySourceGenerationEndedTimeStamp = timeStampMs;
   }
 
   @VisibleForTesting
@@ -482,6 +489,16 @@ public class GradleSyncState {
     synchronized (myLock) {
       return myExternalSystemTaskId;
     }
+  }
+
+  public void sourceGenerationFinished() {
+    long sourceGenerationEndedTimestamp = System.currentTimeMillis();
+    setSourceGenerationEndedTimeStamp(sourceGenerationEndedTimestamp);
+    addInfoToEventLog(String.format("Source generation ended in %1$s",
+                                    formatDuration(mySourceGenerationEndedTimeStamp - mySyncSetupStartedTimeStamp)));
+    LOG.info(String.format("Finished source generation of project '%1$s'.", myProject.getName()));
+    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).sourceGenerationFinished(myProject));
+    // TODO: add metric to UsageTracker
   }
 
   @VisibleForTesting

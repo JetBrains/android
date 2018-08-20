@@ -162,15 +162,30 @@ public class NewGradleSync implements GradleSync {
       return;
     }
 
+    boolean isVariantOnlySync = request.variantOnlySyncOptions != null;
+    boolean isCompoundSync = isCompoundSync(myProject) && request.generateSourcesOnSuccess;
+    if (isCompoundSync) {
+      setupRequest.generateSourcesAfterSync = false;
+    }
+
     SyncExecutionCallback callback = myCallbackFactory.create();
     callback.doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
-    if (request.variantOnlySyncOptions != null) {
+
+    if (isCompoundSync) {
+      callback.doWhenDone(() -> myResultHandler.onCompoundSyncModels(callback, setupRequest, indicator, syncListener, isVariantOnlySync));
+    }
+    else if (isVariantOnlySync) {
       callback.doWhenDone(() -> myResultHandler.onVariantOnlySyncFinished(callback, setupRequest, indicator, syncListener));
     }
     else {
       callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, setupRequest, indicator, syncListener));
     }
-    mySyncExecutor.syncProject(indicator, callback, request.variantOnlySyncOptions);
+
+    mySyncExecutor.syncProject(indicator, callback, request.variantOnlySyncOptions, isCompoundSync);
+
+    if (isCompoundSync) {
+      myResultHandler.onCompoundSyncFinished(syncListener);
+    }
   }
 
   /**
@@ -194,7 +209,7 @@ public class NewGradleSync implements GradleSync {
       return false;
     }
 
-    setupRequest.generateSourcesAfterSync = false; // TODO investigate why it is not false already
+    setupRequest.generateSourcesAfterSync = false;
     setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
 
     ExternalSystemTaskId taskId = createProjectSetupFromCacheTaskWithStartMessage(myProject);

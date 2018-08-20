@@ -77,6 +77,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     try {
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
       StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
+      StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
     }
     finally {
       super.tearDown();
@@ -367,6 +368,35 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     }
   }
 
+  public void testSyncProjectWithCompoundSync() throws Throwable {
+    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+    StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
+
+    prepareProjectForImport(SIMPLE_APPLICATION);
+
+    Project project = getProject();
+
+    // Simulate that "release" variant is selected in "app" module.
+    SelectedVariantCollectorMock variantCollector = new SelectedVariantCollectorMock(project);
+    variantCollector.setSelectedVariants("app", "release");
+
+    SyncExecutor syncExecutor = new SyncExecutor(project, ExtraGradleSyncModelsManager.getInstance(),
+                                                 new CommandLineArgs(true /* apply Java library plugin */),
+                                                 new SyncErrorHandlerManager(project), variantCollector);
+
+    SyncListener syncListener = new SyncListener();
+    syncExecutor.syncProject(new MockProgressIndicator(), syncListener, null, true);
+    syncListener.await();
+
+    syncListener.propagateFailureIfAny();
+
+    SyncProjectModels models = syncListener.getSyncModels();
+    Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getModuleModels());
+    assertThat(modelsByModule).hasSize(2);
+
+    verifyRequestedVariants(modelsByModule.get("app"), singletonList("release"));
+  }
+
   private static void verifyRequestedVariants(@NotNull VariantOnlyModuleModel moduleModels, @NotNull List<String> requestedVariants) {
     AndroidProject androidProject = moduleModels.getAndroidProject();
     assertNotNull(androidProject);
@@ -433,7 +463,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     String variant = "x86Release";
     String abi = "x86";
     File buildId = getProjectFolderPath();
-    VariantOnlySyncOptions options = new VariantOnlySyncOptions(buildId, ":app", variant, abi);
+    VariantOnlySyncOptions options = new VariantOnlySyncOptions(buildId, ":app", variant, abi, false);
     syncExecutor.syncProject(new MockProgressIndicator(), syncListener, options);
     syncListener.await();
 

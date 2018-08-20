@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -31,6 +32,8 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import java.io.File;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
@@ -253,5 +256,62 @@ public class NewGradleSyncTest extends IdeaTestCase {
     verify(myResultHandler).onSyncFailed(myCallback, mySyncListener);
   }
 
+  public void testCompoundSync() {
+    try {
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+      StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
 
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      when(myCallbackFactory.create()).thenReturn(myCallback);
+
+      doAnswer(invocation -> {
+        myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
+        return null;
+      }).when(mySyncExecutor).syncProject(any(), same(myCallback), any(), eq(true));
+
+      myGradleSync.sync(request, mySyncListener);
+
+      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(null), eq(true));
+
+      verify(myResultHandler).onCompoundSyncModels(same(myCallback), any(), any(), same(mySyncListener), eq(false));
+      verify(myResultHandler).onCompoundSyncFinished(same(mySyncListener));
+      verify(myResultHandler, never()).onSyncFailed(same(myCallback), same(mySyncListener));
+    }
+    finally {
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
+      StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
+    }
+  }
+
+  public void testCompoundSyncForVariantOnlySync() {
+    try {
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+      StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
+
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      request.variantOnlySyncOptions = new VariantOnlySyncOptions(new File(""), "", "", null, true);
+      when(myCallbackFactory.create()).thenReturn(myCallback);
+
+      doAnswer(invocation -> {
+        myCallback.setDone(mock(VariantOnlyProjectModels.class), mock(ExternalSystemTaskId.class));
+        return null;
+      }).when(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), anyBoolean());
+
+      myGradleSync.sync(request, mySyncListener);
+
+      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), anyBoolean());
+
+      verify(myResultHandler).onCompoundSyncModels(same(myCallback), any(), any(), same(mySyncListener), eq(true));
+      verify(myResultHandler).onCompoundSyncFinished(same(mySyncListener));
+      verify(myResultHandler, never()).onSyncFailed(same(myCallback), same(mySyncListener));
+    }
+    finally {
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
+      StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
+    }
+  }
 }
