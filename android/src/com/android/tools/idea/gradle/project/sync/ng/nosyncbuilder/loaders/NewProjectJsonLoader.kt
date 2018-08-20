@@ -30,6 +30,10 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 
+fun bindExtraInfoToNewProjectJsonLoader(extraInfo: NewProjectExtraInfo): LoaderConstructor = {
+  path: Path, converter: PathConverter -> NewProjectJsonLoader(path, converter, extraInfo)
+}
+
 class NewProjectJsonLoader(
   path: Path,
   converter: PathConverter,

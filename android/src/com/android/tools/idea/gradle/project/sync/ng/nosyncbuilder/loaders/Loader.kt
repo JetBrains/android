@@ -17,8 +17,12 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.loaders
 
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.Level2GlobalLibraryMap
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldAndroidProject
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.gradleproject.NewGradleProject
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.repackage.com.google.protobuf.InvalidProtocolBufferException
-import org.gradle.tooling.model.GradleProject
+import java.nio.file.Path
+
+typealias LoaderConstructor = (Path, PathConverter) -> Loader
 
 interface Loader {
   @Throws(InvalidProtocolBufferException::class)
@@ -26,5 +30,5 @@ interface Loader {
   @Throws(InvalidProtocolBufferException::class)
   fun loadGlobalLibraryMap(): Level2GlobalLibraryMap
   @Throws(InvalidProtocolBufferException::class)
-  fun loadGradleProject(): GradleProject
+  fun loadGradleProject(): NewGradleProject
 }
