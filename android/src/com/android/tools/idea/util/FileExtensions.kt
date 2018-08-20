@@ -62,7 +62,7 @@ fun PathString.toVirtualFile(refresh: Boolean = false): VirtualFile? {
   // Ensure that IntelliJ's virtual filesystems are mounted (ensures that PathString-to-VirtualFile lookups work from unit tests
   // or if performed very early during startup).
   VirtualFileSystemOpener.mount()
-  return com.android.tools.idea.util.toVirtualFile(this, refresh)
+  return toVirtualFile(this, refresh)
 }
 
 /**
