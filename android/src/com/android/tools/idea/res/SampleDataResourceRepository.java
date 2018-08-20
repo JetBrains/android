@@ -39,6 +39,7 @@ import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -275,6 +276,8 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
    */
   static class SampleDataRepositoryManager extends AndroidFacetScopedService {
     private static final Key<SampleDataRepositoryManager> KEY = Key.create(SampleDataRepositoryManager.class.getName());
+    private final Object repositoryLock = new Object();
+    @GuardedBy("repositoryLock")
     private SampleDataResourceRepository repository;
 
     @NotNull
@@ -298,25 +301,31 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
       if (isDisposed()) {
         throw new IllegalStateException(getClass().getName() + " is disposed");
       }
-      if (repository == null) {
-        repository = new SampleDataResourceRepository(getFacet());
+      synchronized (repositoryLock) {
+        if (repository == null) {
+          repository = new SampleDataResourceRepository(getFacet());
+
+          Disposer.register(repository, () -> {
+            synchronized (repositoryLock) {
+              repository = null;
+            }
+          });
+        }
+        return repository;
       }
-      return repository;
     }
 
-    public static boolean hasRepository(@NotNull AndroidFacet facet) {
-      SampleDataRepositoryManager manager = facet.getUserData(KEY);
-
-      if (manager == null) {
-        return false;
+    public boolean hasRepository() {
+      synchronized (repositoryLock) {
+        return repository != null;
       }
-
-      return manager.repository != null;
     }
 
     @Override
     public void onServiceDisposal(@NotNull AndroidFacet facet) {
-      repository = null;
+      synchronized (repositoryLock) {
+        repository = null;
+      }
     }
   }
 }

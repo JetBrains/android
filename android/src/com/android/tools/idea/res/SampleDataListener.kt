@@ -70,7 +70,7 @@ internal class SampleDataListener(val project: Project) : PsiTreeChangeAdapter()
    *      to just having FD_SAMPLE_DATA in its path somewhere).
    */
   private fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean {
-    return !facet.isDisposed && SampleDataRepositoryManager.hasRepository(facet) && isSampleDataFile(facet, file)
+    return !facet.isDisposed && SampleDataRepositoryManager.getInstance(facet).hasRepository() && isSampleDataFile(facet, file)
   }
 
   /**
