@@ -56,7 +56,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
    * @return A fake local cmake package with the given version.
    */
   @NotNull
-  private LocalPackage createLocalPackage(@NotNull String cmakeVersion) {
+  private static LocalPackage createLocalPackage(@NotNull String cmakeVersion) {
     Revision revision = Revision.parseRevision(cmakeVersion);
     FakePackage.FakeLocalPackage pkg = new FakePackage.FakeLocalPackage("cmake;" + cmakeVersion);
     pkg.setRevision(revision);
@@ -68,7 +68,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
    * @return A fake remote cmake package with the given version.
    */
   @NotNull
-  private RemotePackage createRemotePackage(@NotNull String cmakeVersion) {
+  private static RemotePackage createRemotePackage(@NotNull String cmakeVersion) {
     Revision revision = Revision.parseRevision(cmakeVersion);
     FakePackage.FakeRemotePackage pkg = new FakePackage.FakeRemotePackage("cmake;" + cmakeVersion);
     pkg.setRevision(revision);
@@ -81,7 +81,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
    * @return An error handler with a fake SDK that contains the provided local and remote packages.
    */
   @NotNull
-  private MissingCMakeErrorHandler createHandler(@NotNull List<String> localPackages, @NotNull List<String> remotePackages) {
+  private static MissingCMakeErrorHandler createHandler(@NotNull List<String> localPackages, @NotNull List<String> remotePackages) {
     return new MissingCMakeErrorHandler() {
       @Override
       @NotNull
@@ -108,7 +108,26 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(notificationUpdate.getText()).isEqualTo("Failed to find CMake.");
   }
 
-  public void testFindErrorMessageNoCMakeVersion() throws Exception {
+  public void testFailedToInstallCMakeFailedLicenceCheck() {
+    MissingCMakeErrorHandler handler = createHandler(Collections.emptyList(), Collections.emptyList());
+    String errMsg =
+      "Failed to install the following Android SDK packages as some licences have not been accepted. blah blah CMake blah blah";
+    assertEquals(
+      errMsg,
+      handler.findErrorMessage(
+        new ExternalSystemException(errMsg), DummyProject.getInstance()));
+  }
+
+  public void testFailedToInstallCMake() {
+    MissingCMakeErrorHandler handler = createHandler(Collections.emptyList(), Collections.emptyList());
+    String errMsg = "Failed to install the following SDK components: blah blah cmake blah blah";
+    assertEquals(
+      errMsg,
+      handler.findErrorMessage(
+        new ExternalSystemException(errMsg), DummyProject.getInstance()));
+  }
+
+  public void testFindErrorMessageNoCMakeVersion() {
     MissingCMakeErrorHandler handler = createHandler(Collections.emptyList(), Collections.emptyList());
 
     String expectedMsg = "Failed to find CMake.";
@@ -123,14 +142,14 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
         DummyProject.getInstance()));
   }
 
-  public void testFindErrorMessageWithCmakeVersion() throws Exception {
+  public void testFindErrorMessageWithCmakeVersion() {
     MissingCMakeErrorHandler handler = createHandler(Collections.emptyList(), Collections.emptyList());
     String msg = "CMake '1.2.3' was not found in PATH or by cmake.dir property\n" +
                  "- CMake '4.5.6' was found on PATH\n";
     assertEquals(msg, handler.findErrorMessage(new ExternalSystemException(msg), DummyProject.getInstance()));
   }
 
-  public void testDefaultInstall() throws Exception {
+  public void testDefaultInstall() {
     String errMsg = "Failed to find CMake";
     MissingCMakeErrorHandler handler = createHandler(
       Collections.emptyList(),
@@ -143,7 +162,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(((InstallCMakeHyperlink)quickFixes.get(0)).getCmakeVersion()).isEqualTo(null);
   }
 
-  public void testCannotParseCmakeVersion() throws Exception {
+  public void testCannotParseCmakeVersion() {
     String errMsg = "CMake 'x.y.z' was not found in PATH or by cmake.dir property.";
     MissingCMakeErrorHandler handler = createHandler(
       Collections.emptyList(),
@@ -154,7 +173,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(quickFixes).hasSize(0);
   }
 
-  public void testRemotePackageNotFound() throws Exception {
+  public void testRemotePackageNotFound() {
     String errMsg = "CMake '3.7.0' was not found in PATH or by cmake.dir property.";
     MissingCMakeErrorHandler handler = createHandler(
       Collections.emptyList(),
@@ -165,23 +184,23 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(quickFixes).hasSize(0);
   }
 
-  public void testAlreadyInstalledRemote() throws Exception {
+  public void testAlreadyInstalledRemote() {
     String errMsg = "CMake '3.10.2' was not found in PATH or by cmake.dir property.";
     MissingCMakeErrorHandler handler = createHandler(
-      Arrays.asList("3.10.2"),
-      Arrays.asList("3.10.2")
+      Collections.singletonList("3.10.2"),
+      Collections.singletonList("3.10.2")
     );
 
     List<NotificationHyperlink> quickFixes = handler.getQuickFixHyperlinks(DummyProject.getInstance(), errMsg);
     assertThat(quickFixes).hasSize(0);
   }
 
-  public void testInstallFromRemote() throws Exception {
+  public void testInstallFromRemote() {
     String errMsg = "CMake '3.10.2' was not found in PATH or by cmake.dir property.";
 
     MissingCMakeErrorHandler handler = createHandler(
-      Arrays.asList("3.8"),
-      Arrays.asList("3.10.2")
+      Collections.singletonList("3.8"),
+      Collections.singletonList("3.10.2")
     );
 
     List<NotificationHyperlink> quickFixes = handler.getQuickFixHyperlinks(DummyProject.getInstance(), errMsg);
@@ -190,10 +209,9 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(((InstallCMakeHyperlink)quickFixes.get(0)).getCmakeVersion()).isEqualTo(Revision.parseRevision("3.10.2"));
   }
 
-  public void testFindBestMatch() throws Exception {
+  public void testFindBestMatch() {
     // Requested version not found.
-    assertEquals(
-      null,
+    assertNull(
       MissingCMakeErrorHandler.findBestMatch(
         Arrays.asList(createRemotePackage("3.6"), createRemotePackage("3.8")),
         Revision.parseRevision("3.7")));
@@ -202,14 +220,14 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
     assertEquals(
       Revision.parseRevision("3.8"),
       MissingCMakeErrorHandler.findBestMatch(
-        Arrays.asList(createRemotePackage("3.8")),
+        Collections.singletonList(createRemotePackage("3.8")),
         Revision.parseRevision("3.8")));
 
     // A more specific version found.
     assertEquals(
       Revision.parseRevision("3.8"),
       MissingCMakeErrorHandler.findBestMatch(
-        Arrays.asList(createRemotePackage("3.8")),
+        Collections.singletonList(createRemotePackage("3.8")),
         Revision.parseRevision("3")));
 
     // More specific match downstream.
@@ -220,14 +238,13 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
         Revision.parseRevision("3.8")));
 
     // Request is too specific. Cannot satisfy.
-    assertEquals(
+    assertNull(
       MissingCMakeErrorHandler.findBestMatch(
         Arrays.asList(createRemotePackage("3.8"), createRemotePackage("3.10")),
-        Revision.parseRevision("3.8.2")),
-      null);
+        Revision.parseRevision("3.8.2")));
   }
 
-  public void testVersionSatisfies() throws Exception {
+  public void testVersionSatisfies() {
     // Exact match.
     assertTrue(MissingCMakeErrorHandler.versionSatisfies(new int[]{3, 8, 0}, new int[]{3, 8, 0}));
 
@@ -241,7 +258,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
     assertFalse(MissingCMakeErrorHandler.versionSatisfies(new int[]{3, 8, 0}, new int[]{3, 10, 0}));
   }
 
-  public void testExtractCmakeVersionFromError() throws Exception {
+  public void testExtractCmakeVersionFromError() {
     assertEquals(Revision.parseRevision("1.2.3-rc1"), MissingCMakeErrorHandler.extractCmakeVersionFromError("prefix '1.2.3-rc1' suffix"));
     assertEquals(Revision.parseRevision("1.2.3-rc1"), MissingCMakeErrorHandler.extractCmakeVersionFromError("prefix'1.2.3-rc1'suffix"));
     assertEquals(Revision.parseRevision("1.2.3-rc1"), MissingCMakeErrorHandler.extractCmakeVersionFromError("'1.2.3-rc1'"));
