@@ -30,7 +30,7 @@ configure<AppExtension> {
 dependencies {
     "implementation"("com.android.support:appcompat-v7:27.1.1")
     "implementation"("com.android.support.constraint:constraint-layout:1.0.2")
-    "implementation"(kotlin("stdlib", "1.2.60"))
+    "implementation"(kotlin("stdlib", "1.2.61"))
     "implementation"(project(":lib"))
 }
 
