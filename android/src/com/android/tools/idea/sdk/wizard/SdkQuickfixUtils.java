@@ -105,6 +105,20 @@ public final class SdkQuickfixUtils {
     return createDialog(project, null, requestedPaths, null, null, getSdkHandler(), noOpMessage, false);
   }
 
+  /**
+   * Create an SdkQuickFix dialog.
+   *
+   * @param project        The {@link Project} to use as a parent for the wizard dialog.
+   * @param requestedPaths The paths of packages to install. Callers should ensure that the given packages include remote versions.
+   * @param backgroundable Whether the dialog should show a "background" button on the progress step.
+   */
+  @Nullable
+  public static ModelWizardDialog createDialogForPaths(@Nullable Project project,
+                                                       @NotNull Collection<String> requestedPaths,
+                                                       boolean backgroundable) {
+    return createDialog(project, null, requestedPaths, null, null, getSdkHandler(), null, backgroundable);
+  }
+
   public static void showSdkMissingDialog() {
     String msg = message("android.sdk.missing.msg");
     String title = message("android.sdk.missing.title");
