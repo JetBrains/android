@@ -36,7 +36,7 @@ import java.awt.event.*;
  * Creates a view containing a {@link HideablePanel} composed by a {@link CpuListScrollPane} displaying a list of threads and their
  * corresponding {@link com.android.tools.adtui.chart.statechart.StateChart} whose data are the thread state changes.
  */
-public class CpuThreadsView {
+final class CpuThreadsView {
 
   @NotNull
   private final HideablePanel myPanel;
@@ -75,13 +75,16 @@ public class CpuThreadsView {
     myThreads.addMouseListener(mouseHandler);
     myThreads.addMouseMotionListener(mouseHandler);
 
+    myPanel.addStateChangedListener((actionEvent) ->
+      myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuThreadsHideablePanel()
+    );
     myObserver = new AspectObserver();
     stage.getAspect().addDependency(myObserver)
          .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection);
   }
 
   @NotNull
-  public HideablePanel getPanel() {
+  public JComponent getComponent() {
     return myPanel;
   }
 
