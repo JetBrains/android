@@ -148,8 +148,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myImportedSelectedProcessLabel = new JLabel();
     stage.getAspect().addDependency(this)
          .onChange(CpuProfilerAspect.CAPTURE_STATE, this::updateCaptureState)
-         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCaptureSelection)
-         .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection);
+         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCaptureSelection);
+
     stage.getStudioProfilers().addDependency(this)
          .onChange(ProfilerAspect.MODE, this::updateCaptureViewVisibility);
 
@@ -250,10 +250,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     updateCaptureViewVisibility();
   }
 
-  private void updateThreadSelection() {
-    myThreads.updateThreadSelection();
-  }
-
   private void addThreadsPanelToDetails(@NotNull TabularLayout detailsLayout, @NotNull JPanel detailsPanel) {
     HideablePanel threadsPanel = myThreads.getPanel();
     threadsPanel.addStateChangedListener((actionEvent) -> {
@@ -262,7 +258,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       PanelSpacing panelSpacing = threadsPanel.isExpanded() ? PanelSpacing.THREADS_EXPANDED : PanelSpacing.THREADS_COLLAPSED;
       detailsLayout.setRowSizing(DETAILS_THREADS_PANEL_ROW, panelSpacing.toString());
     });
-    myTooltipComponent.registerListenersOn(myThreads.getThreads());
+    myTooltipComponent.registerListenersOn(myThreads.getPanel());
     detailsPanel.add(threadsPanel, new TabularLayout.Constraint(DETAILS_THREADS_PANEL_ROW, 0));
   }
 

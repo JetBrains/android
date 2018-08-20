@@ -17,12 +17,14 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.DragAndDropList;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.MouseEventHandler;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -45,6 +47,11 @@ public class CpuThreadsView {
   @NotNull
   private final DragAndDropList<CpuThreadsModel.RangedCpuThread> myThreads;
 
+  // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
+  @SuppressWarnings("FieldCanBeLocal")
+  @NotNull
+  private final AspectObserver myObserver;
+
   public CpuThreadsView(@NotNull CpuProfilerStage stage) {
     myStage = stage;
     myThreads = new DragAndDropList<>(stage.getThreadStates());
@@ -55,19 +62,27 @@ public class CpuThreadsView {
     myThreads.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
     // TODO(b/62447834): Make a decision on how we want to handle thread selection.
     myThreads.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+    MouseEventHandler mouseHandler = new MouseEventHandler() {
+      @Override
+      protected void handle(MouseEvent event) {
+        // |myPanel| does not receive any mouse events, because all mouse events are consumed by |myThreads|.
+        // We're dispatching them manually, so that |CpuProfilerStageView| could register CPU mouse events
+        // directly into the top-level component (i.e to |myPanel|) instead of its child.
+        myPanel.dispatchEvent(SwingUtilities.convertMouseEvent(myThreads, event, myPanel));
+      }
+    };
+    myThreads.addMouseListener(mouseHandler);
+    myThreads.addMouseMotionListener(mouseHandler);
+
+    myObserver = new AspectObserver();
+    stage.getAspect().addDependency(myObserver)
+         .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection);
   }
 
   @NotNull
   public HideablePanel getPanel() {
     return myPanel;
-  }
-
-  /* TODO(b/112682804): probably we don't need to expose list when the refactoring will be done.
-     Consumers of CpuThreadsView should be able to register mouse or UI events directly to the top-level component of CpuThreadsView.
-   */
-  @NotNull
-  public DragAndDropList<CpuThreadsModel.RangedCpuThread> getThreads() {
-    return myThreads;
   }
 
   private HideablePanel createHideablePanel() {
@@ -163,7 +178,7 @@ public class CpuThreadsView {
   /**
    * Selects a thread in the list whose ID matches the one set in the model.
    */
-  void updateThreadSelection() {
+  private void updateThreadSelection() {
     if (myStage.getSelectedThread() == CaptureModel.NO_THREAD) {
       myThreads.clearSelection();
       return;
