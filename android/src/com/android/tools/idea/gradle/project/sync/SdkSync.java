@@ -71,6 +71,11 @@ public class SdkSync {
     syncIdeAndProjectAndroidNdk(localProperties);
   }
 
+  public void syncIdeAndProjectAndroidNdk(@NotNull Project project) throws IOException {
+    LocalProperties localProperties = new LocalProperties(project);
+    syncIdeAndProjectAndroidNdk(localProperties);
+  }
+
   @VisibleForTesting
   void syncIdeAndProjectAndroidSdk(@NotNull LocalProperties localProperties,
                                    @NotNull FindValidSdkPathTask findSdkPathTask,
