@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.whatsnew.assistant
 
+import com.android.testutils.TestUtils
 import com.android.tools.idea.assistant.AssistSidePanel
 import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.android.tools.idea.assistant.AssistantGetBundleTask
@@ -28,29 +29,53 @@ import junit.framework.TestCase
 import org.apache.http.concurrent.FutureCallback
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import java.io.File
+import java.net.URL
 import java.util.concurrent.TimeUnit
 
 class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
   private val TIMEOUT_MILLISECONDS: Long = 30000
+  private lateinit var mockUrlProvider: WhatsNewAssistantURLProvider
 
   override fun setUp() {
     super.setUp()
     StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.override(true)
+    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(true)
+
+    // Mock url provider to simulate webserver and also class resource file
+    mockUrlProvider = mock(WhatsNewAssistantURLProvider::class.java)
+
+    val serverFile = File(myFixture.testDataPath).resolve("whatsnewassistant/server-3.3.0.xml")
+    Mockito.`when`(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:" + serverFile.path))
+
+    val resourceFile = File(myFixture.testDataPath).resolve("whatsnewassistant/defaultresource-3.3.0.xml")
+    Mockito.`when`(mockUrlProvider.getResourceFile(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
+      .thenReturn(URL("file:" + resourceFile.path))
+
+    val tmpDir = TestUtils.createTempDirDeletedOnExit()
+    val localPath = tmpDir.toPath().resolve("local-3.3.0.xml")
+    Mockito.`when`(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:" + localPath.toString()))
   }
 
   override fun tearDown() {
     super.tearDown()
     StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.clearOverride()
+    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.clearOverride()
   }
 
   /**
-   * Test that the additional title for Assistant panel displays What's New
+   * Test that the additional title for Assistant panel displays the same as bundle name
    */
   @Test
   fun testPanelTitle() {
+    val bundleCreator: WhatsNewAssistantBundleCreator? = AssistantBundleCreator.EP_NAME
+      .findExtension(WhatsNewAssistantBundleCreator::class.java)
+    bundleCreator!!.setURLProvider(mockUrlProvider)
+
     val completeFuture = SettableFuture.create<String>()
     val callback = object: FutureCallback<String> {
       override fun completed(result: String?) {
@@ -70,7 +95,7 @@ class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
     // Tab title will be set after assistant content finishes loading
     AssistSidePanel(WhatsNewAssistantBundleCreator.BUNDLE_ID, project, callback)
     FutureUtils.pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
-    TestCase.assertEquals("What's New", completeFuture.get())
+    TestCase.assertEquals("Test What's New from Server", completeFuture.get())
   }
 
   /**

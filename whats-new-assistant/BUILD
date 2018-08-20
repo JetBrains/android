@@ -74,5 +74,6 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/whats-new-assistant[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
+        "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
     ],
 )
