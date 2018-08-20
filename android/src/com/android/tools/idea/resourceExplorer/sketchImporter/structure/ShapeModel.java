@@ -146,6 +146,7 @@ public abstract class ShapeModel {
     int shapeBorderColor = 0;
     int shapeFillColor = 0;
     SketchGradient shapeGradient = null;
+    SketchGraphicContextSettings shapeGraphicContextSettings = null;
 
     if (shapeBorder != null) {
       shapeBorderWidth = Integer.toString(shapeBorder.getThickness());
@@ -154,11 +155,12 @@ public abstract class ShapeModel {
 
     if (shapeFill != null && shapeFill.isEnabled()) {
       shapeGradient = shapeFill.getGradient();
+      shapeGraphicContextSettings = shapeFill.getContextSettings();
       if (shapeGradient == null) {
         shapeFillColor = shapeFill.getColor().getRGB();
       }
     }
 
-    return new DrawableModel(shapePathData, shapeFillColor, shapeGradient, shapeBorderColor, shapeBorderWidth);
+    return new DrawableModel(shapePathData, shapeFillColor, shapeGraphicContextSettings, shapeGradient, shapeBorderColor, shapeBorderWidth);
   }
 }
