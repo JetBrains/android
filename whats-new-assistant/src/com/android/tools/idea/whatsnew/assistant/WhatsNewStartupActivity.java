@@ -130,6 +130,9 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
       data.myRevision = applicationRevision.toString();
       return true;
     }
+
+    // TODO: show if the AS version is the same but WNA config is higher version - WhatsNewAssistantBundleCreator.isNewConfigVersion()
+
     return false;
   }
 
@@ -147,7 +150,7 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
     }
 
     @Override
-    public void loadState(WhatsNewData state) {
+    public void loadState(@NotNull WhatsNewData state) {
       myData = state;
     }
   }
