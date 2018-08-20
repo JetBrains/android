@@ -22,8 +22,8 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.DragBaseTarget;
 import com.android.tools.idea.common.scene.target.MultiComponentTarget;
+import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +45,7 @@ public class ConstraintDragTarget extends DragBaseTarget implements MultiCompone
   @Override
   protected boolean isAutoConnectionEnabled() {
     return !SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(myComponent.getNlComponent().getTagName()) &&
-           ConstraintLayoutHandler.isAutoconnectOn();
+           ToggleAutoConnectAction.isAutoconnectOn();
   }
 
   @Nullable

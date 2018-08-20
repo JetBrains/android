@@ -24,6 +24,8 @@ import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.scene.target.AnchorTarget
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
+import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
+import com.android.tools.idea.uibuilder.api.actions.ViewAction
 import com.android.tools.idea.uibuilder.handlers.relative.targets.*
 import com.android.tools.idea.uibuilder.model.getBaseline
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
@@ -70,6 +72,11 @@ class RelativeLayoutHandler : ViewGroupHandler() {
       .filter { it !== RelativeWidgetTarget.Type.BASELINE || childComponent.nlComponent.getBaseline() != -1 }
       .forEach { listBuilder.add(RelativeWidgetTarget(it)) }
     return listBuilder.build()
+  }
+
+  override fun addToolbarActions(actions: MutableList<ViewAction>) {
+    super.addToolbarActions(actions)
+    actions.add(ToggleAutoConnectAction())
   }
 }
 

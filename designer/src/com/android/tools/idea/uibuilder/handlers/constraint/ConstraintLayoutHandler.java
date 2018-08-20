@@ -314,10 +314,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     return true;
   }
 
-  interface Enableable {
-    void enable(List<NlComponent> selection);
-  }
-
   /**
    * Return a new ConstraintInteraction instance to handle a mouse interaction
    *
@@ -462,44 +458,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   @Override
   public boolean handlesPainting() {
     return true;
-  }
-
-  private static class ToggleAutoConnectAction extends ToggleViewAction implements Enableable {
-    public ToggleAutoConnectAction() {
-      super(StudioIcons.LayoutEditor.Toolbar.AUTO_CORRECT_OFF, StudioIcons.LayoutEditor.Toolbar.AUTO_CONNECT, "Turn On Autoconnect",
-            "Turn Off Autoconnect");
-    }
-
-    @Override
-    public void enable(List<NlComponent> selection) {
-      // FIXME Why is this empty ? Can we remove the Enableable interface and all related code?
-    }
-
-    @Override
-    public boolean isSelected(@NotNull ViewEditor editor,
-                              @NotNull ViewHandler handler,
-                              @NotNull NlComponent parent,
-                              @NotNull List<NlComponent> selectedChildren) {
-      return PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
-    }
-
-    @Override
-    public void setSelected(@NotNull ViewEditor editor,
-                            @NotNull ViewHandler handler,
-                            @NotNull NlComponent parent,
-                            @NotNull List<NlComponent> selectedChildren,
-                            boolean selected) {
-      NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface())
-        .logAction(selected
-                   ? LayoutEditorEvent.LayoutEditorEventType.TURN_ON_AUTOCONNECT
-                   : LayoutEditorEvent.LayoutEditorEventType.TURN_OFF_AUTOCONNECT);
-      PropertiesComponent.getInstance().setValue(AUTO_CONNECT_PREF_KEY, selected, false);
-    }
-
-    @Override
-    public boolean affectsUndo() {
-      return false;
-    }
   }
 
   private static class ClearConstraintsAction extends DirectViewAction {
@@ -1241,10 +1199,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       }
     }
     return component.getNlComponent();
-  }
-
-  public static boolean isAutoconnectOn() {
-    return PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
   }
 
   private static class ConstraintViewActions {
