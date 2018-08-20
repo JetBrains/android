@@ -357,7 +357,34 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
 
   @Override
   public String getToolTipText() {
-    return isConnected() ? "Delete Connection" : "Create Connection";
+    String side = null;
+    switch (myType) {
+      case LEFT:
+        side = "Left";
+        break;
+      case TOP:
+        side = "Top";
+        break;
+      case RIGHT:
+        side = "Right";
+        break;
+      case BOTTOM:
+        side = "Bottom";
+        break;
+      case BASELINE:
+        side = "Baseline";
+        break;
+      default:
+        return isConnected() ? "Delete Connection" : "Create Connection";
+    }
+
+    StringBuilder builder = new StringBuilder();
+    builder
+      .append(isConnected() ? "Delete " : "Create ")
+      .append(side)
+      .append(" Connection");
+
+    return builder.toString();
   }
 
   //endregion
