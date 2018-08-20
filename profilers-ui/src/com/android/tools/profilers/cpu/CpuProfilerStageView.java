@@ -64,15 +64,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     KERNEL("Fit"),
 
     /**
-     * Sizing string for the threads portion of the details view, when it is hidden.
+     * Sizing string for the threads portion of the details view.
      */
-    THREADS_COLLAPSED("Fit-"),
-
-    /**
-     * Sizing string for the threads portion of the details view, when it is expanded.
-     */
-    THREADS_EXPANDED("*");
-
+    THREADS("*");
 
     private final String myLayoutString;
 
@@ -202,15 +196,14 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     TabularLayout detailsLayout = new TabularLayout("*");
     detailsLayout.setRowSizing(DETAILS_KERNEL_PANEL_ROW, PanelSpacing.KERNEL.toString());
-    detailsLayout.setRowSizing(DETAILS_THREADS_PANEL_ROW, PanelSpacing.THREADS_EXPANDED.toString());
+    detailsLayout.setRowSizing(DETAILS_THREADS_PANEL_ROW, PanelSpacing.THREADS.toString());
     final JPanel detailsPanel = new JBPanel(detailsLayout);
     detailsPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-
 
     myThreads = new CpuThreadsView(stage);
     myCpus = new CpuKernelsView(myStage);
     addKernelPanelToDetails(detailsPanel);
-    addThreadsPanelToDetails(detailsLayout, detailsPanel);
+    addThreadsPanelToDetails(detailsPanel);
     mainPanel.add(myUsageView, new TabularLayout.Constraint(MONITOR_PANEL_ROW, 0));
     mainPanel.add(detailsPanel, new TabularLayout.Constraint(DETAILS_PANEL_ROW, 0));
 
@@ -250,16 +243,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     updateCaptureViewVisibility();
   }
 
-  private void addThreadsPanelToDetails(@NotNull TabularLayout detailsLayout, @NotNull JPanel detailsPanel) {
-    HideablePanel threadsPanel = myThreads.getPanel();
-    threadsPanel.addStateChangedListener((actionEvent) -> {
-      getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuThreadsHideablePanel();
-      // On expanded set row sizing to initial ratio.
-      PanelSpacing panelSpacing = threadsPanel.isExpanded() ? PanelSpacing.THREADS_EXPANDED : PanelSpacing.THREADS_COLLAPSED;
-      detailsLayout.setRowSizing(DETAILS_THREADS_PANEL_ROW, panelSpacing.toString());
-    });
-    myTooltipComponent.registerListenersOn(myThreads.getPanel());
-    detailsPanel.add(threadsPanel, new TabularLayout.Constraint(DETAILS_THREADS_PANEL_ROW, 0));
+  private void addThreadsPanelToDetails(@NotNull JPanel detailsPanel) {
+    myTooltipComponent.registerListenersOn(myThreads.getComponent());
+    detailsPanel.add(myThreads.getComponent(), new TabularLayout.Constraint(DETAILS_THREADS_PANEL_ROW, 0));
   }
 
   /**

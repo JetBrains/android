@@ -73,7 +73,7 @@ class CpuThreadsViewTest {
   @Test
   fun verifyTitleContent() {
     val threadsView = CpuThreadsView(stage)
-    val title = TreeWalker(threadsView.panel).descendants().filterIsInstance(JLabel::class.java).first().text
+    val title = TreeWalker(threadsView.component).descendants().filterIsInstance(JLabel::class.java).first().text
     // Text is actual an HTML, so we use contains instead of equals
     assertThat(title).contains("THREADS")
   }
@@ -81,7 +81,7 @@ class CpuThreadsViewTest {
   @Test
   fun scrollPaneViewportViewShouldBeThreadsView() {
     val threadsView = CpuThreadsView(stage)
-    val descendants = TreeWalker(threadsView.panel).descendants().filterIsInstance(CpuListScrollPane::class.java)
+    val descendants = TreeWalker(threadsView.component).descendants().filterIsInstance(CpuListScrollPane::class.java)
     assertThat(descendants).hasSize(1)
     val scrollPane = descendants[0]
 
@@ -112,7 +112,7 @@ class CpuThreadsViewTest {
     assertThat(getThreadsList(threadsView).background).isEqualTo(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
   }
 
-  private fun getThreadsList(threadsView: CpuThreadsView) = TreeWalker(threadsView.panel)
+  private fun getThreadsList(threadsView: CpuThreadsView) = TreeWalker(threadsView.component)
     .descendants()
     .filterIsInstance<DragAndDropList<CpuThreadsModel.RangedCpuThread>>()
     .first()
