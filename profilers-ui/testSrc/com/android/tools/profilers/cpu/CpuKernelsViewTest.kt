@@ -67,8 +67,8 @@ class CpuKernelsViewTest {
     val session = stage.studioProfilers.sessionsManager.selectedSession
     val kernelsView = CpuKernelsView(stage)
     // JBList wraps cellRenderer in a ExpandedItemListCellRendererWrapper, so we get this and unwrap our instance.
-    assertThat(kernelsView.cellRenderer).isInstanceOf(ExpandedItemListCellRendererWrapper::class.java)
-    val cellRenderer = kernelsView.cellRenderer as ExpandedItemListCellRendererWrapper
+    assertThat(kernelsView.kernels.cellRenderer).isInstanceOf(ExpandedItemListCellRendererWrapper::class.java)
+    val cellRenderer = kernelsView.kernels.cellRenderer as ExpandedItemListCellRendererWrapper
     assertThat(cellRenderer.wrappee).isInstanceOf(CpuKernelCellRenderer::class.java)
 
     // Validate that the process we are looking at is the same as the process from the session.
@@ -78,7 +78,7 @@ class CpuKernelsViewTest {
   @Test
   fun backgroundShouldBeDefaultStage() {
     val kernelsView = CpuKernelsView(stage)
-    assertThat(kernelsView.background).isEqualTo(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
+    assertThat(kernelsView.kernels.background).isEqualTo(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
   }
 
   @Test
@@ -103,6 +103,6 @@ class CpuKernelsViewTest {
     assertThat(descendants).hasSize(1)
     val scrollPane = descendants[0]
 
-    assertThat(scrollPane.viewport.view).isEqualTo(kernelsView)
+    assertThat(scrollPane.viewport.view).isEqualTo(kernelsView.kernels)
   }
 }
