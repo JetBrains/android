@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model;
 
 import com.android.builder.model.AndroidProject;
+import com.android.builder.model.SyncIssue;
 import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaLibrary;
 import com.android.java.model.JavaProject;
@@ -78,12 +79,14 @@ public class JavaModuleModelFactory {
   }
 
   @NotNull
-  public JavaModuleModel create(@NotNull GradleProject gradleProject, @NotNull AndroidProject androidProject) {
+  public JavaModuleModel create(@NotNull GradleProject gradleProject,
+                                @NotNull AndroidProject androidProject,
+                                @NotNull Collection<SyncIssue> syncIssues) {
     String sourceCompatibility = androidProject.getJavaCompileOptions().getSourceCompatibility();
     return new JavaModuleModel(androidProject.getName(), Collections.emptyList() /* content roots */,
                                Collections.emptyList() /* Java module dependencies */,
                                Collections.emptyList() /* Jar library dependencies */,
-                               Collections.emptyList() /* Sync Issues */,
+                               syncIssues,
                                Collections.emptyMap() /* artifacts by configuration */, new IdeaCompilerOutputImpl(),
                                gradleProject.getBuildDirectory(), sourceCompatibility, false /* not buildable */,
                                true /* Android project without variants */);
