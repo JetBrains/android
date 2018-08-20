@@ -33,12 +33,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBDimension;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.MouseListener;
 
@@ -263,37 +263,20 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   private void addKernelPanelToDetails(@NotNull JPanel detailsPanel) {
-    HideablePanel kernelsPanel = myCpus.getPanel();
-    // Handle when we get CPU data we want to show the cpu list.
-    myStage.getCpuKernelModel().addListDataListener(new ListDataListener() {
+    myCpus.getPanel().addComponentListener(new ComponentAdapter() {
+      // When the CpuKernelModel is updated we adjust the splitter. The higher the number the more space
+      // the first component occupies. For when we are showing Kernel elements we want to take up more space
+      // than when we are not. As such each time we modify the CpuKernelModel (when a trace is selected) we
+      // adjust the proportion of the splitter accordingly.
+
       @Override
-      public void contentsChanged(ListDataEvent e) {
-        int size = myCpus.getKernels().getModel().getSize();
-        boolean hasElements = size != 0;
-        // Lets only show 4 cores max the user can scroll to view the rest.
-        myCpus.getKernels().setVisibleRowCount(Math.min(4, size));
-        kernelsPanel.setVisible(hasElements);
-        kernelsPanel.setExpanded(hasElements);
-        kernelsPanel.setTitle(String.format("KERNEL (%d)", size));
-        // When the CpuKernelModel is updated we adjust the splitter. The higher the number the more space
-        // the first component occupies. For when we are showing Kernel elements we want to take up more space
-        // than when we are not. As such each time we modify the CpuKernelModel (when a trace is selected) we
-        // adjust the proportion of the splitter accordingly.
-        if (hasElements) {
-          mySplitter.setProportion(KERNEL_VIEW_SPLITTER_RATIO);
-        }
-        else {
-          mySplitter.setProportion(SPLITTER_DEFAULT_RATIO);
-        }
-        detailsPanel.revalidate();
+      public void componentShown(ComponentEvent e) {
+        mySplitter.setProportion(KERNEL_VIEW_SPLITTER_RATIO);
       }
 
       @Override
-      public void intervalAdded(ListDataEvent e) {
-      }
-
-      @Override
-      public void intervalRemoved(ListDataEvent e) {
+      public void componentHidden(ComponentEvent e) {
+        mySplitter.setProportion(SPLITTER_DEFAULT_RATIO);
       }
     });
     myTooltipComponent.registerListenersOn(myCpus.getKernels());

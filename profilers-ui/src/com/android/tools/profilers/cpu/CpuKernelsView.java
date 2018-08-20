@@ -29,6 +29,8 @@ import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
@@ -58,6 +60,27 @@ public class CpuKernelsView {
     myKernels.setCellRenderer(new CpuKernelCellRenderer(myStage, myStage.getStudioProfilers().getIdeServices().getFeatureConfig(),
                                               myStage.getStudioProfilers().getSession().getPid(),
                                               myKernels));
+    myKernels.getModel().addListDataListener(new ListDataListener() {
+      @Override
+      public void contentsChanged(ListDataEvent e) {
+        int size = myKernels.getModel().getSize();
+        boolean hasElements = size != 0;
+        // Lets only show 4 cores max the user can scroll to view the rest.
+        myKernels.setVisibleRowCount(Math.min(4, size));
+        myPanel.setVisible(hasElements);
+        myPanel.setExpanded(hasElements);
+        myPanel.setTitle(String.format("KERNEL (%d)", size));
+      }
+
+      @Override
+      public void intervalAdded(ListDataEvent e) {
+      }
+
+      @Override
+      public void intervalRemoved(ListDataEvent e) {
+      }
+    });
+
   }
 
   @NotNull

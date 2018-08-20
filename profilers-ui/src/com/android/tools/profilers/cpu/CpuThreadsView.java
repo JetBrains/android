@@ -119,12 +119,10 @@ final class CpuThreadsView {
     myThreads.getModel().addListDataListener(new ListDataListener() {
       @Override
       public void intervalAdded(ListDataEvent e) {
-
       }
 
       @Override
       public void intervalRemoved(ListDataEvent e) {
-
       }
 
       @Override
