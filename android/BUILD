@@ -384,6 +384,8 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/android/arch/navigation/navigation-fragment/1.0.0-alpha04:aar",
         "//prebuilts/tools/common/m2/repository/android/arch/navigation/navigation-runtime-ktx/1.0.0-alpha04:aar",
         "//prebuilts/tools/common/m2/repository/android/arch/navigation/navigation-runtime/1.0.0-alpha04:aar",
+        "//prebuilts/tools/common/m2/repository/android/arch/navigation/navigation-ui-ktx/1.0.0-alpha04:aar",
+        "//prebuilts/tools/common/m2/repository/android/arch/navigation/navigation-ui/1.0.0-alpha04:aar",
         "//prebuilts/tools/common/m2/repository/android/arch/persistence/db-framework/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/android/arch/persistence/db/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/android/arch/persistence/room/common/1.0.0:jar",
