@@ -20,64 +20,70 @@ import com.android.builder.model.level2.GlobalLibraryMap
 import com.android.tools.idea.gradle.project.sync.ng.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.ng.SyncModuleModels
 import com.android.tools.idea.gradle.project.sync.ng.SyncProjectModels
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.loaders.NewProjectJsonLoader
-import org.apache.commons.io.FilenameUtils
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.loaders.LoaderConstructor
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.loaders.SimpleJsonLoader
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.gradleproject.NewGradleProject
 import org.gradle.tooling.model.BuildIdentifier
 import org.gradle.tooling.model.GradleProject
-
 import java.io.File
 import java.io.IOException
-import java.nio.file.Paths
 
 private const val DEBUG_VARIANT_NAME = "debug"
+const val SHIPPED_SYNC_DIR = ".sync"
 
-private fun locationToNormalizedFile(location: String): File {
-  return File(FilenameUtils.normalize(Paths.get(location).toAbsolutePath().toString()))
-}
+class ShippedSyncProvider(
+  private val syncDir: File,
+  private val rootProjectDir: File,
+  private val sdkDir: File,
+  private val offlineRepoDir: File,
+  private val bundleDir: File) {
 
-// TODO(qumeric): get rid of it
-private fun getConverter(rootDir: File, moduleName: String, sdkDir: String): PathConverter {
-  return PathConverter(File(rootDir, moduleName), File(sdkDir),
-                       locationToNormalizedFile("../../adt/idea/android/testData"),
-                       locationToNormalizedFile("../../adt/idea/android/testData"))
-}
+  val syncModuleModelsList = mutableListOf<SyncModuleModels>()
 
-@Throws(IOException::class)
-internal fun doFetchShippedModels(extraInfo: NewProjectExtraInfo): SyncProjectModels {
-  val buildId = BuildIdentifier{ File(extraInfo.projectLocation) }
-  val syncActionOptions = SyncActionOptions()
+  @Throws(IOException::class)
+  fun doFetchShippedModels(loaderConstructor: LoaderConstructor): SyncProjectModels {
+    // Fills syncModuleModelsList
+    loadSyncRecursively(loaderConstructor)
 
-  val projectCacheDir = getProjectCacheDir(extraInfo.activityTemplateName, extraInfo.minApi, extraInfo.targetApi)
+    val glmLoader = SimpleJsonLoader(syncDir.toPath(), getConverter(rootProjectDir))
 
-  // TODO remove .. by integrating ShippedSync generation into the build system (see b/111785663)
-  val projectCachePath = Paths.get("../../adt/idea/android/testData").resolve(NPW_GENERATED_PROJECTS_DIR)
-  val moduleCachePath = projectCachePath.resolve(projectCacheDir)
+    return object: SyncProjectModels(setOf(), setOf(), SyncActionOptions()) {
+      override fun getModuleModels(): List<SyncModuleModels> = syncModuleModelsList
+      override fun getGlobalLibraryMap(): List<GlobalLibraryMap> = listOf(glmLoader.loadGlobalLibraryMap())
+      override fun getRootBuildId() = BuildIdentifier { rootProjectDir }
+    }
+  }
 
-  val projectName = projectNameFromProjectLocation(extraInfo.projectLocation)
+  private fun getConverter(moduleDir: File) = PathConverter(moduleDir, sdkDir, offlineRepoDir, bundleDir)
 
-  val projectConverter = getConverter(buildId.rootDir, projectName, extraInfo.sdkDir)
-  val moduleConverter = getConverter(buildId.rootDir, extraInfo.mobileProjectName, extraInfo.sdkDir)
+  private fun loadSyncRecursively(loaderConstructor: LoaderConstructor, relativePath: File = File("")): SyncModuleModels {
+    val moduleDir = rootProjectDir.resolve(relativePath)
+    val converter = getConverter(moduleDir)
 
-  val newProjectLoader = NewProjectJsonLoader(projectCachePath, projectConverter, extraInfo)
-  val newModuleLoader = NewProjectJsonLoader(moduleCachePath, moduleConverter, extraInfo)
+    val cacheDir = syncDir.resolve(relativePath)
 
-  val globalLibraryMap = newProjectLoader.loadGlobalLibraryMap()
-  val rootGradleProject = newProjectLoader.loadGradleProject()
+    val loader = loaderConstructor(cacheDir.toPath(), converter)
 
-  val moduleGradleProject = newModuleLoader.loadGradleProject()
-  rootGradleProject.addChild(moduleGradleProject)
+    val gradleProject = loader.loadGradleProject()
 
-  val moduleAndroidProject = newModuleLoader.loadAndroidProject(DEBUG_VARIANT_NAME)
+    val buildId = BuildIdentifier { moduleDir }
+    val moduleModels = SyncModuleModels(gradleProject, buildId, setOf(), setOf(), SyncActionOptions()).apply {
+      addModel(GradleProject::class.java, gradleProject)
 
-  val rootModuleModels = SyncModuleModels(rootGradleProject, buildId, setOf(), setOf(), syncActionOptions)
-  rootModuleModels.addModel(GradleProject::class.java, rootGradleProject)
-  val moduleModuleModels = SyncModuleModels(moduleGradleProject, buildId, setOf(), setOf(), syncActionOptions)
-  moduleModuleModels.addModel(GradleProject::class.java, moduleGradleProject)
-  moduleModuleModels.addModel(AndroidProject::class.java, moduleAndroidProject)
+      if (cacheDir.resolve(ANDROID_PROJECT_CACHE_PATH).exists()) {
+        addModel(AndroidProject::class.java, loader.loadAndroidProject(DEBUG_VARIANT_NAME)) // TODO(qumeric): which variant?
+      }
+    }
 
-  return object : SyncProjectModels(setOf(), setOf(), syncActionOptions) {
-    override fun getModuleModels(): List<SyncModuleModels> = listOf(rootModuleModels, moduleModuleModels)
-    override fun getGlobalLibraryMap(): List<GlobalLibraryMap> = listOf(globalLibraryMap)
-    override fun getRootBuildId(): BuildIdentifier = buildId
+    syncModuleModelsList.add(moduleModels)
+
+    for (childName in gradleProject.childrenNames) {
+      val child = loadSyncRecursively(loaderConstructor, relativePath.resolve(childName))
+      gradleProject.addChild(child.findModel(GradleProject::class.java)!! as NewGradleProject)
+    }
+
+    return moduleModels
   }
 }
+
+

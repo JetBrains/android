@@ -25,6 +25,7 @@ const val GLOBAL_LIBRARY_MAP_CACHE_PATH = "global_library_map.json"
 const val ANDROID_PROJECT_CACHE_PATH = "android_project.json"
 const val VARIANTS_CACHE_DIR_PATH = "variants"
 const val GRADLE_PROJECT_CACHE_PATH = "gradle_project.json"
+const val JAVA_PROJECT_CACHE_PATH = "java_project.json"
 const val OFFLINE_REPO_PATH = "offline_repo"
 const val BUNDLE_PATH = "bundles"
 
