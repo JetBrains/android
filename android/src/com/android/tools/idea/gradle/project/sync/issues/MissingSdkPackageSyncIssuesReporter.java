@@ -25,6 +25,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +58,7 @@ public class MissingSdkPackageSyncIssuesReporter extends SimpleDeduplicatingSync
     assert !syncIssues.isEmpty();
     String data = syncIssues.get(0).getData();
     if (data != null) {
-      return ImmutableList.of(new InstallSdkPackageHyperlink(data));
+      return ImmutableList.of(new InstallSdkPackageHyperlink(Arrays.asList(data.split(" "))));
     }
     return ImmutableList.of();
   }
