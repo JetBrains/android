@@ -18,13 +18,13 @@ package com.android.tools.idea.common.property.editors
 import com.android.tools.idea.common.property.NlProperty
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.LafManagerListener
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ProjectComponent
 
 /**
  * Facility for providing [NlComponentEditor]s for [NlProperty]s.
  */
-abstract class PropertyEditors : ProjectComponent, LafManagerListener {
-
+abstract class PropertyEditors : ProjectComponent, LafManagerListener, Disposable {
   abstract protected fun resetCachedEditors()
 
   abstract fun create(property: NlProperty): NlComponentEditor
@@ -33,12 +33,10 @@ abstract class PropertyEditors : ProjectComponent, LafManagerListener {
 
   override fun projectClosed() {}
 
-  override fun initComponent() = LafManager.getInstance().addLafManagerListener(this)
-
-  override fun disposeComponent() = LafManager.getInstance().removeLafManagerListener(this)
+  override fun initComponent() = LafManager.getInstance().addLafManagerListener(this, this)
 
   override fun lookAndFeelChanged(source: LafManager) = resetCachedEditors()
 
-  override fun getComponentName(): String = javaClass.simpleName
-
+  override fun dispose() {
+  }
 }
