@@ -16,10 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.NativeAndroidProject;
-import com.android.builder.model.NativeVariantAbi;
+import com.android.builder.model.*;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
@@ -47,6 +44,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -224,7 +222,8 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
         GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
         assert gradleProject != null;
 
-        JavaModuleModel javaModel = myJavaModuleModelFactory.create(gradleProject, androidProject);
+        Collection<SyncIssue> issues = androidProject.getSyncIssues();
+        JavaModuleModel javaModel = myJavaModuleModelFactory.create(gradleProject, androidProject, issues);
         myJavaModuleSetup.setUpModule(context, javaModel, false /* sync not skipped */);
         cachedModels.addModel(javaModel);
       }
