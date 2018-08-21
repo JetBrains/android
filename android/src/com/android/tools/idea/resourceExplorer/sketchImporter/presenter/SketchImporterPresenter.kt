@@ -22,7 +22,7 @@ import com.android.tools.idea.resourceExplorer.importer.DesignAssetImporter
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
-import com.android.tools.idea.resourceExplorer.sketchImporter.logic.DrawableGenerator
+import com.android.tools.idea.resourceExplorer.sketchImporter.logic.DrawableFileGenerator
 import com.android.tools.idea.resourceExplorer.sketchImporter.logic.VectorDrawable
 import com.android.tools.idea.resourceExplorer.sketchImporter.model.ImportOptions
 import com.android.tools.idea.resourceExplorer.sketchImporter.model.PageOptions
@@ -85,7 +85,9 @@ class SketchImporterPresenter(private val view: SketchImporterView,
   fun importFilesIntoProject() {
     val assets = pageIdToFiles.values
       .flatten()
-      .filter { importOptions.importAll || importOptions.getIconOptions(it.name)?.isExportable ?: false }  // to be replaced with selected files
+      .filter {
+        importOptions.importAll || importOptions.getIconOptions(it.name)?.isExportable ?: false
+      }  // to be replaced with selected files
       .associate { it to it.nameWithoutExtension }  // to be replaced with the name from options
       .map { (file, name) ->
         DesignAssetSet(name, listOf(DesignAsset(file, listOf(DensityQualifier(Density.ANYDPI)), ResourceType.DRAWABLE, name)))
@@ -123,9 +125,9 @@ class SketchImporterPresenter(private val view: SketchImporterView,
    */
   private fun createIconFiles(page: SketchPage) = page.artboards
     .mapNotNull { artboard ->
-      val iconName = importOptions.getIconOptions(artboard.objectId)?.name ?: return@mapNotNull null
       val vectorDrawable = VectorDrawable(artboard)
-      DrawableGenerator(facet.module.project, vectorDrawable).generateFile(iconName)
+      vectorDrawable.name = importOptions.getIconOptions(artboard.objectId)?.name ?: return@mapNotNull null
+      DrawableFileGenerator(facet.module.project).generateFile(vectorDrawable)
     }
 
   /**
