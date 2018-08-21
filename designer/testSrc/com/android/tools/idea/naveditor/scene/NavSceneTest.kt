@@ -154,7 +154,7 @@ class NavSceneTest : NavTestCase() {
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
-      "Clip,0,0,1126,1128\n" +
+      "Clip,0,0,1127,1128\n" +
       "DrawRectangle,1,500.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,501.0x401.0x74.5x126.0\n" +
       "DrawIcon,500.0x389.0x7.0x7.0,START_DESTINATION\n" +
@@ -196,7 +196,7 @@ class NavSceneTest : NavTestCase() {
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
-      "Clip,0,0,1126,1128\n" +
+      "Clip,0,0,1127,1128\n" +
       "DrawRectangle,1,500.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,501.0x401.0x74.5x126.0\n" +
       "DrawIcon,500.0x389.0x7.0x7.0,START_DESTINATION\n" +
@@ -243,7 +243,7 @@ class NavSceneTest : NavTestCase() {
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
-      "Clip,0,0,1056,928\n" +
+      "Clip,0,0,1057,928\n" +
       "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
       "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x389.0x78.5x139.0,NORMAL\n" +
@@ -286,7 +286,7 @@ class NavSceneTest : NavTestCase() {
     list.clear()
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
-      "Clip,0,0,876,928\n" +
+      "Clip,0,0,877,928\n" +
       "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
       "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
@@ -305,7 +305,7 @@ class NavSceneTest : NavTestCase() {
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
-      "Clip,0,0,966,928\n" +
+      "Clip,0,0,967,928\n" +
       "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
       "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x389.0x78.5x139.0,NORMAL\n" +
@@ -356,7 +356,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, view)
 
     assertEquals(
-      "Clip,0,0,1056,928\n" +
+      "Clip,0,0,1057,928\n" +
       "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
       "DrawAction,REGULAR,490.0x400.0x76.5x128.0,580.0x389.0x78.5x139.0,NORMAL\n" +
@@ -392,7 +392,7 @@ class NavSceneTest : NavTestCase() {
     scene.layout(0, SceneContext.get(view))
     scene.buildDisplayList(list, 0, view)
     assertEquals(
-      "Clip,0,0,966,928\n" +
+      "Clip,0,0,967,928\n" +
       "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
       "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x389.0x78.5x139.0,NORMAL\n" +
@@ -422,7 +422,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     assertEquals(
-      "Clip,0,0,876,928\n" +
+      "Clip,0,0,877,928\n" +
       "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
       "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
@@ -512,7 +512,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     assertEquals(
-      "Clip,0,0,876,928\n" +
+      "Clip,0,0,877,928\n" +
       "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
       "DrawIcon,400.0x389.0x7.0x7.0,START_DESTINATION\n" +
@@ -728,7 +728,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     assertEquals(
-      "Clip,0,0,876,928\n" +
+      "Clip,0,0,877,928\n" +
       "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawRoundRectangle,1,398.0x398.0x80.5x132.0x2.0x2.0,ffa7a7a7,2.0\n" +
       "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
@@ -791,7 +791,7 @@ class NavSceneTest : NavTestCase() {
         "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
         "DrawFilledCircle,6,478.5x464.0,fff5f5f5,0.0:3.5:63\n" +
         "DrawFilledCircle,7,478.5x464.0,ff1886f7,2.5:2.5:0\n" +
-        "DrawActionHandleDrag,478,464\n" +
+        "DrawActionHandleDrag,479,464\n" +
         "\n" +
         "UNClip\n", list.generateSortedDisplayList(sceneContext)
     )
@@ -880,7 +880,7 @@ class NavSceneTest : NavTestCase() {
     scene.layout(0, SceneContext.get())
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
-      "Clip,0,0,1056,928\n" +
+      "Clip,0,0,1057,928\n" +
       "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
       "DrawTruncatedText,3,fragment1,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
@@ -932,7 +932,7 @@ class NavSceneTest : NavTestCase() {
     scene.layout(0, SceneContext.get())
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
-      "Clip,0,0,966,928\n" +
+      "Clip,0,0,967,928\n" +
       "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
       "DrawTruncatedText,3,fragment1,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
@@ -996,7 +996,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, view)
 
     assertEquals(
-      "Clip,0,0,1056,1078\n" +
+      "Clip,0,0,1057,1078\n" +
       "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
       "DrawTruncatedText,3,fragment2,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
@@ -1113,7 +1113,7 @@ class NavSceneTest : NavTestCase() {
     scene.layout(0, SceneContext.get())
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
-      "Clip,0,0,1056,928\n" +
+      "Clip,0,0,1057,928\n" +
       "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
       "DrawAction,REGULAR,490.0x400.0x76.5x128.0,580.0x389.0x78.5x139.0,NORMAL\n" +
@@ -1177,7 +1177,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
 
     assertEquals(
-      "Clip,0,0,876,928\n" +
+      "Clip,0,0,877,928\n" +
       "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
       "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
@@ -1238,7 +1238,7 @@ class NavSceneTest : NavTestCase() {
     scene.layout(0, SceneContext.get())
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
-      "Clip,0,0,876,928\n" +
+      "Clip,0,0,877,928\n" +
       "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
       "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
@@ -1283,7 +1283,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(surface as NavDesignSurface, scene.sceneManager))
 
     assertEquals(
-      "Clip,0,0,876,928\n" +
+      "Clip,0,0,877,928\n" +
       "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
       "DrawTruncatedText,3,customComponent,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
