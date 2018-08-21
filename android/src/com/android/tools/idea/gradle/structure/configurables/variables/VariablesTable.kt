@@ -16,9 +16,14 @@
 package com.android.tools.idea.gradle.structure.configurables.variables
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.PropertyCellEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderAnyTo
+import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.*
+import com.android.tools.idea.gradle.structure.configurables.ui.uiProperty
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariable
@@ -67,7 +72,6 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
 
   private val iconGap = JBUI.scale(2)
   private val editorInsets = JBUI.insets(1, 2)
-  private val iconSize = JBUI.scale(16)
 
   init {
     setProcessCursorKeys(false)
@@ -116,6 +120,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     setRowSelectionAllowed(false)
     columnSelectionAllowed = false
     setCellSelectionEnabled(true)
+    setRowHeight(calculateMinRowHeight())
   }
 
   fun deleteSelectedVariables() {
@@ -237,12 +242,6 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     init {
       addTabKeySupportTo(textBox)
       textBox.addTextListener(ActionListener { stopCellEditing() })
-      textBox.addFocusListener(object : FocusAdapter() {
-        override fun focusLost(e: FocusEvent?) {
-          stopCellEditing()
-          super.focusLost(e)
-        }
-      })
       textBox.border = BorderFactory.createMatteBorder(editorInsets.top, editorInsets.left, editorInsets.bottom, editorInsets.right,
                                                        this@VariablesTable.selectionBackground)
       textBox.componentPopupMenu = null
@@ -301,35 +300,22 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     override fun getCellEditorValue(): Any? = textBox.text
   }
 
-  inner class VariableCellEditor : AbstractTableCellEditor() {
-    private val textBox = VariableAwareTextBox(project)
+  private fun calculateMinRowHeight() = SimplePropertyEditor(SimplePropertyStub(), PropertyContextStub<Any>(), null,
+                                                             listOf()).component.minimumSize.height
 
-    init {
-      addTabKeySupportTo(textBox)
-      textBox.addTextListener(ActionListener { stopCellEditing() })
-      textBox.addFocusListener(object : FocusAdapter() {
-        override fun focusLost(e: FocusEvent?) {
-          stopCellEditing()
-          super.focusLost(e)
-        }
-      })
-      textBox.border = BorderFactory.createMatteBorder(editorInsets.top, editorInsets.left, editorInsets.bottom, editorInsets.right,
-                                                       this@VariablesTable.selectionBackground)
+  inner class VariableCellEditor : PropertyCellEditor<Any>() {
+    override fun initEditorFor(row: Int): ModelPropertyEditor<Any> {
+      val node = tree.getPathForRow(row).lastPathComponent
+      val variable = when (node) {
+        is BaseVariableNode -> node.variable
+        is EmptyListItemNode -> node.createVariable(ParsedValue.NotSet)
+        else -> throw IllegalStateException()
+      }
+      val uiProperty = uiProperty(PsVariable.Descriptors.variableValue, ::simplePropertyEditor)
+      return uiProperty.createEditor(psProject, null, variable).also { addTabKeySupportTo(it.component) }
     }
 
-    override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
-      if (value !is ParsedValue<*>) {
-        return null
-      }
-      val nodeBeingEdited = (table as VariablesTable).tree.getPathForRow(row).lastPathComponent
-      if (nodeBeingEdited is BaseVariableNode) {
-        textBox.setVariants(nodeBeingEdited.variable.scopePsVariables.map { it.name })
-      }
-      textBox.text = value.getText { toString() }
-      return textBox
-    }
-
-    override fun getCellEditorValue(): Any? = VariablePropertyContextStub.parseEditorText(textBox.text)
+    override fun Annotated<ParsedValue<Any>>.toModelValue(): Any = this
   }
 
   private fun addTabKeySupportTo(editor: JComponent) {
