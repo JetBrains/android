@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.error;
 
-import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.lint.detector.api.Category;
 import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Issue;
@@ -55,7 +55,7 @@ public class MockIssueFactory {
     };
 
     Mockito.when(sourceElement.getTagName()).thenReturn("MockTag");
-    model.addIssue(sourceElement, issue, "",
+    model.addIssue(sourceElement, null, issue, "",
                    inspection, level, startElement, endElement,
                    null);
   }
