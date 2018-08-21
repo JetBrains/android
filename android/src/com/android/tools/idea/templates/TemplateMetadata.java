@@ -100,6 +100,7 @@ public class TemplateMetadata {
   public static final String ATTR_DYNAMIC_IS_INSTANT_MODULE = "isInstantModule";
 
   public static final String ATTR_IS_INSTANT_APP = "isInstantApp";
+  public static final String ATTR_IS_DYNAMIC_INSTANT_APP = "isDynamicInstantApp";
   public static final String ATTR_HAS_INSTANT_APP_WRAPPER = "hasInstantAppWrapper";
   public static final String ATTR_HAS_MONOLITHIC_APP_WRAPPER = "hasMonolithicAppWrapper";
   public static final String ATTR_MONOLITHIC_MODULE_NAME = "monolithicModuleName";

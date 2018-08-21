@@ -395,6 +395,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> UAB_INSTANT_DYNAMIC_FEATURE_MODULE = Flag.create(
     UAB, "instant.dynamic.feature.modules", "Enable Instant Dynamic Feature Template",
     "If enabled, the new module wizard will include the template for instant dynamic feature modules",
+    false);
+
+  public static final Flag<Boolean> UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP = Flag.create(
+    UAB, "dynamic.instant.app", "When Instant is checked, only create app module with dist:module in manifest",
+    "If enabled, when the user checks the instant checkbox when creating a new project, then a project with only an app module and with dist:module in the manifest",
     false
   );
 
