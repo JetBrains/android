@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.PREFIX_ANDROID
+import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
@@ -31,11 +35,16 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property2.api.ActionIconButton
 import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.res.*
+import com.android.tools.idea.res.RESOURCE_ICON_SIZE
+import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.parseColor
+import com.android.tools.idea.res.resolveAsIcon
+import com.android.tools.idea.res.resolveColor
 import com.android.tools.idea.uibuilder.property2.support.ColorSelectionAction
 import com.android.tools.idea.uibuilder.property2.support.OpenResourceManagerAction
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.utils.HashCodes
+import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -262,7 +271,7 @@ open class NelePropertyItem(
     sb.append(name)
     val value = definition?.getDescription(null) ?: ""
     if (value.isNotEmpty()) {
-      sb.append(": ")
+      sb.append(":\n")
       sb.append(value)
     }
     return sb.toString()
@@ -320,9 +329,14 @@ open class NelePropertyItem(
     return values
   }
 
-  // TODO: implement validate
+  // TODO: complete validate method with local checks
   private fun validate(text: String): Pair<EditingErrorCategory, String> {
-    return EDITOR_NO_ERROR
+    val component = firstComponent ?: return EDITOR_NO_ERROR
+    val issue = nlModel?.lintAnnotationsModel?.findIssue(component, namespace, name) ?: return EDITOR_NO_ERROR
+    return when (issue.level) {
+      HighlightDisplayLevel.ERROR -> Pair(EditingErrorCategory.ERROR, issue.message)
+      else -> Pair(EditingErrorCategory.WARNING, issue.message)
+    }
   }
 
   override val browseButton = createBrowseButton()
