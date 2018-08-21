@@ -124,7 +124,7 @@ class SketchImporterPresenter(private val view: SketchImporterView,
   private fun createIconFiles(page: SketchPage) = page.artboards
     .mapNotNull { artboard ->
       val iconName = importOptions.getIconOptions(artboard.objectId)?.name ?: return@mapNotNull null
-      val vectorDrawable = VectorDrawable(artboard.createAllDrawableShapes(), artboard.frame)
+      val vectorDrawable = VectorDrawable(artboard)
       DrawableGenerator(facet.module.project, vectorDrawable).generateFile(iconName)
     }
 
