@@ -94,6 +94,35 @@ class PsVariablesTest : AndroidGradleTestCase() {
     assertThat(listVar.listItems.map { it.value }, equalTo(listOf("v1".asParsed<Any>(), "v2".asParsed<Any>())))
   }
 
+  fun testAddingListVariables_viaEmptyItemState() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
+    val variables = psAppModule.variables
+    var refreshed = 0
+    variables.onChange(testRootDisposable, {refreshed++})
+    val listVar = variables.addNewListVariable("newList1")
+    listVar.listItems.onChange(testRootDisposable, {refreshed++})
+    assertThat(refreshed, equalTo(1))
+
+    val newItem1 = listVar.addListValue(ParsedValue.NotSet)
+    // The new item is not added until a value is set.
+    assertThat(listVar.listItems.map { it.value }, equalTo(listOf()))
+    assertThat(refreshed, equalTo(1))
+
+    newItem1.value = "v1".asParsed()
+    assertThat(listVar.listItems.map { it.value }, equalTo(listOf("v1".asParsed<Any>())))
+    assertThat(refreshed, equalTo(2))
+
+    val newItem2 = listVar.addListValue(ParsedValue.NotSet)
+    assertThat(listVar.listItems.map { it.value }, equalTo(listOf("v1".asParsed<Any>())))
+    assertThat(refreshed, equalTo(2))
+
+    newItem2.value = "v2".asParsed()
+    assertThat(listVar.listItems.map { it.value }, equalTo(listOf("v1".asParsed<Any>(), "v2".asParsed<Any>())))
+    assertThat(refreshed, equalTo(3))
+  }
+
   fun testAddingMapVariables() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
     val psProject = PsProjectImpl(project)
