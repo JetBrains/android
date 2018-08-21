@@ -24,13 +24,18 @@
 
 package com.android.tools.idea
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_MANIFEST_XML
+import com.android.SdkConstants.DOT_AAR
+import com.android.SdkConstants.FD_JARS
+import com.android.SdkConstants.LIBS_FOLDER
+import com.android.builder.model.AaptOptions
 import com.android.projectmodel.AarLibrary
 import com.android.tools.idea.projectsystem.FilenameConstants
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 
 /**
@@ -103,3 +108,8 @@ fun findResFolder(jarFile: File): File? {
   }
   return resourcesDirectory
 }
+
+/**
+ * Checks namespacing of the module with the given [AndroidFacet].
+ */
+val AndroidFacet.namespacing: AaptOptions.Namespacing get() = configuration.model?.namespacing ?: AaptOptions.Namespacing.DISABLED

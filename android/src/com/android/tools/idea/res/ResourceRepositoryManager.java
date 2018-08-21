@@ -28,7 +28,6 @@ import com.android.projectmodel.AarLibrary;
 import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.res.aar.AarResourceRepositoryCache;
 import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.google.common.collect.ImmutableList;
@@ -44,6 +43,13 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -51,9 +57,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
 
 public class ResourceRepositoryManager implements Disposable {
   private static final Key<ResourceRepositoryManager> KEY = Key.create(ResourceRepositoryManager.class.getName());
@@ -89,7 +92,7 @@ public class ResourceRepositoryManager implements Disposable {
 
   @NotNull
   public static ResourceRepositoryManager getOrCreateInstance(@NotNull AndroidFacet facet) {
-    AaptOptions.Namespacing namespacing = getNamespacing(facet);
+    AaptOptions.Namespacing namespacing = AndroidProjectModelUtils.getNamespacing(facet);
     ResourceRepositoryManager instance = facet.getUserData(KEY);
 
     if (instance != null && instance.myNamespacing != namespacing) {
@@ -420,16 +423,6 @@ public class ResourceRepositoryManager implements Disposable {
   @NotNull
   public AaptOptions.Namespacing getNamespacing() {
     return myNamespacing;
-  }
-
-  @NotNull
-  private static AaptOptions.Namespacing getNamespacing(@NotNull AndroidFacet facet) {
-    AndroidModel model = facet.getConfiguration().getModel();
-    if (model != null) {
-      return model.getNamespacing();
-    } else {
-      return AaptOptions.Namespacing.DISABLED;
-    }
   }
 
   /**

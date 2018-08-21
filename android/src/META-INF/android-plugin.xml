@@ -1107,6 +1107,8 @@
     <projectService serviceImplementation="com.android.tools.idea.res.ProjectLightResourceClassService" />
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidManifestClassPsiElementFinder" />
 
+    <projectService serviceImplementation="com.android.tools.idea.res.ProjectNamespacingStatusService" />
+
     <packaging.elementType implementation="org.jetbrains.android.compiler.artifact.AndroidFinalPackageElementType"/>
     <packaging.sourceItemProvider implementation="org.jetbrains.android.compiler.artifact.AndroidSourceItemsProvider"/>
     <packaging.artifactPropertiesProvider implementation="org.jetbrains.android.compiler.artifact.AndroidArtifactPropertiesProvider"/>
