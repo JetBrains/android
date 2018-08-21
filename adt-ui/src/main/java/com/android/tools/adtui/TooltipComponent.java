@@ -16,17 +16,28 @@
 package com.android.tools.adtui;
 
 import com.intellij.util.Producer;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.RoundRectangle2D;
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
+import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.RoundRectangle2D;
-
 public final class TooltipComponent extends AnimatedComponent {
-  private static final int TOOLTIP_BORDER_SIZE = 10;
+  private static final int BORDER_SIZE = 10;
+  private static final int[] DROPSHADOW_ALPHAS = new int[]{40, 30, 20, 10};
 
   @NotNull
   private final Component myTooltipContent;
@@ -45,9 +56,6 @@ public final class TooltipComponent extends AnimatedComponent {
   @NotNull
   private final Dimension myExpandedSize = new Dimension(0, 0);
 
-  private final boolean myAnchoredToOwner;
-
-  private final boolean myShowDropShadow;
 
   @Nullable
   private Point myLastPoint;
@@ -59,8 +67,6 @@ public final class TooltipComponent extends AnimatedComponent {
     myOwner = builder.myOwner;
     myParent = builder.myParent;
     myIsOwnerDisplayable = builder.myIsOwnerDisplayable;
-    myAnchoredToOwner = builder.myAnchoredToOwner;
-    myShowDropShadow = builder.myShowDropShadow;
 
     myParentListener = new ComponentAdapter() {
       @Override
@@ -135,20 +141,21 @@ public final class TooltipComponent extends AnimatedComponent {
         myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TooltipComponent.this);
         setVisible(true);
         revalidate();
-        opaqueRepaint();
+        repaintIfVisible(myTooltipContent.getPreferredSize());
       }
 
       @Override
       public void mouseExited(MouseEvent e) {
+        repaintLastPoint();
         myExpandedSize.setSize(0, 0);
         myTooltipContent.setSize(0, 0);
         removeFromParent();
         setVisible(false);
         myLastPoint = null;
-        opaqueRepaint();
       }
 
       private void handleMove(MouseEvent e) {
+        repaintIfVisible(myTooltipContent.getBounds().getSize()); // Repaint previous location.
         myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TooltipComponent.this);
         if (!isVisible()) {
           // If we turn invisible, then reset the anti-flap size.
@@ -158,7 +165,7 @@ public final class TooltipComponent extends AnimatedComponent {
         if (!myTooltipContent.getPreferredSize().equals(myTooltipContent.getBounds().getSize())) {
           revalidate();
         }
-        opaqueRepaint();
+        repaintIfVisible(myTooltipContent.getPreferredSize()); // Repaint new location.
       }
     };
     component.addMouseMotionListener(adapter);
@@ -177,37 +184,49 @@ public final class TooltipComponent extends AnimatedComponent {
     }
     assert myLastPoint != null; // If we're visible, myLastPoint is not null
 
-    // Translate the bounds to clamp it wholly within the parent's drawable region.
     Dimension preferredSize = getPreferredSize();
-    Point anchorPoint;
-    if (myAnchoredToOwner) {
-      anchorPoint = SwingUtilities.convertPoint(myOwner, new Point(0, 0), this);
-    }
-    else {
-      anchorPoint = new Point(myLastPoint);
-    }
-
-    int padding = myShowDropShadow ? TOOLTIP_BORDER_SIZE : 0;
-    // TODO Investigate if this works for multiple monitors, especially on Macs?
-    int x = Math.max(Math.min(anchorPoint.x + padding, dim.width - preferredSize.width - padding), padding);
-    int y = Math.max(Math.min(anchorPoint.y + padding, dim.height - preferredSize.height - padding), padding);
-    myTooltipContent.setLocation(x, y);
+    Point paintLocation = getPaintLocation(myLastPoint, preferredSize);
+    myTooltipContent.setLocation(paintLocation.x, paintLocation.y);
 
     g.setColor(Color.WHITE);
-    g.fillRect(x, y, preferredSize.width, preferredSize.height);
+    g.fillRect(paintLocation.x, paintLocation.y, preferredSize.width, preferredSize.height);
     g.setStroke(new BasicStroke(1.0f));
 
-    if (myShowDropShadow) {
-      int lines = 4;
-      int[] alphas = new int[]{40, 30, 20, 10};
-      RoundRectangle2D.Float rect = new RoundRectangle2D.Float();
-      for (int i = 0; i < lines; i++) {
-        g.setColor(new Color(0, 0, 0, alphas[i]));
-        rect.setRoundRect(x - 1 - i, y - 1 - i, preferredSize.width + 1 + i * 2, preferredSize.height + 1 + i * 2, i * 2 + 2, i * 2 + 2);
-        g.draw(rect);
-      }
+    RoundRectangle2D.Float rect = new RoundRectangle2D.Float();
+    for (int i = 1; i <= DROPSHADOW_ALPHAS.length; i++) {
+      g.setColor(new Color(0, 0, 0, DROPSHADOW_ALPHAS[i - 1]));
+      rect.setRoundRect(paintLocation.x - i, paintLocation.y - i, preferredSize.width + i * 2, preferredSize.height + i * 2, i * 2, i * 2);
+      g.draw(rect);
     }
+
     myTooltipContent.repaint();
+  }
+
+  @NotNull
+  private Point getPaintLocation(@NotNull Point lastPoint, @NotNull Dimension preferredSize) {
+    // Translate the bounds to clamp it wholly within the parent's drawable region.
+    Dimension parentSize = getParent().getSize();
+    int x = Math.max(Math.min(lastPoint.x + BORDER_SIZE / 2, parentSize.width - preferredSize.width - BORDER_SIZE / 2), BORDER_SIZE);
+    int y = Math.max(Math.min(lastPoint.y + BORDER_SIZE / 2, parentSize.height - preferredSize.height - BORDER_SIZE / 2), BORDER_SIZE);
+    return new Point(x, y);
+  }
+
+  public void repaintIfVisible(@NotNull Dimension dimensionToCheck) {
+    if (isVisible() && dimensionToCheck.width > 0 && dimensionToCheck.height > 0) {
+      repaintLastPoint();
+    }
+  }
+
+  private void repaintLastPoint() {
+    if (myLastPoint == null) {
+      return;
+    }
+    Dimension preferredSize = getPreferredSize();
+    Point xy = getPaintLocation(myLastPoint, preferredSize);
+    opaqueRepaint(xy.x - DROPSHADOW_ALPHAS.length,
+                  xy.y - DROPSHADOW_ALPHAS.length,
+                  preferredSize.width + 2 * DROPSHADOW_ALPHAS.length,
+                  preferredSize.height + 2 * DROPSHADOW_ALPHAS.length);
   }
 
   public static class Builder {
@@ -215,8 +234,6 @@ public final class TooltipComponent extends AnimatedComponent {
     @NotNull private final JComponent myOwner;
     @NotNull private final JLayeredPane myParent;
     @NotNull private Producer<Boolean> myIsOwnerDisplayable;
-    private boolean myAnchoredToOwner;
-    private boolean myShowDropShadow = true;
 
     /**
      * Construct a tooltip component to show for a particular {@code owner}. After
@@ -243,25 +260,6 @@ public final class TooltipComponent extends AnimatedComponent {
     @NotNull
     public Builder setIsOwnerDisplayable(@NotNull Producer<Boolean> isOwnerDisplayable) {
       myIsOwnerDisplayable = isOwnerDisplayable;
-      return this;
-    }
-
-    /**
-     * @param isAnchored Sets whether the tooltip should be anchored to the top left corner of the owner, instead of following the mouse.
-     */
-    @NotNull
-    public Builder setAnchored(boolean isAnchored) {
-      myAnchoredToOwner = isAnchored;
-      return this;
-    }
-
-    /**
-     * @param showDropShadow Sets whether to include drop shadows around the tooltip. This has the effect of adding extra paddings around
-     *                       the tooltip which might not always be desirable.
-     */
-    @NotNull
-    public Builder setShowDropShadow(boolean showDropShadow) {
-      myShowDropShadow = showDropShadow;
       return this;
     }
 

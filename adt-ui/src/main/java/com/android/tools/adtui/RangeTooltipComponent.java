@@ -34,6 +34,14 @@ import java.util.function.Supplier;
 public final class RangeTooltipComponent extends AnimatedComponent {
   public static final Color HIGHLIGHT_COLOR = new JBColor(0x4A81FF, 0x78B2FF);
 
+  private static final float HIGHLIGHT_WIDTH = 2.0f;
+
+  private static final float INVALID_HIGHLIGHT_X = -Float.MAX_VALUE;
+
+  // We want to "erase" the line at the old X position, and we already have that X position in the draw method.
+  // Therefore, we just stash the old X position here.
+  private float myOldHighlightX = INVALID_HIGHLIGHT_X;
+
   @NotNull
   private final Range myHighlightRange;
 
@@ -83,7 +91,8 @@ public final class RangeTooltipComponent extends AnimatedComponent {
       @Override
       public void mouseExited(MouseEvent e) {
         myLastPoint = null;
-        opaqueRepaint();
+        myHighlightRange.clear();
+        highlightRangeChanged();
       }
 
       @Override
@@ -94,7 +103,7 @@ public final class RangeTooltipComponent extends AnimatedComponent {
       private void handleMove(MouseEvent e) {
         myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), RangeTooltipComponent.this);
         viewRangeChanged();
-        opaqueRepaint();
+        highlightRangeChanged();
       }
     };
     component.addMouseMotionListener(adapter);
@@ -116,21 +125,44 @@ public final class RangeTooltipComponent extends AnimatedComponent {
     }
   }
 
+  @SuppressWarnings("FloatingPointEquality")
   private void highlightRangeChanged() {
-    opaqueRepaint();
+    if (myHighlightRange.isEmpty() && myOldHighlightX == INVALID_HIGHLIGHT_X) {
+      return;
+    }
+
+    if (myOldHighlightX != INVALID_HIGHLIGHT_X) {
+      int minX = (int)Math.floor(myOldHighlightX - HIGHLIGHT_WIDTH / 2.0);
+      int width = (int)Math.ceil(myOldHighlightX + HIGHLIGHT_WIDTH / 2.0) - minX;
+      opaqueRepaint(minX, 0, width, getHeight());
+      myOldHighlightX = INVALID_HIGHLIGHT_X;
+    }
+
+    if (!myHighlightRange.isEmpty()) {
+      float x = rangeToX(myHighlightRange.getMin());
+      int minX = (int)Math.floor(x - HIGHLIGHT_WIDTH / 2.0);
+      int width = (int)Math.ceil(x + HIGHLIGHT_WIDTH / 2.0) - minX;
+      opaqueRepaint(minX, 0, width, getHeight());
+    }
   }
 
-  private double xToRange(int x) {
-    return x / getSize().getWidth() * myViewRange.getLength() + myViewRange.getMin();
+  @VisibleForTesting
+  double xToRange(int x) {
+    return x / (double)getWidth() * myViewRange.getLength() + myViewRange.getMin();
   }
 
-  private float rangeToX(double value) {
-    return (float)((value - myViewRange.getMin()) / (myViewRange.getMax() - myViewRange.getMin()));
+  @VisibleForTesting
+  float rangeToX(double value) {
+    return (float)(getWidth() * (value - myViewRange.getMin()) / (myViewRange.getMax() - myViewRange.getMin()));
+  }
+
+  private boolean isHighlightRangeVisible() {
+    return myLastPoint != null && !myHighlightRange.isEmpty() && myHighlightRange.getMin() >= myDataRange.getMin();
   }
 
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
-    if (myLastPoint == null || myHighlightRange.isEmpty() || myHighlightRange.getMin() < myDataRange.getMin()) {
+    if (!isHighlightRangeVisible()) {
       myTooltipComponent.setVisible(false);
       return;
     }
@@ -138,14 +170,14 @@ public final class RangeTooltipComponent extends AnimatedComponent {
 
     if (myShowSeekComponent.get()) {
       float x = rangeToX(myHighlightRange.getMin());
-      float pos = (float)(x * dim.getWidth());
+      myOldHighlightX = x;
 
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g.setColor(HIGHLIGHT_COLOR);
-      g.setStroke(new BasicStroke(2.0f));
+      g.setStroke(new BasicStroke(HIGHLIGHT_WIDTH));
       Path2D.Float path = new Path2D.Float();
-      path.moveTo(pos, 0);
-      path.lineTo(pos, dim.getHeight());
+      path.moveTo(x, 0);
+      path.lineTo(x, getHeight());
       g.draw(path);
     }
   }

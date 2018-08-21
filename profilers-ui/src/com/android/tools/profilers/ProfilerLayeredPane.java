@@ -58,17 +58,19 @@ public class ProfilerLayeredPane extends JLayeredPane {
 
   @Override
   public void setBounds(int x, int y, int width, int height) {
+    Rectangle oldBounds = getBounds();
+
     super.setBounds(x, y, width, height);
+
+    if (x == oldBounds.x && y == oldBounds.y && width == oldBounds.width && height == oldBounds.height) {
+      return;
+    }
+
     for (int i = 0; i < getComponentCount(); i++) {
       Component component = getComponent(i);
       component.setBounds(0, 0, width, height);
     }
     revalidate();
     repaint();
-  }
-
-  @Override
-  public void setBounds(Rectangle r) {
-    setBounds(r.x, r.y, r.width, r.height);
   }
 }
