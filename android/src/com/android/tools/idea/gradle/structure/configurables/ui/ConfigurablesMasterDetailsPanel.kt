@@ -87,13 +87,14 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
     val result = mutableListOf<AnAction>()
 
     val createActions = getCreateActions()
-    if (createActions.isNotEmpty()) {
-      result.add(
-          MyActionGroupWrapper(object : ActionGroup("Add", "Add", IconUtil.getAddIcon()) {
-            override fun getChildren(e: AnActionEvent?): Array<AnAction> {
-              return createActions.toTypedArray()
-            }
-          }))
+    when {
+      createActions.size == 1 -> result.add(createActions[0])
+      createActions.isNotEmpty() -> result.add(
+        MyActionGroupWrapper(object : ActionGroup("Add", "Add", IconUtil.getAddIcon()) {
+          override fun getChildren(e: AnActionEvent?): Array<AnAction> {
+            return createActions.toTypedArray()
+          }
+        }))
     }
 
     val removeAction = getRemoveAction()
