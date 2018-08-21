@@ -401,6 +401,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   @Override
+  @Nullable
   public ILayoutPullParser getParser(@NotNull ResourceValue layoutResource) {
     String value = layoutResource.getValue();
     if (value == null) {
@@ -618,8 +619,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     return null;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Object getAdapterItemValue(ResourceReference adapterView,
                                     Object adapterCookie,
                                     ResourceReference itemRef,
@@ -657,6 +658,52 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     }
 
     if (viewAttribute == ViewAttribute.TEXT && ((String)defaultValue).isEmpty()) {
+      return "Item " + (fullPosition + 1);
+    }
+
+    return null;
+  }
+
+  @Override
+  @Nullable
+  @Deprecated
+  public Object getAdapterItemValue(ResourceReference adapterView,
+                                    Object adapterCookie,
+                                    ResourceReference itemRef,
+                                    int fullPosition,
+                                    int typePosition,
+                                    int fullChildPosition,
+                                    int typeChildPosition,
+                                    ResourceReference viewRef,
+                                    IProjectCallback.ViewAttribute viewAttribute,
+                                    Object defaultValue) {
+
+    // Special case for the palette preview
+    if (viewAttribute == IProjectCallback.ViewAttribute.TEXT && adapterView.getName().startsWith("android_widget_")) { //$NON-NLS-1$
+      String name = adapterView.getName();
+      if (viewRef.getName().equals("text2")) { //$NON-NLS-1$
+        return "Sub Item";
+      }
+      if (fullPosition == 0) {
+        String viewName = name.substring("android_widget_".length());
+        if (viewName.equals(EXPANDABLE_LIST_VIEW)) {
+          return "ExpandableList"; // ExpandableListView is too wide, character-wraps
+        }
+        return viewName;
+      }
+      else {
+        return "Next Item";
+      }
+    }
+
+    if (itemRef.getNamespace() == ResourceNamespace.ANDROID) {
+      // Special case for list_view_item_2 and friends
+      if (viewRef.getName().equals("text2")) { //$NON-NLS-1$
+        return "Sub Item " + (fullPosition + 1);
+      }
+    }
+
+    if (viewAttribute == IProjectCallback.ViewAttribute.TEXT && ((String)defaultValue).isEmpty()) {
       return "Item " + (fullPosition + 1);
     }
 
