@@ -42,7 +42,7 @@ final class AddLocaleAction extends AnAction {
   private final StringResourceViewPanel myPanel;
 
   AddLocaleAction(@NotNull StringResourceViewPanel panel) {
-    super("Add Locale", null, Icons.newLayeredIcon(AndroidIcons.Globe, (ScalableIcon)AllIcons.ToolbarDecorator.Add));
+    super("Add Locale", null, Icons.newLayeredIcon(AndroidIcons.Globe, (ScalableIcon)AllIcons.General.Add));
     myPanel = panel;
   }
 
