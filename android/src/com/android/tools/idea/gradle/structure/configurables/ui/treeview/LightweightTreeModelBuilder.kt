@@ -63,13 +63,6 @@ private fun DefaultTreeModel.updateChildrenOf(
       .childNodes
       .map { it.shadowNode to it }
       .toMap()
-  existing
-    .filterKeys { !children.contains(it) }
-    .forEach {
-      // Remove any nodes that should no longer be there.
-      removeNodeFromParent(it.value)
-      Disposer.dispose(it.value)
-    }
   children
     .forEachIndexed { index, model ->
       val existingNode = existing[model]
@@ -90,6 +83,13 @@ private fun DefaultTreeModel.updateChildrenOf(
             index)
         }
       }
+    }
+  existing
+    .filterKeys { !children.contains(it) }
+    .forEach {
+      // Remove any nodes that should no longer be there.
+      removeNodeFromParent(it.value)
+      Disposer.dispose(it.value)
     }
 }
 
