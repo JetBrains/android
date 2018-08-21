@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.structure.configurables.variables
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderAnyTo
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderTo
+import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.*
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
@@ -28,8 +31,8 @@ import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.IdeFocusManager
+import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
@@ -53,7 +56,6 @@ import javax.swing.tree.TreePath
 
 private const val NAME = 0
 private const val UNRESOLVED_VALUE = 1
-private const val RESOLVED_VALUE = 2
 
 /**
  * Main table for the Variables view in the Project Structure Dialog
@@ -123,31 +125,41 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     editCellAt(tree.getRowForPath(emptyNodePath), 0, NewVariableEvent(emptyNode))
   }
 
-  override fun getCellRenderer(row: Int, column: Int): TableCellRenderer {
-    val defaultRenderer = super.getCellRenderer(row, column)
-    return TableCellRenderer { table, value, isSelected, _, rowIndex, columnIndex ->
-      val nodeRendered = tree.getPathForRow(rowIndex).lastPathComponent as VariablesBaseNode
-      val component = defaultRenderer.getTableCellRendererComponent(table, value, isSelected, false, rowIndex, columnIndex)
-      if (nodeRendered is EmptyListItemNode && column == UNRESOLVED_VALUE) {
-        component.foreground = UIUtil.getInactiveTextColor()
-        (component as JLabel).text = "Insert new value"
-      }
-      else {
-        component.foreground = if (table.isRowSelected(rowIndex)) table.selectionForeground else table.foreground
-      }
-      component
-    }
-  }
+  private val coloredComponent = SimpleColoredComponent()
 
-  override fun getCellEditor(row: Int, column: Int): TableCellEditor {
-    if (column == NAME) {
-      return NameCellEditor(row)
+  override fun getCellRenderer(row: Int, column: Int): TableCellRenderer =
+    TableCellRenderer { table, value, isSelected, _, rowIndex, columnIndex ->
+
+      fun getDefaultComponent() =
+        super.getCellRenderer(row, column).getTableCellRendererComponent(table, value, isSelected, false, rowIndex, columnIndex)
+
+      fun getNodeRendered() = tree.getPathForRow(rowIndex).lastPathComponent as VariablesBaseNode
+
+      when {
+        column == UNRESOLVED_VALUE && getNodeRendered() is EmptyListItemNode ->
+          (getDefaultComponent() as JLabel).apply { text = "Insert new value"; foreground = UIUtil.getInactiveTextColor() }
+
+        column == NAME -> getDefaultComponent()
+
+        else -> {
+          coloredComponent.clear()
+          if (!tree.isExpanded(rowIndex)) {
+            (value as? ParsedValue<Any>)?.renderAnyTo(coloredComponent.toRenderer(), mapOf())
+          }
+          val rowSelected = table.isRowSelected(rowIndex)
+          coloredComponent.foreground = if (rowSelected) table.selectionForeground else table.foreground
+          coloredComponent.background = if (rowSelected) table.selectionBackground else table.background
+          coloredComponent
+        }
+      }
     }
-    if (column == UNRESOLVED_VALUE) {
-      return VariableCellEditor()
+
+  override fun getCellEditor(row: Int, column: Int): TableCellEditor =
+    when (column) {
+      NAME -> NameCellEditor(row)
+      UNRESOLVED_VALUE -> VariableCellEditor()
+      else -> super.getCellEditor(row, column)
     }
-    return super.getCellEditor(row, column)
-  }
 
   override fun processKeyEvent(e: KeyEvent?) {
     if (e?.keyCode == KeyEvent.VK_ENTER && e.modifiers == 0) {
@@ -259,7 +271,6 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
 
   inner class VariableCellEditor : AbstractTableCellEditor() {
     private val textBox = VariableAwareTextBox(project)
-
     init {
       textBox.addTextListener(ActionListener { stopCellEditing() })
       textBox.addFocusListener(object : FocusAdapter() {
@@ -273,62 +284,48 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     }
 
     override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
-      if (value !is String) {
+      if (value !is ParsedValue<*>) {
         return null
       }
       val nodeBeingEdited = (table as VariablesTable).tree.getPathForRow(row).lastPathComponent
       if (nodeBeingEdited is BaseVariableNode) {
         textBox.setVariants(nodeBeingEdited.variable.scopePsVariables.map { it.name })
       }
-      textBox.text = value
+      textBox.text = value.getText { toString() }
       return textBox
     }
 
-    override fun getCellEditorValue(): Any = textBox.text
+    override fun getCellEditorValue(): Any? = VariablePropertyContextStub.parseEditorText(textBox.text)
   }
-
 
   class VariablesTableModel internal constructor(internal val root: VariablesBaseNode) : DefaultTreeModel(root), TreeTableModel {
     private var tableTree: JTree? = null
 
-    override fun getColumnCount(): Int = 3
+    override fun getColumnCount(): Int = 2
 
-    override fun getColumnName(column: Int): String {
-      return when (column) {
+    override fun getColumnName(column: Int): String =
+      when (column) {
         NAME -> "Name"
         UNRESOLVED_VALUE -> "Value"
-        RESOLVED_VALUE -> "Actual value"
         else -> ""
       }
-    }
 
-    override fun getColumnClass(column: Int): Class<*> {
-      if (column == NAME) {
-        return TreeTableModel::class.java
-      }
-      return String::class.java
-    }
-
-    override fun getValueAt(node: Any?, column: Int): Any? {
-      if (node is ModuleNode && column == NAME) {
-        return node.toString()
+    override fun getColumnClass(column: Int): Class<*> =
+      when (column) {
+        NAME -> TreeTableModel::class.java
+        else -> String::class.java
       }
 
-      if (node !is BaseVariableNode) {
-        return ""
-      }
-
-      val isExpanded = tableTree?.isExpanded(TreePath(node.path)) == true
-      return when (column) {
+    override fun getValueAt(node: Any?, column: Int): Any? =
+      when (column) {
         NAME -> node.toString()
-        UNRESOLVED_VALUE -> node.getUnresolvedValue(isExpanded)
-        RESOLVED_VALUE -> node.getResolvedValue(isExpanded)
+        UNRESOLVED_VALUE -> (node as? BaseVariableNode)?.getUnresolvedValue(tableTree?.isExpanded(TreePath(node.path)) == true)
+                            ?: ParsedValue.NotSet
         else -> ""
       }
-    }
 
-    override fun isCellEditable(node: Any?, column: Int): Boolean {
-      return when (column) {
+    override fun isCellEditable(node: Any?, column: Int): Boolean =
+      when (column) {
         NAME -> node is VariableNode || node is MapItemNode || node is EmptyVariableNode || node is EmptyMapItemNode
         UNRESOLVED_VALUE -> {
           if (node is VariableNode) {
@@ -341,37 +338,40 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
         }
         else -> false
       }
-    }
 
     override fun setValueAt(aValue: Any?, node: Any?, column: Int) {
-      if (aValue !is String || aValue == getValueAt(node, column)) {
-        return
-      }
+      if (getValueAt(node, column) == (aValue as? Annotated<*>)?.value ?: aValue) return
 
-      when {
-        node is EmptyVariableNode && column == NAME -> {
-          val parentNode = node.parent as? ShadowedTreeNode
-          val variable = node.createVariable(aValue)
-          if (parentNode != null) {
-            tableTree?.expandPath(
-              TreePath(
-                getPathToRoot(
-                  parentNode
-                    .childNodes
-                    .find { (it.shadowNode as? VariableShadowNode)?.variable === variable }
-                )))
+      when (aValue) {
+        is String -> when {
+          node is EmptyVariableNode && column == NAME -> {
+            val parentNode = node.parent as? ShadowedTreeNode
+            val variable = node.createVariable(aValue)
+            if (parentNode != null) {
+              tableTree?.expandPath(
+                TreePath(
+                  getPathToRoot(
+                    parentNode
+                      .childNodes
+                      .find { (it.shadowNode as? VariableShadowNode)?.variable === variable }
+                  )))
+            }
           }
+          node is EmptyMapItemNode && column == NAME -> node.createVariable(aValue)
+          node is BaseVariableNode && column == NAME -> {
+            node.setName(aValue)
+            nodeChanged(node)
+          }
+
         }
-        node is EmptyMapItemNode && column == NAME -> node.createVariable(aValue)
-        node is EmptyListItemNode && column == UNRESOLVED_VALUE -> node.createVariable(aValue)
-        node !is BaseVariableNode -> Unit
-        column == NAME -> {
-          node.setName(aValue)
-          nodeChanged(node)
-        }
-        column == UNRESOLVED_VALUE -> {
-          node.setValue(aValue)
-          nodeChanged(node)
+        is Annotated<*> -> when {
+          node is EmptyListItemNode && column == UNRESOLVED_VALUE && aValue.value is ParsedValue.Set<Any> ->
+            node.createVariable(aValue.value)
+          node !is BaseVariableNode -> Unit
+          column == UNRESOLVED_VALUE && aValue.value is ParsedValue<Any> -> {
+            node.setValue(aValue.value)
+            nodeChanged(node)
+          }
         }
       }
     }
@@ -393,11 +393,11 @@ class ModuleNode(znode: ShadowNode, val variables: PsVariablesScope) : Variables
 }
 
 abstract class BaseVariableNode(znode: ShadowNode, val variable: PsVariable) : VariablesBaseNode(znode) {
-  abstract fun getUnresolvedValue(expanded: Boolean): String
-  abstract fun getResolvedValue(expanded: Boolean): String
+  abstract fun getUnresolvedValue(expanded: Boolean): ParsedValue<Any>
   abstract fun setName(newName: String)
-  fun setValue(newValue: String) {
-    variable.value = VariablePropertyContextStub.parseEditorText(newValue).value
+
+  fun setValue(newValue: ParsedValue<Any>) {
+    variable.value = newValue
   }
 }
 
@@ -418,19 +418,8 @@ class VariableNode(znode: ShadowNode, variable: PsVariable) : BaseVariableNode(z
       else -> AllIcons.Nodes.C_plocal
     })
   }
-  override fun getUnresolvedValue(expanded: Boolean): String {
-    if (expanded) {
-      return ""
-    }
-    val literalValue = variable.value.maybeLiteralValue
-    return when (literalValue) {
-      is Map<*, *> -> literalValue.entries.joinToString(prefix = "[", postfix = "]")
-      is List<*> -> literalValue.joinToString(prefix = "[", postfix = "]")
-      else -> variable.value.getText { toString() }
-    }
-  }
-
-  override fun getResolvedValue(expanded: Boolean): String = variable.value.getNonLiteralResolvedText()
+  
+  override fun getUnresolvedValue(expanded: Boolean): ParsedValue<Any> = variable.value
 
   override fun setName(newName: String) {
     (userObject as NodeDescription).name = newName
@@ -443,24 +432,15 @@ class ListItemNode(znode: ShadowNode, index: Int, variable: PsVariable) : BaseVa
     userObject = index
   }
 
-  override fun getUnresolvedValue(expanded: Boolean): String = variable.value.toVariableEditorText()
-
-  override fun getResolvedValue(expanded: Boolean): String = variable.value.getNonLiteralResolvedText()
+  override fun getUnresolvedValue(expanded: Boolean): ParsedValue<Any> = variable.value
 
   override fun setName(newName: String) {
     throw UnsupportedOperationException("List item indices cannot be renamed")
   }
-
-  fun updateIndex(newIndex: Int) {
-    userObject = newIndex
-  }
-
-  fun getIndex() = userObject as Int
 }
 
 class EmptyListItemNode(znode: ShadowNode, private val containingList: PsVariable) : VariablesBaseNode(znode) {
-  fun createVariable(value: String): PsVariable =
-    containingList.addListValue(VariablePropertyContextStub.parseEditorText(value).value)
+  fun createVariable(value: ParsedValue<Any>): PsVariable = containingList.addListValue(value)
 }
 
 class MapItemNode(znode: ShadowNode, key: String, variable: PsVariable) : BaseVariableNode(znode, variable) {
@@ -468,9 +448,9 @@ class MapItemNode(znode: ShadowNode, key: String, variable: PsVariable) : BaseVa
     userObject = key
   }
 
-  override fun getUnresolvedValue(expanded: Boolean): String = variable.value.toVariableEditorText()
-
-  override fun getResolvedValue(expanded: Boolean): String = variable.value.getNonLiteralResolvedText()
+  override fun getUnresolvedValue(expanded: Boolean): ParsedValue<Any> {
+    return variable.value
+  }
 
   override fun setName(newName: String) {
     userObject = newName
@@ -487,26 +467,6 @@ class NodeDescription(var name: String, val icon: Icon) {
 }
 
 class NewVariableEvent(source: Any) : EventObject(source)
-
-private fun <T : Any> ParsedValue<T>.toVariableEditorText() =
-  when (this) {
-    ParsedValue.NotSet -> ""
-    is ParsedValue.Set.Parsed -> when (dslText) {
-      DslText.Literal -> when (value) {
-        is String -> StringUtil.wrapWithDoubleQuote(value)
-        else -> value.toString()
-      }
-      is DslText.Reference -> dslText.text
-      is DslText.InterpolatedString -> StringUtil.wrapWithDoubleQuote(dslText.text)
-      is DslText.OtherUnparsedDslText -> StringUtil.wrapWithDoubleQuote(dslText.text)
-    }
-  }
-
-private fun <T : Any> ParsedValue<T>.getNonLiteralResolvedText(): String =
-  takeIf { it is ParsedValue.Set.Parsed && it.dslText !== DslText.Literal }
-    ?.maybeValue
-    ?.let { if (it is String) StringUtil.wrapWithDoubleQuote(it) else it.toString() }
-  ?: ""
 
 /**
  * Creates a tree model from a tree of shadow nodes which is auto-updated on changes made to the shadow tree.

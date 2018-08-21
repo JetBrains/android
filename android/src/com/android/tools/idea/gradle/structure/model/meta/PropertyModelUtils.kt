@@ -29,8 +29,8 @@ fun ResolvedPropertyModel.asAny(): Any? = when (valueType) {
   ValueType.INTEGER -> getValue(GradlePropertyModel.INTEGER_TYPE)
   ValueType.BIG_DECIMAL -> getValue(GradlePropertyModel.BIG_DECIMAL_TYPE)
   ValueType.BOOLEAN -> getValue(GradlePropertyModel.BOOLEAN_TYPE)
-  ValueType.LIST -> getValue(GradlePropertyModel.LIST_TYPE)
-  ValueType.MAP -> getValue(GradlePropertyModel.MAP_TYPE)
+  ValueType.LIST -> getValue(GradlePropertyModel.LIST_TYPE)?.map { it.resolve().getParsedValue { asAny() }.value }
+  ValueType.MAP -> getValue(GradlePropertyModel.MAP_TYPE)?.mapValues { it.value.resolve().getParsedValue { asAny() }.value }
 
   ValueType.REFERENCE,
   ValueType.CUSTOM,
@@ -88,7 +88,9 @@ fun ResolvedPropertyModel.dslText(): Annotated<DslText>? {
       "Unresolved reference: $text")
     unresolvedModel.valueType == ValueType.UNKNOWN -> DslText.OtherUnparsedDslText(text).annotated()
     unresolvedModel.valueType == ValueType.REFERENCE -> DslText.Reference(text).annotated()
-    dependencies.isEmpty() -> DslText.Literal.annotated()
+    dependencies.isEmpty() ||
+    unresolvedModel.valueType == ValueType.MAP ||
+    unresolvedModel.valueType == ValueType.LIST -> DslText.Literal.annotated()
     unresolvedModel.valueType == ValueType.STRING -> DslText.InterpolatedString(text).annotated()
     else -> throw IllegalStateException(
       "Property value of type ${unresolvedModel.valueType} with dependencies is not supported.")
