@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.lint;
 
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -29,7 +30,11 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.inspections.lint.*;
+import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
+import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
+import org.jetbrains.android.inspections.lint.AndroidLintUtil;
+import org.jetbrains.android.inspections.lint.ProblemData;
+import org.jetbrains.android.inspections.lint.State;
 import org.jetbrains.annotations.NotNull;
 
 public class LintHighlightingPass implements HighlightingPass {
@@ -57,7 +62,7 @@ public class LintHighlightingPass implements HighlightingPass {
       return;
     }
 
-    mySurface.getModel().setLintAnnotationsModel(myLintAnnotationsModel);
+    sceneView.getModel().setLintAnnotationsModel(myLintAnnotationsModel);
     mySurface.setLintAnnotationsModel(myLintAnnotationsModel);
     // Ensure that the layers are repainted to reflect the latest model
     // (updating the lint annotations associated with a model doesn't actually rev the model
@@ -100,6 +105,10 @@ public class LintHighlightingPass implements HighlightingPass {
         continue;
       }
 
+      ResourceReference attribute = model.findAttributeByPsi(startElement);
+      AttributeKey attributeKey =
+        attribute != null ? new AttributeKey(component, attribute.getNamespace().getXmlNamespaceUri(), attribute.getName()) : null;
+
       Issue issue = problemData.getIssue();
       Pair<AndroidLintInspectionBase, HighlightDisplayLevel> pair =
         AndroidLintUtil.getHighlightLevelAndInspection(xmlFile.getProject(), issue, xmlFile);
@@ -118,7 +127,7 @@ public class LintHighlightingPass implements HighlightingPass {
         continue;
       }
 
-      lintModel.addIssue(component, issue, problemData.getMessage(), inspection, level,
+      lintModel.addIssue(component, attributeKey, issue, problemData.getMessage(), inspection, level,
                          startElement, endElement, problemData.getQuickfixData());
     }
 
