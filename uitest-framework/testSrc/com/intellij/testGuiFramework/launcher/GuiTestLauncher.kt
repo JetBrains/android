@@ -147,6 +147,8 @@ object GuiTestLauncher {
       "-Didea.system.path=${GuiTests.getSystemDirPath()}",
       "-Dplugin.path=${GuiTestOptions.getPluginPath()}",
       "-Ddisable.android.first.run=true",
+      // Ensure UI tests do not block for analytics consent dialog, this will leave analytics at the default (opted-out) state.
+      "-Ddisable.android.analytics.consent.dialog.for.test=true",
       "-Ddisable.config.import=true",
       "-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}",
       "-Didea.gui.test.port=$port")
