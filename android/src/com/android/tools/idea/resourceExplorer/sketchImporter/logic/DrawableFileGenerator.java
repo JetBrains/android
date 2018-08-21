@@ -28,12 +28,11 @@ import com.intellij.testFramework.LightVirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
 import java.util.List;
 
 import static com.intellij.openapi.application.ApplicationManager.getApplication;
 
-public class DrawableGenerator {
+public class DrawableFileGenerator {
   public static final Logger LOG = Logger.getInstance(SketchGradient.class);
 
   private static final String TAG_VECTOR_HEAD = "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"";
@@ -65,34 +64,30 @@ public class DrawableGenerator {
 
   private static final int INVALID_COLOR_VALUE = 0;
 
-  @NotNull private Project project;
-  @NotNull private XmlTag root;
-  @Nullable private VectorDrawable myVectorDrawable;
+  @NotNull private Project myProject;
 
-  public DrawableGenerator(@NotNull Project projectParam, @Nullable VectorDrawable object) {
-    project = projectParam;
-    myVectorDrawable = object;
+  public DrawableFileGenerator(@NotNull Project project) {
+    myProject = project;
   }
 
-  public void createVectorDrawable() {
-    root = getApplication()
-      .runReadAction((Computable<XmlTag>)() -> XmlElementFactory.getInstance(project).createTagFromText(TAG_VECTOR_HEAD));
+  @NotNull
+  private XmlTag createVectorDrawable() {
+    return getApplication()
+      .runReadAction((Computable<XmlTag>)() -> XmlElementFactory.getInstance(myProject).createTagFromText(TAG_VECTOR_HEAD));
   }
 
-  private void updateDimensionsFromVectorDrawable() {
+  private static void updateDimensionsFromVectorDrawable(@NotNull VectorDrawable vectorDrawable, @NotNull XmlTag root) {
     getApplication().runReadAction(() -> {
-      if (myVectorDrawable != null) {
-        root.setAttribute(ATTRIBUTE_HEIGHT, Double.toString(myVectorDrawable.getArtboardHeight()) + "dp");
-        root.setAttribute(ATTRIBUTE_WIDTH, Double.toString(myVectorDrawable.getArtboardWidth()) + "dp");
-        root.setAttribute(ATTRIBUTE_VIEWPORT_HEIGHT, Double.toString(myVectorDrawable.getViewportHeight()));
-        root.setAttribute(ATTRIBUTE_VIEWPORT_WIDTH, Double.toString(myVectorDrawable.getViewportWidth()));
-      }
+      root.setAttribute(ATTRIBUTE_HEIGHT, Double.toString(vectorDrawable.getArtboardHeight()) + "dp");
+      root.setAttribute(ATTRIBUTE_WIDTH, Double.toString(vectorDrawable.getArtboardWidth()) + "dp");
+      root.setAttribute(ATTRIBUTE_VIEWPORT_HEIGHT, Double.toString(vectorDrawable.getViewportHeight()));
+      root.setAttribute(ATTRIBUTE_VIEWPORT_WIDTH, Double.toString(vectorDrawable.getViewportWidth()));
     });
   }
 
-  private void addPath(@NotNull DrawableModel shape) {
+  private void addPath(@NotNull DrawableModel shape, @NotNull XmlTag root) {
     getApplication().runReadAction(() -> {
-      XmlTag pathTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_PATH);
+      XmlTag pathTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_PATH);
       pathTag.setAttribute(ATTRIBUTE_PATH_DATA, shape.getPathData());
       if (shape.getStrokeColor() != INVALID_COLOR_VALUE) {
         pathTag.setAttribute(ATTRIBUTE_STROKE_COLOR, colorToHex(shape.getStrokeColor()));
@@ -111,8 +106,8 @@ public class DrawableGenerator {
 
   @NotNull
   private XmlTag generateGradientSubTag(@NotNull SketchGradient gradient) {
-    XmlTag aaptAttrTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_AAPT_ATTR);
-    XmlTag gradientTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_GRADIENT);
+    XmlTag aaptAttrTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_AAPT_ATTR);
+    XmlTag gradientTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_GRADIENT);
     String gradientType = gradient.getDrawableGradientType();
     if (gradientType != null) {
       switch (gradient.getDrawableGradientType()) {
@@ -136,7 +131,7 @@ public class DrawableGenerator {
     }
 
     for (SketchGradientStop item : gradient.getStops()) {
-      XmlTag itemTag = XmlElementFactory.getInstance(project).createTagFromText(TAG_ITEM);
+      XmlTag itemTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_ITEM);
       itemTag.setAttribute(ATTRIBUTE_GRADIENT_STOP_COLOR, colorToHex(item.getColor().getRGB()));
       itemTag.setAttribute(ATTRIBUTE_GRADIENT_STOP_OFFSET, Double.toString(item.getPosition()));
       gradientTag.addSubTag(itemTag, false);
@@ -146,44 +141,19 @@ public class DrawableGenerator {
     return aaptAttrTag;
   }
 
-  public void saveDrawableToDisk(@NotNull String path) {
-    File drawableFile = new File(path);
-
-    if (!drawableFile.exists()) {
-      try {
-        //noinspection ResultOfMethodCallIgnored
-        drawableFile.createNewFile();
-      }
-      catch (IOException e) {
-        LOG.error(DrawableGenerator.class.getName(), "Could not save file to disk");
-      }
-    }
-
-    try (DataOutputStream dataOutputStream = new DataOutputStream(new FileOutputStream(drawableFile))) {
-      String text = getApplication().runReadAction((Computable<String>)() -> root.getText());
-      dataOutputStream.writeBytes(text);
-      dataOutputStream.writeBytes(System.getProperty("line.separator"));
-    }
-    catch (FileNotFoundException e) {
-      LOG.error(DrawableGenerator.class.getName(), "Could not save file to disk");
-    }
-    catch (IOException e) {
-      LOG.error(DrawableGenerator.class.getName(), e);
-    }
-  }
-
   /**
-   * @return virtual Vector Drawable file whose name corresponds to the {@code filename}
+   * Generate a Vector Drawable (.xml) file from the {@link VectorDrawable}.
    */
   @NotNull
-  public LightVirtualFile generateFile(@NotNull String filename) {
-    LightVirtualFile virtualFile = new LightVirtualFile(filename + ".xml");
-    createVectorDrawable();
-    if (myVectorDrawable != null) {
-      updateDimensionsFromVectorDrawable();
-      List<DrawableModel> drawableModels = myVectorDrawable.getDrawableModels();
+  public LightVirtualFile generateFile(@Nullable VectorDrawable vectorDrawable) {
+    String name = vectorDrawable == null ? "null.xml" : vectorDrawable.getName() + ".xml";
+    LightVirtualFile virtualFile = new LightVirtualFile(name);
+    XmlTag root = createVectorDrawable();
+    if (vectorDrawable != null) {
+      updateDimensionsFromVectorDrawable(vectorDrawable, root);
+      List<DrawableModel> drawableModels = vectorDrawable.getDrawableModels();
       for (DrawableModel drawableModel : drawableModels) {
-        addPath(drawableModel);
+        addPath(drawableModel, root);
       }
     }
     String content = getApplication().runReadAction((Computable<String>)() -> root.getText());
