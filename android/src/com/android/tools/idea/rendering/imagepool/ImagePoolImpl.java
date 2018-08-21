@@ -376,13 +376,19 @@ class ImagePoolImpl implements ImagePool {
         throw new IndexOutOfBoundsException(String.format("y + h is out bounds (image height is = %d)", h));
       }
 
-      WritableRaster raster = myBuffer.copyData(myBuffer.getRaster().createCompatibleWritableRaster(x, y, w, h));
+      BufferedImage newImage;
+      if (gc != null) {
+        newImage = gc.createCompatibleImage(w, h);
+      }
+      else {
+        newImage = new BufferedImage(w, h, myBuffer.getType());
+      }
 
-      //noinspection UndesirableClassUsage
-      return new BufferedImage(gc != null ? gc.getColorModel() : myBuffer.getColorModel(),
-                               raster,
-                               gc != null ? gc.getColorModel().isAlphaPremultiplied() : myBuffer.isAlphaPremultiplied(),
-                               null);
+      Graphics2D g = newImage.createGraphics();
+      g.drawImage(myBuffer, 0, 0, w, h, x, y, x + w, y + h, null);
+      g.dispose();
+
+      return newImage;
     }
 
     @Override

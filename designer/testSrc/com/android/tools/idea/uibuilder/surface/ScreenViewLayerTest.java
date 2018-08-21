@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.sdklib.devices.Screen;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
-import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.intellij.mock.MockApplicationEx;
@@ -150,10 +148,9 @@ public class ScreenViewLayerTest {
     layer.paint(g);
     ImageDiffUtil.assertImageSimilar("screenviewlayer_result.png", unscaled, output, 0.0);
 
-    BufferedImage imageHQScaled = ScreenViewLayer.scaleOriginalImage(null, imageHQ,
-                                       myScreenView,
-                                       rectangle.get().getSize(),
-                                       rectangle.get());
+    double xScale = imageHQ.getWidth() / rectangle.get().getWidth();
+    double yScale = imageHQ.getHeight() / rectangle.get().getHeight();
+    BufferedImage imageHQScaled = ScreenViewLayer.scaleOriginalImage(imageHQ.getCopy(), xScale, yScale);
 
     BufferedImage scaledHQ = new BufferedImage(imageHQScaled.getWidth(), imageHQScaled.getHeight(), BufferedImage.TYPE_INT_ARGB);
     UIUtil.drawImage(scaledHQ.createGraphics(), imageHQScaled, 0, 0, null);
