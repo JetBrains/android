@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.configurables.variables
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderAnyTo
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderTo
 import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.*
 import com.android.tools.idea.gradle.structure.model.PsModule
@@ -34,6 +33,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.TableUtil
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.util.ui.AbstractTableCellEditor
@@ -45,6 +45,7 @@ import java.awt.Component
 import java.awt.event.*
 import java.util.*
 import javax.swing.*
+import javax.swing.SwingUtilities.invokeLater
 import javax.swing.border.EmptyBorder
 import javax.swing.event.ChangeEvent
 import javax.swing.plaf.basic.BasicTreeUI
@@ -204,6 +205,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     private val textBox = VariableAwareTextBox(project)
 
     init {
+      addTabKeySupportTo(textBox)
       textBox.addTextListener(ActionListener { stopCellEditing() })
       textBox.addFocusListener(object : FocusAdapter() {
         override fun focusLost(e: FocusEvent?) {
@@ -271,7 +273,9 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
 
   inner class VariableCellEditor : AbstractTableCellEditor() {
     private val textBox = VariableAwareTextBox(project)
+
     init {
+      addTabKeySupportTo(textBox)
       textBox.addTextListener(ActionListener { stopCellEditing() })
       textBox.addFocusListener(object : FocusAdapter() {
         override fun focusLost(e: FocusEvent?) {
@@ -296,6 +300,59 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     }
 
     override fun getCellEditorValue(): Any? = VariablePropertyContextStub.parseEditorText(textBox.text)
+  }
+
+  private fun addTabKeySupportTo(editor: JComponent) {
+    fun nextCell(e: ActionEvent) {
+      if (isEditing) {
+        val editPosition = editingRow to editingColumn
+        TableUtil.stopEditing(this)
+        generateSequence(editPosition) {
+          tree.expandRow(it.first)
+          (if (it.second >= 1) it.first + 1 to 0 else it.first to it.second + 1)
+        }
+          .drop(1)
+          .takeWhile { it.first < tree.rowCount }
+          .firstOrNull { model.isCellEditable(it.first, it.second) }
+          ?.let { (row, column) ->
+            selectionModel.setSelectionInterval(row, row)
+            scrollRectToVisible(this.getCellRect(row, column, true))
+            invokeLater { editCellAt(row, column, e) }
+          }
+      }
+    }
+
+    fun prevCell(e: ActionEvent) {
+      if (isEditing) {
+        val editPosition = editingRow to editingColumn
+        TableUtil.stopEditing(this)
+        generateSequence(editPosition) {
+          var (nextRow, nextColumn) = if (it.second <= 0) it.first - 1 to 1 else it.first to it.second - 1
+          var totalRows = tree.rowCount
+          while (!tree.isExpanded(nextRow)) {
+            tree.expandRow(nextRow)
+            if (totalRows == tree.rowCount) {
+              break
+            }
+            else {
+              nextRow += tree.rowCount - totalRows
+            }
+            totalRows = tree.rowCount
+          }
+          nextRow to nextColumn
+        }
+          .drop(1)
+          .takeWhile { it.first >= 0 }
+          .firstOrNull { model.isCellEditable(it.first, it.second) }
+          ?.let { (row, column) ->
+            selectionModel.setSelectionInterval(row, row)
+            scrollRectToVisible(this.getCellRect(row, column, true))
+            invokeLater { editCellAt(row, column, e) }
+          }
+      }
+    }
+    editor.registerKeyboardAction(::nextCell, KeyStroke.getKeyStroke("TAB"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    editor.registerKeyboardAction(::prevCell, KeyStroke.getKeyStroke("shift pressed TAB"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }
 
   class VariablesTableModel internal constructor(internal val root: VariablesBaseNode) : DefaultTreeModel(root), TreeTableModel {
