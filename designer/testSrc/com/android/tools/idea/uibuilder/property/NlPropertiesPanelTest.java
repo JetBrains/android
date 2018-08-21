@@ -15,6 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ELEVATION;
+import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.SdkConstants.ATTR_TEXT_STYLE;
+import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PROPERTY_MODE;
+import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.TextResourceValueImpl;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableGroupItem;
 import com.android.tools.adtui.ptable.PTableItem;
@@ -25,24 +42,18 @@ import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorPanel;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.Disposer;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PROPERTY_MODE;
-import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import javax.swing.JPanel;
+import javax.swing.RowFilter;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class NlPropertiesPanelTest extends PropertyTestCase {
   @Mock
@@ -50,15 +61,15 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
   private InspectorPanel myInspector;
   private NlPropertiesPanel myPanel;
   private MyTable myTable;
-  private PTableModel myModel;
+  private PTableModel myTableModel;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
     registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
-    myModel = new PTableModel();
-    myTable = new MyTable(myModel);
+    myTableModel = new PTableModel();
+    myTable = new MyTable(myTableModel);
     myInspector = spy(new NlInspectorPanel(getTestRootDisposable(), new JPanel()));
     myPanel = new NlPropertiesPanel(myPropertiesManager, myTable, myInspector);
   }
@@ -73,7 +84,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
       myInspector = null;
       myPanel = null;
       myTable = null;
-      myModel = null;
+      myTableModel = null;
     }
     finally {
       super.tearDown();
@@ -192,7 +203,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     myPanel.setAllPropertiesPanelVisible(true);
     myPanel.setItems(components, properties);
     int textStyleRow = findRowOf(ANDROID_URI, ATTR_TEXT_STYLE);
-    myModel.expand(textStyleRow);
+    myTableModel.expand(textStyleRow);
     myTable.resetRequestFocusCount();
 
     myPanel.setFilter("textSt");
@@ -332,9 +343,25 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     verify(myInspector).activatePreferredEditor(ATTR_TEXT, false);
   }
 
+  public void testDeleteSelectedComponent() {
+    // In this test use the PropertiesPanel that was created by the PropertiesManager, not the fabricated panel:
+    myPanel = myPropertiesManager.getPropertiesPanel();
+
+    List<NlComponent> components = Collections.singletonList(myTextView);
+    Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
+    ResourceReference reference = ResourceReference.attr(ResourceNamespace.ANDROID, "text");
+    ResourceValue value = new TextResourceValueImpl(reference, "defaultValue", "defaultValue", null);
+    myDesignSurface.getSceneManager().getDefaultProperties().put(myTextView.getSnapshot(), ImmutableMap.of(reference, value));
+    myPanel.setItems(components, properties);
+    myModel.delete(components);
+    myPanel.modelRendered();
+    // Regression test for b/112923827
+    // The 2 lines above would fail by referencing the XmlTag that was just deleted...
+  }
+
   private int findRowOf(@NotNull String namespace, @NotNull String name) {
-    for (int row = 0; row < myModel.getRowCount(); row++) {
-      PTableItem item = (PTableItem)myModel.getValueAt(row, 0);
+    for (int row = 0; row < myTableModel.getRowCount(); row++) {
+      PTableItem item = (PTableItem)myTableModel.getValueAt(row, 0);
       if (item != null && name.equals(item.getName()) && namespace.equals(item.getNamespace())) {
         return row;
       }
