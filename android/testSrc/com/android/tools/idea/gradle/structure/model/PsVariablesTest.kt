@@ -228,6 +228,4 @@ class PsVariablesTest : AndroidGradleTestCase() {
     otherVariables.refresh()
     assertThat(otherVariables.entries.keys, equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999")))
   }
-
-  private fun <T : Any> Pair<String, T>.asParsed() = ParsedValue.Set.Parsed(dslText = DslText.Reference(first), value = second)
 }

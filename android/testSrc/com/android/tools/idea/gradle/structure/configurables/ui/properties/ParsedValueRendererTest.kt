@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
+import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.ui.JBColor
 import com.intellij.ui.SimpleTextAttributes
@@ -248,6 +249,20 @@ class ParsedValueRendererTest {
     assertThat(error.testRenderWith<String>(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)),
                equalTo("<b><var>\$</b><nocolor>something bad"))
   }
+
+  @Test
+  fun testRenderAny_list() {
+    val list = listOf(1.asParsed(), "a".asParsed(), ("v" to true).asParsed()).asParsed()
+    assertThat(testRender { list.renderAnyTo(this, mapOf()) },
+               equalTo("[1, a, <b><var>\$v</b><comment> : true<nocolor>]"))
+  }
+
+  @Test
+  fun testRenderAny_map() {
+    val list = mapOf("a" to 1.asParsed(), "b" to "a".asParsed(), "c" to ("v" to true).asParsed()).asParsed()
+    assertThat(testRender { list.renderAnyTo(this, mapOf()) },
+               equalTo("[a : 1, b : a, c : <b><var>\$v</b><comment> : true<nocolor>]"))
+  }
 }
 
 private fun testRender(action: TextRenderer.() -> Unit): String =
@@ -297,7 +312,6 @@ private fun testRender(action: TextRenderer.() -> Unit): String =
     .apply(action)
     .result
 
-private fun <T : Any> T.asParsed(): ParsedValue<T> = ParsedValue.Set.Parsed(this, DslText.Literal)
 private fun testRender(valueRenderer: ValueRenderer?): String = testRender { valueRenderer?.renderTo(this) }
 
 private fun <T : Any> ParsedValue<T>.testRenderWith(valueToText: Map<ParsedValue<T>, ValueRenderer>): String =
