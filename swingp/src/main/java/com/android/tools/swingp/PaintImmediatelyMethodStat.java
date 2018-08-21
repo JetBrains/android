@@ -15,9 +15,7 @@
  */
 package com.android.tools.swingp;
 
-import com.android.tools.swingp.json.IncludeMethodsSerializer;
-import com.google.gson.annotations.JsonAdapter;
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;
 import sun.java2d.SunGraphics2D;
 
@@ -25,26 +23,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
-@JsonAdapter(IncludeMethodsSerializer.class)
 public class PaintImmediatelyMethodStat extends MethodStat {
   @NotNull private final JComponent myBufferComponent;
-  @SerializedName("xform")
   @NotNull private final AffineTransform myTransform;
-  @SerializedName("constrain")
-  private final int[] myConstrain;
-  @SerializedName("bounds")
-  private final int[] myBounds;
-
-  @SerializedName("bufferBounds")
   private final int[] myBufferBounds;
-  @SerializedName("bufferType")
-  private String getBufferType() {
-    return myBufferComponent.getClass().getSimpleName();
-  }
-  @SerializedName("bufferId")
-  private long getBufferId() {
-    return System.identityHashCode(myBufferComponent);
-  }
+  private final int[] myConstrain;
+  private final int[] myBounds;
 
   public PaintImmediatelyMethodStat(@NotNull Object owner,
                                     @NotNull JComponent bufferComponent,
@@ -66,5 +50,21 @@ public class PaintImmediatelyMethodStat extends MethodStat {
       myConstrain = new int[]{0, 0};
     }
     myBounds = new int[]{x, y, w, h};
+  }
+
+  @Override
+  protected void addAttributeDescriptions(@NotNull JsonObject description) {
+    super.addAttributeDescriptions(description);
+
+    description.add("constrain", SerializationHelpers.arrayToJsonArray(myConstrain));
+    description.add("bounds", SerializationHelpers.arrayToJsonArray(myBounds));
+
+    double[] matrix = new double[6];
+    myTransform.getMatrix(matrix);
+    description.add("xform", SerializationHelpers.arrayToJsonArray(matrix));
+
+    description.add("bufferBounds", SerializationHelpers.arrayToJsonArray(myBufferBounds));
+    description.addProperty("bufferType", myBufferComponent.getClass().getSimpleName());
+    description.addProperty("bufferId", System.identityHashCode(myBufferComponent));
   }
 }

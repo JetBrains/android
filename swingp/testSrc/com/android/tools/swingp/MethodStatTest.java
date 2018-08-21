@@ -16,6 +16,8 @@
 package com.android.tools.swingp;
 
 import org.jetbrains.annotations.NotNull;
+import com.google.common.truth.Truth;
+import com.google.gson.JsonArray;
 import org.junit.Test;
 
 public class MethodStatTest {
@@ -33,6 +35,22 @@ public class MethodStatTest {
     TestClass good = new TestClass();
     good.foo();
     RenderStatsManager.setIsEnabled(false);
+  }
+
+  @Test
+  public void arraySerializesCorrectly() {
+    int[] intArray = {5, 7};
+    JsonArray jsonIntArray = SerializationHelpers.arrayToJsonArray(intArray);
+    Truth.assertThat(jsonIntArray.size()).isEqualTo(2);
+    Truth.assertThat(jsonIntArray.get(0).getAsInt()).isEqualTo(intArray[0]);
+    Truth.assertThat(jsonIntArray.get(1).getAsInt()).isEqualTo(intArray[1]);
+
+    double[] doubleArray = {3.5, 9.5, 11};
+    JsonArray jsonDoubleArray = SerializationHelpers.arrayToJsonArray(doubleArray);
+    Truth.assertThat(jsonDoubleArray.size()).isEqualTo(3);
+    Truth.assertThat(jsonDoubleArray.get(0).getAsDouble()).isEqualTo(doubleArray[0]);
+    Truth.assertThat(jsonDoubleArray.get(1).getAsDouble()).isEqualTo(doubleArray[1]);
+    Truth.assertThat(jsonDoubleArray.get(2).getAsDouble()).isEqualTo(doubleArray[2]);
   }
 
   /**

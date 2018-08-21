@@ -15,7 +15,7 @@
  */
 package com.android.tools.swingp;
 
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;
 import sun.awt.image.BufImgSurfaceData;
 import sun.java2d.SunGraphics2D;
@@ -26,11 +26,8 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 
 public class PaintComponentMethodStat extends MethodStat {
-  @SerializedName("xform")
   private final AffineTransform myTransform;
-  @SerializedName("clip")
   private final int[] myClip;
-  @SerializedName("isImage")
   private final boolean myIsImage;
 
   public PaintComponentMethodStat(@NotNull JComponent owner,
@@ -56,5 +53,18 @@ public class PaintComponentMethodStat extends MethodStat {
     else {
       myIsImage = false;
     }
+  }
+
+  @Override
+  protected void addAttributeDescriptions(@NotNull JsonObject description) {
+    super.addAttributeDescriptions(description);
+
+    description.addProperty("isImage", myIsImage);
+
+    double[] matrix = new double[6];
+    myTransform.getMatrix(matrix);
+    description.add("xform", SerializationHelpers.arrayToJsonArray(matrix));
+
+    description.add("clip", SerializationHelpers.arrayToJsonArray(myClip));
   }
 }

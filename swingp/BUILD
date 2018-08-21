@@ -18,7 +18,6 @@ iml_module(
         "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:truth[test]",
-        "//tools/idea/.idea/libraries:mockito[test]",
     ],
 )
 
