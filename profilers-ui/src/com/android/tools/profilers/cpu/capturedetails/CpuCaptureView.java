@@ -58,8 +58,7 @@ public class CpuCaptureView {
     myStage.getAspect().addDependency(myObserver)
            .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails)
            .onChange(CpuProfilerAspect.CAPTURE_STATE, this::onCaptureStateChanged)
-           .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCapturePane)
-           .onChange(CpuProfilerAspect.CAPTURE_ELAPSED_TIME, this::updateStatusElapsedTime);
+           .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCapturePane);
     myStage.getCaptureParser().getAspect().addDependency(myObserver).onChange(CpuProfilerAspect.CAPTURE_PARSING, this::updateCapturePane);
     updateCapturePane();
   }
@@ -82,16 +81,6 @@ public class CpuCaptureView {
     myCapturePane = createCapturePane();
     myPanel.add(myCapturePane, BorderLayout.CENTER);
     myPanel.revalidate();
-  }
-
-  /**
-   * Update the elapsed time of the current status (e.g. capturing, parsing) by calling {@link StatusPane#updateDuration} on the
-   * subclass corresponding to the status.
-   */
-  private void updateStatusElapsedTime() {
-    if (myCapturePane instanceof StatusPane) {
-      ((StatusPane)myCapturePane).updateDuration();
-    }
   }
 
   @NotNull
@@ -149,13 +138,10 @@ public class CpuCaptureView {
    */
   @VisibleForTesting
   static class RecordingPane extends StatusPane {
-
     /**
      * {@link JButton} used to stop recording.
      */
     private JButton myStopRecordingButton;
-
-    private final AspectObserver myObserver = new AspectObserver();
 
     public RecordingPane(@NotNull CpuProfilerStageView stageView) {
       super(stageView, "Recording");

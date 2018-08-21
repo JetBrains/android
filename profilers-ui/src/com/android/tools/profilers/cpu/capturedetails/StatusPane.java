@@ -16,8 +16,10 @@
 package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
+import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.intellij.util.ui.JBUI;
@@ -48,11 +50,18 @@ abstract class StatusPane extends CapturePane {
   @NotNull
   protected final CpuProfilerStage myStage;
 
+  @NotNull
+  protected final AspectObserver myObserver;
+
   public StatusPane(@NotNull CpuProfilerStageView stageView, @NotNull String statusLabel) {
     super(stageView);
     myStage = stageView.getStage();
     myStatus = statusLabel;
     myDurationLabel = createLabel("", false);
+    myObserver = new AspectObserver();
+
+    myStage.getAspect().addDependency(myObserver)
+           .onChange(CpuProfilerAspect.CAPTURE_ELAPSED_TIME, this::updateDuration);
     disableInteraction();
     updateView();
   }
@@ -81,7 +90,7 @@ abstract class StatusPane extends CapturePane {
     panel.add(mainPanel, BorderLayout.CENTER);
   }
 
-  void updateDuration() {
+  private void updateDuration() {
     myDurationLabel.setText(getDurationText());
   }
 
