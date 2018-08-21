@@ -29,6 +29,7 @@ import java.awt.geom.Point2D;
  */
 public abstract class SketchLayer {
 
+  public static final int BOOLEAN_OPERATION_NONE = -1;
   public static final int BOOLEAN_OPERATION_UNION = 0;
   public static final int BOOLEAN_OPERATION_SUBSTRACTION = 1;
   public static final int BOOLEAN_OPERATION_INTERSECTION = 2;
