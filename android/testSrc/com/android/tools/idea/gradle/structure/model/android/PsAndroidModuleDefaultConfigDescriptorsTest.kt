@@ -38,7 +38,6 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
                equalTo(PsAndroidModuleDefaultConfigDescriptors.testEnumerateProperties()))
   }
 
-
   fun testProperties() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 

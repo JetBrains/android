@@ -452,7 +452,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     val expected = """
                    ext {
                      prop2 = 72
-                     prop1 = [key1: 'two', key: 1]
+                     prop1 = [key: 1, key1: 'two']
                    }""".trimIndent()
     verifyFileContents(myBuildFile, expected)
   }
