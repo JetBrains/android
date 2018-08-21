@@ -90,7 +90,8 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
     if (width != list.fixedCellWidth) {
       cardView.viewWidth = list.fixedCellWidth
     }
-    cardView.thumbnail = getContent(value, cardView.thumbnailWidth, cardView.thumbnailHeight, isSelected, index)
+    val thumbnailSize = cardView.thumbnailSize
+    cardView.thumbnail = getContent(value, thumbnailSize.width, thumbnailSize.height, isSelected, index)
     cardView.selected = isSelected
     return cardView
   }
@@ -184,22 +185,23 @@ class DrawableResourceCellRenderer(
   ): JComponent? {
     var image = assetToImage.getIfPresent(designAssetSet)
     val targetSize = (height * (1 - contentRatio * 2)).toInt()
-
-    if (image == null) {
-      image = queueImageFetch(designAssetSet, index, targetSize)
-    }
-    else {
-      // If an image is cached but does not fit into the content (i.e the list cell size was changed)
-      // we do a fast rescaling in place and request a higher quality scaled image in the background
-      val imageHeight = image.getHeight(null)
-      val scale = getScale(targetSize, imageHeight)
-      if (image != EMPTY_ICON && shouldScale(scale)) {
-        val bufferedImage = ImageUtil.toBufferedImage(image)
-        image = lowQualityFastScale(bufferedImage, scale, scale)
-        queueImageFetch(designAssetSet, index, targetSize)
+    if (targetSize > 0) {
+      if (image == null) {
+        image = queueImageFetch(designAssetSet, index, targetSize)
       }
+      else {
+        // If an image is cached but does not fit into the content (i.e the list cell size was changed)
+        // we do a fast rescaling in place and request a higher quality scaled image in the background
+        val imageHeight = image.getHeight(null)
+        val scale = getScale(targetSize, imageHeight)
+        if (image != EMPTY_ICON && shouldScale(scale)) {
+          val bufferedImage = ImageUtil.toBufferedImage(image)
+          image = lowQualityFastScale(bufferedImage, scale, scale)
+          queueImageFetch(designAssetSet, index, targetSize)
+        }
+      }
+      imageIcon.image = image
     }
-    imageIcon.image = image
     return drawablePreview
   }
 
@@ -286,15 +288,15 @@ class DrawableResourceCellRenderer(
   private fun scaleToFitIfNeeded(image: Image, targetSize: Int): Image {
     val imageHeight = image.getHeight(null)
     val scale = getScale(targetSize, imageHeight)
-    return if (shouldScale(scale)) {
+    if (shouldScale(scale)) {
       val newWidth = (image.getWidth(null) * scale).toInt()
       val newHeight = (imageHeight * scale).toInt()
-      ImageUtil.toBufferedImage(image)
-        .getScaledInstance(newWidth, newHeight, BufferedImage.SCALE_SMOOTH)
+      if (newWidth > 0 && newHeight > 0) {
+        return ImageUtil.toBufferedImage(image)
+          .getScaledInstance(newWidth, newHeight, BufferedImage.SCALE_SMOOTH)
+      }
     }
-    else {
-      image
-    }
+    return image
   }
 }
 
