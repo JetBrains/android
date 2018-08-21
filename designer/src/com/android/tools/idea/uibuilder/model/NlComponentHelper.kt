@@ -55,12 +55,14 @@ var NlComponent.y: Int
     this.nlComponentData.y = value
   }
 
+@AndroidCoordinate
 var NlComponent.w: Int
   get() = this.nlComponentData.w
   set(value) {
     this.nlComponentData.w = value
   }
 
+@AndroidCoordinate
 var NlComponent.h: Int
   get() = this.nlComponentData.h
   set(value) {
@@ -73,7 +75,10 @@ var NlComponent.viewInfo: ViewInfo?
     this.nlComponentData.viewInfo = value
   }
 
-fun NlComponent.setBounds(x: Int, y: Int, w: Int, h: Int) {
+fun NlComponent.setBounds(@AndroidCoordinate x: Int,
+                          @AndroidCoordinate y: Int,
+                          @AndroidCoordinate w: Int,
+                          @AndroidCoordinate h: Int) {
   this.x = x
   this.y = y
   this.w = w

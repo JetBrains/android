@@ -1102,8 +1102,8 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   private static void updateBounds(@NotNull ViewInfo view,
-                                   int parentX,
-                                   int parentY,
+                                   @AndroidCoordinate int parentX,
+                                   @AndroidCoordinate int parentY,
                                    Map<TagSnapshot, NlComponent> snapshotToComponent,
                                    Map<XmlTag, NlComponent> tagToComponent) {
     ViewInfo bounds = RenderService.getSafeBounds(view);
