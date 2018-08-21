@@ -53,6 +53,7 @@ import javax.swing.table.TableCellEditor
 import javax.swing.table.TableCellRenderer
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.DefaultTreeSelectionModel
 import javax.swing.tree.TreePath
 
 private const val NAME = 0
@@ -69,7 +70,21 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
   private val iconSize = JBUI.scale(16)
 
   init {
-    setRowHeight(iconSize + editorInsets.top + editorInsets.bottom)
+    setProcessCursorKeys(false)
+
+    // We replace the automatically synced selection model from [TreeTable] with a simpler one but such that honors column selection.
+    fun updateTreeSelection() {
+      if (selectedColumn <= 0) {  // It is -1 when a tree node is being expanded/collapsed.
+        tree.selectionModel.selectionPath = tree.getPathForRow(selectedRow)
+      }
+      else {
+        tree.selectionModel.clearSelection()
+      }
+    }
+    this.columnModel.selectionModel.addListSelectionListener { updateTreeSelection() }
+    this.selectionModel.addListSelectionListener { updateTreeSelection() }
+    tree.selectionModel = DefaultTreeSelectionModel()
+
     setTreeCellRenderer(object : NodeRenderer() {
       override fun customizeCellRenderer(tree: JTree,
                                          value: Any?,
@@ -92,11 +107,15 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
         }
       }
     })
+
     isStriped = true
     tree.isRootVisible = false
     tree.expandRow(0)
     tree.expandRow(1)
     tableModel.setTree(tree)
+    setRowSelectionAllowed(false)
+    columnSelectionAllowed = false
+    setCellSelectionEnabled(true)
   }
 
   fun deleteSelectedVariables() {
@@ -177,7 +196,18 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
         }
       }
     }
+    val isCollapseKey = e?.keyCode == KeyEvent.VK_LEFT || e?.keyCode == KeyEvent.VK_MINUS
+    val isExpandKey = e?.keyCode == KeyEvent.VK_RIGHT || e?.keyCode == KeyEvent.VK_PLUS
+    fun currentNodeCanExpand() = (tree.selectionPath.lastPathComponent as? VariablesBaseNode)?.isLeaf == false
+    val toBeExpandedOrCollapsed =
+      !isEditing && selectedColumn == 0 &&
+      (isCollapseKey && tree.isExpanded(selectedRow) ||
+       (isExpandKey && !tree.isExpanded(selectedRow) && currentNodeCanExpand()))
+    setProcessCursorKeys(toBeExpandedOrCollapsed)
     super.processKeyEvent(e)
+    if (toBeExpandedOrCollapsed) {
+      columnModel.selectionModel.setSelectionInterval(0, 0)
+    }
   }
 
   override fun editingStopped(e: ChangeEvent?) {
@@ -303,6 +333,11 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
   }
 
   private fun addTabKeySupportTo(editor: JComponent) {
+    fun selectCell(row: Int, column: Int) {
+      this.selectionModel.setSelectionInterval(row, row)
+      this.columnModel.selectionModel.setSelectionInterval(column, column)
+    }
+
     fun nextCell(e: ActionEvent) {
       if (isEditing) {
         val editPosition = editingRow to editingColumn
@@ -317,6 +352,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
           ?.let { (row, column) ->
             selectionModel.setSelectionInterval(row, row)
             scrollRectToVisible(this.getCellRect(row, column, true))
+            selectCell(row, column)
             invokeLater { editCellAt(row, column, e) }
           }
       }
@@ -347,6 +383,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
           ?.let { (row, column) ->
             selectionModel.setSelectionInterval(row, row)
             scrollRectToVisible(this.getCellRect(row, column, true))
+            selectCell(row, column)
             invokeLater { editCellAt(row, column, e) }
           }
       }
