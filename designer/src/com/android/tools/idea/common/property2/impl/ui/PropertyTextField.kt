@@ -22,6 +22,7 @@ import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
 import javax.swing.KeyStroke
 
 /**
@@ -45,7 +46,9 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
     }
   }
 
-  override fun getToolTipText(): String? = editorModel.tooltip
+  override fun getToolTipText(event: MouseEvent): String? {
+    return PropertyTooltip.setToolTip(this, event, editorModel.property, forValue = true, text = text)
+  }
 
   private fun enter() {
     enterInLookup()
