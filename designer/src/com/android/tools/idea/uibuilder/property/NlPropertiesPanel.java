@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.SdkConstants;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_STYLE;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor.NL_XML_PROPERTY_EDITOR;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -52,28 +57,38 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-import sun.awt.CausedFocusEvent;
-
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.table.TableRowSorter;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.AWTEvent;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.KeyboardFocusManager;
+import java.awt.Rectangle;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.SdkConstants.ATTR_STYLE;
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor.NL_XML_PROPERTY_EDITOR;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.RowFilter;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.table.TableRowSorter;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
+import sun.awt.CausedFocusEvent;
 
 public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> implements ViewAllPropertiesAction.Model {
   static final String PROPERTY_MODE = "properties.mode";
@@ -269,8 +284,8 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
 
   @NotNull
   private static List<NlPropertyItem> extractPropertiesForTable(@NotNull Table<String, String, NlPropertyItem> properties) {
-    Map<String, NlPropertyItem> androidProperties = properties.row(SdkConstants.ANDROID_URI);
-    Map<String, NlPropertyItem> autoProperties = properties.row(SdkConstants.AUTO_URI);
+    Map<String, NlPropertyItem> androidProperties = properties.row(ANDROID_URI);
+    Map<String, NlPropertyItem> autoProperties = properties.row(AUTO_URI);
     Map<String, NlPropertyItem> designProperties = properties.row(TOOLS_URI);
     Map<String, NlPropertyItem> bareProperties = properties.row("");
 
@@ -333,7 +348,7 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
       return null;
     }
     XmlTag tag = property.getTag();
-    if (tag == null) {
+    if (tag == null || !tag.isValid()) {
       return null;
     }
     ResourceValue value = defaultValues.get(ResourceReference.attr(namespace, property.getName()));
