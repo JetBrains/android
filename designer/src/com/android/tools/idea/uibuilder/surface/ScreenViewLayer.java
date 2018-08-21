@@ -20,10 +20,9 @@ import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
-import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.UIUtil;
@@ -35,6 +34,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 
 /**
  * Responsible for painting a screen view
@@ -60,7 +60,7 @@ public class ScreenViewLayer extends Layer {
   @Nullable private RenderResult myLastRenderResult;
 
   private final ScheduledExecutorService myScheduledExecutorService;
-  private final RescaleRunnable myRescaleRunnable = new RescaleRunnable();
+  private final RescaleRunnable myRescaleRunnable = new RescaleRunnable(this::onScaledResultReady);
   @Nullable private ScheduledFuture<?> myScheduledFuture;
   private final Rectangle myScreenViewVisibleSize = new Rectangle();
   private final Dimension myScreenViewSize = new Dimension();
@@ -149,41 +149,41 @@ public class ScreenViewLayer extends Layer {
       myCachedVisibleImage = null;
     }
 
-    if (myLastRenderResult == null) {
-      return;
-    }
-
     Graphics2D g = (Graphics2D) graphics2D.create();
-    Shape screenShape = myScreenView.getScreenShape();
-    if (screenShape != null) {
-      g.clip(screenShape);
-    }
-
     BufferedImage cachedVisibleImage = myCachedVisibleImage;
-    if (cachedVisibleImage == null || !myScreenViewVisibleSize.equals(myCachedScreenViewDisplaySize)) {
-      int resultImageWidth = myLastRenderResult.getRenderedImage().getWidth();
-      int resultImageHeight = myLastRenderResult.getRenderedImage().getHeight();
+    if (myLastRenderResult != null) {
+      if (cachedVisibleImage == null || !myScreenViewVisibleSize.equals(myCachedScreenViewDisplaySize)) {
+        int resultImageWidth = myLastRenderResult.getRenderedImage().getWidth();
+        int resultImageHeight = myLastRenderResult.getRenderedImage().getHeight();
 
-      myCachedScreenViewDisplaySize.setBounds(myScreenViewVisibleSize);
-      // Obtain the factors to convert from screen view coordinates to our result image coordinates
-      double xScaleFactor = (double)resultImageWidth / myScreenViewSize.width;
-      double yScaleFactor = (double)resultImageHeight / myScreenViewSize.height;
-      if (xScaleFactor > 1.0 && yScaleFactor > 1.0) {
-        // This means that the result image is bigger than the ScreenView by more than a 20%. For this cases, we need to scale down the
-        // result image to make it fit in the ScreenView and we use a higher quality (but slow) process. We will issue a request to obtain
-        // the high quality version but paint the low quality version below. Once it's ready, we'll repaint.
-        requestHighQualityScaledImage();
-      }
+        myCachedScreenViewDisplaySize.setBounds(myScreenViewVisibleSize);
+        // Obtain the factors to convert from screen view coordinates to our result image coordinates
+        double xScaleFactor = (double)resultImageWidth / myScreenViewSize.width;
+        double yScaleFactor = (double)resultImageHeight / myScreenViewSize.height;
+        if (Math.abs(1 - xScaleFactor) > 0.2 && Math.abs(1 - yScaleFactor) > 0.2) {
+          // This means that the result image is bigger than the ScreenView by more than a 20%. For this cases, we need to scale down the
+          // result image to make it fit in the ScreenView and we use a higher quality (but slow) process. We will issue a request to obtain
+          // the high quality version but paint the low quality version below. Once it's ready, we'll repaint.
 
-      cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(),
+          requestHighQualityScaledImage();
+        }
+
+        cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(),
                                              myLastRenderResult.getRenderedImage(),
                                              myScreenView.getX(), myScreenView.getY(),
                                              myScreenViewVisibleSize, xScaleFactor, yScaleFactor,
                                              previousVisibleImage);
-      myCachedVisibleImage = cachedVisibleImage;
-
+        myCachedVisibleImage = cachedVisibleImage;
+      }
     }
-    UIUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleSize.x, myScreenViewVisibleSize.y, null);
+
+    if (cachedVisibleImage != null) {
+      Shape screenShape = myScreenView.getScreenShape();
+      if (screenShape != null) {
+        g.clip(screenShape);
+      }
+      UIUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleSize.x, myScreenViewVisibleSize.y, null);
+    }
     g.dispose();
   }
 
@@ -219,6 +219,28 @@ public class ScreenViewLayer extends Layer {
    */
   private void requestHighQualityScaledImage() {
     cancelHighQualityScaleRequests();
+    if (myLastRenderResult == null) {
+      return;
+    }
+
+    ImagePool.Image image = myLastRenderResult.getRenderedImage();
+    // Obtain the factors to convert from screen view coordinates to our result image coordinates
+    double xScaleFactor = (double)image.getWidth() / myScreenViewSize.width;
+    double yScaleFactor = (double)image.getHeight() / myScreenViewSize.height;
+
+    // Extract from the result image only the visible rectangle. The result image might be bigger or smaller than the actual ScreenView
+    // size so we need to also rescale.
+    int sx = (int)Math.round((myScreenViewVisibleSize.x - myScreenView.getX()) * xScaleFactor);
+    int sy = (int)Math.round((myScreenViewVisibleSize.y - myScreenView.getY()) * yScaleFactor);
+    int sw = (int)Math.round(myScreenViewVisibleSize.width * xScaleFactor);
+    int sh = (int)Math.round(myScreenViewVisibleSize.height * yScaleFactor);
+
+    BufferedImage imageCopy = image.getCopy(sx, sy, sw, sh);
+    if (imageCopy == null) {
+      return;
+    }
+
+    myRescaleRunnable.setSource(imageCopy, xScaleFactor, yScaleFactor);
     try {
       myScheduledFuture = myScheduledExecutorService.schedule(myRescaleRunnable, REQUEST_SCALE_DEBOUNCE_TIME_IN_MS, TimeUnit.MILLISECONDS);
     }
@@ -233,79 +255,6 @@ public class ScreenViewLayer extends Layer {
     super.dispose();
     myLastRenderResult = null;
     myScheduledExecutorService.shutdown();
-  }
-
-  @Nullable
-  static BufferedImage scaleOriginalImage(@Nullable GraphicsConfiguration gc,
-                                  @NotNull ImagePool.Image image,
-                                  @NotNull ScreenView screenView,
-                                  @NotNull Dimension screenViewSize,
-                                  @NotNull Rectangle screenViewVisibleSize) {
-    // Obtain the factors to convert from screen view coordinates to our result image coordinates
-    double xScaleFactor = (double)image.getWidth() / screenViewSize.width;
-    double yScaleFactor = (double)image.getHeight() / screenViewSize.height;
-
-    // Extract from the result image only the visible rectangle. The result image might be bigger or smaller than the actual ScreenView
-    // size so we need to also rescale.
-    int sx = (int)Math.round((screenViewVisibleSize.x - screenView.getX()) * xScaleFactor);
-    int sy = (int)Math.round((screenViewVisibleSize.y - screenView.getY()) * yScaleFactor);
-    int sw = (int)Math.round(screenViewVisibleSize.width * xScaleFactor);
-    int sh = (int)Math.round(screenViewVisibleSize.height * yScaleFactor);
-
-    BufferedImage imageCopy = gc != null ? image.getCopy(gc, sx, sy, sw, sh) : image.getCopy(sx, sy, sw, sh);
-    if (imageCopy == null) {
-      return null;
-    }
-
-    BufferedImage scaledImage = null;
-    if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
-      scaledImage = getRetinaScaledImage(imageCopy, 1 / xScaleFactor, 1 / yScaleFactor, false);
-    }
-    if (scaledImage == null) {
-      scaledImage = ImageUtils.scale(imageCopy, 1 / xScaleFactor, 1 / yScaleFactor);
-    }
-    return scaledImage;
-  }
-
-  /**
-   * Implementation of {@link Runnable} to do a high quality scaling of {@link RenderResult} image in background.
-   * When the scaling is done, the {@link DesignSurface} will be repainted.
-   *
-   * @see ImageUtils#scale(BufferedImage, double)
-   */
-  private class RescaleRunnable implements Runnable {
-    @Nullable private final GraphicsConfiguration myGc;
-
-    private RescaleRunnable() {
-      if (!ApplicationManager.getApplication().isHeadlessEnvironment()) {
-        // Save the graphics context to create image copies that match the screen configuration. This
-        // way, we avoid Swing making additional copies of large bitmaps to transform them to the right
-        // configuration.
-        myGc = GraphicsEnvironment.getLocalGraphicsEnvironment()
-                                  .getDefaultScreenDevice()
-                                  .getDefaultConfiguration();
-      }
-      else {
-        myGc = null;
-      }
-    }
-
-    @Override
-    public void run() {
-      myCachedVisibleImage = null;
-      if (myLastRenderResult == null) {
-        return;
-      }
-
-      myCachedVisibleImage = scaleOriginalImage(myGc,
-                         myLastRenderResult.getRenderedImage(),
-                         myScreenView,
-                         myScreenViewSize,
-                         myScreenViewVisibleSize);
-
-      UIUtil.invokeLaterIfNeeded(
-        () -> myScreenView.getSurface().repaint());
-    }
   }
 
   @Nullable
@@ -325,5 +274,72 @@ public class ScreenViewLayer extends Layer {
     }
 
     return ImageUtils.convertToRetina(original);
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static BufferedImage scaleOriginalImage(@NotNull BufferedImage source,
+                                          double xScaleFactor,
+                                          double yScaleFactor) {
+    BufferedImage scaledImage = null;
+    if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
+      scaledImage = getRetinaScaledImage(source, 1 / xScaleFactor, 1 / yScaleFactor, false);
+    }
+    if (scaledImage == null) {
+      scaledImage = ImageUtils.scale(source, 1 / xScaleFactor, 1 / yScaleFactor);
+    }
+    return scaledImage;
+  }
+
+  /**
+   * Implementation of {@link Runnable} to do a high quality scaling of {@link RenderResult} image in background.
+   * When the scaling is done, the {@link DesignSurface} will be repainted.
+   *
+   * @see ImageUtils#scale(BufferedImage, double)
+   */
+  private static class RescaleRunnable implements Runnable {
+    @NotNull private final Consumer<BufferedImage> myOnReadyCallback;
+    private final Object lock = new Object();
+    private BufferedImage mySourceImage;
+    private double myXScaleFactor;
+    private double myYScaleFactor;
+
+
+    private RescaleRunnable(@NotNull Consumer<BufferedImage> onReadyCallback) {
+      myOnReadyCallback = onReadyCallback;
+    }
+
+    public void setSource(@NotNull BufferedImage sourceImage, double xScaleFactor, double yScaleFactor) {
+      synchronized (lock) {
+        mySourceImage = sourceImage;
+        myXScaleFactor = xScaleFactor;
+        myYScaleFactor = yScaleFactor;
+      }
+    }
+
+    @Override
+    public void run() {
+      BufferedImage source;
+      double xScaleFactor;
+      double yScaleFactor;
+      synchronized (lock) {
+        source = mySourceImage;
+        xScaleFactor = myXScaleFactor;
+        yScaleFactor = myYScaleFactor;
+        mySourceImage = null;
+      }
+
+      if (source == null) {
+        return;
+      }
+      BufferedImage result = scaleOriginalImage(source, xScaleFactor, yScaleFactor);
+      myOnReadyCallback.accept(result);
+    }
+  }
+
+  private void onScaledResultReady(BufferedImage result) {
+    myCachedVisibleImage = result;
+    UIUtil.invokeLaterIfNeeded(
+      () -> myScreenView.getSurface().repaint());
   }
 }
