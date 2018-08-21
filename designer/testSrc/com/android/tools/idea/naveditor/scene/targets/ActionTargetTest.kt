@@ -156,7 +156,7 @@ class ActionTargetTest : NavTestCase() {
 
     // Arrows should be down for 2 and 3, right for 4, up for 5 and 6
     assertEquals(
-      "Clip,0,0,1376,1428\n" +
+      "Clip,0,0,1377,1428\n" +
       "DrawRectangle,1,650.0x650.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawNavScreen,651.0x651.0x74.5x126.0\n" +
       "DrawIcon,650.0x639.0x7.0x7.0,START_DESTINATION\n" +
