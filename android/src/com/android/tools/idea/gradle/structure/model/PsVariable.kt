@@ -40,11 +40,17 @@ class PsVariable(
     this.resolvedProperty = property.resolve()
     myListItems?.refresh()
     myMapEntries?.refresh()
+    pendingListItemContainer = null
+  }
+
+  private fun initNewListItem(property: ResolvedPropertyModel) {
+    pendingListItemContainer = property
   }
 
   private var property: GradlePropertyModel? = null
   private var resolvedProperty: ResolvedPropertyModel? = null
   private var myListItems: ListVariableEntries? = null
+  private var pendingListItemContainer: ResolvedPropertyModel? = null
   val listItems: PsKeyedModelCollection<Int, PsVariable> = myListItems ?: ListVariableEntries(this).also { myListItems = it }
   val isList: Boolean get() = property?.valueType == GradlePropertyModel.ValueType.LIST
   private var myMapEntries: MapVariableEntries? = null
@@ -70,13 +76,17 @@ class PsVariable(
   }
 
   fun addListValue(value: ParsedValue<Any>): PsVariable {
-    if (value === ParsedValue.NotSet) throw IllegalArgumentException()
     if (!isList) throw IllegalStateException("addListValue can only be called for list variables")
-    val listValue = this.property!!.addListValue().resolve()
-    listValue.setParsedValue({ setValue(it) }, {}, value)
-    parent.isModified = true
-    myListItems?.refresh()
-    return listItems.findElement(listItems.size - 1)!!
+    return if (value === ParsedValue.NotSet) {
+      PsVariable(this, scopePsVariables, { myListItems?.refresh() }).also { it.initNewListItem(resolvedProperty!!) }
+    }
+    else {
+      val listValue = this.property!!.addListValue().resolve()
+      listValue.setParsedValue({ setValue(it) }, {}, value)
+      parent.isModified = true
+      myListItems?.refresh()
+      listItems.findElement(listItems.size - 1)!!
+    }
   }
 
   fun addMapValue(key: String): PsVariable? {
@@ -105,6 +115,13 @@ class PsVariable(
     override fun getParsed(model: PsVariable): ResolvedPropertyModel? = model.resolvedProperty
 
     override fun setModified(model: PsVariable) {
+      model.pendingListItemContainer?.let {
+        val itemProperty = it.addListValue()
+        model.property = itemProperty
+        model.resolvedProperty = itemProperty.resolve()
+        model.pendingListItemContainer = null
+        model.refreshCollection()
+      }
       model.scopePsVariables.model.isModified = true
       model.myListItems?.refresh()
       model.myMapEntries?.refresh()

@@ -43,7 +43,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   description: String,
   defaultValueGetter: ((ModelT) -> PropertyT?)? = null,
   resolvedValueGetter: ResolvedT.() -> PropertyT?,
-  parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
+  parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel?,
   getter: ResolvedPropertyModel.() -> PropertyT?,
   setter: ResolvedPropertyModel.(PropertyT) -> Unit,
   parser: (String) -> Annotated<ParsedValue<PropertyT>>,
@@ -72,7 +72,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
   override val description: String,
   val defaultValueGetter: ((ModelT) -> PropertyT?)?,
   private val resolvedValueGetter: ResolvedT.() -> PropertyT?,
-  private val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
+  private val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel?,
   private val getter: ResolvedPropertyModel.() -> PropertyT?,
   private val setter: ResolvedPropertyModel.(PropertyT) -> Unit,
   override val parser: (String) -> Annotated<ParsedValue<PropertyT>>,
@@ -86,9 +86,9 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
     modelDescriptor.getParsed(thisRef)?.parsedPropertyGetter().getParsedValue(getter).value
 
   override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<PropertyT>) {
-    thisRef.setModified()
+    thisRef.setModified()  // setModified() is expected to instantiate a parsed model if it is still null.
     (modelDescriptor.getParsed(thisRef) ?: throw IllegalStateException())
-      .parsedPropertyGetter().setParsedValue(setter, { delete() }, value)
+      .parsedPropertyGetter()!!.setParsedValue(setter, { delete() }, value)
   }
 
   inner class SimplePropertyCore(private val model: ModelT)
