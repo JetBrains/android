@@ -15,28 +15,19 @@
  */
 package com.android.tools.swingp;
 
-import com.android.tools.swingp.json.IncludeMethodsSerializer;
-import com.google.gson.annotations.JsonAdapter;
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
-@JsonAdapter(IncludeMethodsSerializer.class)
 public class WindowPaintMethodStat extends MethodStat {
   @Nullable private final Window myOwnerWindow;
-
-  @SerializedName("xform")
   @NotNull private final AffineTransform myTransform;
-  @SerializedName("location")
   @NotNull private final Point myLocation;
-
-  @SerializedName("windowId")
-  private long getWindowId() {
-    return System.identityHashCode(myOwner.get());
-  }
 
   public WindowPaintMethodStat(@NotNull Window owner) {
     super(owner);
@@ -56,5 +47,20 @@ public class WindowPaintMethodStat extends MethodStat {
         myLocation = owner.getLocationOnScreen();
       }
     }
+  }
+
+  @Override
+  protected void addAttributeDescriptions(@NotNull JsonObject description) {
+    super.addAttributeDescriptions(description);
+
+    description.addProperty("windowId", System.identityHashCode(myOwner.get()));
+    description.add("ownerWindowId", myOwnerWindow == null ? JsonNull.INSTANCE : new JsonPrimitive(System.identityHashCode(myOwnerWindow)));
+
+    int[] location = new int[]{myLocation.x, myLocation.y};
+    description.add("location", SerializationHelpers.arrayToJsonArray(location));
+
+    double[] matrix = new double[6];
+    myTransform.getMatrix(matrix);
+    description.add("xform", SerializationHelpers.arrayToJsonArray(matrix));
   }
 }

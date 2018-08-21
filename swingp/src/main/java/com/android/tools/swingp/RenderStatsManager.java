@@ -15,18 +15,11 @@
  */
 package com.android.tools.swingp;
 
-import com.android.tools.swingp.json.AffineTransformSerializer;
-import com.android.tools.swingp.json.PointSerializer;
-import com.android.tools.swingp.json.SoftReferenceSerializer;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.gson.*;
-import com.google.gson.annotations.SerializedName;
-import com.intellij.reference.SoftReference;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -58,40 +51,12 @@ public final class RenderStatsManager {
     JComponentTreeManager.setEnabled(isEnabled);
   }
 
-  @VisibleForTesting
-  @NotNull
-  public static Gson createSwingpGson() {
-    return new GsonBuilder()
-      .registerTypeAdapter(AffineTransform.class, new AffineTransformSerializer())
-      .registerTypeAdapter(Point.class, new PointSerializer())
-      .registerTypeAdapter(SoftReference.class, new SoftReferenceSerializer())
-      .setExclusionStrategies(new ExclusionStrategy() {
-        @Override
-        public boolean shouldSkipField(FieldAttributes f) {
-          boolean shouldSkip = true;
-          for (Annotation annotation : f.getAnnotations()) {
-            if (annotation.annotationType() == SerializedName.class) {
-              shouldSkip = false;
-              break;
-            }
-          }
-          return shouldSkip;
-        }
-
-        @Override
-        public boolean shouldSkipClass(Class<?> clazz) {
-          return false;
-        }
-      })
-      .create();
-  }
-
   @NotNull
   public static JsonElement getJson() {
     if (ourGlobalThreadStats.isEmpty()) {
       return JsonNull.INSTANCE;
     }
-    Gson gson = createSwingpGson();
+
     JsonArray threads = new JsonArray();
     Set<ThreadStat> staleThreads = new HashSet<>();
     // Using an entrySet followed by a forEach results in only two locks, instead of N locks (N being the number of elements).
@@ -100,9 +65,9 @@ public final class RenderStatsManager {
       if (thread == null || !thread.isAlive()) {
         staleThreads.add(threadStat); // Clean up once the thread is dead or has been GC'ed.
       }
-      JsonObject threadObject = gson.toJsonTree(threadStat).getAsJsonObject();
-      if (threadObject.getAsJsonArray("events").size() > 0) {
-        threads.add(threadObject);
+      JsonElement threadElement = threadStat.getDescription();
+      if (threadElement != JsonNull.INSTANCE) {
+        threads.add(threadElement);
       }
     });
     ourGlobalThreadStats.removeAll(staleThreads); // Can't remove in the forEach, or it will cause a ConcurrentModificationException.

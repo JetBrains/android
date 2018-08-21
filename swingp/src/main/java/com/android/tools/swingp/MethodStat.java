@@ -15,9 +15,9 @@
  */
 package com.android.tools.swingp;
 
-import com.android.tools.swingp.json.IncludeMethodsSerializer;
-import com.google.gson.annotations.JsonAdapter;
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.SoftReference;
@@ -27,32 +27,45 @@ import java.util.List;
 /**
  * A stat counter that surrounds and captures timing and call information of a sequence of calls within a stack frame.
  */
-@JsonAdapter(IncludeMethodsSerializer.class)
 public abstract class MethodStat {
-  @SerializedName("callee")
   @NotNull private final List<MethodStat> myChildStats = new ArrayList<>(1);
   /**
    * {@link #myOwner} is the {@link Object} of the method in which this {@link MethodStat} was instantiated.
    * This will be useful in determining what kind of {@link javax.swing.JComponent} is getting rendered.
    */
-  @SerializedName("owner")
   @NotNull protected final SoftReference<?> myOwner;
-
-  @SerializedName("startTime")
   private long myStartTime = System.nanoTime();
-
-  @SerializedName("endTime")
   private long myEndTime;
-
-  @SerializedName("classType")
-  private String getClassType() {
-    return getClass().getSimpleName();
-  }
 
   public MethodStat(@NotNull Object owner) {
     myOwner = new SoftReference<>(owner);
     // TODO: instrument caller with try-catch as well.
     RenderStatsManager.push(this);
+  }
+
+  @NotNull
+  public final JsonElement getDescription() {
+    JsonObject description = new JsonObject();
+    description.addProperty("classType", getClass().getSimpleName());
+    description.addProperty("startTime", getStartTime());
+
+    Object owner = myOwner.get();
+    description.addProperty("owner", owner == null ? "<gc>" : owner.getClass().getSimpleName());
+    description.addProperty("endTime", getEndTime());
+
+    JsonArray callees = new JsonArray();
+    myChildStats.stream().map(methodStat -> methodStat.getDescription()).forEach(jsonElement -> callees.add(jsonElement));
+    description.add("callee", callees);
+
+    addAttributeDescriptions(description);
+
+    return description;
+  }
+
+  /**
+   * Override this method with additional attributes related to the implementing stat.
+   */
+  protected void addAttributeDescriptions(@NotNull JsonObject description) {
   }
 
   /**

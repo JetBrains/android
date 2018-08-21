@@ -15,15 +15,21 @@
  */
 package com.android.tools.swingp;
 
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;
 
 public class BufferStrategyPaintMethodStat extends MethodStat {
-  @SerializedName("isBufferStrategy")
   private final boolean myIsBufferStrategy;
 
   public BufferStrategyPaintMethodStat(@NotNull Object owner, boolean isBufferStrategy) {
     super(owner);
     myIsBufferStrategy = isBufferStrategy;
+  }
+
+  @Override
+  protected void addAttributeDescriptions(@NotNull JsonObject description) {
+    super.addAttributeDescriptions(description);
+
+    description.addProperty("isBufferStrategy", myIsBufferStrategy);
   }
 }
