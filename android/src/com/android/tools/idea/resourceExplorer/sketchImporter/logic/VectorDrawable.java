@@ -1,6 +1,7 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.DrawableModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
 import com.android.tools.layoutlib.annotations.NotNull;
 
 import java.awt.*;
@@ -12,10 +13,9 @@ public class VectorDrawable {
   @NotNull private final Rectangle.Double artboardDimension;
   @NotNull private final Rectangle.Double viewportDimension;
 
-  public VectorDrawable(@NotNull List<DrawableModel> shapes, @NotNull Rectangle.Double viewport){
-    drawableModels = shapes;
-    viewportDimension = viewport;
-    artboardDimension = viewport;
+  public VectorDrawable(@NotNull SketchArtboard artboard){
+    drawableModels = artboard.createAllDrawableShapes();
+    viewportDimension = artboardDimension = artboard.getFrame();
   }
 
   public double getArtboardHeight(){
