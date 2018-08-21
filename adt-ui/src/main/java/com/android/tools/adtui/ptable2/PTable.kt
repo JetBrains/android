@@ -18,6 +18,7 @@ package com.android.tools.adtui.ptable2
 import com.android.tools.adtui.ptable2.impl.PTableImpl
 import java.awt.Color
 import java.awt.Font
+import java.awt.event.MouseEvent
 import javax.swing.JComponent
 
 /**
@@ -78,8 +79,9 @@ interface PTable {
     fun create(tableModel: PTableModel,
                context: Any? = null,
                rendererProvider: PTableCellRendererProvider = DefaultPTableCellRendererProvider(),
-               editorProvider: PTableCellEditorProvider = DefaultPTableCellEditorProvider()): PTable {
-      return PTableImpl(tableModel, context, rendererProvider, editorProvider)
+               editorProvider: PTableCellEditorProvider = DefaultPTableCellEditorProvider(),
+               customToolTipHook: (MouseEvent) -> String? = { null }): PTable {
+      return PTableImpl(tableModel, context, rendererProvider, editorProvider, customToolTipHook)
     }
   }
 }

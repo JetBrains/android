@@ -15,7 +15,13 @@
  */
 package com.android.tools.adtui.ptable2.impl
 
-import com.android.tools.adtui.ptable2.*
+import com.android.tools.adtui.ptable2.PTable
+import com.android.tools.adtui.ptable2.PTableCellEditorProvider
+import com.android.tools.adtui.ptable2.PTableCellRendererProvider
+import com.android.tools.adtui.ptable2.PTableColumn
+import com.android.tools.adtui.ptable2.PTableGroupItem
+import com.android.tools.adtui.ptable2.PTableItem
+import com.android.tools.adtui.ptable2.PTableModel
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.SpeedSearchComparator
@@ -24,10 +30,24 @@ import com.intellij.ui.table.JBTable
 import com.intellij.util.IJSwingUtilities
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.*
-import java.awt.event.*
-import java.util.*
-import javax.swing.*
+import java.awt.Color
+import java.awt.Component
+import java.awt.Container
+import java.awt.Dimension
+import java.awt.Font
+import java.awt.event.ActionEvent
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.util.EventObject
+import javax.swing.AbstractAction
+import javax.swing.JComponent
+import javax.swing.JTable
+import javax.swing.KeyStroke
+import javax.swing.LayoutFocusTraversalPolicy
+import javax.swing.ListSelectionModel
+import javax.swing.RowFilter
 import javax.swing.event.ChangeEvent
 import javax.swing.table.TableCellEditor
 import javax.swing.table.TableCellRenderer
@@ -45,7 +65,8 @@ import kotlin.properties.Delegates
 class PTableImpl(override val tableModel: PTableModel,
                  override val context: Any?,
                  private val rendererProvider: PTableCellRendererProvider,
-                 private val editorProvider: PTableCellEditorProvider)
+                 private val editorProvider: PTableCellEditorProvider,
+                 private val customToolTipHook: (MouseEvent) -> String? = { null })
   : JBTable(PTableModelImpl(tableModel)), PTable {
 
   private val nameRowSorter = TableRowSorter<TableModel>()
@@ -175,6 +196,10 @@ class PTableImpl(override val tableModel: PTableModel,
   override fun getCellEditor(row: Int, column: Int): PTableCellEditorWrapper {
     tableCellEditor.editor = editorProvider(this, item(row), PTableColumn.fromColumn(column))
     return tableCellEditor
+  }
+
+  override fun getToolTipText(event: MouseEvent): String? {
+    return customToolTipHook(event)
   }
 
   private fun filterChanged(oldValue: String, newValue: String) {
