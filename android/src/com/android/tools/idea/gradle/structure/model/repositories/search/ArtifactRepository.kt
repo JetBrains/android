@@ -23,8 +23,8 @@ import java.util.concurrent.Callable
 abstract class ArtifactRepository : ArtifactRepositorySearchService {
   private val executor = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE)
 
-  protected abstract val name: String
-  protected abstract val isRemote: Boolean
+  abstract val name: String
+  abstract val isRemote: Boolean
   @Throws(Exception::class) protected abstract fun doSearch(request: SearchRequest): SearchResult
 
   override fun search(request: SearchRequest): ListenableFuture<SearchResult> =
