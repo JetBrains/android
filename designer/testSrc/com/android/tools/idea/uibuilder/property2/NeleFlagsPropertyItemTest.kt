@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.property2
 import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
@@ -78,6 +80,18 @@ class NeleFlagsPropertyItemTest : PropertyTestCase() {
     assertThat(centerHorizontal.effectiveValue).isTrue()
     assertThat(centerVertical.value).isEqualTo(VALUE_FALSE)
     assertThat(centerVertical.effectiveValue).isTrue()
+  }
+
+  fun testValidate() {
+    val components = createComponents(component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER))
+    val property = createFlagsPropertyItem(ATTR_GRAVITY, NelePropertyType.STRING, components)
+    assertThat(property.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(property.editingSupport.validation("left")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(property.editingSupport.validation("start|bottom")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(property.editingSupport.validation("start|wednesday|bottom")).isEqualTo(
+      Pair(EditingErrorCategory.ERROR, "Invalid value: 'wednesday'"))
+    assertThat(property.editingSupport.validation("start|wednesday|bottom|winter|left|january")).isEqualTo(
+      Pair(EditingErrorCategory.ERROR, "Invalid values: 'wednesday', 'winter', 'january'"))
   }
 
   private fun createFlagsPropertyItem(attrName: String, type: NelePropertyType, components: List<NlComponent>): NeleFlagsPropertyItem {

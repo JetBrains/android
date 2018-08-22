@@ -66,7 +66,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
 
   override val nameEditingSupport = object : EditingSupport {
     override val completion = { getPropertyNamesWithPrefix() }
-    override val validation = { text: String -> validate(text)}
+    override val validation = { text: String? -> validateName(text)}
   }
 
   override var value: String?
@@ -147,12 +147,13 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
     return if (prefix.isNullOrEmpty()) name else "$prefix:$name"
   }
 
-  private fun validate(text: String): Pair<EditingErrorCategory, String> {
-    val (propertyNamespace, propertyName) = parseName(text)
+  private fun validateName(text: String?): Pair<EditingErrorCategory, String> {
+    val value = text.orEmpty()
+    val (propertyNamespace, propertyName) = parseName(value)
     val property = findDelegate(propertyNamespace, propertyName)
     return when {
-      property == null -> Pair(EditingErrorCategory.ERROR, "No property found by the name: $text")
-      property.rawValue != null -> Pair(EditingErrorCategory.ERROR, "A property by the name: $text is already specified")
+      property == null -> Pair(EditingErrorCategory.ERROR, "No property found by the name: '$value'")
+      property.rawValue != null -> Pair(EditingErrorCategory.ERROR, "A property by the name: '$value' is already specified")
       else -> EDITOR_NO_ERROR
     }
   }

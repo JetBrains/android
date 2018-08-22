@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.NEW_ID_PREFIX
 import com.android.annotations.VisibleForTesting
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.intellij.openapi.project.Project
@@ -76,6 +80,10 @@ class NeleIdPropertyItem(model: NelePropertiesModel, definition: AttributeDefini
 
   override fun getCompletionValues(): List<String> {
     return emptyList()
+  }
+
+  override fun validate(text: String?): Pair<EditingErrorCategory, String> {
+    return lintValidation() ?: EDITOR_NO_ERROR
   }
 
   private fun renameRefactoring(value: XmlAttributeValue?, oldId: String, newId: String, newValue: String?): Boolean {

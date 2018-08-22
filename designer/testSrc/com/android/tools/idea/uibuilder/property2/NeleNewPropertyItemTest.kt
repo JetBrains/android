@@ -138,9 +138,9 @@ class NeleNewPropertyItemTest {
     val model = properties.first!!.model
     val property = NeleNewPropertyItem(model, properties)
     properties[ANDROID_URI, ATTR_TEXT].value = "Hello"
-    assertThat(property.nameEditingSupport.validation("android:xyz")).isEqualTo(Pair(ERROR, "No property found by the name: android:xyz"))
+    assertThat(property.nameEditingSupport.validation("android:xyz")).isEqualTo(Pair(ERROR, "No property found by the name: 'android:xyz'"))
     assertThat(property.nameEditingSupport.validation("android:text"))
-      .isEqualTo(Pair(ERROR, "A property by the name: android:text is already specified"))
+      .isEqualTo(Pair(ERROR, "A property by the name: 'android:text' is already specified"))
   }
 
   private fun createTable(): PropertiesTable<NelePropertyItem> {

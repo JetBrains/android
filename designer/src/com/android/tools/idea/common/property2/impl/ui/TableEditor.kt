@@ -59,6 +59,6 @@ class TableEditor(val lineModel: TableLineModelImpl,
     val index = component.convertRowIndexToModel(tableRow)
     val column = PTableColumn.fromColumn(tableColumn)
     val property = lineModel.tableModel.items[index] as PropertyItem
-    return PropertyTooltip.setToolTip(component, event, property, column == PTableColumn.VALUE, null)
+    return PropertyTooltip.setToolTip(component, event, property, column == PTableColumn.VALUE, property.value.orEmpty())
   }
 }

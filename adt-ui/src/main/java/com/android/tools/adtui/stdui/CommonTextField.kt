@@ -31,6 +31,7 @@ import javax.swing.event.DocumentEvent
 
 const val OUTLINE_PROPERTY = "JComponent.outline"
 const val ERROR_VALUE = "error"
+const val WARNING_VALUE = "warning"
 
 /**
  * TextField controlled by an [editorModel].
@@ -128,7 +129,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
     // otherwise set the property on this text field.
     val component = getComponentWithErrorBorder() ?: return
     val current = component.getClientProperty(OUTLINE_PROPERTY)
-    val (code, _) = editorModel.editingSupport.validation(editorModel.text)
+    val (code, _) = editorModel.editingSupport.validation(if (hasFocus()) editorModel.text else editorModel.value)
     val newOutline = code.outline
     if (current != newOutline) {
       component.putClientProperty(OUTLINE_PROPERTY, newOutline)

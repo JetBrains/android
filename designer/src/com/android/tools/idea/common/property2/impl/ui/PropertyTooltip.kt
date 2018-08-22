@@ -60,9 +60,9 @@ class PropertyTooltip : IdeTooltip(null, Point(), TooltipComponent()) {
 
   companion object {
 
-    fun setToolTip(component: JComponent, event: MouseEvent, property: PropertyItem, forValue: Boolean, text: String?): String? {
+    fun setToolTip(component: JComponent, event: MouseEvent, property: PropertyItem, forValue: Boolean, text: String): String? {
       val manager = IdeTooltipManager.getInstance()
-      val tooltip = createToolTip(property, forValue, text.orEmpty())
+      val tooltip = createToolTip(property, forValue, text)
       tooltip?.component = component
       tooltip?.point = event.point
       manager.setCustomTooltip(component, tooltip)

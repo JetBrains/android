@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property2
 import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property2.api.PropertiesModel
 import com.android.tools.idea.common.property2.api.PropertiesModelListener
@@ -54,6 +55,8 @@ private const val STRINGS = """<?xml version="1.0" encoding="utf-8"?>
 """
 
 private const val HELLO_WORLD = "Hello World"
+
+private val ERROR = EditingErrorCategory.ERROR
 
 class NelePropertyItemTest : PropertyTestCase() {
 
@@ -308,6 +311,42 @@ class NelePropertyItemTest : PropertyTestCase() {
     val text = createPropertyItem(TOOLS_URI, ATTR_PARENT_TAG, NelePropertyType.STRING, components, model)
     val values = text.editingSupport.completion()
     assertThat(values).containsAllOf(LINEAR_LAYOUT, ABSOLUTE_LAYOUT, FRAME_LAYOUT)
+  }
+
+  fun testColorValidation() {
+    myFixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val components = createTextView()
+    val color = createPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, NelePropertyType.COLOR_OR_DRAWABLE, components, model)
+    assertThat(color.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(color.editingSupport.validation("#FF00FF")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(color.editingSupport.validation("?android:attr/colorPrimary")).isEqualTo(EDITOR_NO_ERROR)
+     assertThat(color.editingSupport.validation("@null")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(color.editingSupport.validation("@android:color/holo_blue_bright")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(color.editingSupport.validation("@color/translucentRed")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(color.editingSupport.validation("@android:drawable/btn_minus")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(color.editingSupport.validation("@drawable/cancel")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(color.editingSupport.validation("#XYZ")).isEqualTo(Pair(ERROR, "Invalid color value: '#XYZ'"))
+    assertThat(color.editingSupport.validation("?android:attr/no_color")).isEqualTo(
+      Pair(ERROR, "Cannot resolve theme reference: 'android:attr/no_color'"))
+    assertThat(color.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
+    assertThat(color.editingSupport.validation("@string/hello")).isEqualTo(
+      Pair(ERROR, "Unexpected resource type: 'string' expected one of: color, drawable, mipmap"))
+    assertThat(color.editingSupport.validation("@android:color/no_color")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
+    assertThat(color.editingSupport.validation("@color/no_color")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
+    assertThat(color.editingSupport.validation("@android:drawable/no_color")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
+    assertThat(color.editingSupport.validation("@drawable/no_color")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
+  }
+
+  fun testEnumValidation() {
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val components = createTextView()
+    val color = createPropertyItem(ANDROID_URI, ATTR_VISIBILITY, NelePropertyType.ENUM, components, model)
+    assertThat(color.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(color.editingSupport.validation("visible")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(color.editingSupport.validation("invisible")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(color.editingSupport.validation("gone")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(color.editingSupport.validation("blue")).isEqualTo(Pair(ERROR, "Invalid value: 'blue'"))
   }
 
   private fun createTextView(): List<NlComponent> {

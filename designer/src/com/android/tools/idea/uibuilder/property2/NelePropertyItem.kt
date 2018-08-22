@@ -19,6 +19,7 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.NULL_RESOURCE
 import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
@@ -148,7 +149,7 @@ open class NelePropertyItem(
 
   override val editingSupport = object : EditingSupport {
     override val completion = { getCompletionValues() }
-    override val validation = { text: String -> validate(text) }
+    override val validation = { text: String? -> validate(text) }
     override val execution = { runnable: Runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) }
   }
 
@@ -169,7 +170,7 @@ open class NelePropertyItem(
 
   private fun resolveValueUsingResolver(value: String?): String? {
     if (value != null && !isReferenceValue(value)) return value
-    val resValue = asResourceValue(value) ?: return null
+    val resValue = asResourceValue(value) ?: return value
     when (resValue.resourceType) {
       ResourceType.BOOL,
       ResourceType.DIMEN,
@@ -345,10 +346,55 @@ open class NelePropertyItem(
     return values
   }
 
-  // TODO: complete validate method with local checks
-  private fun validate(text: String): Pair<EditingErrorCategory, String> {
-    val component = firstComponent ?: return EDITOR_NO_ERROR
-    val issue = nlModel?.lintAnnotationsModel?.findIssue(component, namespace, name) ?: return EDITOR_NO_ERROR
+  protected open fun validate(text: String?): Pair<EditingErrorCategory, String> {
+    val value = (text ?: rawValue).nullize() ?: return EDITOR_NO_ERROR
+    return validateEditedValue(value) ?: lintValidation() ?: EDITOR_NO_ERROR
+  }
+
+  private fun validateEditedValue(text: String): Pair<EditingErrorCategory, String>? {
+    return when {
+      text.startsWith("@") -> validateResourceReference(text)
+      text.startsWith("?") -> validateThemeReference(text)
+      else -> validateExplicitValue(text)
+    }
+  }
+
+  private fun validateResourceReference(text: String): Pair<EditingErrorCategory, String>? {
+    if (text == NULL_RESOURCE) {
+      return EDITOR_NO_ERROR
+    }
+    val parsed = org.jetbrains.android.dom.resources.ResourceValue.parse(text, true, true, false)!!
+    val error = parsed.errorMessage
+    if (error != null) {
+      return Pair(EditingErrorCategory.ERROR, error)
+    }
+    val parsedType = parsed.type!!
+    if (!type.resourceTypes.contains(parsedType)) {
+      val expected = type.resourceTypes.joinToString { it.getName() }
+      val message = when {
+        type.resourceTypes.size > 1 -> "Unexpected resource type: '${parsedType.getName()}' expected one of: $expected"
+        else -> "Unexpected resource type: '${parsedType.getName()}' expected: $expected"
+      }
+      return Pair(EditingErrorCategory.ERROR, message)
+    }
+    val value = asResourceValue(text)
+    return if (value == null) Pair(EditingErrorCategory.ERROR, "Cannot resolve symbol: '${parsed.resourceName}'") else null
+  }
+
+  private fun validateThemeReference(text: String): Pair<EditingErrorCategory, String>? {
+    val value = asResourceValue(text)
+    return if (value == null) Pair(EditingErrorCategory.ERROR, "Cannot resolve theme reference: '${text.substring(1)}'") else null
+  }
+
+  private fun validateExplicitValue(text: String): Pair<EditingErrorCategory, String>? {
+    if (definition?.values?.contains(text) == true) return null
+    val message = type.validateLiteral(text) ?: return null
+    return Pair(EditingErrorCategory.ERROR, message)
+  }
+
+  protected fun lintValidation(): Pair<EditingErrorCategory, String>? {
+    val component = firstComponent ?: return null
+    val issue = nlModel?.lintAnnotationsModel?.findIssue(component, namespace, name) ?: return null
     return when (issue.level) {
       HighlightDisplayLevel.ERROR -> Pair(EditingErrorCategory.ERROR, issue.message)
       else -> Pair(EditingErrorCategory.WARNING, issue.message)
