@@ -20,7 +20,7 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchEx
 import org.jetbrains.annotations.NotNull;
 
 /**
- * {@link ObjectOptions} meant to hold the options the user chooses for each individual icon that is imported,
+ * Class meant to hold the options the user chooses for each individual icon that is imported,
  * i.e. whether they want to hide the background or other things that may come up in the future.
  */
 public class IconOptions {
