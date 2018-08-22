@@ -16,16 +16,27 @@
 package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ARG_TYPE
+import com.android.SdkConstants.ATTR_GRAPH
+import com.android.SdkConstants.ATTR_LAYOUT
+import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.ATTR_NULLABLE
+import com.android.SdkConstants.ATTR_START_DESTINATION
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.NAVIGATION_PREFIX
+import com.android.SdkConstants.TOOLS_URI
 import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.BooleanAutoAttributeDelegate
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.StringAttributeDelegate
 import com.android.tools.idea.common.model.StringAutoAttributeDelegate
+import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.uibuilder.model.IdAutoAttributeDelegate
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
@@ -33,6 +44,7 @@ import org.jetbrains.android.dom.navigation.NavActionElement
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE
 import java.io.File
+import kotlin.streams.toList
 
 /*
  * Extensions to NlComponent used by the navigation editor
@@ -327,6 +339,46 @@ val NlComponent.idPath: List<String?>
     }
   }
 
+/**
+ * Moves the currently selected destinations into the nested graph returned from newParent
+ * Since newParent may create a new NlComponent it is evaluated inside the run command
+ */
+fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent) {
+  val currentNavigation = surface.currentNavigation
+  val components = surface.selectionModel.selection.filter { it.isDestination && it.parent == currentNavigation }
+
+  if (components.isEmpty()) {
+    return
+  }
+
+  WriteCommandAction.runWriteCommandAction(surface.project, "Add to Nested Graph", null, Runnable {
+    val graph = newParent()
+    val ids = components.map { it.id }
+    components.forEach { surface.sceneManager?.performUndoablePositionAction(it) }
+
+    // Pick an arbitrary destination to be the start destination,
+    // but give preference to destinations with incoming actions
+    // TODO: invoke dialog to have user select the best start destination?
+    var candidate = components[0].id
+
+    // All actions that point to any component in this set should now point to the
+    // new parent graph, unless they are children of an element in the set
+    currentNavigation.children.filter { !ids.contains(it.id) && it != graph }
+      .flatMap { it.flatten().toList() }
+      .filter { it.isAction && ids.contains(it.actionDestinationId) }
+      .forEach {
+        candidate = it.actionDestinationId
+        it.actionDestinationId = graph.id
+      }
+
+    graph.model.addComponents(components, graph, null, InsertType.MOVE_WITHIN, surface)
+    if (graph.startDestinationId == null) {
+      graph.startDestinationId = candidate
+    }
+    surface.selectionModel.setSelection(listOf(graph))
+
+  }, surface.model!!.file)
+}
 
 @VisibleForTesting
 class NavComponentMixin(component: NlComponent)

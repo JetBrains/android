@@ -23,16 +23,20 @@ import com.android.tools.idea.common.actions.ZoomToFitAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut
+import com.android.tools.idea.naveditor.actions.AddActionToolbarAction
 import com.android.tools.idea.naveditor.actions.AddGlobalAction
 import com.android.tools.idea.naveditor.actions.AddToExistingGraphAction
 import com.android.tools.idea.naveditor.actions.AddToNewGraphAction
 import com.android.tools.idea.naveditor.actions.AutoArrangeAction
+import com.android.tools.idea.naveditor.actions.DeepLinkToolbarAction
 import com.android.tools.idea.naveditor.actions.EditExistingAction
+import com.android.tools.idea.naveditor.actions.NestedGraphToolbarAction
 import com.android.tools.idea.naveditor.actions.ReturnToSourceAction
 import com.android.tools.idea.naveditor.actions.SelectAllAction
 import com.android.tools.idea.naveditor.actions.SelectNextAction
 import com.android.tools.idea.naveditor.actions.SelectPreviousAction
 import com.android.tools.idea.naveditor.actions.StartDestinationAction
+import com.android.tools.idea.naveditor.actions.StartDestinationToolbarAction
 import com.android.tools.idea.naveditor.actions.ToDestinationAction
 import com.android.tools.idea.naveditor.actions.ToSelfAction
 import com.android.tools.idea.naveditor.model.isAction
@@ -65,6 +69,10 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
   private val selectPreviousAction: AnAction = SelectPreviousAction(surface)
   private val selectAllAction: AnAction = SelectAllAction(surface)
   private val addToNewGraphAction: AnAction = AddToNewGraphAction(surface)
+  private val nestedGraphToolbarAction: AnAction = NestedGraphToolbarAction(surface)
+  private val startDestinationToolbarAction: AnAction = StartDestinationToolbarAction(surface)
+  private val deepLinkToolbarAction: AnAction = DeepLinkToolbarAction(surface)
+  private val addActionToolbarAction: AnAction = AddActionToolbarAction(surface)
 
   // Open for testing only
   open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }
@@ -199,5 +207,14 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
   ) {
     // This is called whenever the selection changes, but since our contents are static they can be cached.
     group.add(addDestinationMenu)
+    group.add(nestedGraphToolbarAction)
+
+    group.addSeparator()
+    group.add(startDestinationToolbarAction)
+    group.add(deepLinkToolbarAction)
+    group.add(addActionToolbarAction)
+
+    group.addSeparator()
+    group.add(autoArrangeAction)
   }
 }
