@@ -107,24 +107,24 @@ class DataSeriesPerformanceTest {
     val timer = FakeTimer()
     val studioProfilers = StudioProfilers(grpcChannel.getClient(), FakeIdeProfilerServices(), timer)
     studioProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
-    val dataSeriesToTest = mapOf(Pair("Event Activities", ActivityEventDataSeries(client, session, false)),
-                                 Pair("Event Interactions", SimpleEventDataSeries(client, session)),
-                                 Pair("Energy Usage", EnergyUsageDataSeries(client, session)),
-                                 Pair("Energy Events",
+    val dataSeriesToTest = mapOf(Pair("Event-Activities", ActivityEventDataSeries(client, session, false)),
+                                 Pair("Event-Interactions", SimpleEventDataSeries(client, session)),
+                                 Pair("Energy-Usage", EnergyUsageDataSeries(client, session)),
+                                 Pair("Energy-Events",
                                       MergedEnergyEventsDataSeries(EnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,
                                                                    EnergyDuration.Kind.JOB)),
-                                 Pair("Cpu Usage", CpuUsageDataSeries(client.cpuClient, false, session)),
-                                 Pair("Cpu Thread Count", CpuThreadCountDataSeries(client.cpuClient, session)),
-                                 Pair("Cpu Thread State", ThreadStateDataSeries(client.cpuClient, session, 1)),
-                                 Pair("Network Open Connections", NetworkOpenConnectionsDataSeries(client.networkClient, session)),
-                                 Pair("Network Radio", NetworkRadioDataSeries(client.networkClient, session)),
-                                 Pair("Network Traffic", NetworkTrafficDataSeries(client.networkClient, session,
+                                 Pair("Cpu-Usage", CpuUsageDataSeries(client.cpuClient, false, session)),
+                                 Pair("Cpu-Thread-Count", CpuThreadCountDataSeries(client.cpuClient, session)),
+                                 Pair("Cpu-Thread-State", ThreadStateDataSeries(client.cpuClient, session, 1)),
+                                 Pair("Network-Open-Connections", NetworkOpenConnectionsDataSeries(client.networkClient, session)),
+                                 Pair("Network-Radio", NetworkRadioDataSeries(client.networkClient, session)),
+                                 Pair("Network-Traffic", NetworkTrafficDataSeries(client.networkClient, session,
                                                                                   NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
-                                 Pair("Memory GC Stats", GcStatsDataSeries(client.memoryClient, session)),
-                                 Pair("Memory Series", MemoryDataSeries(client.memoryClient, session, { sample -> sample.timestamp })),
-                                 Pair("Memory Allocation",
+                                 Pair("Memory-GC-Stats", GcStatsDataSeries(client.memoryClient, session)),
+                                 Pair("Memory-Series", MemoryDataSeries(client.memoryClient, session, { sample -> sample.timestamp })),
+                                 Pair("Memory-Allocation",
                                       AllocStatsDataSeries(studioProfilers, client.memoryClient, { sample -> sample.timestamp })),
-                                 Pair("Memory LiveAllocation", TestLiveAllocationSeries(grpcChannel, client, session))
+                                 Pair("Memory-LiveAllocation", TestLiveAllocationSeries(grpcChannel, client, session))
     )
     val nameToMetrics = mutableMapOf<String, Metric>()
     val queryStep = QUERY_INTERVAL / 2
