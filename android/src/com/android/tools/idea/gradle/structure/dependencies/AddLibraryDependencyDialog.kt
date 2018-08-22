@@ -53,8 +53,8 @@ class AddLibraryDependencyDialog(module: PsModule) : AbstractAddDependenciesDial
   }
 
   override fun getInstructions(): String =
-    "Use the form below to find the library to add. This form uses the repositories specified in the project's build files (e.g. " +
-    "JCenter, Maven Central, etc.)"
+    "Use the form below to find the library to add. This form uses the repositories specified in the project's build files " +
+    "(${libraryDependenciesForm?.repositories?.joinToString(", ") { it.name }})"
 
   override fun getDimensionServiceKey(): String = "psd.add.library.dependency.panel.dimension"
 
