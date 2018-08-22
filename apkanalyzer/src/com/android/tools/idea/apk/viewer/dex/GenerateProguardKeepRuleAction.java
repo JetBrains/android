@@ -49,7 +49,7 @@ public class GenerateProguardKeepRuleAction extends AnAction {
 
 
   public GenerateProguardKeepRuleAction(@NotNull Tree tree) {
-    super("Generate Proguard keep rule", "Generates Proguard keep rule", AllIcons.Actions.Get);
+    super("Generate Proguard keep rule", "Generates Proguard keep rule", AllIcons.Actions.Download);
     myTree = tree;
   }
 
