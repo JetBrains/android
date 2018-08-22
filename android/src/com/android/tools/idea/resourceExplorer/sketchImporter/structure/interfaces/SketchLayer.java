@@ -19,13 +19,20 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.structure.ShapeMod
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchExportOptions;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.geom.Point2D;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Holds the fields that are shared between all types of layers in the Sketch JSON file.
+ * Extended by:
+ * SketchPage - is used to retrieve artboards held in the layers field
+ * SketchArtboard - in addition to the base class, it mainly holds information about the layers of artwork inside it
+ * SketchShapeGroup - holds the whole information on one single shape, be it simple or combined: style options, clipping
+ * and layers for each shape path that it contains
+ * SketchShapePath - holds specific information for each path in one shape group: boolean to depict if the path is closed
+ * and an array of curve points that make up the path
+ * Other classes built for functionalities not yet implemented, such as SketchSlice, SketchSymbol and SketchText
  */
 public abstract class SketchLayer {
 
@@ -51,7 +58,7 @@ public abstract class SketchLayer {
    * [0, 359] is sometimes equivalent to [0, 180] ∪ [-179, -1] with no apparent rule
    */
   private final int rotation;
-  private final boolean shouldBreakMaskChain;
+  protected final boolean shouldBreakMaskChain;
 
   public SketchLayer(@NotNull String classType,
                      @NotNull String objectId,
@@ -127,7 +134,7 @@ public abstract class SketchLayer {
   }
 
   @NotNull
-  public ImmutableList<ShapeModel> createShapeModels(Point2D.Double parentCoords) {
+  public ImmutableList<ShapeModel> createShapeModels(@NotNull Point2D.Double parentCoords, boolean isLastLayer) {
     return ImmutableList.of();
   }
 }

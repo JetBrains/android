@@ -20,7 +20,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.awt.geom.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.PathIterator;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 import static java.awt.geom.PathIterator.*;
 
@@ -35,7 +38,9 @@ public abstract class ShapeModel {
   protected int rotationDegrees;
   protected int shapeOperation;
   @NotNull protected Point2D.Double shapeFrameCoordinates;
-
+  protected boolean hasClippingMask;
+  protected boolean shouldBreakMaskChain;
+  protected boolean isLastShape;
   @Nullable protected SketchGradient shapeGradient;
 
   public ShapeModel(@NotNull Shape shape,
@@ -46,7 +51,10 @@ public abstract class ShapeModel {
                     boolean closed,
                     int rotation,
                     int operation,
-                    @NotNull Point2D.Double framePosition) {
+                    @NotNull Point2D.Double framePosition,
+                    boolean hasClippingMask,
+                    boolean shouldBreakMaskChain,
+                    boolean isLastShapeGroup) {
     this.shape = shape;
     shapeFill = fill;
     if (shapeFill != null) {
@@ -62,6 +70,9 @@ public abstract class ShapeModel {
     rotationDegrees = rotation;
     shapeOperation = operation;
     shapeFrameCoordinates = framePosition;
+    this.hasClippingMask = hasClippingMask;
+    this.shouldBreakMaskChain = shouldBreakMaskChain;
+    isLastShape = isLastShapeGroup;
   }
 
   public int getBooleanOperation() {
@@ -161,6 +172,7 @@ public abstract class ShapeModel {
       }
     }
 
-    return new DrawableModel(shapePathData, shapeFillColor, shapeGraphicContextSettings, shapeGradient, shapeBorderColor, shapeBorderWidth);
+    return new DrawableModel(shapePathData, shapeFillColor, shapeGraphicContextSettings, shapeGradient, shapeBorderColor, shapeBorderWidth, hasClippingMask,
+                             shouldBreakMaskChain, isLastShape);
   }
 }

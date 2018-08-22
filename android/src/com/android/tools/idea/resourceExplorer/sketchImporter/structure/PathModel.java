@@ -36,8 +36,12 @@ public class PathModel extends ShapeModel {
                    boolean closed,
                    int rotation,
                    int operation,
-                   @NotNull Point2D.Double framePosition) {
-    super(shape, fill, border, flippedHorizontal, flippedVertical, closed, rotation, operation, framePosition);
+                   @NotNull Point2D.Double framePosition,
+                   boolean hasClippingMask,
+                   boolean shouldBreakMaskChain,
+                   boolean isLastShapeGroup) {
+    super(shape, fill, border, flippedHorizontal, flippedVertical, closed, rotation, operation, framePosition, hasClippingMask,
+          shouldBreakMaskChain, isLastShapeGroup);
     path = shape;
   }
 
@@ -47,7 +51,7 @@ public class PathModel extends ShapeModel {
     }
     return new AreaModel(new Area(path), shapeFill, shapeBorder, isFlippedHorizontal, isFlippedVertical, isClosed, rotationDegrees,
                          shapeOperation,
-                         shapeFrameCoordinates);
+                         shapeFrameCoordinates, hasClippingMask, shouldBreakMaskChain, isLastShape);
   }
 
   private void closeShape() {
