@@ -266,7 +266,7 @@ class CpuProfilerStageViewTest {
 
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
     val recordButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first {
-      it.text == CpuProfilerStageView.RECORD_TEXT
+      it.text == CpuProfilerToolbar.RECORD_TEXT
     }
     // When creating the stage view, the record button should be disabled as the current session is dead.
     assertThat(recordButton.isEnabled).isFalse()
@@ -294,7 +294,7 @@ class CpuProfilerStageViewTest {
   fun stoppingAndStartingDisableRecordButton() {
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
     val recordButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first {
-      it.text == CpuProfilerStageView.RECORD_TEXT
+      it.text == CpuProfilerToolbar.RECORD_TEXT
     }
 
     myStage.captureState = CpuProfilerStage.CaptureState.STARTING
@@ -313,13 +313,13 @@ class CpuProfilerStageViewTest {
   fun recordButtonShouldntHaveTooltip() {
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
     val recordButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first {
-      it.text == CpuProfilerStageView.RECORD_TEXT
+     it.text == CpuProfilerToolbar.RECORD_TEXT
     }
     assertThat(recordButton.toolTipText).isNull()
 
     myStage.captureState = CpuProfilerStage.CaptureState.CAPTURING
     val stopButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first {
-      it.text == CpuProfilerStageView.STOP_TEXT
+      it.text == CpuProfilerToolbar.STOP_TEXT
     }
     assertThat(stopButton.toolTipText).isNull()
   }
