@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
+import static com.android.tools.idea.flags.StudioFlags.NELE_SHOW_ON_HOVER;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
@@ -22,6 +24,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -202,7 +205,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       List<NlComponent> selection = scene.getSelection();
       for (SceneComponent child : children) {
         child.buildDisplayList(time, list, sceneContext);
-        if (sceneContext.showOnlySelection()) {
+        if (SceneLayer.SHOW_ON_HOVER && sceneContext.showOnlySelection()) {
           continue;
         }
         if ((showAllConstraints && scene.getRoot() == component) || selection.contains(child.getNlComponent())) {
