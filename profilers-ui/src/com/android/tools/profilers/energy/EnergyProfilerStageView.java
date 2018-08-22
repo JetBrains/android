@@ -67,7 +67,10 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     JComponent configurationComponent = getConfigurationComponent();
     configurationComponent.setFont(ProfilerFonts.STANDARD_FONT);
     myEventsPanel.add(configurationComponent, new TabularLayout.Constraint(0, 1));
-    myEventsPanel.add(getSelectionTimeLabel(), new TabularLayout.Constraint(0, 3));
+
+    JLabel selectionTimeLabel = getSelectionTimeLabel();
+    selectionTimeLabel.setBorder(new JBEmptyBorder(0, 0, 0, 8));
+    myEventsPanel.add(selectionTimeLabel, new TabularLayout.Constraint(0, 3));
 
     JComponent eventsView = new EnergyEventsView(this).getComponent();
     myEventsPanel.add(new JBScrollPane(eventsView), new TabularLayout.Constraint(1, 0, 1, 4));
