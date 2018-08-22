@@ -56,6 +56,7 @@ iml_module(
         "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.graph/0.3.0:jar",
         "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.common/2.12.0:jar",
         "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.12.0:jar",
+        "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
     ],
 )
 
