@@ -135,14 +135,15 @@ class CommonDragTarget : BaseTarget() {
 
     val retPoint = Point()
     for (ph in placeholders) {
+      val currentPlaceholderLevel = targetPlaceholder?.region?.level ?: -1
       // ignore the placeholders of myComponent and its children.
-      if (ph.region.level < (targetPlaceholder?.region?.level ?: -1)) {
+      if (ph.region.level < currentPlaceholderLevel) {
         continue
       }
 
       if (ph.snap(left, top, right, bottom, retPoint)) {
         val distance = retPoint.distance(xDouble, yDouble)
-        if (distance < currentDistance) {
+        if (distance < currentDistance || ph.region.level > currentPlaceholderLevel) {
           targetPlaceholder = ph
           currentDistance = distance
           snappedX = retPoint.x
