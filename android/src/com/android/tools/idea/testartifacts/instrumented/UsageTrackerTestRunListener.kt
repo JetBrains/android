@@ -67,7 +67,7 @@ class UsageTrackerTestRunListener constructor(
       category = AndroidStudioEvent.EventCategory.TESTS
       kind = AndroidStudioEvent.EventKind.TEST_RUN
       deviceInfo = AndroidStudioUsageTracker.deviceToDeviceInfo(device)
-      productDetails = AndroidStudioUsageTracker.getProductDetails()
+      productDetails = AndroidStudioUsageTracker.productDetails
       testRun = this@UsageTrackerTestRunListener.testRun.build()
     }
 
