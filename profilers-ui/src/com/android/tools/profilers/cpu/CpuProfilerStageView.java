@@ -21,7 +21,6 @@ import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
-import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
@@ -32,7 +31,6 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.util.ui.JBDimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +42,6 @@ import java.awt.event.MouseListener;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER;
-import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private enum PanelSpacing {
@@ -80,11 +77,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
   }
 
-  @VisibleForTesting
-  static final String RECORD_TEXT = "Record";
-
-  public static final String STOP_TEXT = "Stop";
-
   private static final int MONITOR_PANEL_ROW = 0;
   private static final int DETAILS_PANEL_ROW = 1;
   private static final int DETAILS_KERNEL_PANEL_ROW = 0;
@@ -113,8 +105,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   private final CpuProfilerStage myStage;
 
-  private final JButton myCaptureButton;
-
   @NotNull private final CpuThreadsView myThreads;
   @NotNull private final CpuKernelsView myCpus;
 
@@ -126,24 +116,27 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @NotNull private final CpuCaptureView myCaptureView;
 
-  @NotNull private final CpuProfilingConfigurationView myProfilingConfigurationView;
-
   @NotNull private final RangeTooltipComponent myTooltipComponent;
 
-  @NotNull private final JLabel myImportedSelectedProcessLabel;
-
   @NotNull private final CpuUsageView myUsageView;
+
+  @NotNull private final CpuProfilerToolbar myToolbar;
 
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     super(profilersView, stage);
     myStage = stage;
     myCaptureView = new CpuCaptureView(this);
+    if (myStage.isImportTraceMode()) {
+      myToolbar = new CpuProfilerToolbar.ImportMode(myStage);
+    } else {
+      myToolbar = new CpuProfilerToolbar.NormalMode(stage, getIdeComponents());
+    }
+
     ProfilerTimeline timeline = getTimeline();
-    myImportedSelectedProcessLabel = new JLabel();
     stage.getAspect().addDependency(this)
-         .onChange(CpuProfilerAspect.CAPTURE_STATE, this::updateCaptureState)
+         .onChange(CpuProfilerAspect.CAPTURE_STATE, myToolbar::update)
          .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::onCaptureSelection)
-         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateImportedSelectedProcessLabel);
+         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, myToolbar::update);
 
     stage.getStudioProfilers().addDependency(this)
          .onChange(ProfilerAspect.MODE, this::updateCaptureViewVisibility);
@@ -220,20 +213,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     mySplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
     getComponent().add(mySplitter, BorderLayout.CENTER);
 
-    myProfilingConfigurationView = new CpuProfilingConfigurationView(myStage, getIdeComponents());
-
-    // Set to the longest text this button will show as to initialize the persistent size properly.
-    // Call setPreferredSize to avoid the initialized size being overwritten.
-    // TODO: b/80546414 Use common button instead.
-    myCaptureButton = new JButton(RECORD_TEXT);
-
-    // Make the record button's height same with myProfilingConfigurationView.
-    myCaptureButton.setPreferredSize(JBDimension.create(myCaptureButton.getPreferredSize()).withHeight(
-      (int)myProfilingConfigurationView.getComponent().getPreferredSize().getHeight()));
-    myCaptureButton.addActionListener(event -> myStage.toggleCapturing());
-
-    updateCaptureState();
-
     CpuProfilerContextMenuInstaller.install(myStage, getIdeComponents(), myUsageView, getComponent());
     // Add the profilers common menu items
     getProfilersView().installCommonMenuItems(myUsageView);
@@ -242,6 +221,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       installProfilingInstructions(myUsageView);
     }
     updateCaptureViewVisibility();
+
+    SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
+    sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, myToolbar::update);
   }
 
   private void addThreadsPanelToDetails(@NotNull JPanel detailsPanel) {
@@ -298,67 +280,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @Override
   public JComponent getToolbar() {
-    // We shouldn't display the CPU toolbar in import trace mode, so we return an empty panel.
-    if (myStage.isImportTraceMode()) {
-      JPanel panel = new JPanel(new TabularLayout("8px,*", "*"));
-      panel.add(myImportedSelectedProcessLabel, new TabularLayout.Constraint(0,1));
-      return panel;
-    }
-    JPanel panel = new JPanel(new BorderLayout());
-    JPanel toolbar = new JPanel(createToolbarLayout());
-
-    toolbar.add(myProfilingConfigurationView.getComponent());
-    toolbar.add(myCaptureButton);
-
-    SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
-    sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, () -> myCaptureButton.setEnabled(shouldEnableCaptureButton()));
-    myCaptureButton.setEnabled(shouldEnableCaptureButton());
-
-    panel.add(toolbar, BorderLayout.WEST);
-    return panel;
-  }
-
-  /**
-   * Should enable the capture button for recording and stopping only when session is alive and no API-initiated tracing is
-   * in progress.
-   */
-  private boolean shouldEnableCaptureButton() {
-    return myStage.getStudioProfilers().getSessionsManager().isSessionAlive() && !myStage.isApiInitiatedTracingInProgress();
+    return myToolbar.getComponent();
   }
 
   @Override
   public boolean navigationControllersEnabled() {
     return !myStage.isImportTraceMode();
-  }
-
-  private void updateCaptureState() {
-    switch (myStage.getCaptureState()) {
-      case IDLE:
-        myCaptureButton.setEnabled(shouldEnableCaptureButton());
-        myCaptureButton.setText(RECORD_TEXT);
-        myProfilingConfigurationView.getComponent().setEnabled(true);
-        break;
-      case CAPTURING:
-        if (getStage().getCaptureInitiationType().equals(TraceInitiationType.INITIATED_BY_API)) {
-          myCaptureButton.setEnabled(false);
-        }
-        else {
-          myCaptureButton.setEnabled(shouldEnableCaptureButton());
-        }
-        myCaptureButton.setText(STOP_TEXT);
-        myProfilingConfigurationView.getComponent().setEnabled(false);
-        break;
-      case STARTING:
-        myCaptureButton.setEnabled(false);
-        myCaptureButton.setToolTipText("");
-        myProfilingConfigurationView.getComponent().setEnabled(false);
-        break;
-      case STOPPING:
-        myCaptureButton.setEnabled(false);
-        myCaptureButton.setToolTipText("");
-        myProfilingConfigurationView.getComponent().setEnabled(false);
-        break;
-    }
   }
 
   private void onCaptureSelection() {
@@ -378,24 +305,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                                                                            null);
         }
       }
-    }
-  }
-
-  /**
-   * Sets the main process name to {@link #myImportedSelectedProcessLabel} when the current capture is imported and ATrace.
-   * Otherwise, sets an empty text.
-   */
-  private void updateImportedSelectedProcessLabel() {
-    myImportedSelectedProcessLabel.setText("");
-    CpuCapture capture = myStage.getCapture();
-    if (capture == null || !myStage.isImportTraceMode()) {
-      return;
-    }
-
-    if (capture.getType() == CpuProfilerType.ATRACE) {
-      CaptureNode node = capture.getCaptureNode(capture.getMainThreadId());
-      assert node != null;
-      myImportedSelectedProcessLabel.setText("Process: " + node.getData().getName());
     }
   }
 
