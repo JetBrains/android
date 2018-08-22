@@ -127,7 +127,7 @@ public class ProfilerColors {
 
   public static final Color CPU_THREAD_SELECTED_BACKGROUND = new JBColor(0x3476DC, 0x3476DC);
 
-  public static final Color THREAD_LABEL_TEXT = new JBColor(0x545454, 0x9C9C9C);
+  public static final Color THREAD_LABEL_TEXT = new JBColor(0x434343, 0xBCBCBC);
 
   public static final Color SELECTED_THREAD_LABEL_TEXT = Gray.xFF;
 

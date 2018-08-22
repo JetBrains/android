@@ -22,15 +22,22 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.DragAndDropList;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
-import java.awt.event.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Creates a view containing a {@link HideablePanel} composed by a {@link CpuListScrollPane} displaying a list of threads and their
@@ -71,7 +78,7 @@ final class CpuThreadsView {
                              .installMotionListenerOn(myThreads);
 
     myPanel.addStateChangedListener((actionEvent) ->
-      myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuThreadsHideablePanel()
+                                      myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuThreadsHideablePanel()
     );
     myObserver = new AspectObserver();
     stage.getAspect().addDependency(myObserver)
@@ -95,6 +102,8 @@ final class CpuThreadsView {
     final HideablePanel threadsPanel = new HideablePanel.Builder("THREADS", threads)
       .setShowSeparator(false)
       .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
+      .setIconTextGap(ProfilerLayout.CPU_HIDEABLE_PANEL_TITLE_ICON_TEXT_GAP)
+      .setTitleLeftPadding(ProfilerLayout.CPU_HIDEABLE_PANEL_TITLE_LEFT_PADDING)
       .build();
 
     CpuListScrollPane scrollingThreads = new CpuListScrollPane(myThreads, threadsPanel);

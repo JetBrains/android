@@ -19,17 +19,21 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.icons.AllIcons;
 import com.intellij.util.ui.JBEmptyBorder;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.event.EventListenerList;
-import java.awt.*;
+import com.intellij.util.ui.JBUI;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.function.Consumer;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
+import javax.swing.event.EventListenerList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A panel which wraps an inner component and provides a small arrow button for toggling its
@@ -49,6 +53,7 @@ public class HideablePanel extends JPanel {
      */
     TITLE_BAR,
   }
+
   private static final Border HIDEABLE_PANEL_BORDER = new JBEmptyBorder(0, 10, 0, 15);
   private static final Border HIDEABLE_CONTENT_BORDER = new JBEmptyBorder(0, 12, 0, 5);
   private static final int TITLE_RIGHT_PADDING = 3;
@@ -116,6 +121,12 @@ public class HideablePanel extends JPanel {
                        new TabularLayout.Constraint(0, 2));
     }
     add(myTitlePanel, BorderLayout.NORTH);
+    if (builder.myTitleLeftPadding != null) {
+      label.setBorder(JBUI.Borders.empty(0, builder.myTitleLeftPadding, 0, 0));
+    }
+    if (builder.myIconTextGap != null) {
+      label.setIconTextGap(builder.myIconTextGap);
+    }
     return label;
   }
 
@@ -177,6 +188,8 @@ public class HideablePanel extends JPanel {
     boolean myShowSeparator = true;
     boolean myInitiallyExpanded = true;
     int myTitleRightPadding = TITLE_RIGHT_PADDING;
+    @Nullable Integer myTitleLeftPadding;
+    @Nullable Integer myIconTextGap;
 
     public Builder(@NotNull String title, @NotNull JComponent content) {
       myTitle = title;
@@ -229,11 +242,29 @@ public class HideablePanel extends JPanel {
     }
 
     /**
+     * Sets the title bar padding on the left.
+     */
+    @NotNull
+    public Builder setTitleLeftPadding(int leftPadding) {
+      myTitleLeftPadding = leftPadding;
+      return this;
+    }
+
+    /**
      * Sets the title bar padding on the right.
      */
     @NotNull
     public Builder setTitleRightPadding(int rightPadding) {
       myTitleRightPadding = rightPadding;
+      return this;
+    }
+
+    /**
+     * Sets icon text gap which is the space between the icon and the text.
+     */
+    @NotNull
+    public Builder setIconTextGap(int gap) {
+      myIconTextGap = gap;
       return this;
     }
 

@@ -17,12 +17,12 @@ package com.android.tools.profilers;
 
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.LayoutManager;
+import javax.swing.BorderFactory;
 import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Common layout constants that are shared across profiler views.
@@ -88,6 +88,8 @@ public class ProfilerLayout {
 
   // To be combined with CPU threads/kernel cell label border to draw a vertical right border.
   public static final Border CPU_THREADS_RIGHT_BORDER = JBUI.Borders.customLine(ProfilerColors.CPU_AXIS_GUIDE_COLOR, 0, 0, 0, 2);
+  public static final int CPU_HIDEABLE_PANEL_TITLE_LEFT_PADDING = 7;
+  public static final int CPU_HIDEABLE_PANEL_TITLE_ICON_TEXT_GAP = 6;
 
   private ProfilerLayout() {
     // Static class designed to hold constants only
