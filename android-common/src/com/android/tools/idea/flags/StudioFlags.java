@@ -205,6 +205,12 @@ public final class StudioFlags {
     "If enabled, the surface displays some debug information to diagnose performance",
     false);
 
+  public static final Flag<Boolean> NELE_SHOW_ON_HOVER = Flag.create(
+    NELE, "design.surface.show.hover", "Enable show on hover for the design surface",
+    "If enabled, the design surface will only display additional overlays (like constraints)" +
+    " if the mouse is over the layout",
+    false);
+
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",
