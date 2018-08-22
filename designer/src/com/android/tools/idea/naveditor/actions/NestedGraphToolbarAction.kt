@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.naveditor.actions
 
-import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.naveditor.model.createNestedGraph
+import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.moveIntoNestedGraph
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import icons.StudioIcons
 
-abstract class AddToGraphAction(
-  protected val mySurface: NavDesignSurface,
-  name: String
-) : AnAction(name) {
+class NestedGraphToolbarAction(surface: NavDesignSurface) :
+  ToolbarAction(surface, "Group into nested graph", StudioIcons.NavEditor.Tree.NESTED_GRAPH) {
 
-  override fun actionPerformed(e: AnActionEvent?) {
-    moveIntoNestedGraph(mySurface) { newParent() }
+  override fun isEnabled() = surface.selectionModel.selection.any {
+    it.isDestination && it != surface.currentNavigation
   }
 
-  protected abstract fun newParent(): NlComponent
+  override fun actionPerformed(e: AnActionEvent?) {
+    moveIntoNestedGraph(surface) { surface.currentNavigation.createNestedGraph() }
+  }
 }
