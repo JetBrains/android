@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
+import com.android.SdkConstants
 import com.android.resources.ResourceType
-import java.util.*
+import com.android.tools.idea.res.parseColor
+import com.intellij.psi.util.PsiLiteralUtil
+import org.jetbrains.android.dom.converters.DimensionConverter
+import java.util.EnumSet
 
 /**
  * Types of a [NelePropertyItem].
@@ -27,7 +31,10 @@ enum class NelePropertyType {
   COLOR,
   COLOR_OR_DRAWABLE,
   DIMENSION,
+  ENUM,
+  FLAGS,
   FLOAT,
+  FONT,
   FONT_SIZE,
   FRACTION,
   FRAGMENT,
@@ -43,22 +50,65 @@ enum class NelePropertyType {
 
   val resourceTypes: EnumSet<ResourceType>
     get() = when (this) {
-      NelePropertyType.BOOLEAN -> EnumSet.of(ResourceType.BOOL)
-      NelePropertyType.COLOR -> EnumSet.of(ResourceType.COLOR)
-      NelePropertyType.COLOR_OR_DRAWABLE -> EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP)
-      NelePropertyType.DIMENSION -> EnumSet.of(ResourceType.DIMEN)
-      NelePropertyType.FLOAT -> EnumSet.of(ResourceType.DIMEN)
-      NelePropertyType.FRACTION -> EnumSet.of(ResourceType.FRACTION)
-      NelePropertyType.FONT_SIZE -> EnumSet.of(ResourceType.DIMEN)
-      NelePropertyType.ID -> EnumSet.of(ResourceType.ID)
-      NelePropertyType.INTEGER -> EnumSet.of(ResourceType.INTEGER)
-      NelePropertyType.LAYOUT -> EnumSet.of(ResourceType.LAYOUT)
-      NelePropertyType.LIST -> EnumSet.noneOf(ResourceType.ID.javaClass)
-      NelePropertyType.READONLY_STRING -> EnumSet.noneOf(ResourceType.ID.javaClass)
-      NelePropertyType.STRING -> EnumSet.of(ResourceType.STRING)
-      NelePropertyType.STYLE -> EnumSet.of(ResourceType.STYLE)
-      NelePropertyType.TEXT_APPEARANCE -> EnumSet.of(ResourceType.STYLE)
-      NelePropertyType.THREE_STATE_BOOLEAN -> EnumSet.of(ResourceType.BOOL)
+      BOOLEAN -> EnumSet.of(ResourceType.BOOL)
+      COLOR -> EnumSet.of(ResourceType.COLOR)
+      COLOR_OR_DRAWABLE -> EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP)
+      DIMENSION -> EnumSet.of(ResourceType.DIMEN)
+      FLOAT -> EnumSet.of(ResourceType.DIMEN)
+      FONT -> EnumSet.of(ResourceType.FONT)
+      FRACTION -> EnumSet.of(ResourceType.FRACTION)
+      FONT_SIZE -> EnumSet.of(ResourceType.DIMEN)
+      ID -> EnumSet.of(ResourceType.ID)
+      INTEGER -> EnumSet.of(ResourceType.INTEGER)
+      LAYOUT -> EnumSet.of(ResourceType.LAYOUT)
+      LIST -> EnumSet.noneOf(ResourceType.ID.javaClass)
+      READONLY_STRING -> EnumSet.noneOf(ResourceType.ID.javaClass)
+      STRING -> EnumSet.of(ResourceType.STRING)
+      STYLE -> EnumSet.of(ResourceType.STYLE)
+      TEXT_APPEARANCE -> EnumSet.of(ResourceType.STYLE)
+      THREE_STATE_BOOLEAN -> EnumSet.of(ResourceType.BOOL)
       else -> EnumSet.noneOf(ResourceType.BOOL.javaClass)
     }
+
+  /**
+   * Check the specified [literal] value and return the error if any or null.
+   *
+   * This method does not check resource values, theme values, and enum values.
+   * Those checks should be made BEFORE calling this method.
+   */
+  fun validateLiteral(literal: String): String? {
+    if (literal.isEmpty()) {
+      return null
+    }
+    return when (this) {
+      THREE_STATE_BOOLEAN,
+      BOOLEAN -> error(literal != SdkConstants.VALUE_TRUE && literal != SdkConstants.VALUE_FALSE) { "Invalid bool value: '$literal'"}
+      COLOR_OR_DRAWABLE,
+      COLOR -> error(parseColor(literal) == null) { "Invalid color value: '$literal'" }
+      ENUM -> "Invalid value: '$literal'"
+      FONT_SIZE,
+      DIMENSION -> error(DimensionConverter.INSTANCE.fromString(literal, null) == null) { getDimensionError(literal) }
+      FLOAT -> error(PsiLiteralUtil.parseDouble(literal) == null) { "Invalid float: '$literal'" }
+      FRACTION -> error(parseFraction(literal) == null) { "Invalid fraction: '$literal'"}
+      INTEGER -> error(PsiLiteralUtil.parseInteger(literal) == null) { "Invalid integer: '$literal'"}
+      ID -> "Invalid id: '$literal'"
+      else -> null
+    }
+  }
+
+  private fun error(condition: Boolean, message: () -> String): String? {
+    return if (condition) message() else null
+  }
+
+  private fun getDimensionError(literal: String): String {
+    val unit = DimensionConverter.getUnitFromValue(literal)
+    return if (unit == null) "Cannot resolve: '$literal'" else "Unknown units '$unit'"
+  }
+
+  private fun parseFraction(literal: String): Double? {
+    val isPercent = literal.endsWith('?')
+    val text = if (isPercent) literal.substring(0, literal.length - 1) else literal
+    val value = PsiLiteralUtil.parseDouble(text) ?: return null
+    return if (isPercent) value / 100.0 else value
+  }
 }

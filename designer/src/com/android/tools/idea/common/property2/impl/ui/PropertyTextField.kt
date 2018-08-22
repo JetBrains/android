@@ -47,7 +47,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
   }
 
   override fun getToolTipText(event: MouseEvent): String? {
-    return PropertyTooltip.setToolTip(this, event, editorModel.property, forValue = true, text = text)
+    return PropertyTooltip.setToolTip(this, event, editorModel.property, forValue = true, text = text.orEmpty())
   }
 
   private fun enter() {

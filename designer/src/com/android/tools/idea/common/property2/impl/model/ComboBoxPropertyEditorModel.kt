@@ -55,7 +55,7 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
    */
   private var pendingValueChange = false
 
-  override var text: String by Delegates.observable(property.value.orEmpty()) { _, _, _ -> pendingValueChange = false }
+  override var text by Delegates.observable(property.value.orEmpty()) { _, _, _ -> pendingValueChange = false }
 
   override fun updateValueFromProperty() {
     text = value

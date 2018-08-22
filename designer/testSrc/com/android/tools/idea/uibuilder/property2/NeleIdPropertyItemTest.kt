@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.*
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NeleIdPropertyItem.Companion.RefactoringChoice
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
@@ -190,6 +191,17 @@ class NeleIdPropertyItemTest {
     inOrder.verifyNoMoreInteractions()
 
     assertThat(property.components[0].id).isEqualTo("textView")
+  }
+
+  @Test
+  fun testValidation() {
+    val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
+    val property = util.makeIdProperty()
+    assertThat(property.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(property.editingSupport.validation("@+id/hello")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(property.editingSupport.validation("@id/hello")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(property.editingSupport.validation("@string/hello")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(property.editingSupport.validation("hello")).isEqualTo(EDITOR_NO_ERROR)
   }
 
   private fun makeDialogBuilder(exitCode: Int, doNotCheckAgain: Boolean = false): DialogBuilder {

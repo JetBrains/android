@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property2.api.FlagPropertyItem
 import com.android.tools.idea.common.property2.api.FlagsPropertyItem
@@ -26,6 +28,7 @@ import com.google.common.collect.Sets
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ArrayUtil
 import com.intellij.util.containers.stream
+import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 
 /**
@@ -70,8 +73,8 @@ class NeleFlagsPropertyItem(
   override val children: List<NeleFlagPropertyItem>
     get() {
       if (_flags.isEmpty()) {
-          attrDefinition.values.mapTo(_flags, { NeleFlagPropertyItem(this, it, lookupMaskValue(it)) })
-        }
+          attrDefinition.values.mapTo(_flags) { NeleFlagPropertyItem(this, it, lookupMaskValue(it)) }
+      }
       return _flags
     }
 
@@ -86,6 +89,16 @@ class NeleFlagsPropertyItem(
 
   override fun flag(itemName: String): NeleFlagPropertyItem {
     return children.find { it.name == itemName } ?: throw IllegalArgumentException(itemName)
+  }
+
+  override fun validate(text: String?): Pair<EditingErrorCategory, String> {
+    val value = (text ?: rawValue).nullize() ?: return EDITOR_NO_ERROR
+    val unknown = VALUE_SPLITTER.split(value).toSet().minus(children.map { it.name }).map { "'$it'" }
+    return when {
+      unknown.isEmpty() -> EDITOR_NO_ERROR
+      unknown.size == 1 -> Pair(EditingErrorCategory.ERROR, "Invalid value: ${unknown.first()}")
+      else -> Pair(EditingErrorCategory.ERROR, "Invalid values: ${Joiner.on(", ").join(unknown)}")
+    }
   }
 
   fun isFlagSet(flag: NeleFlagPropertyItem) = lastValues.contains(flag.name)

@@ -25,7 +25,7 @@ import kotlin.properties.Delegates
 class PropertyNameEditorModel(private val newProperty: NewPropertyItem) :
   TextFieldPropertyEditorModel(newProperty, true) {
 
-  override var text: String by Delegates.observable(newProperty.name) { _, _, _ -> pendingValueChange = false }
+  override var text by Delegates.observable(newProperty.name) { _, _, _ -> pendingValueChange = false }
 
   override var value: String
     get() = newProperty.name

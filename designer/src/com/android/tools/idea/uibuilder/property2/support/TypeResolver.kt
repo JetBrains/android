@@ -29,13 +29,14 @@ import com.android.ide.common.rendering.api.AttributeFormat
 object TypeResolver {
 
   fun resolveType(name: String, attribute: AttributeDefinition?): NelePropertyType {
-    return fromAttributeDefinition(attribute)
-        ?: lookupByName(name)
+    return lookupByName(name)
+        ?: fromAttributeDefinition(attribute)
         ?: fallbackByName(name)
   }
 
   private fun fromAttributeDefinition(attribute: AttributeDefinition?): NelePropertyType? {
     if (attribute == null) return null
+    var subType: NelePropertyType? = null
 
     for (format in attribute.formats) {
       when (format) {
@@ -46,10 +47,12 @@ object TypeResolver {
         AttributeFormat.FRACTION -> return NelePropertyType.FRACTION
         AttributeFormat.INTEGER -> return NelePropertyType.INTEGER
         AttributeFormat.STRING -> return NelePropertyType.STRING
+        AttributeFormat.FLAGS -> return NelePropertyType.FLAGS
+        AttributeFormat.ENUM -> subType = NelePropertyType.ENUM
         else -> {}
       }
     }
-    return null
+    return subType
   }
 
   private fun lookupByName(name: String) =
@@ -58,6 +61,7 @@ object TypeResolver {
       SdkConstants.ATTR_CLASS -> NelePropertyType.FRAGMENT
       SdkConstants.ATTR_LAYOUT,
       SdkConstants.ATTR_SHOW_IN -> NelePropertyType.LAYOUT
+      SdkConstants.ATTR_FONT_FAMILY -> NelePropertyType.FONT
       else -> null
     }
 

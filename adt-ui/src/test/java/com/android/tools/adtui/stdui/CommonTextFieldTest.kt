@@ -19,16 +19,25 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI
 import com.intellij.util.ui.JBUI
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 import java.awt.BorderLayout
+import java.awt.KeyboardFocusManager
 import javax.swing.JPanel
 
 @RunWith(JUnit4::class)
 class CommonTextFieldTest {
   private val model = TestCommonTextFieldModel("")
   private val field = CommonTextField(model)
+
+  @After
+  fun cleanUpFocusManager() {
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(null)
+  }
 
   @Test
   fun testValuePropagatedToTextFieldFromModel() {
@@ -48,10 +57,25 @@ class CommonTextFieldTest {
     field.ui = DarculaTextFieldUI()
     field.border = DarculaEditorTextFieldBorder()
 
+    // Show outline based on the value when not editing:
+    model.value = "Error"
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(ERROR_VALUE)
+    model.value = "Warning"
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(WARNING_VALUE)
+    model.value = "FixedValue"
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isNull()
+
+    // Show outline based on the edited text when editing:
+    acquireFocus()
     field.text = "Error"
     assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(ERROR_VALUE)
-    field.text = "Fixed"
+    field.text = "Warning"
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(WARNING_VALUE)
+    field.text = "FixedText"
     assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isNull()
+
+    // Verify that the model value has not changed:
+    assertThat(model.value).isEqualTo("FixedValue")
   }
 
   @Test
@@ -61,9 +85,30 @@ class CommonTextFieldTest {
     panel.add(field, BorderLayout.CENTER)
     field.border = JBUI.Borders.empty()
 
+    // Show outline based on the value when not editing:
+    model.value = "Error"
+    assertThat(panel.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(ERROR_VALUE)
+    model.value = "Warning"
+    assertThat(panel.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(WARNING_VALUE)
+    model.value = "FixedValue"
+    assertThat(panel.getClientProperty(OUTLINE_PROPERTY)).isNull()
+
+    // Show outline based on the edited text when editing:
+    acquireFocus()
     field.text = "Error"
     assertThat(panel.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(ERROR_VALUE)
-    field.text = "Fixed"
+    field.text = "Warning"
+    assertThat(panel.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(WARNING_VALUE)
+    field.text = "FixedText"
     assertThat(panel.getClientProperty(OUTLINE_PROPERTY)).isNull()
+
+    // Verify that the model value has not changed:
+    assertThat(model.value).isEqualTo("FixedValue")
+  }
+
+  private fun acquireFocus() {
+    val manager = mock(KeyboardFocusManager::class.java)
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(manager)
+    `when`(manager.focusOwner).thenReturn(field)
   }
 }

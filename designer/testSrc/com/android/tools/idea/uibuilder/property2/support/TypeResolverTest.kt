@@ -34,6 +34,10 @@ class TypeResolverTest {
     assertThat(resolve(ATTR_TEXT_ALL_CAPS, AttributeFormat.FRACTION)).isEqualTo(NelePropertyType.FRACTION)
     assertThat(resolve(ATTR_ELEVATION, AttributeFormat.INTEGER)).isEqualTo(NelePropertyType.INTEGER)
     assertThat(resolve(ATTR_TEXT, AttributeFormat.STRING)).isEqualTo(NelePropertyType.STRING)
+    assertThat(resolve(ATTR_FONT_FAMILY, AttributeFormat.STRING)).isEqualTo(NelePropertyType.FONT)
+    assertThat(resolve(ATTR_VISIBILITY, AttributeFormat.ENUM)).isEqualTo(NelePropertyType.ENUM)
+    assertThat(resolve(ATTR_INPUT_TYPE, AttributeFormat.FLAGS)).isEqualTo(NelePropertyType.FLAGS)
+    assertThat(resolve(ATTR_LAYOUT_WIDTH, AttributeFormat.ENUM, AttributeFormat.DIMENSION)).isEqualTo(NelePropertyType.DIMENSION)
   }
 
   @Test
@@ -54,8 +58,8 @@ class TypeResolverTest {
     assertThat(TypeResolver.resolveType("XYZ", null)).isEqualTo(NelePropertyType.STRING)
   }
 
-  private fun resolve(name: String, format: AttributeFormat): NelePropertyType {
-    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, name, null, setOf(format))
+  private fun resolve(name: String, vararg formats: AttributeFormat): NelePropertyType {
+    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, name, null, setOf(*formats))
     return TypeResolver.resolveType(name, definition)
   }
 }

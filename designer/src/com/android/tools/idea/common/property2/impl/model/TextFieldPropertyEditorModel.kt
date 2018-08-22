@@ -35,7 +35,7 @@ open class TextFieldPropertyEditorModel(property: PropertyItem, override val edi
    */
   protected var pendingValueChange = false
 
-  override var text: String by Delegates.observable(property.value.orEmpty()) { _, _, _ -> pendingValueChange = false }
+  override var text by Delegates.observable(property.value.orEmpty()) { _, _, _ -> pendingValueChange = false }
 
   override val editingSupport: EditingSupport
     get() = property.editingSupport
