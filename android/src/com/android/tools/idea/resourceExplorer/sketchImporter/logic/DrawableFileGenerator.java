@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.logic;
 
+import static com.intellij.openapi.application.ApplicationManager.getApplication;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.DrawableModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchGradient;
@@ -25,42 +27,40 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.LightVirtualFile;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.intellij.openapi.application.ApplicationManager.getApplication;
 
 public class DrawableFileGenerator {
   public static final Logger LOG = Logger.getInstance(SketchGradient.class);
 
-  private static final String TAG_VECTOR_HEAD = "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"";
-  private static final String TAG_PATH = "<path";
-  private static final String TAG_AAPT_ATTR = "<aapt:attr name = \"android:fillColor\"";
-  private static final String TAG_GRADIENT = "<gradient";
-  private static final String TAG_ITEM = "<item/>";
+  private static final String ATTRIBUTE_AAPT = SdkConstants.XMLNS_PREFIX + SdkConstants.AAPT_PREFIX;
+  private static final String ATTRIBUTE_HEIGHT = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_HEIGHT;
+  private static final String ATTRIBUTE_WIDTH = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_WIDTH;
+  private static final String ATTRIBUTE_VIEWPORT_HEIGHT = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_VIEWPORT_HEIGHT;
+  private static final String ATTRIBUTE_VIEWPORT_WIDTH = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_VIEWPORT_WIDTH;
+  private static final String ATTRIBUTE_PATH_DATA = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_PATH_DATA;
+  private static final String ATTRIBUTE_FILL_COLOR = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_FILL_COLOR;
+  private static final String ATTRIBUTE_GRADIENT_ENDX = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_END_X;
+  private static final String ATTRIBUTE_GRADIENT_ENDY = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_END_Y;
+  private static final String ATTRIBUTE_GRADIENT_STARTX = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_START_X;
+  private static final String ATTRIBUTE_GRADIENT_STARTY = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_START_Y;
+  private static final String ATTRIBUTE_GRADIENT_CENTERX = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_CENTER_X;
+  private static final String ATTRIBUTE_GRADIENT_CENTERY = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_CENTER_Y;
+  private static final String ATTRIBUTE_GRADIENT_RADIUS = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_GRADIENT_RADIUS;
+  private static final String ATTRIBUTE_GRADIENT_TYPE = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_TYPE;
+  private static final String ATTRIBUTE_GRADIENT_STOP_COLOR = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_STOP_COLOR;
+  private static final String ATTRIBUTE_GRADIENT_STOP_OFFSET = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_STOP_OFFSET;
+  private static final String ATTRIBUTE_STROKE_COLOR = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_STROKE_COLOR;
+  private static final String ATTRIBUTE_STROKE_WIDTH = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_STROKE_WIDTH;
 
-  private static final String ATTRIBUTE_AAPT = "xmlns:aapt";
-  private static final String VALUE_AAPT = SdkConstants.AAPT_URI;
-  private static final String ATTRIBUTE_HEIGHT = "android:height";
-  private static final String ATTRIBUTE_WIDTH = "android:width";
-  private static final String ATTRIBUTE_VIEWPORT_HEIGHT = "android:viewportHeight";
-  private static final String ATTRIBUTE_VIEWPORT_WIDTH = "android:viewportWidth";
-  private static final String ATTRIBUTE_PATH_DATA = "android:pathData";
-  private static final String ATTRIBUTE_FILL_COLOR = "android:fillColor";
-  private static final String ATTRIBUTE_GRADIENT_ENDX = "android:endX";
-  private static final String ATTRIBUTE_GRADIENT_ENDY = "android:endY";
-  private static final String ATTRIBUTE_GRADIENT_STARTX = "android:startX";
-  private static final String ATTRIBUTE_GRADIENT_STARTY = "android:startY";
-  private static final String ATTRIBUTE_GRADIENT_CENTERX = "android:centerX";
-  private static final String ATTRIBUTE_GRADIENT_CENTERY = "android:centerY";
-  private static final String ATTRIBUTE_GRADIENT_RADIUS = "android:gradientRadius";
-  private static final String ATTRIBUTE_GRADIENT_TYPE = "android:type";
-  private static final String ATTRIBUTE_GRADIENT_STOP_COLOR = "android:color";
-  private static final String ATTRIBUTE_GRADIENT_STOP_OFFSET = "android:offset";
-  private static final String ATTRIBUTE_STROKE_COLOR = "android:strokeColor";
-  private static final String ATTRIBUTE_STROKE_WIDTH = "android:strokeWidth";
+  private static final String TAG_VECTOR_HEAD =
+    '<' + SdkConstants.TAG_VECTOR + ' ' + SdkConstants.XMLNS_ANDROID + "=\"" + SdkConstants.ANDROID_URI + '\"';
+  private static final String TAG_PATH = '<' + SdkConstants.TAG_PATH;
+  private static final String TAG_AAPT_ATTR =
+    '<' + SdkConstants.AAPT_PREFIX + ':' + SdkConstants.TAG_ATTR + ' ' + SdkConstants.ATTR_NAME + " = \"" + ATTRIBUTE_FILL_COLOR + "\"";
+  private static final String TAG_GRADIENT = '<' + SdkConstants.TAG_GRADIENT;
+  private static final String TAG_ITEM = '<' + SdkConstants.TAG_ITEM + "/>";
 
   private static final int INVALID_COLOR_VALUE = 0;
 
@@ -71,15 +71,15 @@ public class DrawableFileGenerator {
   }
 
   @NotNull
-  private XmlTag createVectorDrawable() {
+  private static XmlTag createVectorDrawable(@NotNull Project project) {
     return getApplication()
-      .runReadAction((Computable<XmlTag>)() -> XmlElementFactory.getInstance(myProject).createTagFromText(TAG_VECTOR_HEAD));
+      .runReadAction((Computable<XmlTag>)() -> XmlElementFactory.getInstance(project).createTagFromText(TAG_VECTOR_HEAD));
   }
 
   private static void updateDimensionsFromVectorDrawable(@NotNull VectorDrawable vectorDrawable, @NotNull XmlTag root) {
     getApplication().runReadAction(() -> {
-      root.setAttribute(ATTRIBUTE_HEIGHT, Double.toString(vectorDrawable.getArtboardHeight()) + "dp");
-      root.setAttribute(ATTRIBUTE_WIDTH, Double.toString(vectorDrawable.getArtboardWidth()) + "dp");
+      root.setAttribute(ATTRIBUTE_HEIGHT, Double.toString(vectorDrawable.getArtboardHeight()) + SdkConstants.UNIT_DP);
+      root.setAttribute(ATTRIBUTE_WIDTH, Double.toString(vectorDrawable.getArtboardWidth()) + SdkConstants.UNIT_DP);
       root.setAttribute(ATTRIBUTE_VIEWPORT_HEIGHT, Double.toString(vectorDrawable.getViewportHeight()));
       root.setAttribute(ATTRIBUTE_VIEWPORT_WIDTH, Double.toString(vectorDrawable.getViewportWidth()));
     });
@@ -94,7 +94,7 @@ public class DrawableFileGenerator {
         pathTag.setAttribute(ATTRIBUTE_STROKE_WIDTH, shape.getStrokeWidth());
       }
       if (shape.getGradient() != null) {
-        root.setAttribute(ATTRIBUTE_AAPT, VALUE_AAPT);
+        root.setAttribute(ATTRIBUTE_AAPT, SdkConstants.AAPT_URI);
         pathTag.addSubTag(generateGradientSubTag(shape.getGradient()), false);
       }
       else if (shape.getFillColor() != INVALID_COLOR_VALUE) {
@@ -148,7 +148,7 @@ public class DrawableFileGenerator {
   public LightVirtualFile generateFile(@Nullable VectorDrawable vectorDrawable) {
     String name = vectorDrawable == null ? "null.xml" : vectorDrawable.getName() + ".xml";
     LightVirtualFile virtualFile = new LightVirtualFile(name);
-    XmlTag root = createVectorDrawable();
+    XmlTag root = createVectorDrawable(myProject);
     if (vectorDrawable != null) {
       updateDimensionsFromVectorDrawable(vectorDrawable, root);
       List<DrawableModel> drawableModels = vectorDrawable.getDrawableModels();
