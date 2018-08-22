@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.CONSTRUCTOR_NAME;
+import static com.android.SdkConstants.DOT_PNG;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.SdkConstants.WIDGET_PKG_PREFIX;
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
+
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -23,6 +30,7 @@ import com.android.utils.HtmlBuilder;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
@@ -33,21 +41,23 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.HashSet;
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.*;
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
  * A {@link LayoutLog} which records the problems it encounters and offers them as a
@@ -79,7 +89,8 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
   private boolean myHaveExceptions;
   private Multiset<String> myTags;
   private List<Throwable> myTraces;
-  private List<RenderProblem> myMessages;
+  @GuardedBy("myMessages")
+  private final List<RenderProblem> myMessages = new ArrayList<>();
   private List<RenderProblem> myFidelityWarnings;
   private Set<String> myMissingClasses;
   private Map<String, Throwable> myBrokenClasses;
@@ -203,17 +214,20 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
 
   @Override
   public void addMessage(@NotNull RenderProblem message) {
-    if (myMessages == null) {
-      myMessages = Lists.newArrayList();
+    synchronized (myMessages) {
+      myMessages.add(message);
     }
-    myMessages.add(message);
 
     logMessageToIdeaLog(message.getHtml());
   }
 
   @NotNull
   public List<RenderProblem> getMessages() {
-    return myMessages != null ? myMessages : Collections.emptyList();
+    ImmutableList<RenderProblem> copy;
+    synchronized (myMessages) {
+      copy = ImmutableList.copyOf(myMessages);
+    }
+    return copy;
   }
 
   /**
@@ -231,7 +245,11 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
    * @return true if there were errors during the render
    */
   public boolean hasErrors() {
-    return myHaveExceptions || myMessages != null ||
+    boolean hasMessage;
+    synchronized (myMessages) {
+      hasMessage = !myMessages.isEmpty();
+    }
+    return myHaveExceptions || hasMessage ||
            myClassesWithIncorrectFormat != null || myBrokenClasses != null || myMissingClasses != null ||
            myMissingSize || myMissingFragments != null;
   }
