@@ -28,6 +28,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -51,8 +53,8 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
    * in the list. The {@link AtraceDataSeries} returned by {@link CpuKernelModel.CpuState} is used to populate the {@link StateChart}.
    * All items with a process id matching the process id passed in are highlighted one color, while everything else is a different color.
    *
-   * @param processId        Id of the process to stand out as the user process.
-   * @param cpuStateList     list to be passed to the base cell renderer.
+   * @param processId    Id of the process to stand out as the user process.
+   * @param cpuStateList list to be passed to the base cell renderer.
    */
   public CpuKernelCellRenderer(@NotNull CpuProfilerStage stage,
                                @NotNull FeatureConfig featureConfig,
@@ -84,7 +86,8 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
     myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);
     myLabel.setForeground(ProfilerColors.THREAD_LABEL_TEXT);
     // Offset the label to match the threads component.
-    myLabel.setBorder(JBUI.Borders.emptyLeft(StudioIcons.LayoutEditor.Menu.MENU.getIconWidth() + myLabel.getIconTextGap()));
+    Border iconIndent = JBUI.Borders.emptyLeft(StudioIcons.LayoutEditor.Menu.MENU.getIconWidth() + myLabel.getIconTextGap());
+    myLabel.setBorder(new CompoundBorder(iconIndent, ProfilerLayout.CPU_THREADS_RIGHT_BORDER));
 
     // Instead of using just one statechart for the cell renderer and set its model here, we cache the statecharts
     // corresponding to each cpu. StateChart#setModel is currently expensive and will make StateChart#render
@@ -133,6 +136,7 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
           return ProfilerColors.CPU_KERNEL_APP;
         }
       }
+
       @NotNull
       @Override
       public Color getFontColor(boolean isMouseOver, @NotNull CpuThreadSliceInfo value) {

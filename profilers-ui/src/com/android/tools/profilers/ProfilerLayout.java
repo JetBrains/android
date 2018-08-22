@@ -84,7 +84,10 @@ public class ProfilerLayout {
    * Used in the CPU threads/kernel cell renderer's to set the preferred height.
    */
   public static final int CPU_THREADS_LINE_HEIGHT = 21;
-  public static final Border CPU_THREADS_BORDER = JBUI.Borders.empty(2, 0);
+  public static final Border CPU_THREADS_BORDER = JBUI.Borders.empty();
+
+  // To be combined with CPU threads/kernel cell label border to draw a vertical right border.
+  public static final Border CPU_THREADS_RIGHT_BORDER = JBUI.Borders.customLine(ProfilerColors.CPU_AXIS_GUIDE_COLOR, 0, 0, 0, 2);
 
   private ProfilerLayout() {
     // Static class designed to hold constants only

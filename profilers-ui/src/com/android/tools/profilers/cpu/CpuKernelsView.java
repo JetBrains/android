@@ -58,8 +58,8 @@ public class CpuKernelsView {
     setupListeners();
     myKernels.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
     myKernels.setCellRenderer(new CpuKernelCellRenderer(myStage, myStage.getStudioProfilers().getIdeServices().getFeatureConfig(),
-                                              myStage.getStudioProfilers().getSession().getPid(),
-                                              myKernels));
+                                                        myStage.getStudioProfilers().getSession().getPid(),
+                                                        myKernels));
     myKernels.getModel().addListDataListener(new ListDataListener() {
       @Override
       public void contentsChanged(ListDataEvent e) {
@@ -80,7 +80,6 @@ public class CpuKernelsView {
       public void intervalRemoved(ListDataEvent e) {
       }
     });
-
   }
 
   @NotNull
