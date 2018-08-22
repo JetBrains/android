@@ -20,7 +20,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.ui.HideablePanel;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
 import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
@@ -142,7 +142,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myImportedSelectedProcessLabel = new JLabel();
     stage.getAspect().addDependency(this)
          .onChange(CpuProfilerAspect.CAPTURE_STATE, this::updateCaptureState)
-         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCaptureSelection);
+         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::onCaptureSelection)
+         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateImportedSelectedProcessLabel);
 
     stage.getStudioProfilers().addDependency(this)
          .onChange(ProfilerAspect.MODE, this::updateCaptureViewVisibility);
@@ -360,32 +361,41 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
   }
 
-  private void updateCaptureSelection() {
+  private void onCaptureSelection() {
     CpuCapture capture = myStage.getCapture();
-
     if (capture == null) {
       return;
     }
     if ((myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE)
-             || (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING)) {
+        || (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING)) {
       // Capture has finished parsing.
       ensureCaptureInViewRange();
-      if (capture.getType() == com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE) {
-        if (myStage.isImportTraceMode()) {
-          CaptureNode node = capture.getCaptureNode(capture.getMainThreadId());
-          assert node != null;
-          myImportedSelectedProcessLabel.setText("Process: " + node.getData().getName());
-        }
-        else if (((AtraceCpuCapture)capture).isMissingData()) {
+      if (capture.getType() == CpuProfilerType.ATRACE) {
+        if (!myStage.isImportTraceMode() && ((AtraceCpuCapture)capture).isMissingData()) {
           myStage.getStudioProfilers().getIdeServices().showWarningBalloon(ATRACE_BUFFER_OVERFLOW_TITLE,
-                                                                         ATRACE_BUFFER_OVERFLOW_MESSAGE,
-                                                                         null,
-                                                                         null);
+                                                                           ATRACE_BUFFER_OVERFLOW_MESSAGE,
+                                                                           null,
+                                                                           null);
         }
       }
-      else {
-        myImportedSelectedProcessLabel.setText("");
-      }
+    }
+  }
+
+  /**
+   * Sets the main process name to {@link #myImportedSelectedProcessLabel} when the current capture is imported and ATrace.
+   * Otherwise, sets an empty text.
+   */
+  private void updateImportedSelectedProcessLabel() {
+    myImportedSelectedProcessLabel.setText("");
+    CpuCapture capture = myStage.getCapture();
+    if (capture == null || !myStage.isImportTraceMode()) {
+      return;
+    }
+
+    if (capture.getType() == CpuProfilerType.ATRACE) {
+      CaptureNode node = capture.getCaptureNode(capture.getMainThreadId());
+      assert node != null;
+      myImportedSelectedProcessLabel.setText("Process: " + node.getData().getName());
     }
   }
 
