@@ -146,6 +146,7 @@ public class CpuKernelsView {
     kernelsPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
     kernelsPanel.addStateChangedListener(
       (e) -> myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuKernelHideablePanel());
+    kernelsContent.setBorder(JBUI.Borders.empty());
     return kernelsPanel;
   }
 
