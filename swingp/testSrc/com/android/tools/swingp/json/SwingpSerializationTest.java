@@ -184,14 +184,12 @@ public class SwingpSerializationTest {
       new JsonPrimitive(-1),
       new JsonPrimitive(-2),
       new JsonPrimitive(3),
-      new JsonPrimitive(4)
-    );
+      new JsonPrimitive(4)).inOrder();
     assertThat(statObj.getAsJsonArray("bufferBounds")).containsExactly(
       new JsonPrimitive(0),
       new JsonPrimitive(0),
       new JsonPrimitive(123),
-      new JsonPrimitive(456)
-    );
+      new JsonPrimitive(456)).inOrder();
     assertThat(statObj.getAsJsonArray("constrain")).containsExactly(
       new JsonPrimitive(0),
       new JsonPrimitive(0)).inOrder();
