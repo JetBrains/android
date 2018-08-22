@@ -75,7 +75,7 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
     myLabel.setBorder(new CompoundBorder(iconIndent, ProfilerLayout.CPU_THREADS_RIGHT_BORDER));
     myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);
     myLabel.setForeground(ProfilerColors.THREAD_LABEL_TEXT);
-    //
+
     // Instead of using just one statechart for the cell renderer and set its model here, we cache the statecharts
     // corresponding to each thread and their models. StateChart#setModel is currently expensive and will make StateChart#render
     // to be called. As this method can be called by Swing more often than our update cycle, we cache the models to avoid

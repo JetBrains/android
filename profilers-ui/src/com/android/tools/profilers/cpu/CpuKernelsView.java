@@ -21,20 +21,22 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.ListModel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Creates a view containing a {@link HideablePanel} composed by a {@link CpuListScrollPane} displaying a list of CPUs. Each row
@@ -135,6 +137,8 @@ public final class CpuKernelsView {
       // get triggered and we will not update our layout.
       .setInitiallyExpanded(false)
       .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
+      .setIconTextGap(ProfilerLayout.CPU_HIDEABLE_PANEL_TITLE_ICON_TEXT_GAP)
+      .setTitleLeftPadding(ProfilerLayout.CPU_HIDEABLE_PANEL_TITLE_LEFT_PADDING)
       .build();
     kernelsContent.add(new CpuListScrollPane(myKernels, kernelsPanel), new TabularLayout.Constraint(0, 0));
     // Hide CPU panel by default
