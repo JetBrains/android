@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
+import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.ARTBOARD_CLASS_TYPE;
+
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayerable;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.ARTBOARD_CLASS_TYPE;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Refers to objects that have the "_class" field set to be one of the following:
@@ -87,13 +86,18 @@ public class SketchPage extends SketchLayer implements SketchLayerable {
 
   @NotNull
   @Override
-  public ImmutableList<ShapeModel> createShapeModels(Point2D.Double parentCoords) {
+  public ImmutableList<ShapeModel> createShapeModels(@NotNull Point2D.Double parentCoords, boolean isLastGroupElement) {
     Point2D.Double newParentCoords = new Point2D.Double(parentCoords.getX() + getFrame().getX(),
                                                         parentCoords.getY() + getFrame().getY());
     ImmutableList.Builder<ShapeModel> builder = new ImmutableList.Builder<>();
 
-    for (SketchLayer groupLayer : this.getLayers()) {
-      builder.addAll(groupLayer.createShapeModels(newParentCoords));
+    isLastGroupElement = false;
+    SketchLayer[] groupLayers = getLayers();
+    for (int i = 0; i < groupLayers.length; i++) {
+      if (i == groupLayers.length - 1) {
+        isLastGroupElement = true;
+      }
+      builder.addAll(groupLayers[i].createShapeModels(newParentCoords, isLastGroupElement));
     }
 
     return builder.build();

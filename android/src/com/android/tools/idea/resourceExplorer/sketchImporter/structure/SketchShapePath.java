@@ -74,7 +74,7 @@ public class SketchShapePath extends SketchLayer {
   @NotNull
   public PathModel createPathModel() {
     return new PathModel(getPath2D(), null, null, isFlippedHorizontal(), isFlippedVertical(), isClosed(), getRotation(),
-                          getBooleanOperation(), getFramePosition());
+                         getBooleanOperation(), getFramePosition(), false, false, false);
   }
 
   @NotNull

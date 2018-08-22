@@ -35,8 +35,12 @@ public class AreaModel extends ShapeModel {
                    boolean closed,
                    int rotation,
                    int operation,
-                   @NotNull Point2D.Double framePosition) {
-    super(shape, fill, border, flippedHorizontal, flippedVertical, closed, rotation, operation, framePosition);
+                   @NotNull Point2D.Double framePosition,
+                   boolean hasClippingMask,
+                   boolean shouldBreakMaskChain,
+                   boolean isLastShapeGroup) {
+    super(shape, fill, border, flippedHorizontal, flippedVertical, closed, rotation, operation, framePosition, hasClippingMask,
+          shouldBreakMaskChain, isLastShapeGroup);
     area = shape;
   }
 

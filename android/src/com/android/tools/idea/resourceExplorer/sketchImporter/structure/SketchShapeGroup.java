@@ -18,11 +18,10 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.structure.interfaces.SketchLayerable;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import org.jetbrains.annotations.NotNull;
 
 public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
   private final SketchStyle style;
@@ -88,12 +87,16 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
    */
   @NotNull
   @Override
-  public ImmutableList<ShapeModel> createShapeModels(@NotNull Point2D.Double parentCoords) {
+  public ImmutableList<ShapeModel> createShapeModels(@NotNull Point2D.Double parentCoords, boolean isLastShapeGroup) {
     SketchFill[] fills = getStyle().getFills();
     SketchBorder[] borders = getStyle().getBorders();
     SketchFill shapeGroupFill = fills != null ? fills[0] : null;
     SketchBorder shapeGroupBorder = borders != null ? borders[0] : null;
-    if (shapeGroupBorder == null && shapeGroupFill == null) {
+
+    // If if the shape does not have a fill or border, it will not be visible in the VectorDrawable file. However,
+    // clipping paths don't need fills and colors to have an effect, but they still need to be included in the
+    // DrawableModel list.
+    if (shapeGroupBorder == null && shapeGroupFill == null && !hasClippingMask) {
       return ImmutableList.of();
     }
 
@@ -112,7 +115,10 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
                                          baseSketchShapePath.isClosed(),
                                          baseSketchShapePath.getRotation(),
                                          getBooleanOperation(),
-                                         baseSketchShapePath.getFramePosition());
+                                         baseSketchShapePath.getFramePosition(),
+                                         hasClippingMask,
+                                         shouldBreakMaskChain,
+                                         isLastShapeGroup);
 
     // If the shapegroup has just one layer, there will be no shape operation.
     // Therefore, no conversion to area needed.

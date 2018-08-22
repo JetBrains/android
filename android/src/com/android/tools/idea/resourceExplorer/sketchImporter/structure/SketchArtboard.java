@@ -83,7 +83,7 @@ public class SketchArtboard extends SketchLayer implements SketchLayerable {
     SketchLayer[] layers = getLayers();
 
     for (SketchLayer layer : layers) {
-      shapes.addAll(layer.createShapeModels(new Point2D.Double()));
+      shapes.addAll(layer.createShapeModels(new Point2D.Double(), false));
     }
 
     return shapes.build();
