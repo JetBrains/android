@@ -29,14 +29,14 @@ class MavenCentralRepositoryTest {
   fun testCreateUrlWithGroupId() {
     val request = SearchRequest("guava", "com.google.guava", 20, 1)
     val url = MavenCentralRepository.createRequestUrl(request)
-    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g:\"com.google.guava\"+AND+a:\"guava\"", url)
+    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g:%22com.google.guava%22+AND+a:%22guava%22", url)
   }
 
   @Test
   fun testCreateUrlWithoutGroupId() {
     val request = SearchRequest("guava", null, 20, 1)
     val url = MavenCentralRepository.createRequestUrl(request)
-    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=a:\"guava\"", url)
+    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=a:%22guava%22", url)
   }
 
   @Test
