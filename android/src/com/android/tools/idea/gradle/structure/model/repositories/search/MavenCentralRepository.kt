@@ -95,8 +95,8 @@ object MavenCentralRepository : ArtifactRepository() {
     append("wt=xml&")
     append("q=")
     request.groupId?.takeUnless { it.isBlank() }?.let { groupId ->
-      append("g:\"$groupId\"+AND+")
+      append("g:%22$groupId%22+AND+")
     }
-    append("a:\"${request.artifactName}\"")
+    append("a:%22${request.artifactName}%22")
   }
 }
