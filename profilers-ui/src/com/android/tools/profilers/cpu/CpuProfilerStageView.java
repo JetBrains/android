@@ -246,7 +246,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   private void addKernelPanelToDetails(@NotNull JPanel detailsPanel) {
-    myCpus.getPanel().addComponentListener(new ComponentAdapter() {
+    myCpus.getComponent().addComponentListener(new ComponentAdapter() {
       // When the CpuKernelModel is updated we adjust the splitter. The higher the number the more space
       // the first component occupies. For when we are showing Kernel elements we want to take up more space
       // than when we are not. As such each time we modify the CpuKernelModel (when a trace is selected) we
@@ -262,8 +262,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         mySplitter.setProportion(SPLITTER_DEFAULT_RATIO);
       }
     });
-    myTooltipComponent.registerListenersOn(myCpus.getKernels());
-    detailsPanel.add(myCpus.getPanel(), new TabularLayout.Constraint(DETAILS_KERNEL_PANEL_ROW, 0));
+    myTooltipComponent.registerListenersOn(myCpus.getComponent());
+    detailsPanel.add(myCpus.getComponent(), new TabularLayout.Constraint(DETAILS_KERNEL_PANEL_ROW, 0));
   }
 
   private void installProfilingInstructions(@NotNull JPanel parent) {
