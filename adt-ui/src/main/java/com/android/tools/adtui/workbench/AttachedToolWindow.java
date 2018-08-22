@@ -598,7 +598,7 @@ class AttachedToolWindow<T> implements Disposable {
     public GearAction() {
       super("More Options");
       Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(AllIcons.General.Gear);
+      presentation.setIcon(AllIcons.General.GearPlain);
     }
 
     @Override
