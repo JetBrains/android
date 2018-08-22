@@ -16,14 +16,14 @@
 package com.android.tools.idea.editors;
 
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.android.AndroidTestCase;
 
 public class AndroidImportFilterTest extends AndroidTestCase {
   public void testShouldUseFullName() {
     copyRJavaToGeneratedSources();
-    PsiFile file = myFixture.getJavaFacade().findClass("p1.p2.R",
-                                                       GlobalSearchScope.everythingScope(getProject())).getContainingFile();
+    PsiFile javaFile =
+      myFixture.addFileToProject("src/com/example/Foo.java", "package com.example; class Foo {}");
+    PsiFile file = myFixture.getJavaFacade().findClass("p1.p2.R", javaFile.getResolveScope()).getContainingFile();
     assertNotNull(file);
 
     AndroidImportFilter filter = new AndroidImportFilter();

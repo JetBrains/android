@@ -24,6 +24,7 @@ import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.collect.Maps
 import com.google.common.collect.Table
@@ -42,19 +43,33 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vcs.FileStatus
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.psi.*
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiReference
+import com.intellij.psi.PsiReferenceExpression
+import com.intellij.psi.XmlElementFactory
+import com.intellij.psi.XmlRecursiveElementVisitor
 import com.intellij.psi.impl.migration.PsiMigrationManager
 import com.intellij.psi.impl.source.xml.SchemaPrefixReference
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.parentOfType
-import com.intellij.psi.xml.*
+import com.intellij.psi.xml.XmlAttribute
+import com.intellij.psi.xml.XmlDocument
+import com.intellij.psi.xml.XmlElement
+import com.intellij.psi.xml.XmlFile
+import com.intellij.psi.xml.XmlTag
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.actions.BaseRefactoringAction
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
-import com.intellij.usages.*
+import com.intellij.usages.Usage
+import com.intellij.usages.UsageGroup
+import com.intellij.usages.UsageInfo2UsageAdapter
+import com.intellij.usages.UsageTarget
+import com.intellij.usages.UsageView
 import com.intellij.usages.rules.SingleParentUsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRuleProvider
 import com.intellij.util.text.nullize
@@ -65,7 +80,6 @@ import com.intellij.util.xml.WrappingConverter
 import org.jetbrains.android.dom.converters.AndroidResourceReference
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 import org.jetbrains.android.dom.converters.StyleItemNameConverter
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.IdeaSourceProvider
@@ -176,6 +190,10 @@ private class StyleItemUsageInfo(val xmlAttribute: XmlAttribute, url: ResourceUr
 class MigrateToResourceNamespacesProcessor(
   private val invokingFacet: AndroidFacet
 ) : BaseRefactoringProcessor(invokingFacet.module.project) {
+
+  init {
+    require(StudioFlags.IN_MEMORY_R_CLASSES.get()) { "IN_MEMORY_R_CLASSES has to be enabled for the refactoring to work." }
+  }
 
   public override fun getCommandName() = "Migrate to resource namespaces"
 
@@ -350,34 +368,35 @@ class MigrateToResourceNamespacesProcessor(
   }
 
   private fun findCodeUsages(): Collection<ResourceUsageInfo> {
-    val psiFacade = JavaPsiFacade.getInstance(myProject)
     val result = mutableListOf<ResourceUsageInfo>()
 
     for (facet in allFacets) {
       val moduleRepo = ResourceRepositoryManager.getModuleResources(facet)
-      val packageName = AndroidManifestUtils.getPackageName(facet) ?: continue
-      val rClass = psiFacade.findClass(AndroidResourceUtil.packageToRClass(packageName), facet.module.moduleContentScope) ?: continue
+      val rClasses = myProject.getProjectSystem().getLightResourceClassService().getLightRClassesAccessibleFromModule(facet.module)
 
       // TODO(b/78765120): should we rewrite dependent modules as well?
       val scope = facet.module.moduleScope
+
       // TODO(b/78765120): process references in parallel?
-      for (psiReference in ReferencesSearch.search(rClass, scope)) {
-        val classRef = psiReference.element as? PsiReferenceExpression ?: continue
-        val typeRef = classRef.parent as? PsiReferenceExpression ?: continue
-        val nameRef = typeRef.parent as? PsiReferenceExpression ?: continue
+      for (rClass in rClasses) {
+        for (psiReference in ReferencesSearch.search(rClass, scope)) {
+          val classRef = psiReference.element as? PsiReferenceExpression ?: continue
+          val typeRef = classRef.parent as? PsiReferenceExpression ?: continue
+          val nameRef = typeRef.parent as? PsiReferenceExpression ?: continue
 
-        // Make sure the PSI structure is as expected for something like "R.string.app_name":
-        if (nameRef.qualifierExpression != typeRef || typeRef.qualifierExpression != classRef) continue
+          // Make sure the PSI structure is as expected for something like "R.string.app_name":
+          if (nameRef.qualifierExpression != typeRef || typeRef.qualifierExpression != classRef) continue
 
-        val name = nameRef.referenceName ?: continue
-        val resourceType = ResourceType.fromClassName(typeRef.referenceName ?: continue) ?: continue
-        if (!moduleRepo.hasResources(ResourceNamespace.RES_AUTO, resourceType, name)) {
-          result += CodeUsageInfo(
-            fieldReferenceExpression = nameRef,
-            classReference = psiReference,
-            resourceType = resourceType,
-            name = name
-          )
+          val name = nameRef.referenceName ?: continue
+          val resourceType = ResourceType.fromClassName(typeRef.referenceName ?: continue) ?: continue
+          if (!moduleRepo.hasResources(ResourceNamespace.RES_AUTO, resourceType, name)) {
+            result += CodeUsageInfo(
+              fieldReferenceExpression = nameRef,
+              classReference = psiReference,
+              resourceType = resourceType,
+              name = name
+            )
+          }
         }
       }
     }
@@ -437,11 +456,16 @@ class MigrateToResourceNamespacesProcessor(
             usageInfo.xmlAttribute.value = newUrl.qualifiedName
           }
           is CodeUsageInfo -> {
-            usageInfo.classReference.bindToElement(
+            val reference = usageInfo.classReference
+            reference.bindToElement(
               findOrCreateClass(
                 myProject,
                 psiMigration,
-                AndroidResourceUtil.packageToRClass(inferredPackage)
+                AndroidResourceUtil.packageToRClass(inferredPackage),
+
+                // We're dealing with light R classes, so need to pick the right scope here. This will be handled by
+                // AndroidResolveScopeEnlarger.
+                scope = reference.element.resolveScope
               )
             )
           }

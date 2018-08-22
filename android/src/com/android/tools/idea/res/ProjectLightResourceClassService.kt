@@ -134,8 +134,10 @@ class ProjectLightResourceClassService(
     val facet = module.androidFacet ?: return emptySet()
     val result = mutableSetOf<PsiClass>()
 
-    // The namespaced class of the module itself:
-    getModuleRClasses(facet).namespaced?.let(result::add)
+    if (ProjectNamespacingStatusService.getInstance(module.project).namespacesUsed) {
+      // The namespaced class of the module itself:
+      getModuleRClasses(facet).namespaced?.let(result::add)
+    }
 
     // Non-namespaced classes of this module and all that depend on it:
     val modules = HashSet<Module>().also { ModuleUtilCore.collectModulesDependsOn(module, it) }
