@@ -16,12 +16,10 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.view
 
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.PagePresenter
 import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchImporterPresenter
 import com.android.tools.idea.resourceExplorer.view.DrawableResourceCellRenderer
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogBuilder
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.Gray
@@ -48,28 +46,27 @@ private val PANEL_SIZE = JBUI.size(600, 400)
 private val ASSET_FIXED_WIDTH = JBUI.scale(150)
 private val ASSET_FIXED_HEIGHT = JBUI.scale(150)
 
+const val IMPORT_DIALOG_TITLE = "Choose the assets you would like to import"
 const val FILTER_EXPORTABLE_CHECKBOX_TEXT = "Only show exportable assets"
 const val FILTER_EXPORTABLE_TOOLTIP_TEXT = "Any item that has at least one export format in Sketch is considered exportable"
+const val NO_VALID_ASSETS_TEXT = "No valid assets"
 
-class SketchImporterView {
+class SketchImporterView : Disposable, JPanel(BorderLayout()) {
 
-  var presenter: SketchImporterPresenter? = null
-  private lateinit var disposable: Disposable
+  override fun dispose() {}
 
-  private val previewPanel = JPanel(VerticalFlowLayout())
+  lateinit var presenter: SketchImporterPresenter
+  private val pageViews = mutableListOf<PageView>()
 
-  private val configurationPanel: JPanel = JPanel(BorderLayout()).apply {
+  private val pagesPanel = JPanel(VerticalFlowLayout())
+
+  init {
     preferredSize = PANEL_SIZE
-    add(JScrollPane(previewPanel).apply {
+    add(JScrollPane(pagesPanel).apply {
       border = null
       horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
     }, BorderLayout.CENTER)
   }
-
-  /**
-   * Maps page IDs to the panel associated with the page.
-   */
-  private val assetListMap = HashMap<String, JList<*>>()
 
   fun addFilterExportableButton(defaultState: Boolean) {
     val filterExportableButton = JCheckBox(FILTER_EXPORTABLE_CHECKBOX_TEXT).apply {
@@ -78,39 +75,60 @@ class SketchImporterView {
       horizontalTextPosition = JCheckBox.LEFT
       horizontalAlignment = JCheckBox.RIGHT
       addItemListener { event ->
-        presenter?.filterExportable(event.stateChange)
+        presenter.filterExportable(event.stateChange)
       }
     }
-    configurationPanel.add(filterExportableButton, BorderLayout.NORTH)
+    add(filterExportableButton, BorderLayout.NORTH)
   }
 
   /**
-   * Adds a preview for the [listModel] corresponding to the page named [pageName] of type [pageTypes] [[selectedTypeIndex]])
+   * Add a new [PageView] to the [SketchImporterView], associating it to the [pagePresenter].
    */
-  fun addAssetPage(pageId: String,
-                   pageName: String,
-                   pageTypes: Array<String>,
-                   selectedTypeIndex: Int,
-                   listModel: List<DesignAssetSet>) {
-    val pagePanel = JPanel(BorderLayout())
-    pagePanel.add(createPageHeader(pageId, pageName, pageTypes, selectedTypeIndex), BorderLayout.NORTH)
-    val assetList = createAssetList(listModel)
-
-    if (assetList == null) {
-      pagePanel.add(JLabel("No valid assets"))
-    }
-    else {
-      pagePanel.add(assetList)
-      assetListMap[pageId] = assetList
-    }
-    previewPanel.add(pagePanel)
+  fun createPageView(pagePresenter: PagePresenter) {
+    val pageView = PageView(pagePresenter,
+                            DrawableResourceCellRenderer(this, pagePresenter::fetchImage) { pagesPanel.repaint() })
+    pagePresenter.view = pageView
+    pageViews.add(pageView)
   }
 
-  private fun createAssetList(assetList: List<DesignAssetSet>): JList<*>? {
-    val presenter = presenter ?: return null
+  /**
+   * Add the panels associated with the [PageView]s to the preview panel.
+   */
+  fun paintPages() {
+    pageViews.forEach {
+      pagesPanel.add(it)
+    }
+  }
+}
+
+class PageView(private val presenter: PagePresenter,
+               private val drawableResourceCellRenderer: DrawableResourceCellRenderer
+) : JPanel(BorderLayout()) {
+  var assets: JList<*>? = null
+
+  /**
+   * Create/refresh the preview panel associated with the page.
+   */
+  fun refreshPreviewPanel(pageName: String,
+                          pageTypes: Array<String>,
+                          selectedTypeIndex: Int,
+                          assetList: List<DesignAssetSet>) {
+    removeAll()
+    add(createHeader(pageName, pageTypes, selectedTypeIndex), BorderLayout.NORTH)
+    val jList = createPreviewsList(assetList)
+
+    if (jList == null) add(JLabel(NO_VALID_ASSETS_TEXT)) else add(jList)
+    revalidate()
+    repaint()
+  }
+
+  /**
+   * Create a [JList] with the rendering of the [assetList] assets.
+   */
+  private fun createPreviewsList(assetList: List<DesignAssetSet>): JList<*>? {
     if (assetList.isNotEmpty()) {
       return JList<DesignAssetSet>().apply {
-        cellRenderer = DrawableResourceCellRenderer(disposable, presenter::fetchImage) { repaint() }
+        cellRenderer = drawableResourceCellRenderer
         fixedCellWidth = ASSET_FIXED_WIDTH
         fixedCellHeight = ASSET_FIXED_HEIGHT
         selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
@@ -123,12 +141,9 @@ class SketchImporterView {
   }
 
   /**
-   * Creates page header containing the [pageName] and the [JComboBox] with the [pageTypes], where [selectedTypeIndex] is selected.
+   * Create a page header containing the [pageName] and the [JComboBox] with the [pageTypes], where [selectedTypeIndex] is selected.
    */
-  private fun createPageHeader(pageId: String,
-                               pageName: String,
-                               pageTypes: Array<String>,
-                               selectedTypeIndex: Int): JComponent {
+  private fun createHeader(pageName: String, pageTypes: Array<String>, selectedTypeIndex: Int): JComponent {
     return JPanel(BorderLayout()).apply {
       val nameLabel = JBLabel(pageName)
       nameLabel.font = nameLabel.font.deriveFont(24f)
@@ -138,58 +153,12 @@ class SketchImporterView {
         selectedIndex = selectedTypeIndex
         addActionListener { event ->
           val cb = event.source as JComboBox<*>
-          presenter?.pageTypeChange(pageId, cb.selectedItem as String)
+          presenter.pageTypeChange(cb.selectedItem as String)
         }
       }
       add(pageTypeList, BorderLayout.EAST)
 
       border = PAGE_HEADER_BORDER
     }
-  }
-
-  /**
-   * Creates the dialog allowing the user to preview and choose which assets they would like to import from the sketch file.
-   */
-  fun createImportDialog(project: Project) {
-    with(DialogBuilder(project)) {
-      setCenterPanel(configurationPanel)
-      setOkOperation {
-        presenter?.importFilesIntoProject()
-        dialogWrapper.close(DialogWrapper.OK_EXIT_CODE)
-      }
-      setTitle("Choose the assets you would like to import")
-      showModal(true)
-      disposable = dialogWrapper.disposable
-    }
-  }
-
-  /**
-   * Refresh the preview associated with the file with [pageId].
-   */
-  fun refreshPreview(pageId: String, listModel: List<DesignAssetSet>) {
-    val assetList = assetListMap[pageId] ?: return
-    @Suppress("UNCHECKED_CAST")
-    (assetList.model as CollectionListModel<DesignAssetSet>).replaceAll(listModel)
-  }
-
-  /**
-   * Clear everything in the preview panel.
-   */
-  fun clearPreview() {
-    previewPanel.removeAll()
-  }
-
-  /**
-   * Repaint the preview panel.
-   */
-  fun repaintPreview() {
-    previewPanel.repaint()
-  }
-
-  /**
-   * Revalidate the preview panel.
-   */
-  fun revalidatePreview() {
-    previewPanel.revalidate()
   }
 }

@@ -17,13 +17,15 @@ package com.android.tools.idea.resourceExplorer.plugin
 
 import com.android.tools.idea.resourceExplorer.importer.DesignAssetImporter
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
-import com.android.tools.idea.resourceExplorer.sketchImporter.model.ImportOptions
 import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchImporterPresenter
 import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchParser
+import com.android.tools.idea.resourceExplorer.sketchImporter.view.IMPORT_DIALOG_TITLE
 import com.android.tools.idea.resourceExplorer.sketchImporter.view.SketchImporterView
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogBuilder
+import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.JOptionPane
@@ -45,15 +47,30 @@ class SketchImporter : ResourceImporter {
         invalidSketchFileDialog()
       }
       else {
-        val importOptions = ImportOptions(sketchFile)
         val view = SketchImporterView()
-        view.presenter = SketchImporterPresenter(view, sketchFile, importOptions, DesignAssetImporter(), facet)
-        view.createImportDialog(facet.module.project)
+        view.presenter = SketchImporterPresenter(view, sketchFile, DesignAssetImporter(), facet)
+        showImportDialog(facet.module.project, view)
       }
     }
 
     callback.configurationDone()
     return null
+  }
+
+  /**
+   * Create a dialog allowing the user to preview and choose which assets they would like to import from the sketch file.
+   */
+  private fun showImportDialog(project: Project,
+                               view: SketchImporterView) {
+    DialogBuilder(project).apply {
+      setCenterPanel(view)
+      addDisposable(view)
+      setOkOperation {
+        view.presenter.importFilesIntoProject()
+        dialogWrapper.close(DialogWrapper.OK_EXIT_CODE)
+      }
+      setTitle(IMPORT_DIALOG_TITLE)
+    }.showModal(true)
   }
 
   override fun userCanEditQualifiers() = true

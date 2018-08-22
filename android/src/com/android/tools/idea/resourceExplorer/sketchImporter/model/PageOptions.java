@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Locale;
 
 /**
- * Class meant to hold the options the user chooses for each individual page that is imported,
+ * Holds the options the user chooses for each individual page that is imported,
  * i.e. how that page should be treated when parsing:
  * <ul>
  * <li><b>“Icons” page</b> -> for each artboard, attempt to convert to Vector Drawable</li>

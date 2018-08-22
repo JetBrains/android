@@ -20,19 +20,19 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchEx
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Class meant to hold the options the user chooses for each individual icon that is imported,
+ * Holds the options the user chooses for each individual icon that is imported,
  * i.e. whether they want to hide the background or other things that may come up in the future.
  */
-public class IconOptions {
+public class AssetOptions {
   private String myName;
   private boolean myExportable;
 
-  public IconOptions(@NotNull String name, boolean isExportable) {
+  public AssetOptions(@NotNull String name, boolean isExportable) {
     myName = name;
     myExportable = isExportable;
   }
 
-  public IconOptions(@NotNull SketchArtboard artboard) {
+  public AssetOptions(@NotNull SketchArtboard artboard) {
     myName = getDefaultName(artboard);
     myExportable = artboard.getExportOptions().getExportFormats().length != 0;
   }
