@@ -214,7 +214,10 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     // However, if the main module happens to get a handle on the lib's R class
     // (e.g., via "import p1.p2.lib.R;"), then that R class should be recognized
     // (e.g., for goto navigation).
-    PsiClass libRClass = myFixture.getJavaFacade().findClass("p1.p2.lib.R", GlobalSearchScope.everythingScope(getProject()));
+    PsiFile javaFile =
+      myFixture.addFileToProject("src/com/example/Foo.java", "package com.example; class Foo {}");
+    PsiClass libRClass =
+      myFixture.getJavaFacade().findClass("p1.p2.lib.R", javaFile.getResolveScope());
     assertNotNull(libRClass);
     assertTrue(AndroidResourceUtil.isRJavaClass(libRClass));
   }
