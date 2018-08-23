@@ -126,21 +126,21 @@ public class AndroidStudioInitializer implements Runnable {
       }
     }
 
-    AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
     ApplicationInfo application = ApplicationInfo.getInstance();
     UsageTracker.setVersion(application.getStrictVersion());
-    // Set the IDE brand when the android plugin is used in Studio.
-    // See AndroidPlugin for the corresponding initialization when run in IntelliJ IDEA
-    // We need to set this early enough in Studio before any events are logged.
-    if (PlatformUtils.isAndroidStudio()) {
-      UsageTracker.setIdeBrand(
-        Arrays.stream(PluginManagerCore.getPlugins()).anyMatch(plugin -> "Android Studio with Blaze".equals(plugin.getName()))
-        ? AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE
-        : AndroidStudioEvent.IdeBrand.ANDROID_STUDIO);
-    }
+    UsageTracker.setIdeBrand(getIdeBrand());
     if (ApplicationManager.getApplication().isInternal()) {
       UsageTracker.setIdeaIsInternal(true);
     }
+    AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
+  }
+
+  private static AndroidStudioEvent.IdeBrand getIdeBrand() {
+    // The ASwB plugin name depends on the bundling scheme, in development builds it is "Android Studio with Blaze", but in release
+    // builds, it is just "Blaze"
+    return Arrays.stream(PluginManagerCore.getPlugins()).anyMatch(plugin -> plugin.isBundled() && plugin.getName().contains("Blaze"))
+      ? AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE
+      : AndroidStudioEvent.IdeBrand.ANDROID_STUDIO;
   }
 
   private static void checkInstallation() {
