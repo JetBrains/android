@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.surface;
 
+import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.Coordinates;
@@ -32,9 +33,14 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseListener;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 import java.awt.*;
@@ -337,6 +343,44 @@ public class InteractionManagerTest extends LayoutTestCase {
     manager.updateCursor(screenView.getX() + screenView.getSize().width,
                          screenView.getY() + screenView.getSize().height);
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+  }
+
+  public void testCursorChangeWhenSetPanningTrue() {
+    InteractionManager manager = setupConstraintLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+
+    manager.setPanning(true);
+
+    Mockito.verify(surface).setCursor(AdtUiCursors.GRAB);
+  }
+
+  public void testCursorChangeOnModifiedKeyPressed() {
+    InteractionManager manager = setupConstraintLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    Point moved = new Point(0, 0);
+    Mockito.when(surface.getScrollPosition()).thenReturn(moved);
+    int modifierKeyMask = InputEvent.BUTTON1_DOWN_MASK |
+                          (SystemInfo.isMac ? InputEvent.META_DOWN_MASK
+                                            : InputEvent.CTRL_DOWN_MASK);
+
+    assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_PRESSED, modifierKeyMask), 0, 0));
+    Mockito.verify(surface).setCursor(AdtUiCursors.GRABBING);
+  }
+
+  public void testInterceptPanModifiedKeyReleased() {
+    InteractionManager manager = setupConstraintLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    Mockito.when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
+
+    assertFalse(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0), 0, 0));
+    Mockito.verify(surface, Mockito.never()).setCursor(AdtUiCursors.GRABBING);
+  }
+
+  private MouseEvent setupPanningMouseEvent(int id, int modifierKeyMask) {
+    Component sourceMock = Mockito.mock(Component.class);
+    Mockito.when(sourceMock.getLocationOnScreen()).thenReturn(new Point(0, 0));
+    return new MouseEvent(
+      sourceMock, id, 0, modifierKeyMask, 0, 0, 0, false);
   }
 
   private InteractionManager setupConstraintLayoutCursorTest() {
