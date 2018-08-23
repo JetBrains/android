@@ -17,7 +17,9 @@ package com.android.tools.profilers.network.details;
 
 import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 
+import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
 import com.android.tools.profilers.ContentType;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
@@ -39,6 +41,7 @@ import java.util.stream.Stream;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -198,8 +201,17 @@ final class HttpDataViewModel {
     // that means formatting support is not provided, so return null as a way to indicate this
     // failure to the code that called us.
     if (viewer.getStyle() == DataViewer.Style.PRETTY) {
-      viewer.getComponent().setBorder(PAYLOAD_BORDER);
-      return viewer.getComponent();
+      JComponent viewerComponent = viewer.getComponent();
+      viewerComponent.setBorder(PAYLOAD_BORDER);
+
+      // Slight hack: Currently, the viewer component embeds a scroll pane, which we want to
+      // disable here. A straightforward way to do this is to iterate through all scroll panes
+      // (there should only ever be one, but this code should still be harmless even if in the
+      // future there are 0 or several).
+      new TreeWalker(viewerComponent).descendantStream().filter(c -> c instanceof JScrollPane).map(c -> (JScrollPane)c).forEach(scroller ->
+        NestedScrollPaneMouseWheelListener.installOn(scroller));
+
+      return viewerComponent;
     }
     return null;
   }

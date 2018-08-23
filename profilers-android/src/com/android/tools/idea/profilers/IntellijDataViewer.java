@@ -97,7 +97,6 @@ public class IntellijDataViewer implements DataViewer {
     editorEx.getSettings().setLineNumbersShown(false);
     editorEx.getSettings().setLineMarkerAreaShown(false);
     editorEx.getFoldingModel().setFoldingEnabled(true);
-    editorEx.getScrollPane().setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
     Disposer.register(project, fileEditor);
 
     JComponent component = fileEditor.getComponent();
