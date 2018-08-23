@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
+import com.android.builder.model.TestOptions
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.InstrumentationResultParser
 import com.android.testutils.VirtualTimeScheduler
@@ -30,6 +31,7 @@ import com.google.wireless.android.sdk.stats.TestRun
 import com.intellij.testFramework.PlatformTestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import kotlin.test.assertNotEquals
 
 class UsageTrackerTestRunListenerTest : PlatformTestCase() {
   private val serial = "my serial"
@@ -132,6 +134,12 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
         testLibraries = TestLibraries.getDefaultInstance()
         build()
       })
+    }
+  }
+
+  fun testExecutionMapping() {
+    for (execution in TestOptions.Execution.values()) {
+      assertNotEquals(TestRun.TestExecution.UNKNOWN_TEST_EXECUTION, execution.toProtoValue())
     }
   }
 }
