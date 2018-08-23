@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.palette2;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
@@ -24,17 +26,13 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Keeps track of which of the dependencies for all the components on a palette are currently
@@ -51,6 +49,7 @@ public class DependencyManager {
   private final Set<String> myMissingLibraries;
   private Module myModule;
   private Palette myPalette;
+  private boolean myUseAndroidXDependencies;
 
   public DependencyManager(@NotNull Project project) {
     myProject = project;
@@ -61,7 +60,11 @@ public class DependencyManager {
   public void setPalette(@NotNull Palette palette, @NotNull Module module) {
     myPalette = palette;
     myModule = module;
-    checkForNewMissingDependencies();
+    checkForRelevantDependencyChanges();
+  }
+
+  public boolean useAndroidXDependencies() {
+    return myUseAndroidXDependencies;
   }
 
   public boolean needsLibraryLoad(@NotNull Palette.Item item) {
@@ -70,6 +73,19 @@ public class DependencyManager {
 
   public boolean dependsOn(@NotNull GoogleMavenArtifactId artifactId) {
     return DependencyManagementUtil.dependsOn(myModule, artifactId);
+  }
+
+  private boolean checkForRelevantDependencyChanges() {
+    return checkForNewMissingDependencies() | checkForNewAndroidXDependencies();
+  }
+
+  private boolean checkForNewAndroidXDependencies() {
+    boolean useAndroidX = computeUseAndroidXDependencies();
+    if (useAndroidX == myUseAndroidXDependencies) {
+      return false;
+    }
+    myUseAndroidXDependencies = useAndroidX;
+    return true;
   }
 
   private boolean checkForNewMissingDependencies() {
@@ -96,7 +112,7 @@ public class DependencyManager {
 
   public void registerDependencyUpdates(@NotNull PalettePanel paletteUI, @NotNull Disposable parentDisposable) {
     myProject.getMessageBus().connect(parentDisposable).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
-      if (result == ProjectSystemSyncManager.SyncResult.SUCCESS && checkForNewMissingDependencies()) {
+      if (result == ProjectSystemSyncManager.SyncResult.SUCCESS && checkForRelevantDependencyChanges()) {
         paletteUI.onDependenciesUpdated();
       }
     });
@@ -112,7 +128,7 @@ public class DependencyManager {
     }
   }
 
-  public boolean useAndroidxDependencies() {
+  private boolean computeUseAndroidXDependencies() {
     if (MigrateToAndroidxUtil.hasAndroidxProperty(myModule.getProject())) {
       return MigrateToAndroidxUtil.isAndroidx(myModule.getProject());
     }

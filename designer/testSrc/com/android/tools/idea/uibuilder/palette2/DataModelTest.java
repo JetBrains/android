@@ -15,26 +15,40 @@
  */
 package com.android.tools.idea.uibuilder.palette2;
 
-import com.android.tools.adtui.workbench.PropertiesComponentMock;
-import com.android.tools.idea.common.model.NlLayoutType;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.uibuilder.palette.Palette;
-import com.intellij.ide.util.PropertiesComponent;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
-import javax.swing.*;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.APP_BAR_LAYOUT;
+import static com.android.SdkConstants.BOTTOM_APP_BAR;
+import static com.android.SdkConstants.BOTTOM_NAVIGATION_VIEW;
+import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.CHIP;
+import static com.android.SdkConstants.CHIP_GROUP;
+import static com.android.SdkConstants.FLOATING_ACTION_BUTTON;
+import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.SdkConstants.NAVIGATION_VIEW;
+import static com.android.SdkConstants.RECYCLER_VIEW;
+import static com.android.SdkConstants.SCROLL_VIEW;
+import static com.android.SdkConstants.SWITCH;
+import static com.android.SdkConstants.TAB_ITEM;
+import static com.android.SdkConstants.TAB_LAYOUT;
+import static com.android.SdkConstants.TEXT_INPUT_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.tools.idea.uibuilder.palette2.DataModel.FAVORITE_ITEMS;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.android.tools.adtui.workbench.PropertiesComponentMock;
+import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.uibuilder.palette.Palette;
+import com.intellij.ide.util.PropertiesComponent;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.ListModel;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 public class DataModelTest extends AndroidTestCase {
   private DataModel myDataModel;
@@ -47,7 +61,7 @@ public class DataModelTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myDependencyManager = mock(DependencyManager.class);
-      when(myDependencyManager.useAndroidxDependencies()).thenAnswer(new Answer<Boolean>() {
+      when(myDependencyManager.useAndroidXDependencies()).thenAnswer(new Answer<Boolean>() {
       @Override
       public Boolean answer(@NotNull InvocationOnMock invocation) {
         return myUseAndroidxDependencies;
