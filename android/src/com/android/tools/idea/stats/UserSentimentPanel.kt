@@ -84,30 +84,25 @@ class UserSentimentPanel(private var myProject: Project?,
 
   override fun getClickConsumer(): Consumer<MouseEvent>? {
     return Consumer { _ ->
-      UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.USER_SENTIMENT
-        userSentiment = UserSentiment.newBuilder().apply {
-          state = if (positive) {
-            UserSentiment.SentimentState.POSITIVE
-          }
-          else {
-            UserSentiment.SentimentState.NEGATIVE
-          }
-        }.build()
-      })
-      showNotification(if (positive) {
-        POSITIVE_SENTIMENT_MESSAGE
-      }
-                       else {
-        NEGATIVE_SENTIMENT_MESSAGE
-      })
+      logSentiment(if (positive) { UserSentiment.SentimentState.POSITIVE } else { UserSentiment.SentimentState.NEGATIVE })
+      showNotification(if (positive) { POSITIVE_SENTIMENT_MESSAGE  } else { NEGATIVE_SENTIMENT_MESSAGE })
     }
+  }
+
+  private fun logSentiment(sentiment: UserSentiment.SentimentState) {
+    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+      kind = AndroidStudioEvent.EventKind.USER_SENTIMENT
+      userSentiment = UserSentiment.newBuilder().apply {
+        state = sentiment
+      }.build()
+    })
   }
 
   private fun showNotification(message: String) {
     val listener = NotificationListener { notification, _ ->
       notification.expire()
       if (!positive) {
+        logSentiment(UserSentiment.SentimentState.FILE_BUG)
         SendFeedbackAction.launchBrowser(project, "Source: user_sentiment_feedback")
       }
     }
