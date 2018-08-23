@@ -18,6 +18,7 @@ package com.android.tools.idea.run.tasks;
 import com.android.tools.adtui.GotItMessage;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.fd.actions.HotswapAction;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.BrowserUtil;
@@ -47,8 +48,11 @@ public class InstantRunPrompt {
 
   public void show() {
     ApplicationManager.getApplication().invokeLater(() -> {
-      UsageTracker
-        .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.INSTANT_RUN_PROMPT_FOR_APPLY_CHANGES_SHOWN));
+      UsageTracker.log(
+        UsageTrackerUtils.withProjectId(
+          AndroidStudioEvent.newBuilder()
+            .setKind(AndroidStudioEvent.EventKind.INSTANT_RUN_PROMPT_FOR_APPLY_CHANGES_SHOWN),
+          myProject));
 
       GotItMessage message =
         GotItMessage.createMessage(AndroidBundle.message("instant.run.prompt.title"),

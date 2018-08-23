@@ -26,6 +26,7 @@ import com.android.tools.idea.assistant.datamodel.DefaultActionState
 import com.android.tools.idea.assistant.view.StatefulButtonMessage
 import com.android.tools.idea.assistant.view.UIUtils
 import com.android.tools.idea.concurrent.EdtExecutor
+import com.android.tools.idea.stats.withProjectId
 import com.android.utils.HtmlBuilder
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
@@ -80,10 +81,13 @@ class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBri
         val adb = AndroidDebugBridge.getBridge()
 
         val deviceCount = adb?.devices?.size ?: -1
-        UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
-                 .setConnectionAssistantEvent(ConnectionAssistantEvent.newBuilder()
-                                                .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.ADB_DEVICES_DETECTED)
-                                                .setAdbDevicesDetected(deviceCount)))
+        UsageTracker.log(
+          AndroidStudioEvent.newBuilder()
+            .setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
+            .setConnectionAssistantEvent(ConnectionAssistantEvent.newBuilder()
+              .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.ADB_DEVICES_DETECTED)
+              .setAdbDevicesDetected(deviceCount))
+            .withProjectId(project))
 
         if (adb != null) {
           generateMessage(adb.devices)

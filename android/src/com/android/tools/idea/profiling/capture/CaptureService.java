@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.concurrent.EdtExecutor;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.FutureCallback;
@@ -465,10 +466,12 @@ public class CaptureService {
     final CaptureType type = CaptureTypeService.getInstance().getType(clazz);
     assert type != null;
 
-    UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                   .setCategory(AndroidStudioEvent.EventCategory.PROFILING)
-                                   .setKind(AndroidStudioEvent.EventKind.PROFILING_CAPTURE)
-                                   .setProfilerCaptureType(type.getCaptureType()));
+    UsageTracker.log(UsageTrackerUtils.withProjectId(
+                       AndroidStudioEvent.newBuilder()
+                         .setCategory(AndroidStudioEvent.EventCategory.PROFILING)
+                         .setKind(AndroidStudioEvent.EventKind.PROFILING_CAPTURE)
+                         .setProfilerCaptureType(type.getCaptureType()),
+                       myProject));
 
     File file = ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<File, IOException>() {
       @Override
