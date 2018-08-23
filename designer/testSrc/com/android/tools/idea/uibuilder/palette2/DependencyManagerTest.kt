@@ -15,29 +15,39 @@
  */
 package com.android.tools.idea.uibuilder.palette2
 
+import com.android.SdkConstants.CARD_VIEW
+import com.android.SdkConstants.FLOATING_ACTION_BUTTON
+import com.android.SdkConstants.FN_GRADLE_PROPERTIES
+import com.android.SdkConstants.RECYCLER_VIEW
+import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.common.model.NlLayoutType
+import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
+import com.android.tools.idea.projectsystem.EP_NAME
+import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel
 import com.android.tools.idea.uibuilder.palette.Palette
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
-import org.jetbrains.android.AndroidTestCase
-
-import javax.xml.ws.Holder
-
-import com.android.SdkConstants.*
-import com.android.tools.idea.projectsystem.*
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.util.Computable
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.PlatformTestUtil
-import org.mockito.Mockito.*
+import org.jetbrains.android.AndroidTestCase
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import java.io.File
+import javax.xml.ws.Holder
 
 class DependencyManagerTest : AndroidTestCase() {
   private var myPanel: PalettePanel? = null
@@ -65,6 +75,7 @@ class DependencyManagerTest : AndroidTestCase() {
   override fun tearDown() {
     try {
       Disposer.dispose(myDisposable!!)
+      AndroidModuleInfo.setInstanceForTest(myFacet, null)
       // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
       // tests through IJ)
       myPalette = null
@@ -118,7 +129,7 @@ class DependencyManagerTest : AndroidTestCase() {
 
   fun testAndroidxDependencies() {
     // The project has no dependencies and NELE_USE_ANDROIDX_DEFAULT is set to true
-    assertTrue(myManager!!.useAndroidxDependencies())
+    assertTrue(myManager!!.useAndroidXDependencies())
 
     val gradlePropertiesFile = ApplicationManager.getApplication().runWriteAction(Computable<VirtualFile> {
       val projectDir = VfsUtil.findFileByIoFile(File(project.basePath), true)!!
@@ -133,12 +144,17 @@ class DependencyManagerTest : AndroidTestCase() {
       propertiesDoc.setText("android.useAndroidX=false")
       PsiDocumentManager.getInstance(project).commitAllDocuments()
     }
-    assertFalse(myManager!!.useAndroidxDependencies())
+    simulateProjectSync()
+    assertFalse(myManager!!.useAndroidXDependencies())
+    verify(myPanel!!).onDependenciesUpdated()
+
     ApplicationManager.getApplication().runWriteAction {
       propertiesDoc.setText("android.useAndroidX=true")
       PsiDocumentManager.getInstance(project).commitAllDocuments()
     }
-    assertTrue(myManager!!.useAndroidxDependencies())
+    simulateProjectSync()
+    assertTrue(myManager!!.useAndroidXDependencies())
+    verify(myPanel!!, times(2)).onDependenciesUpdated()
   }
 
   private fun simulateProjectSync() {

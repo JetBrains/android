@@ -23,6 +23,7 @@ import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
@@ -64,6 +65,11 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   public static AndroidModuleInfo getInstance(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     return facet != null ? getInstance(facet) : null;
+  }
+
+  @TestOnly
+  public static void setInstanceForTest(@NotNull AndroidFacet facet, @Nullable AndroidModuleInfo androidModuleInfo) {
+    facet.putUserData(KEY, androidModuleInfo);
   }
 
   private AndroidModuleInfo(@NotNull AndroidFacet facet) {

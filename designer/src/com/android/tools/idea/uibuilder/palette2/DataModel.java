@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.palette2;
 
+import static com.android.SdkConstants.ANDROIDX_PKG;
+import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
+import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.SdkConstants.MATERIAL2_PKG;
+import static com.android.SdkConstants.RECYCLER_VIEW;
+import static com.android.SdkConstants.SCROLL_VIEW;
+import static com.android.SdkConstants.SWITCH;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
@@ -25,16 +36,13 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Conditions;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
 
 /**
  * The Palette UI will interact exclusively with this data model.
@@ -79,7 +87,7 @@ public class DataModel {
         return true;
       }
 
-      return myDependencyManager.useAndroidxDependencies() ? isAndroidxTag : isOldSupportLibTag;
+      return myDependencyManager.useAndroidXDependencies() ? isAndroidxTag : isOldSupportLibTag;
     };
     Condition<Palette.Item> navFilter = item -> !item.getId().equals("NavHostFragment") || NavigationSchema.enableNavigationEditor();
     myFilterCondition = Conditions.and(Conditions.and(androidxFilter, myFilterPattern), navFilter);
