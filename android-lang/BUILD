@@ -51,7 +51,10 @@ iml_module(
     # do not sort: must match IML order
     test_runtime_deps = ["//tools/adt/idea/adt-branding:intellij.android.adt.branding"],
     test_srcs = ["testSrc"],
-    test_tags = ["slow"],
+    test_tags = [
+        "slow",
+        "no_test_mac",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
