@@ -380,6 +380,10 @@ public class StudioIcons {
     public static final Icon WRAP_TEXT = load("/studio/icons/logcat/toolbar/wrap-text.png"); // 16x16
   }
 
+  public static class Misc {
+    public static final Icon GRADLE_VARIABLE = load("/studio/icons/misc/gradle-variable.png"); // 16x16
+  }
+
   public static class NavEditor {
     public static class ExistingDestinations {
       public static final Icon ACTIVITY = load("/studio/icons/nav-editor/existing-destinations/activity.png"); // 146x188
