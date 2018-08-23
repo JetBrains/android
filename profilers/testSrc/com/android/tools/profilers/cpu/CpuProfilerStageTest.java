@@ -38,6 +38,7 @@ import com.google.common.collect.Iterators;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -338,6 +339,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(traceInfo.getTraceFilePath()).isEqualTo(fileName1);
   }
 
+  @Ignore("b/113102299")
   @Test
   public void traceFilesGeneratedPerTrace() {
     int firstTraceId = 30;
