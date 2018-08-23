@@ -21,6 +21,7 @@ import com.android.tools.analytics.Anonymizer
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.lint.checks.BuiltinIssueRegistry
 import com.android.tools.lint.client.api.LintDriver
@@ -48,7 +49,7 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
         lintFeedback = feedback
       }.build()
       lintAction = action
-    }
+    }.withProjectId(project)
     UsageTracker.log(event)
   }
 
@@ -80,14 +81,7 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
       lintSession = session
       javaProcessStats = CommonMetricsData.javaProcessStats
       jvmDetails = CommonMetricsData.jvmDetails
-
-      // We may not have raw project id's, for example when analyzing
-      // non-Android projects
-      val applicationId = computeApplicationId(project)
-      if (applicationId != null) {
-        rawProjectId = applicationId
-      }
-    }
+    }.withProjectId(project)
 
     UsageTracker.log(event)
   }

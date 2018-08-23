@@ -27,7 +27,7 @@ public class RunStatsService {
       // If this event was logged, then this is a no-op
       myLastRunStats.abort();
     }
-    myLastRunStats = new RunStats();
+    myLastRunStats = new RunStats(null);
     return myLastRunStats;
   }
 

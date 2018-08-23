@@ -18,6 +18,7 @@ package com.android.tools.idea.templates;
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
 import com.android.tools.idea.templates.recipe.Recipe;
@@ -247,10 +248,10 @@ public class Template {
                             KotlinSupport.newBuilder()
                                          .setIncludeKotlinSupport(kotlinSupport instanceof Boolean ? (Boolean)kotlinSupport : false)
                                          .setKotlinSupportVersion(kotlinVersion instanceof String ? (String)kotlinVersion : "unknown"));
-      UsageTracker.log(aseBuilder);
+      UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
       if (paramMap.get(ATTR_HAS_INSTANT_APP_WRAPPER) instanceof Boolean && (Boolean) paramMap.get(ATTR_HAS_INSTANT_APP_WRAPPER)) {
         aseBuilder.setTemplateRenderer(TemplateRenderer.ANDROID_INSTANT_APP_PROJECT);
-        UsageTracker.log(aseBuilder);
+        UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
       }
     }
 

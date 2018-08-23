@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiStateComponent;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -67,7 +68,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker.getApplicationId;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.ui.navigation.Place.goFurther;
 import static com.intellij.util.ui.UIUtil.*;
@@ -196,24 +196,19 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
     if (mySelectedConfigurable != null) {
       myUiState.lastEditedConfigurable = mySelectedConfigurable.getDisplayName();
 
-      String appId = getApplicationId(myProject);
-      if (appId != null) {
         PSDEvent.Builder psdEvent =
           PSDEvent
             .newBuilder()
             .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002);
         if (mySelectedConfigurable instanceof TrackedConfigurable) {
           ((TrackedConfigurable)mySelectedConfigurable).applyTo(psdEvent);
-        }
-        UsageTracker.log(
+        UsageTracker.log(UsageTrackerUtils.withProjectId(
           AndroidStudioEvent
             .newBuilder()
             .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
             .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
-            .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
-            .setRawProjectId(appId)
-            .setPsdEvent(psdEvent)
-        );
+            .setPsdEvent(psdEvent),
+          myProject));
       }
     }
 
@@ -432,23 +427,17 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
   @Override
   public void apply() throws ConfigurationException {
     long duration = System.currentTimeMillis() - myOpenTimeMs;
-    String appId = getApplicationId(myProject);
-    if (appId != null) {
-      UsageTracker.log(
-        AndroidStudioEvent
-          .newBuilder()
-          .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
-          .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
-          .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
-          .setRawProjectId(appId)
-          .setPsdEvent(
-            PSDEvent
-              .newBuilder()
-              .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
-              .setDurationMs(duration)
-          )
-      );
-    }
+    UsageTracker.log(UsageTrackerUtils.withProjectId(
+      AndroidStudioEvent
+        .newBuilder()
+        .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+        .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
+        .setPsdEvent(
+          PSDEvent
+            .newBuilder()
+            .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
+            .setDurationMs(duration)
+        ), myProject));
     boolean applied = false;
     for (Configurable configurable : myConfigurables.keySet()) {
       if (configurable.isModified()) {
@@ -591,18 +580,13 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
     add(changeListener);
     try {
       myOpenTimeMs = System.currentTimeMillis();
-      String appId = getApplicationId(myProject);
-      if (appId != null) {
-        UsageTracker.log(
+        UsageTracker.log(UsageTrackerUtils.withProjectId(
           AndroidStudioEvent
             .newBuilder()
             .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
             .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_OPEN)
-            .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
-            .setRawProjectId(appId)
-            .setPsdEvent(PSDEvent.newBuilder().setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002))
-        );
-      }
+            .setPsdEvent(PSDEvent.newBuilder().setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)),
+          myProject));
       myShowing = true;
       try {
       showDialog(() -> {

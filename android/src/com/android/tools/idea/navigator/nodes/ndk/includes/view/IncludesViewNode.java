@@ -25,6 +25,7 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.resolver.IncludeResol
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.util.VirtualFiles;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.CppHeadersViewEvent;
@@ -122,10 +123,13 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
       return getChildrenImpl();
     }
     finally {
-      UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CPP_HEADERS_VIEW_EVENT)
-                                       .setCppHeadersViewEvent(
-                                         CppHeadersViewEvent.newBuilder().setEventDurationMs(System.currentTimeMillis() - startTime)
-                                           .setType(CppHeadersViewEvent.CppHeadersViewEventType.OPEN_TOP_INCLUDES_NODE)));
+      UsageTracker.log(UsageTrackerUtils.withProjectId(
+                         AndroidStudioEvent.newBuilder()
+                          .setKind(AndroidStudioEvent.EventKind.CPP_HEADERS_VIEW_EVENT)
+                          .setCppHeadersViewEvent(CppHeadersViewEvent.newBuilder()
+                            .setEventDurationMs(System.currentTimeMillis() - startTime)
+                            .setType(CppHeadersViewEvent.CppHeadersViewEventType.OPEN_TOP_INCLUDES_NODE)),
+                         myProject));
     }
   }
 

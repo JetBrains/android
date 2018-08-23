@@ -16,7 +16,6 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker.getApplicationId
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -83,8 +82,7 @@ open class ProjectSizeUsageTracker(project: Project) : AbstractProjectComponent(
             val builder = AndroidStudioEvent
               .newBuilder()
               .setKind(AndroidStudioEvent.EventKind.INTELLIJ_PROJECT_SIZE_STATS)
-            val appId = getApplicationId(myProject)
-            appId?.let { builder.setProjectId(AnonymizerUtil.anonymizeUtf8(appId)).rawProjectId = appId }
+              .withProjectId(myProject)
             for (stats in fileCountStats) {
               builder.addIntellijProjectSizeStats(
                 IntellijProjectSizeStats.newBuilder()
