@@ -15,6 +15,29 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_CARD_ELEVATION;
+import static com.android.SdkConstants.ATTR_ELEVATION;
+import static com.android.SdkConstants.ATTR_FONT_FAMILY;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.ATTR_ON_CLICK;
+import static com.android.SdkConstants.ATTR_PADDING_BOTTOM;
+import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.ATTR_SRC_COMPAT;
+import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.SdkConstants.ATTR_VISIBILITY;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.adtui.ptable.StarState;
@@ -23,6 +46,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.LightResourceClassService;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -30,18 +54,12 @@ import com.google.common.collect.Table;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatcher;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import org.mockito.Mockito;
 
 public class NlPropertiesTest extends PropertyTestCase {
   private static final String APPCOMPAT_IMAGE_VIEW = "android.support.v7.widget.AppCompatImageView";
@@ -415,8 +433,10 @@ public class NlPropertiesTest extends PropertyTestCase {
     ProjectSystemService projectSystemService = mock(ProjectSystemService.class);
     AndroidProjectSystem androidProjectSystem = mock(AndroidProjectSystem.class);
     AndroidModuleSystem androidModuleSystem = mock(AndroidModuleSystem.class);
+    LightResourceClassService lightResourceClassService = mock(LightResourceClassService.class, Mockito.RETURNS_SMART_NULLS);
     when(projectSystemService.getProjectSystem()).thenReturn(androidProjectSystem);
     when(androidProjectSystem.getModuleSystem(any(Module.class))).thenReturn(androidModuleSystem);
+    when(androidProjectSystem.getLightResourceClassService()).thenReturn(lightResourceClassService);
     ArgumentMatcher<GradleCoordinate> appCompatMatcher =
       arg ->  arg instanceof GradleCoordinate && arg.isSameArtifact(appCompatCoordinate);
     when(androidModuleSystem.getResolvedDependency(argThat(appCompatMatcher))).thenReturn(appCompatCoordinate);

@@ -26,7 +26,10 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
+import com.intellij.psi.PsiPackage
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.AppUIUtil
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
@@ -159,6 +162,11 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
   override fun getAugmentRClasses() = true
 
   override fun getLightResourceClassService(): LightResourceClassService {
-    TODO("not implemented")
+    return object : LightResourceClassService {
+      override fun getLightRClasses(qualifiedName: String, scope: GlobalSearchScope) = emptyList<PsiClass>()
+      override fun getLightRClassesAccessibleFromModule(module: Module) = emptyList<PsiClass>()
+      override fun getLightRClassesContainingModuleResources(module: Module) = emptyList<PsiClass>()
+      override fun findRClassPackage(qualifiedName: String): PsiPackage? = null
+    }
   }
 }
