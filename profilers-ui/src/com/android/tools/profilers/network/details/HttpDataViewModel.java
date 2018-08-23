@@ -17,7 +17,6 @@ package com.android.tools.profilers.network.details;
 
 import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 
-import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.profilers.ContentType;
 import com.android.tools.profilers.IdeProfilerComponents;
@@ -27,6 +26,7 @@ import com.android.tools.profilers.network.httpdata.Payload;
 import com.android.tools.profilers.stacktrace.DataViewer;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBEmptyBorder;
+import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -171,8 +171,8 @@ final class HttpDataViewModel {
     int originalHeight = viewer.getDimension() != null ? (int)viewer.getDimension().getHeight() : minimumHeight;
     viewerComponent.setMinimumSize(new Dimension(1, Math.min(minimumHeight, originalHeight)));
     viewerComponent.setBorder(PAYLOAD_BORDER);
-    JComponent payloadComponent = new JPanel(new TabularLayout("*"));
-    payloadComponent.add(viewerComponent, new TabularLayout.Constraint(0, 0));
+    JComponent payloadComponent = new JPanel(new BorderLayout());
+    payloadComponent.add(viewerComponent);
     return payloadComponent;
   }
 
