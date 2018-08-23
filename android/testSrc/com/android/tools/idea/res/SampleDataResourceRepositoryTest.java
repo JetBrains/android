@@ -27,6 +27,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -194,9 +195,8 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(resolver.getResolvedResource(elementRef));
   }
 
-  public void testSampleDataFileInvalidation() {
+  public void testSampleDataFileInvalidation_addAndDeleteFile() throws IOException {
     SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
-
     assertTrue(onlyProjectSources(repo).isEmpty());
 
     PsiFile strings = myFixture.addFileToProject("sampledata/strings",
@@ -206,28 +206,51 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     assertEquals(1, onlyProjectSources(repo).size());
     assertEquals(1, onlyProjectSources(repo, "strings").size());
 
-    myFixture.addFileToProject("sampledata/strings2",
-                               "string1\n");
-    assertEquals(2, onlyProjectSources(repo).size());
+    WriteAction.runAndWait(() -> strings.getVirtualFile().delete(null));
+    assertTrue(onlyProjectSources(repo).isEmpty());
+  }
 
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      try {
-        strings.getVirtualFile().delete(null);
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-      }
-    });
+  public void testSampleDataFileInvalidation_deleteSampleDataDirectory() throws IOException {
+    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+
+    myFixture.addFileToProject("sampledata/strings", "string1\n");
+    VirtualFile sampleDir = toVirtualFile(myModuleSystem.getSampleDataDirectory());
     assertEquals(1, onlyProjectSources(repo).size());
 
-    VirtualFile sampleDir = toVirtualFile(myModuleSystem.getSampleDataDirectory());
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      try {
-        sampleDir.delete(null);
-      }
-      catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+    WriteAction.runAndWait(() -> sampleDir.delete(null));
+    assertTrue(onlyProjectSources(repo).isEmpty());
+  }
+
+  public void testSampleDataFileInvalidation_moveFiles() throws IOException {
+    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+
+    VirtualFile sampleDir = toVirtualFile(
+      WriteAction.computeAndWait(() -> myModuleSystem.getOrCreateSampleDataDirectory())
+    );
+    PsiFile stringsOutside = myFixture.addFileToProject("strings", "string1\n");
+
+    // move strings into sample data directory
+    WriteAction.runAndWait(() -> stringsOutside.getVirtualFile().move(null, sampleDir));
+    assertEquals(1, onlyProjectSources(repo).size());
+
+    // move strings out of sample data directory
+    VirtualFile stringsInside = sampleDir.findChild(stringsOutside.getName());
+    WriteAction.runAndWait(() -> stringsInside.move(null, sampleDir.getParent()));
+    assertTrue(onlyProjectSources(repo).isEmpty());
+  }
+
+  public void testSampleDataFileInvalidation_moveSampleDataDirectory() throws IOException {
+    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+
+    VirtualFile sampleDir = toVirtualFile(
+      WriteAction.computeAndWait(() -> myModuleSystem.getOrCreateSampleDataDirectory())
+    );
+    myFixture.addFileToProject("sampledata/strings", "string1\n");
+    assertEquals(1, onlyProjectSources(repo).size());
+
+    WriteAction.runAndWait(() -> {
+      VirtualFile newParent = sampleDir.getParent().createChildDirectory(null, "somewhere_else");
+      sampleDir.move(null, newParent);
     });
     assertTrue(onlyProjectSources(repo).isEmpty());
   }
